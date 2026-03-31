@@ -177,3 +177,19 @@ export const initials = (name: string = ""): string =>
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
+
+
+export const formatPeriod = (iso: string, granularity: string): string => {
+      const d = new Date(iso);
+      if (granularity === "hourly") {
+        return d.toLocaleString("en-GB", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+        // → "21 Mar, 22:00"
+      }
+      if (granularity === "monthly") {
+        return d.toLocaleString("en-GB", { month: "short", year: "numeric" });
+        // → "Mar 2026"
+      }
+      // daily
+      return d.toLocaleString("en-GB", { month: "short", day: "numeric" });
+      // → "21 Mar"
+    }
