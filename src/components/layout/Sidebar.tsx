@@ -3,6 +3,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import {
   Coffee,
+  Tag,
+  ShoppingBag,
   Building2,
   Users,
   LayoutDashboard,
@@ -106,6 +108,20 @@ const NAV = [
         icon: BarChart2,
         label: "Analytics",
         sub: "Reports & trends",
+        roles: ["super_admin", "org_admin", "branch_manager"],
+      },
+      {
+        to: "/orders",
+        icon: ShoppingBag,
+        label: "Orders",
+        sub: "Browse by shift",
+        roles: ["super_admin", "org_admin", "branch_manager"],
+      },
+      {
+        to: "/discounts",
+        icon: Tag,
+        label: "Discounts",
+        sub: "Preset discounts",
         roles: ["super_admin", "org_admin", "branch_manager"],
       },
     ],

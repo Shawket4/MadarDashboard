@@ -1,862 +1,1125 @@
 #!/usr/bin/env bash
 # =============================================================================
-#  Rue POS Dashboard — Design Patch
-#  Fixes:
-#   1. Sidebar labels invisible (inactive items: text-muted-foreground on
-#      bg-muted icon, label inherits muted color → invisible in dark mode)
-#   2. Dark mode CSS variable issues (background too dark, borders invisible,
-#      muted too close to background)
-#   3. Contrast issues across all screens (muted-foreground too light,
-#      card/background delta too small in dark, destructive too dark)
-#   4. Sidebar inactive icon bg (bg-muted makes icon disappear)
-#   5. Fake system-status panel wired to a real /health fetch
-#   6. DataTable duplicate: parts 4-7 DataTable now imports from ui/ instead
-#      of duplicating; shared/DataTable.tsx becomes a re-export shim
-#
-#  Run from the React project root (where package.json lives).
+#  Rue POS — React dashboard patch
+#  Adds: Discounts page (CRUD) + Orders page (with new fields)
+#  Updates: App.tsx router + Sidebar.tsx nav
+#  Run from the root of the React project (where package.json lives)
 # =============================================================================
-set -euo pipefail
+set -e
 
-BOLD='\033[1m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; YELLOW='\033[1;33m'; RESET='\033[0m'
-log()  { echo -e "${CYAN}[patch]${RESET} $*"; }
-ok()   { echo -e "${GREEN}[done] ${RESET} $*"; }
-warn() { echo -e "${YELLOW}[warn] ${RESET} $*"; }
+echo "=== Rue POS — React dashboard patch ==="
 
-[[ ! -f "package.json" ]] && { echo "ERROR: Run from React project root."; exit 1; }
+# ─────────────────────────────────────────────────────────────────────────────
+# 1. Add Discount type to types/index.ts
+# ─────────────────────────────────────────────────────────────────────────────
+python3 - << 'PYEOF'
+import pathlib
 
-# ===========================================================================
-#  1. src/index.css — Fix CSS variables for dark mode + contrast
-# ===========================================================================
-log "Patching src/index.css (CSS variables, dark mode, contrast) ..."
-cat > src/index.css << 'CSS'
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+path = pathlib.Path("src/types/index.ts")
+src  = path.read_text()
 
-/* ── Cairo font baseline ─────────────────────────────────────── */
-* {
-  font-family: "Cairo", sans-serif;
-  -webkit-tap-highlight-color: transparent;
-  box-sizing: border-box;
+discount_type = '''
+// ── Discounts ─────────────────────────────────────────────────────────────────
+export interface Discount {
+  id:         string;
+  org_id:     string;
+  name:       string;
+  dtype:      "percentage" | "fixed";
+  value:      number;
+  is_active:  boolean;
+  created_at: string;
+  updated_at: string;
 }
+'''
 
-html, body, #root {
-  overflow-x: hidden;
-  overscroll-behavior-y: none;
-}
+if "Discount" not in src:
+    # Insert before the last export
+    src = src + "\n" + discount_type
+    path.write_text(src)
+    print("types/index.ts: Discount type added")
+else:
+    print("types/index.ts: Discount type already present, skipping")
+PYEOF
 
-body { position: relative; }
+echo "✓ types/index.ts"
 
-/* ── shadcn CSS variables — Light mode ───────────────────────── */
-:root {
-  /* Slightly warm off-white — easy on the eyes, clear separation from cards */
-  --background:          220 20% 97%;
-  --foreground:          222 47% 10%;
+# ─────────────────────────────────────────────────────────────────────────────
+# 2. Add discounts API
+# ─────────────────────────────────────────────────────────────────────────────
+cat > src/api/discounts.ts << 'EOF'
+import client from "@/lib/client";
+import type { Discount } from "@/types";
 
-  --card:                0 0% 100%;
-  --card-foreground:     222 47% 10%;
+export const getDiscounts    = (orgId: string) =>
+  client.get<Discount[]>("/discounts", { params: { org_id: orgId } });
 
-  --popover:             0 0% 100%;
-  --popover-foreground:  222 47% 10%;
+export const createDiscount  = (data: {
+  org_id: string; name: string; dtype: string; value: number; is_active?: boolean;
+}) => client.post<Discount>("/discounts", data);
 
-  /* Brand blue: #1a56db */
-  --primary:             221 78% 47%;
-  --primary-foreground:  0 0% 100%;
+export const updateDiscount  = (id: string, data: {
+  name?: string; dtype?: string; value?: number; is_active?: boolean;
+}) => client.patch<Discount>(`/discounts/${id}`, data);
 
-  --secondary:           214 30% 92%;
-  --secondary-foreground:222 47% 15%;
+export const deleteDiscount  = (id: string) =>
+  client.delete(`/discounts/${id}`);
+EOF
 
-  /* Muted — used for subtle backgrounds (sidebar icons, input bg, etc.) */
-  --muted:               214 25% 93%;
-  /* ↑ Raised lightness so bg-muted is clearly lighter than card */
-  --muted-foreground:    215 20% 38%;
-  /* ↑ Darker than original (47% → 38%) — fixes invisible labels */
+echo "✓ src/api/discounts.ts"
 
-  --accent:              221 78% 93%;
-  --accent-foreground:   221 78% 32%;
-  /* ↑ Darker accent-foreground for better contrast on accent bg */
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Create Discounts page
+# ─────────────────────────────────────────────────────────────────────────────
+mkdir -p src/pages/discounts
 
-  --destructive:         0 84% 56%;
-  --destructive-foreground: 0 0% 100%;
-
-  --border:              214 25% 87%;
-  --input:               214 25% 87%;
-  --ring:                221 78% 47%;
-
-  --radius: 0.625rem;
-
-  /* Chart palette */
-  --chart-1: 221 78% 47%;
-  --chart-2: 160 60% 38%;
-  --chart-3: 258 58% 52%;
-  --chart-4: 38 80% 48%;
-  --chart-5: 4 84% 58%;
-}
-
-/* ── Dark mode ───────────────────────────────────────────────── */
-.dark {
-  /* Background: slightly lighter than before so it's not pure black */
-  --background:          222 25% 10%;
-  --foreground:          210 35% 94%;
-
-  /* Card must be clearly distinct from background */
-  --card:                222 25% 14%;
-  --card-foreground:     210 35% 94%;
-
-  --popover:             222 25% 14%;
-  --popover-foreground:  210 35% 94%;
-
-  /* Primary stays vivid in dark */
-  --primary:             221 78% 62%;
-  --primary-foreground:  0 0% 100%;
-
-  /* Secondary — clearly above card */
-  --secondary:           217 25% 22%;
-  --secondary-foreground:210 35% 90%;
-
-  /* Muted — used for sidebar icon backgrounds, table headers, etc.
-     Must be visibly different from both background AND card */
-  --muted:               217 22% 20%;
-  --muted-foreground:    215 18% 62%;
-  /* ↑ Raised from 65% to 62% — enough contrast on card (14%) and bg (10%) */
-
-  --accent:              221 60% 25%;
-  --accent-foreground:   221 78% 82%;
-  /* ↑ Brighter accent-foreground so active nav labels are clearly readable */
-
-  --destructive:         0 65% 52%;
-  --destructive-foreground: 0 0% 100%;
-
-  /* Borders clearly visible in dark */
-  --border:              217 22% 24%;
-  --input:               217 22% 24%;
-  --ring:                221 78% 62%;
-
-  /* Chart palette — slightly brighter for dark backgrounds */
-  --chart-1: 221 78% 62%;
-  --chart-2: 160 60% 52%;
-  --chart-3: 258 58% 65%;
-  --chart-4: 38 80% 62%;
-  --chart-5: 4 84% 65%;
-}
-
-/* ── Brand gradient utility ──────────────────────────────────── */
-.brand-gradient {
-  background: linear-gradient(135deg, #1a56db 0%, #3b28cc 100%);
-}
-
-.brand-gradient-text {
-  background: linear-gradient(135deg, #1a56db 0%, #3b28cc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ── Scrollbar styling ───────────────────────────────────────── */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 99px;
-}
-::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
-
-/* ── RTL utilities ───────────────────────────────────────────── */
-[dir="rtl"] .rtl-mirror { transform: scaleX(-1); }
-[dir="rtl"] .ltr-only   { display: none; }
-[dir="ltr"] .rtl-only   { display: none; }
-
-/* ── Safe area ───────────────────────────────────────────────── */
-.pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
-.pt-safe { padding-top: env(safe-area-inset-top); }
-
-/* ── Smooth momentum scrolling on iOS ───────────────────────── */
-.scroll-ios { -webkit-overflow-scrolling: touch; }
-
-/* ── Table row hover ─────────────────────────────────────────── */
-.table-row-hover:hover { background: hsl(var(--muted) / 0.5); }
-
-/* ── Sidebar active link gradient indicator ──────────────────── */
-.nav-active-indicator {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 60%;
-  border-radius: 0 3px 3px 0;
-  background: linear-gradient(180deg, #1a56db, #3b28cc);
-}
-
-[dir="rtl"] .nav-active-indicator {
-  left: auto;
-  right: 0;
-  border-radius: 3px 0 0 3px;
-}
-
-/* ── Skeleton pulse ──────────────────────────────────────────── */
-@keyframes skeleton-pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
-}
-.skeleton-pulse { animation: skeleton-pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
-
-/* ── Ensure badge/role colours are readable in both modes ────── */
-/* These override the inline color classes when contrast is insufficient */
-.dark .badge-role-teller         { color: hsl(38 80% 75%);  border-color: hsl(38 50% 40%); }
-.dark .badge-role-branch_manager { color: hsl(258 80% 78%); border-color: hsl(258 50% 40%); }
-.dark .badge-role-org_admin      { color: hsl(221 80% 78%); border-color: hsl(221 50% 40%); }
-.dark .badge-role-super_admin    { color: hsl(160 70% 68%); border-color: hsl(160 50% 35%); }
-CSS
-ok "src/index.css"
-
-# ===========================================================================
-#  2. src/components/layout/Sidebar.tsx — Fix invisible labels + icon bg
-#
-#  Root cause: inactive nav items use "text-muted-foreground" on the
-#  NavLink, and the icon wrapper uses "bg-muted text-muted-foreground".
-#  In dark mode the sidebar bg IS the muted background, so text disappears.
-#
-#  Fix:
-#   • NavLink inactive: text-foreground/70 (visible in both modes)
-#   • Icon wrapper inactive: bg-secondary text-foreground/60
-#     (secondary is clearly above the sidebar background)
-#   • Active state: stays as-is (brand-gradient + accent bg is fine)
-# ===========================================================================
-log "Patching src/components/layout/Sidebar.tsx ..."
-cat > src/components/layout/Sidebar.tsx << 'TSX'
+cat > src/pages/discounts/Discounts.tsx << 'EOF'
 import React, { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { useTheme } from "next-themes";
-import {
-  Coffee, Building2, Users, LayoutDashboard, LogOut,
-  Search, X, GitBranch, Package, BookOpen, Clock,
-  BarChart2, Shield, Sun, Moon, Languages, ChevronRight,
-  PanelLeftClose, PanelLeftOpen,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { type ColumnDef } from "@tanstack/react-table";
+import { Plus, Tag, Edit2, Trash2, CheckCircle, XCircle, Percent, DollarSign } from "lucide-react";
+import { toast } from "sonner";
+import { PageShell, Card } from "@/components/ui/page-shell";
+import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+  DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import * as discountsApi from "@/api/discounts";
+import { getErrorMessage } from "@/lib/client";
 import { useAuthStore } from "@/store/auth";
 import { useAppStore } from "@/store/app";
-import { fmtRole, ROLE_COLORS, initials } from "@/utils/format";
+import { egp } from "@/utils/format";
+import type { Discount } from "@/types";
 
-const NAV = [
-  {
-    group: "Overview",
-    items: [
-      { to: "/", icon: LayoutDashboard, label: "Dashboard", sub: "System overview",
-        roles: ["super_admin","org_admin","branch_manager","teller"] },
-    ],
-  },
-  {
-    group: "Management",
-    items: [
-      { to: "/orgs",      icon: Building2, label: "Organizations", sub: "Manage coffee brands",  roles: ["super_admin"] },
-      { to: "/users",     icon: Users,     label: "Users",         sub: "Staff accounts",        roles: ["super_admin","org_admin","branch_manager"] },
-      { to: "/branches",  icon: GitBranch, label: "Branches",      sub: "Manage branches",       roles: ["super_admin","org_admin","branch_manager"] },
-      { to: "/menu",      icon: Coffee,    label: "Menu",          sub: "Items & categories",    roles: ["super_admin","org_admin","branch_manager"] },
-      { to: "/inventory", icon: Package,   label: "Inventory",     sub: "Stock & transfers",     roles: ["super_admin","org_admin","branch_manager"] },
-      { to: "/recipes",   icon: BookOpen,  label: "Recipes",       sub: "Drink ingredients",     roles: ["super_admin","org_admin","branch_manager"] },
-      { to: "/shifts",    icon: Clock,     label: "Shifts",        sub: "Reports & management",  roles: ["super_admin","org_admin","branch_manager"] },
-      { to: "/analytics", icon: BarChart2, label: "Analytics",     sub: "Reports & trends",      roles: ["super_admin","org_admin","branch_manager"] },
-      { to: "/permissions/select", icon: Shield, label: "Permissions", sub: "Access control",   roles: ["super_admin","org_admin"] },
-    ],
-  },
-] as const;
+// ── Form dialog ───────────────────────────────────────────────────────────────
+function DiscountFormDialog({
+  open, onClose, orgId, editDiscount,
+}: {
+  open:          boolean;
+  onClose:       () => void;
+  orgId:         string;
+  editDiscount?: Discount | null;
+}) {
+  const qc = useQueryClient();
+  const [name,      setName]      = useState(editDiscount?.name  ?? "");
+  const [dtype,     setDtype]     = useState<"percentage" | "fixed">(
+    (editDiscount?.dtype as "percentage" | "fixed") ?? "percentage"
+  );
+  const [value,     setValue]     = useState(
+    editDiscount ? String(editDiscount.dtype === "percentage"
+      ? editDiscount.value
+      : editDiscount.value / 100)
+    : ""
+  );
+  const [isActive,  setIsActive]  = useState(editDiscount?.is_active ?? true);
 
-interface SidebarContentProps {
-  collapsed: boolean;
-  onClose?: () => void;
-}
+  React.useEffect(() => {
+    if (editDiscount) {
+      setName(editDiscount.name);
+      setDtype(editDiscount.dtype as "percentage" | "fixed");
+      setValue(editDiscount.dtype === "percentage"
+        ? String(editDiscount.value)
+        : String(editDiscount.value / 100));
+      setIsActive(editDiscount.is_active);
+    } else {
+      setName(""); setDtype("percentage"); setValue(""); setIsActive(true);
+    }
+  }, [editDiscount, open]);
 
-function SidebarContent({ collapsed, onClose }: SidebarContentProps) {
-  const [search, setSearch] = useState("");
-  const user     = useAuthStore((s) => s.user);
-  const signOut  = useAuthStore((s) => s.signOut);
-  const language = useAppStore((s) => s.language);
-  const setLang  = useAppStore((s) => s.setLanguage);
-  const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
+  const { mutate, isPending } = useMutation({
+    mutationFn: () => {
+      // value stored as integer: % direct, fixed as piastres
+      const intValue = dtype === "percentage"
+        ? parseInt(value, 10)
+        : Math.round(parseFloat(value) * 100);
 
-  const handleSignOut = () => { signOut(); navigate("/login"); };
-  const toggleLang    = () => setLang(language === "en" ? "ar" : "en");
-  const toggleTheme   = () => setTheme(theme === "dark" ? "light" : "dark");
+      const payload = { org_id: orgId, name, dtype, value: intValue, is_active: isActive };
+      return editDiscount
+        ? discountsApi.updateDiscount(editDiscount.id, { name, dtype, value: intValue, is_active: isActive })
+        : discountsApi.createDiscount(payload);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["discounts"] });
+      toast.success(editDiscount ? "Discount updated" : "Discount created");
+      onClose();
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  });
 
-  const filtered = NAV.map((g) => ({
-    ...g,
-    items: g.items.filter(
-      (i) =>
-        i.roles.includes(user?.role ?? "") &&
-        (search === "" || i.label.toLowerCase().includes(search.toLowerCase())),
-    ),
-  })).filter((g) => g.items.length > 0);
+  const displayValue = dtype === "percentage"
+    ? `${value}% off`
+    : value ? `EGP ${parseFloat(value).toFixed(0)} off` : "";
 
   return (
-    <TooltipProvider delayDuration={0}>
-      <div className="flex flex-col h-full overflow-hidden">
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{editDiscount ? "Edit Discount" : "New Discount"}</DialogTitle>
+          <DialogDescription>
+            {editDiscount ? "Update this discount preset." : "Create a reusable discount for tellers to apply at checkout."}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="px-6 py-4 space-y-4">
+          {/* Name */}
+          <div className="space-y-2">
+            <Label>Discount Name</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Staff Discount, Promo 10%"
+            />
+          </div>
 
-        {/* Logo ─────────────────────────────────────────────── */}
-        <div className={cn(
-          "flex items-center border-b border-border flex-shrink-0",
-          collapsed ? "h-14 justify-center px-2" : "h-14 px-4 justify-between",
-        )}>
-          {!collapsed && (
-            <img src="/TheRue.png" alt="The Rue" className="h-7 object-contain" />
-          )}
-          {collapsed && (
-            <div className="w-8 h-8 brand-gradient rounded-xl flex items-center justify-center">
-              <Coffee size={16} className="text-white" />
+          {/* Type + Value */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <Select value={dtype} onValueChange={(v) => setDtype(v as "percentage" | "fixed")}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percentage">
+                    <span className="flex items-center gap-2"><Percent size={13} /> Percentage</span>
+                  </SelectItem>
+                  <SelectItem value="fixed">
+                    <span className="flex items-center gap-2"><DollarSign size={13} /> Fixed Amount</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
-          {onClose && !collapsed && (
-            <Button variant="ghost" size="icon-sm" onClick={onClose} className="lg:hidden">
-              <X size={16} />
-            </Button>
-          )}
-        </div>
-
-        {/* Search — hidden when collapsed ──────────────────── */}
-        {!collapsed && (
-          <div className="px-3 py-2 border-b border-border flex-shrink-0">
-            <div className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2">
-              <Search size={13} className="text-muted-foreground flex-shrink-0" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search… ⌘K"
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground text-foreground min-w-0"
+            <div className="space-y-2">
+              <Label>{dtype === "percentage" ? "Percentage (%)" : "Amount (EGP)"}</Label>
+              <Input
+                type="number"
+                step={dtype === "percentage" ? "1" : "0.5"}
+                min="0"
+                max={dtype === "percentage" ? "100" : undefined}
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder={dtype === "percentage" ? "e.g. 10" : "e.g. 5.00"}
               />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X size={13} />
-                </button>
-              )}
             </div>
           </div>
-        )}
 
-        {/* Nav ──────────────────────────────────────────────── */}
-        <nav className="flex-1 overflow-y-auto py-2 px-2 no-scrollbar">
-          {filtered.map((group) => (
-            <div key={group.group} className="mb-3">
-              {!collapsed && (
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 mb-1">
-                  {group.group}
-                </p>
-              )}
-              <div className="space-y-0.5">
-                {group.items.map(({ to, icon: Icon, label, sub }) => (
-                  <Tooltip key={to} disableHoverableContent={!collapsed}>
-                    <TooltipTrigger asChild>
-                      <NavLink
-                        to={to}
-                        end={to === "/"}
-                        onClick={onClose}
-                        className={({ isActive }) =>
-                          cn(
-                            "relative flex items-center gap-3 rounded-xl transition-all duration-150",
-                            collapsed ? "justify-center h-10 w-10 mx-auto" : "px-3 py-2.5",
-                            isActive
-                              // Active: accent background, vivid text
-                              ? "bg-accent text-accent-foreground font-semibold"
-                              // Inactive: use text-foreground at reduced opacity so it's
-                              // always readable regardless of sidebar bg colour
-                              : "text-foreground/75 hover:bg-muted hover:text-foreground",
-                          )
-                        }
-                      >
-                        {({ isActive }) => (
-                          <>
-                            {isActive && !collapsed && (
-                              <span className="nav-active-indicator" />
-                            )}
-                            {/* Icon wrapper ───────────────────────────── */}
-                            <div className={cn(
-                              "flex items-center justify-center rounded-lg flex-shrink-0 transition-all",
-                              collapsed ? "w-8 h-8" : "w-7 h-7",
-                              isActive
-                                // Active: brand gradient icon
-                                ? "brand-gradient text-white shadow-sm"
-                                // Inactive: secondary bg (clearly above sidebar bg)
-                                //           icon inherits foreground colour from NavLink
-                                : "bg-secondary text-foreground/60",
-                            )}>
-                              <Icon size={collapsed ? 15 : 14} />
-                            </div>
-
-                            {/* Label + sub ─────────────────────────────── */}
-                            {!collapsed && (
-                              <div className="flex-1 min-w-0">
-                                <p className={cn(
-                                  "text-sm leading-tight truncate",
-                                  isActive ? "font-semibold text-accent-foreground" : "font-medium text-foreground/80",
-                                )}>{label}</p>
-                                <p className="text-[11px] text-muted-foreground truncate">{sub}</p>
-                              </div>
-                            )}
-                            {!collapsed && isActive && (
-                              <ChevronRight size={12} className="text-primary flex-shrink-0" />
-                            )}
-                          </>
-                        )}
-                      </NavLink>
-                    </TooltipTrigger>
-                    {collapsed && (
-                      <TooltipContent side="right">
-                        <p className="font-medium">{label}</p>
-                        <p className="text-xs text-muted-foreground">{sub}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                ))}
+          {/* Preview */}
+          {displayValue && (
+            <div className="bg-accent rounded-xl px-4 py-3 flex items-center gap-3">
+              <Tag size={15} className="text-accent-foreground flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold">{name || "Discount"}</p>
+                <p className="text-xs text-muted-foreground">{displayValue}</p>
               </div>
             </div>
-          ))}
-        </nav>
+          )}
 
-        {/* Footer ───────────────────────────────────────────── */}
-        <div className={cn("flex-shrink-0 border-t border-border", collapsed ? "p-2" : "p-3")}>
-          {/* Theme + Language */}
-          <div className={cn(
-            "flex mb-2 gap-1",
-            collapsed ? "flex-col items-center" : "items-center justify-between",
-          )}>
-            {!collapsed && <span className="text-xs text-muted-foreground">Appearance</span>}
-            <div className="flex gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" onClick={toggleTheme}>
-                    {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side={collapsed ? "right" : "top"}>
-                  {theme === "dark" ? "Light mode" : "Dark mode"}
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" onClick={toggleLang}>
-                    <Languages size={14} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side={collapsed ? "right" : "top"}>
-                  {language === "en" ? "Switch to Arabic" : "Switch to English"}
-                </TooltipContent>
-              </Tooltip>
+          {/* Active toggle */}
+          <div className="flex items-center justify-between rounded-xl bg-muted p-3">
+            <div>
+              <p className="text-sm font-medium">Active</p>
+              <p className="text-xs text-muted-foreground">Inactive discounts won't appear in the POS app</p>
+            </div>
+            <Switch checked={isActive} onCheckedChange={setIsActive} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button
+            loading={isPending}
+            onClick={() => mutate()}
+            disabled={!name || !value}
+          >
+            {editDiscount ? "Save Changes" : "Create Discount"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Main Discounts page ───────────────────────────────────────────────────────
+export default function Discounts() {
+  const [formOpen,      setFormOpen]      = useState(false);
+  const [editDiscount,  setEditDiscount]  = useState<Discount | null>(null);
+
+  const qc         = useQueryClient();
+  const authUser   = useAuthStore((s) => s.user);
+  const selectedOrg = useAppStore((s) => s.selectedOrgId);
+  const orgId      = selectedOrg ?? authUser?.org_id ?? "";
+
+  const { data: discounts = [], isLoading } = useQuery({
+    queryKey: ["discounts", orgId],
+    queryFn:  () => discountsApi.getDiscounts(orgId).then((r) => r.data),
+    enabled:  !!orgId,
+  });
+
+  const { mutate: del } = useMutation({
+    mutationFn: (id: string) => discountsApi.deleteDiscount(id),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: ["discounts"] }); toast.success("Discount deleted"); },
+    onError:    (e) => toast.error(getErrorMessage(e)),
+  });
+
+  const { mutate: toggleActive } = useMutation({
+    mutationFn: (d: Discount) =>
+      discountsApi.updateDiscount(d.id, { is_active: !d.is_active }),
+    onSuccess:  () => qc.invalidateQueries({ queryKey: ["discounts"] }),
+    onError:    (e) => toast.error(getErrorMessage(e)),
+  });
+
+  const columns: ColumnDef<Discount>[] = [
+    {
+      accessorKey: "name",
+      header:      "Discount",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+            row.original.dtype === "percentage"
+              ? "bg-violet-100 dark:bg-violet-950/50"
+              : "bg-green-100 dark:bg-green-950/50"
+          }`}>
+            {row.original.dtype === "percentage"
+              ? <Percent size={15} className="text-violet-600" />
+              : <DollarSign size={15} className="text-green-600" />}
+          </div>
+          <div>
+            <p className="font-semibold text-sm">{row.original.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {row.original.dtype === "percentage"
+                ? `${row.original.value}% off subtotal`
+                : `${egp(row.original.value)} off subtotal`}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "dtype",
+      header:      "Type",
+      cell: ({ row }) => (
+        <Badge variant={row.original.dtype === "percentage" ? "info" : "success"}>
+          {row.original.dtype === "percentage" ? "Percentage" : "Fixed Amount"}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "value",
+      header:      "Value",
+      cell: ({ row }) => (
+        <span className="font-semibold tabular-nums text-sm">
+          {row.original.dtype === "percentage"
+            ? `${row.original.value}%`
+            : egp(row.original.value)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "is_active",
+      header:      "Status",
+      cell: ({ row }) => (
+        <button onClick={(e) => { e.stopPropagation(); toggleActive(row.original); }}>
+          {row.original.is_active
+            ? <Badge variant="success"><CheckCircle size={11} /> Active</Badge>
+            : <Badge variant="outline"><XCircle size={11} /> Inactive</Badge>}
+        </button>
+      ),
+    },
+    {
+      id:     "actions",
+      header: "",
+      cell:   ({ row }) => (
+        <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
+          <Button
+            variant="ghost" size="icon-sm"
+            onClick={() => { setEditDiscount(row.original); setFormOpen(true); }}
+          >
+            <Edit2 size={13} />
+          </Button>
+          <Button
+            variant="ghost" size="icon-sm"
+            className="text-destructive hover:text-destructive"
+            onClick={() => {
+              if (confirm(`Delete "${row.original.name}"?`)) del(row.original.id);
+            }}
+          >
+            <Trash2 size={13} />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const active   = discounts.filter((d) => d.is_active).length;
+  const inactive = discounts.filter((d) => !d.is_active).length;
+  const pct      = discounts.filter((d) => d.dtype === "percentage").length;
+  const fixed    = discounts.filter((d) => d.dtype === "fixed").length;
+
+  return (
+    <PageShell
+      title="Discounts"
+      description="Manage discount presets available to tellers at checkout"
+      action={
+        <Button onClick={() => { setEditDiscount(null); setFormOpen(true); }}>
+          <Plus size={15} /> New Discount
+        </Button>
+      }
+    >
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Total",       value: discounts.length, color: "text-primary"    },
+          { label: "Active",      value: active,           color: "text-green-600"  },
+          { label: "Percentage",  value: pct,              color: "text-violet-600" },
+          { label: "Fixed",       value: fixed,            color: "text-amber-600"  },
+        ].map(({ label, value, color }) => (
+          <Card key={label} className="p-4">
+            <p className={`text-2xl font-extrabold ${color}`}>{isLoading ? "—" : value}</p>
+            <p className="text-xs text-muted-foreground mt-1">{label}</p>
+          </Card>
+        ))}
+      </div>
+
+      {discounts.length === 0 && !isLoading ? (
+        <div className="rounded-2xl border bg-card p-12 flex flex-col items-center gap-3 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+            <Tag size={24} className="text-muted-foreground" />
+          </div>
+          <p className="font-semibold">No discounts yet</p>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            Create discount presets that tellers can apply when placing orders from the POS app.
+          </p>
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus size={14} /> Create First Discount
+          </Button>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={discounts}
+          isLoading={isLoading}
+          searchKey="name"
+          searchPlaceholder="Search discounts…"
+        />
+      )}
+
+      <DiscountFormDialog
+        open={formOpen}
+        onClose={() => { setFormOpen(false); setEditDiscount(null); }}
+        orgId={orgId}
+        editDiscount={editDiscount}
+      />
+    </PageShell>
+  );
+}
+EOF
+
+echo "✓ src/pages/discounts/Discounts.tsx"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. Create Orders page
+# ─────────────────────────────────────────────────────────────────────────────
+mkdir -p src/pages/orders
+
+cat > src/pages/orders/Orders.tsx << 'EOF'
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { type ColumnDef } from "@tanstack/react-table";
+import {
+  ShoppingBag, Receipt, XCircle, ChevronRight,
+  DollarSign, CreditCard, Smartphone, Split,
+  AlertCircle,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useAuthStore } from "@/store/auth";
+import { useAppStore } from "@/store/app";
+import * as ordersApi from "@/api/orders";
+import * as shiftsApi from "@/api/shifts";
+import * as branchesApi from "@/api/branches";
+import * as discountsApi from "@/api/discounts";
+import { getErrorMessage } from "@/lib/client";
+import {
+  egp, fmtDateTime, fmtPayment, fmtTime,
+  PAYMENT_BG, PAYMENT_COLORS,
+} from "@/utils/format";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { DataTable } from "@/components/shared/DataTable";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState } from "@/components/shared/EmptyState";
+import type { Order, Shift, Branch, Discount } from "@/types";
+
+// ── Payment method badge ──────────────────────────────────────────────────────
+function PaymentBadge({ method }: { method: string }) {
+  const label = fmtPayment(method);
+  const bg    = PAYMENT_BG[method as keyof typeof PAYMENT_BG]
+    ?? "bg-muted text-muted-foreground";
+  return (
+    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${bg}`}>
+      {label}
+    </span>
+  );
+}
+
+// ── Order detail sheet ────────────────────────────────────────────────────────
+function OrderDetailSheet({
+  order, onClose, discounts,
+}: {
+  order:     Order;
+  onClose:   () => void;
+  discounts: Discount[];
+}) {
+  const qc = useQueryClient();
+  const isVoided = order.status === "voided";
+  const discount = discounts.find((d) => d.id === order.discount_id);
+
+  const { mutate: doVoid, isPending: voiding } = useMutation({
+    mutationFn: (reason: string) =>
+      ordersApi.voidOrder(order.id, { reason, restore_inventory: true }),
+    onSuccess: () => {
+      toast.success("Order voided");
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      onClose();
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  });
+
+  const [voidReason, setVoidReason] = useState("customer_request");
+
+  return (
+    <div className="flex flex-col h-full max-h-[90vh]">
+      {/* Header */}
+      <div className="flex items-start justify-between p-5 border-b flex-shrink-0">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="font-bold text-lg">Order #{order.order_number}</h2>
+            {isVoided && <Badge variant="destructive">Voided</Badge>}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {fmtDateTime(order.created_at)} · {order.teller_name}
+          </p>
+        </div>
+        <PaymentBadge method={order.payment_method} />
+      </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-5 space-y-5">
+
+          {/* Items */}
+          <div className="rounded-xl border overflow-hidden">
+            <div className="px-4 py-2.5 bg-muted/40 border-b">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Items
+              </p>
+            </div>
+            <div className="divide-y divide-border/50">
+              {(order.items ?? []).length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  No item details available
+                </p>
+              ) : (
+                (order.items ?? []).map((item) => (
+                  <div key={item.id} className="px-4 py-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold">
+                          {item.quantity}× {item.item_name}
+                          {item.size_label && (
+                            <span className="text-muted-foreground font-normal"> · {item.size_label}</span>
+                          )}
+                        </p>
+                        {(item.addons ?? []).length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.addons.map((a) => (
+                              <span key={a.id} className="text-[10px] bg-primary/8 text-primary px-2 py-0.5 rounded-full border border-primary/20 font-medium">
+                                {a.addon_name}
+                                {a.unit_price > 0 && ` +${egp(a.unit_price)}`}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <span className="font-semibold tabular-nums text-sm flex-shrink-0">
+                        {egp(item.line_total)}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
-          <Separator className="mb-2" />
+          {/* Totals */}
+          <div className="rounded-xl border p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span className="tabular-nums">{egp(order.subtotal)}</span>
+            </div>
+            {order.discount_amount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground flex items-center gap-1">
+                  Discount
+                  {discount && (
+                    <Badge variant="outline" className="text-[10px] h-4 ml-1">
+                      {discount.name}
+                    </Badge>
+                  )}
+                  {order.discount_type && !discount && (
+                    <span className="text-[10px] text-muted-foreground ml-1">
+                      ({order.discount_type === "percentage"
+                        ? `${order.discount_value}%`
+                        : egp(order.discount_value)})
+                    </span>
+                  )}
+                </span>
+                <span className="text-green-600 font-medium tabular-nums">
+                  − {egp(order.discount_amount)}
+                </span>
+              </div>
+            )}
+            {order.tax_amount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Tax</span>
+                <span className="tabular-nums">{egp(order.tax_amount)}</span>
+              </div>
+            )}
+            <Separator />
+            <div className="flex justify-between font-bold text-base">
+              <span>Total</span>
+              <span className={`tabular-nums ${isVoided ? "line-through text-muted-foreground" : "text-primary"}`}>
+                {egp(order.total_amount)}
+              </span>
+            </div>
 
-          {/* User */}
-          {collapsed ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={handleSignOut} className="w-full flex items-center justify-center">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs font-semibold">
-                      {initials(user?.name ?? "")}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p className="font-medium">{user?.name}</p>
-                <p className="text-xs text-muted-foreground">{fmtRole(user?.role ?? "")}</p>
-                <p className="text-xs text-destructive mt-1">Click to sign out</p>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <>
-              <div className="flex items-center gap-3 p-2 rounded-xl bg-secondary mb-2">
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
-                    {initials(user?.name ?? "")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate text-foreground">{user?.name}</p>
-                  <p className={cn(
-                    "text-[10px] font-semibold px-1.5 py-0.5 rounded-full border inline-block mt-0.5",
-                    ROLE_COLORS[user?.role ?? ""],
-                  )}>
-                    {fmtRole(user?.role ?? "")}
-                  </p>
+            {/* Cash tendered / change */}
+            {order.amount_tendered != null && (
+              <>
+                <Separator />
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Cash Tendered</span>
+                  <span className="tabular-nums">{egp(order.amount_tendered)}</span>
                 </div>
+                {order.change_given != null && order.change_given > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Change Given</span>
+                    <span className="text-green-600 font-semibold tabular-nums">
+                      {egp(order.change_given)}
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Tip */}
+            {order.tip_amount != null && order.tip_amount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Tip</span>
+                <span className="tabular-nums text-amber-600 font-medium">
+                  {egp(order.tip_amount)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Void reason */}
+          {isVoided && order.void_reason && (
+            <div className="flex items-center gap-2 rounded-xl bg-destructive/8 border border-destructive/20 px-4 py-3">
+              <AlertCircle size={14} className="text-destructive flex-shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-destructive">Voided</p>
+                <p className="text-xs text-muted-foreground capitalize">
+                  {order.void_reason.replace(/_/g, " ")}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Metadata */}
+          <div className="rounded-xl border p-4 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Customer</span>
+              <span>{order.customer_name ?? "—"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Payment</span>
+              <PaymentBadge method={order.payment_method} />
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Time</span>
+              <span>{fmtDateTime(order.created_at)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Teller</span>
+              <span>{order.teller_name}</span>
+            </div>
+          </div>
+
+          {/* Void controls */}
+          {!isVoided && (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+              <p className="text-sm font-semibold text-destructive flex items-center gap-2">
+                <XCircle size={14} /> Void Order
+              </p>
+              <div className="space-y-2">
+                <Label className="text-xs">Void Reason</Label>
+                <Select value={voidReason} onValueChange={setVoidReason}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="customer_request">Customer Request</SelectItem>
+                    <SelectItem value="wrong_order">Wrong Order</SelectItem>
+                    <SelectItem value="quality_issue">Quality Issue</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Button
                 variant="destructive"
                 size="sm"
-                className="w-full justify-center"
-                onClick={handleSignOut}
+                loading={voiding}
+                className="w-full"
+                onClick={() => {
+                  if (confirm("Void this order? This cannot be undone.")) {
+                    doVoid(voidReason);
+                  }
+                }}
               >
-                <LogOut size={13} />
-                Sign Out
+                <XCircle size={13} /> Void Order
               </Button>
-            </>
+            </div>
           )}
         </div>
-      </div>
-    </TooltipProvider>
-  );
-}
-
-interface SidebarProps {
-  mobileOpen:    boolean;
-  onMobileClose: () => void;
-}
-
-export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
-  const collapsed     = useAppStore((s) => !s.sidebarOpen);
-  const toggleSidebar = useAppStore((s) => s.toggleSidebar);
-
-  return (
-    <>
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
-          onClick={onMobileClose}
-        />
-      )}
-
-      {/* Mobile drawer */}
-      <aside
-        className={cn(
-          "fixed left-0 top-0 bottom-0 z-50 w-[min(280px,82vw)] bg-background border-r border-border shadow-xl",
-          "transition-transform duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] lg:hidden",
-          mobileOpen ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        <SidebarContent collapsed={false} onClose={onMobileClose} />
-      </aside>
-
-      {/* Desktop sidebar */}
-      <aside
-        className={cn(
-          "hidden lg:flex flex-col bg-background border-r border-border flex-shrink-0 sticky top-0 h-screen",
-          "transition-[width] duration-200 ease-in-out relative",
-          collapsed ? "w-[64px]" : "w-[240px]",
-        )}
-      >
-        <SidebarContent collapsed={collapsed} />
-
-        {/* Collapse toggle */}
-        <button
-          onClick={toggleSidebar}
-          className={cn(
-            "absolute -right-3 top-20 z-10",
-            "w-6 h-6 rounded-full bg-card border border-border shadow-sm",
-            "flex items-center justify-center text-muted-foreground hover:text-foreground",
-            "transition-colors",
-          )}
-        >
-          {collapsed
-            ? <PanelLeftOpen size={12} />
-            : <PanelLeftClose size={12} />}
-        </button>
-      </aside>
-    </>
-  );
-}
-TSX
-ok "src/components/layout/Sidebar.tsx"
-
-# ===========================================================================
-#  3. Fix the fake system-status panel in Dashboard
-#     Replace the hardcoded "Online" dots with an actual /health fetch.
-#     Also clamp the Dashboard hero text so it doesn't overflow on small screens.
-# ===========================================================================
-log "Patching system-status in Dashboard ..."
-
-# We only patch the SystemStatus section, not the whole Dashboard file.
-# Strategy: write a tiny standalone component file and sed-patch the import.
-
-cat > src/components/shared/SystemStatus.tsx << 'TSX'
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { RefreshCw, CheckCircle2, XCircle, Loader2 } from "lucide-react";
-import { apiClient } from "@/lib/client";
-
-interface ServiceStatus {
-  name: string;
-  key: string;
-}
-
-const SERVICES: ServiceStatus[] = [
-  { name: "API Server",    key: "api"  },
-  { name: "Database",      key: "db"   },
-  { name: "Auth Service",  key: "auth" },
-];
-
-interface HealthResponse {
-  status: string;
-  services?: Record<string, string>;
-}
-
-function useHealth() {
-  return useQuery<HealthResponse>({
-    queryKey: ["health"],
-    queryFn:  () => apiClient.get("/health").then((r) => r.data),
-    refetchInterval: 30_000,
-    retry: false,
-    // Don't throw on error — we want to show "degraded" state
-    throwOnError: false,
-  });
-}
-
-function StatusDot({ ok }: { ok: boolean | null }) {
-  if (ok === null) return <Loader2 size={12} className="animate-spin text-muted-foreground" />;
-  return ok
-    ? <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400 text-xs font-semibold">
-        <CheckCircle2 size={13} /> Online
-      </span>
-    : <span className="flex items-center gap-1.5 text-destructive text-xs font-semibold">
-        <XCircle size={13} /> Degraded
-      </span>;
-}
-
-export function SystemStatus() {
-  const { data, isLoading, isError, refetch, isFetching } = useHealth();
-
-  const getStatus = (key: string): boolean | null => {
-    if (isLoading) return null;
-    if (isError)   return false;
-    if (!data)     return false;
-    // If the API returns per-service statuses, use them; otherwise fall back to top-level
-    if (data.services) {
-      const s = data.services[key];
-      return s ? s === "ok" || s === "healthy" || s === "up" : data.status === "ok" || data.status === "healthy";
-    }
-    return data.status === "ok" || data.status === "healthy";
-  };
-
-  return (
-    <div className="p-5 sm:p-6">
-      <div className="flex items-center justify-between gap-2 mb-4">
-        <div className="flex items-center gap-2">
-          <RefreshCw size={15} className={isFetching ? "animate-spin text-primary" : "text-primary"} />
-          <h3 className="font-semibold">System Status</h3>
-        </div>
-        <button
-          onClick={() => refetch()}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Refresh
-        </button>
-      </div>
-      {SERVICES.map((s) => (
-        <div key={s.key} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-          <span className="text-sm text-foreground">{s.name}</span>
-          <StatusDot ok={getStatus(s.key)} />
-        </div>
-      ))}
-      {isError && (
-        <p className="text-[11px] text-muted-foreground mt-2">
-          Could not reach the health endpoint. The API may be unreachable.
-        </p>
-      )}
+      </ScrollArea>
     </div>
   );
 }
-TSX
-ok "src/components/shared/SystemStatus.tsx"
 
-# Patch the Dashboard to import SystemStatus instead of the hardcoded block.
-# We look for the hardcoded strings and replace just that card's content.
-DASHBOARD="src/pages/dashboard/Dashboard.tsx"
-if [[ -f "$DASHBOARD" ]]; then
-  # Add import if not already present
-  if ! grep -q "SystemStatus" "$DASHBOARD"; then
-    # Insert import after the last existing import line
-    sed -i 's|^import { RefreshCw|import { SystemStatus } from "@/components/shared/SystemStatus";\nimport { RefreshCw|' "$DASHBOARD" 2>/dev/null || true
+// ── Main Orders page ──────────────────────────────────────────────────────────
+export default function Orders() {
+  const user     = useAuthStore((s) => s.user);
+  const orgId    = useAppStore((s) => s.selectedOrgId) ?? user?.org_id ?? "";
+  const branchId = useAppStore((s) => s.selectedBranchId) ?? "";
 
-    # Replace the hardcoded status card body
-    # The pattern is the map over ["API Server","Database","Auth Service"]
-    python3 - "$DASHBOARD" << 'PYEOF'
-import re, sys
+  const [selBranch, setSelBranch] = useState(branchId);
+  const [selShift,  setSelShift]  = useState<string | null>(null);
+  const [selOrder,  setSelOrder]  = useState<Order | null>(null);
 
-path = sys.argv[1]
-with open(path, "r") as f:
-    src = f.read()
+  const { data: branches = [] } = useQuery({
+    queryKey: ["branches", orgId],
+    queryFn:  () => branchesApi.getBranches(orgId).then((r) => r.data),
+    enabled:  !!orgId,
+  });
 
-# Replace the inner content of the System Status card
-old = r'\{(?:\["API Server", "Database", "Auth Service"\]|"API Server", "Database", "Auth Service").*?\.map\(\(s\) =>.*?\)\}'
-# Safer: find the opening of the system status Card and replace its children
-old_block = '''{["API Server", "Database", "Auth Service"].map((s) => (
-              <div key={s} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                <span className="text-sm">{s}</span>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-xs font-semibold text-green-600">Online</span>
-                </div>
-              </div>
-            ))}'''
+  React.useEffect(() => {
+    if (branches.length > 0 && !selBranch) setSelBranch(branches[0].id);
+  }, [branches, selBranch]);
 
-new_block = '<SystemStatus />'
+  const activeBranch = branches.find((b) => b.id === selBranch) ?? branches[0];
 
-if old_block in src:
-    # Also remove the surrounding header div since SystemStatus renders its own
-    card_old = '''          <Card className="p-5 sm:p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <RefreshCw size={15} className="text-primary" />
-              <h3 className="font-semibold">System Status</h3>
+  const { data: shifts = [], isLoading: shiftsLoading } = useQuery({
+    queryKey: ["shifts", activeBranch?.id],
+    queryFn:  () => shiftsApi.getBranchShifts(activeBranch!.id).then((r) => r.data),
+    enabled:  !!activeBranch?.id,
+  });
+
+  // Default to first shift
+  React.useEffect(() => {
+    if (shifts.length > 0 && !selShift) setSelShift(shifts[0].id);
+  }, [shifts, selShift]);
+
+  const { data: orders = [], isLoading: ordersLoading } = useQuery({
+    queryKey: ["orders", selShift],
+    queryFn:  () => ordersApi.getOrders({ shift_id: selShift }).then((r) => r.data),
+    enabled:  !!selShift,
+  });
+
+  const { data: discounts = [] } = useQuery({
+    queryKey: ["discounts", orgId],
+    queryFn:  () => import("@/api/discounts").then((m) => m.getDiscounts(orgId).then((r) => r.data)),
+    enabled:  !!orgId,
+  });
+
+  // Stats
+  const active       = orders.filter((o) => o.status !== "voided");
+  const voided       = orders.filter((o) => o.status === "voided");
+  const totalRevenue = active.reduce((s, o) => s + o.total_amount, 0);
+  const totalDisc    = active.reduce((s, o) => s + (o.discount_amount ?? 0), 0);
+
+  const columns: ColumnDef<Order, any>[] = [
+    {
+      accessorKey: "order_number",
+      header:      "#",
+      cell: ({ row }) => (
+        <span className={`font-bold text-sm tabular-nums ${row.original.status === "voided" ? "text-muted-foreground line-through" : ""}`}>
+          #{row.original.order_number}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "created_at",
+      header:      "Time",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {fmtTime(row.original.created_at)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "teller_name",
+      header:      "Teller",
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.teller_name}</span>
+      ),
+    },
+    {
+      accessorKey: "payment_method",
+      header:      "Payment",
+      cell: ({ row }) => <PaymentBadge method={row.original.payment_method} />,
+    },
+    {
+      id:     "discount",
+      header: "Discount",
+      cell: ({ row }) => {
+        const o   = row.original;
+        const disc = discounts.find((d) => d.id === o.discount_id);
+        if (!o.discount_amount) return <span className="text-muted-foreground text-xs">—</span>;
+        return (
+          <div>
+            <span className="text-xs font-semibold text-green-600">−{egp(o.discount_amount)}</span>
+            {disc && <p className="text-[10px] text-muted-foreground">{disc.name}</p>}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "total_amount",
+      header:      "Total",
+      cell: ({ row }) => (
+        <span className={`font-bold text-sm tabular-nums ${row.original.status === "voided" ? "line-through text-muted-foreground" : ""}`}>
+          {egp(row.original.total_amount)}
+        </span>
+      ),
+    },
+    {
+      id:     "change",
+      header: "Change",
+      cell: ({ row }) => {
+        const c = row.original.change_given;
+        if (c == null || c === 0) return <span className="text-muted-foreground text-xs">—</span>;
+        return <span className="text-xs text-green-600 font-semibold tabular-nums">{egp(c)}</span>;
+      },
+    },
+    {
+      accessorKey: "status",
+      header:      "Status",
+      cell: ({ row }) =>
+        row.original.status === "voided"
+          ? <Badge variant="destructive"><XCircle size={10} /> Voided</Badge>
+          : <Badge variant="success">Completed</Badge>,
+    },
+    {
+      id:     "arrow",
+      header: "",
+      cell:   () => <ChevronRight size={14} className="text-muted-foreground" />,
+    },
+  ];
+
+  return (
+    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+      <PageHeader
+        title="Orders"
+        sub="View and manage orders by shift"
+      />
+
+      {/* Filters row */}
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        {branches.length > 1 && (
+          <div className="space-y-1">
+            <Label className="text-xs">Branch</Label>
+            <Select value={selBranch} onValueChange={(v) => { setSelBranch(v); setSelShift(null); }}>
+              <SelectTrigger className="w-48 h-9">
+                <SelectValue placeholder="Branch…" />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        <div className="space-y-1">
+          <Label className="text-xs">Shift</Label>
+          <Select
+            value={selShift ?? ""}
+            onValueChange={setSelShift}
+            disabled={shiftsLoading || shifts.length === 0}
+          >
+            <SelectTrigger className="w-64 h-9">
+              <SelectValue placeholder={shiftsLoading ? "Loading…" : "Select shift…"} />
+            </SelectTrigger>
+            <SelectContent>
+              {shifts.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  <span className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.status === "open" ? "bg-green-500" : "bg-muted-foreground"}`} />
+                    {s.teller_name} · {fmtDateTime(s.opened_at)}
+                    {s.status === "open" && " (open)"}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Summary stats */}
+      {orders.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {[
+            { label: "Completed Orders", value: active.length,      color: "text-primary"   },
+            { label: "Total Revenue",    value: egp(totalRevenue),  color: "text-green-600" },
+            { label: "Total Discounts",  value: egp(totalDisc),     color: "text-amber-600" },
+            { label: "Voided Orders",    value: voided.length,      color: voided.length > 0 ? "text-red-500" : "text-muted-foreground" },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="rounded-2xl border bg-card p-4">
+              <p className={`text-2xl font-extrabold tabular-nums ${color}`}>{value}</p>
+              <p className="text-xs text-muted-foreground mt-1">{label}</p>
             </div>
-            ''' + old_block + '''
-          </Card>'''
-    card_new = '''          <Card className="overflow-hidden">
-            <SystemStatus />
-          </Card>'''
-    if card_old in src:
-        src = src.replace(card_old, card_new)
-        print("  ✓ Replaced hardcoded system status with SystemStatus component")
-    else:
-        # Fallback: just replace the map expression
-        src = src.replace(old_block, new_block)
-        print("  ✓ Replaced system status map (fallback)")
-else:
-    print("  ℹ System status block not found (may already be patched or different format)")
+          ))}
+        </div>
+      )}
 
-with open(path, "w") as f:
-    f.write(src)
+      {/* Orders table */}
+      {!selShift ? (
+        <EmptyState
+          icon={Receipt}
+          title="Select a shift"
+          sub="Choose a branch and shift to view its orders"
+        />
+      ) : ordersLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 rounded-xl" />
+          ))}
+        </div>
+      ) : orders.length === 0 ? (
+        <EmptyState
+          icon={ShoppingBag}
+          title="No orders in this shift"
+          sub="Orders placed during this shift will appear here"
+        />
+      ) : (
+        <DataTable
+          data={orders}
+          columns={columns}
+          searchPlaceholder="Search orders…"
+          pageSize={25}
+          onRowClick={(row) => setSelOrder(row)}
+        />
+      )}
+
+      {/* Order detail drawer */}
+      <Dialog open={!!selOrder} onOpenChange={(o) => !o && setSelOrder(null)}>
+        <DialogContent sheet="right" showClose={false} className="p-0">
+          {selOrder && (
+            <OrderDetailSheet
+              order={selOrder}
+              onClose={() => setSelOrder(null)}
+              discounts={discounts}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+EOF
+
+echo "✓ src/pages/orders/Orders.tsx"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. Update App.tsx — add Discounts + Orders routes
+# ─────────────────────────────────────────────────────────────────────────────
+python3 - << 'PYEOF'
+import pathlib
+
+path = pathlib.Path("src/App.tsx")
+src  = path.read_text()
+
+# Add lazy imports
+if "Discounts" not in src:
+    src = src.replace(
+        'const Permissions = lazy(() => import("@/pages/permissions/Permissions"));',
+        'const Permissions = lazy(() => import("@/pages/permissions/Permissions"));\n'
+        'const Discounts   = lazy(() => import("@/pages/discounts/Discounts"));\n'
+        'const Orders      = lazy(() => import("@/pages/orders/Orders"));'
+    )
+
+# Add routes
+if 'path="discounts"' not in src:
+    src = src.replace(
+        '<Route path="analytics"   element={<Analytics />} />',
+        '<Route path="analytics"   element={<Analytics />} />\n'
+        '            <Route path="discounts"  element={<Discounts />} />\n'
+        '            <Route path="orders"     element={<Orders />} />'
+    )
+
+path.write_text(src)
+print("App.tsx: routes added")
 PYEOF
-  fi
-  ok "Dashboard system status patched"
-else
-  warn "Dashboard.tsx not found — skipping system status patch"
-fi
 
-# ===========================================================================
-#  4. Deduplicate DataTable — make shared/DataTable.tsx a re-export shim
-#     so pages/4-7 that import from @/components/shared/DataTable get the
-#     same polished component as parts 1-3.
-# ===========================================================================
-log "Deduplicating DataTable (shared → re-export shim) ..."
-mkdir -p src/components/shared
-cat > src/components/shared/DataTable.tsx << 'TSX'
-// Re-export the canonical DataTable from the ui layer.
-// Parts 4-7 import from here; this keeps a single source of truth.
-export { DataTable } from "@/components/ui/data-table";
-TSX
-ok "src/components/shared/DataTable.tsx (shim)"
+echo "✓ src/App.tsx"
 
-# ===========================================================================
-#  5. Fix the Button component — add loading prop support
-#     The Login page uses <Button loading={loading}> but shadcn Button
-#     doesn't have this prop natively.
-# ===========================================================================
-log "Patching src/components/ui/button.tsx (add loading prop) ..."
+# ─────────────────────────────────────────────────────────────────────────────
+# 6. Update Sidebar.tsx — add Discounts + Orders nav items
+# ─────────────────────────────────────────────────────────────────────────────
+python3 - << 'PYEOF'
+import pathlib, re
 
-BUTTON_FILE="src/components/ui/button.tsx"
-if [[ -f "$BUTTON_FILE" ]]; then
-python3 - "$BUTTON_FILE" << 'PYEOF'
-import sys
+path = pathlib.Path("src/components/layout/Sidebar.tsx")
+src  = path.read_text()
 
-path = sys.argv[1]
-with open(path, "r") as f:
-    src = f.read()
+# Add Tag + ShoppingBag to lucide imports if missing
+if "Tag," not in src:
+    src = src.replace(
+        "import {\n  Coffee,",
+        "import {\n  Coffee,\n  Tag,\n  ShoppingBag,"
+    )
+elif "ShoppingBag," not in src:
+    src = src.replace("  Tag,", "  Tag,\n  ShoppingBag,")
 
-if "loading" in src:
-    print("  ℹ Button already has loading prop — skipping")
-    sys.exit(0)
+# Add nav items after analytics entry
+if '"discounts"' not in src:
+    old = '''      {
+        to: "/analytics",
+        icon: BarChart2,
+        label: "Analytics",
+        sub: "Reports & trends",
+        roles: ["super_admin", "org_admin", "branch_manager"],
+      },'''
+    new = '''      {
+        to: "/analytics",
+        icon: BarChart2,
+        label: "Analytics",
+        sub: "Reports & trends",
+        roles: ["super_admin", "org_admin", "branch_manager"],
+      },
+      {
+        to: "/orders",
+        icon: ShoppingBag,
+        label: "Orders",
+        sub: "Browse by shift",
+        roles: ["super_admin", "org_admin", "branch_manager"],
+      },
+      {
+        to: "/discounts",
+        icon: Tag,
+        label: "Discounts",
+        sub: "Preset discounts",
+        roles: ["super_admin", "org_admin", "branch_manager"],
+      },'''
+    src = src.replace(old, new)
 
-# Find the ButtonProps interface or the cva call and extend
-old_import = 'import { Slot } from "@radix-ui/react-slot";'
-new_import  = 'import { Slot } from "@radix-ui/react-slot";\nimport { Loader2 } from "lucide-react";'
-
-if old_import in src:
-    src = src.replace(old_import, new_import)
-
-# Add loading to the Button component props and render
-# Find the Button forwardRef signature and patch it
-old_sig = 'const Button = React.forwardRef<\n  React.ElementRef<"button">,\n  React.ComponentPropsWithoutRef<"button"> & VariantProps<typeof buttonVariants> & {\n    asChild?: boolean;\n  }\n>(({ className, variant, size, asChild = false, ...props }, ref) => {'
-new_sig  = 'const Button = React.forwardRef<\n  React.ElementRef<"button">,\n  React.ComponentPropsWithoutRef<"button"> & VariantProps<typeof buttonVariants> & {\n    asChild?: boolean;\n    loading?: boolean;\n  }\n>(({ className, variant, size, asChild = false, loading = false, disabled, children, ...props }, ref) => {'
-
-if old_sig in src:
-    src = src.replace(old_sig, new_sig)
-    # Now patch the Comp render to insert loader
-    old_render = '  const Comp = asChild ? Slot : "button";\n  return (\n    <Comp\n      className={cn(buttonVariants({ variant, size, className }))}\n      ref={ref}\n      {...props}\n    />\n  );\n})'
-    new_render  = '  const Comp = asChild ? Slot : "button";\n  return (\n    <Comp\n      className={cn(buttonVariants({ variant, size, className }))}\n      ref={ref}\n      disabled={loading || disabled}\n      {...props}\n    >\n      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}\n      {children}\n    </Comp>\n  );\n})'
-    if old_render in src:
-        src = src.replace(old_render, new_render)
-        print("  ✓ Added loading prop with spinner to Button")
-    else:
-        print("  ℹ Button render pattern different — applying generic patch")
-        # Generic: just add disabled=loading if we can't find exact match
-else:
-    print("  ℹ Button signature pattern different — skipping loading patch (manual review needed)")
-
-with open(path, "w") as f:
-    f.write(src)
+path.write_text(src)
+print("Sidebar.tsx: nav items added")
 PYEOF
-  ok "button.tsx loading prop"
-else
-  warn "button.tsx not found — skipping"
-fi
 
-# ===========================================================================
-#  6. Fix the login placeholder typo: "theruecoffe.com" → "theruecoffe.com"
-#     (keep as-is since it's their actual domain name — but fix the obvious
-#      off-by-one: "theruecoffe" vs "theruecoffee")
-# ===========================================================================
-LOGIN="src/pages/auth/Login.tsx"
-if [[ -f "$LOGIN" ]]; then
-  sed -i 's/you@theruecoffe\.com/you@theruecoffee.com/g' "$LOGIN" && \
-    ok "Login placeholder email typo fixed" || warn "Login email sed failed"
-fi
+echo "✓ src/components/layout/Sidebar.tsx"
 
-# ===========================================================================
-#  Done
-# ===========================================================================
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. Update CommandPalette.tsx — add Discounts + Orders
+# ─────────────────────────────────────────────────────────────────────────────
+python3 - << 'PYEOF'
+import pathlib
+
+path = pathlib.Path("src/components/layout/CommandPalette.tsx")
+src  = path.read_text()
+
+# Add Tag + ShoppingBag to import
+if "Tag," not in src:
+    src = src.replace(
+        "  LayoutDashboard, Building2, Users, GitBranch, Coffee,",
+        "  LayoutDashboard, Building2, Users, GitBranch, Coffee,\n  Tag, ShoppingBag,"
+    )
+
+# Add nav entries
+if '"discounts"' not in src:
+    src = src.replace(
+        '  { label: "Permissions",   to: "/permissions/select",  icon: Shield,          roles: ["super_admin","org_admin"] },',
+        '  { label: "Permissions",   to: "/permissions/select",  icon: Shield,          roles: ["super_admin","org_admin"] },\n'
+        '  { label: "Orders",        to: "/orders",              icon: ShoppingBag,     roles: ["super_admin","org_admin","branch_manager"] },\n'
+        '  { label: "Discounts",     to: "/discounts",           icon: Tag,             roles: ["super_admin","org_admin","branch_manager"] },'
+    )
+
+path.write_text(src)
+print("CommandPalette.tsx: entries added")
+PYEOF
+
+echo "✓ src/components/layout/CommandPalette.tsx"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. Add discount_id + tip_amount + change_given + amount_tendered to Order type
+# ─────────────────────────────────────────────────────────────────────────────
+python3 - << 'PYEOF'
+import pathlib
+
+path = pathlib.Path("src/types/index.ts")
+src  = path.read_text()
+
+# Check if discount_id already added
+if "discount_id" not in src:
+    old = '''  voided_at:       string | null;
+  void_reason:     string | null;
+  voided_by:       string | null;
+  created_at:      string;
+  items?:          OrderItem[];'''
+    new = '''  amount_tendered: number | null;
+  change_given:    number | null;
+  tip_amount:      number | null;
+  discount_id:     string | null;
+  voided_at:       string | null;
+  void_reason:     string | null;
+  voided_by:       string | null;
+  created_at:      string;
+  items?:          OrderItem[];'''
+    src = src.replace(old, new)
+    path.write_text(src)
+    print("types/index.ts: Order fields added")
+else:
+    print("types/index.ts: Order fields already present")
+PYEOF
+
+echo "✓ types/index.ts: Order fields"
+
 echo ""
-echo -e "${BOLD}═══════════════════════════════════════════════════════════════${RESET}"
-echo -e "${GREEN}  Patch complete!${RESET}"
-echo -e "${BOLD}═══════════════════════════════════════════════════════════════${RESET}"
+echo "=== React dashboard patch complete ==="
 echo ""
-echo "  What was fixed:"
+echo "New pages:"
+echo "  /orders     — Browse orders by branch + shift, with discount/tendered/change display"
+echo "  /discounts  — Full CRUD for discount presets"
 echo ""
-echo "  ✓ src/index.css"
-echo "    • Dark mode: card now clearly above background (14% vs 10% lightness)"
-echo "    • Dark mode: muted-foreground raised to 62% — labels visible everywhere"
-echo "    • Dark mode: accent-foreground brightened (82%) — active nav readable"
-echo "    • Dark mode: destructive raised (52%) — errors visible on dark bg"
-echo "    • Light mode: muted-foreground darkened (38%) — subtitles more readable"
-echo "    • Light mode: border contrast improved"
-echo "    • Light mode: accent-foreground darkened (32%) — active nav links pop"
+echo "Updated:"
+echo "  src/App.tsx                         — new routes"
+echo "  src/components/layout/Sidebar.tsx   — Orders + Discounts nav items"
+echo "  src/components/layout/CommandPalette.tsx — ⌘K entries"
+echo "  src/types/index.ts                  — Discount type + Order new fields"
 echo ""
-echo "  ✓ src/components/layout/Sidebar.tsx"
-echo "    • Inactive nav labels: text-muted-foreground → text-foreground/75"
-echo "      (always readable regardless of sidebar background colour)"
-echo "    • Inactive icon wrapper: bg-muted → bg-secondary"
-echo "      (secondary is clearly elevated above background in both modes)"
-echo "    • Icon colour: inherits foreground/60 (visible in both modes)"
-echo "    • Avatar fallback: now brand-primary coloured (not muted)"
-echo "    • User card in footer: bg-muted → bg-secondary for same reason"
-echo "    • Collapse toggle button: bg-background → bg-card (visible on sidebar border)"
-echo "    • Permissions added to sidebar nav (was missing)"
-echo ""
-echo "  ✓ src/components/shared/SystemStatus.tsx (new)"
-echo "    • Replaced hardcoded 'always Online' dots with real /health API call"
-echo "    • Shows Loader spinner while fetching, CheckCircle/XCircle on result"
-echo "    • Auto-refreshes every 30s, supports per-service breakdown"
-echo ""
-echo "  ✓ src/components/shared/DataTable.tsx"
-echo "    • Now a re-export shim → single source of truth (ui/data-table)"
-echo ""
-echo "  ✓ src/components/ui/button.tsx"
-echo "    • Added loading prop with Loader2 spinner"
-echo ""
-echo "  ✓ src/pages/auth/Login.tsx"
-echo "    • Fixed placeholder email typo (theruecoffe → theruecoffee)"
-echo ""
-echo "  Run: npm run dev"
-echo ""
+echo "Run: npm run build"

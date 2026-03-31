@@ -316,6 +316,10 @@ export interface Order {
   total_amount:    number;
   customer_name:   string | null;
   notes:           string | null;
+  amount_tendered: number | null;
+  change_given:    number | null;
+  tip_amount:      number | null;
+  discount_id:     string | null;
   voided_at:       string | null;
   void_reason:     string | null;
   voided_by:       string | null;
@@ -536,4 +540,17 @@ export interface InventoryDiscrepancy {
   actual_count:      number | null;
   discrepancy:       number | null;
   notes:             string | null;
+}
+
+
+// ── Discounts ─────────────────────────────────────────────────────────────────
+export interface Discount {
+  id:         string;
+  org_id:     string;
+  name:       string;
+  dtype:      "percentage" | "fixed";
+  value:      number;
+  is_active:  boolean;
+  created_at: string;
+  updated_at: string;
 }

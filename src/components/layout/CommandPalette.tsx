@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building2, Users, GitBranch, Coffee,
+  Tag, ShoppingBag,
   Package, BookOpen, Clock, BarChart2, Shield,
 } from "lucide-react";
 import {
@@ -21,6 +22,8 @@ const NAV_ITEMS = [
   { label: "Shifts",        to: "/shifts",              icon: Clock,           roles: ["super_admin","org_admin","branch_manager"] },
   { label: "Analytics",     to: "/analytics",           icon: BarChart2,       roles: ["super_admin","org_admin","branch_manager"] },
   { label: "Permissions",   to: "/permissions/select",  icon: Shield,          roles: ["super_admin","org_admin"] },
+  { label: "Orders",        to: "/orders",              icon: ShoppingBag,     roles: ["super_admin","org_admin","branch_manager"] },
+  { label: "Discounts",     to: "/discounts",           icon: Tag,             roles: ["super_admin","org_admin","branch_manager"] },
 ];
 
 export function CommandPalette() {

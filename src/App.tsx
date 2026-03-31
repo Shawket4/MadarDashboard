@@ -17,6 +17,8 @@ const Recipes     = lazy(() => import("@/pages/recipes/Recipes"));
 const Shifts      = lazy(() => import("@/pages/shifts/Shifts"));
 const Analytics   = lazy(() => import("@/pages/analytics/Analytics"));
 const Permissions = lazy(() => import("@/pages/permissions/Permissions"));
+const Discounts   = lazy(() => import("@/pages/discounts/Discounts"));
+const Orders      = lazy(() => import("@/pages/orders/Orders"));
 
 function PageLoader() {
   return (
@@ -56,6 +58,8 @@ export default function App() {
             <Route path="recipes"     element={<Recipes />} />
             <Route path="shifts"      element={<Shifts />} />
             <Route path="analytics"   element={<Analytics />} />
+            <Route path="discounts"  element={<Discounts />} />
+            <Route path="orders"     element={<Orders />} />
             <Route path="permissions/:userId" element={<Permissions />} />
             <Route path="permissions/select"  element={<Permissions />} />
             <Route path="*"           element={<Navigate to="/" replace />} />
