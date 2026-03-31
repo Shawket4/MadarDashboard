@@ -69,6 +69,15 @@ function OrderDetailDrawer({
   discounts: Discount[];
 }) {
   const qc = useQueryClient();
+
+  const { data: fullOrder, isLoading: orderLoading } = useQuery({
+    queryKey: ["order", order.id],
+    queryFn: () => ordersApi.getOrder(order.id).then((r) => r.data),
+  });
+
+  // Use fullOrder when available, fall back to the list-row order for header info
+  const o = fullOrder ?? order;
+  const items = fullOrder?.items ?? [];
   const isVoided = order.status === "voided";
   const disc = discounts.find((d) => d.id === order.discount_id);
   const [voidReason, setVoidReason] = useState("customer_request");
@@ -110,12 +119,16 @@ function OrderDetailDrawer({
               </p>
             </div>
             <div className="divide-y divide-border/50">
-              {(order.items ?? []).length === 0 ? (
+              {orderLoading ? (
+                <div className="px-4 py-6 flex justify-center">
+                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : items.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">
                   No item details
                 </p>
               ) : (
-                (order.items ?? []).map((item) => (
+                items.map((item) => (
                   <div key={item.id} className="px-4 py-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">

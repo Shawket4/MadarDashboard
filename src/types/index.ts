@@ -160,22 +160,20 @@ export interface MenuItemFull extends MenuItem {
 
 // ── Recipes ───────────────────────────────────────────────────────────────────
 export interface DrinkRecipe {
-  id:                    string;
-  menu_item_id:          string;
-  size_label:            string;
-  inventory_item_id:     string;
-  inventory_item_name:   string;
-  unit:                  string;
-  quantity_used:         number;
+  id:              string;
+  menu_item_id:    string;
+  size_label:      string;
+  ingredient_name: string;  // replaces inventory_item_id + inventory_item_name
+  unit:            string;
+  quantity_used:   number;
 }
 
 export interface AddonIngredient {
-  id:                    string;
-  addon_item_id:         string;
-  inventory_item_id:     string;
-  inventory_item_name:   string;
-  unit:                  string;
-  quantity_used:         number;
+  id:              string;
+  addon_item_id:   string;
+  ingredient_name: string;  // replaces inventory_item_id + inventory_item_name
+  unit:            string;
+  quantity_used:   number;
 }
 
 export interface DrinkOptionOverride {

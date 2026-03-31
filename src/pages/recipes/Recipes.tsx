@@ -33,6 +33,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { getErrorMessage } from "@/lib/client";
 
+// ── Recipe row (drink) ────────────────────────────────────────────────────────
 function RecipeRow({
   recipe,
   onDelete,
@@ -43,7 +44,7 @@ function RecipeRow({
   return (
     <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-muted/50 group">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium">{recipe.inventory_item_name}</p>
+        <p className="text-sm font-medium">{recipe.ingredient_name}</p>
         <p className="text-xs text-muted-foreground">
           {recipe.quantity_used} {fmtUnit(recipe.unit)} ·{" "}
           {SIZE_LABELS[recipe.size_label] ?? recipe.size_label}
@@ -61,6 +62,7 @@ function RecipeRow({
   );
 }
 
+// ── Drink recipe panel ────────────────────────────────────────────────────────
 function DrinkRecipePanel({ item, orgId }: { item: MenuItem; orgId: string }) {
   const qc = useQueryClient();
 
@@ -69,6 +71,9 @@ function DrinkRecipePanel({ item, orgId }: { item: MenuItem; orgId: string }) {
     queryFn: () => recipesApi.getDrinkRecipes(item.id).then((r) => r.data),
   });
 
+  // Org-level inventory — used as a convenience picker so the user
+  // doesn't have to type ingredient names manually. We extract name+unit
+  // from the selected item; the actual UUID is never sent to the backend.
   const { data: invItems = [] } = useQuery({
     queryKey: ["inventory-items-org", orgId],
     queryFn: () =>
@@ -78,7 +83,8 @@ function DrinkRecipePanel({ item, orgId }: { item: MenuItem; orgId: string }) {
 
   const [form, setForm] = useState({
     size_label: "medium",
-    inventory_item_id: "",
+    ingredient_name: "",
+    ingredient_unit: "",
     quantity_used: "",
   });
 
@@ -86,20 +92,31 @@ function DrinkRecipePanel({ item, orgId }: { item: MenuItem; orgId: string }) {
     mutationFn: () =>
       recipesApi.upsertDrinkRecipe(item.id, {
         size_label: form.size_label,
-        inventory_item_id: form.inventory_item_id,
+        ingredient_name: form.ingredient_name,
+        ingredient_unit: form.ingredient_unit,
         quantity_used: parseFloat(form.quantity_used),
       }),
     onSuccess: () => {
       toast.success("Recipe saved");
       qc.invalidateQueries({ queryKey: ["drink-recipes", item.id] });
-      setForm((f) => ({ ...f, quantity_used: "" }));
+      setForm((f) => ({
+        ...f,
+        ingredient_name: "",
+        ingredient_unit: "",
+        quantity_used: "",
+      }));
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
   const delMutation = useMutation({
-    mutationFn: ({ size, invId }: { size: string; invId: string }) =>
-      recipesApi.deleteDrinkRecipe(item.id, size, invId),
+    mutationFn: ({
+      size,
+      ingredientName,
+    }: {
+      size: string;
+      ingredientName: string;
+    }) => recipesApi.deleteDrinkRecipe(item.id, size, ingredientName),
     onSuccess: () => {
       toast.success("Removed");
       qc.invalidateQueries({ queryKey: ["drink-recipes", item.id] });
@@ -108,6 +125,12 @@ function DrinkRecipePanel({ item, orgId }: { item: MenuItem; orgId: string }) {
   });
 
   const sizes = Object.entries(SIZE_LABELS);
+
+  // Deduplicate by name — org-level list has one row per branch for the same
+  // ingredient. We only need unique names for the picker.
+  const uniqueInvItems = Array.from(
+    new Map(invItems.map((i) => [i.name, i])).values(),
+  );
 
   return (
     <div className="p-4 space-y-4">
@@ -121,12 +144,12 @@ function DrinkRecipePanel({ item, orgId }: { item: MenuItem; orgId: string }) {
         ) : (
           recipes.map((r) => (
             <RecipeRow
-              key={`${r.size_label}-${r.inventory_item_id}`}
+              key={`${r.size_label}-${r.ingredient_name}`}
               recipe={r}
               onDelete={() =>
                 delMutation.mutate({
                   size: r.size_label,
-                  invId: r.inventory_item_id,
+                  ingredientName: r.ingredient_name,
                 })
               }
             />
@@ -169,17 +192,22 @@ function DrinkRecipePanel({ item, orgId }: { item: MenuItem; orgId: string }) {
         <div className="col-span-2 space-y-1">
           <Label>Ingredient</Label>
           <Select
-            value={form.inventory_item_id}
-            onValueChange={(v) =>
-              setForm((f) => ({ ...f, inventory_item_id: v }))
-            }
+            value={form.ingredient_name}
+            onValueChange={(name) => {
+              const inv = uniqueInvItems.find((i) => i.name === name);
+              setForm((f) => ({
+                ...f,
+                ingredient_name: name,
+                ingredient_unit: inv?.unit ?? "",
+              }));
+            }}
           >
             <SelectTrigger className="h-8 text-xs">
               <SelectValue placeholder="Select ingredient…" />
             </SelectTrigger>
             <SelectContent>
-              {invItems.map((i) => (
-                <SelectItem key={i.id} value={i.id}>
+              {uniqueInvItems.map((i) => (
+                <SelectItem key={i.name} value={i.name}>
                   {i.name} ({fmtUnit(i.unit)})
                 </SelectItem>
               ))}
@@ -191,7 +219,7 @@ function DrinkRecipePanel({ item, orgId }: { item: MenuItem; orgId: string }) {
             size="sm"
             className="w-full"
             loading={addMutation.isPending}
-            disabled={!form.inventory_item_id || !form.quantity_used}
+            disabled={!form.ingredient_name || !form.quantity_used}
             onClick={() => addMutation.mutate()}
           >
             <Plus size={13} /> Add Ingredient
@@ -202,6 +230,7 @@ function DrinkRecipePanel({ item, orgId }: { item: MenuItem; orgId: string }) {
   );
 }
 
+// ── Addon recipe panel ────────────────────────────────────────────────────────
 function AddonRecipePanel({
   addon,
   orgId,
@@ -224,33 +253,44 @@ function AddonRecipePanel({
   });
 
   const [form, setForm] = useState({
-    inventory_item_id: "",
+    ingredient_name: "",
+    ingredient_unit: "",
     quantity_used: "",
   });
 
   const addMutation = useMutation({
     mutationFn: () =>
       recipesApi.upsertAddonIngredient(addon.id, {
-        inventory_item_id: form.inventory_item_id,
+        ingredient_name: form.ingredient_name,
+        ingredient_unit: form.ingredient_unit,
         quantity_used: parseFloat(form.quantity_used),
       }),
     onSuccess: () => {
       toast.success("Saved");
       qc.invalidateQueries({ queryKey: ["addon-ingredients", addon.id] });
-      setForm((f) => ({ ...f, quantity_used: "" }));
+      setForm((f) => ({
+        ...f,
+        ingredient_name: "",
+        ingredient_unit: "",
+        quantity_used: "",
+      }));
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
   const delMutation = useMutation({
-    mutationFn: (invId: string) =>
-      recipesApi.deleteAddonIngredient(addon.id, invId),
+    mutationFn: (ingredientName: string) =>
+      recipesApi.deleteAddonIngredient(addon.id, ingredientName),
     onSuccess: () => {
       toast.success("Removed");
       qc.invalidateQueries({ queryKey: ["addon-ingredients", addon.id] });
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
+
+  const uniqueInvItems = Array.from(
+    new Map(invItems.map((i) => [i.name, i])).values(),
+  );
 
   return (
     <div className="p-4 space-y-4">
@@ -264,11 +304,11 @@ function AddonRecipePanel({
         ) : (
           ingredients.map((r) => (
             <div
-              key={r.inventory_item_id}
+              key={r.ingredient_name}
               className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-muted/50 group"
             >
               <div className="flex-1">
-                <p className="text-sm font-medium">{r.inventory_item_name}</p>
+                <p className="text-sm font-medium">{r.ingredient_name}</p>
                 <p className="text-xs text-muted-foreground">
                   {r.quantity_used} {fmtUnit(r.unit)}
                 </p>
@@ -277,7 +317,7 @@ function AddonRecipePanel({
                 variant="ghost"
                 size="icon-sm"
                 className="opacity-0 group-hover:opacity-100 text-destructive"
-                onClick={() => delMutation.mutate(r.inventory_item_id)}
+                onClick={() => delMutation.mutate(r.ingredient_name)}
               >
                 <Trash2 size={13} />
               </Button>
@@ -290,17 +330,22 @@ function AddonRecipePanel({
         <div className="space-y-1">
           <Label>Ingredient</Label>
           <Select
-            value={form.inventory_item_id}
-            onValueChange={(v) =>
-              setForm((f) => ({ ...f, inventory_item_id: v }))
-            }
+            value={form.ingredient_name}
+            onValueChange={(name) => {
+              const inv = uniqueInvItems.find((i) => i.name === name);
+              setForm((f) => ({
+                ...f,
+                ingredient_name: name,
+                ingredient_unit: inv?.unit ?? "",
+              }));
+            }}
           >
             <SelectTrigger className="h-8 text-xs">
               <SelectValue placeholder="Select…" />
             </SelectTrigger>
             <SelectContent>
-              {invItems.map((i) => (
-                <SelectItem key={i.id} value={i.id}>
+              {uniqueInvItems.map((i) => (
+                <SelectItem key={i.name} value={i.name}>
                   {i.name} ({fmtUnit(i.unit)})
                 </SelectItem>
               ))}
@@ -324,7 +369,7 @@ function AddonRecipePanel({
           size="sm"
           className="w-full"
           loading={addMutation.isPending}
-          disabled={!form.inventory_item_id || !form.quantity_used}
+          disabled={!form.ingredient_name || !form.quantity_used}
           onClick={() => addMutation.mutate()}
         >
           <Plus size={13} /> Add
@@ -334,6 +379,7 @@ function AddonRecipePanel({
   );
 }
 
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function Recipes() {
   const user = useAuthStore((s) => s.user);
   const orgId = useAppStore((s) => s.selectedOrgId) ?? user?.org_id ?? "";
@@ -377,9 +423,9 @@ export default function Recipes() {
           </TabsTrigger>
         </TabsList>
 
+        {/* ── Drinks tab ── */}
         <TabsContent value="drinks">
           <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
-            {/* Item list */}
             <div className="rounded-2xl border overflow-hidden">
               <div className="p-3 border-b bg-muted/30">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -393,6 +439,8 @@ export default function Recipes() {
                       <Skeleton key={i} className="h-10" />
                     ))}
                   </div>
+                ) : items.length === 0 ? (
+                  <EmptyState icon={Coffee} title="No items" className="h-40" />
                 ) : (
                   items.map((item) => (
                     <button
@@ -412,7 +460,6 @@ export default function Recipes() {
               </ScrollArea>
             </div>
 
-            {/* Recipe panel */}
             <div className="rounded-2xl border overflow-hidden">
               {selItem ? (
                 <>
@@ -439,9 +486,9 @@ export default function Recipes() {
           </div>
         </TabsContent>
 
+        {/* ── Addons tab ── */}
         <TabsContent value="addons">
           <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
-            {/* Addon list */}
             <div className="rounded-2xl border overflow-hidden">
               <div className="p-3 border-b bg-muted/30">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -455,6 +502,12 @@ export default function Recipes() {
                       <Skeleton key={i} className="h-10" />
                     ))}
                   </div>
+                ) : addons.length === 0 ? (
+                  <EmptyState
+                    icon={Package}
+                    title="No addons"
+                    className="h-40"
+                  />
                 ) : (
                   addons.map((addon) => (
                     <button
@@ -474,7 +527,6 @@ export default function Recipes() {
               </ScrollArea>
             </div>
 
-            {/* Addon recipe panel */}
             <div className="rounded-2xl border overflow-hidden">
               {selAddon ? (
                 <>
