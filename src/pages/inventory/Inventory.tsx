@@ -747,11 +747,11 @@ function AdjustmentsTab({ branchId }: { branchId: string }) {
 function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) {
   const qc = useQueryClient();
 
-  const [direction, setDirection] = useState<"" | "incoming" | "outgoing">("");
+  const [direction, setDirection] = useState<"all" | "incoming" | "outgoing">("all");
 
   const { data: transfers = [], isLoading } = useQuery({
     queryKey: ["branch-transfers", branchId, direction],
-    queryFn:  () => inventoryApi.getTransfers(branchId, direction || undefined).then((r) => r.data),
+    queryFn:  () => inventoryApi.getTransfers(branchId, direction === "all" ? undefined : direction).then((r) => r.data),
     enabled:  !!branchId,
   });
 
@@ -867,10 +867,10 @@ function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) 
         sub="Stock moved between branches — applied immediately"
         actions={
           <div className="flex items-center gap-2">
-            <Select value={direction} onValueChange={(v) => setDirection(v as any)}>
+              <Select value={direction} onValueChange={(v) => setDirection(v as any)}>
               <SelectTrigger className="w-36 h-9"><SelectValue placeholder="All transfers" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="incoming">Incoming</SelectItem>
                 <SelectItem value="outgoing">Outgoing</SelectItem>
               </SelectContent>
