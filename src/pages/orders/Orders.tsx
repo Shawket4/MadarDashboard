@@ -163,7 +163,7 @@ function OrderDetailDrawer({
                             <p className="font-semibold text-[10px] uppercase text-muted-foreground mb-1">Ingredients Used</p>
                             {item.deductions_snapshot.map((d, i) => (
                               <div key={i} className="flex justify-between items-center text-muted-foreground">
-                                <span>{d.ingredient_name} <span className="text-[9px] opacity-70 ml-1">({d.source.replace('_', ' ')})</span></span>
+                                <span>{d.ingredient_name} <span className="text-[9px] opacity-70 ml-1">({d.source?.replace('_', ' ') || "unknown"})</span></span>
                                 <span>{d.quantity} {d.unit}</span>
                               </div>
                             ))}
@@ -276,7 +276,7 @@ function OrderDetailDrawer({
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Void Reason</span>
                 <span className="text-destructive capitalize">
-                  {order.void_reason.replace(/_/g, " ")}
+                  {order.void_reason?.replace(/_/g, " ")}
                 </span>
               </div>
             )}

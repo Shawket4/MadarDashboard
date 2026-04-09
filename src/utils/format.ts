@@ -79,7 +79,7 @@ export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
 
 export const fmtPayment = (method: string): string =>
   PAYMENT_LABELS[method as PaymentMethod] ??
-  method.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  method?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ?? "—";
 
 export const PAYMENT_COLORS: Record<PaymentMethod, string> = {
   cash:           "hsl(142 71% 45%)",
@@ -108,7 +108,7 @@ export const ROLE_LABELS: Record<string, string> = {
 };
 
 export const fmtRole = (role: string): string =>
-  ROLE_LABELS[role] ?? role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  ROLE_LABELS[role] ?? role?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ?? "—";
 
 export const ROLE_COLORS: Record<string, string> = {
   super_admin:    "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800",

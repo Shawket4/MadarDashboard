@@ -93,13 +93,16 @@ export interface Category {
   updated_at: string;
 }
 
-export type AddonType = "coffee_type" | "milk_type" | "extra";
+// The 3 built-in global addon types. Custom slot types (e.g. 'sweetener')
+// are stored in menu_item_addon_slots.addon_type as free text.
+export type GlobalAddonType = "coffee_type" | "milk_type" | "extra";
 
 export interface AddonItem {
   id: string;
   org_id: string;
   name: string;
-  addon_type: AddonType;
+  // Now free text — no longer CHECK-constrained to 3 values
+  type: string;
   default_price: number; // piastres
   is_active: boolean;
   display_order: number;
@@ -116,27 +119,44 @@ export interface ItemSize {
   is_active: boolean;
 }
 
-export interface DrinkOptionItemFull {
-  id: string;
-  group_id: string;
-  addon_item_id: string;
-  price_override: number | null;
-  display_order: number;
-  is_active: boolean;
-  name: string;
-  default_price: number;
-  addon_type: AddonType;
-}
-
-export interface DrinkOptionGroupFull {
+// ── Addon Slots ───────────────────────────────────────────────────────────────
+// A slot defines an addon selection group on a specific menu item.
+// The 3 global types (coffee_type, milk_type, extra) are shown on every drink
+// by default. This table adds EXTRA slots (e.g. 'sweetener' on Matcha) or
+// overrides the required/min-max rules for a global type on a specific drink.
+export interface AddonSlot {
   id: string;
   menu_item_id: string;
-  group_type: AddonType;
-  selection_type: "single" | "multi";
+  addon_type: string;        // matches AddonItem.type
+  label: string | null;      // optional display override e.g. "Sweetness Level"
   is_required: boolean;
   min_selections: number;
+  max_selections: number | null;
   display_order: number;
-  items: DrinkOptionItemFull[];
+  created_at: string;
+}
+
+// ── Addon Overrides ───────────────────────────────────────────────────────────
+// Per-(menu_item, addon_item, size) ingredient deduction rule.
+// Replaces the old drink_option_ingredient_overrides table.
+// combo_addon_item_id: when set, rule only fires if that other addon
+// is also selected on the same order item (combo deduction).
+export interface AddonOverride {
+  id: string;
+  menu_item_id: string;
+  addon_item_id: string;
+  addon_item_name: string;   // joined for display
+  size_label: string | null; // null = applies to all sizes
+  ingredient_name: string;
+  org_ingredient_id: string | null;
+  ingredient_unit: string;
+  quantity_used: number;
+  replaces_org_ingredient_id: string | null;
+  replaces_ingredient_name: string | null;   // joined for display
+  combo_addon_item_id: string | null;
+  combo_addon_item_name: string | null;      // joined for display
+  created_at: string;
+  updated_at: string;
 }
 
 export interface MenuItem {
@@ -153,28 +173,9 @@ export interface MenuItem {
   updated_at: string;
 }
 
-export interface MenuItemAddonSlot {
-  id: string;
-  menu_item_id: string;
-  addon_type: string;
-  is_required: boolean;
-  min_selections: number;
-  max_selections: number | null;
-  display_order: number;
-}
-
-export interface MenuItemAddonOverride {
-  id: string;
-  menu_item_id: string;
-  addon_item_id: string;
-  size_label: string | null;
-  quantity_used: number;
-}
-
 export interface MenuItemFull extends MenuItem {
   sizes: ItemSize[];
-  addon_slots: MenuItemAddonSlot[];
-  addon_overrides: MenuItemAddonOverride[];
+  // Legacy option_groups removed — slots are fetched separately in the dashboard
 }
 
 // ── Recipes ───────────────────────────────────────────────────────────────────
@@ -182,7 +183,7 @@ export interface DrinkRecipe {
   id: string;
   menu_item_id: string;
   size_label: string;
-  ingredient_name: string;  // replaces inventory_item_id + inventory_item_name
+  ingredient_name: string;
   unit: string;
   quantity_used: number;
 }
@@ -190,18 +191,15 @@ export interface DrinkRecipe {
 export interface AddonIngredient {
   id: string;
   addon_item_id: string;
-  ingredient_name: string;  // replaces inventory_item_id + inventory_item_name
+  ingredient_name: string;
   unit: string;
   quantity_used: number;
-  replaces_org_ingredient_id?: string | null;
+  replaces_org_ingredient_id: string | null;
 }
-
-
 
 // ── Inventory ─────────────────────────────────────────────────────────────────
 export type InventoryUnit = "g" | "kg" | "ml" | "l" | "pcs";
 
-// Org-level catalog item
 export interface OrgIngredient {
   id: string;
   org_id: string;
@@ -214,7 +212,6 @@ export interface OrgIngredient {
   updated_at: string;
 }
 
-// Branch-level stock tracking
 export interface BranchInventoryItem {
   id: string;
   branch_id: string;
@@ -245,7 +242,6 @@ export interface BranchInventoryAdjustment {
   created_at: string;
 }
 
-// Auto-applied transfer (no pending state)
 export interface BranchInventoryTransfer {
   id: string;
   org_id: string;
@@ -262,7 +258,6 @@ export interface BranchInventoryTransfer {
   initiated_by_name: string;
   initiated_at: string;
 }
-
 
 // ── Orders ────────────────────────────────────────────────────────────────────
 export type PaymentMethod =
@@ -465,7 +460,7 @@ export interface TellerStats {
 export interface AddonSalesRow {
   addon_item_id: string;
   addon_name: string;
-  addon_type: AddonType;
+  addon_type: string;
   quantity_sold: number;
   revenue: number;
 }
@@ -544,7 +539,6 @@ export interface InventoryDiscrepancy {
   discrepancy: number | null;
   note: string | null;
 }
-
 
 // ── Discounts ─────────────────────────────────────────────────────────────────
 export interface Discount {
