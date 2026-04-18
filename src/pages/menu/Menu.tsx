@@ -1,791 +1,423 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Coffee,
-  Tag,
-  Package,
-  ToggleLeft,
-  ToggleRight,
-  Download,
-} from "lucide-react";
+import { useState, useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { type ColumnDef } from "@tanstack/react-table";
-import { useAuthStore } from "@/store/auth";
-import { useAppStore } from "@/store/app";
-import * as menuApi from "@/api/menu";
-import type { Category, MenuItem, AddonItem } from "@/types";
-import { egp, fmtAddonType, ADDON_TYPE_LABELS } from "@/utils/format";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Coffee, Edit2, Package, Plus, Tag, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { PageShell } from "@/shared/ui/page-shell";
+import { DataTable } from "@/shared/ui/data-table";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { Input } from "@/shared/ui/input";
+import { Switch } from "@/shared/ui/switch";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+  Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from "@/shared/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { EmptyState } from "@/shared/ui/empty-state";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { categoryApi, menuItemApi, addonApi } from "@/entities/menu/api";
+import { useCategories, useMenuItems, useAddons } from "@/entities/menu/queries";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import { Skeleton } from "@/components/ui/skeleton";
-import { DataTable } from "@/components/shared/DataTable";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { getErrorMessage } from "@/lib/client";
+  categorySchema, menuItemSchema, addonSchema,
+  type CategoryValues, type MenuItemValues, type AddonValues,
+} from "@/entities/menu/schemas";
+import { QUERY_KEYS } from "@/shared/config/constants";
+import { useCurrentContext } from "@/shared/hooks/use-current-context";
+import { getErrorMessage } from "@/shared/api/errors";
+import { fmtMoney, piastresToEgp } from "@/shared/lib/format";
+import { exportToExcel } from "@/shared/lib/excel";
+import type { AddonItem, Category, MenuItem } from "@/shared/types";
 
-// ── XLSX Export ───────────────────────────────────────────────────────────────
-async function exportMenuXLSX({
-  orgId,
-  branchName,
-  items,
-  cats,
-  addons,
-}: {
-  orgId: string;
-  branchName: string;
-  items: MenuItem[];
-  cats: Category[];
-  addons: AddonItem[];
-}) {
-  try {
-    toast.loading("Generating Excel file…");
+// ── Category Dialog ──────────────────────────────────────────────────────────
+function CategoryDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: () => void; edit: Category | null; orgId: string }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
 
-    const ExcelJS = (await import("exceljs")).default;
-    const wb = new ExcelJS.Workbook();
-    wb.creator = "Rue POS";
-    wb.created = new Date();
+  const form = useForm<CategoryValues>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: {
+      name: edit?.name ?? "",
+      display_order: edit?.display_order ?? 0,
+      is_active: edit?.is_active ?? true,
+    },
+  });
 
-    // ── Palette ─────────────────────────────────────────────────────────────
-    const C = {
-      logoBlue: "FF0039BF",
-      white: "FFFFFFFF",
-      rowEven: "FFF9FAFB",
-      border: "FFE5E7EB",
-      textDark: "FF111827",
-      textMuted: "FF6B7280",
-      green: "FF16A34A",
-      red: "FFDC2626",
-      amber: "FFD97706",
-      violet: "FF7C3AED",
-      teal: "FF0D9488",
-    };
+  const { mutate, isPending } = useMutation({
+    mutationFn: (v: CategoryValues) =>
+      edit ? categoryApi.update(edit.id, v) : categoryApi.create({ ...v, org_id: orgId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.categories(orgId) });
+      toast.success(t("common.save"));
+      onClose();
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  });
 
-    const border = (cell: any, color = C.border) => {
-      const s = { style: "thin" as const, color: { argb: color } };
-      cell.border = { top: s, bottom: s, left: s, right: s };
-    };
-
-    const catMap = Object.fromEntries(cats.map((c) => [c.id, c.name]));
-    const now = new Date().toLocaleString("en-EG");
-
-    // ── Helper: build standard banner rows (logo + subtitle + spacer) ────────
-    async function addBanner(ws: any, lastCol: string, subtitle: string) {
-      ws.mergeCells(`A1:${lastCol}1`);
-      ws.getRow(1).height = 65;
-      const titleCell = ws.getCell("A1");
-      titleCell.value = subtitle;
-      titleCell.font = {
-        name: "Cairo",
-        size: 16,
-        bold: true,
-        color: { argb: C.logoBlue },
-      };
-      titleCell.alignment = {
-        horizontal: "right",
-        vertical: "middle",
-        indent: 2,
-      };
-
-      try {
-        const res = await fetch("/TheRue.png");
-        const buf = await res.arrayBuffer();
-        const logoId = wb.addImage({ buffer: buf, extension: "png" });
-        ws.addImage(logoId, {
-          tl: { col: 0.2, row: 0.35 },
-          ext: { width: 135, height: 57 },
-        });
-      } catch {
-        /* logo optional */
-      }
-
-      ws.mergeCells(`A2:${lastCol}2`);
-      const sub = ws.getCell("A2");
-      sub.value = `Generated: ${now}`;
-      sub.font = { name: "Cairo", size: 9, color: { argb: C.textMuted } };
-      sub.alignment = { horizontal: "center", vertical: "middle" };
-      ws.getRow(2).height = 20;
-
-      ws.mergeCells(`A3:${lastCol}3`);
-      ws.getRow(3).height = 8;
-    }
-
-    // ── Helper: stat pills (rows 4–5) ────────────────────────────────────────
-    function addStats(
-      ws: any,
-      lastCol: string,
-      stats: {
-        label: string;
-        value: number | string;
-        color: string;
-        fmt?: string;
-      }[],
-    ) {
-      const cols = ["A", "C", "E", "G", "I", "K"];
-      const ends = ["B", "D", "F", "H", "J", "L"];
-      stats.forEach(({ label, value, color, fmt }, i) => {
-        ws.mergeCells(`${cols[i]}4:${ends[i]}4`);
-        const lc = ws.getCell(`${cols[i]}4`);
-        lc.value = label;
-        lc.font = { name: "Cairo", size: 8, color: { argb: C.textMuted } };
-        lc.alignment = { horizontal: "center", vertical: "middle" };
-
-        ws.mergeCells(`${cols[i]}5:${ends[i]}5`);
-        const vc = ws.getCell(`${cols[i]}5`);
-        vc.value = value;
-        vc.font = {
-          name: "Cairo",
-          size: 12,
-          bold: true,
-          color: { argb: color },
-        };
-        vc.alignment = { horizontal: "center", vertical: "middle" };
-        if (fmt) vc.numFmt = fmt;
-      });
-
-      ws.mergeCells(`A6:${lastCol}6`);
-      ws.getRow(6).height = 8;
-    }
-
-    // ── Helper: header row (row 7) ───────────────────────────────────────────
-    function addHeaderRow(ws: any, headers: string[]) {
-      const headerRow = ws.addRow(headers);
-      headerRow.height = 30;
-      headerRow.eachCell((cell: any) => {
-        cell.font = {
-          name: "Cairo",
-          size: 10,
-          bold: true,
-          color: { argb: C.white },
-        };
-        cell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: C.logoBlue },
-        };
-        cell.alignment = { horizontal: "center", vertical: "middle" };
-        border(cell);
-      });
-      return headerRow;
-    }
-
-    // ── Helper: totals row ───────────────────────────────────────────────────
-    function addTotalsRow(
-      ws: any,
-      values: (string | { formula: string } | null)[],
-      numCols: number[],
-    ) {
-      const row = ws.addRow(values);
-      row.height = 28;
-      row.eachCell({ includeEmpty: true }, (cell: any, colNum: number) => {
-        cell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: C.logoBlue },
-        };
-        cell.font = {
-          name: "Cairo",
-          size: 10,
-          bold: true,
-          color: { argb: C.white },
-        };
-        cell.alignment = { vertical: "middle", horizontal: "center" };
-        border(cell);
-        if (numCols.includes(colNum)) cell.numFmt = "#,##0.00";
-      });
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // SHEET 1 — Menu Items
-    // ─────────────────────────────────────────────────────────────────────────
-    const wsItems = wb.addWorksheet("Menu Items", {
-      pageSetup: { fitToPage: true, fitToWidth: 1, orientation: "landscape" },
-      views: [{ state: "frozen", ySplit: 7 }],
-    });
-
-    wsItems.columns = [
-      { key: "name", width: 28 },
-      { key: "description", width: 36 },
-      { key: "category", width: 20 },
-      { key: "price", width: 16 },
-      { key: "active", width: 12 },
-    ];
-
-    await addBanner(wsItems, "E", "Menu Items");
-
-    const activeItems = items.filter((i) => i.is_active);
-    const inactiveItems = items.filter((i) => !i.is_active);
-    const avgPrice =
-      items.length > 0
-        ? items.reduce((s, i) => s + i.base_price, 0) / items.length / 100
-        : 0;
-
-    addStats(wsItems, "E", [
-      { label: "Total Items", value: items.length, color: C.logoBlue },
-      { label: "Active", value: activeItems.length, color: C.green },
-      { label: "Inactive", value: inactiveItems.length, color: C.red },
-      {
-        label: "Avg Price",
-        value: avgPrice,
-        color: C.amber,
-        fmt: '#,##0.00 "EGP"',
-      },
-    ]);
-
-    addHeaderRow(wsItems, [
-      "Name",
-      "Description",
-      "Category",
-      "Price (EGP)",
-      "Status",
-    ]);
-
-    const DATA_START_ITEMS = 8;
-    items.forEach((item, idx) => {
-      const rowBg = idx % 2 === 0 ? C.rowEven : C.white;
-      const row = wsItems.addRow([
-        item.name,
-        item.description ?? "—",
-        catMap[item.category_id ?? ""] ?? "Uncategorised",
-        item.base_price / 100,
-        item.is_active ? "Active" : "Inactive",
-      ]);
-      row.height = 24;
-      row.eachCell({ includeEmpty: true }, (cell: any, colNum: number) => {
-        cell.font = {
-          name: "Cairo",
-          size: 10,
-          color: { argb: item.is_active ? C.textDark : C.textMuted },
-          italic: !item.is_active,
-        };
-        cell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: rowBg },
-        };
-        cell.alignment = {
-          vertical: "middle",
-          horizontal: colNum === 4 ? "center" : "left",
-          indent: colNum <= 3 ? 1 : 0,
-        };
-        border(cell);
-        if (colNum === 4) cell.numFmt = "#,##0.00";
-        if (colNum === 5) {
-          cell.font = {
-            name: "Cairo",
-            size: 9,
-            bold: true,
-            color: { argb: item.is_active ? C.green : C.red },
-          };
-        }
-      });
-    });
-
-    addTotalsRow(
-      wsItems,
-      [
-        "",
-        "TOTALS",
-        "",
-        { formula: `=SUM(D${DATA_START_ITEMS}:D${wsItems.rowCount})` },
-        "",
-      ],
-      [4],
-    );
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // SHEET 2 — Categories
-    // ─────────────────────────────────────────────────────────────────────────
-    const wsCats = wb.addWorksheet("Categories", {
-      pageSetup: { fitToPage: true, fitToWidth: 1 },
-      views: [{ state: "frozen", ySplit: 7 }],
-    });
-
-    wsCats.columns = [
-      { key: "name", width: 30 },
-      { key: "display_order", width: 18 },
-      { key: "active", width: 14 },
-    ];
-
-    await addBanner(wsCats, "C", "Categories");
-
-    const activeCats = cats.filter((c) => c.is_active);
-
-    addStats(wsCats, "C", [
-      { label: "Total Categories", value: cats.length, color: C.logoBlue },
-      { label: "Active", value: activeCats.length, color: C.green },
-      {
-        label: "Inactive",
-        value: cats.length - activeCats.length,
-        color: C.red,
-      },
-    ]);
-
-    addHeaderRow(wsCats, ["Name", "Display Order", "Status"]);
-
-    const DATA_START_CATS = 8;
-    cats.forEach((cat, idx) => {
-      const rowBg = idx % 2 === 0 ? C.rowEven : C.white;
-      const row = wsCats.addRow([
-        cat.name,
-        cat.display_order,
-        cat.is_active ? "Active" : "Inactive",
-      ]);
-      row.height = 24;
-      row.eachCell({ includeEmpty: true }, (cell: any, colNum: number) => {
-        cell.font = { name: "Cairo", size: 10, color: { argb: C.textDark } };
-        cell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: rowBg },
-        };
-        cell.alignment = {
-          vertical: "middle",
-          horizontal: colNum === 1 ? "left" : "center",
-          indent: colNum === 1 ? 1 : 0,
-        };
-        border(cell);
-        if (colNum === 3) {
-          cell.font = {
-            name: "Cairo",
-            size: 9,
-            bold: true,
-            color: { argb: cat.is_active ? C.green : C.red },
-          };
-        }
-      });
-    });
-
-    // No numeric totals for categories — just a count footer
-    const catFooter = wsCats.addRow([
-      `${cats.length} categories total`,
-      "",
-      "",
-    ]);
-    catFooter.height = 28;
-    catFooter.eachCell({ includeEmpty: true }, (cell: any) => {
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: C.logoBlue },
-      };
-      cell.font = {
-        name: "Cairo",
-        size: 10,
-        bold: true,
-        color: { argb: C.white },
-      };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-      border(cell);
-    });
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // SHEET 3 — Addons
-    // ─────────────────────────────────────────────────────────────────────────
-    const wsAddons = wb.addWorksheet("Addons", {
-      pageSetup: { fitToPage: true, fitToWidth: 1, orientation: "landscape" },
-      views: [{ state: "frozen", ySplit: 7 }],
-    });
-
-    wsAddons.columns = [
-      { key: "name", width: 28 },
-      { key: "addon_type", width: 20 },
-      { key: "default_price", width: 18 },
-      { key: "display_order", width: 16 },
-      { key: "active", width: 12 },
-    ];
-
-    await addBanner(wsAddons, "E", "Addon Items");
-
-    const activeAddons = addons.filter((a) => a.is_active);
-    const avgAddonPrice =
-      addons.length > 0
-        ? addons.reduce((s, a) => s + a.default_price, 0) / addons.length / 100
-        : 0;
-
-    const ADDON_TYPE_ARGB: Record<string, string> = {
-      coffee_type: "FF7C3AED",
-      milk_type: "FF0D9488",
-      extra: "FFD97706",
-    };
-
-    addStats(wsAddons, "E", [
-      { label: "Total Addons", value: addons.length, color: C.logoBlue },
-      { label: "Active", value: activeAddons.length, color: C.green },
-      {
-        label: "Inactive",
-        value: addons.length - activeAddons.length,
-        color: C.red,
-      },
-      {
-        label: "Avg Price",
-        value: avgAddonPrice,
-        color: C.amber,
-        fmt: '#,##0.00 "EGP"',
-      },
-    ]);
-
-    addHeaderRow(wsAddons, [
-      "Name",
-      "Type",
-      "Default Price (EGP)",
-      "Display Order",
-      "Status",
-    ]);
-
-    const DATA_START_ADDONS = 8;
-    addons.forEach((addon, idx) => {
-      const rowBg = idx % 2 === 0 ? C.rowEven : C.white;
-      const row = wsAddons.addRow([
-        addon.name,
-        fmtAddonType(addon.addon_type),
-        addon.default_price / 100,
-        addon.display_order,
-        addon.is_active ? "Active" : "Inactive",
-      ]);
-      row.height = 24;
-      row.eachCell({ includeEmpty: true }, (cell: any, colNum: number) => {
-        cell.font = {
-          name: "Cairo",
-          size: 10,
-          color: { argb: addon.is_active ? C.textDark : C.textMuted },
-          italic: !addon.is_active,
-        };
-        cell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: rowBg },
-        };
-        cell.alignment = {
-          vertical: "middle",
-          horizontal: [3, 4].includes(colNum)
-            ? "center"
-            : colNum === 1
-              ? "left"
-              : "center",
-          indent: colNum === 1 ? 1 : 0,
-        };
-        border(cell);
-        if (colNum === 2) {
-          cell.font = {
-            name: "Cairo",
-            size: 9,
-            bold: true,
-            color: { argb: ADDON_TYPE_ARGB[addon.addon_type] ?? C.logoBlue },
-          };
-        }
-        if (colNum === 3) cell.numFmt = "#,##0.00";
-        if (colNum === 5) {
-          cell.font = {
-            name: "Cairo",
-            size: 9,
-            bold: true,
-            color: { argb: addon.is_active ? C.green : C.red },
-          };
-        }
-      });
-    });
-
-    addTotalsRow(
-      wsAddons,
-      [
-        "",
-        "TOTALS",
-        { formula: `=SUM(C${DATA_START_ADDONS}:C${wsAddons.rowCount})` },
-        "",
-        "",
-      ],
-      [3],
-    );
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Download
-    // ─────────────────────────────────────────────────────────────────────────
-    toast.dismiss();
-    toast.loading("Downloading file…");
-
-    const buffer = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Menu-Export-${new Date().toISOString().slice(0, 10)}.xlsx`;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    toast.dismiss();
-    toast.success(
-      `Exported ${items.length} items, ${cats.length} categories, ${addons.length} addons`,
-    );
-  } catch (err) {
-    toast.dismiss();
-    toast.error("Export failed");
-    console.error(err);
-  }
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{edit ? t("menu.categoryDialog.edit") : t("menu.categoryDialog.new")}</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+            <DialogBody>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.name")}</FormLabel>
+                    <FormControl><Input placeholder={t("menu.categoryDialog.namePh")} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="display_order"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("menu.displayOrder")}</FormLabel>
+                    <FormControl><Input type="number" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </DialogBody>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
+              <Button type="submit" loading={isPending}>{t("common.save")}</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
-export default function Menu() {
-  const user = useAuthStore((s) => s.user);
-  const orgId = useAppStore((s) => s.selectedOrgId) ?? user?.org_id ?? "";
+// ── Menu Item Dialog ─────────────────────────────────────────────────────────
+function MenuItemDialog({
+  open, onClose, edit, orgId, categories,
+}: {
+  open: boolean;
+  onClose: () => void;
+  edit: MenuItem | null;
+  orgId: string;
+  categories: Category[];
+}) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
-  const [tab, setTab] = useState("items");
 
-  // ── Search state (per tab) ───────────────────────────────────────────────
-  const [itemSearch, setItemSearch] = useState("");
-  const [catSearch, setCatSearch] = useState("");
-  const [addonSearch, setAddonSearch] = useState("");
-
-  // ── Categories ────────────────────────────────────────────────────────────
-  const { data: cats = [], isLoading: catsLoading } = useQuery({
-    queryKey: ["categories", orgId],
-    queryFn: () => menuApi.getCategories(orgId).then((r) => r.data),
-    enabled: !!orgId,
-  });
-
-  // ── Menu items ────────────────────────────────────────────────────────────
-  const [selCat, setSelCat] = useState<string | null>(null);
-  const { data: items = [], isLoading: itemsLoading } = useQuery({
-    queryKey: ["menu-items", orgId, selCat],
-    queryFn: () => menuApi.getMenuItems(orgId, selCat).then((r) => r.data),
-    enabled: !!orgId,
-  });
-
-  // ── Addon items ───────────────────────────────────────────────────────────
-  const [selAddonType, setSelAddonType] = useState<string | null>(null);
-  const { data: addons = [], isLoading: addonsLoading } = useQuery({
-    queryKey: ["addon-items", orgId, selAddonType],
-    queryFn: () =>
-      menuApi.getAddonItems(orgId, selAddonType).then((r) => r.data),
-    enabled: !!orgId,
-  });
-
-  // ── Filtered data ─────────────────────────────────────────────────────────
-  const filteredItems = items.filter(
-    (i) =>
-      i.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
-      (i.description ?? "").toLowerCase().includes(itemSearch.toLowerCase()),
-  );
-
-  const filteredCats = cats.filter((c) =>
-    c.name.toLowerCase().includes(catSearch.toLowerCase()),
-  );
-
-  const filteredAddons = addons.filter((a) =>
-    a.name.toLowerCase().includes(addonSearch.toLowerCase()),
-  );
-
-  // ── Category dialog ───────────────────────────────────────────────────────
-  const [catDialog, setCatDialog] = useState(false);
-  const [editCat, setEditCat] = useState<Category | null>(null);
-  const [catForm, setCatForm] = useState({ name: "", display_order: "0" });
-
-  const openCatDialog = (cat?: Category) => {
-    setEditCat(cat ?? null);
-    setCatForm({
-      name: cat?.name ?? "",
-      display_order: String(cat?.display_order ?? 0),
-    });
-    setCatDialog(true);
-  };
-
-  const catMutation = useMutation({
-    mutationFn: () =>
-      editCat
-        ? menuApi.updateCategory(editCat.id, {
-            name: catForm.name,
-            display_order: parseInt(catForm.display_order),
-          })
-        : menuApi.createCategory({
-            org_id: orgId,
-            name: catForm.name,
-            display_order: parseInt(catForm.display_order),
-          }),
-    onSuccess: () => {
-      toast.success(editCat ? "Category updated" : "Category created");
-      qc.invalidateQueries({ queryKey: ["categories"] });
-      setCatDialog(false);
+  const form = useForm<MenuItemValues>({
+    resolver: zodResolver(menuItemSchema),
+    defaultValues: {
+      name: edit?.name ?? "",
+      description: edit?.description ?? "",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      base_price: (edit ? String(edit.base_price / 100) : "") as any,
+      category_id: edit?.category_id ?? "",
+      is_active: edit?.is_active ?? true,
+      display_order: edit?.display_order ?? 0,
     },
-    onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const deleteCatMutation = useMutation({
-    mutationFn: (id: string) => menuApi.deleteCategory(id),
-    onSuccess: () => {
-      toast.success("Category deleted");
-      qc.invalidateQueries({ queryKey: ["categories"] });
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
-
-  // ── Menu item dialog ──────────────────────────────────────────────────────
-  const [itemDialog, setItemDialog] = useState(false);
-  const [editItem, setEditItem] = useState<MenuItem | null>(null);
-  const [itemForm, setItemForm] = useState({
-    name: "",
-    description: "",
-    base_price: "",
-    category_id: "",
-    is_active: true,
-  });
-
-  const openItemDialog = (item?: MenuItem) => {
-    setEditItem(item ?? null);
-    setItemForm({
-      name: item?.name ?? "",
-      description: item?.description ?? "",
-      base_price: item ? String(item.base_price / 100) : "",
-      category_id: item?.category_id ?? "",
-      is_active: item?.is_active ?? true,
-    });
-    setItemDialog(true);
-  };
-
-  const itemMutation = useMutation({
-    mutationFn: () => {
+  const { mutate, isPending } = useMutation({
+    mutationFn: (v: MenuItemValues) => {
       const payload = {
-        org_id: orgId,
-        name: itemForm.name,
-        description: itemForm.description || null,
-        base_price: Math.round(parseFloat(itemForm.base_price) * 100),
-        category_id: itemForm.category_id || null,
-        is_active: itemForm.is_active,
+        name: v.name,
+        description: v.description || null,
+        base_price: v.base_price,
+        category_id: v.category_id || null,
+        is_active: v.is_active,
+        display_order: v.display_order,
       };
-      return editItem
-        ? menuApi.updateMenuItem(editItem.id, payload)
-        : menuApi.createMenuItem(payload);
+      return edit ? menuItemApi.update(edit.id, payload) : menuItemApi.create({ ...payload, org_id: orgId });
     },
     onSuccess: () => {
-      toast.success(editItem ? "Item updated" : "Item created");
       qc.invalidateQueries({ queryKey: ["menu-items"] });
-      setItemDialog(false);
+      toast.success(t("common.save"));
+      onClose();
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent size="lg">
+        <DialogHeader>
+          <DialogTitle>{edit ? t("menu.itemDialog.edit") : t("menu.itemDialog.new")}</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+            <DialogBody>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.name")}</FormLabel>
+                    <FormControl><Input placeholder={t("menu.itemDialog.namePh")} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.description")}</FormLabel>
+                    <FormControl><Input placeholder={t("menu.itemDialog.descPh")} {...field} value={field.value ?? ""} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="base_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.price")} (EGP)</FormLabel>
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      <FormControl><Input type="number" step="0.5" {...(field as any)} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="category_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.category")}</FormLabel>
+                      <Select value={field.value || "__none__"} onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="__none__">{t("menu.noCategory")}</SelectItem>
+                          {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 !space-y-0">
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                    <FormLabel>{t("common.active")}</FormLabel>
+                  </FormItem>
+                )}
+              />
+            </DialogBody>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
+              <Button type="submit" loading={isPending}>{t("common.save")}</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Addon Dialog ─────────────────────────────────────────────────────────────
+function AddonDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: () => void; edit: AddonItem | null; orgId: string }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+
+  const form = useForm<AddonValues>({
+    resolver: zodResolver(addonSchema),
+    defaultValues: {
+      name: edit?.name ?? "",
+      addon_type: edit?.addon_type ?? "extra",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default_price: (edit ? String(edit.default_price / 100) : "") as any,
+      display_order: edit?.display_order ?? 0,
+      is_active: edit?.is_active ?? true,
+    },
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (v: AddonValues) =>
+      edit
+        ? addonApi.update(edit.id, v)
+        : addonApi.create({ ...v, org_id: orgId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["addons"] });
+      toast.success(t("common.save"));
+      onClose();
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{edit ? t("menu.addonDialog.edit") : t("menu.addonDialog.new")}</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+            <DialogBody>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.name")}</FormLabel>
+                    <FormControl><Input placeholder={t("menu.addonDialog.namePh")} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="addon_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("menu.addonDialog.typeLabel")}</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="coffee_type">{t("menu.addonTypes.coffee_type")}</SelectItem>
+                          <SelectItem value="milk_type">{t("menu.addonTypes.milk_type")}</SelectItem>
+                          <SelectItem value="extra">{t("menu.addonTypes.extra")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="default_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("menu.addonDialog.defaultPrice")}</FormLabel>
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      <FormControl><Input type="number" step="0.5" {...(field as any)} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="display_order"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("menu.displayOrder")}</FormLabel>
+                    <FormControl><Input type="number" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </DialogBody>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
+              <Button type="submit" loading={isPending}>{t("common.save")}</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────
+export default function Menu() {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { orgId } = useCurrentContext();
+  const [tab, setTab] = useState<"items" | "categories" | "addons">("items");
+
+  const [catDlg, setCatDlg] = useState(false);
+  const [itemDlg, setItemDlg] = useState(false);
+  const [addonDlg, setAddonDlg] = useState(false);
+
+  const [editCat, setEditCat] = useState<Category | null>(null);
+  const [editItem, setEditItem] = useState<MenuItem | null>(null);
+  const [editAddon, setEditAddon] = useState<AddonItem | null>(null);
+
+  const [confirmDelete, setConfirmDelete] = useState<
+    { kind: "cat"; id: string; name: string } | { kind: "item"; id: string; name: string } | { kind: "addon"; id: string; name: string } | null
+  >(null);
+
+  const [selCat, setSelCat] = useState<string | "all">("all");
+  const [selType, setSelType] = useState<string | "all">("all");
+
+  const { data: categories = [], isLoading: catsLoading } = useCategories(orgId);
+  const { data: items = [], isLoading: itemsLoading } = useMenuItems(orgId, selCat === "all" ? null : selCat);
+  const { data: addons = [], isLoading: addonsLoading } = useAddons(orgId, selType === "all" ? null : selType);
 
   const toggleItem = useMutation({
-    mutationFn: (item: MenuItem) =>
-      menuApi.updateMenuItem(item.id, { is_active: !item.is_active }),
+    mutationFn: (it: MenuItem) => menuItemApi.update(it.id, { is_active: !it.is_active }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["menu-items"] }),
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  // ── Addon dialog ──────────────────────────────────────────────────────────
-  const [addonDialog, setAddonDialog] = useState(false);
-  const [editAddon, setEditAddon] = useState<AddonItem | null>(null);
-  const [addonForm, setAddonForm] = useState({
-    name: "",
-    addon_type: "extra",
-    default_price: "",
-    display_order: "0",
+  const toggleAddon = useMutation({
+    mutationFn: (a: AddonItem) => addonApi.update(a.id, { is_active: !a.is_active }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["addons"] }),
+    onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const openAddonDialog = (addon?: AddonItem) => {
-    setEditAddon(addon ?? null);
-    setAddonForm({
-      name: addon?.name ?? "",
-      addon_type: addon?.addon_type ?? "extra",
-      default_price: addon ? String(addon.default_price / 100) : "",
-      display_order: String(addon?.display_order ?? 0),
-    });
-    setAddonDialog(true);
-  };
-
-  const addonMutation = useMutation({
-    mutationFn: () => {
-      const payload = {
-        org_id: orgId,
-        name: addonForm.name,
-        addon_type: addonForm.addon_type,
-        default_price: Math.round(parseFloat(addonForm.default_price) * 100),
-        display_order: parseInt(addonForm.display_order),
-      };
-      return editAddon
-        ? menuApi.updateAddonItem(editAddon.id, payload)
-        : menuApi.createAddonItem(payload);
-    },
-    onSuccess: () => {
-      toast.success(editAddon ? "Addon updated" : "Addon created");
-      qc.invalidateQueries({ queryKey: ["addon-items"] });
-      setAddonDialog(false);
+  const remove = useMutation({
+    mutationFn: (c: NonNullable<typeof confirmDelete>) =>
+      c.kind === "cat" ? categoryApi.remove(c.id) : c.kind === "item" ? menuItemApi.remove(c.id) : addonApi.remove(c.id),
+    onSuccess: (_, c) => {
+      qc.invalidateQueries({ queryKey: c.kind === "cat" ? ["categories"] : c.kind === "item" ? ["menu-items"] : ["addons"] });
+      toast.success(t("common.delete"));
+      setConfirmDelete(null);
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  // ── Column definitions ────────────────────────────────────────────────────
-  const itemCols: ColumnDef<MenuItem, any>[] = [
+  const itemCols: ColumnDef<MenuItem>[] = useMemo(() => [
     {
       accessorKey: "name",
-      header: "Name",
+      header: t("common.name"),
       cell: ({ row }) => (
         <div>
           <p className="font-semibold text-sm">{row.original.name}</p>
           {row.original.description && (
-            <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-              {row.original.description}
-            </p>
+            <p className="text-xs text-muted-foreground truncate max-w-[200px]">{row.original.description}</p>
           )}
         </div>
       ),
     },
     {
       accessorKey: "base_price",
-      header: "Price",
-      cell: ({ row }) => (
-        <span className="font-semibold tabular-nums">
-          {egp(row.original.base_price)}
-        </span>
-      ),
+      header: t("common.price"),
+      cell: ({ row }) => <span className="font-semibold tabular">{fmtMoney(row.original.base_price)}</span>,
     },
     {
       accessorKey: "category_id",
-      header: "Category",
+      header: t("common.category"),
       cell: ({ row }) => {
-        const cat = cats.find((c) => c.id === row.original.category_id);
-        return cat ? (
-          <Badge variant="outline">{cat.name}</Badge>
-        ) : (
-          <span className="text-muted-foreground text-xs">—</span>
-        );
+        const cat = categories.find((c) => c.id === row.original.category_id);
+        return cat ? <Badge variant="outline">{cat.name}</Badge> : <span className="text-muted-foreground text-xs">—</span>;
       },
     },
     {
       accessorKey: "is_active",
-      header: "Active",
+      header: t("common.active"),
       cell: ({ row }) => (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleItem.mutate(row.original);
-          }}
-        >
-          {row.original.is_active ? (
-            <ToggleRight size={20} className="text-green-500" />
-          ) : (
-            <ToggleLeft size={20} className="text-muted-foreground" />
-          )}
+        <button onClick={(e) => { e.stopPropagation(); toggleItem.mutate(row.original); }}>
+          {row.original.is_active ? <ToggleRight size={20} className="text-success" /> : <ToggleLeft size={20} className="text-muted-foreground" />}
         </button>
       ),
     },
@@ -793,521 +425,221 @@ export default function Menu() {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <div
-          className="flex items-center gap-1 justify-end"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => openItemDialog(row.original)}
-          >
-            <Pencil size={13} />
+        <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
+          <Button variant="ghost" size="iconSm" onClick={() => { setEditItem(row.original); setItemDlg(true); }}>
+            <Edit2 size={13} />
           </Button>
-        </div>
-      ),
-    },
-  ];
-
-  const catCols: ColumnDef<Category, any>[] = [
-    {
-      accessorKey: "name",
-      header: "Name",
-      cell: ({ row }) => (
-        <span className="font-semibold">{row.original.name}</span>
-      ),
-    },
-    { accessorKey: "display_order", header: "Order" },
-    {
-      accessorKey: "is_active",
-      header: "Active",
-      cell: ({ row }) => (
-        <Badge variant={row.original.is_active ? "success" : "outline"}>
-          {row.original.is_active ? "Active" : "Inactive"}
-        </Badge>
-      ),
-    },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1 justify-end">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => openCatDialog(row.original)}
-          >
-            <Pencil size={13} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="text-destructive"
-            onClick={() => deleteCatMutation.mutate(row.original.id)}
-          >
+          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete({ kind: "item", id: row.original.id, name: row.original.name })}>
             <Trash2 size={13} />
           </Button>
         </div>
       ),
     },
-  ];
+  ], [categories, t, toggleItem]);
 
-  const addonCols: ColumnDef<AddonItem, any>[] = [
-    {
-      accessorKey: "name",
-      header: "Name",
-      cell: ({ row }) => (
-        <span className="font-semibold">{row.original.name}</span>
-      ),
-    },
-    {
-      accessorKey: "addon_type",
-      header: "Type",
-      cell: ({ row }) => (
-        <Badge variant="info">{fmtAddonType(row.original.addon_type)}</Badge>
-      ),
-    },
-    {
-      accessorKey: "default_price",
-      header: "Price",
-      cell: ({ row }) => (
-        <span className="tabular-nums">{egp(row.original.default_price)}</span>
-      ),
-    },
+  const catCols: ColumnDef<Category>[] = useMemo(() => [
+    { accessorKey: "name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold">{row.original.name}</span> },
+    { accessorKey: "display_order", header: t("menu.displayOrder") },
     {
       accessorKey: "is_active",
-      header: "Active",
+      header: t("common.status"),
+      cell: ({ row }) => <Badge variant={row.original.is_active ? "success" : "outline"}>{row.original.is_active ? t("common.active") : t("common.inactive")}</Badge>,
+    },
+    {
+      id: "actions",
+      header: "",
       cell: ({ row }) => (
-        <Badge variant={row.original.is_active ? "success" : "outline"}>
-          {row.original.is_active ? "Active" : "Inactive"}
+        <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
+          <Button variant="ghost" size="iconSm" onClick={() => { setEditCat(row.original); setCatDlg(true); }}>
+            <Edit2 size={13} />
+          </Button>
+          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete({ kind: "cat", id: row.original.id, name: row.original.name })}>
+            <Trash2 size={13} />
+          </Button>
+        </div>
+      ),
+    },
+  ], [t]);
+
+  const addonCols: ColumnDef<AddonItem>[] = useMemo(() => [
+    { accessorKey: "name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold">{row.original.name}</span> },
+    {
+      accessorKey: "addon_type",
+      header: t("common.type"),
+      cell: ({ row }) => (
+        <Badge variant="info">
+          {t(`menu.addonTypes.${row.original.addon_type}`, { defaultValue: row.original.addon_type })}
         </Badge>
+      ),
+    },
+    { accessorKey: "default_price", header: t("common.price"), cell: ({ row }) => <span className="tabular">{fmtMoney(row.original.default_price)}</span> },
+    {
+      accessorKey: "is_active",
+      header: t("common.active"),
+      cell: ({ row }) => (
+        <button onClick={(e) => { e.stopPropagation(); toggleAddon.mutate(row.original); }}>
+          {row.original.is_active ? <ToggleRight size={20} className="text-success" /> : <ToggleLeft size={20} className="text-muted-foreground" />}
+        </button>
       ),
     },
     {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <div className="flex justify-end">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => openAddonDialog(row.original)}
-          >
-            <Pencil size={13} />
+        <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
+          <Button variant="ghost" size="iconSm" onClick={() => { setEditAddon(row.original); setAddonDlg(true); }}>
+            <Edit2 size={13} />
+          </Button>
+          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete({ kind: "addon", id: row.original.id, name: row.original.name })}>
+            <Trash2 size={13} />
           </Button>
         </div>
       ),
     },
-  ];
+  ], [t, toggleAddon]);
 
-  const isExportReady = !itemsLoading && !catsLoading && !addonsLoading;
+  const handleExport = () =>
+    exportToExcel({
+      filename: "Menu",
+      sheets: [
+        {
+          name: "Items",
+          title: t("menu.items"),
+          columns: [
+            { key: "name", header: t("common.name"), accessor: (m: MenuItem) => m.name, width: 28 },
+            { key: "description", header: t("common.description"), accessor: (m: MenuItem) => m.description ?? "—", width: 32 },
+            { key: "category", header: t("common.category"), accessor: (m: MenuItem) => categories.find((c) => c.id === m.category_id)?.name ?? t("menu.uncategorised"), width: 20 },
+            { key: "price", header: t("common.price"), accessor: (m: MenuItem) => m.base_price, type: "money", width: 14, total: true },
+            { key: "is_active", header: t("common.status"), accessor: (m: MenuItem) => m.is_active, type: "bool", width: 12 },
+          ],
+          rows: items,
+          totals: true,
+          stats: [
+            { label: t("common.total"), value: items.length, type: "number" },
+            { label: t("common.active"), value: items.filter((i) => i.is_active).length, type: "number", color: "FF16A34A" },
+            { label: "Avg", value: items.length ? piastresToEgp(items.reduce((s, i) => s + i.base_price, 0) / items.length) : 0, type: "money" },
+          ],
+        },
+        {
+          name: "Categories",
+          title: t("menu.categories"),
+          columns: [
+            { key: "name", header: t("common.name"), accessor: (c: Category) => c.name, width: 28 },
+            { key: "order", header: t("menu.displayOrder"), accessor: (c: Category) => c.display_order, type: "integer", width: 14 },
+            { key: "is_active", header: t("common.status"), accessor: (c: Category) => c.is_active, type: "bool", width: 12 },
+          ],
+          rows: categories,
+        },
+        {
+          name: "Addons",
+          title: t("menu.addons"),
+          columns: [
+            { key: "name", header: t("common.name"), accessor: (a: AddonItem) => a.name, width: 28 },
+            { key: "type", header: t("common.type"), accessor: (a: AddonItem) => t(`menu.addonTypes.${a.addon_type}`, { defaultValue: a.addon_type }), width: 18 },
+            { key: "price", header: t("common.price"), accessor: (a: AddonItem) => a.default_price, type: "money", width: 14, total: true },
+            { key: "order", header: t("menu.displayOrder"), accessor: (a: AddonItem) => a.display_order, type: "integer", width: 14 },
+            { key: "is_active", header: t("common.status"), accessor: (a: AddonItem) => a.is_active, type: "bool", width: 12 },
+          ],
+          rows: addons,
+          totals: true,
+        },
+      ],
+    });
+
+  if (!orgId) return <PageShell title={t("menu.title")} description={t("menu.subtitle")}>{null}</PageShell>;
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
-      <PageHeader
-        title="Menu"
-        sub="Manage categories, items and addons"
-        actions={
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={
-              !isExportReady ||
-              (items.length === 0 && cats.length === 0 && addons.length === 0)
-            }
-            onClick={() =>
-              exportMenuXLSX({ orgId, branchName: "", items, cats, addons })
-            }
-          >
-            <Download size={13} /> Export Excel
-          </Button>
-        }
-      />
-
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="items">
-            <Coffee size={14} /> Items ({items.length})
-          </TabsTrigger>
-          <TabsTrigger value="categories">
-            <Tag size={14} /> Categories ({cats.length})
-          </TabsTrigger>
-          <TabsTrigger value="addons">
-            <Package size={14} /> Addons ({addons.length})
-          </TabsTrigger>
+    <PageShell
+      title={t("menu.title")}
+      description={t("menu.subtitle")}
+      action={
+        <Button variant="outline" size="sm" onClick={handleExport} disabled={items.length + categories.length + addons.length === 0}>
+          {t("common.export")}
+        </Button>
+      }
+    >
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <Tabs value={tab} onValueChange={(v: any) => setTab(v)}>
+        <TabsList>
+          <TabsTrigger value="items"><Coffee size={14} /> {t("menu.itemsCount", { count: items.length })}</TabsTrigger>
+          <TabsTrigger value="categories"><Tag size={14} /> {t("menu.categoriesCount", { count: categories.length })}</TabsTrigger>
+          <TabsTrigger value="addons"><Package size={14} /> {t("menu.addonsCount", { count: addons.length })}</TabsTrigger>
         </TabsList>
 
-        {/* ── Items tab ── */}
         <TabsContent value="items">
           <div className="mb-4 flex items-center gap-3 flex-wrap">
-            <Input
-              className="h-9 w-56"
-              placeholder="Search items…"
-              value={itemSearch}
-              onChange={(e) => setItemSearch(e.target.value)}
-            />
-            <Select
-              value={selCat ?? "all"}
-              onValueChange={(v) => setSelCat(v === "all" ? null : v)}
-            >
-              <SelectTrigger className="w-48 h-9">
-                <SelectValue placeholder="All categories" />
-              </SelectTrigger>
+            <Select value={selCat} onValueChange={setSelCat}>
+              <SelectTrigger className="w-48 h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {cats.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">{t("menu.allCategories")}</SelectItem>
+                {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button
-              size="sm"
-              className="ml-auto"
-              onClick={() => openItemDialog()}
-            >
-              <Plus size={14} /> Add Item
+            <Button size="sm" className="ms-auto" onClick={() => { setEditItem(null); setItemDlg(true); }}>
+              <Plus /> {t("menu.addItem")}
             </Button>
           </div>
           {itemsLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-14 rounded-xl" />
-              ))}
-            </div>
-          ) : filteredItems.length === 0 ? (
-            <EmptyState
-              icon={Coffee}
-              title="No items found"
-              sub={
-                itemSearch
-                  ? "Try a different search term"
-                  : "Add your first menu item"
-              }
-            />
+            <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}</div>
+          ) : items.length === 0 ? (
+            <EmptyState icon={Coffee} title={t("menu.emptyItems")} />
           ) : (
-            <DataTable
-              data={filteredItems}
-              columns={itemCols}
-              searchPlaceholder="Search items…"
-              onRowClick={openItemDialog}
-            />
+            <DataTable columns={itemCols} data={items} searchKey="name" searchPlaceholder={t("menu.searchItems")} onRowClick={(it) => { setEditItem(it); setItemDlg(true); }} />
           )}
         </TabsContent>
 
-        {/* ── Categories tab ── */}
         <TabsContent value="categories">
-          <div className="mb-4 flex items-center gap-3 flex-wrap">
-            <Input
-              className="h-9 w-56"
-              placeholder="Search categories…"
-              value={catSearch}
-              onChange={(e) => setCatSearch(e.target.value)}
-            />
-            <Button
-              size="sm"
-              className="ml-auto"
-              onClick={() => openCatDialog()}
-            >
-              <Plus size={14} /> Add Category
+          <div className="mb-4 flex">
+            <Button size="sm" className="ms-auto" onClick={() => { setEditCat(null); setCatDlg(true); }}>
+              <Plus /> {t("menu.addCategory")}
             </Button>
           </div>
           {catsLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 rounded-xl" />
-              ))}
-            </div>
-          ) : filteredCats.length === 0 ? (
-            <EmptyState
-              icon={Tag}
-              title="No categories found"
-              sub={
-                catSearch
-                  ? "Try a different search term"
-                  : "Add your first category"
-              }
-            />
+            <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}</div>
+          ) : categories.length === 0 ? (
+            <EmptyState icon={Tag} title={t("menu.emptyCategories")} />
           ) : (
-            <DataTable
-              data={filteredCats}
-              columns={catCols}
-              searchPlaceholder="Search categories…"
-            />
+            <DataTable columns={catCols} data={categories} searchKey="name" searchPlaceholder={t("menu.searchCategories")} />
           )}
         </TabsContent>
 
-        {/* ── Addons tab ── */}
         <TabsContent value="addons">
           <div className="mb-4 flex items-center gap-3 flex-wrap">
-            <Input
-              className="h-9 w-56"
-              placeholder="Search addons…"
-              value={addonSearch}
-              onChange={(e) => setAddonSearch(e.target.value)}
-            />
-            <Select
-              value={selAddonType ?? "all"}
-              onValueChange={(v) => setSelAddonType(v === "all" ? null : v)}
-            >
-              <SelectTrigger className="w-44 h-9">
-                <SelectValue placeholder="All types" />
-              </SelectTrigger>
+            <Select value={selType} onValueChange={setSelType}>
+              <SelectTrigger className="w-48 h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All types</SelectItem>
-                {Object.entries(ADDON_TYPE_LABELS).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>
-                    {v}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">{t("menu.allTypes")}</SelectItem>
+                <SelectItem value="coffee_type">{t("menu.addonTypes.coffee_type")}</SelectItem>
+                <SelectItem value="milk_type">{t("menu.addonTypes.milk_type")}</SelectItem>
+                <SelectItem value="extra">{t("menu.addonTypes.extra")}</SelectItem>
               </SelectContent>
             </Select>
-            <Button
-              size="sm"
-              className="ml-auto"
-              onClick={() => openAddonDialog()}
-            >
-              <Plus size={14} /> Add Addon
+            <Button size="sm" className="ms-auto" onClick={() => { setEditAddon(null); setAddonDlg(true); }}>
+              <Plus /> {t("menu.addAddon")}
             </Button>
           </div>
           {addonsLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 rounded-xl" />
-              ))}
-            </div>
-          ) : filteredAddons.length === 0 ? (
-            <EmptyState
-              icon={Package}
-              title="No addons found"
-              sub={
-                addonSearch
-                  ? "Try a different search term"
-                  : "Add your first addon"
-              }
-            />
+            <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}</div>
+          ) : addons.length === 0 ? (
+            <EmptyState icon={Package} title={t("menu.emptyAddons")} />
           ) : (
-            <DataTable
-              data={filteredAddons}
-              columns={addonCols}
-              searchPlaceholder="Search addons…"
-            />
+            <DataTable columns={addonCols} data={addons} searchKey="name" searchPlaceholder={t("menu.searchAddons")} />
           )}
         </TabsContent>
       </Tabs>
 
-      {/* ── Category dialog ── */}
-      <Dialog open={catDialog} onOpenChange={setCatDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editCat ? "Edit Category" : "New Category"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="p-6 space-y-4">
-            <div className="space-y-1.5">
-              <Label>Name</Label>
-              <Input
-                value={catForm.name}
-                onChange={(e) =>
-                  setCatForm((f) => ({ ...f, name: e.target.value }))
-                }
-                placeholder="e.g. Hot Drinks"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Display Order</Label>
-              <Input
-                type="number"
-                value={catForm.display_order}
-                onChange={(e) =>
-                  setCatForm((f) => ({ ...f, display_order: e.target.value }))
-                }
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCatDialog(false)}>
-              Cancel
-            </Button>
-            <Button
-              loading={catMutation.isPending}
-              onClick={() => catMutation.mutate()}
-            >
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CategoryDialog open={catDlg} onClose={() => { setCatDlg(false); setEditCat(null); }} edit={editCat} orgId={orgId} key={`cat-${editCat?.id ?? "new"}`} />
+      <MenuItemDialog open={itemDlg} onClose={() => { setItemDlg(false); setEditItem(null); }} edit={editItem} orgId={orgId} categories={categories} key={`item-${editItem?.id ?? "new"}`} />
+      <AddonDialog open={addonDlg} onClose={() => { setAddonDlg(false); setEditAddon(null); }} edit={editAddon} orgId={orgId} key={`addon-${editAddon?.id ?? "new"}`} />
 
-      {/* ── Item dialog ── */}
-      <Dialog open={itemDialog} onOpenChange={setItemDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editItem ? "Edit Item" : "New Item"}</DialogTitle>
-          </DialogHeader>
-          <div className="p-6 space-y-4">
-            <div className="space-y-1.5">
-              <Label>Name</Label>
-              <Input
-                value={itemForm.name}
-                onChange={(e) =>
-                  setItemForm((f) => ({ ...f, name: e.target.value }))
-                }
-                placeholder="e.g. Latte"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Description</Label>
-              <Input
-                value={itemForm.description}
-                onChange={(e) =>
-                  setItemForm((f) => ({ ...f, description: e.target.value }))
-                }
-                placeholder="Optional"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Price (EGP)</Label>
-                <Input
-                  type="number"
-                  step="0.5"
-                  value={itemForm.base_price}
-                  onChange={(e) =>
-                    setItemForm((f) => ({ ...f, base_price: e.target.value }))
-                  }
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Category</Label>
-                <Select
-                  value={itemForm.category_id || "none"}
-                  onValueChange={(v) =>
-                    setItemForm((f) => ({
-                      ...f,
-                      category_id: v === "none" ? "" : v,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="None" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No category</SelectItem>
-                    {cats.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Switch
-                checked={itemForm.is_active}
-                onCheckedChange={(v) =>
-                  setItemForm((f) => ({ ...f, is_active: v }))
-                }
-              />
-              <Label>Active</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setItemDialog(false)}>
-              Cancel
-            </Button>
-            <Button
-              loading={itemMutation.isPending}
-              onClick={() => itemMutation.mutate()}
-            >
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Addon dialog ── */}
-      <Dialog open={addonDialog} onOpenChange={setAddonDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editAddon ? "Edit Addon" : "New Addon"}</DialogTitle>
-          </DialogHeader>
-          <div className="p-6 space-y-4">
-            <div className="space-y-1.5">
-              <Label>Name</Label>
-              <Input
-                value={addonForm.name}
-                onChange={(e) =>
-                  setAddonForm((f) => ({ ...f, name: e.target.value }))
-                }
-                placeholder="e.g. Oat Milk"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Type</Label>
-                <Select
-                  value={addonForm.addon_type}
-                  onValueChange={(v) =>
-                    setAddonForm((f) => ({ ...f, addon_type: v }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(ADDON_TYPE_LABELS).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>
-                        {v}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Default Price (EGP)</Label>
-                <Input
-                  type="number"
-                  step="0.5"
-                  value={addonForm.default_price}
-                  onChange={(e) =>
-                    setAddonForm((f) => ({
-                      ...f,
-                      default_price: e.target.value,
-                    }))
-                  }
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Display Order</Label>
-              <Input
-                type="number"
-                value={addonForm.display_order}
-                onChange={(e) =>
-                  setAddonForm((f) => ({ ...f, display_order: e.target.value }))
-                }
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddonDialog(false)}>
-              Cancel
-            </Button>
-            <Button
-              loading={addonMutation.isPending}
-              onClick={() => addonMutation.mutate()}
-            >
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => !o && setConfirmDelete(null)}
+        title={t("common.confirmDelete", { name: confirmDelete?.name ?? "" })}
+        destructive
+        loading={remove.isPending}
+        onConfirm={() => confirmDelete && remove.mutate(confirmDelete)}
+      />
+    </PageShell>
   );
 }

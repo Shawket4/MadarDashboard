@@ -1,437 +1,326 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Package,
-  ArrowLeftRight,
-  ClipboardList,
-  Boxes,
-  AlertTriangle,
-  RotateCcw,
-  ChevronsUpDown,
-  Check,
-} from "lucide-react";
+import { useState, useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { type ColumnDef } from "@tanstack/react-table";
-import { useAuthStore } from "@/store/auth";
-import { useAppStore } from "@/store/app";
-import * as inventoryApi from "@/api/inventory";
-import * as branchesApi from "@/api/branches";
+import {
+  AlertTriangle, ArrowLeftRight, Boxes, ClipboardList, Edit2, Package,
+  Plus, RotateCcw, Trash2,
+} from "lucide-react";
+import { toast } from "sonner";
+import { PageShell } from "@/shared/ui/page-shell";
+import { DataTable } from "@/shared/ui/data-table";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { Input } from "@/shared/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
+import { EmptyState } from "@/shared/ui/empty-state";
+import {
+  Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from "@/shared/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Switch } from "@/shared/ui/switch";
+import { SearchableSelect } from "@/shared/ui/searchable-select";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { inventoryApi } from "@/entities/inventory/api";
+import { useCatalog, useBranchStock, useAdjustments, useTransfers } from "@/entities/inventory/queries";
+import { useBranches } from "@/entities/branch/queries";
+import {
+  catalogSchema, addStockSchema, adjustmentSchema, transferSchema,
+  type CatalogValues, type AddStockValues, type AdjustmentValues, type TransferValues,
+} from "@/entities/inventory/schemas";
+import { INVENTORY_UNITS, QUERY_KEYS } from "@/shared/config/constants";
+import { useCurrentContext } from "@/shared/hooks/use-current-context";
+import { getErrorMessage } from "@/shared/api/errors";
+import { fmtDateTime, fmtUnit } from "@/shared/lib/format";
+import { exportToExcel } from "@/shared/lib/excel";
 import type {
-  OrgIngredient,
-  BranchInventoryItem,
-  BranchInventoryAdjustment,
-  BranchInventoryTransfer,
-  InventoryUnit,
-} from "@/types";
-import { fmtUnit } from "@/utils/format";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Skeleton } from "@/components/ui/skeleton";
-import { DataTable } from "@/components/shared/DataTable";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { getErrorMessage } from "@/lib/client";
-import { ScrollArea } from "@/components/ui/scroll-area";
+  BranchInventoryAdjustment, BranchInventoryItem, BranchInventoryTransfer, OrgIngredient,
+} from "@/shared/types";
 
-const UNITS: InventoryUnit[] = ["g", "kg", "ml", "l", "pcs"];
-
-// ── Searchable ingredient combobox ────────────────────────────────────────────
-function IngredientPicker({
-  items,
-  value,
-  onSelect,
-  placeholder = "Select ingredient…",
-}: {
-  items: { id: string; name: string; unit: string; current_stock?: number }[];
-  value: string;
-  onSelect: (id: string) => void;
-  placeholder?: string;
-}) {
-  const [open, setOpen] = React.useState(false);
-  const selected = items.find((i) => i.id === value);
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between font-normal h-9"
-        >
-          <span className="truncate">
-            {selected
-              ? `${selected.name} ${selected.current_stock !== undefined ? "— " + Number(selected.current_stock).toFixed(3) : ""} (${fmtUnit(selected.unit)})`
-              : placeholder}
-          </span>
-          <ChevronsUpDown size={16} className="ml-2 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Search ingredients…" className="h-9" />
-          <CommandList>
-            <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
-              No results found
-            </CommandEmpty>
-            <CommandGroup>
-              <ScrollArea className="h-64">
-                {items.map((ing) => (
-                  <CommandItem
-                    key={ing.id}
-                    value={ing.name}
-                    onSelect={() => { onSelect(ing.id); setOpen(false); }}
-                  >
-                    <Check
-                      size={16}
-                      className={`mr-2 ${ing.id === value ? "opacity-100" : "opacity-0"}`}
-                    />
-                    {ing.name}
-                    {ing.current_stock !== undefined && (
-                      <span className="ml-2 tabular-nums text-muted-foreground">— {Number(ing.current_stock).toFixed(3)}</span>
-                    )}
-                    <span className="ml-auto text-muted-foreground text-xs">{fmtUnit(ing.unit)}</span>
-                  </CommandItem>
-                ))}
-              </ScrollArea>
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-// ── Shared field row (matches Shifts dialog pattern) ─────────────────────────
-function Field({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-sm font-medium">{label}</Label>
-      {children}
-    </div>
-  );
-}
-
-// ── Adjustment type badge ─────────────────────────────────────────────────────
-function AdjBadge({ type }: { type: string }) {
-  const map: Record<string, { cls: string; label: string }> = {
-    add:          { cls: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700", label: "Add" },
-    remove:       { cls: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-700",         label: "Remove" },
-    transfer_in:  { cls: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-900/40 dark:text-sky-300 dark:border-sky-700",           label: "Transfer In" },
-    transfer_out: { cls: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700", label: "Transfer Out" },
-  };
-  const { cls, label } = map[type] ?? { cls: "bg-muted text-muted-foreground", label: type };
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${cls}`}>
-      {label}
-    </span>
-  );
-}
-
-// ── Editable threshold cell — own component to prevent focus loss ─────────────
-function EditableThreshold({ item, branchId }: { item: BranchInventoryItem; branchId: string }) {
-  const qc = useQueryClient();
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(String(item.reorder_threshold));
-
-  const mutation = useMutation({
-    mutationFn: (v: number) => inventoryApi.updateStock(branchId, item.id, { reorder_threshold: v }),
-    onSuccess: () => { toast.success("Threshold updated"); qc.invalidateQueries({ queryKey: ["branch-stock"] }); setEditing(false); },
-    onError:   (e) => toast.error(getErrorMessage(e)),
-  });
-
-  if (editing) {
-    return (
-      <div className="flex items-center gap-1">
-        <Input
-          type="number" value={value} step="0.001" min="0" autoFocus
-          className="h-7 w-24 text-xs"
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") mutation.mutate(Number(value)); if (e.key === "Escape") setEditing(false); }}
-        />
-        <Button size="icon-sm" variant="ghost" onClick={() => mutation.mutate(Number(value))} disabled={mutation.isPending}>✓</Button>
-        <Button size="icon-sm" variant="ghost" onClick={() => setEditing(false)}>✕</Button>
-      </div>
-    );
-  }
-  return (
-    <button className="tabular-nums text-sm hover:text-primary flex items-center gap-1" onClick={() => { setValue(String(item.reorder_threshold)); setEditing(true); }}>
-      {Number(item.reorder_threshold).toFixed(3)} <Pencil size={11} className="opacity-50" />
-    </button>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// TAB 1 — Org Catalog
-// ═══════════════════════════════════════════════════════════════════════════════
-
+// ── Catalog Tab ──────────────────────────────────────────────────────────────
 function CatalogTab({ orgId }: { orgId: string }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
+  const { data: items = [], isLoading } = useCatalog(orgId);
+  const [dlg, setDlg] = useState(false);
+  const [edit, setEdit] = useState<OrgIngredient | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<OrgIngredient | null>(null);
 
-  const { data: items = [], isLoading } = useQuery({
-    queryKey: ["org-catalog", orgId],
-    queryFn:  () => inventoryApi.getCatalog(orgId).then((r) => r.data),
-    enabled:  !!orgId,
+  const form = useForm<CatalogValues>({
+    resolver: zodResolver(catalogSchema),
+    defaultValues: {
+      name: "", unit: "kg", category: "general", description: "", cost_per_unit: 0, is_active: true,
+    },
   });
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createForm, setCreateForm] = useState({ name: "", unit: "kg" as InventoryUnit, category: "general", description: "", cost_per_unit: "" });
+  const openEdit = (i: OrgIngredient | null) => {
+    setEdit(i);
+    form.reset({
+      name: i?.name ?? "",
+      unit: i?.unit ?? "kg",
+      category: i?.category ?? "general",
+      description: i?.description ?? "",
+      cost_per_unit: i?.cost_per_unit ?? 0,
+      is_active: i?.is_active ?? true,
+    });
+    setDlg(true);
+  };
 
-  const createMutation = useMutation({
-    mutationFn: () => inventoryApi.createCatalogItem(orgId, {
-      name:          createForm.name.trim(),
-      unit:          createForm.unit,
-      category:      createForm.category,
-      description:   createForm.description || undefined,
-      cost_per_unit: createForm.cost_per_unit ? Number(createForm.cost_per_unit) : 0,
-    }),
+  const save = useMutation({
+    mutationFn: (v: CatalogValues) =>
+      edit
+        ? inventoryApi.updateCatalog(orgId, edit.id, v)
+        : inventoryApi.createCatalog(orgId, {
+            name: v.name, unit: v.unit, category: v.category,
+            description: v.description || undefined, cost_per_unit: v.cost_per_unit,
+          }),
     onSuccess: () => {
-      toast.success("Ingredient added to catalog");
-      qc.invalidateQueries({ queryKey: ["org-catalog"] });
-      setCreateOpen(false);
-      setCreateForm({ name: "", unit: "kg", category: "general", description: "", cost_per_unit: "" });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.catalog(orgId) });
+      toast.success(t("common.save"));
+      setDlg(false);
+      setEdit(null);
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const [editItem, setEditItem] = useState<OrgIngredient | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", unit: "kg" as InventoryUnit, category: "general", description: "", cost_per_unit: "", is_active: true });
-
-  const openEdit = (item: OrgIngredient) => {
-    setEditItem(item);
-    setEditForm({ name: item.name, unit: item.unit, category: item.category ?? "general", description: item.description ?? "", cost_per_unit: String(item.cost_per_unit), is_active: item.is_active });
-  };
-
-  const editMutation = useMutation({
-    mutationFn: () => inventoryApi.updateCatalogItem(orgId, editItem!.id, {
-      name: editForm.name, unit: editForm.unit, category: editForm.category,
-      description: editForm.description || undefined,
-      cost_per_unit: Number(editForm.cost_per_unit),
-      is_active: editForm.is_active,
-    }),
-    onSuccess: () => { toast.success("Updated"); qc.invalidateQueries({ queryKey: ["org-catalog"] }); setEditItem(null); },
-    onError:   (e) => toast.error(getErrorMessage(e)),
+  const remove = useMutation({
+    mutationFn: (id: string) => inventoryApi.removeCatalog(orgId, id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.catalog(orgId) });
+      toast.success(t("common.delete"));
+      setConfirmDelete(null);
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => inventoryApi.deleteCatalogItem(orgId, id),
-    onSuccess:  () => { toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["org-catalog"] }); },
-    onError:    (e) => toast.error(getErrorMessage(e)),
-  });
-
-  const cols: ColumnDef<OrgIngredient, any>[] = [
+  const cols: ColumnDef<OrgIngredient>[] = [
     {
       accessorKey: "name",
-      header: "Name",
+      header: t("common.name"),
       cell: ({ row }) => (
         <div>
           <p className="font-semibold text-sm">{row.original.name}</p>
           {row.original.description && <p className="text-xs text-muted-foreground">{row.original.description}</p>}
-          {row.original.category && row.original.category !== "general" && <Badge variant="secondary" className="mt-1">{row.original.category.replace("_", " ")}</Badge>}
+          {row.original.category && row.original.category !== "general" && (
+            <Badge variant="secondary" className="mt-1">{row.original.category.replace("_", " ")}</Badge>
+          )}
         </div>
       ),
     },
-    { accessorKey: "unit", header: "Unit", cell: ({ row }) => <Badge variant="outline">{fmtUnit(row.original.unit)}</Badge> },
+    { accessorKey: "unit", header: t("common.type"), cell: ({ row }) => <Badge variant="outline">{fmtUnit(row.original.unit)}</Badge> },
     {
       accessorKey: "cost_per_unit",
       header: "Cost / unit",
-      cell: ({ row }) => <span className="tabular-nums text-sm">{row.original.cost_per_unit > 0 ? `${row.original.cost_per_unit} pt` : "—"}</span>,
+      cell: ({ row }) => (
+        <span className="tabular text-sm">{row.original.cost_per_unit > 0 ? `${row.original.cost_per_unit} pt` : "—"}</span>
+      ),
     },
     {
       accessorKey: "is_active",
-      header: "Status",
-      cell: ({ row }) => <Badge variant={row.original.is_active ? "default" : "secondary"}>{row.original.is_active ? "Active" : "Inactive"}</Badge>,
+      header: t("common.status"),
+      cell: ({ row }) => <Badge variant={row.original.is_active ? "success" : "secondary"}>{row.original.is_active ? t("common.active") : t("common.inactive")}</Badge>,
     },
     {
-      id: "actions", header: "",
+      id: "actions",
+      header: "",
       cell: ({ row }) => (
         <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="icon-sm" onClick={() => openEdit(row.original)}><Pencil size={14} /></Button>
-          <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => deleteMutation.mutate(row.original.id)} disabled={deleteMutation.isPending}><Trash2 size={14} /></Button>
+          <Button variant="ghost" size="iconSm" onClick={() => openEdit(row.original)}><Edit2 size={13} /></Button>
+          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete(row.original)}>
+            <Trash2 size={13} />
+          </Button>
         </div>
       ),
     },
   ];
 
-  if (isLoading) return <Skeleton className="h-64 w-full rounded-2xl" />;
+  const handleExport = () =>
+    exportToExcel({
+      filename: "Catalog",
+      sheets: [
+        {
+          name: "Catalog",
+          title: t("inventory.catalog.title"),
+          columns: [
+            { key: "name", header: t("common.name"), accessor: (i: OrgIngredient) => i.name, width: 28 },
+            { key: "unit", header: "Unit", accessor: (i: OrgIngredient) => fmtUnit(i.unit), width: 10 },
+            { key: "category", header: t("common.category"), accessor: (i: OrgIngredient) => i.category, width: 16 },
+            { key: "cost", header: "Cost/unit (pt)", accessor: (i: OrgIngredient) => i.cost_per_unit, type: "integer", width: 14 },
+            { key: "is_active", header: t("common.status"), accessor: (i: OrgIngredient) => i.is_active, type: "bool", width: 12 },
+          ],
+          rows: items,
+        },
+      ],
+    });
+
+  if (isLoading) return <Skeleton className="h-64 w-full rounded-xl" />;
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        title="Ingredient Catalog"
-        sub="Org-wide ingredients used in recipes and branch stock"
-        actions={<Button onClick={() => setCreateOpen(true)}><Plus size={16} className="mr-1" /> New Ingredient</Button>}
+      <div className="flex justify-end">
+        <Button size="sm" onClick={() => openEdit(null)}><Plus /> {t("inventory.catalog.newIngredient")}</Button>
+      </div>
+
+      {items.length === 0 ? (
+        <EmptyState
+          icon={Boxes}
+          title={t("inventory.catalog.empty")}
+          description={t("inventory.catalog.emptyHint")}
+          action={<Button size="sm" onClick={() => openEdit(null)}><Plus /> {t("inventory.catalog.addFirst")}</Button>}
+        />
+      ) : (
+        <DataTable columns={cols} data={items} searchKey="name" onExport={handleExport} />
+      )}
+
+      <Dialog open={dlg} onOpenChange={(o) => !o && (setDlg(false), setEdit(null))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{edit ? edit.name : t("inventory.catalog.newIngredient")}</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit((v) => save.mutate(v))}>
+              <DialogBody>
+                <FormField control={form.control} name="name" render={({ field }) => (
+                  <FormItem><FormLabel>{t("common.name")}</FormLabel><FormControl><Input placeholder={t("inventory.catalog.namePh")} {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField control={form.control} name="unit" render={({ field }) => (
+                    <FormItem><FormLabel>Unit</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>{INVENTORY_UNITS.map((u) => <SelectItem key={u} value={u}>{fmtUnit(u)}</SelectItem>)}</SelectContent>
+                      </Select><FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="category" render={({ field }) => (
+                    <FormItem><FormLabel>{t("common.category")}</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="general">{t("inventory.catalog.categoryGeneral")}</SelectItem>
+                          <SelectItem value="milk">{t("inventory.catalog.categoryMilk")}</SelectItem>
+                          <SelectItem value="coffee_bean">{t("inventory.catalog.categoryCoffee")}</SelectItem>
+                        </SelectContent>
+                      </Select><FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+                <FormField control={form.control} name="cost_per_unit" render={({ field }) => (
+                  <FormItem><FormLabel>{t("inventory.catalog.costPerUnit")}</FormLabel><FormControl><Input type="number" min="0" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="description" render={({ field }) => (
+                  <FormItem><FormLabel>{t("common.description")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
+                )} />
+                {edit && (
+                  <FormField control={form.control} name="is_active" render={({ field }) => (
+                    <FormItem className="flex items-center gap-3 !space-y-0"><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel>{t("common.active")}</FormLabel></FormItem>
+                  )} />
+                )}
+              </DialogBody>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => { setDlg(false); setEdit(null); }}>{t("common.cancel")}</Button>
+                <Button type="submit" loading={save.isPending}>{t("common.save")}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => !o && setConfirmDelete(null)}
+        title={t("common.confirmDelete", { name: confirmDelete?.name ?? "" })}
+        destructive
+        loading={remove.isPending}
+        onConfirm={() => confirmDelete && remove.mutate(confirmDelete.id)}
       />
-
-      {items.length === 0
-        ? <EmptyState icon={Boxes} title="No ingredients yet" sub="Add ingredients to the catalog, then track them per branch." action={<Button onClick={() => setCreateOpen(true)}><Plus size={14} className="mr-1" /> Add First Ingredient</Button>} />
-        : <DataTable columns={cols} data={items} />
-      }
-
-      {/* Create */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>New Catalog Ingredient</DialogTitle></DialogHeader>
-          <div className="p-6 space-y-4">
-            <Field label="Name *">
-              <Input value={createForm.name} onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Oat Milk" />
-            </Field>
-            <Field label="Unit *">
-              <Select value={createForm.unit} onValueChange={(v) => setCreateForm((f) => ({ ...f, unit: v as InventoryUnit }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{UNITS.map((u) => <SelectItem key={u} value={u}>{fmtUnit(u)}</SelectItem>)}</SelectContent>
-              </Select>
-            </Field>
-            <Field label="Category *">
-              <Select value={createForm.category} onValueChange={(v) => setCreateForm((f) => ({ ...f, category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="general">General</SelectItem>
-                  <SelectItem value="milk">Milk</SelectItem>
-                  <SelectItem value="coffee_bean">Coffee Bean</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Cost per unit (pt)">
-              <Input type="number" min="0" value={createForm.cost_per_unit} onChange={(e) => setCreateForm((f) => ({ ...f, cost_per_unit: e.target.value }))} placeholder="0" />
-            </Field>
-            <Field label="Description">
-              <Input value={createForm.description} onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))} placeholder="Optional" />
-            </Field>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
-            <Button onClick={() => createMutation.mutate()} disabled={!createForm.name.trim() || createMutation.isPending}>
-              {createMutation.isPending ? "Creating…" : "Create"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit */}
-      <Dialog open={!!editItem} onOpenChange={(o) => !o && setEditItem(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Edit: {editItem?.name}</DialogTitle></DialogHeader>
-          <div className="p-6 space-y-4">
-            <Field label="Name">
-              <Input value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} />
-            </Field>
-            <Field label="Unit">
-              <Select value={editForm.unit} onValueChange={(v) => setEditForm((f) => ({ ...f, unit: v as InventoryUnit }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{UNITS.map((u) => <SelectItem key={u} value={u}>{fmtUnit(u)}</SelectItem>)}</SelectContent>
-              </Select>
-            </Field>
-            <Field label="Category *">
-              <Select value={editForm.category} onValueChange={(v) => setEditForm((f) => ({ ...f, category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="general">General</SelectItem>
-                  <SelectItem value="milk">Milk</SelectItem>
-                  <SelectItem value="coffee_bean">Coffee Bean</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Cost per unit (pt)">
-              <Input type="number" min="0" value={editForm.cost_per_unit} onChange={(e) => setEditForm((f) => ({ ...f, cost_per_unit: e.target.value }))} />
-            </Field>
-            <Field label="Description">
-              <Input value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} />
-            </Field>
-            <div className="flex items-center gap-3 pt-1">
-              <Switch checked={editForm.is_active} onCheckedChange={(v) => setEditForm((f) => ({ ...f, is_active: v }))} />
-              <Label className="text-sm">Active</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditItem(null)}>Cancel</Button>
-            <Button onClick={() => editMutation.mutate()} disabled={editMutation.isPending}>
-              {editMutation.isPending ? "Saving…" : "Save Changes"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// TAB 2 — Branch Stock
-// ═══════════════════════════════════════════════════════════════════════════════
-
+// ── Stock Tab ────────────────────────────────────────────────────────────────
 function StockTab({ orgId, branchId }: { orgId: string; branchId: string }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
+  const { data: stock = [], isLoading } = useBranchStock(branchId);
+  const { data: catalog = [] } = useCatalog(orgId);
+  const [addDlg, setAddDlg] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<BranchInventoryItem | null>(null);
 
-  const { data: stock = [], isLoading } = useQuery({
-    queryKey: ["branch-stock", branchId],
-    queryFn:  () => inventoryApi.getBranchStock(branchId).then((r) => r.data),
-    enabled:  !!branchId,
-  });
-
-  const { data: catalog = [] } = useQuery({
-    queryKey: ["org-catalog", orgId],
-    queryFn:  () => inventoryApi.getCatalog(orgId).then((r) => r.data),
-    enabled:  !!orgId,
+  const form = useForm<AddStockValues>({
+    resolver: zodResolver(addStockSchema),
+    defaultValues: { org_ingredient_id: "", current_stock: 0, reorder_threshold: 0 },
   });
 
   const available = catalog.filter((c) => c.is_active && !stock.some((s) => s.org_ingredient_id === c.id));
 
-  const [addOpen, setAddOpen] = useState(false);
-  const [addForm, setAddForm] = useState({ org_ingredient_id: "", current_stock: "", reorder_threshold: "" });
-
-  const addMutation = useMutation({
-    mutationFn: () => inventoryApi.addToStock(branchId, {
-      org_ingredient_id: addForm.org_ingredient_id,
-      current_stock:     addForm.current_stock ? Number(addForm.current_stock) : 0,
-      reorder_threshold: addForm.reorder_threshold ? Number(addForm.reorder_threshold) : 0,
-    }),
+  const add = useMutation({
+    mutationFn: (v: AddStockValues) => inventoryApi.addStock(branchId, v),
     onSuccess: () => {
-      toast.success("Added to branch stock");
-      qc.invalidateQueries({ queryKey: ["branch-stock"] });
-      setAddOpen(false);
-      setAddForm({ org_ingredient_id: "", current_stock: "", reorder_threshold: "" });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
+      toast.success(t("inventory.stock.addedToast"));
+      setAddDlg(false);
+      form.reset();
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => inventoryApi.removeFromStock(branchId, id),
-    onSuccess:  () => { toast.success("Removed from branch"); qc.invalidateQueries({ queryKey: ["branch-stock"] }); },
-    onError:    (e) => toast.error(getErrorMessage(e)),
+  const remove = useMutation({
+    mutationFn: (id: string) => inventoryApi.removeStock(branchId, id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
+      toast.success(t("inventory.stock.removedToast"));
+      setConfirmDelete(null);
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const cols: ColumnDef<BranchInventoryItem, any>[] = [
+  const updateThreshold = useMutation({
+    mutationFn: ({ id, value }: { id: string; value: number }) =>
+      inventoryApi.updateStock(branchId, id, { reorder_threshold: value }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
+      toast.success(t("inventory.stock.thresholdUpdated"));
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  });
+
+  const EditableThreshold = ({ item }: { item: BranchInventoryItem }) => {
+    const [editing, setEditing] = useState(false);
+    const [val, setVal] = useState(String(item.reorder_threshold));
+    if (editing) {
+      return (
+        <div className="flex items-center gap-1">
+          <Input type="number" value={val} step="0.001" min="0" autoFocus className="h-7 w-24 text-xs"
+            onChange={(e) => setVal(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { updateThreshold.mutate({ id: item.id, value: Number(val) }); setEditing(false); }
+              if (e.key === "Escape") setEditing(false);
+            }}
+          />
+          <Button size="iconSm" variant="ghost" onClick={() => { updateThreshold.mutate({ id: item.id, value: Number(val) }); setEditing(false); }}>✓</Button>
+          <Button size="iconSm" variant="ghost" onClick={() => setEditing(false)}>✕</Button>
+        </div>
+      );
+    }
+    return (
+      <button className="tabular text-sm hover:text-primary flex items-center gap-1" onClick={() => setEditing(true)}>
+        {Number(item.reorder_threshold).toFixed(3)} <Edit2 size={11} className="opacity-50" />
+      </button>
+    );
+  };
+
+  const cols: ColumnDef<BranchInventoryItem>[] = [
     {
       accessorKey: "ingredient_name",
-      header: "Ingredient",
+      header: t("recipes.ingredient"),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          {row.original.below_reorder && <AlertTriangle size={14} className="text-amber-500 shrink-0" />}
+          {row.original.below_reorder && <AlertTriangle size={14} className="text-warning shrink-0" />}
           <div>
             <p className="font-semibold text-sm">{row.original.ingredient_name}</p>
             {row.original.description && <p className="text-xs text-muted-foreground">{row.original.description}</p>}
@@ -442,137 +331,167 @@ function StockTab({ orgId, branchId }: { orgId: string; branchId: string }) {
     { accessorKey: "unit", header: "Unit", cell: ({ row }) => <Badge variant="outline">{fmtUnit(row.original.unit)}</Badge> },
     {
       accessorKey: "current_stock",
-      header: "Stock",
+      header: t("inventory.stock.currentStock"),
       cell: ({ row }) => (
-        <span className={`tabular-nums font-semibold text-sm ${row.original.below_reorder ? "text-amber-600" : ""}`}>
+        <span className={`tabular font-semibold text-sm ${row.original.below_reorder ? "text-warning" : ""}`}>
           {Number(row.original.current_stock).toFixed(3)}
         </span>
       ),
     },
-    {
-      accessorKey: "reorder_threshold",
-      header: "Reorder At",
-      cell: ({ row }) => <EditableThreshold item={row.original} branchId={branchId} />,
-    },
+    { accessorKey: "reorder_threshold", header: t("inventory.stock.reorderAt"), cell: ({ row }) => <EditableThreshold item={row.original} /> },
     {
       accessorKey: "below_reorder",
-      header: "Status",
-      cell: ({ row }) => <Badge variant={row.original.below_reorder ? "destructive" : "outline"}>{row.original.below_reorder ? "LOW" : "OK"}</Badge>,
+      header: t("common.status"),
+      cell: ({ row }) => <Badge variant={row.original.below_reorder ? "destructive" : "outline"}>{row.original.below_reorder ? t("inventory.stock.low") : t("inventory.stock.ok")}</Badge>,
     },
     {
-      id: "actions", header: "",
+      id: "actions",
+      header: "",
       cell: ({ row }) => (
         <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => removeMutation.mutate(row.original.id)} disabled={removeMutation.isPending}><Trash2 size={14} /></Button>
+          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete(row.original)}>
+            <Trash2 size={13} />
+          </Button>
         </div>
       ),
     },
   ];
 
-  if (!branchId) return <EmptyState icon={Package} title="Select a branch" sub="Choose a branch above to view its stock." />;
-  if (isLoading) return <Skeleton className="h-64 w-full rounded-2xl" />;
+  const handleExport = () =>
+    exportToExcel({
+      filename: "Branch-Stock",
+      sheets: [
+        {
+          name: "Stock",
+          title: t("inventory.stock.title"),
+          columns: [
+            { key: "name", header: t("recipes.ingredient"), accessor: (s: BranchInventoryItem) => s.ingredient_name, width: 28 },
+            { key: "unit", header: "Unit", accessor: (s: BranchInventoryItem) => fmtUnit(s.unit), width: 10 },
+            { key: "stock", header: t("inventory.stock.currentStock"), accessor: (s: BranchInventoryItem) => Number(s.current_stock), type: "number", width: 16 },
+            { key: "threshold", header: t("inventory.stock.reorderAt"), accessor: (s: BranchInventoryItem) => Number(s.reorder_threshold), type: "number", width: 16 },
+            { key: "low", header: t("common.status"), accessor: (s: BranchInventoryItem) => (s.below_reorder ? t("inventory.stock.low") : t("inventory.stock.ok")), width: 12 },
+          ],
+          rows: stock,
+          stats: [
+            { label: t("common.total"), value: stock.length, type: "number" },
+            { label: t("dashboard.lowStock"), value: stock.filter((s) => s.below_reorder).length, color: "FFD97706", type: "number" },
+          ],
+        },
+      ],
+    });
+
+  if (!branchId) return <EmptyState icon={Package} title={t("orders.selectBranch")} />;
+  if (isLoading) return <Skeleton className="h-64 w-full rounded-xl" />;
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        title="Branch Stock"
-        sub="Ingredients tracked for this branch"
-        actions={
-          <Button onClick={() => setAddOpen(true)} disabled={available.length === 0}>
-            <Plus size={16} className="mr-1" />{available.length === 0 ? "All tracked" : "Add Ingredient"}
-          </Button>
-        }
-      />
+      <div className="flex justify-end">
+        <Button size="sm" disabled={available.length === 0} onClick={() => setAddDlg(true)}>
+          <Plus /> {available.length === 0 ? t("inventory.stock.allTracked") : t("inventory.stock.addIngredient")}
+        </Button>
+      </div>
 
-      {stock.length === 0
-        ? <EmptyState icon={Package} title="No stock tracked" sub="Add ingredients from the catalog to start tracking stock." action={<Button onClick={() => setAddOpen(true)}><Plus size={14} className="mr-1" /> Add Ingredient</Button>} />
-        : <DataTable columns={cols} data={stock} />
-      }
+      {stock.length === 0 ? (
+        <EmptyState icon={Package} title={t("inventory.stock.empty")} description={t("inventory.stock.emptyHint")} />
+      ) : (
+        <DataTable columns={cols} data={stock} searchKey="ingredient_name" onExport={handleExport} />
+      )}
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+      <Dialog open={addDlg} onOpenChange={setAddDlg}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Add Ingredient to Branch</DialogTitle></DialogHeader>
-          <div className="p-6 space-y-4">
-            <Field label="Ingredient *">
-              <IngredientPicker
-                items={available}
-                value={addForm.org_ingredient_id}
-                onSelect={(id) => setAddForm((f) => ({ ...f, org_ingredient_id: id }))}
-              />
-            </Field>
-            <Field label="Opening Stock">
-              <Input type="number" min="0" step="0.001" placeholder="0.000" value={addForm.current_stock} onChange={(e) => setAddForm((f) => ({ ...f, current_stock: e.target.value }))} />
-            </Field>
-            <Field label="Reorder Threshold">
-              <Input type="number" min="0" step="0.001" placeholder="0.000" value={addForm.reorder_threshold} onChange={(e) => setAddForm((f) => ({ ...f, reorder_threshold: e.target.value }))} />
-            </Field>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
-            <Button onClick={() => addMutation.mutate()} disabled={!addForm.org_ingredient_id || addMutation.isPending}>
-              {addMutation.isPending ? "Adding…" : "Add to Branch"}
-            </Button>
-          </DialogFooter>
+          <DialogHeader><DialogTitle>{t("inventory.stock.addIngredient")}</DialogTitle></DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit((v) => add.mutate(v))}>
+              <DialogBody>
+                <FormField control={form.control} name="org_ingredient_id" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("recipes.ingredient")}</FormLabel>
+                    <FormControl>
+                      <SearchableSelect
+                        options={available.map((c) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit) }))}
+                        value={field.value || null}
+                        onChange={(v) => field.onChange(v ?? "")}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="current_stock" render={({ field }) => (
+                  <FormItem><FormLabel>{t("inventory.stock.openingStock")}</FormLabel><FormControl><Input type="number" step="0.001" min="0" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="reorder_threshold" render={({ field }) => (
+                  <FormItem><FormLabel>{t("inventory.stock.reorderThreshold")}</FormLabel><FormControl><Input type="number" step="0.001" min="0" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </DialogBody>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setAddDlg(false)}>{t("common.cancel")}</Button>
+                <Button type="submit" loading={add.isPending}>{t("common.add")}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => !o && setConfirmDelete(null)}
+        title={t("common.confirmDelete", { name: confirmDelete?.ingredient_name ?? "" })}
+        destructive
+        loading={remove.isPending}
+        onConfirm={() => confirmDelete && remove.mutate(confirmDelete.id)}
+      />
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// TAB 3 — Adjustments  (immutable audit log — reverse via compensating entry)
-// ═══════════════════════════════════════════════════════════════════════════════
-
+// ── Adjustments Tab ──────────────────────────────────────────────────────────
 function AdjustmentsTab({ branchId }: { branchId: string }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
+  const { data: adjs = [], isLoading } = useAdjustments(branchId);
+  const { data: stock = [] } = useBranchStock(branchId);
+  const [dlg, setDlg] = useState(false);
+  const [reverseTarget, setReverseTarget] = useState<BranchInventoryAdjustment | null>(null);
 
-  const { data: adjs = [], isLoading } = useQuery({
-    queryKey: ["branch-adjustments", branchId],
-    queryFn:  () => inventoryApi.getAdjustments(branchId).then((r) => r.data),
-    enabled:  !!branchId,
+  const form = useForm<AdjustmentValues>({
+    resolver: zodResolver(adjustmentSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    defaultValues: { branch_inventory_id: "", adjustment_type: "add", quantity: 0 as any, note: "" },
   });
 
-  const { data: stock = [] } = useQuery({
-    queryKey: ["branch-stock", branchId],
-    queryFn:  () => inventoryApi.getBranchStock(branchId).then((r) => r.data),
-    enabled:  !!branchId,
-  });
-
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ branch_inventory_id: "", adjustment_type: "add" as "add" | "remove", quantity: "", note: "" });
-
-  const createMutation = useMutation({
-    mutationFn: () => inventoryApi.createAdjustment(branchId, {
-      branch_inventory_id: form.branch_inventory_id,
-      adjustment_type:     form.adjustment_type,
-      quantity:            Number(form.quantity),
-      note:                form.note.trim(),
-    }),
+  const save = useMutation({
+    mutationFn: (v: AdjustmentValues) => inventoryApi.createAdjustment(branchId, v),
     onSuccess: () => {
-      toast.success("Adjustment saved");
-      qc.invalidateQueries({ queryKey: ["branch-adjustments"] });
-      qc.invalidateQueries({ queryKey: ["branch-stock"] });
-      setOpen(false);
-      setForm({ branch_inventory_id: "", adjustment_type: "add", quantity: "", note: "" });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.adjustments(branchId) });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
+      toast.success(t("inventory.adjustments.savedToast"));
+      setDlg(false);
+      form.reset();
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const reverseMutation = useMutation({
-    mutationFn: (adj: BranchInventoryAdjustment) => inventoryApi.createAdjustment(branchId, {
-      branch_inventory_id: adj.branch_inventory_id,
-      adjustment_type:     adj.adjustment_type === "add" ? "remove" : "add",
-      quantity:            Number(adj.quantity),
-      note:                `Reversal of: ${adj.note}`,
-    }),
-    onSuccess: () => { toast.success("Reversed"); qc.invalidateQueries({ queryKey: ["branch-adjustments"] }); qc.invalidateQueries({ queryKey: ["branch-stock"] }); },
-    onError:   (e) => toast.error(getErrorMessage(e)),
+  const reverse = useMutation({
+    mutationFn: (adj: BranchInventoryAdjustment) =>
+      inventoryApi.createAdjustment(branchId, {
+        branch_inventory_id: adj.branch_inventory_id,
+        adjustment_type: adj.adjustment_type === "add" ? "remove" : "add",
+        quantity: Number(adj.quantity),
+        note: `Reversal of: ${adj.note}`,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.adjustments(branchId) });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
+      toast.success(t("inventory.adjustments.reversedToast"));
+      setReverseTarget(null);
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const cols: ColumnDef<BranchInventoryAdjustment, any>[] = [
+  const cols: ColumnDef<BranchInventoryAdjustment>[] = [
     {
       accessorKey: "ingredient_name",
-      header: "Ingredient",
+      header: t("recipes.ingredient"),
       cell: ({ row }) => (
         <div>
           <p className="font-semibold text-sm">{row.original.ingredient_name}</p>
@@ -580,19 +499,27 @@ function AdjustmentsTab({ branchId }: { branchId: string }) {
         </div>
       ),
     },
-    { accessorKey: "adjustment_type", header: "Type", cell: ({ row }) => <AdjBadge type={row.original.adjustment_type} /> },
-    { accessorKey: "quantity", header: "Qty", cell: ({ row }) => <span className="tabular-nums font-semibold text-sm">{Number(row.original.quantity).toFixed(3)}</span> },
-    { accessorKey: "note", header: "Note", cell: ({ row }) => <span className="text-sm text-muted-foreground max-w-[180px] truncate block">{row.original.note}</span> },
-    { accessorKey: "adjusted_by_name", header: "By", cell: ({ row }) => <span className="text-sm">{row.original.adjusted_by_name}</span> },
-    { accessorKey: "created_at", header: "Date", cell: ({ row }) => <span className="text-xs text-muted-foreground">{new Date(row.original.created_at).toLocaleString()}</span> },
     {
-      id: "actions", header: "",
+      accessorKey: "adjustment_type",
+      header: t("common.type"),
       cell: ({ row }) => {
-        const adj = row.original;
-        if (adj.adjustment_type !== "add" && adj.adjustment_type !== "remove") return null;
+        const variant = row.original.adjustment_type === "add" || row.original.adjustment_type === "transfer_in" ? "success" : "destructive";
+        return <Badge variant={variant}>{t(`inventory.adjustments.types.${row.original.adjustment_type}`)}</Badge>;
+      },
+    },
+    { accessorKey: "quantity", header: t("common.qty"), cell: ({ row }) => <span className="tabular font-semibold text-sm">{Number(row.original.quantity).toFixed(3)}</span> },
+    { accessorKey: "note", header: t("common.notes"), cell: ({ row }) => <span className="text-sm text-muted-foreground max-w-[180px] truncate block">{row.original.note}</span> },
+    { accessorKey: "adjusted_by_name", header: t("common.by") },
+    { accessorKey: "created_at", header: t("common.date"), cell: ({ row }) => <span className="text-xs text-muted-foreground">{fmtDateTime(row.original.created_at)}</span> },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => {
+        const a = row.original;
+        if (a.adjustment_type !== "add" && a.adjustment_type !== "remove") return null;
         return (
           <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon-sm" title="Reverse this adjustment" onClick={() => reverseMutation.mutate(adj)} disabled={reverseMutation.isPending}>
+            <Button variant="ghost" size="iconSm" title={t("inventory.adjustments.reverse")} onClick={() => setReverseTarget(a)}>
               <RotateCcw size={13} />
             </Button>
           </div>
@@ -601,306 +528,367 @@ function AdjustmentsTab({ branchId }: { branchId: string }) {
     },
   ];
 
-  if (!branchId) return <EmptyState icon={ClipboardList} title="Select a branch" sub="Choose a branch above to view its adjustments." />;
-  if (isLoading) return <Skeleton className="h-64 w-full rounded-2xl" />;
+  const handleExport = () =>
+    exportToExcel({
+      filename: "Adjustments",
+      sheets: [
+        {
+          name: "Adjustments",
+          title: t("inventory.adjustments.title"),
+          columns: [
+            { key: "ingredient", header: t("recipes.ingredient"), accessor: (a: BranchInventoryAdjustment) => a.ingredient_name, width: 24 },
+            { key: "type", header: t("common.type"), accessor: (a: BranchInventoryAdjustment) => t(`inventory.adjustments.types.${a.adjustment_type}`), width: 16 },
+            { key: "qty", header: t("common.qty"), accessor: (a: BranchInventoryAdjustment) => Number(a.quantity), type: "number", width: 12 },
+            { key: "note", header: t("common.notes"), accessor: (a: BranchInventoryAdjustment) => a.note, width: 36 },
+            { key: "by", header: t("common.by"), accessor: (a: BranchInventoryAdjustment) => a.adjusted_by_name, width: 18 },
+            { key: "at", header: t("common.date"), accessor: (a: BranchInventoryAdjustment) => new Date(a.created_at), type: "dateTime", width: 20 },
+          ],
+          rows: adjs,
+        },
+      ],
+    });
+
+  if (!branchId) return <EmptyState icon={ClipboardList} title={t("orders.selectBranch")} />;
+  if (isLoading) return <Skeleton className="h-64 w-full rounded-xl" />;
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        title="Adjustments"
-        sub="Audit log — use the ↺ button to reverse a manual entry"
-        actions={<Button onClick={() => setOpen(true)}><Plus size={16} className="mr-1" /> Adjust Stock</Button>}
-      />
+      <div className="flex justify-end">
+        <Button size="sm" onClick={() => setDlg(true)}><Plus /> {t("inventory.adjustments.adjustStock")}</Button>
+      </div>
 
-      {adjs.length === 0 ? <EmptyState icon={ClipboardList} title="No adjustments yet" /> : <DataTable columns={cols} data={adjs} />}
+      {adjs.length === 0 ? (
+        <EmptyState icon={ClipboardList} title={t("inventory.adjustments.empty")} />
+      ) : (
+        <DataTable columns={cols} data={adjs} searchKey="ingredient_name" onExport={handleExport} />
+      )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={dlg} onOpenChange={setDlg}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Manual Stock Adjustment</DialogTitle></DialogHeader>
-          <div className="p-6 space-y-4">
-            <Field label="Ingredient *">
-              <IngredientPicker
-                items={stock.map(s => ({ id: s.id, name: s.ingredient_name, unit: s.unit, current_stock: s.current_stock }))}
-                value={form.branch_inventory_id}
-                onSelect={(id) => setForm((f) => ({ ...f, branch_inventory_id: id }))}
-              />
-            </Field>
-            <Field label="Type *">
-              <Select value={form.adjustment_type} onValueChange={(v) => setForm((f) => ({ ...f, adjustment_type: v as "add" | "remove" }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="add">Add</SelectItem>
-                  <SelectItem value="remove">Remove</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Quantity *">
-              <Input type="number" min="0.001" step="0.001" placeholder="0.000" value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))} />
-            </Field>
-            <Field label={<>Note <span className="text-muted-foreground text-xs font-normal">(required)</span></>}>
-              <Input value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} placeholder="Reason for adjustment…" />
-            </Field>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={() => createMutation.mutate()} disabled={!form.branch_inventory_id || !form.quantity || !form.note.trim() || createMutation.isPending}>
-              {createMutation.isPending ? "Saving…" : "Save Adjustment"}
-            </Button>
-          </DialogFooter>
+          <DialogHeader><DialogTitle>{t("inventory.adjustments.manualTitle")}</DialogTitle></DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit((v) => save.mutate(v))}>
+              <DialogBody>
+                <FormField control={form.control} name="branch_inventory_id" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("recipes.ingredient")}</FormLabel>
+                    <FormControl>
+                      <SearchableSelect
+                        options={stock.map((s) => ({ value: s.id, label: s.ingredient_name, hint: `${Number(s.current_stock).toFixed(3)} ${fmtUnit(s.unit)}` }))}
+                        value={field.value || null}
+                        onChange={(v) => field.onChange(v ?? "")}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="adjustment_type" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.type")}</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="add">{t("inventory.adjustments.types.add")}</SelectItem>
+                        <SelectItem value="remove">{t("inventory.adjustments.types.remove")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="quantity" render={({ field }) => (
+                  <FormItem><FormLabel>{t("common.qty")}</FormLabel><FormControl><Input type="number" step="0.001" min="0.001" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="note" render={({ field }) => (
+                  <FormItem><FormLabel>{t("inventory.adjustments.note")}</FormLabel><FormControl><Input placeholder={t("inventory.adjustments.notePh")} {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </DialogBody>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setDlg(false)}>{t("common.cancel")}</Button>
+                <Button type="submit" loading={save.isPending}>{t("common.save")}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!reverseTarget}
+        onOpenChange={(o) => !o && setReverseTarget(null)}
+        title={t("inventory.adjustments.reverseTitle")}
+        description={t("inventory.adjustments.reverseConfirm", { note: reverseTarget?.note ?? "" })}
+        loading={reverse.isPending}
+        onConfirm={() => reverseTarget && reverse.mutate(reverseTarget)}
+      />
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// TAB 4 — Transfers
-// ═══════════════════════════════════════════════════════════════════════════════
-
+// ── Transfers Tab ────────────────────────────────────────────────────────────
 function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
-
   const [direction, setDirection] = useState<"all" | "incoming" | "outgoing">("all");
+  const { data: transfers = [], isLoading } = useTransfers(branchId, direction === "all" ? undefined : direction);
+  const { data: catalog = [] } = useCatalog(orgId);
+  const { data: branches = [] } = useBranches(orgId);
+  const [newDlg, setNewDlg] = useState(false);
+  const [editNote, setEditNote] = useState<BranchInventoryTransfer | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<BranchInventoryTransfer | null>(null);
+  const [noteVal, setNoteVal] = useState("");
 
-  const { data: transfers = [], isLoading } = useQuery({
-    queryKey: ["branch-transfers", branchId, direction],
-    queryFn:  () => inventoryApi.getTransfers(branchId, direction === "all" ? undefined : direction).then((r) => r.data),
-    enabled:  !!branchId,
+  const form = useForm<TransferValues>({
+    resolver: zodResolver(transferSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    defaultValues: { source_branch_id: branchId, destination_branch_id: "", org_ingredient_id: "", quantity: 0 as any, note: "" },
   });
 
-  const { data: catalog = [] } = useQuery({
-    queryKey: ["org-catalog", orgId],
-    queryFn:  () => inventoryApi.getCatalog(orgId).then((r) => r.data),
-    enabled:  !!orgId,
-  });
+  useMemo(() => form.setValue("source_branch_id", branchId), [branchId, form]);
 
-  const { data: branches = [] } = useQuery({
-    queryKey: ["branches", orgId],
-    queryFn:  () => branchesApi.getBranches(orgId).then((r) => r.data),
-    enabled:  !!orgId,
-  });
-
-  // ── Create ─────────────────────────────────────────────────────────────
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ source_branch_id: branchId, destination_branch_id: "", org_ingredient_id: "", quantity: "", note: "" });
-
-  React.useEffect(() => { setForm((f) => ({ ...f, source_branch_id: branchId })); }, [branchId]);
-
-  const createMutation = useMutation({
-    mutationFn: () => inventoryApi.createTransfer({
-      source_branch_id:      form.source_branch_id,
-      destination_branch_id: form.destination_branch_id,
-      org_ingredient_id:     form.org_ingredient_id,
-      quantity:              Number(form.quantity),
-      note:                  form.note || undefined,
+  const create = useMutation({
+    mutationFn: (v: TransferValues) => inventoryApi.createTransfer({
+      source_branch_id: v.source_branch_id,
+      destination_branch_id: v.destination_branch_id,
+      org_ingredient_id: v.org_ingredient_id,
+      quantity: v.quantity,
+      note: v.note || undefined,
     }),
     onSuccess: () => {
-      toast.success("Transfer applied");
-      qc.invalidateQueries({ queryKey: ["branch-transfers"] });
-      qc.invalidateQueries({ queryKey: ["branch-stock"] });
-      setOpen(false);
-      setForm({ source_branch_id: branchId, destination_branch_id: "", org_ingredient_id: "", quantity: "", note: "" });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.transfers(branchId) });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
+      toast.success(t("inventory.transfers.transferredToast"));
+      setNewDlg(false);
+      form.reset();
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  // ── Edit note ──────────────────────────────────────────────────────────
-  const [editItem, setEditItem] = useState<BranchInventoryTransfer | null>(null);
-  const [editNote, setEditNote] = useState("");
-
-  const openEditNote = (t: BranchInventoryTransfer) => { setEditItem(t); setEditNote(t.note ?? ""); };
-
-  const editMutation = useMutation({
-    mutationFn: () => inventoryApi.updateTransfer(editItem!.id, editNote || null),
-    onSuccess: () => { toast.success("Note updated"); qc.invalidateQueries({ queryKey: ["branch-transfers"] }); setEditItem(null); },
-    onError:   (e) => toast.error(getErrorMessage(e)),
-  });
-
-  // ── Delete (reverses stock) ────────────────────────────────────────────
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => inventoryApi.deleteTransfer(id),
+  const updateNote = useMutation({
+    mutationFn: () => inventoryApi.updateTransfer(editNote!.id, noteVal || null),
     onSuccess: () => {
-      toast.success("Transfer reversed and deleted");
-      qc.invalidateQueries({ queryKey: ["branch-transfers"] });
-      qc.invalidateQueries({ queryKey: ["branch-stock"] });
-      qc.invalidateQueries({ queryKey: ["branch-adjustments"] });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.transfers(branchId) });
+      toast.success(t("inventory.transfers.noteUpdatedToast"));
+      setEditNote(null);
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const cols: ColumnDef<BranchInventoryTransfer, any>[] = [
+  const remove = useMutation({
+    mutationFn: (id: string) => inventoryApi.removeTransfer(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.transfers(branchId) });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
+      toast.success(t("inventory.transfers.reversedToast"));
+      setConfirmDelete(null);
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  });
+
+  const cols: ColumnDef<BranchInventoryTransfer>[] = [
     {
       accessorKey: "ingredient_name",
-      header: "Ingredient",
+      header: t("recipes.ingredient"),
       cell: ({ row }) => (
-        <div>
-          <p className="font-semibold text-sm">{row.original.ingredient_name}</p>
-          <p className="text-xs text-muted-foreground">{fmtUnit(row.original.unit)}</p>
-        </div>
+        <div><p className="font-semibold text-sm">{row.original.ingredient_name}</p><p className="text-xs text-muted-foreground">{fmtUnit(row.original.unit)}</p></div>
       ),
     },
     {
       accessorKey: "source_branch_name",
-      header: "From",
+      header: t("inventory.transfers.fromBranch"),
       cell: ({ row }) => <span className={row.original.source_branch_id === branchId ? "font-semibold text-sm" : "text-muted-foreground text-sm"}>{row.original.source_branch_name}</span>,
     },
     {
       accessorKey: "destination_branch_name",
-      header: "To",
+      header: t("inventory.transfers.toBranch"),
       cell: ({ row }) => <span className={row.original.destination_branch_id === branchId ? "font-semibold text-sm" : "text-muted-foreground text-sm"}>{row.original.destination_branch_name}</span>,
     },
-    { accessorKey: "quantity", header: "Qty", cell: ({ row }) => <span className="tabular-nums font-semibold text-sm">{Number(row.original.quantity).toFixed(3)}</span> },
-    { accessorKey: "note", header: "Note", cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.note ?? "—"}</span> },
-    { accessorKey: "initiated_by_name", header: "By", cell: ({ row }) => <span className="text-sm">{row.original.initiated_by_name}</span> },
-    { accessorKey: "initiated_at", header: "Date", cell: ({ row }) => <span className="text-xs text-muted-foreground">{new Date(row.original.initiated_at).toLocaleString()}</span> },
+    { accessorKey: "quantity", header: t("common.qty"), cell: ({ row }) => <span className="tabular font-semibold text-sm">{Number(row.original.quantity).toFixed(3)}</span> },
+    { accessorKey: "note", header: t("common.notes"), cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.note ?? "—"}</span> },
+    { accessorKey: "initiated_by_name", header: t("common.by") },
+    { accessorKey: "initiated_at", header: t("common.date"), cell: ({ row }) => <span className="text-xs text-muted-foreground">{fmtDateTime(row.original.initiated_at)}</span> },
     {
-      id: "actions", header: "",
+      id: "actions",
+      header: "",
       cell: ({ row }) => (
         <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="icon-sm" title="Edit note" onClick={() => openEditNote(row.original)}><Pencil size={13} /></Button>
-          <Button variant="ghost" size="icon-sm" className="text-destructive" title="Delete & reverse stock" onClick={() => deleteMutation.mutate(row.original.id)} disabled={deleteMutation.isPending}><Trash2 size={13} /></Button>
+          <Button variant="ghost" size="iconSm" onClick={() => { setEditNote(row.original); setNoteVal(row.original.note ?? ""); }}>
+            <Edit2 size={13} />
+          </Button>
+          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete(row.original)}>
+            <Trash2 size={13} />
+          </Button>
         </div>
       ),
     },
   ];
 
-  if (!branchId) return <EmptyState icon={ArrowLeftRight} title="Select a branch" sub="Choose a branch above to view its transfers." />;
-  if (isLoading) return <Skeleton className="h-64 w-full rounded-2xl" />;
+  const handleExport = () =>
+    exportToExcel({
+      filename: "Transfers",
+      sheets: [
+        {
+          name: "Transfers",
+          title: t("inventory.transfers.title"),
+          columns: [
+            { key: "ingredient", header: t("recipes.ingredient"), accessor: (tr: BranchInventoryTransfer) => tr.ingredient_name, width: 22 },
+            { key: "from", header: t("inventory.transfers.fromBranch"), accessor: (tr: BranchInventoryTransfer) => tr.source_branch_name, width: 20 },
+            { key: "to", header: t("inventory.transfers.toBranch"), accessor: (tr: BranchInventoryTransfer) => tr.destination_branch_name, width: 20 },
+            { key: "qty", header: t("common.qty"), accessor: (tr: BranchInventoryTransfer) => Number(tr.quantity), type: "number", width: 12 },
+            { key: "note", header: t("common.notes"), accessor: (tr: BranchInventoryTransfer) => tr.note ?? "—", width: 28 },
+            { key: "by", header: t("common.by"), accessor: (tr: BranchInventoryTransfer) => tr.initiated_by_name, width: 18 },
+            { key: "at", header: t("common.date"), accessor: (tr: BranchInventoryTransfer) => new Date(tr.initiated_at), type: "dateTime", width: 20 },
+          ],
+          rows: transfers,
+        },
+      ],
+    });
+
+  if (!branchId) return <EmptyState icon={ArrowLeftRight} title={t("orders.selectBranch")} />;
+  if (isLoading) return <Skeleton className="h-64 w-full rounded-xl" />;
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        title="Transfers"
-        sub="Stock moved between branches — auto-applied immediately. Delete reverses the stock."
-        actions={
-          <div className="flex items-center gap-2">
-            <Select value={direction} onValueChange={(v) => setDirection(v as any)}>
-              <SelectTrigger className="w-36 h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All transfers</SelectItem>
-                <SelectItem value="incoming">Incoming</SelectItem>
-                <SelectItem value="outgoing">Outgoing</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={() => setOpen(true)}><Plus size={16} className="mr-1" /> New Transfer</Button>
-          </div>
-        }
+      <div className="flex items-center gap-2 justify-end flex-wrap">
+        <Select value={direction} onValueChange={(v) => setDirection(v as "all" | "incoming" | "outgoing")}>
+          <SelectTrigger className="w-40 h-9"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("inventory.transfers.directionAll")}</SelectItem>
+            <SelectItem value="incoming">{t("inventory.transfers.directionIncoming")}</SelectItem>
+            <SelectItem value="outgoing">{t("inventory.transfers.directionOutgoing")}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button size="sm" onClick={() => setNewDlg(true)}><Plus /> {t("inventory.transfers.newTransfer")}</Button>
+      </div>
+
+      {transfers.length === 0 ? (
+        <EmptyState icon={ArrowLeftRight} title={t("inventory.transfers.empty")} />
+      ) : (
+        <DataTable columns={cols} data={transfers} searchKey="ingredient_name" onExport={handleExport} />
+      )}
+
+      <Dialog open={newDlg} onOpenChange={setNewDlg}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{t("inventory.transfers.newTransfer")}</DialogTitle></DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit((v) => create.mutate(v))}>
+              <DialogBody>
+                <FormField control={form.control} name="source_branch_id" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("inventory.transfers.fromBranch")}</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                      <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="destination_branch_id" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("inventory.transfers.toBranch")}</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {branches.filter((b) => b.id !== form.watch("source_branch_id")).map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="org_ingredient_id" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("recipes.ingredient")}</FormLabel>
+                    <FormControl>
+                      <SearchableSelect
+                        options={catalog.filter((c) => c.is_active).map((c) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit) }))}
+                        value={field.value || null}
+                        onChange={(v) => field.onChange(v ?? "")}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="quantity" render={({ field }) => (
+                  <FormItem><FormLabel>{t("common.qty")}</FormLabel><FormControl><Input type="number" step="0.001" min="0.001" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="note" render={({ field }) => (
+                  <FormItem><FormLabel>{t("common.notes")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </DialogBody>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setNewDlg(false)}>{t("common.cancel")}</Button>
+                <Button type="submit" loading={create.isPending}>{t("common.save")}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editNote} onOpenChange={(o) => !o && setEditNote(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{t("inventory.transfers.editNote")}</DialogTitle></DialogHeader>
+          <DialogBody>
+            <Input value={noteVal} onChange={(e) => setNoteVal(e.target.value)} />
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditNote(null)}>{t("common.cancel")}</Button>
+            <Button loading={updateNote.isPending} onClick={() => updateNote.mutate()}>{t("common.save")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => !o && setConfirmDelete(null)}
+        title={t("common.confirmDelete", { name: confirmDelete?.ingredient_name ?? "" })}
+        destructive
+        loading={remove.isPending}
+        onConfirm={() => confirmDelete && remove.mutate(confirmDelete.id)}
       />
-
-      {transfers.length === 0 ? <EmptyState icon={ArrowLeftRight} title="No transfers found" /> : <DataTable columns={cols} data={transfers} />}
-
-      {/* Create */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Transfer Stock</DialogTitle></DialogHeader>
-          <div className="p-6 space-y-4">
-            <Field label="From Branch *">
-              <Select value={form.source_branch_id} onValueChange={(v) => setForm((f) => ({ ...f, source_branch_id: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
-              </Select>
-            </Field>
-            <Field label="To Branch *">
-              <Select value={form.destination_branch_id} onValueChange={(v) => setForm((f) => ({ ...f, destination_branch_id: v }))}>
-                <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                <SelectContent>{branches.filter((b) => b.id !== form.source_branch_id).map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
-              </Select>
-            </Field>
-            <Field label="Ingredient *">
-              <IngredientPicker
-                items={catalog.filter((c) => c.is_active)}
-                value={form.org_ingredient_id}
-                onSelect={(id) => setForm((f) => ({ ...f, org_ingredient_id: id }))}
-              />
-            </Field>
-            <Field label="Quantity *">
-              <Input type="number" min="0.001" step="0.001" placeholder="0.000" value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))} />
-            </Field>
-            <Field label="Note">
-              <Input value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} placeholder="Optional reason" />
-            </Field>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={() => createMutation.mutate()} disabled={!form.destination_branch_id || !form.org_ingredient_id || !form.quantity || createMutation.isPending}>
-              {createMutation.isPending ? "Transferring…" : "Transfer"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit note */}
-      <Dialog open={!!editItem} onOpenChange={(o) => !o && setEditItem(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Edit Transfer Note</DialogTitle></DialogHeader>
-          <div className="p-6 space-y-4">
-            <Field label="Note">
-              <Input value={editNote} onChange={(e) => setEditNote(e.target.value)} placeholder="Optional note…" />
-            </Field>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditItem(null)}>Cancel</Button>
-            <Button onClick={() => editMutation.mutate()} disabled={editMutation.isPending}>
-              {editMutation.isPending ? "Saving…" : "Save"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Main page
-// ═══════════════════════════════════════════════════════════════════════════════
-
+// ── Main Page ────────────────────────────────────────────────────────────────
 export default function Inventory() {
-  const user          = useAuthStore((s) => s.user);
-  const orgId         = useAppStore((s) => s.selectedOrgId) ?? user?.org_id ?? "";
-  const storeBranchId = useAppStore((s) => s.selectedBranchId) ?? "";
+  const { t } = useTranslation();
+  const { orgId, branchId: ctxBranch } = useCurrentContext();
+  const { data: branches = [] } = useBranches(orgId);
+  const [selBranch, setSelBranch] = useState(ctxBranch ?? "");
+  const [tab, setTab] = useState<"catalog" | "stock" | "adjustments" | "transfers">("catalog");
 
-  const [selBranch, setSelBranch] = useState(storeBranchId);
-
-  const { data: branches = [] } = useQuery({
-    queryKey: ["branches", orgId],
-    queryFn:  () => branchesApi.getBranches(orgId).then((r) => r.data),
-    enabled:  !!orgId,
-  });
-
-  React.useEffect(() => {
-    if (branches.length > 0 && !selBranch) setSelBranch(branches[0].id);
+  useMemo(() => {
+    if (!selBranch && branches.length > 0) setSelBranch(branches[0].id);
   }, [branches, selBranch]);
 
-  const activeBranch = branches.find((b) => b.id === selBranch) ?? branches[0];
+  const active = branches.find((b) => b.id === selBranch) ?? branches[0];
+
+  if (!orgId) return <PageShell title={t("inventory.title")} description={t("inventory.subtitle")}>{null}</PageShell>;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-      <PageHeader
-        title="Inventory"
-        sub={activeBranch ? activeBranch.name : "Manage ingredients and branch stock"}
-        actions={
-          branches.length > 1 ? (
-            <Select value={selBranch} onValueChange={setSelBranch}>
-              <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Branch…" /></SelectTrigger>
-              <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
-            </Select>
-          ) : undefined
-        }
-      />
-
-      <Tabs defaultValue="catalog" className="mt-6">
-        <TabsList className="mb-6 flex-wrap h-auto gap-1">
-          <TabsTrigger value="catalog"><Boxes size={14} className="mr-1.5" />Catalog</TabsTrigger>
-          <TabsTrigger value="stock"><Package size={14} className="mr-1.5" />Branch Stock</TabsTrigger>
-          <TabsTrigger value="adjustments"><ClipboardList size={14} className="mr-1.5" />Adjustments</TabsTrigger>
-          <TabsTrigger value="transfers"><ArrowLeftRight size={14} className="mr-1.5" />Transfers</TabsTrigger>
+    <PageShell
+      title={t("inventory.title")}
+      description={active ? active.name : t("inventory.subtitle")}
+      action={
+        branches.length > 1 && (
+          <Select value={selBranch} onValueChange={setSelBranch}>
+            <SelectTrigger className="w-40 h-9"><SelectValue /></SelectTrigger>
+            <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
+          </Select>
+        )
+      }
+    >
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <Tabs value={tab} onValueChange={(v: any) => setTab(v)}>
+        <TabsList className="flex-wrap h-auto gap-1">
+          <TabsTrigger value="catalog"><Boxes size={14} /> {t("inventory.tabs.catalog")}</TabsTrigger>
+          <TabsTrigger value="stock"><Package size={14} /> {t("inventory.tabs.stock")}</TabsTrigger>
+          <TabsTrigger value="adjustments"><ClipboardList size={14} /> {t("inventory.tabs.adjustments")}</TabsTrigger>
+          <TabsTrigger value="transfers"><ArrowLeftRight size={14} /> {t("inventory.tabs.transfers")}</TabsTrigger>
         </TabsList>
-
         <TabsContent value="catalog"><CatalogTab orgId={orgId} /></TabsContent>
-        <TabsContent value="stock"><StockTab orgId={orgId} branchId={activeBranch?.id ?? ""} /></TabsContent>
-        <TabsContent value="adjustments"><AdjustmentsTab branchId={activeBranch?.id ?? ""} /></TabsContent>
-        <TabsContent value="transfers"><TransfersTab orgId={orgId} branchId={activeBranch?.id ?? ""} /></TabsContent>
+        <TabsContent value="stock"><StockTab orgId={orgId} branchId={active?.id ?? ""} /></TabsContent>
+        <TabsContent value="adjustments"><AdjustmentsTab branchId={active?.id ?? ""} /></TabsContent>
+        <TabsContent value="transfers"><TransfersTab orgId={orgId} branchId={active?.id ?? ""} /></TabsContent>
       </Tabs>
-    </div>
+    </PageShell>
   );
 }

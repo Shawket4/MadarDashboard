@@ -1,87 +1,71 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { type ColumnDef } from "@tanstack/react-table";
-import {
-  Plus, GitBranch, Edit2, Trash2, Printer,
-  CheckCircle, XCircle, MapPin, Phone, Wifi,
-} from "lucide-react";
+import { CheckCircle, Edit2, GitBranch, MapPin, Phone, Plus, Printer, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import { PageShell, Card } from "@/components/ui/page-shell";
-import { DataTable } from "@/components/ui/data-table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { PageShell } from "@/shared/ui/page-shell";
+import { DataTable } from "@/shared/ui/data-table";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { Input } from "@/shared/ui/input";
+import { Switch } from "@/shared/ui/switch";
+import { StatCard } from "@/shared/ui/stat-card";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-  DialogFooter, DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { getBranches, createBranch, updateBranch, deleteBranch } from "@/api/branches";
-import { getOrgs } from "@/api/orgs";
-import { getErrorMessage } from "@/lib/client";
-import { useAuthStore } from "@/store/auth";
-import { useAppStore } from "@/store/app";
-import type { Branch, PrinterBrand } from "@/types";
+  Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/shared/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { branchApi } from "@/entities/branch/api";
+import { useBranches } from "@/entities/branch/queries";
+import { branchSchema, type BranchValues } from "@/entities/branch/schemas";
+import { QUERY_KEYS, PRINTER_BRANDS } from "@/shared/config/constants";
+import { useCurrentContext } from "@/shared/hooks/use-current-context";
+import { getErrorMessage } from "@/shared/api/errors";
+import { exportToExcel } from "@/shared/lib/excel";
+import type { Branch } from "@/shared/types";
 
-const PRINTER_BRANDS: { value: PrinterBrand; label: string }[] = [
-  { value: "star",  label: "Star TSP100" },
-  { value: "epson", label: "Epson TM-T88" },
-];
-
-// ── Branch form dialog ────────────────────────────────────────────────────────
-function BranchFormDialog({
-  open, onClose, orgId, editBranch,
-}: {
-  open:         boolean;
-  onClose:      () => void;
-  orgId:        string;
-  editBranch?:  Branch | null;
-}) {
+function BranchDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: () => void; edit?: Branch | null; orgId: string }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
-  const [name,         setName]         = useState(editBranch?.name         ?? "");
-  const [address,      setAddress]      = useState(editBranch?.address      ?? "");
-  const [phone,        setPhone]        = useState(editBranch?.phone        ?? "");
-  const [timezone,     setTimezone]     = useState(editBranch?.timezone     ?? "Africa/Cairo");
-  const [isActive,     setIsActive]     = useState(editBranch?.is_active    ?? true);
-  const [printerBrand, setPrinterBrand] = useState<PrinterBrand | "none">(editBranch?.printer_brand ?? "none");
-  const [printerIp,    setPrinterIp]    = useState(editBranch?.printer_ip   ?? "");
-  const [printerPort,  setPrinterPort]  = useState(String(editBranch?.printer_port ?? 9100));
+  const form = useForm<BranchValues>({
+    resolver: zodResolver(branchSchema),
+    defaultValues: {
+      name: edit?.name ?? "",
+      address: edit?.address ?? "",
+      phone: edit?.phone ?? "",
+      timezone: edit?.timezone ?? "Africa/Cairo",
+      is_active: edit?.is_active ?? true,
+      printer_brand: edit?.printer_brand ?? "none",
+      printer_ip: edit?.printer_ip ?? "",
+      printer_port: edit?.printer_port ?? 9100,
+    },
+  });
 
-  React.useEffect(() => {
-    if (editBranch) {
-      setName(editBranch.name); setAddress(editBranch.address ?? "");
-      setPhone(editBranch.phone ?? ""); setTimezone(editBranch.timezone);
-      setIsActive(editBranch.is_active);
-      setPrinterBrand(editBranch.printer_brand ?? "none");
-      setPrinterIp(editBranch.printer_ip ?? "");
-      setPrinterPort(String(editBranch.printer_port ?? 9100));
-    } else {
-      setName(""); setAddress(""); setPhone(""); setTimezone("Africa/Cairo");
-      setIsActive(true); setPrinterBrand("none"); setPrinterIp(""); setPrinterPort("9100");
-    }
-  }, [editBranch, open]);
+  const printerBrand = form.watch("printer_brand");
 
   const { mutate, isPending } = useMutation({
-    mutationFn: () => {
-      const hasPrinter = printerBrand !== "none" && printerIp;
+    mutationFn: (v: BranchValues) => {
+      const hasPrinter = v.printer_brand !== "none";
       const payload = {
-        org_id:        orgId,
-        name, address, phone, timezone, is_active: isActive,
-        printer_brand: hasPrinter ? printerBrand : null,
-        printer_ip:    hasPrinter ? printerIp    : null,
-        printer_port:  hasPrinter ? parseInt(printerPort, 10) : null,
+        org_id: orgId,
+        name: v.name,
+        address: v.address || null,
+        phone: v.phone || null,
+        timezone: v.timezone,
+        is_active: v.is_active,
+        printer_brand: hasPrinter ? (v.printer_brand as "star" | "epson") : null,
+        printer_ip: hasPrinter ? (v.printer_ip ?? null) : null,
+        printer_port: hasPrinter ? (v.printer_port ?? null) : null,
       };
-      return editBranch
-        ? updateBranch(editBranch.id, payload)
-        : createBranch(payload as Parameters<typeof createBranch>[0]);
+      return edit ? branchApi.update(edit.id, payload) : branchApi.create(payload);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["branches"] });
-      toast.success(editBranch ? "Branch updated" : "Branch created");
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.branches(orgId) });
+      toast.success(edit ? t("branches.updatedToast") : t("branches.createdToast"));
       onClose();
     },
     onError: (e) => toast.error(getErrorMessage(e)),
@@ -89,127 +73,167 @@ function BranchFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle>{editBranch ? "Edit Branch" : "New Branch"}</DialogTitle>
-          <DialogDescription>
-            {editBranch ? "Update branch details." : "Add a new branch location."}
-          </DialogDescription>
+          <DialogTitle>{edit ? t("branches.editTitle") : t("branches.newTitle")}</DialogTitle>
+          <DialogDescription>{t("branches.subtitle")}</DialogDescription>
         </DialogHeader>
-        <div className="px-6 py-4 space-y-4">
-          <div className="space-y-2">
-            <Label>Branch Name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Maadi Branch" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Phone</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+20 2 xxxx xxxx" />
-            </div>
-            <div className="space-y-2">
-              <Label>Timezone</Label>
-              <Input value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="Africa/Cairo" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Address</Label>
-            <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Road St, Cairo" />
-          </div>
-
-          {/* Printer config */}
-          <div className="space-y-3 rounded-xl border border-border p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <Printer size={13} className="text-muted-foreground" />
-              <p className="text-sm font-semibold">Printer Configuration</p>
-            </div>
-            <div className="space-y-2">
-              <Label>Printer Model</Label>
-              <Select value={printerBrand} onValueChange={(v) => setPrinterBrand(v as PrinterBrand | "none")}>
-                <SelectTrigger>
-                  <SelectValue placeholder="None" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None (no printer)</SelectItem>
-                  {PRINTER_BRANDS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {printerBrand !== "none" && (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+            <DialogBody>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("branches.branchName")}</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>Printer IP</Label>
-                  <Input
-                    value={printerIp}
-                    onChange={(e) => setPrinterIp(e.target.value)}
-                    placeholder="192.168.1.100"
-                    className="font-mono"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Port</Label>
-                  <Input
-                    type="number"
-                    value={printerPort}
-                    onChange={(e) => setPrinterPort(e.target.value)}
-                    placeholder="9100"
-                    className="font-mono"
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("branches.phone")}</FormLabel>
+                      <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="timezone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("branches.timezone")}</FormLabel>
+                      <FormControl><Input {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            )}
-          </div>
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("branches.address")}</FormLabel>
+                    <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {editBranch && (
-            <div className="flex items-center justify-between rounded-xl bg-muted p-3">
-              <div>
-                <p className="text-sm font-medium">Active Branch</p>
-                <p className="text-xs text-muted-foreground">Inactive branches are hidden from tellers</p>
+              <div className="rounded-lg border p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Printer size={14} className="text-muted-foreground" />
+                  <p className="text-sm font-semibold">{t("branches.printerConfig")}</p>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="printer_brand"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("branches.printerBrand")}</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">{t("branches.brands.none")}</SelectItem>
+                          {PRINTER_BRANDS.map((b) => (
+                            <SelectItem key={b} value={b}>{t(`branches.brands.${b}`)}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {printerBrand !== "none" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="printer_ip"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("branches.printerIp")}</FormLabel>
+                          <FormControl><Input {...field} value={field.value ?? ""} placeholder="192.168.1.100" className="font-mono" /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="printer_port"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("branches.printerPort")}</FormLabel>
+                          <FormControl><Input type="number" {...field} value={field.value ?? 9100} className="font-mono" /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
               </div>
-              <Switch checked={isActive} onCheckedChange={setIsActive} />
-            </div>
-          )}
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button loading={isPending} onClick={() => mutate()} disabled={!name}>
-            {editBranch ? "Save Changes" : "Create Branch"}
-          </Button>
-        </DialogFooter>
+
+              {edit && (
+                <FormField
+                  control={form.control}
+                  name="is_active"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between rounded-lg bg-muted p-3 !space-y-0">
+                      <div>
+                        <FormLabel>{t("common.active")}</FormLabel>
+                        <p className="text-xs text-muted-foreground">{t("users.activeHint")}</p>
+                      </div>
+                      <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
+            </DialogBody>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
+              <Button type="submit" loading={isPending}>{edit ? t("common.saveChanges") : t("common.create")}</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
 }
 
-// ── Main Branches page ────────────────────────────────────────────────────────
 export default function Branches() {
-  const [formOpen,   setFormOpen]   = useState(false);
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { orgId } = useCurrentContext();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [editBranch, setEditBranch] = useState<Branch | null>(null);
-  const qc           = useQueryClient();
-  const authUser     = useAuthStore((s) => s.user);
-  const selectedOrg  = useAppStore((s) => s.selectedOrgId);
-  const orgId        = selectedOrg ?? authUser?.org_id ?? "";
+  const [confirmDelete, setConfirmDelete] = useState<Branch | null>(null);
 
-  const { data: branches = [], isLoading } = useQuery({
-    queryKey: ["branches", orgId],
-    queryFn:  () => getBranches(orgId).then((r) => r.data),
-    enabled:  !!orgId,
-  });
+  const { data: branches = [], isLoading } = useBranches(orgId);
 
-  const { mutate: del } = useMutation({
-    mutationFn: (id: string) => deleteBranch(id),
-    onSuccess:  () => { qc.invalidateQueries({ queryKey: ["branches"] }); toast.success("Branch deleted"); },
-    onError:    (e) => toast.error(getErrorMessage(e)),
+  const { mutate: remove, isPending: removing } = useMutation({
+    mutationFn: (id: string) => branchApi.remove(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.branches(orgId) });
+      toast.success(t("branches.deletedToast"));
+      setConfirmDelete(null);
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
   });
 
   const columns: ColumnDef<Branch>[] = [
     {
       accessorKey: "name",
-      header:      "Branch",
+      header: t("common.name"),
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
             <GitBranch size={14} className="text-primary" />
           </div>
           <div className="min-w-0">
@@ -225,16 +249,19 @@ export default function Branches() {
     },
     {
       accessorKey: "phone",
-      header:      "Phone",
-      cell: ({ row }) => row.original.phone
-        ? <span className="text-sm font-mono flex items-center gap-1"><Phone size={11} />{row.original.phone}</span>
-        : <span className="text-muted-foreground text-sm">—</span>,
+      header: t("branches.phone"),
+      cell: ({ row }) =>
+        row.original.phone ? (
+          <span className="text-sm font-mono flex items-center gap-1"><Phone size={11} />{row.original.phone}</span>
+        ) : (
+          <span className="text-muted-foreground text-sm">—</span>
+        ),
     },
     {
       accessorKey: "printer_brand",
-      header:      "Printer",
-      cell: ({ row }) => row.original.printer_brand
-        ? (
+      header: t("branches.printer"),
+      cell: ({ row }) =>
+        row.original.printer_brand ? (
           <div className="flex items-center gap-1.5">
             <Printer size={12} className="text-muted-foreground" />
             <div>
@@ -242,34 +269,29 @@ export default function Branches() {
               <p className="text-[10px] text-muted-foreground font-mono">{row.original.printer_ip}:{row.original.printer_port}</p>
             </div>
           </div>
-        )
-        : <span className="text-muted-foreground text-xs">No printer</span>,
+        ) : (
+          <span className="text-muted-foreground text-xs">{t("branches.noPrinter")}</span>
+        ),
     },
     {
       accessorKey: "is_active",
-      header:      "Status",
-      cell: ({ getValue }) => getValue()
-        ? <Badge variant="success"><CheckCircle size={11} /> Active</Badge>
-        : <Badge variant="destructive"><XCircle size={11} /> Inactive</Badge>,
+      header: t("common.status"),
+      cell: ({ getValue }) =>
+        getValue() ? (
+          <Badge variant="success"><CheckCircle size={11} /> {t("common.active")}</Badge>
+        ) : (
+          <Badge variant="destructive"><XCircle size={11} /> {t("common.inactive")}</Badge>
+        ),
     },
     {
-      id:   "actions",
+      id: "actions",
       header: "",
       cell: ({ row }) => (
         <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-          <Button
-            variant="ghost" size="icon-sm"
-            onClick={() => { setEditBranch(row.original); setFormOpen(true); }}
-          >
+          <Button variant="ghost" size="iconSm" onClick={() => { setEditBranch(row.original); setDialogOpen(true); }}>
             <Edit2 size={13} />
           </Button>
-          <Button
-            variant="ghost" size="icon-sm"
-            className="text-destructive hover:text-destructive"
-            onClick={() => {
-              if (confirm(`Delete branch "${row.original.name}"?`)) del(row.original.id);
-            }}
-          >
+          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete(row.original)}>
             <Trash2 size={13} />
           </Button>
         </div>
@@ -277,28 +299,39 @@ export default function Branches() {
     },
   ];
 
+  const handleExport = () =>
+    exportToExcel({
+      filename: "Branches",
+      sheets: [
+        {
+          name: "Branches",
+          title: t("branches.title"),
+          columns: [
+            { key: "name", header: t("common.name"), accessor: (b: Branch) => b.name, width: 28 },
+            { key: "address", header: t("branches.address"), accessor: (b: Branch) => b.address ?? "—", width: 32 },
+            { key: "phone", header: t("branches.phone"), accessor: (b: Branch) => b.phone ?? "—", width: 18 },
+            { key: "timezone", header: t("branches.timezone"), accessor: (b: Branch) => b.timezone, width: 18 },
+            { key: "printer", header: t("branches.printer"), accessor: (b: Branch) => (b.printer_brand ? `${b.printer_brand} @ ${b.printer_ip}:${b.printer_port}` : "—"), width: 26 },
+            { key: "is_active", header: t("common.status"), accessor: (b: Branch) => b.is_active, type: "bool", width: 12 },
+          ],
+          rows: branches,
+        },
+      ],
+    });
+
+  if (!orgId) return <PageShell title={t("branches.title")} description={t("branches.subtitle")}>{null}</PageShell>;
+
   return (
     <PageShell
-      title="Branches"
-      description="Manage your branch locations and printer config"
-      action={
-        <Button onClick={() => { setEditBranch(null); setFormOpen(true); }}>
-          <Plus size={15} /> New Branch
-        </Button>
-      }
+      title={t("branches.title")}
+      description={t("branches.subtitle")}
+      action={<Button onClick={() => { setEditBranch(null); setDialogOpen(true); }}><Plus /> {t("common.new")}</Button>}
     >
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: "Total",     value: branches.length,                               color: "text-primary"   },
-          { label: "Active",    value: branches.filter((b) => b.is_active).length,    color: "text-green-600" },
-          { label: "With Printer", value: branches.filter((b) => b.printer_brand).length, color: "text-violet-600" },
-          { label: "Inactive",  value: branches.filter((b) => !b.is_active).length,   color: "text-amber-600" },
-        ].map(({ label, value, color }) => (
-          <Card key={label} className="p-4">
-            <p className={`text-2xl font-extrabold ${color}`}>{isLoading ? "—" : value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{label}</p>
-          </Card>
-        ))}
+        <StatCard label={t("common.total")} value={branches.length} loading={isLoading} />
+        <StatCard label={t("common.active")} value={branches.filter((b) => b.is_active).length} loading={isLoading} accent="success" />
+        <StatCard label={t("branches.withPrinter")} value={branches.filter((b) => b.printer_brand).length} loading={isLoading} accent="violet" />
+        <StatCard label={t("common.inactive")} value={branches.filter((b) => !b.is_active).length} loading={isLoading} accent="warning" />
       </div>
 
       <DataTable
@@ -306,21 +339,30 @@ export default function Branches() {
         data={branches}
         isLoading={isLoading}
         searchKey="name"
-        searchPlaceholder="Search branches…"
+        onExport={handleExport}
         emptyState={
           <div className="flex flex-col items-center gap-2 py-4">
             <GitBranch size={32} className="text-muted-foreground/40" />
-            <p>No branches yet</p>
-            <Button size="sm" onClick={() => setFormOpen(true)}><Plus size={13} /> Add branch</Button>
+            <p>{t("common.noResults")}</p>
           </div>
         }
       />
 
-      <BranchFormDialog
-        open={formOpen}
-        onClose={() => { setFormOpen(false); setEditBranch(null); }}
+      <BranchDialog
+        open={dialogOpen}
+        onClose={() => { setDialogOpen(false); setEditBranch(null); }}
+        edit={editBranch}
         orgId={orgId}
-        editBranch={editBranch}
+        key={editBranch?.id ?? "new"}
+      />
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => !o && setConfirmDelete(null)}
+        title={t("common.confirmDelete", { name: confirmDelete?.name ?? "" })}
+        destructive
+        loading={removing}
+        onConfirm={() => confirmDelete && remove(confirmDelete.id)}
       />
     </PageShell>
   );

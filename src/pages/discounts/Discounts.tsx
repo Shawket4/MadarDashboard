@@ -1,225 +1,219 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Tag, Edit2, Trash2, CheckCircle, XCircle, Percent, DollarSign } from "lucide-react";
+import { CheckCircle, DollarSign, Edit2, Percent, Plus, Tag, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import { PageShell, Card } from "@/components/ui/page-shell";
-import { DataTable } from "@/components/ui/data-table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { PageShell } from "@/shared/ui/page-shell";
+import { DataTable } from "@/shared/ui/data-table";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { Input } from "@/shared/ui/input";
+import { Switch } from "@/shared/ui/switch";
+import { StatCard } from "@/shared/ui/stat-card";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-  DialogFooter, DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import * as discountsApi from "@/api/discounts";
-import { getErrorMessage } from "@/lib/client";
-import { useAuthStore } from "@/store/auth";
-import { useAppStore } from "@/store/app";
-import { egp } from "@/utils/format";
-import type { Discount } from "@/types";
+  Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/shared/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { discountApi } from "@/entities/discount/api";
+import { useDiscounts } from "@/entities/discount/queries";
+import { discountSchema, type DiscountValues } from "@/entities/discount/schemas";
+import { QUERY_KEYS } from "@/shared/config/constants";
+import { useCurrentContext } from "@/shared/hooks/use-current-context";
+import { getErrorMessage } from "@/shared/api/errors";
+import { fmtMoney } from "@/shared/lib/format";
+import { exportToExcel } from "@/shared/lib/excel";
+import type { Discount } from "@/shared/types";
 
-// ── Form dialog ───────────────────────────────────────────────────────────────
-function DiscountFormDialog({
-  open, onClose, orgId, editDiscount,
-}: {
-  open:          boolean;
-  onClose:       () => void;
-  orgId:         string;
-  editDiscount?: Discount | null;
-}) {
+function DiscountDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: () => void; edit?: Discount | null; orgId: string }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
-  const [name,      setName]      = useState(editDiscount?.name  ?? "");
-  const [dtype,     setDtype]     = useState<"percentage" | "fixed">(
-    (editDiscount?.dtype as "percentage" | "fixed") ?? "percentage"
-  );
-  const [value,     setValue]     = useState(
-    editDiscount ? String(editDiscount.dtype === "percentage"
-      ? editDiscount.value
-      : editDiscount.value / 100)
-    : ""
-  );
-  const [isActive,  setIsActive]  = useState(editDiscount?.is_active ?? true);
 
-  React.useEffect(() => {
-    if (editDiscount) {
-      setName(editDiscount.name);
-      setDtype(editDiscount.dtype as "percentage" | "fixed");
-      setValue(editDiscount.dtype === "percentage"
-        ? String(editDiscount.value)
-        : String(editDiscount.value / 100));
-      setIsActive(editDiscount.is_active);
-    } else {
-      setName(""); setDtype("percentage"); setValue(""); setIsActive(true);
-    }
-  }, [editDiscount, open]);
+  const form = useForm<DiscountValues>({
+    resolver: zodResolver(discountSchema),
+    defaultValues: {
+      name: edit?.name ?? "",
+      dtype: edit?.dtype ?? "percentage",
+      percent_value: edit?.dtype === "percentage" ? edit.value : undefined,
+      fixed_value: edit?.dtype === "fixed" ? edit.value / 100 : undefined,
+      is_active: edit?.is_active ?? true,
+    },
+  });
+
+  const dtype = form.watch("dtype");
 
   const { mutate, isPending } = useMutation({
-    mutationFn: () => {
-      // value stored as integer: % direct, fixed as piastres
-      const intValue = dtype === "percentage"
-        ? parseInt(value, 10)
-        : Math.round(parseFloat(value) * 100);
-
-      const payload = { org_id: orgId, name, dtype, value: intValue, is_active: isActive };
-      return editDiscount
-        ? discountsApi.updateDiscount(editDiscount.id, { name, dtype, value: intValue, is_active: isActive })
-        : discountsApi.createDiscount(payload);
+    mutationFn: (v: DiscountValues) => {
+      const value = v.dtype === "percentage" ? v.percent_value! : v.fixed_value!;
+      const payload = { name: v.name, dtype: v.dtype, value, is_active: v.is_active };
+      return edit ? discountApi.update(edit.id, payload) : discountApi.create({ ...payload, org_id: orgId });
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["discounts"] });
-      toast.success(editDiscount ? "Discount updated" : "Discount created");
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.discounts(orgId) });
+      toast.success(edit ? t("discounts.updatedToast") : t("discounts.createdToast"));
       onClose();
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const displayValue = dtype === "percentage"
-    ? `${value}% off`
-    : value ? `EGP ${parseFloat(value).toFixed(0)} off` : "";
-
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editDiscount ? "Edit Discount" : "New Discount"}</DialogTitle>
-          <DialogDescription>
-            {editDiscount ? "Update this discount preset." : "Create a reusable discount for tellers to apply at checkout."}
-          </DialogDescription>
+          <DialogTitle>{edit ? t("discounts.editTitle") : t("discounts.newTitle")}</DialogTitle>
+          <DialogDescription>{t("discounts.subtitle")}</DialogDescription>
         </DialogHeader>
-        <div className="px-6 py-4 space-y-4">
-          {/* Name */}
-          <div className="space-y-2">
-            <Label>Discount Name</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Staff Discount, Promo 10%"
-            />
-          </div>
-
-          {/* Type + Value */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Type</Label>
-              <Select value={dtype} onValueChange={(v) => setDtype(v as "percentage" | "fixed")}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percentage">
-                    <span className="flex items-center gap-2"><Percent size={13} /> Percentage</span>
-                  </SelectItem>
-                  <SelectItem value="fixed">
-                    <span className="flex items-center gap-2"><DollarSign size={13} /> Fixed Amount</span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{dtype === "percentage" ? "Percentage (%)" : "Amount (EGP)"}</Label>
-              <Input
-                type="number"
-                step={dtype === "percentage" ? "1" : "0.5"}
-                min="0"
-                max={dtype === "percentage" ? "100" : undefined}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder={dtype === "percentage" ? "e.g. 10" : "e.g. 5.00"}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+            <DialogBody>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("discounts.discountName")}</FormLabel>
+                    <FormControl><Input placeholder={t("discounts.namePh")} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-          </div>
-
-          {/* Preview */}
-          {displayValue && (
-            <div className="bg-accent rounded-xl px-4 py-3 flex items-center gap-3">
-              <Tag size={15} className="text-accent-foreground flex-shrink-0" />
-              <div>
-                <p className="text-sm font-semibold">{name || "Discount"}</p>
-                <p className="text-xs text-muted-foreground">{displayValue}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="dtype"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("discounts.dtype")}</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="percentage">
+                            <span className="flex items-center gap-2"><Percent size={13} /> {t("discounts.percentage")}</span>
+                          </SelectItem>
+                          <SelectItem value="fixed">
+                            <span className="flex items-center gap-2"><DollarSign size={13} /> {t("discounts.fixed")}</span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {dtype === "percentage" ? (
+                  <FormField
+                    control={form.control}
+                    name="percent_value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("discounts.percentageValue")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="1"
+                            min="0"
+                            max="100"
+                            placeholder={t("discounts.valuePhPct")}
+                            {...field}
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="fixed_value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("discounts.amountValue")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            placeholder={t("discounts.valuePhFixed")}
+                            {...field}
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
-            </div>
-          )}
-
-          {/* Active toggle */}
-          <div className="flex items-center justify-between rounded-xl bg-muted p-3">
-            <div>
-              <p className="text-sm font-medium">Active</p>
-              <p className="text-xs text-muted-foreground">Inactive discounts won't appear in the POS app</p>
-            </div>
-            <Switch checked={isActive} onCheckedChange={setIsActive} />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button
-            loading={isPending}
-            onClick={() => mutate()}
-            disabled={!name || !value}
-          >
-            {editDiscount ? "Save Changes" : "Create Discount"}
-          </Button>
-        </DialogFooter>
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg bg-muted p-3 !space-y-0">
+                    <div>
+                      <FormLabel>{t("common.active")}</FormLabel>
+                      <p className="text-xs text-muted-foreground">{t("discounts.activeHint")}</p>
+                    </div>
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                  </FormItem>
+                )}
+              />
+            </DialogBody>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
+              <Button type="submit" loading={isPending}>{edit ? t("common.saveChanges") : t("common.create")}</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
 }
 
-// ── Main Discounts page ───────────────────────────────────────────────────────
 export default function Discounts() {
-  const [formOpen,      setFormOpen]      = useState(false);
-  const [editDiscount,  setEditDiscount]  = useState<Discount | null>(null);
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { orgId } = useCurrentContext();
+  const [dlgOpen, setDlgOpen] = useState(false);
+  const [editItem, setEditItem] = useState<Discount | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Discount | null>(null);
 
-  const qc         = useQueryClient();
-  const authUser   = useAuthStore((s) => s.user);
-  const selectedOrg = useAppStore((s) => s.selectedOrgId);
-  const orgId      = selectedOrg ?? authUser?.org_id ?? "";
+  const { data: discounts = [], isLoading } = useDiscounts(orgId);
 
-  const { data: discounts = [], isLoading } = useQuery({
-    queryKey: ["discounts", orgId],
-    queryFn:  () => discountsApi.getDiscounts(orgId).then((r) => r.data),
-    enabled:  !!orgId,
-  });
-
-  const { mutate: del } = useMutation({
-    mutationFn: (id: string) => discountsApi.deleteDiscount(id),
-    onSuccess:  () => { qc.invalidateQueries({ queryKey: ["discounts"] }); toast.success("Discount deleted"); },
-    onError:    (e) => toast.error(getErrorMessage(e)),
+  const { mutate: remove, isPending: removing } = useMutation({
+    mutationFn: (id: string) => discountApi.remove(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.discounts(orgId ?? "") });
+      toast.success(t("discounts.deletedToast"));
+      setConfirmDelete(null);
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
   });
 
   const { mutate: toggleActive } = useMutation({
-    mutationFn: (d: Discount) =>
-      discountsApi.updateDiscount(d.id, { is_active: !d.is_active }),
-    onSuccess:  () => qc.invalidateQueries({ queryKey: ["discounts"] }),
-    onError:    (e) => toast.error(getErrorMessage(e)),
+    mutationFn: (d: Discount) => discountApi.update(d.id, { is_active: !d.is_active }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.discounts(orgId ?? "") }),
+    onError: (e) => toast.error(getErrorMessage(e)),
   });
 
   const columns: ColumnDef<Discount>[] = [
     {
       accessorKey: "name",
-      header:      "Discount",
+      header: t("discounts.discountName"),
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-            row.original.dtype === "percentage"
-              ? "bg-violet-100 dark:bg-violet-950/50"
-              : "bg-green-100 dark:bg-green-950/50"
-          }`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${row.original.dtype === "percentage" ? "bg-violet-100 dark:bg-violet-950/50" : "bg-success/10"}`}>
             {row.original.dtype === "percentage"
-              ? <Percent size={15} className="text-violet-600" />
-              : <DollarSign size={15} className="text-green-600" />}
+              ? <Percent size={13} className="text-violet-600 dark:text-violet-400" />
+              : <DollarSign size={13} className="text-success" />}
           </div>
           <div>
             <p className="font-semibold text-sm">{row.original.name}</p>
             <p className="text-xs text-muted-foreground">
-              {row.original.dtype === "percentage"
-                ? `${row.original.value}% off subtotal`
-                : `${egp(row.original.value)} off subtotal`}
+              {row.original.dtype === "percentage" ? `${row.original.value}% off` : `${fmtMoney(row.original.value)} off`}
             </p>
           </div>
         </div>
@@ -227,53 +221,42 @@ export default function Discounts() {
     },
     {
       accessorKey: "dtype",
-      header:      "Type",
+      header: t("common.type"),
       cell: ({ row }) => (
         <Badge variant={row.original.dtype === "percentage" ? "info" : "success"}>
-          {row.original.dtype === "percentage" ? "Percentage" : "Fixed Amount"}
+          {row.original.dtype === "percentage" ? t("discounts.percentage") : t("discounts.fixed")}
         </Badge>
       ),
     },
     {
       accessorKey: "value",
-      header:      "Value",
+      header: t("discounts.value"),
       cell: ({ row }) => (
-        <span className="font-semibold tabular-nums text-sm">
-          {row.original.dtype === "percentage"
-            ? `${row.original.value}%`
-            : egp(row.original.value)}
+        <span className="font-semibold tabular text-sm">
+          {row.original.dtype === "percentage" ? `${row.original.value}%` : fmtMoney(row.original.value)}
         </span>
       ),
     },
     {
       accessorKey: "is_active",
-      header:      "Status",
+      header: t("common.status"),
       cell: ({ row }) => (
         <button onClick={(e) => { e.stopPropagation(); toggleActive(row.original); }}>
           {row.original.is_active
-            ? <Badge variant="success"><CheckCircle size={11} /> Active</Badge>
-            : <Badge variant="outline"><XCircle size={11} /> Inactive</Badge>}
+            ? <Badge variant="success"><CheckCircle size={11} /> {t("common.active")}</Badge>
+            : <Badge variant="outline"><XCircle size={11} /> {t("common.inactive")}</Badge>}
         </button>
       ),
     },
     {
-      id:     "actions",
+      id: "actions",
       header: "",
-      cell:   ({ row }) => (
+      cell: ({ row }) => (
         <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-          <Button
-            variant="ghost" size="icon-sm"
-            onClick={() => { setEditDiscount(row.original); setFormOpen(true); }}
-          >
+          <Button variant="ghost" size="iconSm" onClick={() => { setEditItem(row.original); setDlgOpen(true); }}>
             <Edit2 size={13} />
           </Button>
-          <Button
-            variant="ghost" size="icon-sm"
-            className="text-destructive hover:text-destructive"
-            onClick={() => {
-              if (confirm(`Delete "${row.original.name}"?`)) del(row.original.id);
-            }}
-          >
+          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete(row.original)}>
             <Trash2 size={13} />
           </Button>
         </div>
@@ -281,47 +264,59 @@ export default function Discounts() {
     },
   ];
 
-  const active   = discounts.filter((d) => d.is_active).length;
-  const inactive = discounts.filter((d) => !d.is_active).length;
-  const pct      = discounts.filter((d) => d.dtype === "percentage").length;
-  const fixed    = discounts.filter((d) => d.dtype === "fixed").length;
+  const handleExport = () =>
+    exportToExcel({
+      filename: "Discounts",
+      sheets: [
+        {
+          name: "Discounts",
+          title: t("discounts.title"),
+          columns: [
+            { key: "name", header: t("discounts.discountName"), accessor: (d: Discount) => d.name, width: 28 },
+            { key: "dtype", header: t("common.type"), accessor: (d: Discount) => (d.dtype === "percentage" ? t("discounts.percentage") : t("discounts.fixed")), width: 16 },
+            {
+              key: "value",
+              header: t("discounts.value"),
+              accessor: (d: Discount) => (d.dtype === "percentage" ? d.value : d.value),
+              // percentage values stay as numbers; fixed values are piastres → money
+              type: "number",
+              width: 14,
+            },
+            { key: "is_active", header: t("common.status"), accessor: (d: Discount) => d.is_active, type: "bool", width: 12 },
+          ],
+          rows: discounts,
+        },
+      ],
+    });
+
+  if (!orgId) return <PageShell title={t("discounts.title")} description={t("discounts.subtitle")}>{null}</PageShell>;
+
+  const active = discounts.filter((d) => d.is_active).length;
+  const pct = discounts.filter((d) => d.dtype === "percentage").length;
+  const fixed = discounts.filter((d) => d.dtype === "fixed").length;
 
   return (
     <PageShell
-      title="Discounts"
-      description="Manage discount presets available to tellers at checkout"
-      action={
-        <Button onClick={() => { setEditDiscount(null); setFormOpen(true); }}>
-          <Plus size={15} /> New Discount
-        </Button>
-      }
+      title={t("discounts.title")}
+      description={t("discounts.subtitle")}
+      action={<Button onClick={() => { setEditItem(null); setDlgOpen(true); }}><Plus /> {t("common.new")}</Button>}
     >
-      {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: "Total",       value: discounts.length, color: "text-primary"    },
-          { label: "Active",      value: active,           color: "text-green-600"  },
-          { label: "Percentage",  value: pct,              color: "text-violet-600" },
-          { label: "Fixed",       value: fixed,            color: "text-amber-600"  },
-        ].map(({ label, value, color }) => (
-          <Card key={label} className="p-4">
-            <p className={`text-2xl font-extrabold ${color}`}>{isLoading ? "—" : value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{label}</p>
-          </Card>
-        ))}
+        <StatCard label={t("common.total")} value={discounts.length} loading={isLoading} />
+        <StatCard label={t("common.active")} value={active} loading={isLoading} accent="success" />
+        <StatCard label={t("discounts.percentage")} value={pct} loading={isLoading} accent="violet" />
+        <StatCard label={t("discounts.fixed")} value={fixed} loading={isLoading} accent="warning" />
       </div>
 
       {discounts.length === 0 && !isLoading ? (
-        <div className="rounded-2xl border bg-card p-12 flex flex-col items-center gap-3 text-center">
+        <div className="rounded-xl border bg-card p-12 flex flex-col items-center gap-3 text-center">
           <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
             <Tag size={24} className="text-muted-foreground" />
           </div>
-          <p className="font-semibold">No discounts yet</p>
-          <p className="text-sm text-muted-foreground max-w-xs">
-            Create discount presets that tellers can apply when placing orders from the POS app.
-          </p>
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus size={14} /> Create First Discount
+          <p className="font-semibold">{t("discounts.empty")}</p>
+          <p className="text-sm text-muted-foreground max-w-xs">{t("discounts.emptyHint")}</p>
+          <Button onClick={() => setDlgOpen(true)}>
+            <Plus /> {t("discounts.createFirst")}
           </Button>
         </div>
       ) : (
@@ -330,15 +325,25 @@ export default function Discounts() {
           data={discounts}
           isLoading={isLoading}
           searchKey="name"
-          searchPlaceholder="Search discounts…"
+          onExport={handleExport}
         />
       )}
 
-      <DiscountFormDialog
-        open={formOpen}
-        onClose={() => { setFormOpen(false); setEditDiscount(null); }}
+      <DiscountDialog
+        open={dlgOpen}
+        onClose={() => { setDlgOpen(false); setEditItem(null); }}
+        edit={editItem}
         orgId={orgId}
-        editDiscount={editDiscount}
+        key={editItem?.id ?? "new"}
+      />
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => !o && setConfirmDelete(null)}
+        title={t("common.confirmDelete", { name: confirmDelete?.name ?? "" })}
+        destructive
+        loading={removing}
+        onConfirm={() => confirmDelete && remove(confirmDelete.id)}
       />
     </PageShell>
   );

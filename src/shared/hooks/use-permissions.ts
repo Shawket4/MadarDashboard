@@ -1,0 +1,68 @@
+import { useMemo } from "react";
+import { useCurrentContext } from "./use-current-context";
+import type { Role } from "@/shared/config/constants";
+
+// Frontend role-default matrix. This mirrors the backend defaults for UI
+// gating only — the backend remains the source of truth on mutations.
+// Per-user overrides are fetched via the permissions API for the Permissions page
+// (this hook handles coarse-grain gating only).
+const ROLE_DEFAULTS: Record<Role, Record<string, Partial<Record<string, boolean>>>> = {
+  super_admin: {
+    // Super admin can do everything
+    "*": { "*": true },
+  },
+  org_admin: {
+    orgs: { read: true, update: true },
+    branches: { read: true, create: true, update: true, delete: true },
+    users: { read: true, create: true, update: true, delete: true },
+    menu_items: { read: true, create: true, update: true, delete: true },
+    categories: { read: true, create: true, update: true, delete: true },
+    addon_items: { read: true, create: true, update: true, delete: true },
+    recipes: { read: true, create: true, update: true, delete: true },
+    inventory: { read: true, create: true, update: true, delete: true },
+    inventory_adjustments: { read: true, create: true },
+    inventory_transfers: { read: true, create: true, update: true, delete: true },
+    discounts: { read: true, create: true, update: true, delete: true },
+    orders: { read: true, update: true },
+    shifts: { read: true, update: true },
+    permissions: { read: true, create: true, update: true, delete: true },
+  },
+  branch_manager: {
+    branches: { read: true },
+    users: { read: true, update: true },
+    menu_items: { read: true },
+    categories: { read: true },
+    addon_items: { read: true },
+    inventory: { read: true, update: true },
+    inventory_adjustments: { read: true, create: true },
+    inventory_transfers: { read: true, create: true },
+    orders: { read: true, update: true },
+    shifts: { read: true, create: true, update: true },
+    discounts: { read: true },
+  },
+  teller: {
+    menu_items: { read: true },
+    categories: { read: true },
+    addon_items: { read: true },
+    orders: { read: true, create: true },
+    shifts: { read: true, create: true, update: true },
+    discounts: { read: true },
+  },
+};
+
+export const usePermissions = () => {
+  const { role } = useCurrentContext();
+
+  return useMemo(
+    () => ({
+      can: (resource: string, action: string): boolean => {
+        if (!role) return false;
+        const table = ROLE_DEFAULTS[role];
+        if (table["*"]?.["*"]) return true;
+        return Boolean(table[resource]?.[action]);
+      },
+      role,
+    }),
+    [role],
+  );
+};
