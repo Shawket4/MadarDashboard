@@ -697,27 +697,44 @@ export default function Recipes() {
   const { data: items = [] } = useMenuItems(orgId);
   const { data: addons = [] } = useAddons(orgId);
 
-const handleExport = async () => {
+  const handleExport = async () => {
     if (!items.length && !addons.length) return;
 
     const toastId = toast.loading(t("excel.generating", { defaultValue: "Gathering recipe data..." }));
 
     try {
-      // 1. Changed getById to get
       const fullItems = await Promise.all(
         items.map((item) => menuItemApi.get(item.id))
       );
 
-      // 2. Types will now infer correctly since fullItems is MenuItemFull[]
-      const drinkRows = fullItems.flatMap((item) =>
-        (item.recipes || []).map((r) => ({
-          itemName: item.name,
-          size: r.size_label,
-          ingredient: r.ingredient_name,
-          quantity: Number(r.quantity_used),
-          unit: r.ingredient_unit,
-        }))
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const drinkRows: any[] = [];
+      for (const item of fullItems) {
+        const declared = (item.sizes ?? []).map((s) => s.label);
+        const inRecipes = Array.from(new Set((item.recipes ?? []).map((r) => r.size_label)));
+        let sizes = Array.from(new Set([...declared, ...inRecipes]));
+        
+        if (sizes.length === 0) {
+          sizes = ["one_size"];
+        }
+
+        for (const size of sizes) {
+          const recipesForSize = (item.recipes ?? []).filter((r) => r.size_label === size);
+          
+          let ingredientsStr = "blank";
+          if (recipesForSize.length > 0) {
+            ingredientsStr = recipesForSize
+              .map((r) => `${r.ingredient_name} (${Number(r.quantity_used)} ${r.ingredient_unit})`)
+              .join(", ");
+          }
+
+          drinkRows.push({
+            itemName: item.name,
+            size: size,
+            ingredients: ingredientsStr,
+          });
+        }
+      }
 
       const allAddonRecipes = await Promise.all(
         addons.map(async (addon) => {
@@ -726,15 +743,20 @@ const handleExport = async () => {
         })
       );
 
-      const addonRows = allAddonRecipes.flatMap(({ addon, recipes }) =>
-        (recipes || []).map((r) => ({
+      const addonRows = allAddonRecipes.map(({ addon, recipes }) => {
+        let ingredientsStr = "blank";
+        if (recipes && recipes.length > 0) {
+          ingredientsStr = recipes
+            .map((r) => `${r.ingredient_name} (${Number(r.quantity_used)} ${r.unit})`)
+            .join(", ");
+        }
+
+        return {
           addonName: addon.name,
           type: addon.addon_type,
-          ingredient: r.ingredient_name,
-          quantity: Number(r.quantity_used),
-          unit: r.unit,
-        }))
-      );
+          ingredients: ingredientsStr,
+        };
+      });
 
       await exportToExcel({
         filename: "Recipes_Export",
@@ -745,9 +767,7 @@ const handleExport = async () => {
             columns: [
               { key: "item", header: t("common.name", { defaultValue: "Item Name" }), accessor: (r) => r.itemName, width: 30 },
               { key: "size", header: t("recipes.size", { defaultValue: "Size" }), accessor: (r) => r.size, width: 20 },
-              { key: "ingredient", header: t("recipes.ingredient", { defaultValue: "Ingredient" }), accessor: (r) => r.ingredient, width: 30 },
-              { key: "quantity", header: t("common.qty", { defaultValue: "Quantity" }), accessor: (r) => r.quantity, type: "number", width: 15 },
-              { key: "unit", header: t("common.unit", { defaultValue: "Unit" }), accessor: (r) => r.unit, width: 10 },
+              { key: "ingredients", header: t("recipes.ingredients", { defaultValue: "Ingredients" }), accessor: (r) => r.ingredients, width: 80 },
             ],
             rows: drinkRows,
           },
@@ -757,9 +777,7 @@ const handleExport = async () => {
             columns: [
               { key: "addon", header: t("common.name", { defaultValue: "Addon Name" }), accessor: (r) => r.addonName, width: 30 },
               { key: "type", header: t("common.type", { defaultValue: "Type" }), accessor: (r) => r.type, width: 25 },
-              { key: "ingredient", header: t("recipes.ingredient", { defaultValue: "Ingredient" }), accessor: (r) => r.ingredient, width: 30 },
-              { key: "quantity", header: t("common.qty", { defaultValue: "Quantity" }), accessor: (r) => r.quantity, type: "number", width: 15 },
-              { key: "unit", header: t("common.unit", { defaultValue: "Unit" }), accessor: (r) => r.unit, width: 10 },
+              { key: "ingredients", header: t("recipes.ingredients", { defaultValue: "Ingredients" }), accessor: (r) => r.ingredients, width: 80 },
             ],
             rows: addonRows,
           },
@@ -771,6 +789,7 @@ const handleExport = async () => {
       toast.error(getErrorMessage(error), { id: toastId });
     }
   };
+
   if (!orgId) return <PageShell title={t("recipes.title")} description={t("recipes.subtitle")}>{null}</PageShell>;
 
   return (
