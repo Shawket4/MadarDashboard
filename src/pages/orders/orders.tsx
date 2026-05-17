@@ -166,6 +166,24 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
                               ))}
                             </div>
                           )}
+                          {it.optionals && it.optionals.length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap gap-1">
+                              {it.optionals.map((o, idx) => {
+                                const optionName = o.fieldName || o.name || "";
+                                if (!optionName) return null;
+                                const hasPrice = o.price > 0;
+                                return (
+                                  <Badge
+                                    key={idx}
+                                    variant="warning"
+                                    className="px-1.5 py-0.5 text-[10px] font-semibold rounded"
+                                  >
+                                    {optionName}{hasPrice && ` +${fmtMoney(o.price)}`}
+                                  </Badge>
+                                );
+                              })}
+                            </div>
+                          )}
                           {it.notes && <p className="text-xs italic text-muted-foreground mt-1">{it.notes}</p>}
                         </div>
                         <span className="font-semibold tabular text-sm flex-shrink-0">{fmtMoney(it.line_total)}</span>
@@ -344,7 +362,7 @@ const stats = data?.summary ?? { revenue: 0, completed: 0, voided: 0, discounts:
         )
       }
     >
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
 <StatCard label={t("orders.totalRevenue")}  value={fmtMoney(stats.revenue)}    loading={isLoading} icon={Receipt}     accent="success"     />
 <StatCard label={t("orders.completed")}     value={stats.completed}             loading={isLoading} icon={ShoppingBag} accent="info"        />
 <StatCard label={t("orders.voidedOrders")}  value={stats.voided}                loading={isLoading} icon={Ban}         accent="destructive" />

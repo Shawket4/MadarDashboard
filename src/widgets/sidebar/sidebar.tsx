@@ -432,7 +432,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       {/* Mobile drawer */}
       <aside
         className={cn(
-          "fixed start-0 top-0 bottom-0 z-50 w-[280px] max-w-[82vw] bg-background border-e shadow-xl lg:hidden",
+          "fixed start-0 top-0 bottom-0 z-50 w-[280px] max-w-[82vw] bg-background border-e shadow-xl lg:hidden safe-top safe-bottom",
           "transition-transform duration-200 ease-out",
           mobileOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full",
         )}
@@ -443,7 +443,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       {/* Desktop */}
       <aside
         className={cn(
-          "hidden lg:flex relative flex-col bg-background border-e flex-shrink-0 sticky top-0 h-screen",
+          "hidden lg:flex relative flex-col bg-background border-e flex-shrink-0 sticky top-0 h-screen safe-top safe-bottom",
           "transition-[width] duration-200 ease-out",
           collapsed ? "w-[72px]" : "w-[244px]",
         )}

@@ -283,6 +283,14 @@ export interface OrderItemAddon {
   line_total: number;
 }
 
+export interface OrderItemOptional {
+  id?: string;
+  order_item_id?: string;
+  fieldName?: string;
+  name?: string;
+  price: number;
+}
+
 export interface InventoryDeduction {
   org_ingredient_id: string | null;
   ingredient_name: string;
@@ -303,6 +311,7 @@ export interface OrderItem {
   line_total: number;
   notes: string | null;
   addons: OrderItemAddon[];
+  optionals?: OrderItemOptional[];
   deductions_snapshot: InventoryDeduction[];
 }
 
