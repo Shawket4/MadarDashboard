@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { type ColumnDef } from "@tanstack/react-table";
@@ -127,11 +127,32 @@ function MenuItemDialog({
       category_id: edit?.category_id ?? "",
       is_active: edit?.is_active ?? true,
       display_order: edit?.display_order ?? 0,
+      sizes: [],
     },
   });
 
+  const { fields: sizes, append: appendSize, remove: removeSizeField } = useFieldArray({
+    control: form.control,
+    name: "sizes",
+  });
+
+  useEffect(() => {
+    if (liveItem) {
+      form.reset({
+        ...form.getValues(),
+        sizes: liveItem.sizes.map((s) => ({
+          id: s.id,
+          label: s.label,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          price_override: String(s.price_override / 100) as any,
+          display_order: s.display_order,
+        })),
+      });
+    }
+  }, [liveItem, form]);
+
   const { mutate, isPending } = useMutation({
-    mutationFn: (v: MenuItemValues) => {
+    mutationFn: async (v: MenuItemValues) => {
       const payload = {
         name: v.name,
         description: v.description || null,
@@ -140,7 +161,29 @@ function MenuItemDialog({
         is_active: v.is_active,
         display_order: v.display_order,
       };
-      return edit ? menuItemApi.update(edit.id, payload) : menuItemApi.create({ ...payload, org_id: orgId });
+      
+      const itemRes = edit 
+        ? await menuItemApi.update(edit.id, payload) 
+        : await menuItemApi.create({ ...payload, org_id: orgId });
+        
+      const itemId = itemRes.id;
+
+      // Handle Sizes
+      const existingSizes = liveItem?.sizes || [];
+      const newSizeIds = new Set((v.sizes ?? []).map((s) => s.id).filter(Boolean));
+      const toDelete = existingSizes.filter((s) => !newSizeIds.has(s.id));
+      
+      await Promise.all(toDelete.map((s) => menuItemApi.removeSize(itemId, s.id)));
+
+      for (const [idx, s] of (v.sizes ?? []).entries()) {
+        await menuItemApi.upsertSize(itemId, {
+          label: s.label,
+          price_override: s.price_override,
+          display_order: s.display_order ?? idx,
+        });
+      }
+
+      return itemRes;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["menu-items"] });
@@ -264,6 +307,62 @@ function MenuItemDialog({
                   </FormItem>
                 )}
               />
+
+              <div className="space-y-3 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-base font-semibold">Sizes</FormLabel>
+                  <Button type="button" variant="outline" size="sm" onClick={() => appendSize({ label: "", price_override: 0 as any, display_order: sizes.length })}>
+                    <Plus size={14} className="me-2" /> Add Size
+                  </Button>
+                </div>
+                {sizes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-lg border border-dashed">No extra sizes added.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {sizes.map((sz, idx) => (
+                      <div key={sz.id} className="flex items-start gap-3 p-3 bg-muted/20 rounded-lg border">
+                        <FormField
+                          control={form.control}
+                          name={`sizes.${idx}.label`}
+                          render={({ field }) => (
+                            <FormItem className="flex-1">
+                              <FormLabel className="text-xs">Label</FormLabel>
+                              <FormControl><Input placeholder="e.g. Large" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`sizes.${idx}.price_override`}
+                          render={({ field }) => (
+                            <FormItem className="w-28">
+                              <FormLabel className="text-xs">Price (EGP)</FormLabel>
+                              <FormControl><Input type="number" step="0.5" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`sizes.${idx}.display_order`}
+                          render={({ field }) => (
+                            <FormItem className="w-20">
+                              <FormLabel className="text-xs">Order</FormLabel>
+                              <FormControl><Input type="number" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button type="button" variant="ghost" size="icon" className="mt-6 text-destructive flex-shrink-0" onClick={() => removeSizeField(idx)}>
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </DialogBody>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>

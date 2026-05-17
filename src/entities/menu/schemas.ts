@@ -15,6 +15,12 @@ export const menuItemSchema = z.object({
   category_id: z.string().nullish().or(z.literal("")),
   is_active: z.boolean().default(true),
   display_order: z.coerce.number().int().min(0).default(0),
+  sizes: z.array(z.object({
+    id: z.string().optional(),
+    label: z.string().trim().min(1),
+    price_override: egpToPiastres,
+    display_order: z.coerce.number().int().min(0).default(0),
+  })).default([]),
 });
 export type MenuItemValues = z.infer<typeof menuItemSchema>;
 
