@@ -50,9 +50,8 @@ import type {
 import { createPortal } from "react-dom";
 
 /* Lazy-load Lottie — only fetched when Show-to-Barista opens */
-const DotLottie = lazy(() =>
-  import("@lottiefiles/dotlottie-react").then((m) => ({ default: m.DotLottieReact }))
-);
+const loadDotLottie = () => import("@lottiefiles/dotlottie-react");
+const DotLottie = lazy(() => loadDotLottie().then((m) => ({ default: m.DotLottieReact })));
 /* ===========================================================================
  *  Types
  * ========================================================================= */
@@ -582,9 +581,24 @@ export default function PublicMenuPage() {
   const isRTL = i18n.dir() === "rtl";
   const { data: menu, isLoading, error, refetch } = usePublicMenu(orgId ?? null);
 
-  /* ---------- lazy load cairo fonts ---------- */
+  /* ---------- lazy load cairo fonts & preload lottie assets ---------- */
   useEffect(() => {
     import("./cairo.css");
+
+    // Preload Lottie library and animation asset in the background during idle time (so first open is instant!)
+    const preloadLottie = () => {
+      loadDotLottie().catch(() => {});
+      fetch("/ShowTellerCup.lottie").catch(() => {});
+    };
+
+    if (typeof window !== "undefined") {
+      const win = window as any;
+      if (typeof win.requestIdleCallback === "function") {
+        win.requestIdleCallback(() => preloadLottie());
+      } else {
+        setTimeout(preloadLottie, 1500); // Safari fallback
+      }
+    }
   }, []);
 
   /* ---------- silent refetch every 5 minutes (SWR) ---------- */
