@@ -22,10 +22,10 @@ val keyProperties = Properties().apply {
 
 android {
     compileSdk = 36
-    namespace = "com.apextransport.fleet"
+    namespace = "com.rue.dashboard"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "com.apextransport.fleet"
+        applicationId = "com.rue.dashboard"
         minSdk = 24
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
