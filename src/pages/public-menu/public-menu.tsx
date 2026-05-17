@@ -448,10 +448,16 @@ function ItemImage({
 }) {
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     setFailed(false);
     setLoaded(false);
+
+    // If the image is already cached/complete, trigger loaded immediately!
+    if (imgRef.current?.complete) {
+      setLoaded(true);
+    }
   }, [src]);
 
   if (!src || failed) {
@@ -470,6 +476,7 @@ function ItemImage({
           <div className="absolute inset-0 bg-slate-100" />
         )}
         <img
+          ref={imgRef}
           src={src || undefined}
           alt={alt}
           loading="lazy"
@@ -491,6 +498,7 @@ function ItemImage({
     <div className={cx("relative overflow-hidden", className)}>
       {!loaded && <div className="absolute inset-0 bg-slate-100 animate-pulse" />}
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
         loading="lazy"
@@ -1267,12 +1275,12 @@ function BottomSheet({
   useEffect(() => {
     if (open) {
       setMounted(true);
-    } else {
+    } else if (mounted) {
       setAnimate(false);
       const t = window.setTimeout(() => setMounted(false), 300);
       return () => window.clearTimeout(t);
     }
-  }, [open]);
+  }, [open, mounted]);
 
   useEffect(() => {
     if (mounted && open) {
@@ -1284,10 +1292,9 @@ function BottomSheet({
   // Lock body scroll while mounted
   useEffect(() => {
     if (!mounted) return;
-    const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = original;
+      document.body.style.overflow = "";
     };
   }, [mounted]);
 
@@ -1317,8 +1324,9 @@ function BottomSheet({
     sheetRef.current.style.transform = `translate3d(0, ${eased}px, 0)`;
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragRef.current || !sheetRef.current) return;
+    e.currentTarget.releasePointerCapture(e.pointerId);
     const height = sheetRef.current.getBoundingClientRect().height;
     const shouldClose = dragRef.current.offset > height * 0.22;
     sheetRef.current.style.transition = "";
@@ -1333,7 +1341,7 @@ function BottomSheet({
   if (!mounted || typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 light-theme">
+    <div className={cx("fixed inset-0 z-50 light-theme", !animate && "pointer-events-none")}>
       {/* Backdrop */}
       <div
         onClick={onClose}
@@ -1341,7 +1349,7 @@ function BottomSheet({
         className={cx(
           "absolute inset-0 bg-slate-900/50 backdrop-blur-sm",
           "transition-opacity duration-300 ease-out",
-          animate ? "opacity-100" : "opacity-0"
+          animate ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       />
 
@@ -1363,7 +1371,7 @@ function BottomSheet({
           "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           animate
             ? "translate-y-0"
-            : "translate-y-full sm:translate-y-[calc(100%+1.5rem)]"
+            : "translate-y-full sm:translate-y-[calc(100%+1.5rem)] pointer-events-none"
         )}
       >
         {/* Drag handle (mobile only) */}
