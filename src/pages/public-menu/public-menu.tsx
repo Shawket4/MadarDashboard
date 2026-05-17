@@ -1379,15 +1379,15 @@ function BottomSheet({
             : "translate-y-full sm:translate-y-[calc(100%+1.5rem)] pointer-events-none"
         )}
       >
-        {/* Drag handle (mobile only) */}
+        {/* Drag handle (mobile only) — absolute floating to let hero image flow to the top rounded edges */}
         <div
-          className="sm:hidden flex justify-center pt-2.5 pb-1 touch-none cursor-grab active:cursor-grabbing"
+          className="absolute top-0 inset-x-0 z-30 sm:hidden flex justify-center pt-3 pb-3 touch-none cursor-grab active:cursor-grabbing"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
         >
-          <div className="h-1.5 w-10 rounded-full bg-slate-300" />
+          <div className="h-1.5 w-11 rounded-full bg-white/70 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.15)]" />
         </div>
 
         {children}
@@ -2101,11 +2101,16 @@ function DotLottieRender() {
           src="/ShowTellerCup.lottie"
           loop
           autoplay
+          className="w-full h-full [&_canvas]:!w-full [&_canvas]:!h-full [&_canvas]:!object-contain"
           style={{
             width: "100%",
             height: "100%",
             objectFit: "contain",
             display: loaded ? "block" : "none",
+          }}
+          renderConfig={{
+            devicePixelRatio: typeof window !== "undefined" ? window.devicePixelRatio : 1,
+            autoResize: true,
           }}
           dotLottieRefCallback={(instance) => {
             if (!instance) return;
