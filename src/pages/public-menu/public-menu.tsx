@@ -1289,12 +1289,17 @@ function BottomSheet({
     }
   }, [mounted, open]);
 
-  // Lock body scroll while mounted
+  // Lock body scroll and compensate scrollbar layout shift while mounted
   useEffect(() => {
     if (!mounted) return;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
     return () => {
       document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
     };
   }, [mounted]);
 
@@ -2078,27 +2083,36 @@ function ShowToTellerDialog({
 
 function LottieFallback() {
   return (
-    <div className="h-full w-full bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/30 animate-pulse">
-      <Coffee size={36} strokeWidth={2.5} />
+    <div className="h-full w-full bg-slate-100 rounded-full flex items-center justify-center border border-slate-200/50 animate-pulse">
+      <Coffee size={32} className="text-slate-400" strokeWidth={2} />
     </div>
   );
 }
 
 function DotLottieRender() {
   const [failed, setFailed] = useState(false);
-
-  if (failed) return <LottieFallback />;
+  const [loaded, setLoaded] = useState(false);
 
   return (
-    <DotLottie
-      src="/ShowTellerCup.lottie"
-      loop
-      autoplay
-      style={{ width: "100%", height: "100%" }}
-      dotLottieRefCallback={(instance) => {
-        if (!instance) return;
-        instance.addEventListener("loadError", () => setFailed(true));
-      }}
-    />
+    <div className="relative w-full h-full">
+      {(!loaded || failed) && <LottieFallback />}
+      {!failed && (
+        <DotLottie
+          src="/ShowTellerCup.lottie"
+          loop
+          autoplay
+          style={{
+            width: "100%",
+            height: "100%",
+            display: loaded ? "block" : "none",
+          }}
+          dotLottieRefCallback={(instance) => {
+            if (!instance) return;
+            instance.addEventListener("load", () => setLoaded(true));
+            instance.addEventListener("loadError", () => setFailed(true));
+          }}
+        />
+      )}
+    </div>
   );
 }
