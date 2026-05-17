@@ -48,6 +48,8 @@ import type {
   PublicMenuItem,
 } from "@/shared/types";
 
+import { createPortal } from "react-dom";
+
 /* Lazy-load Lottie — only fetched when Show-to-Barista opens */
 const DotLottie = lazy(() =>
   import("@lottiefiles/dotlottie-react").then((m) => ({ default: m.DotLottieReact }))
@@ -436,6 +438,7 @@ function ItemImage({
   fallbackName,
   fallbackVariant = "card",
   iconSize = 28,
+  disableFade = false,
 }: {
   src?: string | null;
   alt: string;
@@ -443,6 +446,7 @@ function ItemImage({
   fallbackName?: string;
   fallbackVariant?: ThumbVariant;
   iconSize?: number;
+  disableFade?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -463,13 +467,24 @@ function ItemImage({
       );
     }
     return (
-      <div
-        className={cx(
-          "flex items-center justify-center bg-slate-100 text-slate-300",
-          className
+      <div className={cx("relative overflow-hidden", className)}>
+        {!loaded && !disableFade && (
+          <div className="absolute inset-0 bg-slate-100" />
         )}
-      >
-        <ImageOff size={iconSize} strokeWidth={1.5} />
+        <img
+          src={src || undefined}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+          className={cx(
+            "h-full w-full object-cover",
+            disableFade
+              ? "opacity-100"
+              : cx("transition-opacity duration-500", loaded ? "opacity-100" : "opacity-0")
+          )}
+        />
       </div>
     );
   }
@@ -1223,6 +1238,153 @@ function MenuItemCard({
  *  effect, and we get a clean state on every open.)
  * ========================================================================= */
 
+/* ===========================================================================
+ *  BottomSheet — inline replacement for the shadcn Dialog primitive
+ *  Mobile: full-width sheet anchored to bottom, drag-to-dismiss
+ *  Desktop: centered, max-w-2xl, anchored 1.5rem from bottom
+ * ========================================================================= */
+
+type SheetPhase = "closed" | "opening" | "open" | "closing";
+
+function BottomSheet({
+  open,
+  onClose,
+  ariaLabel,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  ariaLabel?: string;
+  children: ReactNode;
+}) {
+  const [phase, setPhase] = useState<SheetPhase>("closed");
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  const dragRef = useRef<{ startY: number; offset: number } | null>(null);
+
+  // Phase machine — gives us one frame to mount before the slide-in begins
+  useEffect(() => {
+    if (open && phase === "closed") {
+      setPhase("opening");
+      const r1 = requestAnimationFrame(() => {
+        const r2 = requestAnimationFrame(() => setPhase("open"));
+        return () => cancelAnimationFrame(r2);
+      });
+      return () => cancelAnimationFrame(r1);
+    }
+    if (!open && (phase === "open" || phase === "opening")) {
+      setPhase("closing");
+      const t = window.setTimeout(() => setPhase("closed"), 280);
+      return () => window.clearTimeout(t);
+    }
+  }, [open, phase]);
+
+  // Body scroll lock while mounted
+  useEffect(() => {
+    if (phase === "closed") return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [phase]);
+
+  // ESC to close
+  useEffect(() => {
+    if (phase === "closed") return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [phase, onClose]);
+
+  // Drag-to-dismiss (mobile)
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!sheetRef.current) return;
+    dragRef.current = { startY: e.clientY, offset: 0 };
+    sheetRef.current.style.transition = "none";
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current || !sheetRef.current) return;
+    const delta = Math.max(0, e.clientY - dragRef.current.startY);
+    dragRef.current.offset = delta;
+    // Slight resistance: 0.6x the actual drag distance after 40px
+    const eased = delta < 40 ? delta : 40 + (delta - 40) * 0.85;
+    sheetRef.current.style.transform = `translate3d(0, ${eased}px, 0)`;
+  };
+
+  const handlePointerUp = () => {
+    if (!dragRef.current || !sheetRef.current) return;
+    const height = sheetRef.current.getBoundingClientRect().height;
+    const shouldClose = dragRef.current.offset > height * 0.22;
+    sheetRef.current.style.transition = "";
+    sheetRef.current.style.transform = "";
+    dragRef.current = null;
+    if (shouldClose) {
+      haptic("light");
+      onClose();
+    }
+  };
+
+  if (phase === "closed" || typeof document === "undefined") return null;
+
+  const isVisible = phase === "open";
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 light-theme">
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        aria-hidden
+        className={cx(
+          "absolute inset-0 bg-slate-900/50 backdrop-blur-sm",
+          "transition-opacity duration-300 ease-out",
+          isVisible ? "opacity-100" : "opacity-0"
+        )}
+      />
+
+      {/* Sheet */}
+      <div
+        ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={ariaLabel}
+        className={cx(
+          // Position: full width on mobile, centered max-w-2xl on desktop
+          "fixed inset-x-0 bottom-0",
+          "sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:bottom-6 sm:w-full sm:max-w-2xl",
+          // Box
+          "bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl overflow-hidden flex flex-col",
+          "max-h-[86vh] sm:max-h-[80vh]",
+          // Animation — only transform-y animates; -translate-x-1/2 composes via Tailwind vars on sm
+          "transform-gpu will-change-transform",
+          "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          isVisible
+            ? "translate-y-0"
+            : "translate-y-full sm:translate-y-[calc(100%+1.5rem)]"
+        )}
+      >
+        {/* Drag handle (mobile only) */}
+        <div
+          className="sm:hidden flex justify-center pt-2.5 pb-1 touch-none cursor-grab active:cursor-grabbing"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+        >
+          <div className="h-1.5 w-10 rounded-full bg-slate-300" />
+        </div>
+
+        {children}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+
 function ItemDetailDialog({
   item,
   onClose,
@@ -1233,23 +1395,16 @@ function ItemDetailDialog({
   onAdd: (line: CartLine, sourceEl: HTMLElement | null) => void;
 }) {
   return (
-    <Dialog open={!!item} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent
-        className="light-theme p-0 gap-0 sm:max-w-2xl max-h-[94vh] sm:max-h-[92vh] overflow-hidden rounded-t-[2rem] sm:rounded-[2rem] border-0 shadow-2xl flex flex-col bg-white transform-gpu"
-        showClose={false}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
-        <DialogTitle className="sr-only">{item?.name ?? ""}</DialogTitle>
-        {item && (
-          <ItemDetailBody
-            key={String(item.id)}
-            item={item}
-            onClose={onClose}
-            onAdd={onAdd}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
+    <BottomSheet open={!!item} onClose={onClose} ariaLabel={item?.name}>
+      {item && (
+        <ItemDetailBody
+          key={String(item.id)}
+          item={item}
+          onClose={onClose}
+          onAdd={onAdd}
+        />
+      )}
+    </BottomSheet>
   );
 }
 
@@ -1358,7 +1513,7 @@ function ItemDetailBody({
           alt={item.name}
           fallbackName={item.name}
           fallbackVariant="hero"
-          className="w-full h-48 sm:h-72 bg-slate-100"
+          className="w-full h-36 sm:h-56 bg-slate-100"
           iconSize={48}
         />
         {item.image_url && (
@@ -1371,7 +1526,7 @@ function ItemDetailBody({
             onClose();
           }}
           aria-label={t("menu.detail.close")}
-          className="absolute top-3 end-3 sm:top-4 sm:end-4 h-10 w-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md hover:bg-white active:scale-95 transition"
+          className="absolute top-2 end-3 sm:top-4 sm:end-4 h-10 w-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md hover:bg-white active:scale-95 transition"
         >
           <X size={20} className="text-slate-800" />
         </button>
@@ -1626,8 +1781,6 @@ function CartDialog({
         className="light-theme p-0 gap-0 sm:max-w-md max-h-[90vh] rounded-t-[2rem] sm:rounded-[2rem] overflow-hidden border-0 flex flex-col bg-white transform-gpu"
         showClose={false}
       >
-        <DialogTitle className="sr-only">{t("menu.cart.title")}</DialogTitle>
-
         <header className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-slate-100 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
