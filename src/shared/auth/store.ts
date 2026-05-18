@@ -66,3 +66,30 @@ apiContext.setOnUnauthorized(() => {
     window.location.href = "/login";
   }
 });
+
+// Synchronously keep apiContext headers in sync with Zustand stores
+const updateApiContext = () => {
+  const authState = useAuthStore.getState();
+  const appState = useAppStore.getState();
+
+  const user = authState.user;
+  const role = user?.role;
+  const isSuperAdmin = role === "super_admin";
+
+  const orgId = isSuperAdmin ? appState.selectedOrgId : (user?.org_id ?? null);
+  const branchId =
+    role === "branch_manager" || role === "teller"
+      ? (user?.branch_id ?? appState.selectedBranchId)
+      : appState.selectedBranchId;
+
+  apiContext.setToken(authState.token);
+  apiContext.setOrg(orgId);
+  apiContext.setBranch(branchId);
+};
+
+// Subscribe to store updates
+useAuthStore.subscribe(updateApiContext);
+useAppStore.subscribe(updateApiContext);
+
+// Run initially to boot up
+updateApiContext();

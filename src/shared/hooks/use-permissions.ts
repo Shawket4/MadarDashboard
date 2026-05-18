@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { authApi } from "@/entities/auth/api";
 import { useCurrentContext } from "./use-current-context";
 import type { Role } from "@/shared/config/constants";
 
@@ -51,18 +53,44 @@ const ROLE_DEFAULTS: Record<Role, Record<string, Partial<Record<string, boolean>
 };
 
 export const usePermissions = () => {
-  const { role } = useCurrentContext();
+  const { user } = useCurrentContext();
 
-  return useMemo(
-    () => ({
+  const { data } = useQuery({
+    queryKey: ["auth-permissions", user?.id],
+    queryFn: () => authApi.getPermissions(),
+    enabled: !!user,
+    staleTime: 5 * 60_000,
+  });
+
+  return useMemo(() => {
+    // Build a lookup map: resource -> action -> granted
+    const map: Record<string, Record<string, boolean>> = {};
+    if (data?.permissions) {
+      for (const p of data.permissions) {
+        if (!map[p.resource]) map[p.resource] = {};
+        map[p.resource][p.action] = p.granted;
+      }
+    }
+
+    return {
       can: (resource: string, action: string): boolean => {
-        if (!role) return false;
-        const table = ROLE_DEFAULTS[role];
+        if (!user) return false;
+        // Super admin can do everything
+        if (user.role === "super_admin") return true;
+
+        // If we have API-loaded effective permissions, use them as ground truth
+        if (data?.permissions) {
+          return Boolean(map[resource]?.[action]);
+        }
+
+        // Fallback to role-defaults
+        const table = ROLE_DEFAULTS[user.role as Role];
+        if (!table) return false;
         if (table["*"]?.["*"]) return true;
         return Boolean(table[resource]?.[action]);
       },
-      role,
-    }),
-    [role],
-  );
+      role: user?.role ?? null,
+      isLoading: !data && !!user,
+    };
+  }, [user, data]);
 };
