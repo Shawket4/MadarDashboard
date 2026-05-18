@@ -30,6 +30,7 @@ import {
 } from "@/entities/user/schemas";
 import { QUERY_KEYS, ROLES } from "@/shared/config/constants";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
+import { usePermissions } from "@/shared/hooks/use-permissions";
 import { getErrorMessage } from "@/shared/api/errors";
 import { exportToExcel } from "@/shared/lib/excel";
 import { initials } from "@/shared/lib/format";
@@ -46,7 +47,7 @@ const ROLE_COLOR: Record<Role, "success" | "info" | "warning" | "secondary"> = {
 function UserDialog({ open, onClose, edit }: { open: boolean; onClose: () => void; edit?: UserPublic | null }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const { isSuperAdmin, user } = useCurrentContext();
+  const { isSuperAdmin, user, role: currentUserRole } = useCurrentContext();
   const { data: orgs = [] } = useOrgs();
 
   const isEdit = !!edit;
@@ -64,7 +65,7 @@ function UserDialog({ open, onClose, edit }: { open: boolean; onClose: () => voi
           name: "",
           email: "",
           phone: "",
-          role: "teller",
+          role: currentUserRole === "branch_manager" ? "teller" : "teller",
           is_active: true,
           org_id: user?.org_id ?? "",
           pin: "",
@@ -105,7 +106,11 @@ function UserDialog({ open, onClose, edit }: { open: boolean; onClose: () => voi
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
-  const availableRoles: Role[] = isSuperAdmin ? [...ROLES] : ROLES.filter((r) => r !== "super_admin");
+  const availableRoles: Role[] = isSuperAdmin
+    ? [...ROLES]
+    : currentUserRole === "branch_manager"
+    ? ["teller"]
+    : ROLES.filter((r) => r !== "super_admin");
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -312,6 +317,7 @@ export default function Users() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { orgId } = useCurrentContext();
+  const { can } = usePermissions();
   const [userDlg, setUserDlg] = useState(false);
   const [branchDlg, setBranchDlg] = useState(false);
   const [editUser, setEditUser] = useState<UserPublic | null>(null);
@@ -376,20 +382,26 @@ export default function Users() {
       header: "",
       cell: ({ row }) => (
         <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="iconSm" title={t("users.permissions")} onClick={() => navigate(`/permissions/${row.original.id}`)}>
-            <Shield size={13} />
-          </Button>
-          {(row.original.role === "branch_manager" || row.original.role === "teller") && (
+          {can("permissions", "read") && (
+            <Button variant="ghost" size="iconSm" title={t("users.permissions")} onClick={() => navigate(`/permissions/${row.original.id}`)}>
+              <Shield size={13} />
+            </Button>
+          )}
+          {can("users", "update") && (row.original.role === "branch_manager" || row.original.role === "teller") && (
             <Button variant="ghost" size="iconSm" title={t("users.assignBranches")} onClick={() => { setBranchUser(row.original); setBranchDlg(true); }}>
               <GitBranch size={13} />
             </Button>
           )}
-          <Button variant="ghost" size="iconSm" onClick={() => { setEditUser(row.original); setUserDlg(true); }}>
-            <Edit2 size={13} />
-          </Button>
-          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete(row.original)}>
-            <Trash2 size={13} />
-          </Button>
+          {can("users", "update") && (
+            <Button variant="ghost" size="iconSm" onClick={() => { setEditUser(row.original); setUserDlg(true); }}>
+              <Edit2 size={13} />
+            </Button>
+          )}
+          {can("users", "delete") && (
+            <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete(row.original)}>
+              <Trash2 size={13} />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -418,7 +430,7 @@ export default function Users() {
     <PageShell
       title={t("users.title")}
       description={t("users.subtitle")}
-      action={<Button onClick={() => { setEditUser(null); setUserDlg(true); }}><Plus /> {t("common.new")}</Button>}
+      action={can("users", "create") ? <Button onClick={() => { setEditUser(null); setUserDlg(true); }}><Plus /> {t("common.new")}</Button> : undefined}
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label={t("users.totalUsers")} value={users.length} loading={isLoading} />

@@ -19,19 +19,24 @@ import { getErrorMessage } from "@/shared/api/errors";
 import type { PermissionMatrix } from "@/shared/types";
 
 const RESOURCES = [
-  "orders",
-  "shifts",
+  "orgs",
   "branches",
   "users",
-  "menu_items",
   "categories",
+  "menu_items",
+  "addon_groups",
   "addon_items",
+  "recipes",
   "inventory",
   "inventory_adjustments",
   "inventory_transfers",
-  "recipes",
-  "permissions",
+  "orders",
+  "order_items",
+  "payments",
+  "shifts",
   "shift_counts",
+  "soft_serve_batches",
+  "permissions",
 ];
 
 const ACTIONS = ["read", "create", "update", "delete"] as const;

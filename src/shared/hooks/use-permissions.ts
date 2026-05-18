@@ -29,7 +29,7 @@ const ROLE_DEFAULTS: Record<Role, Record<string, Partial<Record<string, boolean>
   },
   branch_manager: {
     branches: { read: true },
-    users: { read: true, update: true },
+    users: { read: true, create: true, update: true },
     menu_items: { read: true },
     categories: { read: true },
     addon_items: { read: true },
