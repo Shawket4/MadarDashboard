@@ -95,46 +95,8 @@ const NAV: NavGroup[] = [
 // Org-logo override is commented out below — uncomment to re-enable.
 // ─────────────────────────────────────────────────────────────────────────────
 function BrandLogo({ collapsed }: { collapsed: boolean }) {
-  // const { orgId, orgLogo } = useCurrentContext();
-  // const { data: org } = useOrg(orgId);
-  // const setSelectedOrg = useAppStore((s) => s.setSelectedOrg);
-
-  // ── Org logo sync (disabled) ──────────────────────────────────────────────
-  // useEffect(() => {
-  //   if (org?.id === orgId && org.logo_url !== orgLogo) {
-  //     setSelectedOrg(orgId, org.logo_url);
-  //   }
-  // }, [org?.id, org?.logo_url, orgId, orgLogo, setSelectedOrg]);
-
-  // const [orgLogoFailed, setOrgLogoFailed] = useState(false);
-
-  // ── Org logo override (disabled — uncomment to restore) ───────────────────
-  // const hasOrgLogo = Boolean(orgLogo || org?.logo_url) && !orgLogoFailed;
-  // const currentLogoUrl = orgLogo || org?.logo_url;
-  //
-  // if (collapsed) {
-  //   return hasOrgLogo ? (
-  //     <img
-  //       src={currentLogoUrl!}
-  //       alt={org?.name ?? ""}
-  //       onError={() => setOrgLogoFailed(true)}
-  //       className="w-8 h-8 rounded-lg object-cover flex-shrink-0"
-  //       draggable={false}
-  //     />
-  //   ) : tile;
-  // }
-  //
-  // if (hasOrgLogo) {
-  //   return (
-  //     <img
-  //       src={currentLogoUrl!}
-  //       alt={org?.name ?? ""}
-  //       onError={() => setOrgLogoFailed(true)}
-  //       className="h-10 px-2 object-contain select-none"
-  //       draggable={false}
-  //     />
-  //   );
-  // }
+  const { i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
 
   if (collapsed) {
     return (
@@ -150,21 +112,15 @@ function BrandLogo({ collapsed }: { collapsed: boolean }) {
     );
   }
 
+  const logoUrl = isAr ? "/sufrix_ar.svg" : "/sufrix.svg";
+
   return (
-    <svg viewBox="0 0 119.35 43.42" className="h-8 px-2 select-none flex-shrink-0" style={{ width: "auto" }}>
-      <g id="Layer_1-2" data-name="Layer 1">
-        <g>
-          <g>
-            <rect className="fill-current" x="10.1" y=".95" width="5.25" height="31.51" rx=".66" ry=".66" transform="translate(-8.09 13.89) rotate(-45)"/>
-            <g>
-              <rect className="fill-current" x="-3.03" y="14.08" width="31.51" height="5.25" rx=".66" ry=".66" transform="translate(-8.09 13.89) rotate(-45)"/>
-              <circle className="fill-[#c25b3f]" cx="12.73" cy="16.71" r="2.63"/>
-            </g>
-          </g>
-          <text className="font-semibold text-[34px] tracking-tight fill-current" transform="translate(39.93 28.9)" style={{ fontFamily: "Cairo, system-ui, sans-serif" }}>Sufrix</text>
-        </g>
-      </g>
-    </svg>
+    <img
+      src={logoUrl}
+      alt="Sufrix"
+      className="h-8 px-2 object-contain select-none"
+      draggable={false}
+    />
   );
 }
 

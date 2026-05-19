@@ -17,7 +17,8 @@ import { ThemeToggle } from "@/widgets/theme-toggle/theme-toggle";
 import { LanguageToggle } from "@/widgets/language-toggle/language-toggle";
 
 export default function Login() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
   const navigate = useNavigate();
   const signIn = useAuthStore((s) => s.signIn);
   const [showPw, setShowPw] = useState(false);
@@ -42,7 +43,7 @@ export default function Login() {
       <aside className="hidden lg:flex lg:w-1/2 xl:w-[55%] bg-[#FAF7F2]">
         <div className="flex flex-col justify-between w-full px-14 xl:px-20 py-14">
           <img
-            src="/sufrix.svg"
+            src={isAr ? "/sufrix_ar.svg" : "/sufrix.svg"}
             alt={t("app.name")}
             className="h-10 w-auto select-none self-start"
             draggable={false}
