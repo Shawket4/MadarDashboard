@@ -657,3 +657,83 @@ export interface PublicMenuResponse {
   logo_url: string | null;
   categories: PublicCategory[];
 }
+
+// ── Bundles ──────────────────────────────────────────────────────────────────
+
+export type BundleStatus = "draft" | "active" | "archived";
+
+export interface Bundle {
+  id: string;
+  org_id: string;
+  name: string;
+  name_translations: Record<string, string>;
+  description: string | null;
+  description_translations: Record<string, string>;
+  price: number; // Stored in piastres
+  status: BundleStatus;
+  image_url: string | null;
+  display_order: number;
+  available_from_time: string | null; // "HH:MM:SS" or null
+  available_until_time: string | null; // "HH:MM:SS" or null
+  available_from_date: string | null; // "YYYY-MM-DD" or null
+  available_until_date: string | null; // "YYYY-MM-DD" or null
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+}
+
+export interface BundleComponentHydrated {
+  id: string;
+  bundle_id: string;
+  item_id: string;
+  quantity: number;
+  position: number;
+  item_name: string;
+  item_price: number; // Stored in piastres
+  item_cost: number;  // Stored in piastres
+}
+
+export interface BundleWithComponents {
+  id: string;
+  org_id: string;
+  name: string;
+  name_translations: Record<string, string>;
+  description: string | null;
+  description_translations: Record<string, string>;
+  price: number; // Stored in piastres
+  status: BundleStatus;
+  image_url: string | null;
+  display_order: number;
+  available_from_time: string | null;
+  available_until_time: string | null;
+  available_from_date: string | null;
+  available_until_date: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  components: BundleComponentHydrated[];
+  branch_ids: string[];
+  computed_cost: number; // Sum of component costs (piastres)
+}
+
+export interface PaginatedBundles {
+  data: BundleWithComponents[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
+export interface ComponentPopularity {
+  item_id: string;
+  item_name: string;
+  quantity_sold: number;
+}
+
+export interface BundlePerformanceResponse {
+  sales_volume: number;
+  gross_revenue: number; // Stored in piastres
+  net_profit: number;    // Stored in piastres
+  component_popularity: ComponentPopularity[];
+}
+

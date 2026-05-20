@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
   BarChart2,
   BookOpen,
+  Boxes,
   Building2,
   ChevronLeft,
   ChevronRight,
@@ -74,6 +75,7 @@ const NAV: NavGroup[] = [
     heading: "nav.catalog",
     items: [
       { to: "/menu", icon: Coffee, key: "nav.menu", roles: ["super_admin", "org_admin", "branch_manager"], resource: "menu_items" },
+      { to: "/bundles", icon: Boxes, key: "nav.bundles", roles: ["super_admin", "org_admin", "branch_manager"], resource: "menu_items" },
       { to: "/recipes", icon: BookOpen, key: "nav.recipes", roles: ["super_admin", "org_admin", "branch_manager"], resource: "recipes" },
       { to: "/discounts", icon: Tag, key: "nav.discounts", roles: ["super_admin", "org_admin", "branch_manager"], resource: "discounts" },
     ],

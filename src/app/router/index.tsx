@@ -10,6 +10,7 @@ const Orgs = lazy(() => import("@/pages/orgs/orgs"));
 const Users = lazy(() => import("@/pages/users/users"));
 const Branches = lazy(() => import("@/pages/branches/branches"));
 const Menu = lazy(() => import("@/pages/menu/menu"));
+const Bundles = lazy(() => import("@/pages/bundles/bundles"));
 const Inventory = lazy(() => import("@/pages/inventory/inventory"));
 const Recipes = lazy(() => import("@/pages/recipes/recipes"));
 const Shifts = lazy(() => import("@/pages/shifts/shifts"));
@@ -51,6 +52,7 @@ const router = createBrowserRouter([
           { path: "users", element: wrap(<Users />) },
           { path: "branches", element: wrap(<Branches />) },
           { path: "menu", element: wrap(<Menu />) },
+          { path: "bundles", element: wrap(<Bundles />) },
           { path: "inventory", element: wrap(<Inventory />) },
           { path: "recipes", element: wrap(<Recipes />) },
           { path: "shifts", element: wrap(<Shifts />) },

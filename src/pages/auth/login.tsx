@@ -42,12 +42,36 @@ export default function Login() {
       {/* Brand panel — flat cream */}
       <aside className="hidden lg:flex lg:w-1/2 xl:w-[55%] bg-[#FAF7F2]">
         <div className="flex flex-col justify-between w-full px-14 xl:px-20 py-14">
-          <img
-            src={isAr ? "/sufrix_ar.svg" : "/sufrix.svg"}
-            alt={t("app.name")}
-            className="h-10 w-auto select-none self-start"
-            draggable={false}
-          />
+          {isAr ? (
+            <img
+              src="/sufrix_ar.svg"
+              alt={t("app.name")}
+              className="h-10 w-auto select-none self-start"
+              draggable={false}
+            />
+          ) : (
+            <svg
+              viewBox="0 0 150 43.42"
+              className="h-10 w-auto select-none self-start"
+            >
+              <g id="Layer_1-2" data-name="Layer 1">
+                <g>
+                  <rect className="fill-[#0A2540]" x="10.1" y=".95" width="5.25" height="31.51" rx=".66" ry=".66" transform="translate(-8.09 13.89) rotate(-45)"/>
+                  <g>
+                    <rect className="fill-[#0A2540]" x="-3.03" y="14.08" width="31.51" height="5.25" rx=".66" ry=".66" transform="translate(-8.09 13.89) rotate(-45)"/>
+                    <circle className="fill-[#C25B3F]" cx="12.73" cy="16.71" r="2.63"/>
+                  </g>
+                </g>
+                <text
+                  className="text-[34px] font-semibold tracking-tight fill-[#0A2540] font-sans"
+                  style={{ fontFamily: "'Cairo-SemiBold', 'Cairo', sans-serif", fontVariationSettings: "'wght' 600, 'slnt' 0", isolation: "isolate" }}
+                  transform="translate(39.93 28.9)"
+                >
+                  Sufrix
+                </text>
+              </g>
+            </svg>
+          )}
 
           <div className="space-y-4 max-w-md">
             <h1 className="text-[#0A2540] text-4xl xl:text-5xl font-bold tracking-tight leading-tight">

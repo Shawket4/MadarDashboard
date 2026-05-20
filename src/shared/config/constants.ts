@@ -88,5 +88,8 @@ export const QUERY_KEYS = {
   branchAddons: (branchId: string, params: unknown) => ["branch-addons", branchId, params] as const,
   branchStock: (branchId: string) => ["branch-stock-report", branchId] as const,
   orgComparison: (orgId: string, params: unknown) => ["org-comparison", orgId, params] as const,
+  bundles: (orgId: string, params: unknown) => ["bundles", orgId, params] as const,
+  bundle: (id: string) => ["bundle", id] as const,
+  bundlePerformance: (id: string, params: unknown) => ["bundle-performance", id, params] as const,
   health: ["health"] as const,
 } as const;
