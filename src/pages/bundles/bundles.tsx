@@ -8,6 +8,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import {
   Boxes,
   Plus,
+  Infinity,
   Trash2,
   Edit2,
   CheckCircle,
@@ -19,6 +20,10 @@ import {
   Layers,
   Activity,
   Calendar,
+  Clock,
+  CalendarRange,
+  CalendarClock,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as ChartTooltip, Cell } from "recharts";
@@ -85,7 +90,19 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
 
   const bundleSchema = useMemo(() => createBundleSchema(t), [t, i18n.language]);
 
-  // Initialize react-hook-form
+  // Determine initial availability mode from existing data
+  const getInitialMode = () => {
+    const hasFromDate = !!(editItem?.available_from_date || editItem?.available_until_date);
+    const hasTime = !!(editItem?.available_from_time || editItem?.available_until_time);
+    if (hasFromDate && hasTime) return "full" as const;
+    if (hasFromDate) return "dates" as const;
+    if (hasTime) return "times" as const;
+    return "permanent" as const;
+  };
+
+  type AvailMode = "permanent" | "dates" | "times" | "full";
+  const [availMode, setAvailMode] = useState<AvailMode>(getInitialMode);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const form = useForm<any>({
     resolver: zodResolver(bundleSchema),
@@ -93,11 +110,10 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
       name: editItem?.name ?? advisorValues?.name ?? "",
       description: editItem?.description ?? advisorValues?.description ?? "",
       price: editItem ? editItem.price / 100 : (advisorValues?.price ?? ""),
-      display_order: editItem?.display_order ?? advisorValues?.display_order ?? 0,
-      available_from_time: editItem?.available_from_time ?? advisorValues?.available_from_time ?? "",
-      available_until_time: editItem?.available_until_time ?? advisorValues?.available_until_time ?? "",
-      available_from_date: editItem?.available_from_date ?? advisorValues?.available_from_date ?? "",
-      available_until_date: editItem?.available_until_date ?? advisorValues?.available_until_date ?? "",
+      available_from_time: editItem?.available_from_time ?? "",
+      available_until_time: editItem?.available_until_time ?? "",
+      available_from_date: editItem?.available_from_date ?? "",
+      available_until_date: editItem?.available_until_date ?? "",
       components: editItem
         ? editItem.components.map((c) => ({ item_id: c.item_id, quantity: c.quantity }))
         : advisorValues?.components ?? [{ item_id: "", quantity: 1 }, { item_id: "", quantity: 1 }],
@@ -112,6 +128,26 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
 
   const createMutation = useCreateBundle();
   const updateMutation = useUpdateBundle();
+
+  // When mode changes, clear the fields that are no longer applicable
+  // and set null where needed to explicitly clear them on the backend
+  const handleModeChange = (mode: AvailMode) => {
+    setAvailMode(mode);
+    if (mode === "permanent") {
+      // null signals the backend to clear; schema turns empty string → undefined (omit)
+      // but we need null to explicitly clear existing values in edit mode
+      form.setValue("available_from_date", isEdit ? null : "");
+      form.setValue("available_until_date", isEdit ? null : "");
+      form.setValue("available_from_time", isEdit ? null : "");
+      form.setValue("available_until_time", isEdit ? null : "");
+    } else if (mode === "dates") {
+      form.setValue("available_from_time", isEdit ? null : "");
+      form.setValue("available_until_time", isEdit ? null : "");
+    } else if (mode === "times") {
+      form.setValue("available_from_date", isEdit ? null : "");
+      form.setValue("available_until_date", isEdit ? null : "");
+    }
+  };
 
   const handleFormSubmit = (values: BundleFormValues) => {
     const payload = {
@@ -204,6 +240,14 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
       }));
   };
 
+  // Mode selector pill buttons
+  const MODES: { key: AvailMode; label: string; icon: React.ReactNode }[] = [
+    { key: "permanent", label: t("bundles.avail.permanent"), icon: <Infinity size={12} /> },
+    { key: "dates", label: t("bundles.avail.dateRange"), icon: <CalendarRange size={12} /> },
+    { key: "times", label: t("bundles.avail.timeWindow"), icon: <Clock size={12} /> },
+    { key: "full", label: t("bundles.avail.dateAndTime"), icon: <CalendarClock size={12} /> },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent size="xl" className="max-h-[92vh] overflow-y-auto no-scrollbar">
@@ -245,94 +289,182 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-3">
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("bundles.price")}</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.5" min="0" placeholder="150.00" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                {/* Price — full width now that display_order is gone */}
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("bundles.price")}</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.5" min="0" placeholder="150.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="display_order"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("bundles.displayOrder")}</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Timing constraints */}
-                <div className="rounded-xl border p-4 bg-muted/20 space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Calendar size={13} /> {t("bundles.availability")} ({t("common.optional")})
-                  </h4>
-                  <p className="text-[11px] text-muted-foreground">{t("bundles.availabilityHint")}</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      control={form.control}
-                      name="available_from_date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">{t("bundles.availableFromDate")}</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} value={field.value ?? ""} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="available_until_date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">{t("bundles.availableUntilDate")}</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} value={field.value ?? ""} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                {/* ── Availability Section ───────────────────────────── */}
+                <div className="rounded-xl border bg-muted/20 overflow-hidden">
+                  {/* Section header */}
+                  <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/30">
+                    <Calendar size={13} className="text-muted-foreground" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      {t("bundles.availability")}
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      control={form.control}
-                      name="available_from_time"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">{t("bundles.availableFromTime")}</FormLabel>
-                          <FormControl>
-                            <TimeInput value={field.value} onChange={field.onChange} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="available_until_time"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">{t("bundles.availableUntilTime")}</FormLabel>
-                          <FormControl>
-                            <TimeInput value={field.value} onChange={field.onChange} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                  <div className="p-4 space-y-4">
+                    {/* Mode pill selector */}
+                    <div>
+                      <p className="text-[11px] text-muted-foreground mb-2">
+                        {t("bundles.avail.hint")}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {MODES.map(({ key, label, icon }) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => handleModeChange(key)}
+                            className={[
+                              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all",
+                              availMode === key
+                                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                                : "bg-background text-muted-foreground border-input hover:border-primary/50 hover:text-foreground",
+                            ].join(" ")}
+                          >
+                            {icon}
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Permanent — show a calm indicator */}
+                    {availMode === "permanent" && (
+                      <div className="flex items-center gap-2.5 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                        <Infinity size={16} />
+                        <div>
+                          <p className="text-xs font-semibold">{t("bundles.avail.permanentTitle")}</p>
+                          <p className="text-[11px] opacity-80">{t("bundles.avail.permanentDesc")}</p>
+                        </div>
+                        {/* If editing a bundle that had restrictions, show that they'll be cleared */}
+                        {isEdit && (editItem.available_from_date || editItem.available_until_date || editItem.available_from_time || editItem.available_until_time) && (
+                          <span className="ms-auto flex items-center gap-1 text-[10px] font-medium bg-emerald-500/20 rounded-full px-2 py-0.5">
+                            <X size={9} /> {t("bundles.avail.willClear")}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Date range fields */}
+                    {(availMode === "dates" || availMode === "full") && (
+                      <div>
+                        <p className="text-[11px] font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+                          <CalendarRange size={11} /> {t("bundles.avail.dateRangeLabel")}
+                        </p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <FormField
+                            control={form.control}
+                            name="available_from_date"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">{t("bundles.availableFromDate")}</FormLabel>
+                                <div className="relative">
+                                  <FormControl>
+                                    <Input
+                                      type="date"
+                                      {...field}
+                                      value={field.value ?? ""}
+                                      onChange={(e) => field.onChange(e.target.value || (isEdit ? null : ""))}
+                                    />
+                                  </FormControl>
+                                  {field.value && (
+                                    <button
+                                      type="button"
+                                      onClick={() => field.onChange(isEdit ? null : "")}
+                                      className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="available_until_date"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">{t("bundles.availableUntilDate")}</FormLabel>
+                                <div className="relative">
+                                  <FormControl>
+                                    <Input
+                                      type="date"
+                                      {...field}
+                                      value={field.value ?? ""}
+                                      onChange={(e) => field.onChange(e.target.value || (isEdit ? null : ""))}
+                                    />
+                                  </FormControl>
+                                  {field.value && (
+                                    <button
+                                      type="button"
+                                      onClick={() => field.onChange(isEdit ? null : "")}
+                                      className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Time window fields */}
+                    {(availMode === "times" || availMode === "full") && (
+                      <div>
+                        <p className="text-[11px] font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+                          <Clock size={11} /> {t("bundles.avail.timeWindowLabel")}
+                          <span className="ms-1 text-[10px] font-normal opacity-70">{t("bundles.avail.timeWindowHint")}</span>
+                        </p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <FormField
+                            control={form.control}
+                            name="available_from_time"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">{t("bundles.availableFromTime")}</FormLabel>
+                                <FormControl>
+                                  <TimeInput
+                                    value={field.value}
+                                    onChange={(v) => field.onChange(v || (isEdit ? null : ""))}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="available_until_time"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">{t("bundles.availableUntilTime")}</FormLabel>
+                                <FormControl>
+                                  <TimeInput
+                                    value={field.value}
+                                    onChange={(v) => field.onChange(v || (isEdit ? null : ""))}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -646,11 +778,6 @@ export default function Bundles() {
         name,
         price: suggestedPrice,
         components: componentsPayload,
-        display_order: 0,
-        available_from_time: "",
-        available_until_time: "",
-        available_from_date: "",
-        available_until_date: "",
         branch_ids: [],
       });
       setDlgOpen(true);

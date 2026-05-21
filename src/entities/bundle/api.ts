@@ -31,7 +31,7 @@ export interface UpdateBundlePayload {
   description_translations?: Record<string, string>;
   price?: number; // Piastres
   image_url?: string | null;
-  display_order?: number;
+  // null = explicitly clear the restriction; omit = keep existing
   available_from_time?: string | null;
   available_until_time?: string | null;
   available_from_date?: string | null;

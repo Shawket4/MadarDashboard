@@ -3,15 +3,36 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/shared/lib/cn";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 
-const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+// 1-12 for display
+const HOURS_12 = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
 
-/** Parses "HH:MM" or "HH:MM:SS" into hour/minute parts. */
-export function parseTimeValue(value: string | null | undefined): { hour: string; minute: string } | null {
+/** Parses a 24-hr "HH:MM" or "HH:MM:SS" string into 12-hr parts. */
+export function parseTimeValue(value: string | null | undefined): {
+  hour12: string;
+  minute: string;
+  ampm: "AM" | "PM";
+} | null {
   if (!value?.trim()) return null;
   const m = value.trim().match(/^(\d{2}):(\d{2})/);
   if (!m) return null;
-  return { hour: m[1], minute: m[2] };
+  let h = parseInt(m[1], 10);
+  const minute = m[2];
+  const ampm: "AM" | "PM" = h < 12 ? "AM" : "PM";
+  if (h === 0) h = 12;
+  else if (h > 12) h -= 12;
+  return { hour12: String(h).padStart(2, "0"), minute, ampm };
+}
+
+/** Converts 12-hr parts back to a 24-hr "HH:MM:SS" string for the backend. */
+function to24(hour12: string, minute: string, ampm: "AM" | "PM"): string {
+  let h = parseInt(hour12, 10);
+  if (ampm === "AM") {
+    if (h === 12) h = 0;
+  } else {
+    if (h !== 12) h += 12;
+  }
+  return `${String(h).padStart(2, "0")}:${minute}:00`;
 }
 
 export interface TimeInputProps {
@@ -24,15 +45,16 @@ export interface TimeInputProps {
 export function TimeInput({ value, onChange, disabled, className }: TimeInputProps) {
   const { t } = useTranslation();
   const parsed = parseTimeValue(value);
-  const hour = parsed?.hour ?? "";
+  const hour12 = parsed?.hour12 ?? "";
   const minute = parsed?.minute ?? "";
+  const ampm = parsed?.ampm ?? "AM";
 
-  const update = (h: string, m: string) => {
+  const update = (h: string, m: string, ap: "AM" | "PM") => {
     if (!h && !m) {
       onChange("");
       return;
     }
-    onChange(`${h || "00"}:${m || "00"}`);
+    onChange(to24(h || "12", m || "00", ap));
   };
 
   const innerTrigger = cn(
@@ -51,16 +73,17 @@ export function TimeInput({ value, onChange, disabled, className }: TimeInputPro
     >
       <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
 
+      {/* Hour */}
       <Select
-        value={hour || undefined}
-        onValueChange={(h) => update(h, minute || "00")}
+        value={hour12 || undefined}
+        onValueChange={(h) => update(h, minute || "00", ampm)}
         disabled={disabled}
       >
         <SelectTrigger className={innerTrigger}>
           <SelectValue placeholder="--" />
         </SelectTrigger>
         <SelectContent>
-          {HOURS.map((h) => (
+          {HOURS_12.map((h) => (
             <SelectItem key={h} value={h} className="tabular-nums">
               {h}
             </SelectItem>
@@ -70,9 +93,10 @@ export function TimeInput({ value, onChange, disabled, className }: TimeInputPro
 
       <span className="text-sm font-semibold text-muted-foreground tabular-nums select-none">:</span>
 
+      {/* Minute */}
       <Select
         value={minute || undefined}
-        onValueChange={(m) => update(hour || "00", m)}
+        onValueChange={(m) => update(hour12 || "12", m, ampm)}
         disabled={disabled}
       >
         <SelectTrigger className={innerTrigger}>
@@ -87,6 +111,29 @@ export function TimeInput({ value, onChange, disabled, className }: TimeInputPro
         </SelectContent>
       </Select>
 
+      {/* AM / PM toggle */}
+      <div className="flex shrink-0 rounded-md overflow-hidden border border-input text-[10px] font-bold">
+        {(["AM", "PM"] as const).map((ap) => (
+          <button
+            key={ap}
+            type="button"
+            disabled={disabled}
+            onClick={() => {
+              if (hour12) update(hour12, minute || "00", ap);
+            }}
+            className={cn(
+              "px-1.5 py-0.5 transition-colors",
+              ampm === ap
+                ? "bg-primary text-primary-foreground"
+                : "bg-transparent text-muted-foreground hover:bg-muted",
+            )}
+          >
+            {ap}
+          </button>
+        ))}
+      </div>
+
+      {/* Clear */}
       {parsed && !disabled && (
         <button
           type="button"
