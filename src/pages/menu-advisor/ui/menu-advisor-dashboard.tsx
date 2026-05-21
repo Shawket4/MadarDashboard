@@ -1,8 +1,6 @@
-
-import { Sparkles, Activity, AlertCircle } from "lucide-react";
+import { AlertCircle, Tag, PackagePlus, Trash2, CheckCircle2 } from "lucide-react";
 import { PageShell } from "@/shared/ui/page-shell";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { Card, CardContent } from "@/shared/ui/card";
+
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { useAdvisorReport } from "../api/service";
 import { PriceSuggestionList } from "./price-suggestion-list";
@@ -17,10 +15,10 @@ export default function MenuAdvisorDashboard() {
 
   if (isLoading) {
     return (
-      <PageShell title="Menu Advisor" description="Analyzing menu performance...">
-         <div className="space-y-4 animate-pulse">
-           <div className="h-32 bg-muted rounded-xl"></div>
-           <div className="h-64 bg-muted rounded-xl"></div>
+      <PageShell title="Menu Insights" description="Analyzing your menu performance...">
+         <div className="space-y-8 animate-pulse">
+           <div className="h-64 bg-muted/50 rounded-2xl border"></div>
+           <div className="h-64 bg-muted/50 rounded-2xl border"></div>
          </div>
       </PageShell>
     );
@@ -28,80 +26,80 @@ export default function MenuAdvisorDashboard() {
 
   if (error || !report) {
     return (
-      <PageShell title="Menu Advisor" description="Menu Pricing & Bundle Suggestion Engine">
+      <PageShell title="Menu Insights" description="Smart recommendations to boost profit">
          <div className="p-8 text-center text-danger bg-danger/10 border border-danger/20 rounded-xl flex flex-col items-center gap-2">
            <AlertCircle />
-           <p>Failed to load advisor report. Please try again later.</p>
+           <p>Failed to load menu insights. Please try again later.</p>
          </div>
       </PageShell>
     );
   }
 
+  // Filter actions for sections
+  const pricingSuggestions = report.price_suggestions.filter(s => s.action === "RaisePrice" || s.action === "LowerPrice");
+  const pruningSuggestions = report.price_suggestions.filter(s => s.action === "Remove" || s.action === "Reformulate");
+  const stableSuggestions = report.price_suggestions.filter(s => s.action === "Hold" || s.action === "Monitor");
+
   return (
     <PageShell 
-      title="Menu Advisor" 
+      title="Menu Insights" 
       description={`Based on the last ${report.window_days} days of sales. Analyzed ${report.items_sufficient} out of ${report.items_total} items.`}
     >
-      {/* Top Level Summary Matrix / Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-emerald-500/5 border-emerald-500/20">
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center space-y-1">
-            <span className="text-2xl font-bold text-emerald-600">
-              {report.price_suggestions.filter(s => s.quadrant === "Star").length}
-            </span>
-            <span className="text-xs uppercase font-semibold text-emerald-600/80">Stars</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-blue-500/5 border-blue-500/20">
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center space-y-1">
-            <span className="text-2xl font-bold text-blue-600">
-              {report.price_suggestions.filter(s => s.quadrant === "Plowhorse").length}
-            </span>
-            <span className="text-xs uppercase font-semibold text-blue-600/80">Plowhorses</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-amber-500/5 border-amber-500/20">
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center space-y-1">
-            <span className="text-2xl font-bold text-amber-600">
-              {report.price_suggestions.filter(s => s.quadrant === "Puzzle").length}
-            </span>
-            <span className="text-xs uppercase font-semibold text-amber-600/80">Puzzles</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-red-500/5 border-red-500/20">
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center space-y-1">
-            <span className="text-2xl font-bold text-red-600">
-              {report.price_suggestions.filter(s => s.quadrant === "Dog").length}
-            </span>
-            <span className="text-xs uppercase font-semibold text-red-600/80">Dogs</span>
-          </CardContent>
-        </Card>
-      </div>
+      <div className="space-y-10 pb-12 max-w-5xl">
+        
+        {/* Section 1: Quick Pricing Wins */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+            <Tag className="text-primary" size={20} />
+            <h2 className="text-xl font-bold tracking-tight">Quick Pricing Wins</h2>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Immediate adjustments you can make to capitalize on popular items or stimulate sales for underperformers.
+          </p>
+          <PriceSuggestionList suggestions={pricingSuggestions} />
+        </section>
 
-      {/* Main Tabs */}
-      <Tabs defaultValue="pricing" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-md mb-6">
-          <TabsTrigger value="pricing" className="gap-2"><Activity size={14} /> Pricing</TabsTrigger>
-          <TabsTrigger value="bundles" className="gap-2"><Sparkles size={14} /> Bundles</TabsTrigger>
-          <TabsTrigger value="pruning" className="gap-2"><AlertCircle size={14} /> Pruning</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="pricing">
-          <PriceSuggestionList suggestions={report.price_suggestions} />
-        </TabsContent>
-        
-        <TabsContent value="bundles">
+        {/* Section 2: Bundle Opportunities */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+            <PackagePlus className="text-emerald-500" size={20} />
+            <h2 className="text-xl font-bold tracking-tight">Menu Pairings & Bundles</h2>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Create these combos to boost your average order value based on items that are frequently bought together.
+          </p>
           <BundleSuggestionGrid suggestions={report.bundle_suggestions} />
-        </TabsContent>
-        
-        <TabsContent value="pruning">
-          <PriceSuggestionList 
-            suggestions={report.price_suggestions} 
-            removals={report.removal_scenarios} 
-            isPruningTab 
-          />
-        </TabsContent>
-      </Tabs>
+        </section>
+
+        {/* Section 3: Menu Cleanup (Pruning) */}
+        {pruningSuggestions.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+              <Trash2 className="text-danger" size={20} />
+              <h2 className="text-xl font-bold tracking-tight">Menu Cleanup</h2>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              These items are dragging down your profitability and confusing customers. Consider removing them.
+            </p>
+            <PriceSuggestionList suggestions={pruningSuggestions} removals={report.removal_scenarios} />
+          </section>
+        )}
+
+        {/* Section 4: Performing Well */}
+        <section className="space-y-4 pt-8">
+          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+            <CheckCircle2 className="text-muted-foreground" size={20} />
+            <h2 className="text-xl font-bold tracking-tight text-muted-foreground">Stable Items</h2>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            These items are priced correctly or don't have enough recent sales data to justify a change. No action needed right now.
+          </p>
+          <div className="opacity-80">
+            <PriceSuggestionList suggestions={stableSuggestions} isStableSection />
+          </div>
+        </section>
+
+      </div>
     </PageShell>
   );
 }

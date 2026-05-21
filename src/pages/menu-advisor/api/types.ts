@@ -21,6 +21,7 @@ export interface PriceSuggestion {
   food_cost_pct?: number;
   guard_clips?: string[];
   popularity_share?: number;
+  cost_missing?: boolean;
 }
 
 export interface BundleSuggestion {
@@ -34,6 +35,7 @@ export interface BundleSuggestion {
     incremental_cm_mid: number;
   };
   explanation: string;
+  missing_costs?: boolean;
 }
 
 export interface RemovalScenario {
