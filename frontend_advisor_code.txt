@@ -1,0 +1,423 @@
+--- File: /Users/shawket/Desktop/SufrixDashboard/src/pages/menu-advisor/api/service.ts ---
+import { apiClient } from "@/shared/api/client";
+import type { AdvisorReport } from "./types";
+import { useQuery } from "@tanstack/react-query";
+
+export const fetchAdvisorReport = async (orgId: string, windowDays: number = 30): Promise<AdvisorReport> => {
+  const { data } = await apiClient.get<AdvisorReport>("/menu-advisor/report", {
+    params: { org_id: orgId, window_days: windowDays },
+  });
+  return data;
+};
+
+export const useAdvisorReport = (orgId: string | undefined, windowDays: number = 30) => {
+  return useQuery({
+    queryKey: ["advisor-report", orgId, windowDays],
+    queryFn: () => {
+      if (!orgId) throw new Error("Org ID is required");
+      return fetchAdvisorReport(orgId, windowDays);
+    },
+    enabled: !!orgId,
+  });
+};
+
+
+--- File: /Users/shawket/Desktop/SufrixDashboard/src/pages/menu-advisor/api/types.ts ---
+export type Quadrant = "Star" | "Plowhorse" | "Puzzle" | "Dog" | "InsufficientData";
+export type Action = "Hold" | "RaisePrice" | "LowerPrice" | "Bundle" | "Remove" | "Reformulate" | "Monitor";
+export type Confidence = "Low" | "Medium" | "High";
+
+export interface PriceSuggestion {
+  item_id: string;
+  item_name: string;
+  current_price: number;
+  suggested_price: number;
+  suggested_delta_pct: number;
+  quadrant: Quadrant;
+  action: Action;
+  confidence: Confidence;
+  explanation: string;
+  anchors?: {
+    cost_plus?: number;
+    peer_median?: number;
+    status_quo?: number;
+  };
+  margin_pct?: number;
+  food_cost_pct?: number;
+  guard_clips?: string[];
+  popularity_share?: number;
+  cost_missing?: boolean;
+}
+
+export interface BundleSuggestion {
+  id: string;
+  focus_item: string;
+  bundle_items: string[];
+  bundle_list_price: number;
+  bundle_suggested_price: number;
+  bundle_discount_pct: number;
+  forecast: {
+    incremental_cm_mid: number;
+  };
+  explanation: string;
+  missing_costs?: boolean;
+}
+
+export interface RemovalScenario {
+  item_id: string;
+  item_name: string;
+  baseline_cm: number;
+  net_cm_change: number;
+  recommendation: string;
+  explanation: string;
+}
+
+export interface AdvisorReport {
+  generated_at: string;
+  window_days: number;
+  items_total: number;
+  items_sufficient: number;
+  price_suggestions: PriceSuggestion[];
+  bundle_suggestions: BundleSuggestion[];
+  removal_scenarios: RemovalScenario[];
+}
+
+
+--- File: /Users/shawket/Desktop/SufrixDashboard/src/pages/menu-advisor/ui/menu-advisor-dashboard.tsx ---
+import { AlertCircle, Tag, PackagePlus, Trash2, CheckCircle2 } from "lucide-react";
+import { PageShell } from "@/shared/ui/page-shell";
+
+import { useCurrentContext } from "@/shared/hooks/use-current-context";
+import { useAdvisorReport } from "../api/service";
+import { PriceSuggestionList } from "./price-suggestion-list";
+import { BundleSuggestionGrid } from "./bundle-suggestion-grid";
+
+export default function MenuAdvisorDashboard() {
+  const { orgId } = useCurrentContext();
+  
+  // Hardcoded to 30 days window for now, could be controlled via a date picker
+  const windowDays = 30;
+  const { data: report, isLoading, error } = useAdvisorReport(orgId || undefined, windowDays);
+
+  if (isLoading) {
+    return (
+      <PageShell title="Menu Insights" description="Analyzing your menu performance...">
+         <div className="space-y-8 animate-pulse">
+           <div className="h-64 bg-muted/50 rounded-2xl border"></div>
+           <div className="h-64 bg-muted/50 rounded-2xl border"></div>
+         </div>
+      </PageShell>
+    );
+  }
+
+  if (error || !report) {
+    return (
+      <PageShell title="Menu Insights" description="Smart recommendations to boost profit">
+         <div className="p-8 text-center text-danger bg-danger/10 border border-danger/20 rounded-xl flex flex-col items-center gap-2">
+           <AlertCircle />
+           <p>Failed to load menu insights. Please try again later.</p>
+         </div>
+      </PageShell>
+    );
+  }
+
+  // Filter actions for sections
+  const pricingSuggestions = report.price_suggestions.filter(s => s.action === "RaisePrice" || s.action === "LowerPrice");
+  const pruningSuggestions = report.price_suggestions.filter(s => s.action === "Remove" || s.action === "Reformulate");
+  const stableSuggestions = report.price_suggestions.filter(s => s.action === "Hold" || s.action === "Monitor");
+
+  return (
+    <PageShell 
+      title="Menu Insights" 
+      description={`Based on the last ${report.window_days} days of sales. Analyzed ${report.items_sufficient} out of ${report.items_total} items.`}
+    >
+      <div className="space-y-10 pb-12 max-w-5xl">
+        
+        {/* Section 1: Quick Pricing Wins */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+            <Tag className="text-primary" size={20} />
+            <h2 className="text-xl font-bold tracking-tight">Quick Pricing Wins</h2>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Immediate adjustments you can make to capitalize on popular items or stimulate sales for underperformers.
+          </p>
+          <PriceSuggestionList suggestions={pricingSuggestions} />
+        </section>
+
+        {/* Section 2: Bundle Opportunities */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+            <PackagePlus className="text-emerald-500" size={20} />
+            <h2 className="text-xl font-bold tracking-tight">Menu Pairings & Bundles</h2>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Create these combos to boost your average order value based on items that are frequently bought together.
+          </p>
+          <BundleSuggestionGrid suggestions={report.bundle_suggestions} />
+        </section>
+
+        {/* Section 3: Menu Cleanup (Pruning) */}
+        {pruningSuggestions.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+              <Trash2 className="text-danger" size={20} />
+              <h2 className="text-xl font-bold tracking-tight">Menu Cleanup</h2>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              These items are dragging down your profitability and confusing customers. Consider removing them.
+            </p>
+            <PriceSuggestionList suggestions={pruningSuggestions} removals={report.removal_scenarios} />
+          </section>
+        )}
+
+        {/* Section 4: Performing Well */}
+        <section className="space-y-4 pt-8">
+          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+            <CheckCircle2 className="text-muted-foreground" size={20} />
+            <h2 className="text-xl font-bold tracking-tight text-muted-foreground">Stable Items</h2>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            These items are priced correctly or don't have enough recent sales data to justify a change. No action needed right now.
+          </p>
+          <div className="opacity-80">
+            <PriceSuggestionList suggestions={stableSuggestions} isStableSection />
+          </div>
+        </section>
+
+      </div>
+    </PageShell>
+  );
+}
+
+
+--- File: /Users/shawket/Desktop/SufrixDashboard/src/pages/menu-advisor/ui/bundle-suggestion-grid.tsx ---
+import { PackagePlus, TrendingUp, AlertTriangle } from "lucide-react";
+import { Badge } from "@/shared/ui/badge";
+import { fmtMoney, fmtPercent } from "@/shared/lib/format";
+import type { BundleSuggestion } from "../api/types";
+
+interface BundleSuggestionGridProps {
+  suggestions: BundleSuggestion[];
+}
+
+export function BundleSuggestionGrid({ suggestions }: BundleSuggestionGridProps) {
+  // Sort by incremental CM mid, descending
+  const sorted = [...suggestions].sort(
+    (a, b) => b.forecast.incremental_cm_mid - a.forecast.incremental_cm_mid
+  );
+
+  if (sorted.length === 0) {
+    return (
+      <div className="p-8 text-center border border-dashed rounded-xl text-muted-foreground bg-muted/20">
+        No bundle opportunities found right now.
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {sorted.map(bundle => (
+        <div key={bundle.id || bundle.focus_item} className="flex flex-col overflow-hidden rounded-xl border bg-background hover:border-primary/50 transition-colors">
+          {/* Header: Items */}
+          <div className="p-4 bg-primary/5 border-b border-primary/10">
+            <div className="flex items-center gap-2 mb-2">
+              <PackagePlus size={16} className="text-primary" />
+              <span className="text-[10px] uppercase font-bold tracking-widest text-primary/70">Menu Pairing</span>
+            </div>
+            <p className="font-bold text-lg leading-tight">
+              {bundle.focus_item} <span className="text-muted-foreground font-normal mx-1">+</span> {bundle.bundle_items.join(" + ")}
+            </p>
+          </div>
+          
+          {/* Body: Prices & Impact */}
+          <div className="p-5 flex-1 flex flex-col gap-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wide font-semibold">Suggested Bundle Price</p>
+                <div className="flex items-center gap-2 font-mono">
+                  <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/50">
+                    {fmtMoney(bundle.bundle_list_price)}
+                  </span>
+                  <span className="text-2xl font-bold text-primary">
+                    {fmtMoney(bundle.bundle_suggested_price)}
+                  </span>
+                </div>
+              </div>
+              <Badge variant="secondary" className="text-primary bg-primary/10 hover:bg-primary/20 text-sm py-1">
+                {fmtPercent(bundle.bundle_discount_pct)} OFF
+              </Badge>
+            </div>
+
+            {/* Plain English Explanation */}
+            <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+              {bundle.explanation}
+            </p>
+
+            {/* Financial Impact */}
+            <div className="flex items-center gap-3 p-4 bg-success/10 text-success rounded-xl border border-success/20">
+              <div className="p-2 bg-success/20 rounded-full">
+                <TrendingUp size={20} />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-semibold uppercase tracking-wider opacity-80">Est. Profit Boost</p>
+                <p className="font-bold text-lg">+{fmtMoney(bundle.forecast.incremental_cm_mid)} <span className="text-sm font-normal opacity-80">/ month</span></p>
+              </div>
+            </div>
+          </div>
+
+          {/* Missing Cost Warning Banner */}
+          {bundle.missing_costs && (
+            <div className="bg-warning/10 border-t border-warning/20 p-3 flex gap-2 items-center text-warning text-sm">
+              <AlertTriangle className="shrink-0" size={16} />
+              <p>
+                <strong>Ingredient Cost is Missing.</strong> One or more items in this bundle have no recorded cost. The estimated profit boost may be inaccurate.
+              </p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
+--- File: /Users/shawket/Desktop/SufrixDashboard/src/pages/menu-advisor/ui/price-suggestion-list.tsx ---
+import { AlertTriangle, ArrowRight, Info, Check } from "lucide-react";
+import { Badge } from "@/shared/ui/badge";
+import { fmtMoney, fmtPercent } from "@/shared/lib/format";
+import { cn } from "@/shared/lib/cn";
+import type { PriceSuggestion, RemovalScenario } from "../api/types";
+
+interface PriceSuggestionListProps {
+  suggestions: PriceSuggestion[];
+  removals?: RemovalScenario[]; // Passed only for Pruning section
+  isStableSection?: boolean;
+}
+
+// Plain English mapping for the quadrants
+const tagMapping: Record<string, { label: string; color: string }> = {
+  Star: { label: "Popular & Profitable", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+  Plowhorse: { label: "Popular but Low Margin", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+  Puzzle: { label: "High Margin but Unpopular", color: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
+  Dog: { label: "Underperforming", color: "bg-red-500/10 text-red-600 border-red-500/20" },
+  InsufficientData: { label: "Needs More Data", color: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
+};
+
+export function PriceSuggestionList({ suggestions, removals = [], isStableSection = false }: PriceSuggestionListProps) {
+  // Sort by popularity so the most important items are at the top
+  const sorted = [...suggestions].sort((a, b) => (b.popularity_share ?? 0) - (a.popularity_share ?? 0));
+
+  return (
+    <div className="space-y-4">
+      {/* Show removal impacts if any exist for this section */}
+      {removals.length > 0 && (
+        <div className="mb-6 grid gap-3">
+          {removals.map(scenario => (
+             <div key={scenario.item_name} className="p-4 rounded-xl border bg-danger/5 border-danger/20 shadow-sm space-y-2">
+               <div className="flex justify-between items-start">
+                 <p className="font-bold text-danger">Impact of removing {scenario.item_name}</p>
+                 <Badge variant={scenario.net_cm_change > 0 ? "success" : "destructive"}>
+                    {scenario.net_cm_change > 0 ? "+" : ""}{fmtMoney(scenario.net_cm_change)} / month
+                 </Badge>
+               </div>
+               <p className="text-sm text-danger/80">{scenario.explanation}</p>
+             </div>
+          ))}
+        </div>
+      )}
+
+      {sorted.length === 0 ? (
+        <div className="p-8 text-center border border-dashed rounded-xl text-muted-foreground bg-muted/20">
+          {isStableSection ? "No stable items found." : "Nothing to do here right now. Great job!"}
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {sorted.map(suggestion => {
+            const hasChange = suggestion.suggested_price !== null && suggestion.suggested_price !== suggestion.current_price;
+            const deltaPct = suggestion.suggested_delta_pct ?? 0;
+            const isRaise = deltaPct > 0;
+            const tagInfo = tagMapping[suggestion.quadrant] || tagMapping.InsufficientData;
+            
+            return (
+              <div 
+                key={suggestion.item_name} 
+                className={cn(
+                  "border rounded-xl bg-background overflow-hidden flex flex-col",
+                  suggestion.quadrant === "InsufficientData" && "opacity-75"
+                )}
+              >
+                {/* Header Row */}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between p-5 gap-4">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-bold text-lg">{suggestion.item_name}</h3>
+                      <div className={cn("px-2 py-0.5 text-xs font-semibold rounded-md border", tagInfo.color)}>
+                        {tagInfo.label}
+                      </div>
+                      {suggestion.cost_missing && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-md bg-warning/10 text-warning border border-warning/20">
+                          <AlertTriangle size={12} /> Missing Cost
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Plain English Explanation */}
+                    <div className="flex items-start gap-2 text-muted-foreground text-sm pt-1">
+                      <Info className="shrink-0 mt-0.5 text-primary/60" size={16} />
+                      <p className="leading-relaxed">{suggestion.explanation}</p>
+                    </div>
+                  </div>
+
+                  {/* Pricing Action */}
+                  <div className="flex flex-col items-start sm:items-end bg-muted/30 p-3 rounded-lg border min-w-[140px]">
+                    <span className="text-xs text-muted-foreground uppercase tracking-wide font-semibold mb-1">
+                      {hasChange ? "Suggested Action" : "Current Price"}
+                    </span>
+                    
+                    {hasChange ? (
+                      <div className="flex flex-col items-end">
+                        <div className="flex items-center gap-2 font-mono">
+                          <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/50">
+                            {fmtMoney(suggestion.current_price)}
+                          </span>
+                          <ArrowRight size={14} className="text-muted-foreground" />
+                          <span className="font-bold text-lg text-primary">{fmtMoney(suggestion.suggested_price!)}</span>
+                        </div>
+                        <span className={cn(
+                          "text-xs font-bold px-1.5 py-0.5 rounded mt-1",
+                          isRaise ? "bg-success/10 text-success" : "bg-warning/10 text-warning"
+                        )}>
+                          {isRaise ? "Raise by " : "Lower by "}{fmtPercent(Math.abs(deltaPct))}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-lg tabular-nums">{fmtMoney(suggestion.current_price)}</span>
+                        {suggestion.action === "Hold" && (
+                          <Check size={16} className="text-success" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Missing Cost Warning Banner */}
+                {suggestion.cost_missing && (
+                  <div className="bg-warning/10 border-t border-warning/20 p-3 flex gap-2 items-center text-warning text-sm">
+                    <AlertTriangle className="shrink-0" size={16} />
+                    <p>
+                      <strong>Ingredient Cost is Missing (0.00).</strong> Margin calculations and price suggestions may be inaccurate until you add recipe costs.
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+

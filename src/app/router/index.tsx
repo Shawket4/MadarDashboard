@@ -20,7 +20,7 @@ const Discounts = lazy(() => import("@/pages/discounts/discounts"));
 const Permissions = lazy(() => import("@/pages/permissions/permissions"));
 const Settings = lazy(() => import("@/pages/settings/settings"));
 const PublicMenu = lazy(() => import("@/pages/public-menu/public-menu"));
-const MenuAdvisor = lazy(() => import("@/pages/menu-advisor/ui/menu-advisor-dashboard"));
+const MenuAdvisor = lazy(() => import("@/pages/menu-advisor/menu-advisor"));
 const NotFound = lazy(() => import("@/pages/error/not-found"));
 
 function PageLoader() {
