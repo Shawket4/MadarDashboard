@@ -105,11 +105,16 @@ describe('Auth Page (Login)', () => {
   })
 
   it('is responsive: displays mobile icon mark and hides brand panel on small screens', () => {
-    // Override matchMedia for this test
-    window.matchMedia = vi.fn().mockImplementation((query) => {
-      if (query === '(max-width: 1023px)') return { matches: true }
-      return { matches: false }
-    })
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: query === '(max-width: 1023px)',
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }))
     
     const { container } = render(<Login />)
     

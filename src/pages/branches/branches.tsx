@@ -288,7 +288,7 @@ export default function Branches() {
       header: "",
       cell: ({ row }) => (
         <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="iconSm" onClick={() => { setEditBranch(row.original); setDialogOpen(true); }}>
+          <Button data-testid={`edit-branch-${row.original.id}`} variant="ghost" size="iconSm" onClick={() => { setEditBranch(row.original); setDialogOpen(true); }}>
             <Edit2 size={13} />
           </Button>
           <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete(row.original)}>
