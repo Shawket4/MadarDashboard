@@ -34,7 +34,7 @@ import {
   type LucideProps,
 } from "lucide-react";
 
-import { usePublicMenu } from "@/entities/menu/queries";
+import { useGetPublicMenu } from "@/shared/api/generated/api";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/dialog";
@@ -579,7 +579,7 @@ export default function PublicMenuPage() {
   const { orgId } = useParams<{ orgId: string }>();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === "rtl";
-  const { data: menu, isLoading, error, refetch } = usePublicMenu(orgId ?? null);
+  const { data: menu, isLoading, error, refetch } = useGetPublicMenu(orgId as string, { query: { enabled: !!orgId } });
 
   /* ---------- lazy load cairo fonts & preload lottie assets ---------- */
   useEffect(() => {

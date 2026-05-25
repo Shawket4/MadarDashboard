@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -10,13 +10,16 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { cn } from "@/shared/lib/cn";
-import { permissionApi } from "@/entities/permission/api";
-import { usePermissionMatrix } from "@/entities/permission/queries";
-import { useUsers } from "@/entities/user/queries";
-import { QUERY_KEYS } from "@/shared/config/constants";
+import {
+  useListUsers,
+  useGetPermissionMatrix,
+  useUpsertUserPermission,
+  useDeleteUserPermission,
+  getGetPermissionMatrixQueryKey
+} from "@/shared/api/generated/api";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
-import type { PermissionMatrix } from "@/shared/types";
+import type { PermissionMatrix } from "@/shared/api/generated/models/permissionMatrix";
 
 const RESOURCES = [
   "orgs",
@@ -49,21 +52,27 @@ export default function Permissions() {
   const { user: authUser, orgId } = useCurrentContext();
   const [selUser, setSelUser] = useState<string | null>(userId ?? null);
 
-  const { data: users = [], isLoading: usersLoading } = useUsers(orgId);
-  const { data: matrix = [], isLoading: matrixLoading } = usePermissionMatrix(selUser);
+  const { data: users = [], isLoading: usersLoading } = useListUsers(
+    { org_id: orgId || undefined },
+    { query: { enabled: !!orgId } }
+  );
+  const { data: matrix = [], isLoading: matrixLoading } = useGetPermissionMatrix(
+    selUser ?? "",
+    { query: { enabled: !!selUser } }
+  );
 
-  const upsert = useMutation({
-    mutationFn: (data: { resource: string; action: string; granted: boolean }) =>
-      permissionApi.upsert(selUser!, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.permissions(selUser ?? "") }),
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const upsertReq = useUpsertUserPermission({
+    mutation: {
+      onSuccess: () => qc.invalidateQueries({ queryKey: getGetPermissionMatrixQueryKey(selUser ?? "") }),
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
-  const removeOverride = useMutation({
-    mutationFn: ({ resource, action }: { resource: string; action: string }) =>
-      permissionApi.remove(selUser!, resource, action),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.permissions(selUser ?? "") }),
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const removeOverrideReq = useDeleteUserPermission({
+    mutation: {
+      onSuccess: () => qc.invalidateQueries({ queryKey: getGetPermissionMatrixQueryKey(selUser ?? "") }),
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
   const getCell = (resource: string, action: string): PermissionMatrix | undefined =>
@@ -72,9 +81,9 @@ export default function Permissions() {
   const handleToggle = (resource: string, action: string, cell: PermissionMatrix | undefined) => {
     if (!cell) return;
     if (cell.user_override !== null) {
-      removeOverride.mutate({ resource, action });
+      removeOverrideReq.mutate({ userId: selUser!, resource, action });
     } else {
-      upsert.mutate({ resource, action, granted: !cell.role_default });
+      upsertReq.mutate({ userId: selUser!, data: { resource, action, granted: !cell.role_default } as any });
     }
   };
 

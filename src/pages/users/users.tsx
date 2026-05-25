@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -21,14 +21,23 @@ import {
 } from "@/shared/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { userApi } from "@/entities/user/api";
-import { useUsers, useUserBranches } from "@/entities/user/queries";
-import { useBranches } from "@/entities/branch/queries";
-import { useOrgs } from "@/entities/org/queries";
+import { 
+  useListUsers, 
+  useCreateUser, 
+  useUpdateUser, 
+  useDeleteUser, 
+  useListUserBranches,
+  useAssignBranch,
+  useUnassignBranch, 
+  useListBranches as useBranches, 
+  useListOrgs,
+  getListUsersQueryKey,
+  getListUserBranchesQueryKey
+} from "@/shared/api/generated/api";
 import {
   createUserSchema, updateUserSchema, type CreateUserValues, type UpdateUserValues,
 } from "@/entities/user/schemas";
-import { QUERY_KEYS, ROLES } from "@/shared/config/constants";
+import { ROLES } from "@/shared/config/constants";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { usePermissions } from "@/shared/hooks/use-permissions";
 import { getErrorMessage } from "@/shared/api/errors";
@@ -48,7 +57,7 @@ function UserDialog({ open, onClose, edit }: { open: boolean; onClose: () => voi
   const { t } = useTranslation();
   const qc = useQueryClient();
   const { isSuperAdmin, user, role: currentUserRole } = useCurrentContext();
-  const { data: orgs = [] } = useOrgs();
+  const { data: orgs = [] } = useListOrgs({ query: { enabled: isSuperAdmin } });
 
   const isEdit = !!edit;
   const form = useForm<CreateUserValues | UpdateUserValues>({
@@ -75,23 +84,46 @@ function UserDialog({ open, onClose, edit }: { open: boolean; onClose: () => voi
         },
   });
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: CreateUserValues | UpdateUserValues) => {
-      if (isEdit) {
-        const updateValues = v as UpdateUserValues;
-        const payload = {
-          name: v.name,
-          email: v.email || null,
-          phone: v.phone || null,
-          role: v.role,
-          is_active: v.is_active,
-          ...(updateValues.pin ? { pin: updateValues.pin } : {}),
-          ...(updateValues.password ? { password: updateValues.password } : {}),
-        };
-        return userApi.update(edit!.id, payload);
-      }
+  const createReq = useCreateUser({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListUsersQueryKey() });
+        toast.success(t("users.createdToast"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
+  });
+
+  const updateReq = useUpdateUser({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListUsersQueryKey() });
+        toast.success(t("users.updatedToast"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
+  });
+
+  const isPending = createReq.isPending || updateReq.isPending;
+
+  const mutate = (v: CreateUserValues | UpdateUserValues) => {
+    if (isEdit) {
+      const updateValues = v as UpdateUserValues;
+      const payload = {
+        name: v.name,
+        email: v.email || null,
+        phone: v.phone || null,
+        role: v.role,
+        is_active: v.is_active,
+        ...(updateValues.pin ? { pin: updateValues.pin } : {}),
+        ...(updateValues.password ? { password: updateValues.password } : {}),
+      };
+      updateReq.mutate({ id: edit!.id, data: payload as any });
+    } else {
       const createValues = v as CreateUserValues;
-      const payload: Parameters<typeof userApi.create>[0] = {
+      const payload = {
         name: createValues.name,
         role: createValues.role,
         org_id: createValues.org_id,
@@ -101,15 +133,9 @@ function UserDialog({ open, onClose, edit }: { open: boolean; onClose: () => voi
         ...(createValues.pin ? { pin: createValues.pin } : {}),
         ...(createValues.password ? { password: createValues.password } : {}),
       };
-      return userApi.create(payload);
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users"] });
-      toast.success(isEdit ? t("users.updatedToast") : t("users.createdToast"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+      createReq.mutate({ data: payload as any });
+    }
+  };
 
   const availableRoles: Role[] = isSuperAdmin
     ? [...ROLES]
@@ -271,16 +297,33 @@ function BranchAssignDialog({ open, onClose, user }: { open: boolean; onClose: (
   const { t } = useTranslation();
   const qc = useQueryClient();
   const orgId = user?.org_id ?? null;
-  const { data: branches = [] } = useBranches(orgId);
-  const { data: assigned = [] } = useUserBranches(user?.id ?? null);
+  const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
+  const { data: assigned = [] } = useListUserBranches(user?.id ?? "", { query: { enabled: !!user?.id } });
   const assignedIds = new Set(assigned.map((a) => a.branch_id));
 
-  const { mutate: toggle, isPending } = useMutation({
-    mutationFn: ({ branchId, isAssigned }: { branchId: string; isAssigned: boolean }) =>
-      isAssigned ? userApi.unassignBranch(user!.id, branchId) : userApi.assignBranch(user!.id, branchId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.userBranches(user?.id ?? "") }),
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const assignReq = useAssignBranch({
+    mutation: {
+      onSuccess: () => qc.invalidateQueries({ queryKey: getListUserBranchesQueryKey(user?.id ?? "") }),
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
+
+  const unassignReq = useUnassignBranch({
+    mutation: {
+      onSuccess: () => qc.invalidateQueries({ queryKey: getListUserBranchesQueryKey(user?.id ?? "") }),
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
+  });
+
+  const isPending = assignReq.isPending || unassignReq.isPending;
+
+  const toggle = ({ branchId, isAssigned }: { branchId: string; isAssigned: boolean }) => {
+    if (isAssigned) {
+      unassignReq.mutate({ id: user!.id, branchId });
+    } else {
+      assignReq.mutate({ id: user!.id, data: { branch_id: branchId } });
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -327,17 +370,24 @@ export default function Users() {
   const [branchUser, setBranchUser] = useState<UserPublic | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<UserPublic | null>(null);
 
-  const { data: users = [], isLoading } = useUsers(orgId);
+  const { data: users = [], isLoading } = useListUsers(
+    { org_id: orgId || undefined },
+    { query: { enabled: !!orgId } }
+  );
 
-  const { mutate: remove, isPending: removing } = useMutation({
-    mutationFn: (id: string) => userApi.remove(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users"] });
-      toast.success(t("users.deletedToast"));
-      setConfirmDelete(null);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const deleteReq = useDeleteUser({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListUsersQueryKey() });
+        toast.success(t("users.deletedToast"));
+        setConfirmDelete(null);
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
+
+  const remove = deleteReq.mutate;
+  const removing = deleteReq.isPending;
 
   const roleCount = (r: Role) => users.filter((u) => u.role === r).length;
 
@@ -464,7 +514,7 @@ export default function Users() {
         title={t("common.confirmDelete", { name: confirmDelete?.name ?? "" })}
         destructive
         loading={removing}
-        onConfirm={() => confirmDelete && remove(confirmDelete.id)}
+        onConfirm={() => confirmDelete && remove({ id: confirmDelete.id })}
       />
     </PageShell>
   );

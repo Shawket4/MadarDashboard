@@ -1,0 +1,33 @@
+import { defineConfig } from 'orval';
+
+export default defineConfig({
+  api: {
+    input: '../SufrixRust/openapi.json',
+    output: {
+      mode: 'split',
+      target: 'src/shared/api/generated/api.ts',
+      schemas: 'src/shared/api/generated/models',
+      client: 'react-query',
+      mock: true,
+      httpClient: 'axios',
+      override: {
+        header: () => ['/* eslint-disable */', '// @ts-nocheck'],
+        mutator: {
+          path: 'src/shared/api/custom-instance.ts',
+          name: 'customInstance',
+        },
+      },
+    },
+  },
+  zod: {
+    input: '../SufrixRust/openapi.json',
+    output: {
+      mode: 'split',
+      target: 'src/shared/api/generated/zod/api.zod.ts',
+      client: 'zod',
+      override: {
+        header: () => ['/* eslint-disable */', '// @ts-nocheck'],
+      }
+    }
+  }
+});

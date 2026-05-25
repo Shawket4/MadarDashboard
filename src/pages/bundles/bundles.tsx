@@ -50,25 +50,26 @@ import {
 } from "@/shared/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 
+import { createBundleSchema, type BundleFormValues } from "@/entities/bundle/schemas";
 import {
-  useBundlesList,
+  useListMenuItems,
+  useListBundles,
   useBundlePerformance,
   useCreateBundle,
   useUpdateBundle,
   useDeleteBundle,
   useActivateBundle,
   useArchiveBundle,
-} from "@/entities/bundle/queries";
-import { createBundleSchema, type BundleFormValues } from "@/entities/bundle/schemas";
-import { bundleApi } from "@/entities/bundle/api";
-import { useMenuItems } from "@/entities/menu/queries";
-import { useBranches } from "@/entities/branch/queries";
+  uploadMenuItemImage,
+  getListBundlesQueryKey
+} from "@/shared/api/generated/api";
+import { useListBranches as useBranches } from "@/shared/api/generated/api";
 import { usePermissions } from "@/shared/hooks/use-permissions";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtMoney, piastresToEgp } from "@/shared/lib/format";
 import { exportToExcel } from "@/shared/lib/excel";
-import type { BundleWithComponents } from "@/shared/types";
+import type { BundleWithComponents } from "@/shared/api/generated/models/bundleWithComponents";
 
 // ── CRUD Bundle Dialog ────────────────────────────────────────────────────────
 interface BundleDialogProps {
@@ -83,8 +84,8 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
 
-  const { data: menuItems = [] } = useMenuItems(orgId);
-  const { data: branches = [] } = useBranches(orgId);
+  const { data: menuItems = [] } = useListMenuItems({ org_id: orgId as string }, { query: { enabled: !!orgId } });
+  const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
 
   const isEdit = !!editItem;
 
@@ -157,7 +158,7 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
 
     if (isEdit) {
       updateMutation.mutate(
-        { id: editItem.id, payload, orgId },
+        { id: editItem.id, data: payload },
         {
           onSuccess: () => {
             toast.success(t("bundles.updatedToast"));
@@ -167,7 +168,7 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
         }
       );
     } else {
-      createMutation.mutate(payload, {
+      createMutation.mutate({ data: payload }, {
         onSuccess: () => {
           toast.success(t("bundles.createdToast"));
           onClose();
@@ -181,9 +182,9 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
   const handleUploadImage = async (file: File) => {
     if (!editItem) return "";
     try {
-      const res = await bundleApi.uploadImage(editItem.id, file);
-      await bundleApi.update(editItem.id, { image_url: res.image_url });
-      qc.invalidateQueries({ queryKey: ["bundles", orgId] });
+      const res = await uploadMenuItemImage(editItem.id, { image: file });
+      await updateMutation.mutateAsync({ id: editItem.id, data: { image_url: res.image_url } });
+      qc.invalidateQueries({ queryKey: getListBundlesQueryKey({ org_id: orgId! }) });
       toast.success(t("common.savedChanges"));
       return res.image_url;
     } catch (e) {
@@ -195,8 +196,8 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
   const handleRemoveImage = async () => {
     if (!editItem) return;
     try {
-      await bundleApi.update(editItem.id, { image_url: null });
-      qc.invalidateQueries({ queryKey: ["bundles", orgId] });
+      await updateMutation.mutateAsync({ id: editItem.id, data: { image_url: null } });
+      qc.invalidateQueries({ queryKey: getListBundlesQueryKey({ org_id: orgId! }) });
       toast.success(t("common.savedChanges"));
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -629,7 +630,7 @@ function PerformanceDialog({ open, onClose, bundle }: PerformanceDialogProps) {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === "ar";
 
-  const { data: perf, isLoading } = useBundlePerformance(bundle?.id ?? null);
+  const { data: perf, isLoading } = useBundlePerformance(bundle?.id ?? "", undefined, { query: { enabled: !!bundle?.id } });
 
   const componentData = perf?.component_popularity.map((c) => ({
     name: c.item_name,
@@ -743,11 +744,12 @@ export default function Bundles() {
   const [confirmDelete, setConfirmDelete] = useState<BundleWithComponents | null>(null);
   const [advisorHydration, setAdvisorHydration] = useState<Partial<BundleFormValues> | null>(null);
 
-  const { data: paginated, isLoading } = useBundlesList(orgId, {
-    org_id: orgId ?? "",
+  const { data: paginated, isLoading } = useListBundles({
+    org_id: orgId!,
     page: 1,
-    per_page: 50,
-  });
+    per_page: 500,
+    search: searchParams.get("search") || undefined,
+  }, { query: { enabled: !!orgId } });
 
   const bundles = paginated?.data || [];
 
@@ -910,7 +912,7 @@ export default function Bundles() {
                 className="text-emerald-500 hover:bg-emerald-500/10"
                 onClick={() =>
                   activateMutation.mutate(
-                    { id: item.id, orgId: orgId! },
+                    { id: item.id },
                     {
                       onSuccess: () => toast.success(t("bundles.activatedToast")),
                       onError: (e) => toast.error(getErrorMessage(e)),
@@ -930,7 +932,7 @@ export default function Bundles() {
                 className="text-muted-foreground hover:bg-muted/10"
                 onClick={() =>
                   archiveMutation.mutate(
-                    { id: item.id, orgId: orgId! },
+                    { id: item.id },
                     {
                       onSuccess: () => toast.success(t("bundles.archivedToast")),
                       onError: (e) => toast.error(getErrorMessage(e)),
@@ -1056,7 +1058,7 @@ export default function Bundles() {
         onConfirm={() =>
           confirmDelete &&
           deleteMutation.mutate(
-            { id: confirmDelete.id, orgId },
+            { id: confirmDelete.id },
             {
               onSuccess: () => {
                 toast.success(t("bundles.deletedToast"));

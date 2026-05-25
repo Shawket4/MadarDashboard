@@ -1,5 +1,7 @@
 import { z } from "zod";
-export const drinkRecipeSchema = z.object({
+import { UpsertDrinkRecipeBody, UpsertAddonIngredientBody } from "@/shared/api/generated/zod/api.zod";
+
+export const drinkRecipeSchema = UpsertDrinkRecipeBody.extend({
   size_label: z.string().min(1),
   org_ingredient_id: z.string().nullish(),
   ingredient_name: z.string().trim().min(1),
@@ -8,7 +10,7 @@ export const drinkRecipeSchema = z.object({
 });
 export type DrinkRecipeValues = z.infer<typeof drinkRecipeSchema>;
 
-export const addonRecipeSchema = z.object({
+export const addonRecipeSchema = UpsertAddonIngredientBody.extend({
   org_ingredient_id: z.string().nullish(),
   ingredient_name: z.string().trim().min(1),
   unit: z.string().min(1),

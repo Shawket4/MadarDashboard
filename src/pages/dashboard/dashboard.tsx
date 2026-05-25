@@ -11,19 +11,19 @@ import { Card, CardContent } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { useOrgs } from "@/entities/org/queries";
-import { useBranches } from "@/entities/branch/queries";
-import { useUsers } from "@/entities/user/queries";
-import { useCurrentShift } from "@/entities/shift/queries";
+import { useListOrgs, useListBranches, useListUsers } from "@/shared/api/generated/api";
+import { useGetCurrentShift } from "@/shared/api/generated/api";
 import { useBranchSales } from "@/entities/report/queries";
 import { useBranchStockReport } from "@/entities/report/queries";
-import { useOrders } from "@/entities/order/queries";
+import { useListOrders } from "@/shared/api/generated/api";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { cairoDateISO, fmtDateTime, fmtDuration, fmtMoney } from "@/shared/lib/format";
 import { apiClient } from "@/shared/api/client";
-import type { BranchInventoryItem, Order, Shift } from "@/shared/types";
+import type { BranchInventoryItem } from "@/shared/types";
+import type { Order } from "@/shared/api/generated/models/order";
+import type { Shift } from "@/shared/api/generated/models/shift";
 import { useQueries } from "@tanstack/react-query";
-import { shiftApi } from "@/entities/shift/api";
+import { getGetCurrentShiftQueryOptions } from "@/shared/api/generated/api";
 import { usePermissions } from "@/shared/hooks/use-permissions";
 
 const greet = (name: string, t: (k: string, p?: Record<string, unknown>) => string) => {
@@ -36,7 +36,7 @@ const greet = (name: string, t: (k: string, p?: Record<string, unknown>) => stri
 function BranchCard({ branchId, branchName }: { branchId: string; branchName: string }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: pre } = useCurrentShift(branchId);
+  const { data: pre } = useGetCurrentShift(branchId ?? "", { query: { enabled: !!branchId } });
   const openShift = pre?.open_shift;
 
   // Today's sales
@@ -103,9 +103,9 @@ function RecentOrdersPanel({ openShiftInfo }: { openShiftInfo: { branchId: strin
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const { data } = useOrders(
+  const { data } = useListOrders(
     { branch_id: openShiftInfo?.branchId, shift_id: openShiftInfo?.shift.id, per_page: 8, page: 1 },
-    !!openShiftInfo,
+    { query: { enabled: !!openShiftInfo } },
   );
 
   return (
@@ -193,15 +193,14 @@ export default function Dashboard() {
   const { user, role, orgId, isSuperAdmin } = useCurrentContext();
   const { can } = usePermissions();
 
-  const { data: orgs = [] } = useOrgs({ enabled: isSuperAdmin });
-  const { data: branches = [] } = useBranches(orgId, { enabled: isSuperAdmin || can("branches", "read") });
-  const { data: users = [] } = useUsers(orgId, { enabled: isSuperAdmin || can("users", "read") });
+  const { data: orgs = [] } = useListOrgs({ query: { enabled: isSuperAdmin } });
+  const { data: branches = [] } = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId && (isSuperAdmin || can("branches", "read")) } });
+  const { data: users = [] } = useListUsers({ org_id: orgId || undefined }, { query: { enabled: (isSuperAdmin || can("users", "read")) && !!orgId } });
 
   // For each branch, determine open shift (drives active count + "first open branch" for recent orders)
   const preFills = useQueries({
     queries: branches.map((b) => ({
-      queryKey: ["shift-prefill", b.id],
-      queryFn: () => shiftApi.getCurrent(b.id),
+      ...getGetCurrentShiftQueryOptions(b.id),
       refetchInterval: 60_000,
       enabled: !!b.id && (isSuperAdmin || can("shifts", "read")),
     })),

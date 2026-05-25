@@ -23,10 +23,10 @@ import { DateRangePicker } from "@/shared/ui/date-range-picker";
 import { Badge } from "@/shared/ui/badge";
 import { ChartTooltip } from "@/shared/ui/chart-tooltip";
 import {
-  useBranchSales, useBranchTimeseries, useBranchTellers, useBranchAddons,
-  useBranchStockReport, useOrgComparison,
-} from "@/entities/report/queries";
-import { useBranches } from "@/entities/branch/queries";
+  useBranchSales, useBranchSalesTimeseries as useBranchTimeseries, useBranchTellerStats as useBranchTellers, useBranchAddonSales as useBranchAddons,
+  useBranchStock as useBranchStockReport, useOrgBranchComparison as useOrgComparison,
+} from "@/shared/api/generated/api";
+import { useListBranches as useBranches } from "@/shared/api/generated/api";
 import { PAYMENT_COLORS, PAYMENT_METHODS } from "@/shared/config/constants";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod, piastresToEgp } from "@/shared/lib/format";
@@ -60,7 +60,7 @@ function ChartCard({ title, children, onExport }: { title: string; children: Rea
 // ─────────────────────────────────────────────────────────────────────────────
 function OverviewTab({ branchId, from, to }: { branchId: string; from: string | null; to: string | null }) {
   const { t } = useTranslation();
-  const { data: sales, isLoading } = useBranchSales(branchId, { from, to });
+  const { data: sales, isLoading } = useBranchSales(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
 
   const pieData = useMemo(() => {
     if (!sales) return [];
@@ -152,8 +152,8 @@ function RevenueTab({
   granularity: Granularity;
 }) {
   const { t } = useTranslation();
-  const { data: ts = [], isLoading } = useBranchTimeseries(branchId, { from, to, granularity });
-  const { data: sales } = useBranchSales(branchId, { from, to });
+  const { data: ts = [], isLoading } = useBranchTimeseries(branchId, { from: from ?? undefined, to: to ?? undefined, granularity }, { query: { enabled: !!branchId } });
+  const { data: sales } = useBranchSales(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
 
   const chartData = useMemo(
     () => ts.map((p) => ({
@@ -280,8 +280,8 @@ function RevenueTab({
 // ─────────────────────────────────────────────────────────────────────────────
 function ItemsTab({ branchId, from, to }: { branchId: string; from: string | null; to: string | null }) {
   const { t } = useTranslation();
-  const { data: sales, isLoading } = useBranchSales(branchId, { from, to });
-  const { data: addons = [] } = useBranchAddons(branchId, { from, to });
+  const { data: sales, isLoading } = useBranchSales(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
+  const { data: addons = [] } = useBranchAddons(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
 
   const cols: ColumnDef<ItemSales>[] = [
     { accessorKey: "item_name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold text-sm">{row.original.item_name}</span> },
@@ -370,7 +370,7 @@ function ItemsTab({ branchId, from, to }: { branchId: string; from: string | nul
 // ─────────────────────────────────────────────────────────────────────────────
 function TellersTab({ branchId, from, to }: { branchId: string; from: string | null; to: string | null }) {
   const { t } = useTranslation();
-  const { data: tellers = [], isLoading } = useBranchTellers(branchId, { from, to });
+  const { data: tellers = [], isLoading } = useBranchTellers(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
 
   const chartData = tellers.map((t2) => ({ name: t2.teller_name, revenue: piastresToEgp(t2.revenue), orders: t2.orders }));
 
@@ -429,7 +429,7 @@ function TellersTab({ branchId, from, to }: { branchId: string; from: string | n
 // ─────────────────────────────────────────────────────────────────────────────
 function BranchesTab({ orgId, from, to }: { orgId: string; from: string | null; to: string | null }) {
   const { t } = useTranslation();
-  const { data: report, isLoading } = useOrgComparison(orgId, { from, to });
+  const { data: report, isLoading } = useOrgComparison(orgId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!orgId } });
 
   const cols: ColumnDef<BranchComparison>[] = [
     { accessorKey: "branch_name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold text-sm">{row.original.branch_name}</span> },
@@ -509,7 +509,7 @@ function BranchesTab({ orgId, from, to }: { orgId: string; from: string | null; 
 // ─────────────────────────────────────────────────────────────────────────────
 function InventoryTab({ branchId }: { branchId: string }) {
   const { t } = useTranslation();
-  const { data: report, isLoading } = useBranchStockReport(branchId);
+  const { data: report, isLoading } = useBranchStockReport(branchId, { query: { enabled: !!branchId } });
 
   const handleExport = () => {
     if (!report) return;
@@ -564,7 +564,7 @@ function InventoryTab({ branchId }: { branchId: string }) {
 export default function Analytics() {
   const { t } = useTranslation();
   const { orgId, isSuperAdmin, isOrgAdmin, branchId: ctxBranch } = useCurrentContext();
-  const { data: branches = [] } = useBranches(orgId);
+  const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const [selBranch, setSelBranch] = useState<string>(ctxBranch ?? "");
   const [from, setFrom] = useState<string | null>(null);
   const [to, setTo] = useState<string | null>(null);

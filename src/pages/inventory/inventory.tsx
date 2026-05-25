@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -25,27 +25,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/shared/ui/switch";
 import { SearchableSelect } from "@/shared/ui/searchable-select";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { inventoryApi } from "@/entities/inventory/api";
-import { useCatalog, useBranchStock, useAdjustments, useTransfers } from "@/entities/inventory/queries";
-import { useBranches } from "@/entities/branch/queries";
+import {
+  useListCatalog, useCreateCatalogItem, useUpdateCatalogItem, useDeleteCatalogItem, getListCatalogQueryKey,
+  useListBranchStock, useAddToBranchStock, useUpdateBranchStock, useRemoveFromBranchStock, getListBranchStockQueryKey,
+  useListAdjustments, useCreateAdjustment, getListAdjustmentsQueryKey,
+  useListTransfers, useCreateTransfer, useUpdateTransfer, useDeleteTransfer, getListTransfersQueryKey,
+  useListBranches as useBranches
+} from "@/shared/api/generated/api";
 import {
   catalogSchema, addStockSchema, adjustmentSchema, transferSchema,
   type CatalogValues, type AddStockValues, type AdjustmentValues, type TransferValues,
 } from "@/entities/inventory/schemas";
-import { INVENTORY_UNITS, QUERY_KEYS } from "@/shared/config/constants";
+import { INVENTORY_UNITS } from "@/shared/config/constants";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtDateTime, fmtUnit } from "@/shared/lib/format";
 import { exportToExcel } from "@/shared/lib/excel";
 import type {
   BranchInventoryAdjustment, BranchInventoryItem, BranchInventoryTransfer, OrgIngredient,
-} from "@/shared/types";
+} from "@/shared/api/generated/models";
 
 // ── Catalog Tab ──────────────────────────────────────────────────────────────
 function CatalogTab({ orgId }: { orgId: string }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const { data: items = [], isLoading } = useCatalog(orgId);
+  const { data: items = [], isLoading } = useListCatalog(orgId, { query: { enabled: !!orgId } });
   const [dlg, setDlg] = useState(false);
   const [edit, setEdit] = useState<OrgIngredient | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<OrgIngredient | null>(null);
@@ -61,8 +65,8 @@ function CatalogTab({ orgId }: { orgId: string }) {
     setEdit(i);
     form.reset({
       name: i?.name ?? "",
-      unit: i?.unit ?? "kg",
-      category: i?.category ?? "general",
+      unit: (i?.unit as CatalogValues["unit"]) ?? "kg",
+      category: (i?.category as CatalogValues["category"]) ?? "general",
       description: i?.description ?? "",
       cost_per_unit: i?.cost_per_unit ?? 0,
       is_active: i?.is_active ?? true,
@@ -70,32 +74,55 @@ function CatalogTab({ orgId }: { orgId: string }) {
     setDlg(true);
   };
 
-  const save = useMutation({
-    mutationFn: (v: CatalogValues) =>
-      edit
-        ? inventoryApi.updateCatalog(orgId, edit.id, v)
-        : inventoryApi.createCatalog(orgId, {
-            name: v.name, unit: v.unit, category: v.category,
-            description: v.description || undefined, cost_per_unit: v.cost_per_unit,
-          }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.catalog(orgId) });
-      toast.success(t("common.save"));
-      setDlg(false);
-      setEdit(null);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const { mutate: createCatalog, isPending: isCreating } = useCreateCatalogItem();
+  const { mutate: updateCatalog, isPending: isUpdating } = useUpdateCatalogItem();
+  const isSaving = isCreating || isUpdating;
 
-  const remove = useMutation({
-    mutationFn: (id: string) => inventoryApi.removeCatalog(orgId, id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.catalog(orgId) });
-      toast.success(t("common.delete"));
-      setConfirmDelete(null);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const save = (v: CatalogValues) => {
+    if (edit) {
+      updateCatalog(
+        { orgId, id: edit.id, data: v },
+        {
+          onSuccess: () => {
+            qc.invalidateQueries({ queryKey: getListCatalogQueryKey(orgId) });
+            toast.success(t("common.save"));
+            setDlg(false);
+            setEdit(null);
+          },
+          onError: (e: any) => toast.error(getErrorMessage(e)),
+        }
+      );
+    } else {
+      createCatalog(
+        { orgId, data: { ...v, description: v.description || undefined } },
+        {
+          onSuccess: () => {
+            qc.invalidateQueries({ queryKey: getListCatalogQueryKey(orgId) });
+            toast.success(t("common.save"));
+            setDlg(false);
+            setEdit(null);
+          },
+          onError: (e: any) => toast.error(getErrorMessage(e)),
+        }
+      );
+    }
+  };
+
+  const { mutate: deleteCatalog, isPending: isRemoving } = useDeleteCatalogItem();
+
+  const remove = (id: string) => {
+    deleteCatalog(
+      { orgId, id },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListCatalogQueryKey(orgId) });
+          toast.success(t("common.delete"));
+          setConfirmDelete(null);
+        },
+        onError: (e: any) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
 
   const cols: ColumnDef<OrgIngredient>[] = [
     {
@@ -182,7 +209,7 @@ function CatalogTab({ orgId }: { orgId: string }) {
             <DialogTitle>{edit ? edit.name : t("inventory.catalog.newIngredient")}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((v) => save.mutate(v))}>
+            <form onSubmit={form.handleSubmit(save)}>
               <DialogBody>
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem><FormLabel>{t("common.name")}</FormLabel><FormControl><Input placeholder={t("inventory.catalog.namePh")} {...field} /></FormControl><FormMessage /></FormItem>
@@ -223,7 +250,7 @@ function CatalogTab({ orgId }: { orgId: string }) {
               </DialogBody>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => { setDlg(false); setEdit(null); }}>{t("common.cancel")}</Button>
-                <Button type="submit" loading={save.isPending}>{t("common.save")}</Button>
+                <Button type="submit" loading={isSaving}>{t("common.save")}</Button>
               </DialogFooter>
             </form>
           </Form>
@@ -235,8 +262,8 @@ function CatalogTab({ orgId }: { orgId: string }) {
         onOpenChange={(o) => !o && setConfirmDelete(null)}
         title={t("common.confirmDelete", { name: confirmDelete?.name ?? "" })}
         destructive
-        loading={remove.isPending}
-        onConfirm={() => confirmDelete && remove.mutate(confirmDelete.id)}
+        loading={isRemoving}
+        onConfirm={() => confirmDelete && remove(confirmDelete.id)}
       />
     </div>
   );
@@ -246,8 +273,8 @@ function CatalogTab({ orgId }: { orgId: string }) {
 function StockTab({ orgId, branchId }: { orgId: string; branchId: string }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const { data: stock = [], isLoading } = useBranchStock(branchId);
-  const { data: catalog = [] } = useCatalog(orgId);
+  const { data: stock = [], isLoading } = useListBranchStock(branchId, { query: { enabled: !!branchId } });
+  const { data: catalog = [] } = useListCatalog(orgId, { query: { enabled: !!orgId } });
   const [addDlg, setAddDlg] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<BranchInventoryItem | null>(null);
 
@@ -256,38 +283,53 @@ function StockTab({ orgId, branchId }: { orgId: string; branchId: string }) {
     defaultValues: { org_ingredient_id: "", current_stock: 0, reorder_threshold: 0 },
   });
 
-  const available = catalog.filter((c) => c.is_active && !stock.some((s) => s.org_ingredient_id === c.id));
+  const available = catalog.filter((c: OrgIngredient) => c.is_active && !stock.some((s) => s.org_ingredient_id === c.id));
 
-  const add = useMutation({
-    mutationFn: (v: AddStockValues) => inventoryApi.addStock(branchId, v),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
-      toast.success(t("inventory.stock.addedToast"));
-      setAddDlg(false);
-      form.reset();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const { mutate: createStock, isPending: isAdding } = useAddToBranchStock();
+  const { mutate: deleteStock, isPending: isRemoving } = useRemoveFromBranchStock();
+  const { mutate: updateStockMutation } = useUpdateBranchStock();
 
-  const remove = useMutation({
-    mutationFn: (id: string) => inventoryApi.removeStock(branchId, id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
-      toast.success(t("inventory.stock.removedToast"));
-      setConfirmDelete(null);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const add = (v: AddStockValues) => {
+    createStock(
+      { branchId, data: v },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListBranchStockQueryKey(branchId) });
+          toast.success(t("inventory.stock.addedToast"));
+          setAddDlg(false);
+          form.reset();
+        },
+        onError: (e: any) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
 
-  const updateThreshold = useMutation({
-    mutationFn: ({ id, value }: { id: string; value: number }) =>
-      inventoryApi.updateStock(branchId, id, { reorder_threshold: value }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
-      toast.success(t("inventory.stock.thresholdUpdated"));
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const remove = (id: string) => {
+    deleteStock(
+      { branchId, id },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListBranchStockQueryKey(branchId) });
+          toast.success(t("inventory.stock.removedToast"));
+          setConfirmDelete(null);
+        },
+        onError: (e: any) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
+
+  const updateThreshold = ({ id, value }: { id: string; value: number }) => {
+    updateStockMutation(
+      { branchId, id, data: { reorder_threshold: value } },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListBranchStockQueryKey(branchId) });
+          toast.success(t("inventory.stock.thresholdUpdated"));
+        },
+        onError: (e: any) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
 
   const EditableThreshold = ({ item }: { item: BranchInventoryItem }) => {
     const [editing, setEditing] = useState(false);
@@ -298,11 +340,11 @@ function StockTab({ orgId, branchId }: { orgId: string; branchId: string }) {
           <Input type="number" value={val} step="0.001" min="0" autoFocus className="h-7 w-24 text-xs"
             onChange={(e) => setVal(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") { updateThreshold.mutate({ id: item.id, value: Number(val) }); setEditing(false); }
+              if (e.key === "Enter") { updateThreshold({ id: item.id, value: Number(val) }); setEditing(false); }
               if (e.key === "Escape") setEditing(false);
             }}
           />
-          <Button size="iconSm" variant="ghost" onClick={() => { updateThreshold.mutate({ id: item.id, value: Number(val) }); setEditing(false); }}>✓</Button>
+          <Button size="iconSm" variant="ghost" onClick={() => { updateThreshold({ id: item.id, value: Number(val) }); setEditing(false); }}>✓</Button>
           <Button size="iconSm" variant="ghost" onClick={() => setEditing(false)}>✕</Button>
         </div>
       );
@@ -401,14 +443,14 @@ function StockTab({ orgId, branchId }: { orgId: string; branchId: string }) {
         <DialogContent>
           <DialogHeader><DialogTitle>{t("inventory.stock.addIngredient")}</DialogTitle></DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((v) => add.mutate(v))}>
+            <form onSubmit={form.handleSubmit(add)}>
               <DialogBody>
                 <FormField control={form.control} name="org_ingredient_id" render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("recipes.ingredient")}</FormLabel>
                     <FormControl>
                       <SearchableSelect
-                        options={available.map((c) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit) }))}
+                        options={available.map((c: OrgIngredient) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit) }))}
                         value={field.value || null}
                         onChange={(v) => field.onChange(v ?? "")}
                       />
@@ -425,7 +467,7 @@ function StockTab({ orgId, branchId }: { orgId: string; branchId: string }) {
               </DialogBody>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setAddDlg(false)}>{t("common.cancel")}</Button>
-                <Button type="submit" loading={add.isPending}>{t("common.add")}</Button>
+                <Button type="submit" loading={isAdding}>{t("common.add")}</Button>
               </DialogFooter>
             </form>
           </Form>
@@ -437,8 +479,8 @@ function StockTab({ orgId, branchId }: { orgId: string; branchId: string }) {
         onOpenChange={(o) => !o && setConfirmDelete(null)}
         title={t("common.confirmDelete", { name: confirmDelete?.ingredient_name ?? "" })}
         destructive
-        loading={remove.isPending}
-        onConfirm={() => confirmDelete && remove.mutate(confirmDelete.id)}
+        loading={isRemoving}
+        onConfirm={() => confirmDelete && remove(confirmDelete.id)}
       />
     </div>
   );
@@ -448,8 +490,8 @@ function StockTab({ orgId, branchId }: { orgId: string; branchId: string }) {
 function AdjustmentsTab({ branchId }: { branchId: string }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const { data: adjs = [], isLoading } = useAdjustments(branchId);
-  const { data: stock = [] } = useBranchStock(branchId);
+  const { data: adjs = [], isLoading } = useListAdjustments(branchId, { query: { enabled: !!branchId } });
+  const { data: stock = [] } = useListBranchStock(branchId, { query: { enabled: !!branchId } });
   const [dlg, setDlg] = useState(false);
   const [reverseTarget, setReverseTarget] = useState<BranchInventoryAdjustment | null>(null);
 
@@ -459,34 +501,48 @@ function AdjustmentsTab({ branchId }: { branchId: string }) {
     defaultValues: { branch_inventory_id: "", adjustment_type: "add", quantity: 0 as any, note: "" },
   });
 
-  const save = useMutation({
-    mutationFn: (v: AdjustmentValues) => inventoryApi.createAdjustment(branchId, v),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.adjustments(branchId) });
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
-      toast.success(t("inventory.adjustments.savedToast"));
-      setDlg(false);
-      form.reset();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const { mutate: createAdjustment, isPending: isSaving } = useCreateAdjustment();
 
-  const reverse = useMutation({
-    mutationFn: (adj: BranchInventoryAdjustment) =>
-      inventoryApi.createAdjustment(branchId, {
-        branch_inventory_id: adj.branch_inventory_id,
-        adjustment_type: adj.adjustment_type === "add" ? "remove" : "add",
-        quantity: Number(adj.quantity),
-        note: `Reversal of: ${adj.note}`,
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.adjustments(branchId) });
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
-      toast.success(t("inventory.adjustments.reversedToast"));
-      setReverseTarget(null);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const save = (v: AdjustmentValues) => {
+    createAdjustment(
+      { branchId, data: v },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListAdjustmentsQueryKey(branchId) });
+          qc.invalidateQueries({ queryKey: getListBranchStockQueryKey(branchId) });
+          toast.success(t("inventory.adjustments.savedToast"));
+          setDlg(false);
+          form.reset();
+        },
+        onError: (e: any) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
+
+  const { mutate: reverseAdjustment, isPending: isReversing } = useCreateAdjustment();
+
+  const reverse = (adj: BranchInventoryAdjustment) => {
+    reverseAdjustment(
+      {
+        branchId,
+        data: {
+          branch_inventory_id: adj.branch_inventory_id,
+          adjustment_type: adj.adjustment_type === "add" ? "remove" : "add",
+          quantity: Number(adj.quantity),
+          note: `Reversal of: ${adj.note}`,
+        }
+      },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListAdjustmentsQueryKey(branchId) });
+          qc.invalidateQueries({ queryKey: getListBranchStockQueryKey(branchId) });
+          toast.success(t("inventory.adjustments.reversedToast"));
+          setReverseTarget(null);
+        },
+        onError: (e: any) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
 
   const cols: ColumnDef<BranchInventoryAdjustment>[] = [
     {
@@ -567,7 +623,7 @@ function AdjustmentsTab({ branchId }: { branchId: string }) {
         <DialogContent>
           <DialogHeader><DialogTitle>{t("inventory.adjustments.manualTitle")}</DialogTitle></DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((v) => save.mutate(v))}>
+            <form onSubmit={form.handleSubmit(save)}>
               <DialogBody>
                 <FormField control={form.control} name="branch_inventory_id" render={({ field }) => (
                   <FormItem>
@@ -604,7 +660,7 @@ function AdjustmentsTab({ branchId }: { branchId: string }) {
               </DialogBody>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDlg(false)}>{t("common.cancel")}</Button>
-                <Button type="submit" loading={save.isPending}>{t("common.save")}</Button>
+                <Button type="submit" loading={isSaving}>{t("common.save")}</Button>
               </DialogFooter>
             </form>
           </Form>
@@ -616,8 +672,8 @@ function AdjustmentsTab({ branchId }: { branchId: string }) {
         onOpenChange={(o) => !o && setReverseTarget(null)}
         title={t("inventory.adjustments.reverseTitle")}
         description={t("inventory.adjustments.reverseConfirm", { note: reverseTarget?.note ?? "" })}
-        loading={reverse.isPending}
-        onConfirm={() => reverseTarget && reverse.mutate(reverseTarget)}
+        loading={isReversing}
+        onConfirm={() => reverseTarget && reverse(reverseTarget)}
       />
     </div>
   );
@@ -628,9 +684,9 @@ function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) 
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [direction, setDirection] = useState<"all" | "incoming" | "outgoing">("all");
-  const { data: transfers = [], isLoading } = useTransfers(branchId, direction === "all" ? undefined : direction);
-  const { data: catalog = [] } = useCatalog(orgId);
-  const { data: branches = [] } = useBranches(orgId);
+  const { data: transfers = [], isLoading } = useListTransfers(branchId, direction === "all" ? undefined : { direction }, { query: { enabled: !!branchId } });
+  const { data: catalog = [] } = useListCatalog(orgId, { query: { enabled: !!orgId } });
+  const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const [newDlg, setNewDlg] = useState(false);
   const [editNote, setEditNote] = useState<BranchInventoryTransfer | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<BranchInventoryTransfer | null>(null);
@@ -644,44 +700,64 @@ function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) 
 
   useMemo(() => form.setValue("source_branch_id", branchId), [branchId, form]);
 
-  const create = useMutation({
-    mutationFn: (v: TransferValues) => inventoryApi.createTransfer({
-      source_branch_id: v.source_branch_id,
-      destination_branch_id: v.destination_branch_id,
-      org_ingredient_id: v.org_ingredient_id,
-      quantity: v.quantity,
-      note: v.note || undefined,
-    }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.transfers(branchId) });
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
-      toast.success(t("inventory.transfers.transferredToast"));
-      setNewDlg(false);
-      form.reset();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const { mutate: createTransfer, isPending: isCreating } = useCreateTransfer();
 
-  const updateNote = useMutation({
-    mutationFn: () => inventoryApi.updateTransfer(editNote!.id, noteVal || null),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.transfers(branchId) });
-      toast.success(t("inventory.transfers.noteUpdatedToast"));
-      setEditNote(null);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const create = (v: TransferValues) => {
+    createTransfer(
+      {
+        data: {
+          source_branch_id: v.source_branch_id,
+          destination_branch_id: v.destination_branch_id,
+          org_ingredient_id: v.org_ingredient_id,
+          quantity: v.quantity,
+          note: v.note || undefined,
+        }
+      },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListTransfersQueryKey(branchId) });
+          qc.invalidateQueries({ queryKey: getListBranchStockQueryKey(branchId) });
+          toast.success(t("inventory.transfers.transferredToast"));
+          setNewDlg(false);
+          form.reset();
+        },
+        onError: (e: any) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
 
-  const remove = useMutation({
-    mutationFn: (id: string) => inventoryApi.removeTransfer(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.transfers(branchId) });
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.stock(branchId) });
-      toast.success(t("inventory.transfers.reversedToast"));
-      setConfirmDelete(null);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const { mutate: updateTransferMutate, isPending: isUpdating } = useUpdateTransfer();
+
+  const updateNote = () => {
+    updateTransferMutate(
+      { id: editNote!.id, data: { note: noteVal || null } },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListTransfersQueryKey(branchId) });
+          toast.success(t("inventory.transfers.noteUpdatedToast"));
+          setEditNote(null);
+        },
+        onError: (e: any) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
+
+  const { mutate: deleteTransfer, isPending: isRemoving } = useDeleteTransfer();
+
+  const remove = (id: string) => {
+    deleteTransfer(
+      { id },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListTransfersQueryKey(branchId) });
+          qc.invalidateQueries({ queryKey: getListBranchStockQueryKey(branchId) });
+          toast.success(t("inventory.transfers.reversedToast"));
+          setConfirmDelete(null);
+        },
+        onError: (e: any) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
 
   const cols: ColumnDef<BranchInventoryTransfer>[] = [
     {
@@ -769,7 +845,7 @@ function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) 
         <DialogContent>
           <DialogHeader><DialogTitle>{t("inventory.transfers.newTransfer")}</DialogTitle></DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((v) => create.mutate(v))}>
+            <form onSubmit={form.handleSubmit(create)}>
               <DialogBody>
                 <FormField control={form.control} name="source_branch_id" render={({ field }) => (
                   <FormItem>
@@ -798,7 +874,7 @@ function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) 
                     <FormLabel>{t("recipes.ingredient")}</FormLabel>
                     <FormControl>
                       <SearchableSelect
-                        options={catalog.filter((c) => c.is_active).map((c) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit) }))}
+                        options={catalog.filter((c: OrgIngredient) => c.is_active).map((c: OrgIngredient) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit) }))}
                         value={field.value || null}
                         onChange={(v) => field.onChange(v ?? "")}
                       />
@@ -815,7 +891,7 @@ function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) 
               </DialogBody>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setNewDlg(false)}>{t("common.cancel")}</Button>
-                <Button type="submit" loading={create.isPending}>{t("common.save")}</Button>
+                <Button type="submit" loading={isCreating}>{t("common.save")}</Button>
               </DialogFooter>
             </form>
           </Form>
@@ -830,7 +906,7 @@ function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) 
           </DialogBody>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditNote(null)}>{t("common.cancel")}</Button>
-            <Button loading={updateNote.isPending} onClick={() => updateNote.mutate()}>{t("common.save")}</Button>
+            <Button loading={isUpdating} onClick={updateNote}>{t("common.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -840,8 +916,8 @@ function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) 
         onOpenChange={(o) => !o && setConfirmDelete(null)}
         title={t("common.confirmDelete", { name: confirmDelete?.ingredient_name ?? "" })}
         destructive
-        loading={remove.isPending}
-        onConfirm={() => confirmDelete && remove.mutate(confirmDelete.id)}
+        loading={isRemoving}
+        onConfirm={() => confirmDelete && remove(confirmDelete.id)}
       />
     </div>
   );
@@ -851,7 +927,7 @@ function TransfersTab({ orgId, branchId }: { orgId: string; branchId: string }) 
 export default function Inventory() {
   const { t } = useTranslation();
   const { orgId, branchId: ctxBranch } = useCurrentContext();
-  const { data: branches = [] } = useBranches(orgId);
+  const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const [selBranch, setSelBranch] = useState(ctxBranch ?? "");
   const [tab, setTab] = useState<"catalog" | "stock" | "adjustments" | "transfers">("catalog");
 

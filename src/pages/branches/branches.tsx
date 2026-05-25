@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -19,10 +19,11 @@ import {
 } from "@/shared/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { branchApi } from "@/entities/branch/api";
-import { useBranches } from "@/entities/branch/queries";
+import {
+  useListBranches, useCreateBranch, useUpdateBranch, useDeleteBranch, getListBranchesQueryKey,
+} from "@/shared/api/generated/api";
 import { branchSchema, type BranchValues } from "@/entities/branch/schemas";
-import { QUERY_KEYS, PRINTER_BRANDS } from "@/shared/config/constants";
+import { PRINTER_BRANDS } from "@/shared/config/constants";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { exportToExcel } from "@/shared/lib/excel";
@@ -47,29 +48,47 @@ function BranchDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: 
 
   const printerBrand = form.watch("printer_brand");
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: BranchValues) => {
-      const hasPrinter = v.printer_brand !== "none";
-      const payload = {
-        org_id: orgId,
-        name: v.name,
-        address: v.address || null,
-        phone: v.phone || null,
-        timezone: v.timezone,
-        is_active: v.is_active,
-        printer_brand: hasPrinter ? (v.printer_brand as "star" | "epson") : null,
-        printer_ip: hasPrinter ? (v.printer_ip ?? null) : null,
-        printer_port: hasPrinter ? (v.printer_port ?? null) : null,
-      };
-      return edit ? branchApi.update(edit.id, payload) : branchApi.create(payload);
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.branches(orgId) });
-      toast.success(edit ? t("branches.updatedToast") : t("branches.createdToast"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const updateBranch = useUpdateBranch({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListBranchesQueryKey({ org_id: orgId ?? "" }) });
+        toast.success(t("branches.updatedToast"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
+
+  const createBranch = useCreateBranch({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListBranchesQueryKey({ org_id: orgId ?? "" }) });
+        toast.success(t("branches.createdToast"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
+  });
+
+  function onSubmit(v: BranchValues) {
+    const hasPrinter = v.printer_brand !== "none";
+    const payload = {
+      org_id: orgId,
+      name: v.name,
+      address: v.address || null,
+      phone: v.phone || null,
+      timezone: v.timezone,
+      is_active: v.is_active,
+      printer_brand: hasPrinter ? (v.printer_brand as "star" | "epson") : null,
+      printer_ip: hasPrinter ? (v.printer_ip ?? null) : null,
+      printer_port: hasPrinter ? (v.printer_port ?? null) : null,
+    };
+    if (edit) {
+      updateBranch.mutate({ id: edit.id, data: payload });
+    } else {
+      createBranch.mutate({ data: payload });
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -79,7 +98,7 @@ function BranchDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: 
           <DialogDescription>{t("branches.subtitle")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogBody>
               <FormField
                 control={form.control}
@@ -198,7 +217,7 @@ function BranchDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: 
             </DialogBody>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" loading={isPending}>{edit ? t("common.saveChanges") : t("common.create")}</Button>
+              <Button type="submit" loading={updateBranch.isPending || createBranch.isPending}>{edit ? t("common.saveChanges") : t("common.create")}</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -215,16 +234,17 @@ export default function Branches() {
   const [editBranch, setEditBranch] = useState<Branch | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Branch | null>(null);
 
-  const { data: branches = [], isLoading } = useBranches(orgId);
+  const { data: branches = [], isLoading } = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
 
-  const { mutate: remove, isPending: removing } = useMutation({
-    mutationFn: (id: string) => branchApi.remove(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.branches(orgId) });
-      toast.success(t("branches.deletedToast"));
-      setConfirmDelete(null);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const { mutate: remove, isPending: removing } = useDeleteBranch({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListBranchesQueryKey({ org_id: orgId ?? "" }) });
+        toast.success(t("branches.deletedToast"));
+        setConfirmDelete(null);
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
   const columns: ColumnDef<Branch>[] = [
@@ -362,7 +382,7 @@ export default function Branches() {
         title={t("common.confirmDelete", { name: confirmDelete?.name ?? "" })}
         destructive
         loading={removing}
-        onConfirm={() => confirmDelete && remove(confirmDelete.id)}
+        onConfirm={() => confirmDelete && remove({ id: confirmDelete.id })}
       />
     </PageShell>
   );

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { PageShell } from "@/shared/ui/page-shell";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
-import { useBranches } from "@/entities/branch/queries";
+import { useListBranches as useBranches } from "@/shared/api/generated/api";
 import {
   Select,
   SelectContent,
@@ -302,7 +302,7 @@ function RemovalScenarioItem({
 export default function MenuAdvisorDashboard() {
   const { t } = useTranslation();
   const { orgId, branchId: ctxBranch } = useCurrentContext(); // ← restore orgId
-  const { data: branches = [] } = useBranches(orgId); // ← pass it
+  const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } }); // ← pass it
   const [selBranch, setSelBranch] = useState<string>(ctxBranch ?? "");
 
   // Default to first branch when none selected — effect, not memo.

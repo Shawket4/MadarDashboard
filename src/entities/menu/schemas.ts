@@ -1,14 +1,15 @@
 import { z } from "zod";
 import { egpToPiastres } from "@/shared/lib/zod-utils";
+import { CreateCategoryBody, CreateMenuItemBody, CreateAddonItemBody, CreateAddonSlotBody, CreateOptionalFieldBody } from "@/shared/api/generated/zod/api.zod";
 
-export const categorySchema = z.object({
+export const categorySchema = CreateCategoryBody.extend({
   name: z.string().trim().min(1),
   display_order: z.coerce.number().int().min(0).default(0),
   is_active: z.boolean().default(true),
 });
 export type CategoryValues = z.infer<typeof categorySchema>;
 
-export const menuItemSchema = z.object({
+export const menuItemSchema = CreateMenuItemBody.extend({
   name: z.string().trim().min(1),
   description: z.string().trim().nullish().or(z.literal("")),
   base_price: egpToPiastres,
@@ -24,7 +25,7 @@ export const menuItemSchema = z.object({
 });
 export type MenuItemValues = z.infer<typeof menuItemSchema>;
 
-export const addonSchema = z.object({
+export const addonSchema = CreateAddonItemBody.extend({
   name: z.string().trim().min(1),
   addon_type: z.string().trim().min(1),
   default_price: egpToPiastres,
@@ -33,8 +34,7 @@ export const addonSchema = z.object({
 });
 export type AddonValues = z.infer<typeof addonSchema>;
 
-export const slotSchema = z
-  .object({
+export const slotSchema = CreateAddonSlotBody.extend({
     addon_type: z.string().trim().min(1),
     label: z.string().trim().nullish().or(z.literal("")),
     is_required: z.boolean().default(false),
@@ -48,7 +48,7 @@ export const slotSchema = z
   });
 export type SlotValues = z.infer<typeof slotSchema>;
 
-export const optionalSchema = z.object({
+export const optionalSchema = CreateOptionalFieldBody.extend({
   name: z.string().trim().min(1),
   org_ingredient_id: z.string().nullish(),
   ingredient_name: z.string().nullish(),

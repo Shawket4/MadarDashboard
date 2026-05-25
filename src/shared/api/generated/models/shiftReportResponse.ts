@@ -1,0 +1,21 @@
+/* /* eslint-disable *\/ */
+/**
+ * // @ts-nocheck
+ */
+import type { CashMovementSummaryRow } from './cashMovementSummaryRow';
+import type { PaymentSummaryRow } from './paymentSummaryRow';
+import type { Shift } from './shift';
+
+export interface ShiftReportResponse {
+  cash_movements: CashMovementSummaryRow[];
+  cash_movements_in: number;
+  /** Net of all cash movements (in - out) as a signed integer */
+  cash_movements_net: number;
+  cash_movements_out: number;
+  net_payments: number;
+  payment_summary: PaymentSummaryRow[];
+  printed_at: string;
+  shift: Shift;
+  total_payments: number;
+  voided_amount: number;
+}

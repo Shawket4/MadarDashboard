@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { useMutation } from "@tanstack/react-query";
+
 import { toast } from "sonner";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
-import { authApi } from "@/entities/auth/api";
 import { loginSchema, type LoginValues } from "@/entities/auth/schemas";
+import { useLogin } from "@/shared/api/generated/api";
 import { useAuthStore } from "@/shared/auth/store";
 import { getErrorMessage } from "@/shared/api/errors";
 import { ThemeToggle } from "@/widgets/theme-toggle/theme-toggle";
@@ -28,13 +28,14 @@ export default function Login() {
     defaultValues: { email: "", password: "" },
   });
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: authApi.login,
-    onSuccess: (data) => {
-      signIn(data.token, data.user);
-      navigate("/", { replace: true });
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const { mutate, isPending } = useLogin({
+    mutation: {
+      onSuccess: (data) => {
+        signIn(data.token, data.user);
+        navigate("/", { replace: true });
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
   return (
@@ -113,7 +114,7 @@ export default function Login() {
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((v) => mutate(v))} className="space-y-4">
+            <form onSubmit={form.handleSubmit((v) => mutate({ data: v }))} className="space-y-4">
               <FormField
                 control={form.control}
                 name="email"

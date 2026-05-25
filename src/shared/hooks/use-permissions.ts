@@ -1,6 +1,5 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { authApi } from "@/entities/auth/api";
+import { useGetMyPermissions } from "@/shared/api/generated/api";
 import { useCurrentContext } from "./use-current-context";
 import type { Role } from "@/shared/config/constants";
 
@@ -55,11 +54,11 @@ const ROLE_DEFAULTS: Record<Role, Record<string, Partial<Record<string, boolean>
 export const usePermissions = () => {
   const { user } = useCurrentContext();
 
-  const { data } = useQuery({
-    queryKey: ["auth-permissions", user?.id],
-    queryFn: () => authApi.getPermissions(),
-    enabled: !!user,
-    staleTime: 5 * 60_000,
+  const { data } = useGetMyPermissions({
+    query: {
+      enabled: !!user,
+      staleTime: 5 * 60_000,
+    }
   });
 
   return useMemo(() => {

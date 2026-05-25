@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -22,22 +22,25 @@ import {
 } from "@/shared/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import type { Shift } from "@/shared/api/generated/models/shift";
 import { StatCard } from "@/shared/ui/stat-card";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
-import { shiftApi } from "@/entities/shift/api";
-import { useShifts, useCurrentShift, useShiftReport } from "@/entities/shift/queries";
-import { useBranches } from "@/entities/branch/queries";
+import { 
+  useListShifts, useGetCurrentShift, useGetShiftReport,
+  useOpenShift, useCloseShift, useForceCloseShift,
+  useAddCashMovement, useDeleteShift,
+  getListShiftsQueryKey, getGetCurrentShiftQueryKey, useListBranches as useBranches
+} from "@/shared/api/generated/api";
 import {
   openShiftSchema, closeShiftSchema, forceCloseSchema, cashMovementSchema,
   type OpenShiftValues, type CloseShiftValues, type ForceCloseValues, type CashMovementValues,
 } from "@/entities/shift/schemas";
-import { QUERY_KEYS } from "@/shared/config/constants";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtDateTime, fmtDuration, fmtMoney } from "@/shared/lib/format";
 import { exportToExcel } from "@/shared/lib/excel";
 import type { ShiftStatus } from "@/shared/config/constants";
-import type { Shift } from "@/shared/types";
+
 
 function OpenShiftDialog({ open, onClose, branchId, suggested }: { open: boolean; onClose: () => void; branchId: string; suggested: number }) {
   const { t } = useTranslation();
@@ -48,15 +51,16 @@ function OpenShiftDialog({ open, onClose, branchId, suggested }: { open: boolean
     defaultValues: { opening_cash: (suggested / 100) as any },
   });
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: OpenShiftValues) => shiftApi.open(branchId, v),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.shifts(branchId) });
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.shiftPreFill(branchId) });
-      toast.success(t("shifts.toasts.opened"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const openShift = useOpenShift({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListShiftsQueryKey(branchId) });
+        qc.invalidateQueries({ queryKey: getGetCurrentShiftQueryKey(branchId) });
+        toast.success(t("shifts.toasts.opened"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
   return (
@@ -67,7 +71,7 @@ function OpenShiftDialog({ open, onClose, branchId, suggested }: { open: boolean
           {suggested > 0 && <DialogDescription>{t("shifts.suggestedOpening", { amount: fmtMoney(suggested) })}</DialogDescription>}
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+          <form onSubmit={form.handleSubmit((v) => openShift.mutate({ branchId, data: v }))}>
             <DialogBody>
               <FormField
                 control={form.control}
@@ -86,7 +90,7 @@ function OpenShiftDialog({ open, onClose, branchId, suggested }: { open: boolean
             </DialogBody>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" loading={isPending}>{t("shifts.openShift")}</Button>
+              <Button type="submit" loading={openShift.isPending}>{t("shifts.openShift")}</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -101,16 +105,17 @@ function CloseShiftDialog({ open, onClose, shiftId }: { open: boolean; onClose: 
   const form = useForm<CloseShiftValues>({
     resolver: zodResolver(closeShiftSchema),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    defaultValues: { closing_cash_declared: 0 as any, notes: "" },
+    defaultValues: { closing_cash_declared: 0 as any },
   });
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: CloseShiftValues) => shiftApi.close(shiftId, { ...v, notes: v.notes || null }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["shifts"] });
-      toast.success(t("shifts.toasts.closed"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const closeShift = useCloseShift({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListShiftsQueryKey("") }); // Broad invalidate
+        toast.success(t("shifts.toasts.closed"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
   return (
@@ -118,7 +123,7 @@ function CloseShiftDialog({ open, onClose, shiftId }: { open: boolean; onClose: 
       <DialogContent>
         <DialogHeader><DialogTitle>{t("shifts.close")}</DialogTitle></DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+          <form onSubmit={form.handleSubmit((v) => closeShift.mutate({ shiftId, data: { ...v, inventory_counts: [] } }))}>
             <DialogBody>
               <FormField control={form.control} name="closing_cash_declared" render={({ field }) => (
                 <FormItem>
@@ -128,13 +133,10 @@ function CloseShiftDialog({ open, onClose, shiftId }: { open: boolean; onClose: 
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="notes" render={({ field }) => (
-                <FormItem><FormLabel>{t("common.notes")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
-              )} />
             </DialogBody>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" loading={isPending}>{t("shifts.close")}</Button>
+              <Button type="submit" loading={closeShift.isPending}>{t("shifts.close")}</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -147,14 +149,15 @@ function ForceCloseDialog({ open, onClose, shiftId }: { open: boolean; onClose: 
   const { t } = useTranslation();
   const qc = useQueryClient();
   const form = useForm<ForceCloseValues>({ resolver: zodResolver(forceCloseSchema), defaultValues: { reason: "" } });
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: ForceCloseValues) => shiftApi.forceClose(shiftId, v),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["shifts"] });
-      toast.success(t("shifts.toasts.forceClosed"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const forceClose = useForceCloseShift({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListShiftsQueryKey("") });
+        toast.success(t("shifts.toasts.forceClosed"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
   return (
@@ -172,7 +175,7 @@ function ForceCloseDialog({ open, onClose, shiftId }: { open: boolean; onClose: 
           </div>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+          <form onSubmit={form.handleSubmit((v) => forceClose.mutate({ shiftId, data: v }))}>
             <DialogBody>
               <FormField control={form.control} name="reason" render={({ field }) => (
                 <FormItem>
@@ -184,7 +187,7 @@ function ForceCloseDialog({ open, onClose, shiftId }: { open: boolean; onClose: 
             </DialogBody>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" variant="warning" loading={isPending}>{t("shifts.forceClose")}</Button>
+              <Button type="submit" variant="warning" loading={forceClose.isPending}>{t("shifts.forceClose")}</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -202,17 +205,15 @@ function CashMovementDialog({ open, onClose, shiftId }: { open: boolean; onClose
     defaultValues: { direction: "in", amount: 0 as any, note: "" },
   });
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: CashMovementValues) => {
-      const amount = v.direction === "out" ? -v.amount : v.amount;
-      return shiftApi.addMovement(shiftId, { amount, note: v.note });
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["shifts"] });
-      toast.success(t("shifts.toasts.cashRecorded"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const addMovement = useAddCashMovement({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListShiftsQueryKey("") });
+        toast.success(t("shifts.toasts.cashRecorded"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
   const dir = form.watch("direction");
@@ -222,7 +223,10 @@ function CashMovementDialog({ open, onClose, shiftId }: { open: boolean; onClose
       <DialogContent>
         <DialogHeader><DialogTitle>{t("shifts.cashDialog.title")}</DialogTitle></DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+          <form onSubmit={form.handleSubmit((v) => {
+            const amount = v.direction === "out" ? -v.amount : v.amount;
+            addMovement.mutate({ shiftId, data: { amount, note: v.note } });
+          })}>
             <DialogBody>
               <FormField control={form.control} name="direction" render={({ field }) => (
                 <FormItem>
@@ -266,7 +270,7 @@ function CashMovementDialog({ open, onClose, shiftId }: { open: boolean; onClose
             </DialogBody>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" loading={isPending}>{t("common.save")}</Button>
+              <Button type="submit" loading={addMovement.isPending}>{t("common.save")}</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -277,7 +281,7 @@ function CashMovementDialog({ open, onClose, shiftId }: { open: boolean; onClose
 
 function ShiftReportDrawer({ open, onClose, shiftId }: { open: boolean; onClose: () => void; shiftId: string | null }) {
   const { t } = useTranslation();
-  const { data: report, isLoading } = useShiftReport(shiftId);
+  const { data: report, isLoading } = useGetShiftReport(shiftId ?? "", { query: { enabled: !!shiftId } });
 
   const handlePrint = () => {
     if (!report) return;
@@ -378,10 +382,12 @@ function ShiftReportDrawer({ open, onClose, shiftId }: { open: boolean; onClose:
                   <>
                     <div className="flex justify-between text-sm"><span className="text-muted-foreground">{t("shifts.declaredCash")}</span><span className="tabular">{fmtMoney(report.shift.closing_cash_declared)}</span></div>
                     {report.shift.cash_discrepancy !== null && (
-                      <div className={`flex justify-between text-sm font-bold ${report.shift.cash_discrepancy === 0 ? "text-muted-foreground" : report.shift.cash_discrepancy > 0 ? "text-success" : "text-destructive"}`}>
-                        <span>{t("shifts.cashDiscrepancy")}</span>
+                      <div className="flex justify-between text-sm font-bold">
+                        <span className={(report.shift.cash_discrepancy ?? 0) < 0 ? "text-destructive" : (report.shift.cash_discrepancy ?? 0) > 0 ? "text-success" : "text-muted-foreground"}>
+                          {fmtMoney(report.shift.cash_discrepancy ?? 0)}
+                        </span>
                         <span className="tabular">
-                          {report.shift.cash_discrepancy === 0 ? t("shifts.exactMatch") : `${report.shift.cash_discrepancy > 0 ? t("shifts.over") : t("shifts.short")} ${fmtMoney(Math.abs(report.shift.cash_discrepancy))}`}
+                          {(report.shift.cash_discrepancy ?? 0) === 0 ? t("shifts.exactMatch") : `${(report.shift.cash_discrepancy ?? 0) > 0 ? t("shifts.over") : t("shifts.short")} ${fmtMoney(Math.abs(report.shift.cash_discrepancy ?? 0))}`}
                         </span>
                       </div>
                     )}
@@ -424,15 +430,15 @@ const STATUS_VARIANT: Record<ShiftStatus, "success" | "secondary" | "warning"> =
 export default function Shifts() {
   const { t } = useTranslation();
   const { orgId, branchId: ctxBranch, role: currentUserRole } = useCurrentContext();
-  const { data: branches = [] } = useBranches(orgId);
+  const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const [selBranch, setSelBranch] = useState<string>(ctxBranch ?? "");
 
   useMemo(() => {
     if (!selBranch && branches.length > 0) setSelBranch(branches[0].id);
   }, [branches, selBranch]);
 
-  const { data: shifts = [], isLoading } = useShifts(selBranch || null);
-  const { data: preFill } = useCurrentShift(selBranch || null);
+  const { data: shifts = [], isLoading } = useListShifts(selBranch ?? "", { query: { enabled: !!selBranch } });
+  const { data: preFill } = useGetCurrentShift(selBranch ?? "", { query: { enabled: !!selBranch } });
 
   const [openDlg, setOpenDlg] = useState(false);
   const [closeDlg, setCloseDlg] = useState(false);
@@ -445,16 +451,16 @@ export default function Shifts() {
   const canDeleteShift = currentUserRole === "org_admin" || currentUserRole === "super_admin";
 
   const qc = useQueryClient();
-  const { mutate: deleteShift, isPending: isDeleting } = useMutation({
-    mutationFn: (id: string) => shiftApi.delete(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["shifts"] });
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.shifts(selBranch) });
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.shiftPreFill(selBranch) });
-      toast.success(t("shifts.toasts.deleted") || "Shift deleted successfully");
-      setDeleteShiftId(null);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const deleteShiftMutation = useDeleteShift({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListShiftsQueryKey(selBranch ?? "") });
+        qc.invalidateQueries({ queryKey: getGetCurrentShiftQueryKey(selBranch ?? "") });
+        toast.success(t("shifts.toasts.deleted") || "Shift deleted successfully");
+        setDeleteShiftId(null);
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
   const cols: ColumnDef<Shift>[] = [
@@ -466,7 +472,7 @@ export default function Shifts() {
     {
       accessorKey: "status",
       header: t("common.status"),
-      cell: ({ row }) => <Badge variant={STATUS_VARIANT[row.original.status]}>{t(`shiftStatus.${row.original.status}`)}</Badge>,
+      cell: ({ row }) => <Badge variant={STATUS_VARIANT[row.original.status as ShiftStatus] || "secondary"}>{t(`shiftStatus.${row.original.status}`)}</Badge>,
     },
     { accessorKey: "opened_at", header: t("shifts.opened"), cell: ({ row }) => <span className="text-xs">{fmtDateTime(row.original.opened_at)}</span> },
     {
@@ -605,8 +611,8 @@ export default function Shifts() {
         description={t("shifts.deleteConfirmDesc") || "This will permanently delete the shift, all of its orders, and all related records. This action is extremely destructive and cannot be undone."}
         confirmLabel={t("common.delete") || "Delete"}
         destructive
-        loading={isDeleting}
-        onConfirm={() => deleteShiftId && deleteShift(deleteShiftId)}
+        loading={deleteShiftMutation.isPending}
+        onConfirm={() => deleteShiftId && deleteShiftMutation.mutate({ shiftId: deleteShiftId })}
       />
     </PageShell>
   );

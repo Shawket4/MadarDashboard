@@ -4,11 +4,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/mocks/server'
 import Branches from '../branches'
-import { env } from '@/shared/config/env'
 import { toast } from 'sonner'
 import * as useCurrentContextMock from '@/shared/hooks/use-current-context'
-
-const API_URL = env.VITE_API_URL
+import { getListBranchesMockHandler, getCreateBranchMockHandler, getUpdateBranchMockHandler, getDeleteBranchMockHandler } from '@/shared/api/generated/api.msw'
 
 // Mock exportToExcel to avoid actual file saving during tests
 vi.mock('@/shared/lib/excel', () => ({
@@ -35,9 +33,7 @@ describe('Branches Page', () => {
     } as any)
     
     server.use(
-      http.get(`${API_URL}/branches`, () => {
-        return HttpResponse.json(mockBranches)
-      })
+      getListBranchesMockHandler(mockBranches as any)
     )
   })
 
@@ -56,7 +52,7 @@ describe('Branches Page', () => {
 
   it('handles API errors gracefully', async () => {
     server.use(
-      http.get(`${API_URL}/branches`, () => {
+      http.get('*/branches', () => {
         return HttpResponse.json({ message: 'Error' }, { status: 500 })
       })
     )
@@ -87,9 +83,9 @@ describe('Branches Page', () => {
 
     let createBody: any = null
     server.use(
-      http.post(`${API_URL}/branches`, async ({ request }) => {
-        createBody = await request.json()
-        return HttpResponse.json({ id: '3', ...createBody })
+      getCreateBranchMockHandler(async (info) => {
+        createBody = await info.request.clone().json()
+        return { id: '3', ...createBody } as any
       })
     )
 
@@ -132,9 +128,9 @@ describe('Branches Page', () => {
 
     let updateBody: any = null
     server.use(
-      http.put(`${API_URL}/branches/1`, async ({ request }) => {
-        updateBody = await request.json()
-        return HttpResponse.json({ id: '1', ...updateBody })
+      getUpdateBranchMockHandler(async (info) => {
+        updateBody = await info.request.clone().json()
+        return { id: '1', ...updateBody } as any
       })
     )
 
@@ -168,9 +164,7 @@ describe('Branches Page', () => {
     })
 
     server.use(
-      http.delete(`${API_URL}/branches/1`, () => {
-        return HttpResponse.json({ success: true })
-      })
+      getDeleteBranchMockHandler({ success: true } as any)
     )
 
     // Click confirm inside the confirm dialog
@@ -218,5 +212,34 @@ describe('Branches Page', () => {
     
     const smGrid = container.querySelector('.sm\\:grid-cols-2')
     expect(smGrid).toBeInTheDocument()
+  })
+
+  it('validates printer IP and port when printer brand is selected', async () => {
+    const user = userEvent.setup()
+    render(<Branches />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Downtown Branch')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /common.new/i }))
+    expect(screen.getByText('branches.newTitle')).toBeInTheDocument()
+    
+    // Select printer brand
+    const selectTrigger = screen.getByRole('combobox', { name: /branches.printerBrand/i })
+    await user.click(selectTrigger)
+    const starOption = screen.getByRole('option', { name: /Star/i })
+    await user.click(starOption)
+
+    // Type a branch name so that validation doesn't fail on name
+    await user.type(screen.getByLabelText('branches.branchName'), 'Print Branch')
+
+    // Submit form without IP and Port
+    await user.click(screen.getByRole('button', { name: /common.create/i }))
+
+    // Validation should trigger on IP and Port
+    await waitFor(() => {
+      expect(screen.getAllByText(/String must contain|Required|invalid/i).length).toBeGreaterThan(0)
+    })
   })
 })

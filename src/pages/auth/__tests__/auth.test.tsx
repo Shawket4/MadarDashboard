@@ -6,7 +6,7 @@ import { server } from '@/test/mocks/server'
 import Login from '../login'
 import { useAuthStore } from '@/shared/auth/store'
 import { toast } from 'sonner'
-import { env } from '@/shared/config/env'
+import { getLoginMockHandler } from '@/shared/api/generated/api.msw'
 
 const mockSignIn = vi.fn()
 vi.mock('@/shared/auth/store', () => ({
@@ -47,10 +47,10 @@ describe('Auth Page (Login)', () => {
     render(<Login />)
 
     server.use(
-      http.post(`${env.VITE_API_URL}/auth/login`, async ({ request }) => {
-        const body = (await request.json()) as any
+      getLoginMockHandler(async (info) => {
+        const body = (await info.request.clone().json()) as any
         if (body.email === 'test@example.com' && body.password === 'password123') {
-          return HttpResponse.json({ token: 'mock-token', user: { id: 1, name: 'Test' } })
+          return { token: 'mock-token', user: { id: '1', name: 'Test' } } as any
         }
         return HttpResponse.json({ message: 'Invalid credentials' }, { status: 401 })
       })
@@ -63,7 +63,7 @@ describe('Auth Page (Login)', () => {
     await user.click(submitBtn)
 
     await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith('mock-token', { id: 1, name: 'Test' })
+      expect(mockSignIn).toHaveBeenCalledWith('mock-token', { id: '1', name: 'Test' })
     })
   })
 
@@ -72,7 +72,7 @@ describe('Auth Page (Login)', () => {
     render(<Login />)
 
     server.use(
-      http.post(`${env.VITE_API_URL}/auth/login`, () => {
+      http.post('*/auth/login', () => {
         return HttpResponse.json({ message: 'Server Error 500' }, { status: 500 })
       })
     )

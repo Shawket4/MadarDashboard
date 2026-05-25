@@ -1,0 +1,375 @@
+
+> sufrix-dashboard@1.0.0 test
+> vitest run orders.test.tsx
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.7 [39m[90m/Users/shawket/Desktop/SufrixDashboard[39m
+
+[90mstderr[2m | src/pages/orders/__tests__/orders.test.tsx[2m > [22m[2mOrders Page[2m > [22m[2mopens order detail and voids an order
+[22m[39m`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+
+ [31m❯[39m src/pages/orders/__tests__/orders.test.tsx [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1324[2mms[22m[39m
+[31m     [31m×[31m renders list of orders and stats[39m[33m 1089[2mms[22m[39m
+     [32m✓[39m opens order detail and voids an order[32m 232[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/pages/orders/__tests__/orders.test.tsx[2m > [22mOrders Page[2m > [22mrenders list of orders and stats
+[31m[1mTestingLibraryElementError[22m[39m: Found multiple elements with the text: /150\.00/
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"font-bold tabular font-sans tracking-tight block text-xl sm:text-2xl"[39m
+[36m>[39m
+  [0mEGP 150.00[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"tabular font-semibold text-sm"[39m
+[36m>[39m
+  [0mEGP 150.00[0m
+[36m</span>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-5 animate-fade-in"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex items-start justify-between gap-4 flex-wrap"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"min-w-0"[39m
+        [36m>[39m
+          [36m<h1[39m
+            [33mclass[39m=[32m"text-xl sm:text-2xl font-bold tracking-tight"[39m
+          [36m>[39m
+            [0morders.title[0m
+          [36m</h1>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"text-muted-foreground text-sm mt-1"[39m
+          [36m>[39m
+            [0morders.subtitle[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"rounded-xl border bg-card p-4 sm:p-5 transition-all"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start justify-between gap-2.5"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1 min-w-0"[39m
+            [36m>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate"[39m
+              [36m>[39m
+                [0morders.totalRevenue[0m
+              [36m</p>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"mt-1"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"font-bold tabular font-sans tracking-tight block text-xl sm:text-2xl"[39m
+                [36m>[39m
+                  [0mEGP 150.00[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-success/10 text-success"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-receipt sm:w-[18px] sm:h-[18px]"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"16"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"16"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 17.5v-11"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"rounded-xl border bg-card p-4 sm:p-5 transition-all"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start justify-between gap-2.5"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1 min-w-0"[39m
+            [36m>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate"[39m
+              [36m>[39m
+                [0morders.completed[0m
+              [36m</p>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"mt-1"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"font-bold tabular font-sans tracking-tight block text-2xl"[39m
+                [36m>[39m
+                  [0m1[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-info/10 text-info"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-shopping-bag sm:w-[18px] sm:h-[18px]"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"16"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"16"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 6h18"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M16 10a4 4 0 0 1-8 0"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"rounded-xl border bg-card p-4 sm:p-5 transition-all"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start justify-between gap-2.5"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1 min-w-0"[39m
+            [36m>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate"[39m
+              [36m>[39m
+                [0morders.voidedOrders[0m
+              [36m</p>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"mt-1"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"font-bold tabular font-sans tracking-tight block text-2xl"[39m
+                [36m>[39m
+                  [0m1[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-destructive/10 text-destructive"[39m
+            [36m>[39m
+              [36m<svg...
+
+Ignored nodes: comments, script, style
+[36m<html[39m
+  [33mclass[39m=[32m"light"[39m
+  [33mdir[39m=[32m"ltr"[39m
+  [33mlang[39m=[32m"en"[39m
+  [33mstyle[39m=[32m"color-scheme: light;"[39m
+[36m>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-5 animate-fade-in"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-start justify-between gap-4 flex-wrap"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"min-w-0"[39m
+          [36m>[39m
+            [36m<h1[39m
+              [33mclass[39m=[32m"text-xl sm:text-2xl font-bold tracking-tight"[39m
+            [36m>[39m
+              [0morders.title[0m
+            [36m</h1>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-muted-foreground text-sm mt-1"[39m
+            [36m>[39m
+              [0morders.subtitle[0m
+            [36m</p>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"rounded-xl border bg-card p-4 sm:p-5 transition-all"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-start justify-between gap-2.5"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex-1 min-w-0"[39m
+              [36m>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate"[39m
+                [36m>[39m
+                  [0morders.totalRevenue[0m
+                [36m</p>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"mt-1"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"font-bold tabular font-sans tracking-tight block text-xl sm:text-2xl"[39m
+                  [36m>[39m
+                    [0mEGP 150.00[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-success/10 text-success"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33mclass[39m=[32m"lucide lucide-receipt sm:w-[18px] sm:h-[18px]"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"16"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"16"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M12 17.5v-11"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"rounded-xl border bg-card p-4 sm:p-5 transition-all"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-start justify-between gap-2.5"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex-1 min-w-0"[39m
+              [36m>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate"[39m
+                [36m>[39m
+                  [0morders.completed[0m
+                [36m</p>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"mt-1"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"font-bold tabular font-sans tracking-tight block text-2xl"[39m
+                  [36m>[39m
+                    [0m1[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-info/10 text-info"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33mclass[39m=[32m"lucide lucide-shopping-bag sm:w-[18px] sm:h-[18px]"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"16"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"16"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M3 6h18"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M16 10a4 4 0 0 1-8 0"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"rounded-xl border bg-card p-4 sm:p-5 transition-all"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-start justify-between gap-2.5"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex-1 min-w-0"[39m
+              [36m>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate"[39m
+                [36m>[39m
+                  [0morders.voidedOrders[0m
+                [36m</p>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"mt-1"[39m
+                [36m>[39m
+                  [36m<s...
+[90m [2m❯[22m waitFor node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[36m [2m❯[22m src/pages/orders/__tests__/orders.test.tsx:[2m101:11[22m[39m
+    [90m 99|[39m
+    [90m100|[39m     [90m// Wait for the stats to load[39m
+    [90m101|[39m     [35mawait[39m [34mwaitFor[39m(() [33m=>[39m {
+    [90m   |[39m           [31m^[39m
+    [90m102|[39m       expect(screen.getByText(/150\.00/)).toBeInTheDocument() // Reven…
+    [90m103|[39m     })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 22:50:42
+[2m   Duration [22m 2.41s[2m (transform 327ms, setup 407ms, import 327ms, tests 1.32s, environment 286ms)[22m
+

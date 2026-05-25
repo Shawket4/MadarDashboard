@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 import type { ExcelSheetConfig } from "@/shared/lib/excel";
-import type { OrderExport } from "@/shared/types";
+import type { OrderExport } from "@/shared/api/generated/models/orderExport";
 import type { Grain } from "../model/types";
 import {
   orderColumns,
@@ -39,7 +39,7 @@ export function buildSheets(
         created_at: o.created_at,
         payment_method: o.payment_method,
         item_name: it.item_name,
-        size_label: it.size_label,
+        size_label: it.size_label || null,
         quantity: it.quantity,
         unit_price: it.unit_price,
         line_total: it.line_total,
@@ -47,7 +47,7 @@ export function buildSheets(
           .map((a) => `+ ${a.addon_name}${a.quantity > 1 ? ` ×${a.quantity}` : ""}`)
           .join(", "),
         optionals: (it.optionals || []).map((opt) => opt.field_name).join(", "),
-        notes: it.notes,
+        notes: it.notes || null,
       }))
     );
     sheets.push({
@@ -67,7 +67,7 @@ export function buildSheets(
         order_total: o.total_amount,
         split_method: p.method,
         split_amount: p.amount,
-        reference: p.reference,
+        reference: p.reference || null,
       }))
     );
     sheets.push({
@@ -83,7 +83,7 @@ export function buildSheets(
     // Raw sheet
     const raw: DeductionRow[] = orders.flatMap((o) =>
       o.items.flatMap((it) =>
-        (it.deductions_snapshot ?? []).map((d) => ({
+        (Array.isArray(it.deductions_snapshot) ? it.deductions_snapshot : []).map((d: any) => ({
           order_number: o.order_number,
           created_at: o.created_at,
           item_name: it.item_name,

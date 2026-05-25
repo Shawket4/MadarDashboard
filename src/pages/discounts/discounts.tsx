@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { type ColumnDef } from "@tanstack/react-table";
@@ -19,25 +19,24 @@ import {
 } from "@/shared/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { discountApi } from "@/entities/discount/api";
-import { useDiscounts } from "@/entities/discount/queries";
+import { useListDiscounts, useCreateDiscount, useUpdateDiscount, useDeleteDiscount, getListDiscountsQueryKey } from "@/shared/api/generated/api";
+import type { Discount } from "@/shared/api/generated/models/discount";
 import { discountSchema, type DiscountValues } from "@/entities/discount/schemas";
-import { QUERY_KEYS } from "@/shared/config/constants";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtMoney } from "@/shared/lib/format";
 import { exportToExcel } from "@/shared/lib/excel";
-import type { Discount } from "@/shared/types";
 
 function DiscountDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: () => void; edit?: Discount | null; orgId: string }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
 
-  const form = useForm<DiscountValues>({
-    resolver: zodResolver(discountSchema),
+  // Use explicit generic arguments to avoid control mismatch
+  const form = useForm<DiscountValues, any, DiscountValues>({
+    resolver: zodResolver(discountSchema) as unknown as Resolver<DiscountValues, any>,
     defaultValues: {
       name: edit?.name ?? "",
-      dtype: edit?.dtype ?? "percentage",
+      dtype: (edit?.dtype as "percentage" | "fixed") ?? "percentage",
       percent_value: edit?.dtype === "percentage" ? edit.value : undefined,
       fixed_value: edit?.dtype === "fixed" ? edit.value / 100 : undefined,
       is_active: edit?.is_active ?? true,
@@ -46,19 +45,40 @@ function DiscountDialog({ open, onClose, edit, orgId }: { open: boolean; onClose
 
   const dtype = form.watch("dtype");
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: DiscountValues) => {
-      const value = v.dtype === "percentage" ? v.percent_value! : v.fixed_value!;
-      const payload = { name: v.name, dtype: v.dtype, value, is_active: v.is_active };
-      return edit ? discountApi.update(edit.id, payload) : discountApi.create({ ...payload, org_id: orgId });
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.discounts(orgId) });
-      toast.success(edit ? t("discounts.updatedToast") : t("discounts.createdToast"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const { mutate: createDiscount, isPending: isCreating } = useCreateDiscount();
+  const { mutate: updateDiscount, isPending: isUpdating } = useUpdateDiscount();
+  const isPending = isCreating || isUpdating;
+
+  const mutate = (v: DiscountValues) => {
+    const value = v.dtype === "percentage" ? v.percent_value! : v.fixed_value!;
+    const payload = { name: v.name, dtype: v.dtype, value: Number(value), is_active: v.is_active };
+    
+    if (edit) {
+      updateDiscount(
+        { id: edit.id, data: payload },
+        {
+          onSuccess: () => {
+            qc.invalidateQueries({ queryKey: getListDiscountsQueryKey({ org_id: orgId }) });
+            toast.success(t("discounts.updatedToast"));
+            onClose();
+          },
+          onError: (e) => toast.error(getErrorMessage(e)),
+        }
+      );
+    } else {
+      createDiscount(
+        { data: { ...payload, org_id: orgId } },
+        {
+          onSuccess: () => {
+            qc.invalidateQueries({ queryKey: getListDiscountsQueryKey({ org_id: orgId }) });
+            toast.success(t("discounts.createdToast"));
+            onClose();
+          },
+          onError: (e) => toast.error(getErrorMessage(e)),
+        }
+      );
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -181,23 +201,34 @@ export default function Discounts() {
   const [editItem, setEditItem] = useState<Discount | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Discount | null>(null);
 
-  const { data: discounts = [], isLoading } = useDiscounts(orgId);
+  const { data: discounts = [], isLoading } = useListDiscounts({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
 
-  const { mutate: remove, isPending: removing } = useMutation({
-    mutationFn: (id: string) => discountApi.remove(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.discounts(orgId ?? "") });
-      toast.success(t("discounts.deletedToast"));
-      setConfirmDelete(null);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const { mutate: deleteDiscountMutation, isPending: removing } = useDeleteDiscount();
+  const { mutate: updateDiscountMutation } = useUpdateDiscount();
 
-  const { mutate: toggleActive } = useMutation({
-    mutationFn: (d: Discount) => discountApi.update(d.id, { is_active: !d.is_active }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.discounts(orgId ?? "") }),
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
+  const remove = (id: string) => {
+    deleteDiscountMutation(
+      { id },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListDiscountsQueryKey({ org_id: orgId ?? "" }) });
+          toast.success(t("discounts.deletedToast"));
+          setConfirmDelete(null);
+        },
+        onError: (e) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
+
+  const toggleActive = (d: Discount) => {
+    updateDiscountMutation(
+      { id: d.id, data: { is_active: !d.is_active } },
+      {
+        onSuccess: () => qc.invalidateQueries({ queryKey: getListDiscountsQueryKey({ org_id: orgId ?? "" }) }),
+        onError: (e) => toast.error(getErrorMessage(e)),
+      }
+    );
+  };
 
   const columns: ColumnDef<Discount>[] = [
     {

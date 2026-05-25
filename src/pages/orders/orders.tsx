@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -24,16 +24,20 @@ import {
 } from "@/shared/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { orderApi } from "@/entities/order/api";
-import { useOrders } from "@/entities/order/queries";
+import { 
+  useListOrders, useGetOrder, useVoidOrder,
+  getListOrdersQueryKey 
+} from "@/shared/api/generated/api";
 import { voidOrderSchema, type VoidOrderValues } from "@/entities/order/schemas";
-import { useBranches } from "@/entities/branch/queries";
-import { useShifts } from "@/entities/shift/queries";
-import { PAYMENT_METHODS, QUERY_KEYS, PAYMENT_COLORS, ORDER_STATUSES } from "@/shared/config/constants";
+import { useListBranches as useBranches } from "@/shared/api/generated/api";
+import { useListShifts } from "@/shared/api/generated/api";
+import { PAYMENT_METHODS, PAYMENT_COLORS, ORDER_STATUSES } from "@/shared/config/constants";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtDateTime, fmtMoney, fmtUnit } from "@/shared/lib/format";
-import type { Order, OrdersQuery, PaymentMethod, OrderStatus } from "@/shared/types";
+import type { OrdersQuery, PaymentMethod, OrderStatus } from "@/shared/types";
+import type { Order } from "@/shared/api/generated/models/order";
+import type { OrderFull } from "@/shared/api/generated/models/orderFull";
 
 function VoidDialog({ open, onClose, order }: { open: boolean; onClose: () => void; order: Order | null }) {
   const { t } = useTranslation();
@@ -44,14 +48,15 @@ function VoidDialog({ open, onClose, order }: { open: boolean; onClose: () => vo
     defaultValues: { reason: "customer_request", restore_inventory: true },
   });
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: VoidOrderValues) => orderApi.void(order!.id, v),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["orders"] });
-      toast.success(t("orders.voidedToast"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const voidOrder = useVoidOrder({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListOrdersQueryKey() });
+        toast.success(t("orders.voidedToast"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
   return (
@@ -64,7 +69,7 @@ function VoidDialog({ open, onClose, order }: { open: boolean; onClose: () => vo
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+          <form onSubmit={form.handleSubmit((v) => voidOrder.mutate({ orderId: order!.id, data: v }))}>
             <DialogBody>
               <FormField control={form.control} name="reason" render={({ field }) => (
                 <FormItem>
@@ -90,7 +95,7 @@ function VoidDialog({ open, onClose, order }: { open: boolean; onClose: () => vo
             </DialogBody>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" variant="destructive" loading={isPending}><Ban /> {t("orders.voidOrder")}</Button>
+              <Button type="submit" variant="destructive" loading={voidOrder.isPending}><Ban /> {t("orders.voidOrder")}</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -99,13 +104,9 @@ function VoidDialog({ open, onClose, order }: { open: boolean; onClose: () => vo
   );
 }
 
-function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; onClose: () => void; orderId: string | null; onVoid: (o: Order) => void }) {
+function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; onClose: () => void; orderId: string | null; onVoid: (o: OrderFull) => void }) {
   const { t } = useTranslation();
-  const { data: order, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.order(orderId ?? ""),
-    queryFn: () => orderApi.get(orderId!),
-    enabled: !!orderId,
-  });
+  const { data: order, isLoading } = useGetOrder(orderId ?? "", { query: { enabled: !!orderId } });
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -154,9 +155,9 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("menu.items")}</p>
                   {order.items.map((it) => {
                     // Group deductions by bundle component
-                    const groupedDeductions: Record<string, typeof it.deductions_snapshot> = {};
-                    if (it.deductions_snapshot) {
-                      it.deductions_snapshot.forEach((d) => {
+                    const groupedDeductions: Record<string, any[]> = {};
+                    if (it.deductions_snapshot && Array.isArray(it.deductions_snapshot)) {
+                      it.deductions_snapshot.forEach((d: any) => {
                         let grpName = "";
                         if (d.source && d.source.startsWith("bundle_component:")) {
                           grpName = d.source.substring("bundle_component:".length);
@@ -221,7 +222,7 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
                                       <div className="space-y-0.5 ps-2">
                                         {c.addons.map((a, aIdx) => (
                                           <p key={aIdx} className="text-[11px] text-muted-foreground">
-                                            + {a.name} {a.quantity > 1 && `×${a.quantity}`}{a.price_modifier > 0 && <span className="ms-1">({fmtMoney(a.price_modifier * a.quantity)})</span>}
+                                            + {a.addon_name} {a.quantity > 1 && `×${a.quantity}`}{a.unit_price > 0 && <span className="ms-1">({fmtMoney(a.unit_price * a.quantity)})</span>}
                                           </p>
                                         ))}
                                       </div>
@@ -234,7 +235,7 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
                                             variant="warning"
                                             className="px-1 py-0 text-[9px] font-semibold rounded"
                                           >
-                                            {o.name}{o.price > 0 && ` +${fmtMoney(o.price)}`}
+                                            {o.field_name}{o.price > 0 && ` +${fmtMoney(o.price)}`}
                                           </Badge>
                                         ))}
                                       </div>
@@ -247,10 +248,10 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
                           </div>
                           <span className="font-semibold tabular text-sm flex-shrink-0">{fmtMoney(it.line_total)}</span>
                         </div>
-                        {it.deductions_snapshot && it.deductions_snapshot.length > 0 && (
+                        {Array.isArray(it.deductions_snapshot) && it.deductions_snapshot.length > 0 && (
                           <details className="text-xs text-muted-foreground mt-2 border-t pt-1">
                             <summary className="cursor-pointer font-medium hover:text-foreground transition-colors py-0.5">
-                              {t("orders.ingredientsUsed")} ({it.deductions_snapshot.length})
+                              {t("orders.ingredientsUsed")} ({(it.deductions_snapshot as any[]).length})
                             </summary>
                             <div className="ps-3 mt-2 space-y-3">
                               {Object.entries(groupedDeductions).map(([compName, deductions]) => (
@@ -260,7 +261,7 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
                                     {compName}
                                   </p>
                                   <div className="ps-2.5 border-l-2 border-muted space-y-0.5">
-                                    {deductions.map((d, dIdx) => (
+                                    {deductions.map((d: any, dIdx: number) => (
                                       <p key={dIdx} className="tabular text-[11px]">
                                         {d.ingredient_name}: {Number(d.quantity).toFixed(3)} {fmtUnit(d.unit)}
                                         <span className="text-[10px] text-muted-foreground ms-1.5 opacity-80">
@@ -323,7 +324,7 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
 export default function Orders() {
   const { t } = useTranslation();
   const { orgId, branchId: ctxBranch } = useCurrentContext();
-  const { data: branches = [] } = useBranches(orgId);
+  const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const [selBranch, setSelBranch] = useState<string>(ctxBranch ?? "");
   const [selShift, setSelShift] = useState<string>("");
   const [payment, setPayment] = useState<PaymentMethod | "">("");
@@ -341,7 +342,7 @@ export default function Orders() {
     if (!selBranch && branches.length > 0) setSelBranch(branches[0].id);
   }, [branches, selBranch]);
 
-  const { data: shifts = [] } = useShifts(selBranch || null);
+  const { data: shifts = [] } = useListShifts(selBranch ?? "", { query: { enabled: !!selBranch } });
 
   const activeShift = shifts.find((s) => s.id === selShift);
   const shiftLabel = activeShift
@@ -360,7 +361,7 @@ export default function Orders() {
     per_page: perPage,
   };
 
-  const { data, isLoading } = useOrders(query, !!selBranch);
+  const { data, isLoading } = useListOrders(query as any, { query: { enabled: !!selBranch } });
   const orders = data?.data ?? [];
   const total = data?.total ?? 0;
   const totalPages = data?.total_pages ?? 1;
@@ -381,7 +382,7 @@ const stats = data?.summary ?? { revenue: 0, completed: 0, voided: 0, discounts:
       header: t("orders.payment"),
       cell: ({ row }) => (
         <span className="inline-flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full" style={{ background: PAYMENT_COLORS[row.original.payment_method] }} />
+          <span className="w-2 h-2 rounded-full" style={{ background: PAYMENT_COLORS[row.original.payment_method as PaymentMethod] }} />
           <Badge variant="outline" className="text-[10px]">{t(`payments.${row.original.payment_method}`)}</Badge>
         </span>
       ),

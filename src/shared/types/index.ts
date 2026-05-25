@@ -13,21 +13,7 @@ export type { AdjustmentType, InventoryUnit, OrderStatus, PaymentMethod, Printer
 
 // ── Auth / User ──────────────────────────────────────────────────────────────
 
-export interface UserPublic {
-  id: string;
-  org_id: string | null;
-  branch_id: string | null;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  role: Role;
-  is_active: boolean;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: UserPublic;
-}
+export type { UserPublic, LoginResponse } from "../api/generated/models";
 
 export interface UserBranch {
   branch_id: string;
@@ -36,33 +22,11 @@ export interface UserBranch {
 
 // ── Org ──────────────────────────────────────────────────────────────────────
 
-export interface Org {
-  id: string;
-  name: string;
-  slug: string;
-  logo_url: string | null;
-  currency_code: string;
-  tax_rate: number;
-  receipt_footer: string | null;
-  is_active: boolean;
-}
+export type { Org } from "../api/generated/models";
 
 // ── Branch ───────────────────────────────────────────────────────────────────
 
-export interface Branch {
-  id: string;
-  org_id: string;
-  name: string;
-  address: string | null;
-  phone: string | null;
-  timezone: string;
-  printer_brand: PrinterBrand | null;
-  printer_ip: string | null;
-  printer_port: number | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+export type { Branch } from "../api/generated/models";
 
 // ── Permissions ──────────────────────────────────────────────────────────────
 
@@ -95,7 +59,7 @@ export interface Category {
   id: string;
   org_id: string;
   name: string;
-  image_url: string | null;
+  image_url?: string | null;
   display_order: number;
   is_active: boolean;
   created_at: string;
@@ -139,10 +103,10 @@ export interface MenuItemOptionalField {
   id: string;
   menu_item_id: string;
   name: string;
-  ingredient_name: string | null;
-  org_ingredient_id: string | null;
-  ingredient_unit: string | null;
-  quantity_used: number | null;
+  ingredient_name?: string | null;
+  org_ingredient_id?: string | null;
+  ingredient_unit?: string | null;
+  quantity_used?: number | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -151,10 +115,10 @@ export interface MenuItemOptionalField {
 export interface MenuItem {
   id: string;
   org_id: string;
-  category_id: string | null;
+  category_id?: string | null;
   name: string;
-  description: string | null;
-  image_url: string | null;
+  description?: string | null;
+  image_url?: string | null;
   base_price: number;
   is_active: boolean;
   display_order: number;
@@ -169,7 +133,7 @@ export interface MenuItem {
  * POS app relies on at order time.
  */
 export interface MenuItemEmbeddedRecipe {
-  org_ingredient_id: string | null;
+  org_ingredient_id?: string | null;
   quantity_used: number | string;
   ingredient_name: string;
   ingredient_unit: string;
@@ -203,7 +167,7 @@ export interface DrinkRecipe {
 export interface AddonIngredient {
   id: string;
   addon_item_id: string;
-  org_ingredient_id: string | null;
+  org_ingredient_id?: string | null;
   ingredient_name: string;
   unit: string;
   quantity_used: number;
@@ -645,10 +609,10 @@ export interface PublicAddonItem {
 export interface PublicAddonSlot {
   id: string;
   addon_type: string;
-  label: string | null;
+  label?: string | null;
   is_required: boolean;
   min_selections: number;
-  max_selections: number | null;
+  max_selections?: number | null;
   addon_items: PublicAddonItem[];
 }
 
@@ -661,8 +625,8 @@ export interface PublicItemSize {
 export interface PublicMenuItem {
   id: string;
   name: string;
-  description: string | null;
-  image_url: string | null;
+  description?: string | null;
+  image_url?: string | null;
   base_price: number;
   display_order: number;
   sizes: PublicItemSize[];

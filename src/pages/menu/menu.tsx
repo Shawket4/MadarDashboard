@@ -22,8 +22,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmptyState } from "@/shared/ui/empty-state";
 import { ImageUploader } from "@/shared/ui/image-uploader";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { categoryApi, menuItemApi, addonApi } from "@/entities/menu/api";
-import { useCategories, useMenuItems, useMenuItem, useAddons } from "@/entities/menu/queries";
+import { 
+  useListCategories, createCategory, updateCategory, deleteCategory,
+  useListMenuItems, useGetMenuItem, createMenuItem, updateMenuItem, deleteMenuItem, uploadMenuItemImage, upsertSize, deleteSize,
+  useListAddonItems, createAddonItem, updateAddonItem, deleteAddonItem
+} from "@/shared/api/generated/api";
 import {
   categorySchema, menuItemSchema, addonSchema,
   type CategoryValues, type MenuItemValues, type AddonValues,
@@ -51,7 +54,7 @@ function CategoryDialog({ open, onClose, edit, orgId }: { open: boolean; onClose
 
   const { mutate, isPending } = useMutation({
     mutationFn: (v: CategoryValues) =>
-      edit ? categoryApi.update(edit.id, v) : categoryApi.create({ ...v, org_id: orgId }),
+      edit ? updateCategory(edit.id, v as any) : createCategory({ ...v, org_id: orgId } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY_KEYS.categories(orgId) });
       toast.success(t("common.save"));
@@ -115,7 +118,7 @@ function MenuItemDialog({
 }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const { data: liveItem } = useMenuItem(edit?.id ?? null);
+  const { data: liveItem } = useGetMenuItem(edit?.id as string, { query: { enabled: !!edit?.id } });
 
   const form = useForm<MenuItemValues>({
     resolver: zodResolver(menuItemSchema),
@@ -140,7 +143,7 @@ function MenuItemDialog({
     if (liveItem) {
       form.reset({
         ...form.getValues(),
-        sizes: liveItem.sizes.map((s) => ({
+        sizes: liveItem.sizes.map((s: any) => ({
           id: s.id,
           label: s.label,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -162,25 +165,25 @@ function MenuItemDialog({
         display_order: v.display_order,
       };
       
-      const itemRes = edit 
-        ? await menuItemApi.update(edit.id, payload) 
-        : await menuItemApi.create({ ...payload, org_id: orgId });
+      const itemRes = await (edit 
+        ? updateMenuItem(edit.id, payload as any) 
+        : createMenuItem({ ...payload, org_id: orgId } as any));
         
       const itemId = itemRes.id;
 
       // Handle Sizes
       const existingSizes = liveItem?.sizes || [];
       const newSizeIds = new Set((v.sizes ?? []).map((s) => s.id).filter(Boolean));
-      const toDelete = existingSizes.filter((s) => !newSizeIds.has(s.id));
+      const toDelete = existingSizes.filter((s: any) => !newSizeIds.has(s.id));
       
-      await Promise.all(toDelete.map((s) => menuItemApi.removeSize(itemId, s.id)));
+      await Promise.all(toDelete.map((s: any) => deleteSize(itemId, s.id)));
 
       for (const [idx, s] of (v.sizes ?? []).entries()) {
-        await menuItemApi.upsertSize(itemId, {
+        await upsertSize(itemId, {
           label: s.label,
           price_override: s.price_override,
           display_order: s.display_order ?? idx,
-        });
+        } as any);
       }
 
       return itemRes;
@@ -200,7 +203,7 @@ function MenuItemDialog({
   // own its own optimistic state; we just invalidate the list so any image
   // column on the outer table refreshes.
   const uploadImage = useMutation({
-    mutationFn: (file: File) => menuItemApi.uploadImage(edit!.id, file),
+    mutationFn: (file: File) => uploadMenuItemImage(edit!.id, { image: file as any }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["menu-items"] });
     },
@@ -208,7 +211,7 @@ function MenuItemDialog({
   });
 
   const removeImage = useMutation({
-    mutationFn: () => menuItemApi.update(edit!.id, { image_url: null }),
+    mutationFn: () => updateMenuItem(edit!.id, { image_url: null } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["menu-items"] });
       toast.success(t("menu.itemDialog.imageRemoved"));
@@ -232,7 +235,7 @@ function MenuItemDialog({
                   <ImageUploader
                     value={liveItem?.image_url ?? edit.image_url}
                     onUpload={async (file) => {
-                      const res = await uploadImage.mutateAsync(file);
+                      const res: any = await uploadImage.mutateAsync(file);
                       return res.image_url;
                     }}
                     onRemove={liveItem?.image_url || edit.image_url ? async () => { await removeImage.mutateAsync(); } : undefined}
@@ -395,8 +398,8 @@ function AddonDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: (
   const { mutate, isPending } = useMutation({
     mutationFn: (v: AddonValues) =>
       edit
-        ? addonApi.update(edit.id, v)
-        : addonApi.create({ ...v, org_id: orgId }),
+        ? updateAddonItem(edit.id, v as any)
+        : createAddonItem({ ...v, org_id: orgId } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["addons"] });
       toast.success(t("common.save"));
@@ -502,25 +505,25 @@ export default function Menu() {
   const [selCat, setSelCat] = useState<string | "all">("all");
   const [selType, setSelType] = useState<string | "all">("all");
 
-  const { data: categories = [], isLoading: catsLoading } = useCategories(orgId);
-  const { data: items = [], isLoading: itemsLoading } = useMenuItems(orgId, selCat === "all" ? null : selCat);
-  const { data: addons = [], isLoading: addonsLoading } = useAddons(orgId, selType === "all" ? null : selType);
+  const { data: categories = [], isLoading: catsLoading } = useListCategories({ org_id: orgId as string }, { query: { enabled: !!orgId } });
+  const { data: items = [], isLoading: itemsLoading } = useListMenuItems({ org_id: orgId as string, category_id: selCat === "all" ? undefined : selCat }, { query: { enabled: !!orgId } });
+  const { data: addons = [], isLoading: addonsLoading } = useListAddonItems({ org_id: orgId as string, addon_type: selType === "all" ? undefined : selType }, { query: { enabled: !!orgId } });
 
   const toggleItem = useMutation({
-    mutationFn: (it: MenuItem) => menuItemApi.update(it.id, { is_active: !it.is_active }),
+    mutationFn: (it: MenuItem) => updateMenuItem(it.id, { is_active: !it.is_active } as any),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["menu-items"] }),
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
   const toggleAddon = useMutation({
-    mutationFn: (a: AddonItem) => addonApi.update(a.id, { is_active: !a.is_active }),
+    mutationFn: (a: AddonItem) => updateAddonItem(a.id, { is_active: !a.is_active } as any),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["addons"] }),
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
   const remove = useMutation({
     mutationFn: (c: NonNullable<typeof confirmDelete>) =>
-      c.kind === "cat" ? categoryApi.remove(c.id) : c.kind === "item" ? menuItemApi.remove(c.id) : addonApi.remove(c.id),
+      c.kind === "cat" ? deleteCategory(c.id) : c.kind === "item" ? deleteMenuItem(c.id) : deleteAddonItem(c.id),
     onSuccess: (_, c) => {
       qc.invalidateQueries({ queryKey: c.kind === "cat" ? ["categories"] : c.kind === "item" ? ["menu-items"] : ["addons"] });
       toast.success(t("common.delete"));

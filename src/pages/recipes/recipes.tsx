@@ -21,10 +21,14 @@ import {
   Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/shared/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
-import { recipeApi } from "@/entities/recipe/api";
-import { useAddonRecipes } from "@/entities/recipe/queries";
-import { useMenuItems, useMenuItem, useAddons, useSlots, useOptionals } from "@/entities/menu/queries";
-import { slotApi, optionalApi, menuItemApi } from "@/entities/menu/api";
+import { 
+  useListMenuItems, useGetMenuItem, getMenuItem,
+  useListAddonItems,
+  useListAddonSlots, createAddonSlot, deleteAddonSlot,
+  useListOptionalFields, createOptionalField, deleteOptionalField,
+  upsertDrinkRecipe, deleteDrinkRecipe,
+  useListAddonIngredients, upsertAddonIngredient, deleteAddonIngredient, listAddonIngredients
+} from "@/shared/api/generated/api";
 import { useCatalog } from "@/entities/inventory/queries";
 import { drinkRecipeSchema, addonRecipeSchema, type DrinkRecipeValues, type AddonRecipeValues } from "@/entities/recipe/schemas";
 import { slotSchema, optionalSchema, type SlotValues, type OptionalValues } from "@/entities/menu/schemas";
@@ -33,7 +37,9 @@ import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtUnit } from "@/shared/lib/format";
 import { exportToExcel } from "@/shared/lib/excel";
-import type { AddonIngredient, AddonItem, MenuItem, MenuItemEmbeddedRecipe } from "@/shared/types";
+import type { 
+  MenuItemEmbeddedRecipe, AddonIngredient, AddonItem
+} from "@/shared/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Drinks Tab
@@ -45,8 +51,8 @@ function DrinksTab({ orgId }: { orgId: string }) {
   const [dlg, setDlg] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<MenuItemEmbeddedRecipe | null>(null);
 
-  const { data: items = [] } = useMenuItems(orgId);
-  const { data: fullItem, isLoading } = useMenuItem(selItemId);
+  const { data: items = [] } = useListMenuItems({ org_id: orgId as string }, { query: { enabled: !!orgId } });
+  const { data: fullItem, isLoading } = useGetMenuItem(selItemId as string, { query: { enabled: !!selItemId } });
   const { data: catalog = [] } = useCatalog(orgId);
 
   const recipes = useMemo(() => fullItem?.recipes ?? [], [fullItem?.recipes]);
@@ -76,7 +82,7 @@ function DrinksTab({ orgId }: { orgId: string }) {
   };
 
   const save = useMutation({
-    mutationFn: (v: DrinkRecipeValues) => recipeApi.upsertDrink(selItemId!, v),
+    mutationFn: (v: DrinkRecipeValues) => upsertDrinkRecipe(selItemId!, v as any),
     onSuccess: () => {
       invalidate();
       toast.success(t("recipes.ingredientSaved"));
@@ -88,7 +94,7 @@ function DrinksTab({ orgId }: { orgId: string }) {
 
   const remove = useMutation({
     mutationFn: (r: MenuItemEmbeddedRecipe) =>
-      recipeApi.removeDrink(selItemId!, r.size_label, r.ingredient_name),
+      deleteDrinkRecipe(selItemId!, r.size_label, { ingredient_name: r.ingredient_name }),
     onSuccess: () => {
       invalidate();
       toast.success(t("recipes.ingredientRemoved"));
@@ -112,7 +118,7 @@ function DrinksTab({ orgId }: { orgId: string }) {
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
       <ListPicker
         heading={t("recipes.selectDrink")}
-        items={items.map((it: MenuItem) => ({
+        items={items.map((it) => ({
           id: it.id,
           label: it.name,
           sublabel: it.description ?? null,
@@ -273,8 +279,8 @@ function AddonsTab({ orgId }: { orgId: string }) {
   const [dlg, setDlg] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<AddonIngredient | null>(null);
 
-  const { data: addons = [] } = useAddons(orgId);
-  const { data: recipes = [], isLoading } = useAddonRecipes(selAddonId);
+  const { data: addons = [] } = useListAddonItems({ org_id: orgId as string }, { query: { enabled: !!orgId } });
+  const { data: recipes = [], isLoading } = useListAddonIngredients(selAddonId as string, { query: { enabled: !!selAddonId } });
   const { data: catalog = [] } = useCatalog(orgId);
 
   const form = useForm<AddonRecipeValues>({
@@ -284,7 +290,7 @@ function AddonsTab({ orgId }: { orgId: string }) {
   });
 
   const save = useMutation({
-    mutationFn: (v: AddonRecipeValues) => recipeApi.upsertAddon(selAddonId!, v),
+    mutationFn: (v: AddonRecipeValues) => upsertAddonIngredient(selAddonId!, v as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY_KEYS.addonRecipes(selAddonId ?? "") });
       toast.success(t("recipes.ingredientSaved"));
@@ -295,7 +301,7 @@ function AddonsTab({ orgId }: { orgId: string }) {
   });
 
   const remove = useMutation({
-    mutationFn: (r: AddonIngredient) => recipeApi.removeAddon(selAddonId!, r.ingredient_name),
+    mutationFn: (r: AddonIngredient) => deleteAddonIngredient(selAddonId!, { ingredient_name: r.ingredient_name }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY_KEYS.addonRecipes(selAddonId ?? "") });
       toast.success(t("recipes.ingredientRemoved"));
@@ -413,9 +419,9 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
   const qc = useQueryClient();
   const [selItemId, setSelItemId] = useState<string | null>(null);
 
-  const { data: items = [] } = useMenuItems(orgId);
-  const { data: slots = [] } = useSlots(selItemId);
-  const { data: optionals = [] } = useOptionals(selItemId);
+  const { data: items = [] } = useListMenuItems({ org_id: orgId as string }, { query: { enabled: !!orgId } });
+  const { data: slots = [] } = useListAddonSlots(selItemId as string, { query: { enabled: !!selItemId } });
+  const { data: optionals = [] } = useListOptionalFields(selItemId as string, { query: { enabled: !!selItemId } });
   const { data: catalog = [] } = useCatalog(orgId);
 
   const [slotDlg, setSlotDlg] = useState(false);
@@ -426,14 +432,14 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
 
   const saveSlot = useMutation({
     mutationFn: (v: SlotValues) =>
-      slotApi.create(selItemId!, {
+      createAddonSlot(selItemId!, {
         addon_type: v.addon_type,
         label: v.label || null,
         is_required: v.is_required,
         min_selections: v.min_selections,
         max_selections: v.max_selections ?? null,
         display_order: v.display_order,
-      }),
+      } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY_KEYS.slots(selItemId ?? "") });
       qc.invalidateQueries({ queryKey: QUERY_KEYS.menuItem(selItemId ?? "") });
@@ -445,7 +451,7 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
   });
 
   const removeSlot = useMutation({
-    mutationFn: (slotId: string) => slotApi.remove(selItemId!, slotId),
+    mutationFn: (slotId: string) => deleteAddonSlot(selItemId!, slotId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY_KEYS.slots(selItemId ?? "") });
       qc.invalidateQueries({ queryKey: QUERY_KEYS.menuItem(selItemId ?? "") });
@@ -462,14 +468,14 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
 
   const saveOpt = useMutation({
     mutationFn: (v: OptionalValues) =>
-      optionalApi.upsert(selItemId!, {
+      createOptionalField(selItemId!, {
         name: v.name,
         org_ingredient_id: v.org_ingredient_id ?? null,
         ingredient_name: v.ingredient_name ?? null,
         ingredient_unit: v.ingredient_unit ?? null,
         quantity_used: v.quantity_used ?? null,
         is_active: v.is_active,
-      }),
+      } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY_KEYS.optionals(selItemId ?? "") });
       qc.invalidateQueries({ queryKey: QUERY_KEYS.menuItem(selItemId ?? "") });
@@ -481,7 +487,7 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
   });
 
   const removeOpt = useMutation({
-    mutationFn: (fieldId: string) => optionalApi.remove(selItemId!, fieldId),
+    mutationFn: (fieldId: string) => deleteOptionalField(selItemId!, fieldId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY_KEYS.optionals(selItemId ?? "") });
       qc.invalidateQueries({ queryKey: QUERY_KEYS.menuItem(selItemId ?? "") });
@@ -494,7 +500,7 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
       <ListPicker
         heading={t("recipes.selectDrink")}
-        items={items.map((it: MenuItem) => ({ id: it.id, label: it.name, sublabel: it.description ?? null }))}
+        items={items.map((it) => ({ id: it.id, label: it.name, sublabel: it.description ?? null }))}
         selectedId={selItemId}
         onSelect={setSelItemId}
         searchPlaceholder={t("menu.searchItems")}
@@ -694,8 +700,8 @@ export default function Recipes() {
   const { orgId } = useCurrentContext();
   const [tab, setTab] = useState<"drinks" | "addons" | "slots">("drinks");
 
-  const { data: items = [] } = useMenuItems(orgId);
-  const { data: addons = [] } = useAddons(orgId);
+  const { data: items = [] } = useListMenuItems({ org_id: orgId as string }, { query: { enabled: !!orgId } });
+  const { data: addons = [] } = useListAddonItems({ org_id: orgId as string }, { query: { enabled: !!orgId } });
 
   const handleExport = async () => {
     if (!items.length && !addons.length) return;
@@ -704,7 +710,7 @@ export default function Recipes() {
 
     try {
       const fullItems = await Promise.all(
-        items.map((item) => menuItemApi.get(item.id))
+        items.map((item) => getMenuItem(item.id))
       );
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -738,7 +744,7 @@ export default function Recipes() {
 
       const allAddonRecipes = await Promise.all(
         addons.map(async (addon) => {
-          const recipes = await recipeApi.listAddon(addon.id);
+          const recipes = await listAddonIngredients(addon.id);
           return { addon, recipes };
         })
       );

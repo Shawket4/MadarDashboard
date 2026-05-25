@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -20,11 +20,9 @@ import {
 } from "@/shared/ui/form";
 import { StatCard } from "@/shared/ui/stat-card";
 import { ImageUploader } from "@/shared/ui/image-uploader";
-import { orgApi } from "@/entities/org/api";
-import { useOrgs } from "@/entities/org/queries";
+import { useListOrgs, useCreateOrg, useUpdateOrg, useUploadOrgLogo, getListOrgsQueryKey } from "@/shared/api/generated/api";
 import { orgSchema, type OrgValues } from "@/entities/org/schemas";
 import { useAppStore } from "@/shared/auth/app-store";
-import { QUERY_KEYS } from "@/shared/config/constants";
 import { getErrorMessage } from "@/shared/api/errors";
 import { exportToExcel } from "@/shared/lib/excel";
 import type { Org } from "@/shared/types";
@@ -61,38 +59,57 @@ function OrgDialog({
   });
 
   // ── Logo mutations (edit mode — fire immediately like MenuItemDialog) ──────
-  const uploadLogo = useMutation({
-    mutationFn: (file: File) => orgApi.uploadLogo(edit!.id, file),
-    onSuccess: (org) => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.orgs });
-      if (org.id === selectedOrgId) setSelectedOrg(org.id, org.logo_url);
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const uploadLogo = useUploadOrgLogo({
+    mutation: {
+      onSuccess: (org) => {
+        qc.invalidateQueries({ queryKey: getListOrgsQueryKey() });
+        if (org.id === selectedOrgId) setSelectedOrg(org.id, org.logo_url);
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
-  const removeLogo = useMutation({
-    mutationFn: () => orgApi.update(edit!.id, { logo_url: null }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.orgs });
-      if (edit!.id === selectedOrgId) setSelectedOrg(edit!.id, null);
-      toast.success(t("orgs.logoRemoved"));
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const removeLogo = useUpdateOrg({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListOrgsQueryKey() });
+        if (edit!.id === selectedOrgId) setSelectedOrg(edit!.id, null);
+        toast.success(t("orgs.logoRemoved"));
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
 
   // ── Main submit ───────────────────────────────────────────────────────────
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: OrgValues) =>
-      edit
-        ? orgApi.update(edit.id, v)
-        : orgApi.create(v, pendingLogo ?? undefined),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.orgs });
-      toast.success(edit ? t("orgs.updatedToast") : t("orgs.createdToast"));
-      handleClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
+  const updateOrg = useUpdateOrg({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListOrgsQueryKey() });
+        toast.success(t("orgs.updatedToast"));
+        handleClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
   });
+
+  const createOrg = useCreateOrg({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListOrgsQueryKey() });
+        toast.success(t("orgs.createdToast"));
+        handleClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    }
+  });
+
+  function onSubmit(v: OrgValues) {
+    if (edit) {
+      updateOrg.mutate({ id: edit.id, data: v });
+    } else {
+      createOrg.mutate({ data: { ...v, logo: pendingLogo ?? undefined } });
+    }
+  }
 
   function handleClose() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -111,7 +128,7 @@ function OrgDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogBody>
 
               {/* ── Logo ───────────────────────────────────────────────── */}
@@ -122,12 +139,12 @@ function OrgDialog({
                   <ImageUploader
                     value={edit.logo_url}
                     onUpload={async (file) => {
-                      const org = await uploadLogo.mutateAsync(file);
+                      const org = await uploadLogo.mutateAsync({ id: edit.id, data: { logo: file } });
                       return org.logo_url ?? "";
                     }}
                     onRemove={
                       edit.logo_url
-                        ? async () => { await removeLogo.mutateAsync(); }
+                        ? async () => { await removeLogo.mutateAsync({ id: edit.id, data: { logo_url: null } }); }
                         : undefined
                     }
                     hint={t("orgs.logoHint")}
@@ -246,7 +263,7 @@ function OrgDialog({
               <Button type="button" variant="outline" onClick={handleClose}>
                 {t("common.cancel")}
               </Button>
-              <Button type="submit" loading={isPending}>
+              <Button type="submit" loading={updateOrg.isPending || createOrg.isPending}>
                 {edit ? t("common.saveChanges") : t("common.create")}
               </Button>
             </DialogFooter>
@@ -263,7 +280,7 @@ export default function Orgs() {
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editOrg, setEditOrg] = useState<Org | null>(null);
-  const { data: orgs = [], isLoading } = useOrgs();
+  const { data: orgs = [], isLoading } = useListOrgs();
 
   const columns: ColumnDef<Org>[] = [
     {
