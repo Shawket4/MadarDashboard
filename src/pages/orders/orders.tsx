@@ -469,6 +469,7 @@ const stats = data?.summary ?? { revenue: 0, completed: 0, voided: 0, discounts:
           <DataTable
             columns={cols}
             data={orders}
+            disablePagination={true}
             isLoading={isLoading}
             onRowClick={(o) => setDetailId(o.id)}
             onExport={() => setExportOpen(true)}

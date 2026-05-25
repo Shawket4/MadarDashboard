@@ -47,6 +47,8 @@ export interface DataTableProps<T> {
   rowClassName?: (row: Row<T>) => string | undefined;
   /** Control density */
   density?: "comfortable" | "compact";
+  /** Disable client-side pagination entirely */
+  disablePagination?: boolean;
 }
 
 export function DataTable<T>({
@@ -63,6 +65,7 @@ export function DataTable<T>({
   exportLabel,
   rowClassName,
   density = "comfortable",
+  disablePagination = false,
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -80,9 +83,9 @@ export function DataTable<T>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: disablePagination ? undefined : getPaginationRowModel(),
     state: { sorting, columnFilters, columnVisibility, globalFilter },
-    initialState: { pagination: { pageSize } },
+    initialState: disablePagination ? undefined : { pagination: { pageSize } },
     // Normalized global filter — handles Arabic variants, diacritics, case
     globalFilterFn: (row, _columnId, value) => {
       const q = normalize(String(value ?? ""));
@@ -210,7 +213,7 @@ export function DataTable<T>({
           </table>
         </div>
 
-        {table.getPageCount() > 1 && (
+        {!disablePagination && table.getPageCount() > 1 && (
           <div className="flex items-center justify-between px-4 py-2.5 border-t bg-muted/20">
             <p className="text-xs text-muted-foreground">
               {t("common.rows", { count: rowCount })} ·{" "}
