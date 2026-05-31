@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Languages, Moon, Sun, Monitor } from "lucide-react";
+import { Languages, Moon, Sun, Monitor, CreditCard, ChevronRight } from "lucide-react";
 import { PageShell } from "@/shared/ui/page-shell";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
@@ -92,6 +93,28 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {role === "org_admin" || role === "super_admin" ? (
+          <Card>
+            <CardContent className="p-0">
+              <Link 
+                to="/settings/payment-methods"
+                className="flex items-center justify-between p-5 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                    <CreditCard />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">{t("settings.paymentMethods")}</p>
+                    <p className="text-xs text-muted-foreground">{t("settings.paymentMethodsHint")}</p>
+                  </div>
+                </div>
+                <ChevronRight className="text-muted-foreground rtl:rotate-180" />
+              </Link>
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Card>
           <CardContent className="p-5 flex items-center gap-3">

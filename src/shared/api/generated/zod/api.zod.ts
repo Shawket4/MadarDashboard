@@ -1783,6 +1783,100 @@ export const UploadOrgLogoResponse = zod.object({
 })
 
 
+export const ListPaymentMethodsResponseItem = zod.object({
+  "color": zod.string(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "display_order": zod.number(),
+  "icon": zod.string(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "is_cash": zod.boolean(),
+  "label_translations": zod.unknown(),
+  "name": zod.string(),
+  "org_id": zod.string().uuid(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+export const ListPaymentMethodsResponse = zod.array(ListPaymentMethodsResponseItem)
+
+
+export const CreatePaymentMethodBody = zod.object({
+  "color": zod.string(),
+  "display_order": zod.number().nullish(),
+  "icon": zod.string(),
+  "is_active": zod.boolean().nullish(),
+  "is_cash": zod.boolean(),
+  "label_translations": zod.record(zod.string(), zod.string()),
+  "name": zod.string()
+})
+
+
+export const UpdatePaymentMethodParams = zod.object({
+  "id": zod.string().uuid().describe('Payment Method ID')
+})
+
+export const UpdatePaymentMethodBody = zod.object({
+  "color": zod.string().nullish(),
+  "display_order": zod.number().nullish(),
+  "icon": zod.string().nullish(),
+  "is_active": zod.boolean().nullish(),
+  "is_cash": zod.boolean().nullish(),
+  "label_translations": zod.record(zod.string(), zod.string()).nullish(),
+  "name": zod.string().nullish()
+})
+
+export const UpdatePaymentMethodResponse = zod.object({
+  "color": zod.string(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "display_order": zod.number(),
+  "icon": zod.string(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "is_cash": zod.boolean(),
+  "label_translations": zod.unknown(),
+  "name": zod.string(),
+  "org_id": zod.string().uuid(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const ActivatePaymentMethodParams = zod.object({
+  "id": zod.string().uuid().describe('Payment Method ID')
+})
+
+export const ActivatePaymentMethodResponse = zod.object({
+  "color": zod.string(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "display_order": zod.number(),
+  "icon": zod.string(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "is_cash": zod.boolean(),
+  "label_translations": zod.unknown(),
+  "name": zod.string(),
+  "org_id": zod.string().uuid(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const DeactivatePaymentMethodParams = zod.object({
+  "id": zod.string().uuid().describe('Payment Method ID')
+})
+
+export const DeactivatePaymentMethodResponse = zod.object({
+  "color": zod.string(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "display_order": zod.number(),
+  "icon": zod.string(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "is_cash": zod.boolean(),
+  "label_translations": zod.unknown(),
+  "name": zod.string(),
+  "org_id": zod.string().uuid(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
 export const GetPermissionMatrixParams = zod.object({
   "user_id": zod.string().uuid().describe('User ID')
 })
@@ -2040,14 +2134,9 @@ export const BranchSalesResponse = zod.object({
   "quantity_sold": zod.number(),
   "revenue": zod.number()
 })),
-  "card_revenue": zod.number(),
-  "cash_revenue": zod.number(),
-  "digital_wallet_revenue": zod.number(),
   "from": zod.string().datetime({"offset":true}).nullish(),
-  "mixed_revenue": zod.number(),
+  "revenue_by_method": zod.unknown(),
   "subtotal": zod.number(),
-  "talabat_cash_revenue": zod.number(),
-  "talabat_online_revenue": zod.number(),
   "to": zod.string().datetime({"offset":true}).nullish(),
   "top_items": zod.array(zod.object({
   "item_name": zod.string(),
@@ -2074,16 +2163,11 @@ export const BranchSalesTimeseriesQueryParams = zod.object({
 })
 
 export const BranchSalesTimeseriesResponseItem = zod.object({
-  "card_revenue": zod.number(),
-  "cash_revenue": zod.number(),
-  "digital_wallet_revenue": zod.number(),
   "discount": zod.number(),
-  "mixed_revenue": zod.number(),
   "orders": zod.number(),
   "period": zod.string(),
   "revenue": zod.number(),
-  "talabat_cash_revenue": zod.number(),
-  "talabat_online_revenue": zod.number(),
+  "revenue_by_method": zod.unknown(),
   "tax": zod.number(),
   "voided": zod.number()
 })
@@ -2146,12 +2230,7 @@ export const OrgBranchComparisonResponse = zod.object({
   "avg_order_value": zod.number(),
   "branch_id": zod.string().uuid(),
   "branch_name": zod.string(),
-  "card_revenue": zod.number(),
-  "cash_revenue": zod.number(),
-  "digital_wallet_revenue": zod.number(),
-  "mixed_revenue": zod.number(),
-  "talabat_cash_revenue": zod.number(),
-  "talabat_online_revenue": zod.number(),
+  "revenue_by_method": zod.unknown(),
   "total_orders": zod.number(),
   "total_revenue": zod.number(),
   "void_rate_pct": zod.number(),
@@ -2204,20 +2283,15 @@ export const ShiftSummaryParams = zod.object({
 export const ShiftSummaryResponse = zod.object({
   "branch_id": zod.string().uuid(),
   "branch_name": zod.string(),
-  "card_revenue": zod.number(),
   "cash_discrepancy": zod.number().nullish(),
-  "cash_revenue": zod.number(),
   "closed_at": zod.string().datetime({"offset":true}).nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
-  "digital_wallet_revenue": zod.number(),
-  "mixed_revenue": zod.number(),
   "opened_at": zod.string().datetime({"offset":true}),
   "opening_cash": zod.number(),
+  "revenue_by_method": zod.unknown(),
   "shift_id": zod.string().uuid(),
   "status": zod.string(),
-  "talabat_cash_revenue": zod.number(),
-  "talabat_online_revenue": zod.number(),
   "teller_id": zod.string().uuid(),
   "teller_name": zod.string(),
   "total_discount": zod.number(),

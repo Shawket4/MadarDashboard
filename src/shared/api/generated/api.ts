@@ -65,6 +65,7 @@ import type {
   CreateOptionalFieldRequest,
   CreateOrderRequest,
   CreateOrgMultipart,
+  CreatePaymentMethodRequest,
   CreateTransferRequest,
   CreateUserRequest,
   CreateUserResponse,
@@ -101,6 +102,7 @@ import type {
   OrgBranchComparisonParams,
   OrgComparisonReport,
   OrgIngredient,
+  OrgPaymentMethod,
   PaginatedBundles,
   PaginatedOrders,
   Permission,
@@ -125,6 +127,7 @@ import type {
   UpdateMenuItemRequest,
   UpdateOptionalFieldRequest,
   UpdateOrgRequest,
+  UpdatePaymentMethodRequest,
   UpdateStockRequest,
   UpdateTransferRequest,
   UpdateUserRequest,
@@ -5234,6 +5237,322 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUploadOrgLogoMutationOptions(options), queryClient);
+    }
+
+export const listPaymentMethods = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrgPaymentMethod[]>(
+      {url: `/payment-methods`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListPaymentMethodsQueryKey = () => {
+    return [
+    `/payment-methods`
+    ] as const;
+    }
+
+
+export const getListPaymentMethodsQueryOptions = <TData = Awaited<ReturnType<typeof listPaymentMethods>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPaymentMethods>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPaymentMethodsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPaymentMethods>>> = ({ signal }) => listPaymentMethods(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPaymentMethods>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPaymentMethodsQueryResult = NonNullable<Awaited<ReturnType<typeof listPaymentMethods>>>
+export type ListPaymentMethodsQueryError = ErrorBody
+
+
+export function useListPaymentMethods<TData = Awaited<ReturnType<typeof listPaymentMethods>>, TError = ErrorBody>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPaymentMethods>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPaymentMethods>>,
+          TError,
+          Awaited<ReturnType<typeof listPaymentMethods>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPaymentMethods<TData = Awaited<ReturnType<typeof listPaymentMethods>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPaymentMethods>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPaymentMethods>>,
+          TError,
+          Awaited<ReturnType<typeof listPaymentMethods>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPaymentMethods<TData = Awaited<ReturnType<typeof listPaymentMethods>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPaymentMethods>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPaymentMethods<TData = Awaited<ReturnType<typeof listPaymentMethods>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPaymentMethods>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPaymentMethodsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const createPaymentMethod = (
+    createPaymentMethodRequest: CreatePaymentMethodRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrgPaymentMethod>(
+      {url: `/payment-methods`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createPaymentMethodRequest, signal
+    },
+      options);
+    }
+
+
+
+export const getCreatePaymentMethodMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPaymentMethod>>, TError,{data: CreatePaymentMethodRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPaymentMethod>>, TError,{data: CreatePaymentMethodRequest}, TContext> => {
+
+const mutationKey = ['createPaymentMethod'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPaymentMethod>>, {data: CreatePaymentMethodRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPaymentMethod(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePaymentMethodMutationResult = NonNullable<Awaited<ReturnType<typeof createPaymentMethod>>>
+    export type CreatePaymentMethodMutationBody = CreatePaymentMethodRequest
+    export type CreatePaymentMethodMutationError = ErrorBody
+
+    export const useCreatePaymentMethod = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPaymentMethod>>, TError,{data: CreatePaymentMethodRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPaymentMethod>>,
+        TError,
+        {data: CreatePaymentMethodRequest},
+        TContext
+      > => {
+      return useMutation(getCreatePaymentMethodMutationOptions(options), queryClient);
+    }
+
+export const updatePaymentMethod = (
+    id: string,
+    updatePaymentMethodRequest: UpdatePaymentMethodRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrgPaymentMethod>(
+      {url: `/payment-methods/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updatePaymentMethodRequest, signal
+    },
+      options);
+    }
+
+
+
+export const getUpdatePaymentMethodMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePaymentMethod>>, TError,{id: string;data: UpdatePaymentMethodRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePaymentMethod>>, TError,{id: string;data: UpdatePaymentMethodRequest}, TContext> => {
+
+const mutationKey = ['updatePaymentMethod'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePaymentMethod>>, {id: string;data: UpdatePaymentMethodRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updatePaymentMethod(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePaymentMethodMutationResult = NonNullable<Awaited<ReturnType<typeof updatePaymentMethod>>>
+    export type UpdatePaymentMethodMutationBody = UpdatePaymentMethodRequest
+    export type UpdatePaymentMethodMutationError = ErrorBody
+
+    export const useUpdatePaymentMethod = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePaymentMethod>>, TError,{id: string;data: UpdatePaymentMethodRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePaymentMethod>>,
+        TError,
+        {id: string;data: UpdatePaymentMethodRequest},
+        TContext
+      > => {
+      return useMutation(getUpdatePaymentMethodMutationOptions(options), queryClient);
+    }
+
+export const activatePaymentMethod = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrgPaymentMethod>(
+      {url: `/payment-methods/${id}/activate`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+export const getActivatePaymentMethodMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activatePaymentMethod>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof activatePaymentMethod>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['activatePaymentMethod'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activatePaymentMethod>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  activatePaymentMethod(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActivatePaymentMethodMutationResult = NonNullable<Awaited<ReturnType<typeof activatePaymentMethod>>>
+
+    export type ActivatePaymentMethodMutationError = ErrorBody
+
+    export const useActivatePaymentMethod = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activatePaymentMethod>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof activatePaymentMethod>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getActivatePaymentMethodMutationOptions(options), queryClient);
+    }
+
+export const deactivatePaymentMethod = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrgPaymentMethod>(
+      {url: `/payment-methods/${id}/deactivate`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+export const getDeactivatePaymentMethodMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivatePaymentMethod>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deactivatePaymentMethod>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deactivatePaymentMethod'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivatePaymentMethod>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deactivatePaymentMethod(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeactivatePaymentMethodMutationResult = NonNullable<Awaited<ReturnType<typeof deactivatePaymentMethod>>>
+
+    export type DeactivatePaymentMethodMutationError = ErrorBody
+
+    export const useDeactivatePaymentMethod = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivatePaymentMethod>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deactivatePaymentMethod>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeactivatePaymentMethodMutationOptions(options), queryClient);
     }
 
 export const getPermissionMatrix = (

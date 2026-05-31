@@ -456,13 +456,8 @@ function applyBorder(cell: any): void {
 // Per business rule, Excel exports MUST show both columns AND a total column.
 // Use this helper when building analytics exports to append the aggregate.
 
-export interface TalabatSplit {
-  talabat_online_revenue: number;
-  talabat_cash_revenue: number;
-}
-
-export const talabatTotal = (r: TalabatSplit): number =>
-  (r.talabat_online_revenue ?? 0) + (r.talabat_cash_revenue ?? 0);
+export const talabatTotal = (r: Record<string, number> | undefined): number =>
+  (r?.talabat_online ?? 0) + (r?.talabat_cash ?? 0);
 
 // ── Unused variable guard (keeps the AnyWorkbook import referenced) ──────────
 // (removed internal type alias — no longer needed)

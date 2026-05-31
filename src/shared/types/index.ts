@@ -476,114 +476,18 @@ export interface ShiftReport {
 
 // ── Reports / Analytics ──────────────────────────────────────────────────────
 
-export interface ItemSales {
-  menu_item_id: string;
-  item_name: string;
-  quantity_sold: number;
-  revenue: number;
-}
-
-export interface CategorySales {
-  category_id: string | null;
-  category_name: string | null;
-  item_count: number;
-  quantity_sold: number;
-  revenue: number;
-  items: ItemSales[];
-}
-
-export interface BranchSalesReport {
-  branch_id: string;
-  branch_name: string;
-  from: string | null;
-  to: string | null;
-  total_orders: number;
-  voided_orders: number;
-  subtotal: number;
-  total_discount: number;
-  total_tax: number;
-  total_revenue: number;
-  cash_revenue: number;
-  card_revenue: number;
-  digital_wallet_revenue: number;
-  mixed_revenue: number;
-  talabat_online_revenue: number;
-  talabat_cash_revenue: number;
-  top_items: ItemSales[];
-  by_category: CategorySales[];
-}
-
-export interface TimeseriesPoint {
-  period: string;
-  orders: number;
-  revenue: number;
-  voided: number;
-  discount: number;
-  tax: number;
-  cash_revenue: number;
-  card_revenue: number;
-  digital_wallet_revenue: number;
-  mixed_revenue: number;
-  talabat_online_revenue: number;
-  talabat_cash_revenue: number;
-}
-
-export interface TellerStats {
-  teller_id: string;
-  teller_name: string;
-  orders: number;
-  revenue: number;
-  avg_order_value: number;
-  voided: number;
-  shifts: number;
-}
-
-export interface AddonSalesRow {
-  addon_item_id: string;
-  addon_name: string;
-  addon_type: string;
-  quantity_sold: number;
-  revenue: number;
-}
-
-export interface BranchComparison {
-  branch_id: string;
-  branch_name: string;
-  total_orders: number;
-  voided_orders: number;
-  total_revenue: number;
-  cash_revenue: number;
-  card_revenue: number;
-  digital_wallet_revenue: number;
-  mixed_revenue: number;
-  talabat_online_revenue: number;
-  talabat_cash_revenue: number;
-  avg_order_value: number;
-  void_rate_pct: number;
-}
-
-export interface OrgComparisonReport {
-  org_id: string;
-  from: string | null;
-  to: string | null;
-  branches: BranchComparison[];
-}
-
-export interface StockRow {
-  branch_inventory_id: string;
-  ingredient_name: string;
-  unit: string;
-  current_stock: number;
-  reorder_threshold: number;
-  cost_per_unit: number;
-  below_reorder: boolean;
-}
-
-export interface BranchStockReport {
-  branch_id: string;
-  branch_name: string;
-  items: StockRow[];
-}
+export type {
+  ItemSales,
+  CategorySales,
+  BranchSalesReport,
+  TimeseriesPoint,
+  TellerStats,
+  AddonSalesRow,
+  BranchComparison,
+  OrgComparisonReport,
+  StockRow,
+  BranchStockReport,
+} from "../api/generated/models";
 
 // ── Discounts ────────────────────────────────────────────────────────────────
 

@@ -36,6 +36,7 @@ import {
   type OpenShiftValues, type CloseShiftValues, type ForceCloseValues, type CashMovementValues,
 } from "@/entities/shift/schemas";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
+import { usePaymentMethods } from "@/shared/hooks/use-payment-methods";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtDateTime, fmtDuration, fmtMoney } from "@/shared/lib/format";
 import { exportToExcel } from "@/shared/lib/excel";
@@ -281,6 +282,7 @@ function CashMovementDialog({ open, onClose, shiftId }: { open: boolean; onClose
 
 function ShiftReportDrawer({ open, onClose, shiftId }: { open: boolean; onClose: () => void; shiftId: string | null }) {
   const { t } = useTranslation();
+  const { getLabel } = usePaymentMethods();
   const { data: report, isLoading } = useGetShiftReport(shiftId ?? "", { query: { enabled: !!shiftId } });
 
   const handlePrint = () => {
@@ -288,7 +290,7 @@ function ShiftReportDrawer({ open, onClose, shiftId }: { open: boolean; onClose:
     const w = window.open("", "_blank", "width=420,height=700");
     if (!w) return;
     const rows = report.payment_summary
-      .map((p) => `<tr><td>${t(`payments.${p.payment_method}`)}</td><td class="r">${p.order_count}</td><td class="r">${fmtMoney(p.total)}</td></tr>`)
+      .map((p) => `<tr><td>${getLabel(p.payment_method)}</td><td class="r">${p.order_count}</td><td class="r">${fmtMoney(p.total)}</td></tr>`)
       .join("");
     const movRows = report.cash_movements
       .map((m) => `<tr><td>${m.note}</td><td class="r ${m.amount >= 0 ? "pos" : "neg"}">${fmtMoney(Math.abs(m.amount))}</td></tr>`)
@@ -312,7 +314,7 @@ function ShiftReportDrawer({ open, onClose, shiftId }: { open: boolean; onClose:
       <h2>Cash Summary</h2>
       <table>
         <tr><td>Opening Cash</td><td class="r">${fmtMoney(report.shift.opening_cash)}</td></tr>
-        <tr><td>Cash Sales</td><td class="r">${fmtMoney(report.payment_summary.find(p => p.payment_method === "cash")?.total ?? 0)}</td></tr>
+        <tr><td>Cash Sales</td><td class="r">${fmtMoney(report.payment_summary.find(p => p.payment_method === "cash" || p.payment_method === "talabat_cash")?.total ?? 0)}</td></tr>
         <tr><td>Net Movements</td><td class="r">${fmtMoney(report.cash_movements_net)}</td></tr>
         <tr class="bold"><td>Expected</td><td class="r">${fmtMoney((report.shift.closing_cash_system ?? 0))}</td></tr>
         ${report.shift.closing_cash_declared !== null ? `<tr class="bold"><td>Declared</td><td class="r">${fmtMoney(report.shift.closing_cash_declared)}</td></tr>` : ""}
@@ -359,7 +361,7 @@ function ShiftReportDrawer({ open, onClose, shiftId }: { open: boolean; onClose:
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{t("shifts.report.paymentBreakdown")}</p>
                 {report.payment_summary.map((p) => (
                   <div key={p.payment_method} className="flex items-center justify-between py-1 border-b last:border-0">
-                    <span className="text-sm">{t(`payments.${p.payment_method}`)} <span className="text-muted-foreground text-xs">× {p.order_count}</span></span>
+                    <span className="text-sm">{getLabel(p.payment_method)} <span className="text-muted-foreground text-xs">× {p.order_count}</span></span>
                     <span className="font-semibold tabular">{fmtMoney(p.total)}</span>
                   </div>
                 ))}
@@ -374,7 +376,7 @@ function ShiftReportDrawer({ open, onClose, shiftId }: { open: boolean; onClose:
               <CardContent className="p-4 space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{t("shifts.report.cashSummary")}</p>
                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">{t("shifts.openingCash")}</span><span className="tabular">{fmtMoney(report.shift.opening_cash)}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">{t("shifts.report.cashSales")}</span><span className="tabular">{fmtMoney(report.payment_summary.find(p => p.payment_method === "cash")?.total ?? 0)}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">{t("shifts.report.cashSales")}</span><span className="tabular">{fmtMoney(report.payment_summary.find(p => p.payment_method === "cash" || p.payment_method === "talabat_cash")?.total ?? 0)}</span></div>
                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">{t("shifts.report.movementsIn")}</span><span className="tabular text-success">+{fmtMoney(report.cash_movements_in)}</span></div>
                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">{t("shifts.report.movementsOut")}</span><span className="tabular text-destructive">{fmtMoney(report.cash_movements_out)}</span></div>
                 <div className="flex justify-between text-sm pt-2 border-t mt-2"><span className="font-bold">{t("shifts.expectedCash")}</span><span className="tabular font-bold">{fmtMoney(report.shift.closing_cash_system ?? 0)}</span></div>

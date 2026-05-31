@@ -48,12 +48,13 @@ const MOCK_SALES = {
   total_discount: 100000,
   total_tax: 300000,
   voided_orders: 5,
-  cash_revenue: 500000,
-  card_revenue: 500000,
-  digital_wallet_revenue: 200000,
-  talabat_online_revenue: 150000,
-  talabat_cash_revenue: 150000,
-  mixed_revenue: 0,
+  revenue_by_method: {
+    cash: 500000,
+    card: 500000,
+    digital_wallet: 200000,
+    talabat_online: 150000,
+    talabat_cash: 150000,
+  },
   top_items: [
     { menu_item_id: 'i1', item_name: 'Latte', quantity_sold: 50, revenue: 500000 }
   ],
@@ -63,7 +64,7 @@ const MOCK_SALES = {
 }
 
 const MOCK_TIMESERIES = [
-  { period: '2026-05-24T10:00:00Z', revenue: 50000, orders: 5, voided: 0, cash_revenue: 50000, card_revenue: 0, digital_wallet_revenue: 0, talabat_online_revenue: 0, talabat_cash_revenue: 0, discount: 0, mixed_revenue: 0, tax: 0 }
+  { period: '2026-05-24T10:00:00Z', revenue: 50000, orders: 5, voided: 0, revenue_by_method: { cash: 50000, card: 0, digital_wallet: 0, talabat_online: 0, talabat_cash: 0 }, discount: 0, tax: 0 }
 ]
 
 const MOCK_ADDON_SALES = [
@@ -85,7 +86,7 @@ const MOCK_TELLER_STATS = [
 const MOCK_ORG_COMPARISON = {
   org_id: 'org1',
   branches: [
-    { branch_id: '1', branch_name: 'Downtown Branch', total_orders: 100, voided_orders: 2, avg_order_value: 10000, cash_revenue: 500000, card_revenue: 500000, digital_wallet_revenue: 0, talabat_online_revenue: 0, talabat_cash_revenue: 0, total_revenue: 1000000, mixed_revenue: 0, void_rate_pct: 2 }
+    { branch_id: '1', branch_name: 'Downtown Branch', total_orders: 100, voided_orders: 2, avg_order_value: 10000, revenue_by_method: { cash: 500000, card: 500000, digital_wallet: 0, talabat_online: 0, talabat_cash: 0 }, total_revenue: 1000000, void_rate_pct: 2 }
   ]
 }
 

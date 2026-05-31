@@ -938,5 +938,9 @@
     "replace": "Replace",
     "tooLarge": "Image size exceeds 5MB limit",
     "uploading": "Uploading..."
+  },
+  "settings": {
+    "paymentMethods": "Payment Methods",
+    "paymentMethodsHint": "Manage dynamic payment methods and colors"
   }
 }

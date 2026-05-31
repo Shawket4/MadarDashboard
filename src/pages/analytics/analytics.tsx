@@ -27,10 +27,10 @@ import {
   useBranchStock as useBranchStockReport, useOrgBranchComparison as useOrgComparison,
 } from "@/shared/api/generated/api";
 import { useListBranches as useBranches } from "@/shared/api/generated/api";
-import { PAYMENT_COLORS, PAYMENT_METHODS } from "@/shared/config/constants";
+import { usePaymentMethods } from "@/shared/hooks/use-payment-methods";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod, piastresToEgp } from "@/shared/lib/format";
-import { exportToExcel, talabatTotal } from "@/shared/lib/excel";
+import { exportToExcel,  } from "@/shared/lib/excel";
 import type {
   AddonSalesRow, BranchComparison, ItemSales, StockRow, TellerStats, TimeseriesPoint,
 } from "@/shared/types";
@@ -60,22 +60,18 @@ function ChartCard({ title, children, onExport }: { title: string; children: Rea
 // ─────────────────────────────────────────────────────────────────────────────
 function OverviewTab({ branchId, from, to }: { branchId: string; from: string | null; to: string | null }) {
   const { t } = useTranslation();
+  const { activeMethods, getLabel, colorMap } = usePaymentMethods();
   const { data: sales, isLoading } = useBranchSales(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
 
   const pieData = useMemo(() => {
     if (!sales) return [];
-    return PAYMENT_METHODS.map((pm) => ({
-      name: t(`payments.${pm}`),
-      value: piastresToEgp(
-        pm === "cash" ? sales.cash_revenue :
-        pm === "card" ? sales.card_revenue :
-        pm === "digital_wallet" ? sales.digital_wallet_revenue :
-        pm === "talabat_online" ? sales.talabat_online_revenue :
-        pm === "talabat_cash" ? sales.talabat_cash_revenue : 0,
-      ),
-      color: PAYMENT_COLORS[pm],
+    const byMethod = sales.revenue_by_method as Record<string, number> | undefined;
+    return activeMethods.map((pm) => ({
+      name: getLabel(pm.name),
+      value: piastresToEgp(byMethod?.[pm.name] ?? 0),
+      color: colorMap[pm.name] || "#ccc",
     })).filter((d) => d.value > 0);
-  }, [sales, t]);
+  }, [sales, activeMethods, getLabel, colorMap]);
 
   const topItems = sales?.top_items ?? [];
   const totalTopRevenue = topItems.reduce((s, i) => s + i.revenue, 0);
@@ -152,15 +148,23 @@ function RevenueTab({
   granularity: Granularity;
 }) {
   const { t } = useTranslation();
+  const { activeMethods, getLabel, colorMap } = usePaymentMethods();
   const { data: ts = [], isLoading } = useBranchTimeseries(branchId, { from: from ?? undefined, to: to ?? undefined, granularity }, { query: { enabled: !!branchId } });
   const { data: sales } = useBranchSales(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
 
   const chartData = useMemo(
-    () => ts.map((p) => ({
-      ...p,
-      period: fmtPeriod(p.period, granularity),
-    })),
-    [ts, granularity],
+    () => ts.map((p) => {
+      const base: Record<string, any> = {
+        ...p,
+        period: fmtPeriod(p.period, granularity),
+      };
+      const byMethod = (p.revenue_by_method as Record<string, number>) || {};
+      for (const m of activeMethods) {
+        base[`${m.name}_revenue`] = byMethod[m.name] ?? 0;
+      }
+      return base;
+    }),
+    [ts, granularity, activeMethods],
   );
 
   const handleExport = () =>
@@ -174,12 +178,14 @@ function RevenueTab({
           { key: "orders", header: t("dashboard.orders"), accessor: (p: TimeseriesPoint) => p.orders, type: "integer", width: 12, total: true },
           { key: "revenue", header: t("orders.totalRevenue"), accessor: (p: TimeseriesPoint) => p.revenue, type: "money", width: 16, total: true },
           { key: "voided", header: t("orderStatus.voided"), accessor: (p: TimeseriesPoint) => p.voided, type: "integer", width: 12, total: true },
-          { key: "cash", header: t("payments.cash"), accessor: (p: TimeseriesPoint) => p.cash_revenue, type: "money", width: 14, total: true },
-          { key: "card", header: t("payments.card"), accessor: (p: TimeseriesPoint) => p.card_revenue, type: "money", width: 14, total: true },
-          { key: "dw", header: t("payments.digital_wallet"), accessor: (p: TimeseriesPoint) => p.digital_wallet_revenue, type: "money", width: 14, total: true },
-          { key: "tOn", header: t("payments.talabat_online"), accessor: (p: TimeseriesPoint) => p.talabat_online_revenue, type: "money", width: 14, total: true },
-          { key: "tCash", header: t("payments.talabat_cash"), accessor: (p: TimeseriesPoint) => p.talabat_cash_revenue, type: "money", width: 14, total: true },
-          { key: "tTot", header: t("payments.talabat_total"), accessor: (p: TimeseriesPoint) => talabatTotal(p), type: "moneyRaw", width: 14, total: true },
+          ...activeMethods.map((m) => ({
+            key: m.name,
+            header: getLabel(m.name),
+            accessor: (p: TimeseriesPoint) => (p.revenue_by_method as Record<string, number>)?.[m.name] ?? 0,
+            type: "money" as const,
+            width: 14,
+            total: true,
+          })),
         ],
         rows: ts,
         totals: true,
@@ -216,10 +222,10 @@ function RevenueTab({
         <ResponsiveContainer width="100%" height={320}>
           <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
             <defs>
-              {(["cash", "card", "digital_wallet", "talabat_online", "talabat_cash"] as const).map((m) => (
-                <linearGradient key={m} id={`grad-${m}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={PAYMENT_COLORS[m]} stopOpacity={0.55} />
-                  <stop offset="100%" stopColor={PAYMENT_COLORS[m]} stopOpacity={0.15} />
+              {activeMethods.map((m) => (
+                <linearGradient key={m.name} id={`grad-${m.name}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={colorMap[m.name] || "#ccc"} stopOpacity={0.55} />
+                  <stop offset="100%" stopColor={colorMap[m.name] || "#ccc"} stopOpacity={0.15} />
                 </linearGradient>
               ))}
             </defs>
@@ -228,46 +234,17 @@ function RevenueTab({
             <YAxis tickFormatter={(v) => `${(v / 100).toFixed(0)}`} tick={{ fontSize: 11 }} />
             <ReTooltip content={<ChartTooltip valueFormat="money" />} />
             <Legend formatter={(v) => <span className="text-xs">{v}</span>} />
-            <Area
-              type="monotone"
-              dataKey="cash_revenue"
-              name={t("payments.cash")}
-              stroke={PAYMENT_COLORS.cash}
-              strokeWidth={2}
-              fill="url(#grad-cash)"
-            />
-            <Area
-              type="monotone"
-              dataKey="card_revenue"
-              name={t("payments.card")}
-              stroke={PAYMENT_COLORS.card}
-              strokeWidth={2}
-              fill="url(#grad-card)"
-            />
-            <Area
-              type="monotone"
-              dataKey="digital_wallet_revenue"
-              name={t("payments.digital_wallet")}
-              stroke={PAYMENT_COLORS.digital_wallet}
-              strokeWidth={2}
-              fill="url(#grad-digital_wallet)"
-            />
-            <Area
-              type="monotone"
-              dataKey="talabat_online_revenue"
-              name={t("payments.talabat_online")}
-              stroke={PAYMENT_COLORS.talabat_online}
-              strokeWidth={2}
-              fill="url(#grad-talabat_online)"
-            />
-            <Area
-              type="monotone"
-              dataKey="talabat_cash_revenue"
-              name={t("payments.talabat_cash")}
-              stroke={PAYMENT_COLORS.talabat_cash}
-              strokeWidth={2}
-              fill="url(#grad-talabat_cash)"
-            />
+            {activeMethods.map((m) => (
+              <Area
+                key={m.name}
+                type="monotone"
+                dataKey={`${m.name}_revenue`}
+                name={getLabel(m.name)}
+                stroke={colorMap[m.name] || "#ccc"}
+                strokeWidth={2}
+                fill={`url(#grad-${m.name})`}
+              />
+            ))}
           </AreaChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -429,6 +406,7 @@ function TellersTab({ branchId, from, to }: { branchId: string; from: string | n
 // ─────────────────────────────────────────────────────────────────────────────
 function BranchesTab({ orgId, from, to }: { orgId: string; from: string | null; to: string | null }) {
   const { t } = useTranslation();
+  const { activeMethods, getLabel, colorMap } = usePaymentMethods();
   const { data: report, isLoading } = useOrgComparison(orgId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!orgId } });
 
   const cols: ColumnDef<BranchComparison>[] = [
@@ -436,20 +414,22 @@ function BranchesTab({ orgId, from, to }: { orgId: string; from: string | null; 
     { accessorKey: "total_orders", header: t("dashboard.orders") },
     { accessorKey: "voided_orders", header: t("orderStatus.voided") },
     { accessorKey: "avg_order_value", header: t("analytics.aov"), cell: ({ row }) => <span className="tabular">{fmtMoney(row.original.avg_order_value)}</span> },
-    { accessorKey: "cash_revenue", header: t("payments.cash"), cell: ({ row }) => <span className="tabular text-sm">{fmtMoney(row.original.cash_revenue)}</span> },
-    { accessorKey: "card_revenue", header: t("payments.card"), cell: ({ row }) => <span className="tabular text-sm">{fmtMoney(row.original.card_revenue)}</span> },
-    { id: "talabat_total", header: t("payments.talabat_total"), cell: ({ row }) => <span className="tabular text-sm">{fmtMoney(talabatTotal(row.original))}</span> },
+    ...activeMethods.map((m) => ({
+      id: `${m.name}_revenue`,
+      header: getLabel(m.name),
+      cell: ({ row }: { row: { original: BranchComparison } }) => <span className="tabular text-sm">{fmtMoney((row.original.revenue_by_method as Record<string, number>)?.[m.name] ?? 0)}</span>,
+    })),
     { accessorKey: "total_revenue", header: t("orders.totalRevenue"), cell: ({ row }) => <span className="tabular font-semibold text-sm">{fmtMoney(row.original.total_revenue)}</span> },
   ];
 
-  const chartData = report?.branches.map((b) => ({
-    name: b.branch_name,
-    cash: piastresToEgp(b.cash_revenue),
-    card: piastresToEgp(b.card_revenue),
-    dw: piastresToEgp(b.digital_wallet_revenue),
-    tOn: piastresToEgp(b.talabat_online_revenue),
-    tCash: piastresToEgp(b.talabat_cash_revenue),
-  })) ?? [];
+  const chartData = report?.branches.map((b) => {
+    const base: Record<string, any> = { name: b.branch_name };
+    const byMethod = (b.revenue_by_method as Record<string, number>) || {};
+    for (const m of activeMethods) {
+      base[m.name] = piastresToEgp(byMethod[m.name] ?? 0);
+    }
+    return base;
+  }) ?? [];
 
   const handleExport = () => {
     if (!report) return;
@@ -463,12 +443,14 @@ function BranchesTab({ orgId, from, to }: { orgId: string; from: string | null; 
           { key: "orders", header: t("dashboard.orders"), accessor: (b: BranchComparison) => b.total_orders, type: "integer", width: 12, total: true },
           { key: "voided", header: t("orderStatus.voided"), accessor: (b: BranchComparison) => b.voided_orders, type: "integer", width: 12, total: true },
           { key: "aov", header: t("analytics.aov"), accessor: (b: BranchComparison) => b.avg_order_value, type: "money", width: 14 },
-          { key: "cash", header: t("payments.cash"), accessor: (b: BranchComparison) => b.cash_revenue, type: "money", width: 14, total: true },
-          { key: "card", header: t("payments.card"), accessor: (b: BranchComparison) => b.card_revenue, type: "money", width: 14, total: true },
-          { key: "dw", header: t("payments.digital_wallet"), accessor: (b: BranchComparison) => b.digital_wallet_revenue, type: "money", width: 14, total: true },
-          { key: "tOn", header: t("payments.talabat_online"), accessor: (b: BranchComparison) => b.talabat_online_revenue, type: "money", width: 14, total: true },
-          { key: "tCash", header: t("payments.talabat_cash"), accessor: (b: BranchComparison) => b.talabat_cash_revenue, type: "money", width: 14, total: true },
-          { key: "tTot", header: t("payments.talabat_total"), accessor: (b: BranchComparison) => talabatTotal(b), type: "moneyRaw", width: 14, total: true },
+          ...activeMethods.map((m) => ({
+            key: m.name,
+            header: getLabel(m.name),
+            accessor: (b: BranchComparison) => (b.revenue_by_method as Record<string, number>)?.[m.name] ?? 0,
+            type: "money" as const,
+            width: 14,
+            total: true,
+          })),
           { key: "rev", header: t("orders.totalRevenue"), accessor: (b: BranchComparison) => b.total_revenue, type: "money", width: 16, total: true },
         ],
         rows: report.branches,
@@ -490,11 +472,15 @@ function BranchesTab({ orgId, from, to }: { orgId: string; from: string | null; 
             <YAxis fontSize={10} tickFormatter={(v) => fmtMoneyCompact(v * 100)} />
             <ReTooltip content={<ChartTooltip valueFormat="money" />} />
             <Legend />
-            <Bar dataKey="cash" stackId="a" name={t("payments.cash")} fill={PAYMENT_COLORS.cash} />
-            <Bar dataKey="card" stackId="a" name={t("payments.card")} fill={PAYMENT_COLORS.card} />
-            <Bar dataKey="dw" stackId="a" name={t("payments.digital_wallet")} fill={PAYMENT_COLORS.digital_wallet} />
-            <Bar dataKey="tOn" stackId="a" name={t("payments.talabat_online")} fill={PAYMENT_COLORS.talabat_online} />
-            <Bar dataKey="tCash" stackId="a" name={t("payments.talabat_cash")} fill={PAYMENT_COLORS.talabat_cash} />
+            {activeMethods.map((m) => (
+              <Bar
+                key={m.name}
+                dataKey={m.name}
+                stackId="a"
+                name={getLabel(m.name)}
+                fill={colorMap[m.name] || "#ccc"}
+              />
+            ))}
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>

@@ -31,11 +31,12 @@ import {
 import { voidOrderSchema, type VoidOrderValues } from "@/entities/order/schemas";
 import { useListBranches as useBranches } from "@/shared/api/generated/api";
 import { useListShifts } from "@/shared/api/generated/api";
-import { PAYMENT_METHODS, PAYMENT_COLORS, ORDER_STATUSES } from "@/shared/config/constants";
+import { ORDER_STATUSES } from "@/shared/config/constants";
+import { usePaymentMethods } from "@/shared/hooks/use-payment-methods";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtDateTime, fmtMoney, fmtUnit } from "@/shared/lib/format";
-import type { OrdersQuery, PaymentMethod, OrderStatus } from "@/shared/types";
+import type { OrdersQuery, OrderStatus } from "@/shared/types";
 import type { Order } from "@/shared/api/generated/models/order";
 import type { OrderFull } from "@/shared/api/generated/models/orderFull";
 
@@ -106,6 +107,7 @@ function VoidDialog({ open, onClose, order }: { open: boolean; onClose: () => vo
 
 function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; onClose: () => void; orderId: string | null; onVoid: (o: OrderFull) => void }) {
   const { t } = useTranslation();
+  const { getLabel } = usePaymentMethods();
   const { data: order, isLoading } = useGetOrder(orderId ?? "", { query: { enabled: !!orderId } });
 
   return (
@@ -145,7 +147,7 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
                 <div className="flex justify-between"><span className="text-muted-foreground">{t("common.date")}</span><span>{fmtDateTime(order.created_at)}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">{t("dashboard.teller")}</span><span>{order.teller_name}</span></div>
                 {order.customer_name && <div className="flex justify-between"><span className="text-muted-foreground">{t("orders.customer")}</span><span>{order.customer_name}</span></div>}
-                <div className="flex justify-between"><span className="text-muted-foreground">{t("orders.payment")}</span><Badge variant="outline">{t(`payments.${order.payment_method}`)}</Badge></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">{t("orders.payment")}</span><Badge variant="outline">{getLabel(order.payment_method)}</Badge></div>
               </CardContent>
             </Card>
 
@@ -327,7 +329,7 @@ export default function Orders() {
   const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const [selBranch, setSelBranch] = useState<string>(ctxBranch ?? "");
   const [selShift, setSelShift] = useState<string>("");
-  const [payment, setPayment] = useState<PaymentMethod | "">("");
+  const [payment, setPayment] = useState<string>("");
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [tellerName, setTellerName] = useState("");
   const [from, setFrom] = useState<string | null>(null);
@@ -344,6 +346,8 @@ export default function Orders() {
 
   const { data: shifts = [] } = useListShifts(selBranch ?? "", { query: { enabled: !!selBranch } });
 
+  const { activeMethods, colorMap, getLabel } = usePaymentMethods();
+
   const activeShift = shifts.find((s) => s.id === selShift);
   const shiftLabel = activeShift
     ? `${activeShift.teller_name} · ${fmtDateTime(activeShift.opened_at)}`
@@ -352,7 +356,7 @@ export default function Orders() {
   const query: OrdersQuery = {
     branch_id: selBranch || undefined,
     shift_id: selShift || undefined,
-    payment_method: payment || undefined,
+    payment_method: (payment as any) || undefined,
     status: status || undefined,
     teller_name: tellerName || undefined,
     from: from || undefined,
@@ -382,8 +386,8 @@ const stats = data?.summary ?? { revenue: 0, completed: 0, voided: 0, discounts:
       header: t("orders.payment"),
       cell: ({ row }) => (
         <span className="inline-flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full" style={{ background: PAYMENT_COLORS[row.original.payment_method as PaymentMethod] }} />
-          <Badge variant="outline" className="text-[10px]">{t(`payments.${row.original.payment_method}`)}</Badge>
+          <span className="w-2 h-2 rounded-full" style={{ background: colorMap[row.original.payment_method] || "#ccc" }} />
+          <Badge variant="outline" className="text-[10px]">{getLabel(row.original.payment_method)}</Badge>
         </span>
       ),
     },
@@ -438,11 +442,11 @@ const stats = data?.summary ?? { revenue: 0, completed: 0, voided: 0, discounts:
                 {shifts.map((s) => <SelectItem key={s.id} value={s.id}>{s.teller_name} · {fmtDateTime(s.opened_at)}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select value={payment || "all"} onValueChange={(v) => { setPayment(v === "all" ? "" : (v as PaymentMethod)); setPage(1); }}>
+            <Select value={payment || "all"} onValueChange={(v) => { setPayment(v === "all" ? "" : v); setPage(1); }}>
               <SelectTrigger className="h-9 w-40"><SelectValue placeholder={t("orders.allMethods")} /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t("orders.allMethods")}</SelectItem>
-                {PAYMENT_METHODS.map((p) => <SelectItem key={p} value={p}>{t(`payments.${p}`)}</SelectItem>)}
+                {activeMethods.map((p) => <SelectItem key={p.name} value={p.name}>{getLabel(p.name)}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={status || "all"} onValueChange={(v) => { setStatus(v === "all" ? "" : (v as OrderStatus)); setPage(1); }}>

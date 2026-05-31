@@ -19,6 +19,7 @@ const Analytics = lazy(() => import("@/pages/analytics/analytics"));
 const Discounts = lazy(() => import("@/pages/discounts/discounts"));
 const Permissions = lazy(() => import("@/pages/permissions/permissions"));
 const Settings = lazy(() => import("@/pages/settings/settings"));
+const PaymentMethods = lazy(() => import("@/pages/settings/payment-methods"));
 const PublicMenu = lazy(() => import("@/pages/public-menu/public-menu"));
 const MenuAdvisor = lazy(() => import("@/pages/menu-advisor/menu-advisor"));
 const NotFound = lazy(() => import("@/pages/error/not-found"));
@@ -63,6 +64,7 @@ const router = createBrowserRouter([
           { path: "permissions", element: wrap(<Permissions />) },
           { path: "permissions/:userId", element: wrap(<Permissions />) },
           { path: "settings", element: wrap(<Settings />) },
+          { path: "settings/payment-methods", element: wrap(<PaymentMethods />) },
           { path: "menu-advisor", element: wrap(<MenuAdvisor />) },
           { path: "*", element: wrap(<NotFound />) },
         ],
