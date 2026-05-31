@@ -281,7 +281,13 @@
       "inventory_transfers": "Inventory Transfers",
       "recipes": "Recipes",
       "permissions": "Permissions",
-      "shift_counts": "Shift Counts"
+      "shift_counts": "Shift Counts",
+      "orgs": "Organizations",
+      "addon_groups": "Addon Groups",
+      "order_items": "Order Items",
+      "payments": "Payments",
+      "soft_serve_batches": "Soft Serve Batches",
+      "settings": "Settings"
     }
   },
   "menu": {

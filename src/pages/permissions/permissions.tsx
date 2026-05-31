@@ -40,6 +40,7 @@ const RESOURCES = [
   "shift_counts",
   "soft_serve_batches",
   "permissions",
+  "settings",
 ];
 
 const ACTIONS = ["read", "create", "update", "delete"] as const;

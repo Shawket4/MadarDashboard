@@ -281,7 +281,13 @@
       "inventory_transfers": "تحويلات المخزون",
       "recipes": "الوصفات",
       "permissions": "الصلاحيات",
-      "shift_counts": "جرد الوردية"
+      "shift_counts": "جرد الوردية",
+      "orgs": "المؤسسات",
+      "addon_groups": "مجموعات الإضافات",
+      "order_items": "عناصر الطلب",
+      "payments": "المدفوعات",
+      "soft_serve_batches": "تشغيلات الآيس كريم",
+      "settings": "الإعدادات"
     }
   },
   "menu": {

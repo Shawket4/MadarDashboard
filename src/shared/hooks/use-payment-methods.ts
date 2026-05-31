@@ -24,7 +24,8 @@ export function usePaymentMethods() {
   const getLabel = (name: string, lang?: string) => {
     const method = methods.find(m => m.name === name);
     if (!method) return name;
-    const targetLang = lang || i18n.language || "en";
+    const currentLang = lang || i18n.language || "en";
+    const targetLang = currentLang.substring(0, 2);
     
     // Fallback logic for unknown JSON
     const translations = method.label_translations as Record<string, string> | null;
