@@ -26,6 +26,7 @@ import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtMoney } from "@/shared/lib/format";
 import { exportToExcel } from "@/shared/lib/excel";
+import { getTranslatedName } from "@/shared/lib/translation";
 
 function DiscountDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: () => void; edit?: Discount | null; orgId: string }) {
   const { t } = useTranslation();
@@ -208,7 +209,7 @@ function DiscountDialog({ open, onClose, edit, orgId }: { open: boolean; onClose
 }
 
 export default function Discounts() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const { orgId } = useCurrentContext();
   const [dlgOpen, setDlgOpen] = useState(false);
@@ -256,7 +257,7 @@ export default function Discounts() {
               : <DollarSign size={13} className="text-success" />}
           </div>
           <div>
-            <p className="font-semibold text-sm">{row.original.name}</p>
+            <p className="font-semibold text-sm">{getTranslatedName(row.original, i18n.language)}</p>
             <p className="text-xs text-muted-foreground">
               {row.original.dtype === "percentage" ? `${row.original.value}% off` : `${fmtMoney(row.original.value)} off`}
             </p>
@@ -317,7 +318,7 @@ export default function Discounts() {
           name: "Discounts",
           title: t("discounts.title"),
           columns: [
-            { key: "name", header: t("discounts.discountName"), accessor: (d: Discount) => d.name, width: 28 },
+            { key: "name", header: t("discounts.discountName"), accessor: (d: Discount) => getTranslatedName(d, i18n.language), width: 28 },
             { key: "dtype", header: t("common.type"), accessor: (d: Discount) => (d.dtype === "percentage" ? t("discounts.percentage") : t("discounts.fixed")), width: 16 },
             {
               key: "value",

@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { getTranslatedName } from "@/shared/lib/translation";
 import type { ExcelSheetConfig } from "@/shared/lib/excel";
 import type { OrderExport } from "@/shared/api/generated/models/orderExport";
 import type { Grain } from "../model/types";
@@ -16,7 +17,8 @@ import {
 export function buildSheets(
   orders: OrderExport[],
   grains: Grain[],
-  t: TFunction
+  t: TFunction,
+  lang: string
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): ExcelSheetConfig<any>[] {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,15 +40,15 @@ export function buildSheets(
         order_number: o.order_number,
         created_at: o.created_at,
         payment_method: o.payment_method,
-        item_name: it.item_name,
+        item_name: getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, lang),
         size_label: it.size_label || null,
         quantity: it.quantity,
         unit_price: it.unit_price,
         line_total: it.line_total,
         addons: (it.addons || [])
-          .map((a) => `+ ${a.addon_name}${a.quantity > 1 ? ` ×${a.quantity}` : ""}`)
+          .map((a) => `+ ${getTranslatedName({ name: a.addon_name, name_translations: a.name_translations }, lang)}${a.quantity > 1 ? ` ×${a.quantity}` : ""}`)
           .join(", "),
-        optionals: (it.optionals || []).map((opt) => opt.field_name).join(", "),
+        optionals: (it.optionals || []).map((opt) => getTranslatedName({ name: opt.field_name, name_translations: opt.name_translations }, lang)).join(", "),
         notes: it.notes || null,
       }))
     );
@@ -86,7 +88,7 @@ export function buildSheets(
         (Array.isArray(it.deductions_snapshot) ? it.deductions_snapshot : []).map((d: any) => ({
           order_number: o.order_number,
           created_at: o.created_at,
-          item_name: it.item_name,
+          item_name: getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, lang),
           ingredient_name: d.ingredient_name,
           quantity: d.quantity,
           unit: d.unit,

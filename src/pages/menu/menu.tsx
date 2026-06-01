@@ -709,8 +709,8 @@ export default function Menu() {
           name: "Items",
           title: t("menu.items"),
           columns: [
-            { key: "name", header: t("common.name"), accessor: (m: MenuItem) => m.name, width: 28 },
-            { key: "description", header: t("common.description"), accessor: (m: MenuItem) => m.description ?? "—", width: 32 },
+            { key: "name", header: t("common.name"), accessor: (m: MenuItem) => getTranslatedName(m, i18n.language), width: 28 },
+            { key: "description", header: t("common.description"), accessor: (m: MenuItem) => getTranslatedDescription(m, i18n.language) ?? "—", width: 32 },
             { key: "category", header: t("common.category"), accessor: (m: MenuItem) => categories.find((c) => c.id === m.category_id)?.name ?? t("menu.uncategorised"), width: 20 },
             { key: "price", header: t("common.price"), accessor: (m: MenuItem) => m.base_price, type: "money", width: 14, total: true },
             { key: "is_active", header: t("common.status"), accessor: (m: MenuItem) => m.is_active, type: "bool", width: 12 },
@@ -727,7 +727,7 @@ export default function Menu() {
           name: "Categories",
           title: t("menu.categories"),
           columns: [
-            { key: "name", header: t("common.name"), accessor: (c: Category) => c.name, width: 28 },
+            { key: "name", header: t("common.name"), accessor: (c: Category) => getTranslatedName(c, i18n.language), width: 28 },
             { key: "order", header: t("menu.displayOrder"), accessor: (c: Category) => c.display_order, type: "integer", width: 14 },
             { key: "is_active", header: t("common.status"), accessor: (c: Category) => c.is_active, type: "bool", width: 12 },
           ],
@@ -737,7 +737,7 @@ export default function Menu() {
           name: "Addons",
           title: t("menu.addons"),
           columns: [
-            { key: "name", header: t("common.name"), accessor: (a: AddonItem) => a.name, width: 28 },
+            { key: "name", header: t("common.name"), accessor: (a: AddonItem) => getTranslatedName(a, i18n.language), width: 28 },
             { key: "type", header: t("common.type"), accessor: (a: AddonItem) => t(`menu.addonTypes.${a.addon_type}`, { defaultValue: a.addon_type }), width: 18 },
             { key: "price", header: t("common.price"), accessor: (a: AddonItem) => a.default_price, type: "money", width: 14, total: true },
             { key: "order", header: t("menu.displayOrder"), accessor: (a: AddonItem) => a.display_order, type: "integer", width: 14 },

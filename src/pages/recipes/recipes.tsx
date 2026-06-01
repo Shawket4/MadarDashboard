@@ -37,6 +37,7 @@ import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtUnit } from "@/shared/lib/format";
 import { exportToExcel } from "@/shared/lib/excel";
+import { getTranslatedName, getTranslatedLabel } from "@/shared/lib/translation";
 import type { 
   MenuItemEmbeddedRecipe, AddonIngredient, AddonItem
 } from "@/shared/types";
@@ -415,7 +416,7 @@ function AddonsTab({ orgId }: { orgId: string }) {
 // Slots & Optionals Tab
 // ─────────────────────────────────────────────────────────────────────────────
 function SlotsOptionalsTab({ orgId }: { orgId: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [selItemId, setSelItemId] = useState<string | null>(null);
 
@@ -532,7 +533,7 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
                     {slots.map((s) => (
                       <div key={s.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/40">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{s.label ?? t(`menu.addonTypes.${s.addon_type}`, { defaultValue: s.addon_type })}</p>
+                          <p className="text-sm font-medium">{getTranslatedLabel(s, i18n.language) ?? t(`menu.addonTypes.${s.addon_type}`, { defaultValue: s.addon_type })}</p>
                           <p className="text-xs text-muted-foreground">
                             {t(`menu.addonTypes.${s.addon_type}`, { defaultValue: s.addon_type })} · min {s.min_selections}, max {s.max_selections ?? "∞"}
                           </p>
@@ -562,7 +563,7 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
                     {optionals.map((o) => (
                       <div key={o.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/40">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{o.name}</p>
+                          <p className="text-sm font-medium">{getTranslatedName(o, i18n.language)}</p>
                           {o.ingredient_name && (
                             <p className="text-xs text-muted-foreground">
                               {t("recipes.optionals.deducts", {

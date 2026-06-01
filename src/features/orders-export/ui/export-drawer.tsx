@@ -40,7 +40,7 @@ export function ExportDrawer({
   shiftLabel,
   totalApprox,
 }: ExportDrawerProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { orgLogo } = useCurrentContext();
 
   const [preset, setPreset] = useState<PresetId>("accountant_daily");
@@ -116,7 +116,7 @@ export function ExportDrawer({
         return;
       }
 
-      const sheets = buildSheets(res.data, grains, t);
+      const sheets = buildSheets(res.data, grains, t, i18n.language);
       const meta = buildMeta({
         branchName,
         from: reqFilters.from || null,

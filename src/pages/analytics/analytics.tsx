@@ -31,6 +31,7 @@ import { usePaymentMethods } from "@/shared/hooks/use-payment-methods";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod, piastresToEgp } from "@/shared/lib/format";
 import { exportToExcel,  } from "@/shared/lib/excel";
+import { getTranslatedName } from "@/shared/lib/translation";
 import type {
   AddonSalesRow, BranchComparison, ItemSales, StockRow, TellerStats, TimeseriesPoint,
 } from "@/shared/types";
@@ -41,7 +42,7 @@ type TabKey = "overview" | "revenue" | "items" | "tellers" | "branches" | "inven
 const CHART_HEIGHT = 300;
 
 function ChartCard({ title, children, onExport }: { title: string; children: React.ReactNode; onExport?: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ void i18n.language;
   return (
     <Card>
       <CardContent className="p-4">
@@ -59,7 +60,7 @@ function ChartCard({ title, children, onExport }: { title: string; children: Rea
 // Overview Tab — KPIs + payment pie + top items progress
 // ─────────────────────────────────────────────────────────────────────────────
 function OverviewTab({ branchId, from, to }: { branchId: string; from: string | null; to: string | null }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ void i18n.language;
   const { activeMethods, getLabel, colorMap } = usePaymentMethods();
   const { data: sales, isLoading } = useBranchSales(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
 
@@ -117,7 +118,7 @@ function OverviewTab({ branchId, from, to }: { branchId: string; from: string | 
               {topItems.slice(0, 10).map((i) => (
                 <div key={i.menu_item_id} className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="font-medium truncate me-2">{i.item_name}</span>
+                    <span className="font-medium truncate me-2">{getTranslatedName({ name: i.item_name, name_translations: i.item_name_translations }, i18n.language)}</span>
                     <span className="tabular font-semibold">{fmtMoney(i.revenue)}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -147,7 +148,7 @@ function RevenueTab({
   to: string | null;
   granularity: Granularity;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ void i18n.language;
   const { activeMethods, getLabel, colorMap } = usePaymentMethods();
   const { data: ts = [], isLoading } = useBranchTimeseries(branchId, { from: from ?? undefined, to: to ?? undefined, granularity }, { query: { enabled: !!branchId } });
   const { data: sales } = useBranchSales(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
@@ -256,18 +257,18 @@ function RevenueTab({
 // Items Tab — table + categories + addon sales (clean card-based)
 // ─────────────────────────────────────────────────────────────────────────────
 function ItemsTab({ branchId, from, to }: { branchId: string; from: string | null; to: string | null }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ void i18n.language;
   const { data: sales, isLoading } = useBranchSales(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
   const { data: addons = [] } = useBranchAddons(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
 
   const cols: ColumnDef<ItemSales>[] = [
-    { accessorKey: "item_name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold text-sm">{row.original.item_name}</span> },
+    { accessorKey: "item_name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold text-sm">{getTranslatedName({ name: row.original.item_name, name_translations: row.original.item_name_translations }, i18n.language)}</span> },
     { accessorKey: "quantity_sold", header: t("common.qty"), cell: ({ row }) => <span className="tabular text-sm">{fmtNumber(row.original.quantity_sold)}</span> },
     { accessorKey: "revenue", header: t("orders.totalRevenue"), cell: ({ row }) => <span className="tabular font-semibold text-sm">{fmtMoney(row.original.revenue)}</span> },
   ];
 
   const addonCols: ColumnDef<AddonSalesRow>[] = [
-    { accessorKey: "addon_name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold text-sm">{row.original.addon_name}</span> },
+    { accessorKey: "addon_name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold text-sm">{getTranslatedName({ name: row.original.addon_name, name_translations: row.original.addon_name_translations }, i18n.language)}</span> },
     { accessorKey: "addon_type", header: t("common.type"), cell: ({ row }) => <Badge variant="outline">{t(`menu.addonTypes.${row.original.addon_type}`, { defaultValue: row.original.addon_type })}</Badge> },
     { accessorKey: "quantity_sold", header: t("common.qty"), cell: ({ row }) => <span className="tabular text-sm">{fmtNumber(row.original.quantity_sold)}</span> },
     { accessorKey: "revenue", header: t("orders.totalRevenue"), cell: ({ row }) => <span className="tabular font-semibold text-sm">{fmtMoney(row.original.revenue)}</span> },
@@ -282,7 +283,7 @@ function ItemsTab({ branchId, from, to }: { branchId: string; from: string | nul
           name: "Items",
           title: t("analytics.topItemsRev"),
           columns: [
-            { key: "name", header: t("common.name"), accessor: (i: ItemSales) => i.item_name, width: 30 },
+            { key: "name", header: t("common.name"), accessor: (i: ItemSales) => getTranslatedName({ name: i.item_name, name_translations: i.item_name_translations }, i18n.language), width: 30 },
             { key: "qty", header: t("common.qty"), accessor: (i: ItemSales) => i.quantity_sold, type: "integer", width: 12, total: true },
             { key: "rev", header: t("orders.totalRevenue"), accessor: (i: ItemSales) => i.revenue, type: "money", width: 16, total: true },
           ],
@@ -293,7 +294,7 @@ function ItemsTab({ branchId, from, to }: { branchId: string; from: string | nul
           name: "Addons",
           title: t("analytics.addonSales"),
           columns: [
-            { key: "name", header: t("common.name"), accessor: (a: AddonSalesRow) => a.addon_name, width: 28 },
+            { key: "name", header: t("common.name"), accessor: (a: AddonSalesRow) => getTranslatedName({ name: a.addon_name, name_translations: a.addon_name_translations }, i18n.language), width: 28 },
             { key: "type", header: t("common.type"), accessor: (a: AddonSalesRow) => t(`menu.addonTypes.${a.addon_type}`, { defaultValue: a.addon_type }), width: 16 },
             { key: "qty", header: t("common.qty"), accessor: (a: AddonSalesRow) => a.quantity_sold, type: "integer", width: 12, total: true },
             { key: "rev", header: t("orders.totalRevenue"), accessor: (a: AddonSalesRow) => a.revenue, type: "money", width: 16, total: true },
@@ -346,7 +347,7 @@ function ItemsTab({ branchId, from, to }: { branchId: string; from: string | nul
 // Tellers Tab
 // ─────────────────────────────────────────────────────────────────────────────
 function TellersTab({ branchId, from, to }: { branchId: string; from: string | null; to: string | null }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ void i18n.language;
   const { data: tellers = [], isLoading } = useBranchTellers(branchId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!branchId } });
 
   const chartData = tellers.map((t2) => ({ name: t2.teller_name, revenue: piastresToEgp(t2.revenue), orders: t2.orders }));
@@ -405,7 +406,7 @@ function TellersTab({ branchId, from, to }: { branchId: string; from: string | n
 // Branches Tab — stacked bar keeps Talabat split to avoid double-counting
 // ─────────────────────────────────────────────────────────────────────────────
 function BranchesTab({ orgId, from, to }: { orgId: string; from: string | null; to: string | null }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ void i18n.language;
   const { activeMethods, getLabel, colorMap } = usePaymentMethods();
   const { data: report, isLoading } = useOrgComparison(orgId, { from: from ?? undefined, to: to ?? undefined }, { query: { enabled: !!orgId } });
 
@@ -494,7 +495,7 @@ function BranchesTab({ orgId, from, to }: { orgId: string; from: string | null; 
 // Inventory Tab — stock bars
 // ─────────────────────────────────────────────────────────────────────────────
 function InventoryTab({ branchId }: { branchId: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ void i18n.language;
   const { data: report, isLoading } = useBranchStockReport(branchId, { query: { enabled: !!branchId } });
 
   const handleExport = () => {
@@ -548,7 +549,7 @@ function InventoryTab({ branchId }: { branchId: string }) {
 // Main
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Analytics() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ void i18n.language;
   const { orgId, isSuperAdmin, isOrgAdmin, branchId: ctxBranch } = useCurrentContext();
   const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const [selBranch, setSelBranch] = useState<string>(ctxBranch ?? "");

@@ -2215,6 +2215,9 @@ export const BranchAddonSalesQueryParams = zod.object({
 export const BranchAddonSalesResponseItem = zod.object({
   "addon_item_id": zod.string().uuid(),
   "addon_name": zod.string(),
+  "addon_name_translations": zod.object({
+
+}).passthrough(),
   "addon_type": zod.string(),
   "quantity_sold": zod.number(),
   "revenue": zod.number()
@@ -2255,6 +2258,9 @@ export const BranchCombinedItemSalesResponseItem = zod.object({
   "bundle_qty": zod.number(),
   "item_id": zod.string().uuid().nullish(),
   "item_name": zod.string(),
+  "item_name_translations": zod.object({
+
+}).passthrough(),
   "standalone_qty": zod.number(),
   "total_qty": zod.number()
 })
@@ -2277,9 +2283,15 @@ export const BranchSalesResponse = zod.object({
   "by_category": zod.array(zod.object({
   "category_id": zod.string().uuid().nullish(),
   "category_name": zod.string().nullish(),
+  "category_name_translations": zod.object({
+
+}).passthrough(),
   "item_count": zod.number(),
   "items": zod.array(zod.object({
   "item_name": zod.string(),
+  "item_name_translations": zod.object({
+
+}).passthrough(),
   "menu_item_id": zod.string().uuid(),
   "quantity_sold": zod.number(),
   "revenue": zod.number()
@@ -2293,6 +2305,9 @@ export const BranchSalesResponse = zod.object({
   "to": zod.string().datetime({"offset":true}).nullish(),
   "top_items": zod.array(zod.object({
   "item_name": zod.string(),
+  "item_name_translations": zod.object({
+
+}).passthrough(),
   "menu_item_id": zod.string().uuid(),
   "quantity_sold": zod.number(),
   "revenue": zod.number()

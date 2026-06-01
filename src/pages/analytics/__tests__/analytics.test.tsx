@@ -56,10 +56,10 @@ const MOCK_SALES = {
     talabat_cash: 150000,
   },
   top_items: [
-    { menu_item_id: 'i1', item_name: 'Latte', quantity_sold: 50, revenue: 500000 }
+    { menu_item_id: 'i1', item_name: 'Latte', item_name_translations: {}, quantity_sold: 50, revenue: 500000 }
   ],
   by_category: [
-    { category_id: 'c1', category_name: 'Coffee', quantity_sold: 50, revenue: 500000, item_count: 1, items: [] }
+    { category_id: 'c1', category_name: 'Coffee', category_name_translations: {}, quantity_sold: 50, revenue: 500000, item_count: 1, items: [] }
   ]
 }
 
@@ -68,7 +68,7 @@ const MOCK_TIMESERIES = [
 ]
 
 const MOCK_ADDON_SALES = [
-  { addon_item_id: 'a1', addon_name: 'Extra Shot', addon_type: 'milk', quantity_sold: 20, revenue: 100000 }
+  { addon_item_id: 'a1', addon_name: 'Extra Shot', addon_name_translations: {}, addon_type: 'milk', quantity_sold: 20, revenue: 100000 }
 ]
 
 const MOCK_STOCK = {
