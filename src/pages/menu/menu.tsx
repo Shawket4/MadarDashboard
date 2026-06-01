@@ -786,7 +786,9 @@ export default function Menu() {
           ) : items.length === 0 ? (
             <EmptyState icon={Coffee} title={t("menu.emptyItems")} />
           ) : (
+          <div dir={i18n.language === "ar" ? "rtl" : "ltr"}>
             <DataTable columns={itemCols} data={items} searchKey="name" searchPlaceholder={t("menu.searchItems")} onRowClick={(it) => { setEditItem(it); setItemDlg(true); }} />
+          </div>
           )}
         </TabsContent>
 
@@ -801,7 +803,9 @@ export default function Menu() {
           ) : categories.length === 0 ? (
             <EmptyState icon={Tag} title={t("menu.emptyCategories")} />
           ) : (
+          <div dir={i18n.language === "ar" ? "rtl" : "ltr"}>
             <DataTable columns={catCols} data={categories} searchKey="name" searchPlaceholder={t("menu.searchCategories")} />
+          </div>
           )}
         </TabsContent>
 
@@ -825,7 +829,9 @@ export default function Menu() {
           ) : addons.length === 0 ? (
             <EmptyState icon={Package} title={t("menu.emptyAddons")} />
           ) : (
+          <div dir={i18n.language === "ar" ? "rtl" : "ltr"}>
             <DataTable columns={addonCols} data={addons} searchKey="name" searchPlaceholder={t("menu.searchAddons")} />
+          </div>
           )}
         </TabsContent>
       </Tabs>
