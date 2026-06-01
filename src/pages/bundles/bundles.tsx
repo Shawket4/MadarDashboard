@@ -109,7 +109,9 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
     resolver: zodResolver(bundleSchema),
     defaultValues: {
       name: editItem?.name ?? advisorValues?.name ?? "",
+      name_translations: editItem?.name_translations ?? {},
       description: editItem?.description ?? advisorValues?.description ?? "",
+      description_translations: editItem?.description_translations ?? {},
       price: editItem ? editItem.price / 100 : (advisorValues?.price ?? ""),
       available_from_time: editItem?.available_from_time ?? "",
       available_until_time: editItem?.available_until_time ?? "",
@@ -262,12 +264,13 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
             <DialogBody className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Column: Basic Details & Availability */}
               <div className="lg:col-span-7 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("bundles.bundleName")}</FormLabel>
+                      <FormLabel>{t("bundles.bundleName")} (EN)</FormLabel>
                       <FormControl>
                         <Input placeholder={t("bundles.namePh")} {...field} />
                       </FormControl>
@@ -275,13 +278,28 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="name_translations.ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("bundles.bundleName")} (AR)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="الاسم بالعربي" dir="rtl" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("common.description")}</FormLabel>
+                      <FormLabel>{t("common.description")} (EN)</FormLabel>
                       <FormControl>
                         <Textarea placeholder={t("bundles.descPh")} className="resize-none h-20" {...field} value={field.value ?? ""} />
                       </FormControl>
@@ -289,6 +307,20 @@ function BundleDialog({ open, onClose, editItem, orgId, advisorValues }: BundleD
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="description_translations.ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.description")} (AR)</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="الوصف بالعربي" dir="rtl" className="resize-none h-20" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
                 {/* Price — full width now that display_order is gone */}
                 <FormField

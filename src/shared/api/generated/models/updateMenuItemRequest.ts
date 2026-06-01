@@ -2,6 +2,8 @@
 /**
  * // @ts-nocheck
  */
+import type { UpdateMenuItemRequestDescriptionTranslations } from './updateMenuItemRequestDescriptionTranslations';
+import type { UpdateMenuItemRequestNameTranslations } from './updateMenuItemRequestNameTranslations';
 
 export interface UpdateMenuItemRequest {
   /** @nullable */
@@ -11,6 +13,8 @@ export interface UpdateMenuItemRequest {
   /** @nullable */
   description?: string | null;
   /** @nullable */
+  description_translations?: UpdateMenuItemRequestDescriptionTranslations;
+  /** @nullable */
   display_order?: number | null;
   /** @nullable */
   image_url?: string | null;
@@ -18,4 +22,6 @@ export interface UpdateMenuItemRequest {
   is_active?: boolean | null;
   /** @nullable */
   name?: string | null;
+  /** @nullable */
+  name_translations?: UpdateMenuItemRequestNameTranslations;
 }

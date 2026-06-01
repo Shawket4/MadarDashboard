@@ -2,6 +2,7 @@
 /**
  * // @ts-nocheck
  */
+import type { UpdateCategoryRequestNameTranslations } from './updateCategoryRequestNameTranslations';
 
 export interface UpdateCategoryRequest {
   /** @nullable */
@@ -12,4 +13,6 @@ export interface UpdateCategoryRequest {
   is_active?: boolean | null;
   /** @nullable */
   name?: string | null;
+  /** @nullable */
+  name_translations?: UpdateCategoryRequestNameTranslations;
 }

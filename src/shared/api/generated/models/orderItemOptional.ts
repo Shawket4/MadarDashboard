@@ -2,6 +2,7 @@
 /**
  * // @ts-nocheck
  */
+import type { OrderItemOptionalNameTranslations } from './orderItemOptionalNameTranslations';
 
 export interface OrderItemOptional {
   field_name: string;
@@ -10,6 +11,7 @@ export interface OrderItemOptional {
   ingredient_name?: string | null;
   /** @nullable */
   ingredient_unit?: string | null;
+  name_translations: OrderItemOptionalNameTranslations;
   /** @nullable */
   optional_field_id?: string | null;
   order_item_id: string;

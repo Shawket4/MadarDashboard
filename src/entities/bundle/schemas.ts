@@ -34,10 +34,12 @@ const optionalTime = z
 export const createBundleSchema = (t: TFunction) =>
   z.object({
     name: z.string().trim().min(1, t("bundles.validation.nameRequired")),
+    name_translations: z.record(z.string()).default({}),
     description: z
       .string()
       .transform((v) => (v.trim() === "" ? undefined : v))
       .optional(),
+    description_translations: z.record(z.string()).default({}),
     price: z.union([z.string(), z.number()]).transform((v, ctx) => {
       const n = typeof v === "number" ? v : parseFloat(String(v));
       if (!Number.isFinite(n) || n < 0) {

@@ -24,6 +24,9 @@ export const ListAddonItemsResponseItem = zod.object({
 })).optional(),
   "is_active": zod.boolean(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_id": zod.string().uuid(),
   "primary_ingredient_id": zod.string().uuid().nullish(),
   "updated_at": zod.string().datetime({"offset":true})
@@ -36,6 +39,9 @@ export const CreateAddonItemBody = zod.object({
   "default_price": zod.number(),
   "display_order": zod.number().nullish(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough().nullish(),
   "org_id": zod.string().uuid()
 })
 
@@ -54,7 +60,10 @@ export const UpdateAddonItemBody = zod.object({
   "default_price": zod.number().nullish(),
   "display_order": zod.number().nullish(),
   "is_active": zod.boolean().nullish(),
-  "name": zod.string().nullish()
+  "name": zod.string().nullish(),
+  "name_translations": zod.object({
+
+}).passthrough().nullish()
 })
 
 export const UpdateAddonItemResponse = zod.object({
@@ -71,6 +80,9 @@ export const UpdateAddonItemResponse = zod.object({
 })).optional(),
   "is_active": zod.boolean(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_id": zod.string().uuid(),
   "primary_ingredient_id": zod.string().uuid().nullish(),
   "updated_at": zod.string().datetime({"offset":true})
@@ -544,6 +556,9 @@ export const ListCategoriesResponseItem = zod.object({
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_id": zod.string().uuid(),
   "updated_at": zod.string().datetime({"offset":true})
 })
@@ -554,6 +569,9 @@ export const CreateCategoryBody = zod.object({
   "display_order": zod.number().nullish(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough().nullish(),
   "org_id": zod.string().uuid()
 })
 
@@ -571,7 +589,10 @@ export const UpdateCategoryBody = zod.object({
   "display_order": zod.number().nullish(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean().nullish(),
-  "name": zod.string().nullish()
+  "name": zod.string().nullish(),
+  "name_translations": zod.object({
+
+}).passthrough().nullish()
 })
 
 export const UpdateCategoryResponse = zod.object({
@@ -582,6 +603,9 @@ export const UpdateCategoryResponse = zod.object({
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_id": zod.string().uuid(),
   "updated_at": zod.string().datetime({"offset":true})
 })
@@ -597,6 +621,9 @@ export const ListDiscountsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "is_active": zod.boolean(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_id": zod.string().uuid(),
   "updated_at": zod.string().datetime({"offset":true}),
   "value": zod.number()
@@ -608,6 +635,9 @@ export const CreateDiscountBody = zod.object({
   "dtype": zod.string(),
   "is_active": zod.boolean().nullish(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough().nullish(),
   "org_id": zod.string().uuid(),
   "value": zod.number()
 })
@@ -626,6 +656,9 @@ export const UpdateDiscountBody = zod.object({
   "dtype": zod.string().nullish(),
   "is_active": zod.boolean().nullish(),
   "name": zod.string().nullish(),
+  "name_translations": zod.object({
+
+}).passthrough().nullish(),
   "value": zod.number().nullish()
 })
 
@@ -635,6 +668,9 @@ export const UpdateDiscountResponse = zod.object({
   "id": zod.string().uuid(),
   "is_active": zod.boolean(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_id": zod.string().uuid(),
   "updated_at": zod.string().datetime({"offset":true}),
   "value": zod.number()
@@ -884,11 +920,17 @@ export const ListMenuItemsResponseItem = zod.object({
   "default_milk_addon_id": zod.string().nullish(),
   "deleted_at": zod.string().datetime({"offset":true}).nullish(),
   "description": zod.string().nullish(),
+  "description_translations": zod.object({
+
+}).passthrough(),
   "display_order": zod.number(),
   "id": zod.string().uuid(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_id": zod.string().uuid(),
   "updated_at": zod.string().datetime({"offset":true})
 }).and(zod.object({
@@ -899,6 +941,9 @@ export const ListMenuItemsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "is_required": zod.boolean(),
   "label": zod.string().nullish(),
+  "label_translations": zod.object({
+
+}).passthrough(),
   "max_selections": zod.number().nullish(),
   "menu_item_id": zod.string().uuid(),
   "min_selections": zod.number()
@@ -912,6 +957,9 @@ export const ListMenuItemsResponseItem = zod.object({
   "is_active": zod.boolean(),
   "menu_item_id": zod.string().uuid(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_ingredient_id": zod.string().uuid().nullish(),
   "price": zod.number(),
   "quantity_used": zod.number().nullish(),
@@ -942,9 +990,15 @@ export const CreateMenuItemBody = zod.object({
   "base_price": zod.number(),
   "category_id": zod.string().uuid(),
   "description": zod.string().nullish(),
+  "description_translations": zod.object({
+
+}).passthrough().nullish(),
   "display_order": zod.number().nullish(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough().nullish(),
   "org_id": zod.string().uuid()
 })
 
@@ -960,11 +1014,17 @@ export const GetMenuItemResponse = zod.object({
   "default_milk_addon_id": zod.string().nullish(),
   "deleted_at": zod.string().datetime({"offset":true}).nullish(),
   "description": zod.string().nullish(),
+  "description_translations": zod.object({
+
+}).passthrough(),
   "display_order": zod.number(),
   "id": zod.string().uuid(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_id": zod.string().uuid(),
   "updated_at": zod.string().datetime({"offset":true})
 }).and(zod.object({
@@ -975,6 +1035,9 @@ export const GetMenuItemResponse = zod.object({
   "id": zod.string().uuid(),
   "is_required": zod.boolean(),
   "label": zod.string().nullish(),
+  "label_translations": zod.object({
+
+}).passthrough(),
   "max_selections": zod.number().nullish(),
   "menu_item_id": zod.string().uuid(),
   "min_selections": zod.number()
@@ -988,6 +1051,9 @@ export const GetMenuItemResponse = zod.object({
   "is_active": zod.boolean(),
   "menu_item_id": zod.string().uuid(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_ingredient_id": zod.string().uuid().nullish(),
   "price": zod.number(),
   "quantity_used": zod.number().nullish(),
@@ -1026,10 +1092,16 @@ export const UpdateMenuItemBody = zod.object({
   "base_price": zod.number().nullish(),
   "category_id": zod.string().uuid().nullish(),
   "description": zod.string().nullish(),
+  "description_translations": zod.object({
+
+}).passthrough().nullish(),
   "display_order": zod.number().nullish(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean().nullish(),
-  "name": zod.string().nullish()
+  "name": zod.string().nullish(),
+  "name_translations": zod.object({
+
+}).passthrough().nullish()
 })
 
 export const UpdateMenuItemResponse = zod.object({
@@ -1039,11 +1111,17 @@ export const UpdateMenuItemResponse = zod.object({
   "default_milk_addon_id": zod.string().nullish(),
   "deleted_at": zod.string().datetime({"offset":true}).nullish(),
   "description": zod.string().nullish(),
+  "description_translations": zod.object({
+
+}).passthrough(),
   "display_order": zod.number(),
   "id": zod.string().uuid(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_id": zod.string().uuid(),
   "updated_at": zod.string().datetime({"offset":true})
 })
@@ -1060,6 +1138,9 @@ export const ListAddonSlotsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "is_required": zod.boolean(),
   "label": zod.string().nullish(),
+  "label_translations": zod.object({
+
+}).passthrough(),
   "max_selections": zod.number().nullish(),
   "menu_item_id": zod.string().uuid(),
   "min_selections": zod.number()
@@ -1072,10 +1153,13 @@ export const CreateAddonSlotParams = zod.object({
 })
 
 export const CreateAddonSlotBody = zod.object({
-  "addon_type": zod.string(),
+  "addon_type": zod.string().nullish(),
   "display_order": zod.number().nullish(),
   "is_required": zod.boolean().nullish(),
   "label": zod.string().nullish(),
+  "label_translations": zod.object({
+
+}).passthrough().nullish(),
   "max_selections": zod.number().nullish(),
   "min_selections": zod.number().nullish()
 })
@@ -1096,6 +1180,9 @@ export const UpdateAddonSlotBody = zod.object({
   "display_order": zod.number().nullish(),
   "is_required": zod.boolean().nullish(),
   "label": zod.string().nullish(),
+  "label_translations": zod.object({
+
+}).passthrough().nullish(),
   "max_selections": zod.number().nullish(),
   "min_selections": zod.number().nullish()
 })
@@ -1107,6 +1194,9 @@ export const UpdateAddonSlotResponse = zod.object({
   "id": zod.string().uuid(),
   "is_required": zod.boolean(),
   "label": zod.string().nullish(),
+  "label_translations": zod.object({
+
+}).passthrough(),
   "max_selections": zod.number().nullish(),
   "menu_item_id": zod.string().uuid(),
   "min_selections": zod.number()
@@ -1126,6 +1216,9 @@ export const ListOptionalFieldsResponseItem = zod.object({
   "is_active": zod.boolean(),
   "menu_item_id": zod.string().uuid(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_ingredient_id": zod.string().uuid().nullish(),
   "price": zod.number(),
   "quantity_used": zod.number().nullish(),
@@ -1144,6 +1237,9 @@ export const CreateOptionalFieldBody = zod.object({
   "ingredient_name": zod.string().nullish(),
   "ingredient_unit": zod.string().nullish(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough().nullish(),
   "org_ingredient_id": zod.string().uuid().nullish(),
   "price": zod.number().nullish(),
   "quantity_used": zod.number().nullish(),
@@ -1168,6 +1264,9 @@ export const UpdateOptionalFieldBody = zod.object({
   "ingredient_unit": zod.string().nullish(),
   "is_active": zod.boolean().nullish(),
   "name": zod.string().nullish(),
+  "name_translations": zod.object({
+
+}).passthrough().nullish(),
   "org_ingredient_id": zod.string().uuid().nullish(),
   "price": zod.number().nullish(),
   "quantity_used": zod.number().nullish(),
@@ -1183,6 +1282,9 @@ export const UpdateOptionalFieldResponse = zod.object({
   "is_active": zod.boolean(),
   "menu_item_id": zod.string().uuid(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "org_ingredient_id": zod.string().uuid().nullish(),
   "price": zod.number(),
   "quantity_used": zod.number().nullish(),
@@ -1295,28 +1397,43 @@ export const GetPublicMenuResponse = zod.object({
   "addon_items": zod.array(zod.object({
   "default_price": zod.number(),
   "id": zod.string().uuid(),
-  "name": zod.string()
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough()
 })),
   "addon_type": zod.string(),
   "id": zod.string().uuid(),
   "is_required": zod.boolean(),
   "label": zod.string().nullish(),
+  "label_translations": zod.object({
+
+}).passthrough(),
   "max_selections": zod.number().nullish(),
   "min_selections": zod.number()
 })),
   "base_price": zod.number(),
   "description": zod.string().nullish(),
+  "description_translations": zod.object({
+
+}).passthrough(),
   "display_order": zod.number(),
   "id": zod.string().uuid(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "sizes": zod.array(zod.object({
   "id": zod.string().uuid(),
   "label": zod.string(),
   "price_override": zod.number()
 }))
 })),
-  "name": zod.string()
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough()
 })),
   "logo_url": zod.string().nullish(),
   "org_id": zod.string().uuid(),
@@ -1468,6 +1585,9 @@ export const ExportOrdersResponse = zod.object({
   "item_name": zod.string(),
   "line_total": zod.number(),
   "menu_item_id": zod.string().uuid().nullish(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "notes": zod.string().nullish(),
   "order_id": zod.string().uuid(),
   "quantity": zod.number(),
@@ -1479,6 +1599,9 @@ export const ExportOrdersResponse = zod.object({
   "addon_name": zod.string(),
   "id": zod.string().uuid(),
   "line_total": zod.number(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "order_item_id": zod.string().uuid(),
   "quantity": zod.number(),
   "unit_price": zod.number()
@@ -1490,16 +1613,25 @@ export const ExportOrdersResponse = zod.object({
   "component_item_id": zod.string().uuid(),
   "id": zod.string().uuid(),
   "line_total": zod.number(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "order_line_id": zod.string().uuid(),
   "quantity": zod.number(),
   "unit_price": zod.number()
 })),
   "item_id": zod.string().uuid(),
   "item_name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "optionals": zod.array(zod.object({
   "component_item_id": zod.string().uuid(),
   "field_name": zod.string(),
   "id": zod.string().uuid(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "optional_field_id": zod.string().uuid().nullish(),
   "order_line_id": zod.string().uuid(),
   "price": zod.number()
@@ -1512,6 +1644,9 @@ export const ExportOrdersResponse = zod.object({
   "id": zod.string().uuid(),
   "ingredient_name": zod.string().nullish(),
   "ingredient_unit": zod.string().nullish(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "optional_field_id": zod.string().uuid().nullish(),
   "order_item_id": zod.string().uuid(),
   "org_ingredient_id": zod.string().uuid().nullish(),
@@ -1600,6 +1735,9 @@ export const GetOrderResponse = zod.object({
   "item_name": zod.string(),
   "line_total": zod.number(),
   "menu_item_id": zod.string().uuid().nullish(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "notes": zod.string().nullish(),
   "order_id": zod.string().uuid(),
   "quantity": zod.number(),
@@ -1611,6 +1749,9 @@ export const GetOrderResponse = zod.object({
   "addon_name": zod.string(),
   "id": zod.string().uuid(),
   "line_total": zod.number(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "order_item_id": zod.string().uuid(),
   "quantity": zod.number(),
   "unit_price": zod.number()
@@ -1622,16 +1763,25 @@ export const GetOrderResponse = zod.object({
   "component_item_id": zod.string().uuid(),
   "id": zod.string().uuid(),
   "line_total": zod.number(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "order_line_id": zod.string().uuid(),
   "quantity": zod.number(),
   "unit_price": zod.number()
 })),
   "item_id": zod.string().uuid(),
   "item_name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "optionals": zod.array(zod.object({
   "component_item_id": zod.string().uuid(),
   "field_name": zod.string(),
   "id": zod.string().uuid(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "optional_field_id": zod.string().uuid().nullish(),
   "order_line_id": zod.string().uuid(),
   "price": zod.number()
@@ -1644,6 +1794,9 @@ export const GetOrderResponse = zod.object({
   "id": zod.string().uuid(),
   "ingredient_name": zod.string().nullish(),
   "ingredient_unit": zod.string().nullish(),
+  "name_translations": zod.object({
+
+}).passthrough(),
   "optional_field_id": zod.string().uuid().nullish(),
   "order_item_id": zod.string().uuid(),
   "org_ingredient_id": zod.string().uuid().nullish(),

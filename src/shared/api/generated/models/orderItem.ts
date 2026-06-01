@@ -2,6 +2,7 @@
 /**
  * // @ts-nocheck
  */
+import type { OrderItemNameTranslations } from './orderItemNameTranslations';
 
 export interface OrderItem {
   /** @nullable */
@@ -14,6 +15,7 @@ export interface OrderItem {
   line_total: number;
   /** @nullable */
   menu_item_id?: string | null;
+  name_translations: OrderItemNameTranslations;
   /** @nullable */
   notes?: string | null;
   order_id: string;

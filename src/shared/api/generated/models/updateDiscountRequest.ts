@@ -2,6 +2,7 @@
 /**
  * // @ts-nocheck
  */
+import type { UpdateDiscountRequestNameTranslations } from './updateDiscountRequestNameTranslations';
 
 export interface UpdateDiscountRequest {
   /** @nullable */
@@ -10,6 +11,8 @@ export interface UpdateDiscountRequest {
   is_active?: boolean | null;
   /** @nullable */
   name?: string | null;
+  /** @nullable */
+  name_translations?: UpdateDiscountRequestNameTranslations;
   /** @nullable */
   value?: number | null;
 }

@@ -47,6 +47,7 @@ function CategoryDialog({ open, onClose, edit, orgId }: { open: boolean; onClose
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: edit?.name ?? "",
+      name_translations: edit?.name_translations ?? {},
       display_order: edit?.display_order ?? 0,
       is_active: edit?.is_active ?? true,
     },
@@ -72,17 +73,30 @@ function CategoryDialog({ open, onClose, edit, orgId }: { open: boolean; onClose
         <Form {...form}>
           <form onSubmit={form.handleSubmit((v) => mutate(v))}>
             <DialogBody>
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("common.name")}</FormLabel>
-                    <FormControl><Input placeholder={t("menu.categoryDialog.namePh")} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.name")} (EN)</FormLabel>
+                      <FormControl><Input placeholder={t("menu.categoryDialog.namePh")} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name_translations.ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.name")} (AR)</FormLabel>
+                      <FormControl><Input placeholder="الاسم بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="display_order"
@@ -124,7 +138,9 @@ function MenuItemDialog({
     resolver: zodResolver(menuItemSchema),
     defaultValues: {
       name: edit?.name ?? "",
+      name_translations: edit?.name_translations ?? {},
       description: edit?.description ?? "",
+      description_translations: edit?.description_translations ?? {},
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       base_price: (edit ? String(edit.base_price / 100) : "") as any,
       category_id: edit?.category_id ?? "",
@@ -247,28 +263,54 @@ function MenuItemDialog({
                   {t("menu.itemDialog.imageAfterSave")}
                 </div>
               )}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("common.name")}</FormLabel>
-                    <FormControl><Input placeholder={t("menu.itemDialog.namePh")} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("common.description")}</FormLabel>
-                    <FormControl><Input placeholder={t("menu.itemDialog.descPh")} {...field} value={field.value ?? ""} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.name")} (EN)</FormLabel>
+                      <FormControl><Input placeholder={t("menu.itemDialog.namePh")} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name_translations.ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.name")} (AR)</FormLabel>
+                      <FormControl><Input placeholder="الاسم بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.description")} (EN)</FormLabel>
+                      <FormControl><Input placeholder={t("menu.itemDialog.descPh")} {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description_translations.ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.description")} (AR)</FormLabel>
+                      <FormControl><Input placeholder="الوصف بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
@@ -387,6 +429,7 @@ function AddonDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: (
     resolver: zodResolver(addonSchema),
     defaultValues: {
       name: edit?.name ?? "",
+      name_translations: edit?.name_translations ?? {},
       addon_type: edit?.addon_type ?? "extra",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default_price: (edit ? String(edit.default_price / 100) : "") as any,
@@ -417,17 +460,30 @@ function AddonDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: (
         <Form {...form}>
           <form onSubmit={form.handleSubmit((v) => mutate(v))}>
             <DialogBody>
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("common.name")}</FormLabel>
-                    <FormControl><Input placeholder={t("menu.addonDialog.namePh")} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.name")} (EN)</FormLabel>
+                      <FormControl><Input placeholder={t("menu.addonDialog.namePh")} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name_translations.ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.name")} (AR)</FormLabel>
+                      <FormControl><Input placeholder="الاسم بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}

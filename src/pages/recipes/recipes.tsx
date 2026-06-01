@@ -427,7 +427,7 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
   const [slotDlg, setSlotDlg] = useState(false);
   const slotForm = useForm<SlotValues>({
     resolver: zodResolver(slotSchema),
-    defaultValues: { addon_type: "", label: "", is_required: false, min_selections: 0, max_selections: null, display_order: 0 },
+    defaultValues: { addon_type: "", label: "", label_translations: {}, is_required: false, min_selections: 0, max_selections: null, display_order: 0 },
   });
 
   const saveSlot = useMutation({
@@ -435,6 +435,7 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
       createAddonSlot(selItemId!, {
         addon_type: v.addon_type,
         label: v.label || null,
+        label_translations: v.label_translations,
         is_required: v.is_required,
         min_selections: v.min_selections,
         max_selections: v.max_selections ?? null,
@@ -463,13 +464,14 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
   const [optDlg, setOptDlg] = useState(false);
   const optForm = useForm<OptionalValues>({
     resolver: zodResolver(optionalSchema),
-    defaultValues: { name: "", org_ingredient_id: null, ingredient_name: null, ingredient_unit: null, quantity_used: null, is_active: true },
+    defaultValues: { name: "", name_translations: {}, org_ingredient_id: null, ingredient_name: null, ingredient_unit: null, quantity_used: null, is_active: true },
   });
 
   const saveOpt = useMutation({
     mutationFn: (v: OptionalValues) =>
       createOptionalField(selItemId!, {
         name: v.name,
+        name_translations: v.name_translations,
         org_ingredient_id: v.org_ingredient_id ?? null,
         ingredient_name: v.ingredient_name ?? null,
         ingredient_unit: v.ingredient_unit ?? null,
@@ -596,13 +598,22 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={slotForm.control} name="label" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("recipes.slots.displayLabel")}</FormLabel>
-                    <FormControl><Input placeholder={t("recipes.slots.labelPh")} {...field} value={field.value ?? ""} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField control={slotForm.control} name="label" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("recipes.slots.displayLabel")} (EN)</FormLabel>
+                      <FormControl><Input placeholder={t("recipes.slots.labelPh")} {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={slotForm.control} name="label_translations.ar" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("recipes.slots.displayLabel")} (AR)</FormLabel>
+                      <FormControl><Input placeholder="الاسم بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <FormField control={slotForm.control} name="min_selections" render={({ field }) => (
                     <FormItem><FormLabel>{t("recipes.slots.minSelections")}</FormLabel><FormControl><Input type="number" min="0" {...field} /></FormControl><FormMessage /></FormItem>
@@ -637,9 +648,14 @@ function SlotsOptionalsTab({ orgId }: { orgId: string }) {
           <Form {...optForm}>
             <form onSubmit={optForm.handleSubmit((v) => saveOpt.mutate(v))}>
               <DialogBody>
-                <FormField control={optForm.control} name="name" render={({ field }) => (
-                  <FormItem><FormLabel>{t("recipes.optionals.checkboxLabel")}</FormLabel><FormControl><Input placeholder={t("recipes.optionals.labelPh")} {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField control={optForm.control} name="name" render={({ field }) => (
+                    <FormItem><FormLabel>{t("recipes.optionals.checkboxLabel")} (EN)</FormLabel><FormControl><Input placeholder={t("recipes.optionals.labelPh")} {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={optForm.control} name="name_translations.ar" render={({ field }) => (
+                    <FormItem><FormLabel>{t("recipes.optionals.checkboxLabel")} (AR)</FormLabel><FormControl><Input placeholder="الاسم بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                </div>
                 <div className="rounded-lg bg-muted/40 p-3 space-y-3">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Info size={12} /> {t("common.optional")} — {t("recipes.optionals.inventoryItem")}

@@ -4,6 +4,8 @@ import { CreateCategoryBody, CreateMenuItemBody, CreateAddonItemBody, CreateAddo
 
 export const categorySchema = CreateCategoryBody.extend({
   name: z.string().trim().min(1),
+  name_translations: z.record(z.string()).default({}),
+  description_translations: z.record(z.string()).default({}),
   display_order: z.coerce.number().int().min(0).default(0),
   is_active: z.boolean().default(true),
 });
@@ -11,7 +13,9 @@ export type CategoryValues = z.infer<typeof categorySchema>;
 
 export const menuItemSchema = CreateMenuItemBody.extend({
   name: z.string().trim().min(1),
+  name_translations: z.record(z.string()).default({}),
   description: z.string().trim().nullish().or(z.literal("")),
+  description_translations: z.record(z.string()).default({}),
   base_price: egpToPiastres,
   category_id: z.string().nullish().or(z.literal("")),
   is_active: z.boolean().default(true),
@@ -27,6 +31,7 @@ export type MenuItemValues = z.infer<typeof menuItemSchema>;
 
 export const addonSchema = CreateAddonItemBody.extend({
   name: z.string().trim().min(1),
+  name_translations: z.record(z.string()).default({}),
   addon_type: z.string().trim().min(1),
   default_price: egpToPiastres,
   display_order: z.coerce.number().int().min(0).default(0),
@@ -37,6 +42,7 @@ export type AddonValues = z.infer<typeof addonSchema>;
 export const slotSchema = CreateAddonSlotBody.extend({
     addon_type: z.string().trim().min(1),
     label: z.string().trim().nullish().or(z.literal("")),
+    label_translations: z.record(z.string()).default({}),
     is_required: z.boolean().default(false),
     min_selections: z.coerce.number().int().min(0).default(0),
     max_selections: z.coerce.number().int().min(1).nullish(),
@@ -50,6 +56,7 @@ export type SlotValues = z.infer<typeof slotSchema>;
 
 export const optionalSchema = CreateOptionalFieldBody.extend({
   name: z.string().trim().min(1),
+  name_translations: z.record(z.string()).default({}),
   org_ingredient_id: z.string().nullish(),
   ingredient_name: z.string().nullish(),
   ingredient_unit: z.string().nullish(),

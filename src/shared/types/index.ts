@@ -59,6 +59,7 @@ export interface Category {
   id: string;
   org_id: string;
   name: string;
+  name_translations: Record<string, any>;
   image_url?: string | null;
   display_order: number;
   is_active: boolean;
@@ -70,6 +71,7 @@ export interface AddonItem {
   id: string;
   org_id: string;
   name: string;
+  name_translations: Record<string, any>;
   addon_type: string; // free text — e.g. "coffee_type", "milk_type", "extra", "sweetener"
   default_price: number;
   is_active: boolean;
@@ -117,7 +119,9 @@ export interface MenuItem {
   org_id: string;
   category_id?: string | null;
   name: string;
+  name_translations: Record<string, any>;
   description?: string | null;
+  description_translations: Record<string, any>;
   image_url?: string | null;
   base_price: number;
   is_active: boolean;
@@ -495,6 +499,7 @@ export interface Discount {
   id: string;
   org_id: string;
   name: string;
+  name_translations: Record<string, any>;
   dtype: "percentage" | "fixed";
   value: number;
   is_active: boolean;
@@ -507,6 +512,7 @@ export interface Discount {
 export interface PublicAddonItem {
   id: string;
   name: string;
+  name_translations: Record<string, any>;
   default_price: number;
 }
 
@@ -529,7 +535,9 @@ export interface PublicItemSize {
 export interface PublicMenuItem {
   id: string;
   name: string;
+  name_translations: Record<string, any>;
   description?: string | null;
+  description_translations: Record<string, any>;
   image_url?: string | null;
   base_price: number;
   display_order: number;
@@ -540,6 +548,7 @@ export interface PublicMenuItem {
 export interface PublicCategory {
   id: string;
   name: string;
+  name_translations: Record<string, any>;
   image_url: string | null;
   display_order: number;
   items: PublicMenuItem[];
@@ -560,9 +569,9 @@ export interface Bundle {
   id: string;
   org_id: string;
   name: string;
-  name_translations: Record<string, string>;
+  name_translations: Record<string, any>;
   description: string | null;
-  description_translations: Record<string, string>;
+  description_translations: Record<string, any>;
   price: number; // Stored in piastres
   status: BundleStatus;
   image_url: string | null;
@@ -591,9 +600,9 @@ export interface BundleWithComponents {
   id: string;
   org_id: string;
   name: string;
-  name_translations: Record<string, string>;
+  name_translations: Record<string, any>;
   description: string | null;
-  description_translations: Record<string, string>;
+  description_translations: Record<string, any>;
   price: number; // Stored in piastres
   status: BundleStatus;
   image_url: string | null;

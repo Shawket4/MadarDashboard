@@ -2,6 +2,7 @@
 /**
  * // @ts-nocheck
  */
+import type { UpdateAddonItemRequestNameTranslations } from './updateAddonItemRequestNameTranslations';
 
 export interface UpdateAddonItemRequest {
   /** @nullable */
@@ -14,4 +15,6 @@ export interface UpdateAddonItemRequest {
   is_active?: boolean | null;
   /** @nullable */
   name?: string | null;
+  /** @nullable */
+  name_translations?: UpdateAddonItemRequestNameTranslations;
 }

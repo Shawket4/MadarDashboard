@@ -36,6 +36,7 @@ function DiscountDialog({ open, onClose, edit, orgId }: { open: boolean; onClose
     resolver: zodResolver(discountSchema) as unknown as Resolver<DiscountValues, any>,
     defaultValues: {
       name: edit?.name ?? "",
+      name_translations: (edit?.name_translations as Record<string, string>) ?? {},
       dtype: (edit?.dtype as "percentage" | "fixed") ?? "percentage",
       percent_value: edit?.dtype === "percentage" ? edit.value : undefined,
       fixed_value: edit?.dtype === "fixed" ? edit.value / 100 : undefined,
@@ -51,7 +52,7 @@ function DiscountDialog({ open, onClose, edit, orgId }: { open: boolean; onClose
 
   const mutate = (v: DiscountValues) => {
     const value = v.dtype === "percentage" ? v.percent_value! : v.fixed_value!;
-    const payload = { name: v.name, dtype: v.dtype, value: Number(value), is_active: v.is_active };
+    const payload = { name: v.name, name_translations: v.name_translations, dtype: v.dtype, value: Number(value), is_active: v.is_active };
     
     if (edit) {
       updateDiscount(
@@ -90,17 +91,30 @@ function DiscountDialog({ open, onClose, edit, orgId }: { open: boolean; onClose
         <Form {...form}>
           <form onSubmit={form.handleSubmit((v) => mutate(v))}>
             <DialogBody>
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("discounts.discountName")}</FormLabel>
-                    <FormControl><Input placeholder={t("discounts.namePh")} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("discounts.discountName")} (EN)</FormLabel>
+                      <FormControl><Input placeholder={t("discounts.namePh")} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name_translations.ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("discounts.discountName")} (AR)</FormLabel>
+                      <FormControl><Input placeholder="الاسم بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}

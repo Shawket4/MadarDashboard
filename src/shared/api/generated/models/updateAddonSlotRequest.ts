@@ -2,6 +2,7 @@
 /**
  * // @ts-nocheck
  */
+import type { UpdateAddonSlotRequestLabelTranslations } from './updateAddonSlotRequestLabelTranslations';
 
 export interface UpdateAddonSlotRequest {
   /** @nullable */
@@ -10,6 +11,8 @@ export interface UpdateAddonSlotRequest {
   is_required?: boolean | null;
   /** @nullable */
   label?: string | null;
+  /** @nullable */
+  label_translations?: UpdateAddonSlotRequestLabelTranslations;
   /** @nullable */
   max_selections?: number | null;
   /** @nullable */

@@ -2,6 +2,7 @@
 /**
  * // @ts-nocheck
  */
+import type { CategoryNameTranslations } from './categoryNameTranslations';
 
 export interface Category {
   created_at: string;
@@ -13,6 +14,7 @@ export interface Category {
   image_url?: string | null;
   is_active: boolean;
   name: string;
+  name_translations: CategoryNameTranslations;
   org_id: string;
   updated_at: string;
 }

@@ -2,6 +2,7 @@
 /**
  * // @ts-nocheck
  */
+import type { UpdateOptionalFieldRequestNameTranslations } from './updateOptionalFieldRequestNameTranslations';
 
 export interface UpdateOptionalFieldRequest {
   /** @nullable */
@@ -14,6 +15,8 @@ export interface UpdateOptionalFieldRequest {
   is_active?: boolean | null;
   /** @nullable */
   name?: string | null;
+  /** @nullable */
+  name_translations?: UpdateOptionalFieldRequestNameTranslations;
   /** @nullable */
   org_ingredient_id?: string | null;
   /** @nullable */

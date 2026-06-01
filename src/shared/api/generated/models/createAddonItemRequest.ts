@@ -2,6 +2,7 @@
 /**
  * // @ts-nocheck
  */
+import type { CreateAddonItemRequestNameTranslations } from './createAddonItemRequestNameTranslations';
 
 export interface CreateAddonItemRequest {
   addon_type: string;
@@ -9,5 +10,7 @@ export interface CreateAddonItemRequest {
   /** @nullable */
   display_order?: number | null;
   name: string;
+  /** @nullable */
+  name_translations?: CreateAddonItemRequestNameTranslations;
   org_id: string;
 }
