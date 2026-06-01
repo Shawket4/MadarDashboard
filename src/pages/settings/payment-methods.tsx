@@ -1,62 +1,53 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
+import { type ColumnDef } from "@tanstack/react-table";
 import {
-  Plus,
-  Search,
-  Pencil,
   Banknote,
-  CreditCard,
-  Wallet,
-  PieChart,
-  Truck,
-  QrCode,
-  Landmark,
-  Gift,
-  Smartphone,
-  Receipt,
-  Store,
-  Star,
-  Link as LinkIcon,
   Check,
+  CreditCard,
+  Edit2,
+  Gift,
+  Landmark,
+  Link as LinkIcon,
+  PieChart,
+  Plus,
+  QrCode,
+  Receipt,
+  Smartphone,
+  Star,
+  Store,
+  Truck,
+  Wallet,
 } from "lucide-react";
+import { toast } from "sonner";
 import { PageShell } from "@/shared/ui/page-shell";
-import { Card, CardContent } from "@/shared/ui/card";
+import { DataTable } from "@/shared/ui/data-table";
 import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
 import { Input } from "@/shared/ui/input";
 import { Switch } from "@/shared/ui/switch";
+import { StatCard } from "@/shared/ui/stat-card";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/shared/ui/dialog";
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
   FormDescription,
 } from "@/shared/ui/form";
-import { useCurrentContext } from "@/shared/hooks/use-current-context";
-import { usePaymentMethods } from "@/shared/hooks/use-payment-methods";
-import { DataTable } from "@/shared/ui/data-table";
-import type { ColumnDef } from "@tanstack/react-table";
-import type { OrgPaymentMethod } from "@/shared/api/generated/models";
-import {
-  useCreatePaymentMethod,
-  useUpdatePaymentMethod,
-  useActivatePaymentMethod,
-  useDeactivatePaymentMethod,
-} from "@/shared/api/generated/api";
-import { queryClient } from "@/shared/api/query";
-import { toast } from "sonner";
-import { getErrorMessage } from "@/shared/api/errors";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import {
   Select,
   SelectContent,
@@ -65,6 +56,19 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { ScrollArea } from "@/shared/ui/scroll-area";
+import {
+  useCreatePaymentMethod,
+  useUpdatePaymentMethod,
+  useActivatePaymentMethod,
+  useDeactivatePaymentMethod,
+  getListPaymentMethodsQueryKey,
+} from "@/shared/api/generated/api";
+import { usePaymentMethods } from "@/shared/hooks/use-payment-methods";
+import { useCurrentContext } from "@/shared/hooks/use-current-context";
+import { getErrorMessage } from "@/shared/api/errors";
+import { exportToExcel } from "@/shared/lib/excel";
+import type { OrgPaymentMethod } from "@/shared/api/generated/models";
+import { paymentMethodSchema, type PaymentMethodValues } from "@/entities/payment-method/schemas";
 
 const PREDEFINED_COLORS = [
   "#0F172A",
@@ -99,13 +103,319 @@ const ICONS = [
   { id: "link", label: "Payment Link", icon: LinkIcon },
 ];
 
+function PaymentMethodDialog({
+  open,
+  onClose,
+  edit,
+  orgId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  edit?: OrgPaymentMethod | null;
+  orgId: string;
+}) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+
+  const isSystem = edit
+    ? [
+        "cash",
+        "card",
+        "digital_wallet",
+        "mixed",
+        "talabat_online",
+        "talabat_cash",
+      ].includes(edit.name)
+    : false;
+
+  const trans = edit?.label_translations as Record<string, string> | undefined;
+
+  const form = useForm<PaymentMethodValues>({
+    resolver: zodResolver(paymentMethodSchema),
+    defaultValues: {
+      name: edit?.name ?? "",
+      labelEn: trans?.en ?? "",
+      labelAr: trans?.ar ?? "",
+      color: edit?.color?.startsWith("#") ? edit.color : PREDEFINED_COLORS[2],
+      icon: edit?.icon || "money",
+      isCash: edit?.is_cash ?? false,
+      is_active: edit?.is_active ?? true,
+    },
+  });
+
+  const createReq = useCreatePaymentMethod({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListPaymentMethodsQueryKey() });
+        toast.success(t("common.saved"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    },
+  });
+
+  const updateReq = useUpdatePaymentMethod({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getListPaymentMethodsQueryKey() });
+        toast.success(t("common.saved"));
+        onClose();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    },
+  });
+
+  function onSubmit(v: PaymentMethodValues) {
+    const payload = {
+      org_id: orgId,
+      name: v.name,
+      label_translations: {
+        en: v.labelEn,
+        ar: v.labelAr || "",
+      },
+      color: v.color,
+      icon: v.icon,
+      is_cash: v.isCash,
+      is_active: v.is_active,
+    };
+
+    if (edit) {
+      updateReq.mutate({ id: edit.id, data: payload });
+    } else {
+      createReq.mutate({ data: payload });
+    }
+  }
+
+  const isPending = createReq.isPending || updateReq.isPending;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle>
+            {edit ? t("common.edit") : t("common.add")}
+          </DialogTitle>
+          <DialogDescription>
+            {edit
+              ? "Modify your payment method settings below."
+              : "Create a new payment method for checkout."}
+          </DialogDescription>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <DialogBody className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.name")} (ID)</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="e.g. visa_card"
+                        disabled={isSystem || !!edit}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value
+                              .toLowerCase()
+                              .replace(/[^a-z0-9_]/g, "_"),
+                          )
+                        }
+                      />
+                    </FormControl>
+                    {(isSystem || edit) ? (
+                      <FormDescription>
+                        Payment method IDs cannot be changed.
+                      </FormDescription>
+                    ) : (
+                      <FormDescription>
+                        A unique internal identifier (lowercase, underscores
+                        only).
+                      </FormDescription>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="labelEn"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Label (English)</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g. Visa Card" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="labelAr"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Label (Arabic)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="e.g. فيزا"
+                          className="text-right"
+                          dir="rtl"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="icon"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Icon</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an icon" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <ScrollArea className="h-64">
+                          {ICONS.map((icon) => {
+                            const IconComp = icon.icon;
+                            return (
+                              <SelectItem key={icon.id} value={icon.id}>
+                                <div className="flex items-center gap-2">
+                                  <IconComp
+                                    size={16}
+                                    className="text-muted-foreground"
+                                  />
+                                  <span>{icon.label}</span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                        </ScrollArea>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Color Theme</FormLabel>
+                    <FormControl>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {PREDEFINED_COLORS.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => field.onChange(c)}
+                            className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary`}
+                            style={{ backgroundColor: c }}
+                            aria-label={`Select color ${c}`}
+                          >
+                            {field.value === c && (
+                              <Check
+                                size={16}
+                                className="text-white drop-shadow-sm"
+                              />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="isCash"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-card h-full">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-sm">Accepts Cash</FormLabel>
+                        <FormDescription className="text-xs">
+                          Count as cash logic.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="is_active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-card h-full">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-sm">{t("common.active")}</FormLabel>
+                        <FormDescription className="text-xs">
+                          Status for checkout.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </DialogBody>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isPending}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button type="submit" loading={isPending}>
+                {t("common.save")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function PaymentMethodsPage() {
   const { t } = useTranslation();
+  const qc = useQueryClient();
   const { orgId } = useCurrentContext();
   const { methods, activeMethods, isLoading, getLabel, colorMap } =
     usePaymentMethods();
 
-  const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editingMethod, setEditingMethod] = useState<OrgPaymentMethod | null>(
     null,
@@ -114,18 +424,16 @@ export default function PaymentMethodsPage() {
   const activateMut = useActivatePaymentMethod({
     mutation: {
       onSuccess: () =>
-        queryClient.invalidateQueries({
-          queryKey: ["/v1/payment-methods", orgId],
-        }),
+        qc.invalidateQueries({ queryKey: getListPaymentMethodsQueryKey() }),
+      onError: (err) => toast.error(getErrorMessage(err)),
     },
   });
 
   const deactivateMut = useDeactivatePaymentMethod({
     mutation: {
       onSuccess: () =>
-        queryClient.invalidateQueries({
-          queryKey: ["/v1/payment-methods", orgId],
-        }),
+        qc.invalidateQueries({ queryKey: getListPaymentMethodsQueryKey() }),
+      onError: (err) => toast.error(getErrorMessage(err)),
     },
   });
 
@@ -147,11 +455,19 @@ export default function PaymentMethodsPage() {
       "talabat_cash",
     ].includes(pm.name);
 
-  const cols: ColumnDef<OrgPaymentMethod>[] = [
+  // Map label into the object for searching purposes
+  const enrichedMethods = useMemo(() => {
+    return methods.map((m) => ({
+      ...m,
+      mappedLabel: getLabel(m.name),
+    }));
+  }, [methods, getLabel]);
+
+  const cols: ColumnDef<OrgPaymentMethod & { mappedLabel: string }>[] = [
     {
-      accessorKey: "name",
+      accessorKey: "mappedLabel",
       header: t("common.name"),
-      cell: ({ row }: { row: { original: OrgPaymentMethod } }) => {
+      cell: ({ row }) => {
         const pm = row.original;
         const color = colorMap[pm.name] || "#ccc";
         const matchedIcon = ICONS.find((i) => i.id === pm.icon) || ICONS[0];
@@ -160,21 +476,21 @@ export default function PaymentMethodsPage() {
         return (
           <div className="flex items-center gap-3">
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0"
               style={{
                 backgroundColor: color.startsWith("#") ? color : "#3b82f6",
               }}
             >
               <IconComponent size={14} />
             </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-sm leading-tight">
-                {getLabel(pm.name)}
-              </span>
+            <div className="min-w-0">
+              <p className="font-semibold text-sm truncate flex items-center gap-2">
+                {pm.mappedLabel}
+              </p>
               {isSystemMethod(pm) && (
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
                   System
-                </span>
+                </p>
               )}
             </div>
           </div>
@@ -182,23 +498,37 @@ export default function PaymentMethodsPage() {
       },
     },
     {
+      accessorKey: "is_cash",
+      header: "Type",
+      cell: ({ row }) => (
+        <Badge variant={row.original.is_cash ? "success" : "secondary"}>
+          {row.original.is_cash ? "Cash Base" : "Non-Cash"}
+        </Badge>
+      ),
+    },
+    {
       accessorKey: "is_active",
       header: t("common.status"),
-      cell: ({ row }: { row: { original: OrgPaymentMethod } }) => (
-        <Switch
-          checked={row.original.is_active}
-          onCheckedChange={() =>
-            toggleStatus(row.original.id, row.original.is_active)
-          }
-          disabled={activateMut.isPending || deactivateMut.isPending}
-        />
+      cell: ({ row }) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Switch
+            checked={row.original.is_active}
+            onCheckedChange={() =>
+              toggleStatus(row.original.id, row.original.is_active)
+            }
+            disabled={activateMut.isPending || deactivateMut.isPending}
+          />
+        </div>
       ),
     },
     {
       id: "actions",
       header: "",
-      cell: ({ row }: { row: { original: OrgPaymentMethod } }) => (
-        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      cell: ({ row }) => (
+        <div
+          className="flex items-center gap-1 justify-end"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Button
             variant="ghost"
             size="iconSm"
@@ -207,22 +537,32 @@ export default function PaymentMethodsPage() {
               setFormOpen(true);
             }}
           >
-            <Pencil size={14} />
+            <Edit2 size={13} />
           </Button>
         </div>
       ),
     },
   ];
 
-  const filtered = useMemo(() => {
-    if (!search) return methods;
-    const s = search.toLowerCase();
-    return methods.filter(
-      (m) =>
-        getLabel(m.name).toLowerCase().includes(s) ||
-        m.name.toLowerCase().includes(s),
-    );
-  }, [methods, search, getLabel]);
+  const handleExport = () =>
+    exportToExcel({
+      filename: "PaymentMethods",
+      sheets: [
+        {
+          name: "Methods",
+          title: t("settings.paymentMethods"),
+          columns: [
+            { key: "name", header: "ID", accessor: (m: OrgPaymentMethod) => m.name, width: 25 },
+            { key: "label", header: t("common.name"), accessor: (m: OrgPaymentMethod) => getLabel(m.name), width: 30 },
+            { key: "type", header: "Type", accessor: (m: OrgPaymentMethod) => (m.is_cash ? "Cash" : "Non-Cash"), width: 15 },
+            { key: "is_active", header: t("common.status"), accessor: (m: OrgPaymentMethod) => m.is_active, type: "bool", width: 12 },
+          ],
+          rows: methods,
+        },
+      ],
+    });
+
+  if (!orgId) return null;
 
   return (
     <PageShell
@@ -241,369 +581,56 @@ export default function PaymentMethodsPage() {
         </Button>
       }
     >
-      <div className="space-y-4">
-        <Card>
-          <CardContent className="p-4 flex items-center justify-between flex-wrap gap-2">
-            <div className="relative w-full sm:w-72">
-              <Search
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={14}
-              />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("common.search")}
-                className="pl-8"
-              />
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {activeMethods.length} {t("common.active")} / {methods.length}{" "}
-              {t("common.total")}
-            </div>
-          </CardContent>
-        </Card>
-
-        <DataTable columns={cols} data={filtered} isLoading={isLoading} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+        <StatCard
+          label={t("common.total")}
+          value={methods.length}
+          loading={isLoading}
+        />
+        <StatCard
+          label={t("common.active")}
+          value={activeMethods.length}
+          loading={isLoading}
+          accent="success"
+        />
+        <StatCard
+          label={t("common.inactive")}
+          value={methods.length - activeMethods.length}
+          loading={isLoading}
+          accent="warning"
+        />
+        <StatCard
+          label="System Methods"
+          value={methods.filter(isSystemMethod).length}
+          loading={isLoading}
+          accent="info"
+        />
       </div>
 
-      <PaymentMethodForm
+      <DataTable
+        columns={cols}
+        data={enrichedMethods}
+        isLoading={isLoading}
+        searchKey="mappedLabel"
+        onExport={handleExport}
+        emptyState={
+          <div className="flex flex-col items-center gap-2 py-4">
+            <CreditCard size={32} className="text-muted-foreground/40" />
+            <p>{t("common.noResults")}</p>
+          </div>
+        }
+      />
+
+      <PaymentMethodDialog
         open={formOpen}
         onClose={() => {
           setFormOpen(false);
           setEditingMethod(null);
         }}
-        method={editingMethod}
-        orgId={orgId ?? ""}
+        edit={editingMethod}
+        orgId={orgId}
+        key={editingMethod?.id ?? "new"}
       />
     </PageShell>
-  );
-}
-
-const formSchema = z.object({
-  name: z
-    .string()
-    .min(2, "ID must be at least 2 characters")
-    .regex(
-      /^[a-z0-9_]+$/,
-      "Only lowercase letters, numbers, and underscores allowed",
-    ),
-  labelEn: z.string().min(1, "English label is required"),
-  labelAr: z.string().optional(),
-  color: z.string().min(1, "Color is required"),
-  icon: z.string().min(1, "Icon is required"),
-  isCash: z.boolean(),
-});
-
-function PaymentMethodForm({
-  open,
-  onClose,
-  method,
-  orgId,
-}: {
-  open: boolean;
-  onClose: () => void;
-  method: OrgPaymentMethod | null;
-  orgId: string;
-}) {
-  const { t } = useTranslation();
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      labelEn: "",
-      labelAr: "",
-      color: PREDEFINED_COLORS[2],
-      icon: "money",
-      isCash: false,
-    },
-  });
-
-  useEffect(() => {
-    if (open) {
-      if (method) {
-        const trans = method.label_translations as
-          | Record<string, string>
-          | undefined;
-        form.reset({
-          name: method.name,
-          labelEn: trans?.en || "",
-          labelAr: trans?.ar || "",
-          color: method.color?.startsWith("#")
-            ? method.color
-            : PREDEFINED_COLORS[2],
-          icon: method.icon || "money",
-          isCash: method.is_cash,
-        });
-      } else {
-        form.reset({
-          name: "",
-          labelEn: "",
-          labelAr: "",
-          color: PREDEFINED_COLORS[2],
-          icon: "money",
-          isCash: false,
-        });
-      }
-    }
-  }, [open, method, form]);
-
-  const createMut = useCreatePaymentMethod();
-  const updateMut = useUpdatePaymentMethod();
-
-  const isPending = createMut.isPending || updateMut.isPending;
-  const isSystem = method
-    ? [
-        "cash",
-        "card",
-        "digital_wallet",
-        "mixed",
-        "talabat_online",
-        "talabat_cash",
-      ].includes(method.name)
-    : false;
-
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const payload = {
-      org_id: orgId,
-      name: values.name,
-      label_translations: {
-        en: values.labelEn,
-        ar: values.labelAr || values.labelEn,
-      },
-      color: values.color,
-      icon: values.icon,
-      is_cash: values.isCash,
-      is_active: method ? method.is_active : true,
-    };
-
-    if (method) {
-      updateMut.mutate(
-        { id: method.id, data: payload },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({
-              queryKey: ["/v1/payment-methods", orgId],
-            });
-            toast.success(t("common.saved"));
-            onClose();
-          },
-          onError: (err) => toast.error(getErrorMessage(err)),
-        },
-      );
-    } else {
-      createMut.mutate(
-        { data: payload },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({
-              queryKey: ["/v1/payment-methods", orgId],
-            });
-            toast.success(t("common.saved"));
-            onClose();
-          },
-          onError: (err) => toast.error(getErrorMessage(err)),
-        },
-      );
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader>
-          <DialogTitle>
-            {method ? t("common.edit") : t("common.add")}
-          </DialogTitle>
-          <DialogDescription>
-            {method
-              ? "Modify your payment method settings below."
-              : "Create a new payment method for checkout."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-5 pt-2"
-          >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("common.name")} (ID)</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="e.g. visa_card"
-                      disabled={isSystem}
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value
-                            .toLowerCase()
-                            .replace(/[^a-z0-9_]/g, "_"),
-                        )
-                      }
-                    />
-                  </FormControl>
-                  {isSystem ? (
-                    <FormDescription>
-                      System method IDs cannot be changed.
-                    </FormDescription>
-                  ) : (
-                    <FormDescription>
-                      A unique internal identifier (lowercase, underscores
-                      only).
-                    </FormDescription>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="labelEn"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Label (English)</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g. Visa Card" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="labelAr"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Label (Arabic)</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="e.g. فيزا"
-                        className="text-right"
-                        dir="rtl"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="icon"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Icon</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an icon" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <ScrollArea className="h-64">
-                        {ICONS.map((icon) => {
-                          const IconComp = icon.icon;
-                          return (
-                            <SelectItem key={icon.id} value={icon.id}>
-                              <div className="flex items-center gap-2">
-                                <IconComp
-                                  size={16}
-                                  className="text-muted-foreground"
-                                />
-                                <span>{icon.label}</span>
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </ScrollArea>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Color Theme</FormLabel>
-                  <FormControl>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {PREDEFINED_COLORS.map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => field.onChange(c)}
-                          className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary`}
-                          style={{ backgroundColor: c }}
-                          aria-label={`Select color ${c}`}
-                        >
-                          {field.value === c && (
-                            <Check
-                              size={16}
-                              className="text-white drop-shadow-sm"
-                            />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="isCash"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-card">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Accepts Cash</FormLabel>
-                    <FormDescription>
-                      Is this payment method considered cash for the drawer?
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isPending}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button type="submit" disabled={isPending}>
-                {t("common.save")}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
   );
 }
