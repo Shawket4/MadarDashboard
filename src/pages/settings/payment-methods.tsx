@@ -68,7 +68,10 @@ import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { exportToExcel } from "@/shared/lib/excel";
 import type { OrgPaymentMethod } from "@/shared/api/generated/models";
-import { paymentMethodSchema, type PaymentMethodValues } from "@/entities/payment-method/schemas";
+import {
+  paymentMethodSchema,
+  type PaymentMethodValues,
+} from "@/entities/payment-method/schemas";
 
 const PREDEFINED_COLORS = [
   "#0F172A",
@@ -192,9 +195,7 @@ function PaymentMethodDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>
-            {edit ? t("common.edit") : t("common.add")}
-          </DialogTitle>
+          <DialogTitle>{edit ? t("common.edit") : t("common.add")}</DialogTitle>
           <DialogDescription>
             {edit
               ? "Modify your payment method settings below."
@@ -225,7 +226,7 @@ function PaymentMethodDialog({
                         }
                       />
                     </FormControl>
-                    {(isSystem || edit) ? (
+                    {isSystem || edit ? (
                       <FormDescription>
                         Payment method IDs cannot be changed.
                       </FormDescription>
@@ -372,7 +373,9 @@ function PaymentMethodDialog({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-card h-full">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-sm">{t("common.active")}</FormLabel>
+                        <FormLabel className="text-sm">
+                          {t("common.active")}
+                        </FormLabel>
                         <FormDescription className="text-xs">
                           Status for checkout.
                         </FormDescription>
@@ -552,10 +555,32 @@ export default function PaymentMethodsPage() {
           name: "Methods",
           title: t("settings.paymentMethods"),
           columns: [
-            { key: "name", header: "ID", accessor: (m: OrgPaymentMethod) => m.name, width: 25 },
-            { key: "label", header: t("common.name"), accessor: (m: OrgPaymentMethod) => getLabel(m.name), width: 30 },
-            { key: "type", header: "Type", accessor: (m: OrgPaymentMethod) => (m.is_cash ? "Cash" : "Non-Cash"), width: 15 },
-            { key: "is_active", header: t("common.status"), accessor: (m: OrgPaymentMethod) => m.is_active, type: "bool", width: 12 },
+            {
+              key: "name",
+              header: "ID",
+              accessor: (m: OrgPaymentMethod) => m.name,
+              width: 25,
+            },
+            {
+              key: "label",
+              header: t("common.name"),
+              accessor: (m: OrgPaymentMethod) => getLabel(m.name),
+              width: 30,
+            },
+            {
+              key: "type",
+              header: "Type",
+              accessor: (m: OrgPaymentMethod) =>
+                m.is_cash ? "Cash" : "Non-Cash",
+              width: 15,
+            },
+            {
+              key: "is_active",
+              header: t("common.status"),
+              accessor: (m: OrgPaymentMethod) => m.is_active,
+              type: "bool",
+              width: 12,
+            },
           ],
           rows: methods,
         },

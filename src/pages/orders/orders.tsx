@@ -33,6 +33,7 @@ import { useListBranches as useBranches } from "@/shared/api/generated/api";
 import { useListShifts } from "@/shared/api/generated/api";
 import { ORDER_STATUSES } from "@/shared/config/constants";
 import { usePaymentMethods } from "@/shared/hooks/use-payment-methods";
+import { getTranslatedName } from "@/shared/lib/translation";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtDateTime, fmtMoney, fmtUnit } from "@/shared/lib/format";
@@ -106,7 +107,7 @@ function VoidDialog({ open, onClose, order }: { open: boolean; onClose: () => vo
 }
 
 function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; onClose: () => void; orderId: string | null; onVoid: (o: OrderFull) => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { getLabel } = usePaymentMethods();
   const { data: order, isLoading } = useGetOrder(orderId ?? "", { query: { enabled: !!orderId } });
 
@@ -178,7 +179,7 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <p className="font-semibold text-sm flex items-center flex-wrap gap-1">
-                              {it.item_name}
+                              {getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, i18n.language)}
                               {it.size_label && <span className="text-muted-foreground">({it.size_label})</span>}
                               {it.bundle_id && (
                                 <Badge variant="default" className="px-1 py-0 text-[10px] uppercase font-bold tracking-wider leading-none">
@@ -190,14 +191,14 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
                             {it.addons.length > 0 && (
                               <div className="mt-1 space-y-0.5">
                                 {it.addons.map((a) => (
-                                  <p key={a.id} className="text-xs ps-2">+ {a.addon_name} {a.quantity > 1 && `×${a.quantity}`}{a.line_total > 0 && <span className="text-muted-foreground ms-1">({fmtMoney(a.line_total)})</span>}</p>
+                                  <p key={a.id} className="text-xs ps-2">+ {getTranslatedName({ name: a.addon_name, name_translations: a.name_translations }, i18n.language)} {a.quantity > 1 && `×${a.quantity}`}{a.line_total > 0 && <span className="text-muted-foreground ms-1">({fmtMoney(a.line_total)})</span>}</p>
                                 ))}
                               </div>
                             )}
                             {it.optionals && it.optionals.length > 0 && (
                               <div className="mt-1.5 flex flex-wrap gap-1">
                                 {it.optionals.map((o, idx) => {
-                                  const optionName = o.field_name;
+                                  const optionName = getTranslatedName({ name: o.field_name || '', name_translations: o.name_translations }, i18n.language);
                                   if (!optionName) return null;
                                   const hasPrice = o.price > 0;
                                   return (
@@ -217,14 +218,14 @@ function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; 
                                 {it.bundle_components.map((c, cIdx) => (
                                   <div key={cIdx} className="space-y-0.5">
                                     <p className="text-xs font-semibold text-foreground">
-                                      – {c.item_name} {c.size_label && <span className="text-muted-foreground">({c.size_label})</span>}
+                                      – {getTranslatedName({ name: c.item_name, name_translations: c.name_translations }, i18n.language)} {c.size_label && <span className="text-muted-foreground">({c.size_label})</span>}
                                       <span className="text-muted-foreground ms-1">× {c.quantity * it.quantity}</span>
                                     </p>
                                     {c.addons && c.addons.length > 0 && (
                                       <div className="space-y-0.5 ps-2">
                                         {c.addons.map((a, aIdx) => (
                                           <p key={aIdx} className="text-[11px] text-muted-foreground">
-                                            + {a.addon_name} {a.quantity > 1 && `×${a.quantity}`}{a.unit_price > 0 && <span className="ms-1">({fmtMoney(a.unit_price * a.quantity)})</span>}
+                                            + {getTranslatedName({ name: a.addon_name, name_translations: a.name_translations }, i18n.language)} {a.quantity > 1 && `×${a.quantity}`}{a.unit_price > 0 && <span className="ms-1">({fmtMoney(a.unit_price * a.quantity)})</span>}
                                           </p>
                                         ))}
                                       </div>

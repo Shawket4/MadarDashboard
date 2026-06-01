@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmptyState } from "@/shared/ui/empty-state";
 import { ImageUploader } from "@/shared/ui/image-uploader";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { getTranslatedName, getTranslatedDescription } from "@/shared/lib/translation";
 import { 
   useListCategories, createCategory, updateCategory, deleteCategory,
   useListMenuItems, useGetMenuItem, createMenuItem, updateMenuItem, deleteMenuItem, uploadMenuItemImage, upsertSize, deleteSize,
@@ -541,7 +542,7 @@ function AddonDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: (
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 export default function Menu() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const { orgId } = useCurrentContext();
   const [tab, setTab] = useState<"items" | "categories" | "addons">("items");
@@ -594,9 +595,9 @@ export default function Menu() {
       header: t("common.name"),
       cell: ({ row }) => (
         <div>
-          <p className="font-semibold text-sm">{row.original.name}</p>
-          {row.original.description && (
-            <p className="text-xs text-muted-foreground truncate max-w-[200px]">{row.original.description}</p>
+          <p className="font-semibold text-sm">{getTranslatedName(row.original, i18n.language)}</p>
+          {getTranslatedDescription(row.original, i18n.language) && (
+            <p className="text-xs text-muted-foreground truncate max-w-[200px]">{getTranslatedDescription(row.original, i18n.language)}</p>
           )}
         </div>
       ),
@@ -640,7 +641,7 @@ export default function Menu() {
   ], [categories, t, toggleItem]);
 
   const catCols: ColumnDef<Category>[] = useMemo(() => [
-    { accessorKey: "name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold">{row.original.name}</span> },
+    { accessorKey: "name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold">{getTranslatedName(row.original, i18n.language)}</span> },
     { accessorKey: "display_order", header: t("menu.displayOrder") },
     {
       accessorKey: "is_active",
@@ -664,7 +665,7 @@ export default function Menu() {
   ], [t]);
 
   const addonCols: ColumnDef<AddonItem>[] = useMemo(() => [
-    { accessorKey: "name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold">{row.original.name}</span> },
+    { accessorKey: "name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold">{getTranslatedName(row.original, i18n.language)}</span> },
     {
       accessorKey: "addon_type",
       header: t("common.type"),
