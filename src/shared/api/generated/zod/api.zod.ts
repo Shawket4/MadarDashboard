@@ -2108,6 +2108,16 @@ export const DeleteUserPermissionParams = zod.object({
 })
 
 
+export const ListPublicOrgsResponseItem = zod.object({
+  "address": zod.string().nullish(),
+  "branch_count": zod.number().nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "logo_url": zod.string().nullish(),
+  "name": zod.string()
+})
+export const ListPublicOrgsResponse = zod.array(ListPublicOrgsResponseItem)
+
+
 export const ListAddonIngredientsParams = zod.object({
   "addon_item_id": zod.string().uuid().describe('Addon item ID')
 })

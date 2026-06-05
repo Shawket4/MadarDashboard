@@ -762,10 +762,10 @@
     "price": "Bundle Price",
     "priceHint": "Selling price of this bundle in EGP",
     "displayOrder": "Display Order",
-    "availableFromTime": "Available From (Time)",
-    "availableUntilTime": "Available Until (Time)",
-    "availableFromDate": "Available From (Date)",
-    "availableUntilDate": "Available Until (Date)",
+    "availableFromTime": "Opens At",
+    "availableUntilTime": "Closes At",
+    "availableFromDate": "Start Date",
+    "availableUntilDate": "End Date",
     "timePh": "e.g. 08:00:00",
     "datePh": "YYYY-MM-DD",
     "components": "Bundle Components",
@@ -820,10 +820,6 @@
     "emptyHint": "Create combination packages with custom prices to boost ticket sizes.",
     "availability": "Availability",
     "availabilityHint": "The time window repeats every day. If dates are also set, it only applies within that date range.",
-    "availableFromTime": "Opens At",
-    "availableUntilTime": "Closes At",
-    "availableFromDate": "Start Date",
-    "availableUntilDate": "End Date",
     "avail": {
       "hint": "Choose when this bundle is available to customers:",
       "permanent": "Always on menu",
@@ -948,5 +944,405 @@
   "settings": {
     "paymentMethods": "Payment Methods",
     "paymentMethodsHint": "Manage dynamic payment methods and colors"
+  },
+  "meta": {
+    "publication": "Capability Portfolio",
+    "edition": "Vol. 1",
+    "intro": "An introduction"
+  },
+  "cover": {
+    "headline": "The POS for\noperators who care\nabout their numbers.",
+    "eyebrow": "Vol. 1 · An introduction",
+    "subtitle": "An offline-first point-of-sale system engineered for arithmetic correctness. Built with accountant-grade shift rigor, true write-ahead offline sync, and advanced menu engineering logic—for the operators running serious food & beverage."
+  },
+  "pillars": {
+    "eyebrow": "Chapter 1 · Four pillars",
+    "title": "What sets Sufrix apart.",
+    "items": {
+      "01": {
+        "n": "1",
+        "title": "True Offline Resilience",
+        "lede": "No half-measures. It just works.",
+        "body": "We don't use fragile caching. The iPad utilizes a secure write-ahead queue to store orders, cash movements, and shift opens locally. When the internet comes back, it syncs flawlessly without double-charging or lost sales."
+      },
+      "02": {
+        "n": "2",
+        "title": "Built-In Barista Training",
+        "lede": "Quality control baked into the till.",
+        "body": "Recipes dictate the workflow. The system guides baristas step-by-step, automatically adjusting stock (like swapping oat milk for whole milk without double-counting) and ensuring perfect consistency across every branch, every time."
+      },
+      "03": {
+        "n": "3",
+        "title": "Algorithmic Menu Advisor",
+        "lede": "Your digital menu engineer.",
+        "body": "More than just sales reports. Our engine uses proven menu engineering math to score every drink on velocity and margin, offering mathematically defendable 'Lift, Hold, or Soften' price suggestions to maximize your profit."
+      },
+      "04": {
+        "n": "4",
+        "title": "Direct Support & Custom Logic",
+        "lede": "A partnership, not a vendor roadmap.",
+        "body": "You get a direct line to the creator. Need custom business logic built for your unique operation? It gets built on request, exactly how you need it. No waiting months for generic feature updates."
+      }
+    }
+  },
+  "problem": {
+    "eyebrow": "Chapter 2 · The state of the art",
+    "title": "What today's POS gets wrong.",
+    "items": {
+      "01": {
+        "n": "1",
+        "title": "Treating offline as a failure.",
+        "body": "Most modern systems treat offline as a total failure mode, leaving you stranded. The shop in Maadi shouldn't stop making money because the cell tower went down."
+      },
+      "02": {
+        "n": "2",
+        "title": "Poor local support by default.",
+        "body": "Arabic timestamps, dual-brand printer support (Star & Epson), and right-to-left interfaces aren't optional toggles—they need to be native."
+      },
+      "03": {
+        "n": "3",
+        "title": "Hiding your own numbers.",
+        "body": "Want yesterday's revenue filtered by branch, formatted cleanly in Excel with SUM formulas? Most systems make you file a ticket or wait for a morning email."
+      },
+      "04": {
+        "n": "4",
+        "title": "Operating without a ledger.",
+        "body": "A POS that lets you ring sales without forcing the cash counts to reconcile is just an iPad calculator. Not a real accounting tool."
+      }
+    }
+  },
+  "tellerHero": {
+    "eyebrow": "Chapter 3 · The teller",
+    "title": "Where the operation\nmeets the customer.",
+    "caption": "The Sufrix teller — iPad, offline-first."
+  },
+  "tellerDetail": {
+    "eyebrow": "Chapter 3 · The Teller, continued",
+    "title": "Built for speed\nof service.",
+    "body": "Orders ring up in seconds. Modifiers are handled fluidly. First-class support for both Star and Epson printers without wonky drivers. Every action is saved instantly to the iPad first, then syncs backwards to the operation.",
+    "details": {
+      "01": {
+        "title": "Split Payments",
+        "body": "Cash, visa, and customer credit—with granular tipping per tender—handled in one pane."
+      },
+      "02": {
+        "title": "Strict Modifiers",
+        "body": "Modifiers are hard-linked to the recipe, preventing free-text chaos and protecting inventory."
+      },
+      "03": {
+        "title": "Blind Drops",
+        "body": "Mandatory cash counting at shift open and close, flagging discrepancies before the drawer locks."
+      }
+    }
+  },
+  "featureMixedCheckout": {
+    "eyebrow": "Chapter 3 · The Teller, continued",
+    "title": "Flexible checkout\nin one screen.",
+    "body": "Customers don't always pay with exact change or a single card. Sufrix handles split payments natively—letting you seamlessly split a single order across cash, card, and credit without jumping through menus.",
+    "details": {
+      "01": {
+        "title": "Split Payments",
+        "body": "Accept any combination of cash, visa, and customer credit seamlessly."
+      },
+      "02": {
+        "title": "Exact Change",
+        "body": "Quick-tap buttons for common bill denominations."
+      },
+      "03": {
+        "title": "Tip Allocation",
+        "body": "Attribute tips to specific payment methods for accurate reconciliation."
+      }
+    }
+  },
+  "featureCashMovement": {
+    "eyebrow": "Chapter 3 · The Teller, continued",
+    "title": "Bank-grade cash\nmovements.",
+    "body": "The cash drawer is treated as a strict ledger. Every time money moves in or out of the drawer for expenses, petty cash, or bank drops, it's explicitly recorded and categorized.",
+    "details": {
+      "01": {
+        "title": "Petty Cash",
+        "body": "Log mid-shift expenses like ice runs directly on the till."
+      },
+      "02": {
+        "title": "Bank Drops",
+        "body": "Securely transfer excess cash out of the drawer."
+      },
+      "03": {
+        "title": "Accountability",
+        "body": "Every movement is tagged with the responsible user and a mandatory note."
+      }
+    }
+  },
+  "featureOffline": {
+    "eyebrow": "Chapter 4 · Resilience",
+    "title": "True Offline\nResilience.",
+    "body": "When the internet goes down, Sufrix doesn't just cache basic sales and hope for the best. It uses a persistent write-ahead queue to store every transaction, shift open, and cash movement locally.",
+    "details": {
+      "01": {
+        "title": "Write-Ahead Queue",
+        "body": "A ledger on your iPad that safely queues every action."
+      },
+      "02": {
+        "title": "Idempotent Sync",
+        "body": "When the connection returns, it syncs everything exactly once. No double charging."
+      },
+      "03": {
+        "title": "Uninterrupted Service",
+        "body": "Your tellers never see a loading spinner waiting for the cloud."
+      }
+    }
+  },
+  "featureRecipe": {
+    "eyebrow": "Chapter 5 · Barista workflow",
+    "title": "Built-in\nBarista Training.",
+    "body": "Sufrix recipes don't just calculate costs—they dictate the workflow. The system shows exact measurements and steps, cutting down training time drastically and ensuring your signature drinks taste the same no matter who is on shift.",
+    "details": {
+      "01": {
+        "title": "Smart Swaps",
+        "body": "Swap whole milk for oat milk? The system adjusts the cost and deducts the right inventory automatically."
+      },
+      "02": {
+        "title": "Quality Control",
+        "body": "Removes the guesswork. Every modifier and instruction is clear."
+      }
+    }
+  },
+  "managementHero": {
+    "eyebrow": "Chapter 6 · Management",
+    "title": "The whole operation,\non one screen.",
+    "caption": "The Sufrix dashboard — available on Desktop and Web."
+  },
+  "managementDetail": {
+    "eyebrow": "Chapter 6 · Management, continued",
+    "title": "Headquarters in your browser.",
+    "body": "Today's revenue by branch. Yesterday's recipes by margin. This month's labor by shift. Everything filterable by anything, everything exportable, everything live. Built for speed and reliability.",
+    "details": {
+      "01": {
+        "title": "Live analytics",
+        "body": "Across every branch, with totals you can break down by specific payment methods or categories."
+      },
+      "02": {
+        "title": "Global Inventory",
+        "body": "One central catalog. Stock tracked uniquely per branch, adjusting instantly as recipes are sold."
+      },
+      "03": {
+        "title": "Strict Reconciliation",
+        "body": "Complete shift histories with flagged cash differences."
+      }
+    }
+  },
+  "operations": {
+    "eyebrow": "Chapter 7 · Deep Operations",
+    "title": "An unshakeable ledger.",
+    "lede": "Sufrix isn't just a way to ring sales. It's the operational backbone, built on a strict, append-only architecture that behaves like an accountant.",
+    "sections": {
+      "01": {
+        "title": "Append-Only History",
+        "body": "Every record has a full history. Who created it, who changed it, when, and from what to what. Nothing is ever truly deleted, only voided and logged."
+      },
+      "02": {
+        "title": "Smart Inventory Deductions",
+        "body": "Our engine maps complex modifiers directly to stock. Build a custom order, and the specific substitutions are deducted flawlessly."
+      },
+      "03": {
+        "title": "Shift Trust",
+        "body": "Because every penny is tied to the ledger, cash handling stops being an exercise in trust and becomes an exercise in math."
+      }
+    }
+  },
+  "featureExport": {
+    "eyebrow": "Chapter 8 · Accountant ready",
+    "title": "Exports you can\nactually use.",
+    "body": "We abandoned messy CSV dumps. Sufrix uses a custom generation engine to export beautifully formatted Excel sheets directly from the dashboard, saving your accountant hours of formatting.",
+    "details": {
+      "01": {
+        "title": "SUM Formulas Included",
+        "body": "Columns automatically sum up. No manual math required."
+      },
+      "02": {
+        "title": "Exact Filtering",
+        "body": "Whatever you filter on the screen is exactly what gets exported."
+      },
+      "03": {
+        "title": "Instant Delivery",
+        "body": "Generated on the spot. No waiting for a daily scheduled email."
+      }
+    }
+  },
+  "smartPricing": {
+    "eyebrow": "Chapter 9 · The Advisor",
+    "title": "The Menu\nEngineer.",
+    "lede": "Sufrix watches your sales velocity and item margins simultaneously, utilizing proven menu engineering methodologies to surface exact pricing adjustments.",
+    "sections": {
+      "01": {
+        "n": "1",
+        "title": "Velocity × Margin Matrix",
+        "body": "Every item is scored on a dynamic quadrant, updated continuously, separating your stars from your dogs."
+      },
+      "02": {
+        "n": "2",
+        "title": "Defendable Math",
+        "body": "Clear lift / hold / soften calls using 95% confidence intervals. No black-box AI guessing."
+      },
+      "03": {
+        "n": "3",
+        "title": "Predictive Impact",
+        "body": "See exactly how much revenue a 15 EGP increase on your Iced Latte might generate next week."
+      }
+    },
+    "card": {
+      "title": "Iced Latte",
+      "currentLabel": "Current",
+      "currentValue": "EGP 95",
+      "velocityLabel": "Velocity",
+      "velocityValue": "High · +12%",
+      "marginLabel": "Margin",
+      "marginValue": "Low · 28%",
+      "suggestionLabel": "Suggestion",
+      "suggestionValue": "Lift to EGP 110",
+      "impactLabel": "Est. impact",
+      "impactValue": "+14% wk"
+    }
+  },
+  "builtToFlex": {
+    "eyebrow": "Chapter 11 · Beyond the counter",
+    "title": "Smart Bundles.",
+    "lede": "Build complex menus that flex with your day, your branch, or your specific marketing campaign without confusing the kitchen.",
+    "sections": {
+      "01": {
+        "n": "1",
+        "title": "Dynamic Combos",
+        "body": "Group a coffee, pastry, and side into a single discounted bundle. The system still deducts the exact ingredients for each sub-item perfectly.",
+        "badge": null
+      },
+      "02": {
+        "n": "2",
+        "title": "Time-Based Promos",
+        "body": "Set pricing rules that activate automatically during morning rushes or slow afternoons.",
+        "badge": "On the roadmap"
+      }
+    }
+  },
+  "pricing": {
+    "eyebrow": "Chapter 12 · Pricing",
+    "title": "Standardized\nPackages.",
+    "lede": "Transparent pricing designed to scale with your operation. Choose the tier that matches your business, and save by committing long-term.",
+    "tiers": {
+      "essential": {
+        "name": "Essential Cafe",
+        "price": "2,500 EGP / mo",
+        "features": [
+          "Core POS functionality",
+          "True offline capabilities",
+          "Menu Advisor & Smart Bundles",
+          "Accountant-ready Excel exports",
+          "Live inventory & shift tracking"
+        ],
+        "plans": {
+          "1mo": {
+            "label": "Monthly",
+            "value": "2,500 EGP"
+          },
+          "3mo": {
+            "label": "3 Months (Save 500 EGP)",
+            "value": "7,000 EGP"
+          },
+          "6mo": {
+            "label": "6 Months (Save 2,000 EGP)",
+            "value": "13,000 EGP"
+          },
+          "12mo": {
+            "label": "1 Year (Save 5,000 EGP)",
+            "value": "25,000 EGP"
+          }
+        }
+      },
+      "advanced": {
+        "name": "Advanced Operation",
+        "price": "3,000 EGP / mo",
+        "features": [
+          "Everything in Essential Cafe",
+          "Custom integrations on request",
+          "Native Talabat integration",
+          "Priority on-site support",
+          "Custom business logic"
+        ],
+        "plans": {
+          "1mo": {
+            "label": "Monthly",
+            "value": "3,000 EGP"
+          },
+          "3mo": {
+            "label": "3 Months (Save 500 EGP)",
+            "value": "8,500 EGP"
+          },
+          "6mo": {
+            "label": "6 Months (Save 2,000 EGP)",
+            "value": "16,000 EGP"
+          },
+          "12mo": {
+            "label": "1 Year (Save 6,000 EGP)",
+            "value": "30,000 EGP"
+          }
+        }
+      }
+    }
+  },
+  "roadmap": {
+    "eyebrow": "Chapter 13 · The Future",
+    "title": "On the roadmap.",
+    "body": "Sufrix is constantly evolving. Here is what is currently in active development or coming next to enhance your operations.",
+    "items": {
+      "01": {
+        "title": "Egyptian eInvoicing",
+        "badge": "In Development",
+        "body": "Native tax integration directly with the Egyptian Tax Authority portal to ensure full, automated compliance without manual data entry."
+      },
+      "02": {
+        "title": "Public Ordering Menu",
+        "badge": "In Development",
+        "body": "A customer-facing web endpoint where patrons can build orders and view totals. Future updates will route these directly to the teller with flexible delivery zones—free for inside-mall addressing, dynamic fees for outside radiuses."
+      },
+      "03": {
+        "title": "Native Talabat Sink",
+        "badge": "Roadmap",
+        "body": "A direct API pipeline to Talabat, bringing third-party delivery orders directly into the Sufrix write-ahead queue without needing a secondary tablet."
+      },
+      "04": {
+        "title": "Centralized Music Control",
+        "badge": "Roadmap",
+        "body": "Control and synchronize the ambiance directly from both the teller screen and the dashboard."
+      }
+    }
+  },
+  "backCover": {
+    "eyebrow": "Chapter 14 · Partnership",
+    "title": "Looking forward to\nbuilding together.",
+    "body": "Sufrix isn't just software looking for a customer; it's an operational partnership. We're ready to deploy our system into your branches, customize the logic to your exact needs, and help you scale securely. Standard installs ship with everything here, but we build new screens, fields, and integrations on request.",
+    "contact": "Get in touch",
+    "edition": "Capability Portfolio · Vol. 1 · 2026"
+  },
+  "footer": {
+    "strapline": "Sufrix · Capability Portfolio"
+  },
+  "landing": {
+    "cta": {
+      "title": "Ready to upgrade your operations?",
+      "subtitle": "Sufrix is built to flex with your business. Contact our creator today to get started.",
+      "creator": "Creator",
+      "email": "Email",
+      "dropEmail": "Drop an email"
+    },
+    "trustedBy": {
+      "since": "Since",
+      "branch": "Branch",
+      "branches": "Branches"
+    },
+    "nav": {
+      "pos": "POS Features",
+      "dashboard": "Dashboard",
+      "flex": "Flexibility",
+      "contact": "Contact"
+    }
   }
 }

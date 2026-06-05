@@ -23,6 +23,7 @@ const PaymentMethods = lazy(() => import("@/pages/settings/payment-methods"));
 const PublicMenu = lazy(() => import("@/pages/public-menu/public-menu"));
 const MenuAdvisor = lazy(() => import("@/pages/menu-advisor/menu-advisor"));
 const NotFound = lazy(() => import("@/pages/error/not-found"));
+const Landing = lazy(() => import("@/pages/landing/landing"));
 
 function PageLoader() {
   return (
@@ -41,6 +42,7 @@ const wrap = (el: React.ReactNode) => <Suspense fallback={<PageLoader />}>{el}</
 
 const router = createBrowserRouter([
   { path: "/login", element: wrap(<Login />) },
+  { path: "/landing", element: wrap(<Landing />) },
   { path: "/menu/:orgId", element: wrap(<PublicMenu />) },
   {
     path: "/",

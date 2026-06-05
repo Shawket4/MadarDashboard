@@ -157,6 +157,7 @@ export * from './publicMenuItem';
 export * from './publicMenuItemDescriptionTranslations';
 export * from './publicMenuItemNameTranslations';
 export * from './publicMenuResponse';
+export * from './publicOrg';
 export * from './rolePermission';
 export * from './shift';
 export * from './shiftPreFill';

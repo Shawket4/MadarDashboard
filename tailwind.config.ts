@@ -27,6 +27,10 @@ export default {
         accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
         popover: { DEFAULT: "hsl(var(--popover))", foreground: "hsl(var(--popover-foreground))" },
         card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
+        navy: "#0A2540",
+        terracotta: "#C25B3F",
+        cream: "#F4F1EC",
+        leaf: "#2A4D3E"
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -8633,6 +8633,89 @@
         ]
       }
     },
+    "/public/orgs": {
+      "get": {
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "list_public_orgs",
+        "responses": {
+          "200": {
+            "description": "List of public organizations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicOrg"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — validation failed or malformed input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — insufficient permission or wrong org",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict — FK or domain invariant violation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/recipes/addons/{addon_item_id}": {
       "get": {
         "tags": [
@@ -12494,6 +12577,7 @@
           "id",
           "org_id",
           "name",
+          "name_translations",
           "addon_type",
           "default_price",
           "is_active",
@@ -12532,6 +12616,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": "object"
           },
           "org_id": {
             "type": "string",
@@ -12670,6 +12757,7 @@
         "required": [
           "addon_item_id",
           "addon_name",
+          "addon_name_translations",
           "addon_type",
           "quantity_sold",
           "revenue"
@@ -12681,6 +12769,9 @@
           },
           "addon_name": {
             "type": "string"
+          },
+          "addon_name_translations": {
+            "type": "object"
           },
           "addon_type": {
             "type": "string"
@@ -12701,6 +12792,7 @@
           "id",
           "menu_item_id",
           "addon_type",
+          "label_translations",
           "is_required",
           "min_selections",
           "display_order",
@@ -12730,6 +12822,9 @@
               "string",
               "null"
             ]
+          },
+          "label_translations": {
+            "type": "object"
           },
           "max_selections": {
             "type": [
@@ -13568,6 +13663,7 @@
           "id",
           "org_id",
           "name",
+          "name_translations",
           "display_order",
           "is_active",
           "created_at",
@@ -13605,6 +13701,9 @@
           "name": {
             "type": "string"
           },
+          "name_translations": {
+            "type": "object"
+          },
           "org_id": {
             "type": "string",
             "format": "uuid"
@@ -13618,6 +13717,7 @@
       "CategorySales": {
         "type": "object",
         "required": [
+          "category_name_translations",
           "item_count",
           "quantity_sold",
           "revenue",
@@ -13636,6 +13736,9 @@
               "string",
               "null"
             ]
+          },
+          "category_name_translations": {
+            "type": "object"
           },
           "item_count": {
             "type": "integer",
@@ -13711,6 +13814,7 @@
         "type": "object",
         "required": [
           "item_name",
+          "item_name_translations",
           "standalone_qty",
           "bundle_qty",
           "total_qty"
@@ -13729,6 +13833,9 @@
           },
           "item_name": {
             "type": "string"
+          },
+          "item_name_translations": {
+            "type": "object"
           },
           "standalone_qty": {
             "type": "integer",
@@ -13787,6 +13894,12 @@
           "name": {
             "type": "string"
           },
+          "name_translations": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
           "org_id": {
             "type": "string",
             "format": "uuid"
@@ -13795,12 +13908,12 @@
       },
       "CreateAddonSlotRequest": {
         "type": "object",
-        "required": [
-          "addon_type"
-        ],
         "properties": {
           "addon_type": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "display_order": {
             "type": [
@@ -13818,6 +13931,12 @@
           "label": {
             "type": [
               "string",
+              "null"
+            ]
+          },
+          "label_translations": {
+            "type": [
+              "object",
               "null"
             ]
           },
@@ -14088,6 +14207,12 @@
           "name": {
             "type": "string"
           },
+          "name_translations": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
           "org_id": {
             "type": "string",
             "format": "uuid"
@@ -14114,6 +14239,12 @@
           },
           "name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": [
+              "object",
+              "null"
+            ]
           },
           "org_id": {
             "type": "string",
@@ -14148,6 +14279,12 @@
               "null"
             ]
           },
+          "description_translations": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
           "display_order": {
             "type": [
               "integer",
@@ -14163,6 +14300,12 @@
           },
           "name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": [
+              "object",
+              "null"
+            ]
           },
           "org_id": {
             "type": "string",
@@ -14197,6 +14340,12 @@
           },
           "name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": [
+              "object",
+              "null"
+            ]
           },
           "org_ingredient_id": {
             "type": [
@@ -14585,6 +14734,7 @@
           "id",
           "org_id",
           "name",
+          "name_translations",
           "dtype",
           "value",
           "is_active",
@@ -14608,6 +14758,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": "object"
           },
           "org_id": {
             "type": "string",
@@ -14847,12 +15000,16 @@
         "required": [
           "menu_item_id",
           "item_name",
+          "item_name_translations",
           "quantity_sold",
           "revenue"
         ],
         "properties": {
           "item_name": {
             "type": "string"
+          },
+          "item_name_translations": {
+            "type": "object"
           },
           "menu_item_id": {
             "type": "string",
@@ -14989,6 +15146,8 @@
           "id",
           "org_id",
           "name",
+          "name_translations",
+          "description_translations",
           "base_price",
           "is_active",
           "display_order",
@@ -15030,6 +15189,9 @@
               "null"
             ]
           },
+          "description_translations": {
+            "type": "object"
+          },
           "display_order": {
             "type": "integer",
             "format": "int32"
@@ -15049,6 +15211,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": "object"
           },
           "org_id": {
             "type": "string",
@@ -15181,6 +15346,7 @@
           "id",
           "menu_item_id",
           "name",
+          "name_translations",
           "price",
           "display_order",
           "is_active",
@@ -15221,6 +15387,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": "object"
           },
           "org_ingredient_id": {
             "type": [
@@ -15406,6 +15575,7 @@
           "component_item_id",
           "addon_item_id",
           "addon_name",
+          "name_translations",
           "unit_price",
           "quantity",
           "line_total"
@@ -15430,6 +15600,9 @@
             "type": "integer",
             "format": "int32"
           },
+          "name_translations": {
+            "type": "object"
+          },
           "order_line_id": {
             "type": "string",
             "format": "uuid"
@@ -15449,6 +15622,7 @@
         "required": [
           "item_id",
           "item_name",
+          "name_translations",
           "quantity",
           "addons",
           "optionals"
@@ -15466,6 +15640,9 @@
           },
           "item_name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": "object"
           },
           "optionals": {
             "type": "array",
@@ -15492,6 +15669,7 @@
           "order_line_id",
           "component_item_id",
           "field_name",
+          "name_translations",
           "price"
         ],
         "properties": {
@@ -15505,6 +15683,9 @@
           "id": {
             "type": "string",
             "format": "uuid"
+          },
+          "name_translations": {
+            "type": "object"
           },
           "optional_field_id": {
             "type": [
@@ -15578,6 +15759,7 @@
           "id",
           "order_id",
           "item_name",
+          "name_translations",
           "unit_price",
           "quantity",
           "line_total",
@@ -15617,6 +15799,9 @@
             ],
             "format": "uuid"
           },
+          "name_translations": {
+            "type": "object"
+          },
           "notes": {
             "type": [
               "string",
@@ -15650,6 +15835,7 @@
           "order_item_id",
           "addon_item_id",
           "addon_name",
+          "name_translations",
           "unit_price",
           "quantity",
           "line_total"
@@ -15669,6 +15855,9 @@
           "line_total": {
             "type": "integer",
             "format": "int32"
+          },
+          "name_translations": {
+            "type": "object"
           },
           "order_item_id": {
             "type": "string",
@@ -15783,6 +15972,7 @@
           "id",
           "order_item_id",
           "field_name",
+          "name_translations",
           "price"
         ],
         "properties": {
@@ -15804,6 +15994,9 @@
               "string",
               "null"
             ]
+          },
+          "name_translations": {
+            "type": "object"
           },
           "optional_field_id": {
             "type": [
@@ -16365,6 +16558,7 @@
         "required": [
           "id",
           "name",
+          "name_translations",
           "default_price"
         ],
         "properties": {
@@ -16378,6 +16572,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": "object"
           }
         }
       },
@@ -16386,6 +16583,7 @@
         "required": [
           "id",
           "addon_type",
+          "label_translations",
           "is_required",
           "min_selections",
           "addon_items"
@@ -16413,6 +16611,9 @@
               "null"
             ]
           },
+          "label_translations": {
+            "type": "object"
+          },
           "max_selections": {
             "type": [
               "integer",
@@ -16431,6 +16632,7 @@
         "required": [
           "id",
           "name",
+          "name_translations",
           "display_order",
           "items"
         ],
@@ -16457,6 +16659,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": "object"
           }
         }
       },
@@ -16486,6 +16691,8 @@
         "required": [
           "id",
           "name",
+          "name_translations",
+          "description_translations",
           "base_price",
           "display_order",
           "sizes",
@@ -16508,6 +16715,9 @@
               "null"
             ]
           },
+          "description_translations": {
+            "type": "object"
+          },
           "display_order": {
             "type": "integer",
             "format": "int32"
@@ -16524,6 +16734,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "name_translations": {
+            "type": "object"
           },
           "sizes": {
             "type": "array",
@@ -16559,6 +16772,45 @@
           },
           "org_name": {
             "type": "string"
+          }
+        }
+      },
+      "PublicOrg": {
+        "type": "object",
+        "required": [
+          "name",
+          "created_at"
+        ],
+        "properties": {
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Cairo, Egypt"
+          },
+          "branch_count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "example": 5
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "logo_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "https://sufrix-pos.ddns.net/api/uploads/logos/123.png"
+          },
+          "name": {
+            "type": "string",
+            "example": "The Rue"
           }
         }
       },
@@ -17044,6 +17296,12 @@
               "string",
               "null"
             ]
+          },
+          "name_translations": {
+            "type": [
+              "object",
+              "null"
+            ]
           }
         }
       },
@@ -17066,6 +17324,12 @@
           "label": {
             "type": [
               "string",
+              "null"
+            ]
+          },
+          "label_translations": {
+            "type": [
+              "object",
               "null"
             ]
           },
@@ -17298,6 +17562,12 @@
               "string",
               "null"
             ]
+          },
+          "name_translations": {
+            "type": [
+              "object",
+              "null"
+            ]
           }
         }
       },
@@ -17319,6 +17589,12 @@
           "name": {
             "type": [
               "string",
+              "null"
+            ]
+          },
+          "name_translations": {
+            "type": [
+              "object",
               "null"
             ]
           },
@@ -17354,6 +17630,12 @@
               "null"
             ]
           },
+          "description_translations": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
           "display_order": {
             "type": [
               "integer",
@@ -17376,6 +17658,12 @@
           "name": {
             "type": [
               "string",
+              "null"
+            ]
+          },
+          "name_translations": {
+            "type": [
+              "object",
               "null"
             ]
           }
@@ -17412,6 +17700,12 @@
           "name": {
             "type": [
               "string",
+              "null"
+            ]
+          },
+          "name_translations": {
+            "type": [
+              "object",
               "null"
             ]
           },

@@ -159,6 +159,22 @@ export default function Login() {
               <Button type="submit" loading={isPending} className="w-full h-11 text-base">
                 <LogIn size={16} /> {t("auth.signIn")}
               </Button>
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-muted" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or</span>
+                </div>
+              </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full h-11 text-base border-navy text-navy hover:bg-navy/5"
+                onClick={() => navigate("/landing")}
+              >
+                {isAr ? "استكشف الميزات" : "Explore features"}
+              </Button>
             </form>
           </Form>
 
