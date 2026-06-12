@@ -1534,6 +1534,10 @@
   },
   "scope": {
     "selectBranch": "اختر الفرع",
+    "branch": "الفرع",
+    "period": "الفترة",
+    "customRange": "نطاق مخصص",
+    "custom": "مخصص",
     "presets": {
       "today": "اليوم",
       "yesterday": "أمس",

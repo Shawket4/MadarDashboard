@@ -1534,6 +1534,10 @@
   },
   "scope": {
     "selectBranch": "Select branch",
+    "branch": "Branch",
+    "period": "Period",
+    "customRange": "Custom range",
+    "custom": "Custom",
     "presets": {
       "today": "Today",
       "yesterday": "Yesterday",

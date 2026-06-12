@@ -9,10 +9,17 @@ import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import {
   SCOPE_PRESETS, rangeForPreset, useScopeStore, type ScopePreset,
 } from "@/shared/scope/scope-store";
+import { ScopeFilterDrawer } from "./scope-filter-drawer";
 
 /**
- * Global scope bar (branch · period) in the header. The branch select is
- * replaced by static text when the org has a single branch.
+ * Global scope bar (branch · period) in the header.
+ *
+ * - At `lg` and up: full controls inline (branch select, preset pills, range).
+ * - Below `lg`: a single compact "Filters" chip that opens a bottom-sheet
+ *   drawer, so the header never crowds on phones/tablets and every preset stays
+ *   reachable (the inline preset pills are hidden under `lg`).
+ *
+ * The branch select is replaced by static text when the org has a single branch.
  */
 export function ScopeBar() {
   const { t } = useTranslation();
@@ -43,51 +50,58 @@ export function ScopeBar() {
     setRange(r.from, r.to, p);
   };
 
-  const current = branches.find((b) => b.id === branchId);
-
   return (
-    <div className="flex items-center gap-2 flex-wrap justify-end">
-      {branches.length === 1 ? (
-        <span className="hidden md:flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin size={12} /> {branches[0].name}
-        </span>
-      ) : (
-        <SearchableSelect
-          className="w-40 h-8 text-xs"
-          options={branches.map((b) => ({ value: b.id, label: b.name }))}
-          value={branchId}
-          onChange={(v) => v && setBranch(v)}
-          placeholder={t("scope.selectBranch")}
-        />
-      )}
+    <>
+      {/* ≥ lg — full inline controls */}
+      <div className="hidden lg:flex items-center gap-2 justify-end min-w-0">
+        {branches.length === 1 ? (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+            <MapPin size={12} /> {branches[0].name}
+          </span>
+        ) : (
+          <SearchableSelect
+            className="w-40 h-8 text-xs"
+            options={branches.map((b) => ({ value: b.id, label: b.name }))}
+            value={branchId}
+            onChange={(v) => v && setBranch(v)}
+            placeholder={t("scope.selectBranch")}
+          />
+        )}
 
-      <div className="hidden lg:flex items-center gap-0.5 bg-muted rounded-lg p-0.5">
-        {SCOPE_PRESETS.map((p) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => applyPreset(p)}
-            className={cn(
-              "px-2 py-1 rounded-md text-xs transition-colors",
-              preset === p
-                ? "bg-background shadow-sm font-semibold"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {t(`scope.presets.${p}`)}
-          </button>
-        ))}
+        <div className="flex items-center gap-0.5 bg-muted rounded-lg p-0.5">
+          {SCOPE_PRESETS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => applyPreset(p)}
+              className={cn(
+                "px-2 py-1 rounded-md text-xs transition-colors",
+                preset === p
+                  ? "bg-background shadow-sm font-semibold"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t(`scope.presets.${p}`)}
+            </button>
+          ))}
+        </div>
+
+        <DateRangePicker from={from} to={to} onChange={(f, to2) => setRange(f, to2, "custom")} />
       </div>
 
-      <DateRangePicker
-        from={from}
-        to={to}
-        onChange={(f, to2) => setRange(f, to2, "custom")}
-      />
-      {/* keep `current` referenced for a11y label on small screens */}
-      {branches.length > 1 && current && (
-        <span className="sr-only">{current.name}</span>
-      )}
-    </div>
+      {/* < lg — compact filters drawer */}
+      <div className="flex lg:hidden">
+        <ScopeFilterDrawer
+          branches={branches.map((b) => ({ id: b.id, name: b.name }))}
+          branchId={branchId}
+          onBranch={setBranch}
+          from={from}
+          to={to}
+          preset={preset}
+          onPreset={applyPreset}
+          onRange={(f, to2) => setRange(f, to2, "custom")}
+        />
+      </div>
+    </>
   );
 }
