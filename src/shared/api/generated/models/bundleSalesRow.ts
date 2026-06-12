@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 
 export interface BundleSalesRow {
   /** @nullable */

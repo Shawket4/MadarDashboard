@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 
 export interface DeductionLogRow {
   created_at: string;

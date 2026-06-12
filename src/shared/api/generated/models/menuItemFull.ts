@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { AddonSlot } from './addonSlot';
 import type { ItemSize } from './itemSize';
 import type { MenuItem } from './menuItem';

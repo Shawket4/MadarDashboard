@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 
 /**
  * Wire shape of every error JSON. Keep in lockstep with

@@ -68,7 +68,9 @@
     "noResults": "No results found",
     "confirmDelete": "Delete \"{{name}}\"?",
     "requiredField": "This field is required",
-    "somethingWrong": "Something went wrong"
+    "somethingWrong": "Something went wrong",
+    "undo": "Undo",
+    "autoTranslated": "auto-translates if empty"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -181,7 +183,10 @@
     "quickActions": "Quick Actions",
     "systemStatus": "System Status",
     "lowStockItems": "{{count}} item low on stock",
-    "lowStockItems_other": "{{count}} items low on stock"
+    "lowStockItems_other": "{{count}} items low on stock",
+    "attention": "Needs attention",
+    "allClear": "All clear — nothing needs attention",
+    "noOpenShiftAt": "No open shift at {{branch}}"
   },
   "orgs": {
     "title": "Organizations",
@@ -319,7 +324,12 @@
       "image": "Item image",
       "imageHint": "PNG, JPG or WebP · up to 5 MB",
       "imageRemoved": "Image removed",
-      "imageAfterSave": "Save the item first, then you can add an image."
+      "imageAfterSave": "Save the item first, then you can add an image.",
+      "imageUploadsAfterSave": "Image uploads right after the item is created",
+      "applyTemplate": "Apply template",
+      "saveTemplate": "Save as template",
+      "templateNamePrompt": "Template name",
+      "templateSaved": "Template \"{{name}}\" saved"
     },
     "categoryDialog": {
       "new": "New Category",
@@ -399,6 +409,49 @@
       "title": "Menu not available",
       "body": "We couldn't find this menu. The link might have expired or moved.",
       "refresh": "Try again"
+    },
+    "costMargin": "Cost / Margin",
+    "costMissingFix": "Add ingredient costs to compute this",
+    "tabs": {
+      "items": "Items",
+      "recipes": "Recipes",
+      "bundles": "Bundles",
+      "engineering": "Engineering",
+      "advisor": "Advisor"
+    },
+    "grid": {
+      "views": {
+        "grid": "Quick edit",
+        "classic": "Classic"
+      },
+      "fullEditor": "Open full editor (sizes, translations)",
+      "duplicate": "Duplicate",
+      "duplicated": "Duplicated {{name}}",
+      "bulkPriceAction": "Adjust prices",
+      "bulkPrice": "Adjust prices ({{count}} items)",
+      "addEgp": "+ EGP",
+      "multiplyPct": "× %",
+      "addEgpHint": "Adds a flat EGP amount to each selected price.",
+      "multiplyPctHint": "Multiplies each selected price (110 = +10%).",
+      "bulkSummary": "Updated {{count}} prices",
+      "bulkSummaryFailed": "Updated {{ok}}, {{failed}} failed",
+      "bulkCreated": "Created {{count}} items",
+      "bulkCreateFailed": "Created {{ok}}, {{failed}} failed",
+      "retryFailed": "Retry failed",
+      "nameRequired": "Name required",
+      "priceInvalid": "Invalid price",
+      "categoryUnknown": "Category must match an existing category"
+    },
+    "editor": {
+      "newHint": "Everything in one place — category, pricing, sizes and the recipe. You can fill the recipe later too.",
+      "pickCategory": "Pick a category…",
+      "sizes": "Sizes",
+      "sizesHint": "optional — leave empty for a one-size item",
+      "addSize": "Add size",
+      "noSizes": "No extra sizes — the item sells at the base price.",
+      "sizeLabel": "Label",
+      "recipe": "Recipe & cost",
+      "recipeHint": "optional — link ingredients to compute cost and margin"
     }
   },
   "recipes": {
@@ -448,6 +501,16 @@
       "saveField": "Save Field",
       "addField": "Add Custom Field",
       "deducts": "Deducts: {{qty}} {{unit}} of {{name}}"
+    },
+    "builder": {
+      "copyFrom": "Copy recipe from…",
+      "scaleFromBase": "Scale sizes from {{base}}",
+      "applyScaling": "Apply scaling",
+      "estimate": "Current-cost estimate",
+      "margin": "margin",
+      "unsaved": "Unsaved changes",
+      "saveAll": "Save recipe",
+      "saved": "Recipe saved"
     }
   },
   "inventory": {
@@ -466,7 +529,7 @@
       "subtitle": "Org-wide ingredients used in recipes and branch stock",
       "newIngredient": "New Ingredient",
       "namePh": "e.g. Oat Milk",
-      "costPerUnit": "Cost per unit (pt)",
+      "costPerUnit": "Cost per unit",
       "categoryGeneral": "General",
       "categoryMilk": "Milk",
       "categoryCoffee": "Coffee Bean",
@@ -489,7 +552,29 @@
       "ok": "OK",
       "thresholdUpdated": "Threshold updated",
       "addedToast": "Added to branch stock",
-      "removedToast": "Removed from branch"
+      "removedToast": "Removed from branch",
+      "savedToast": "Stock updated",
+      "deliveryNote": "Delivery received",
+      "deliverySummary": "Received {{count}} deliveries",
+      "deliverySummaryFailed": "Received {{ok}}, {{failed}} failed",
+      "receiveDelivery": "Receive delivery",
+      "receiveN": "Receive {{count}}",
+      "restockLow": "Restock low ({{count}})",
+      "showForecast": "Depletion forecast",
+      "hideForecast": "Hide forecast",
+      "forecastTitle": "Depletion forecast",
+      "forecastHint": "Servings until each ingredient runs out, based on current recipes — an estimate, not a promise.",
+      "forecastEmpty": "No recipe uses the tracked ingredients yet.",
+      "forecastServings": "≈ {{count}} servings (limited by {{item}})",
+      "stockTakeNote": "Stock take",
+      "stockTakeDone": "Stock take applied to {{count}} ingredients",
+      "stockTakeFailed": "Applied {{ok}}, {{failed}} failed",
+      "countedQty": "Counted qty",
+      "unknownIngredient": "Not tracked at this branch",
+      "badQty": "Invalid quantity",
+      "transferFrom": "Transfer from another branch",
+      "transferFromNote": "Restock from {{branch}}",
+      "noSurplus": "No other branch has surplus {{name}}"
     },
     "adjustments": {
       "title": "Adjustments",
@@ -637,7 +722,12 @@
     "dateRange": "Date Range",
     "showing": "Showing {{from}}-{{to}} of {{total}}",
     "totalUsage": "Total Quantity",
-    "occurrences": "Occurrences"
+    "occurrences": "Occurrences",
+    "cost": "Cost",
+    "cogs": "COGS",
+    "grossProfit": "Gross profit",
+    "costMissing": "Cost unknown for this line",
+    "costMissingLines": "{{count}} line(s) missing cost — actual profit may be lower"
   },
   "ordersExport": {
     "title": "Export Orders",
@@ -891,7 +981,10 @@
     },
     "bundleOpportunity": "Bundle Opportunity",
     "bundleTitleCount": "Bundle of {{count}}",
-    "costMissing": "Cost Missing"
+    "costMissing": "Cost Missing",
+    "recentlyRepriced": "Recently repriced",
+    "runFailed": "Analysis failed",
+    "runFailedDesc": "The last analysis run did not complete. Try running it again."
   },
   "timePicker": {
     "clearTime": "Clear time",
@@ -1344,5 +1437,173 @@
       "flex": "Flexibility",
       "contact": "Contact"
     }
+  },
+  "onboarding": {
+    "title": "Set up your restaurant",
+    "back": "Back",
+    "continue": "Continue",
+    "skipStep": "Skip for now",
+    "skipSetup": "Finish setup now →",
+    "steps": {
+      "welcome": "Welcome",
+      "branch": "Branch",
+      "payments": "Payments",
+      "menu": "Menu",
+      "costs": "Ingredient costs",
+      "addons": "Addons",
+      "team": "Team",
+      "review": "Review & finish"
+    },
+    "stepKeys": {
+      "branch": "Create a branch",
+      "payment_methods": "Payment methods",
+      "categories": "Menu categories",
+      "menu_items": "Menu items",
+      "ingredients": "Ingredient catalog",
+      "recipes": "Recipes & costs",
+      "addons": "Addons & extras",
+      "team": "Invite your team",
+      "first_order": "Ring up your first order"
+    },
+    "welcome": {
+      "title": "Welcome to Sufrix",
+      "description": "Let's get your restaurant set up. A few quick steps and you're ready to take orders.",
+      "pickingUp": "Picking up where you left off — some steps are already done.",
+      "jumpToNext": "Jump to next step",
+      "orgName": "Restaurant name",
+      "orgNamePh": "e.g. Cairo Coffee House",
+      "logo": "Logo"
+    },
+    "branch": {
+      "title": "Create your first branch",
+      "description": "A branch is a physical location — every shift, order and stock count lives under one.",
+      "doneHint": "Branch created — you can add more locations any time.",
+      "emptyTitle": "No branches yet",
+      "emptyDescription": "Add your first location to unlock shifts and orders.",
+      "add": "Create branch",
+      "addAnother": "Add another branch"
+    },
+    "payments": {
+      "title": "How do customers pay?",
+      "description": "These methods are already on — confirm them and switch off anything you don't take.",
+      "noneActive": "At least one active payment method is needed before you can finish setup.",
+      "addCustom": "Add custom method"
+    },
+    "menu": {
+      "title": "Build your menu",
+      "description": "Create at least one category and one item — you can fill in the rest later.",
+      "noCategories": "No categories yet",
+      "noItems": "No items yet",
+      "categoryFirst": "Create a category first"
+    },
+    "costs": {
+      "title": "Ingredient costs (recommended)",
+      "description": "Add ingredient costs and Sufrix computes profit per item — margins, food cost % and your menu's stars.",
+      "coverageLabel": "Recipe coverage",
+      "openRecipes": "Open recipe editor",
+      "emptyHint": "Add your first ingredient with its cost per unit to start tracking profit."
+    },
+    "addons": {
+      "title": "Addons & extras",
+      "description": "Extra shots, toppings, sides — anything customers add onto an item.",
+      "emptyTitle": "No addons yet",
+      "emptyDescription": "Optional — you can add these any time from the menu screen.",
+      "add": "Add addon"
+    },
+    "team": {
+      "title": "Invite your team",
+      "description": "Add tellers and managers so they can open shifts and ring up orders.",
+      "emptyTitle": "Just you so far",
+      "emptyDescription": "Optional — invite your team now or later from the Users screen.",
+      "add": "Add team member"
+    },
+    "review": {
+      "title": "Review & finish",
+      "description": "Here's everything you've set up. Optional steps can wait — finish whenever you're ready.",
+      "finish": "Finish setup",
+      "finishRequires": "Finish requires: {{steps}}",
+      "later": "Later",
+      "required": "Required",
+      "fix": "Go to step"
+    },
+    "checklist": {
+      "title": "Finish setting up",
+      "firstOrderHint": "Open a shift on the iPad and ring up your first order"
+    },
+    "lockedHint": "Complete the required steps to enter the dashboard"
+  },
+  "scope": {
+    "selectBranch": "Select branch",
+    "presets": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "7d": "7D",
+      "30d": "30D",
+      "mtd": "MTD"
+    }
+  },
+  "menuEngineering": {
+    "title": "Menu Engineering",
+    "subtitle": "Profit vs popularity for every item — find your stars and your dead weight",
+    "empty": "No sales in this period",
+    "emptyHint": "Pick a different period or branch from the scope bar above.",
+    "totalSales": "Total Sales",
+    "totalCogs": "Total COGS",
+    "grossProfit": "Gross Profit",
+    "missingCosts": "Items missing costs",
+    "clearMissingFilter": "Showing only rows missing cost — clear",
+    "views": {
+      "scatter": "Quadrant",
+      "table": "Table"
+    },
+    "costBasis": {
+      "snapshot": "As sold",
+      "current": "Current costs",
+      "currentHint": "Reclassified with today's ingredient costs"
+    },
+    "excludedRevenue": "{{amount}} in sales excluded",
+    "quadrants": {
+      "stars": "Stars",
+      "workhorses": "Workhorses",
+      "challenges": "Challenges",
+      "dogs": "Dogs"
+    },
+    "classes": {
+      "star": "Star",
+      "workhorse": "Workhorse",
+      "challenge": "Challenge",
+      "dog": "Dog",
+      "unclassified": "Needs costs"
+    },
+    "levels": {
+      "high": "High",
+      "low": "Low"
+    },
+    "sales": "Sales",
+    "quantity": "Qty",
+    "totalCost": "Total Cost",
+    "itemProfit": "Item Profit",
+    "totalProfit": "Total Profit",
+    "popularity": "Popularity",
+    "profitCategory": "Profit",
+    "popularityCategory": "Popularity Cat.",
+    "class": "Class",
+    "size": "Size",
+    "allCategories": "All categories",
+    "missingLines": "{{count}} lines missing cost",
+    "unclassifiedHint": "Add ingredient costs to classify",
+    "margin": "Margin %"
+  },
+  "grid": {
+    "pasteTitle": "Paste rows",
+    "pasteHint": "Paste rows from a spreadsheet (tab- or comma-separated), one row per line.",
+    "column": "Column {{n}}",
+    "ignore": "— ignore —",
+    "pasteSummary": "{{valid}} of {{total}} rows are valid",
+    "createN": "Create {{count}}",
+    "pasteRows": "Paste rows",
+    "selectAll": "Select all",
+    "selectRow": "Select row",
+    "selectedCount": "{{count}} selected"
   }
 }

@@ -1,0 +1,42 @@
+# Claude Code Conventions: Sufrix Dashboard
+
+## Project Overview
+This is the SufrixDashboard frontend project. It is a React 19 web application built with Vite and packaged as a desktop application using Tauri. It provides the management interface for the Sufrix ecosystem.
+
+## Core Technology Stack
+- **Framework**: React 19, Vite
+- **Language**: TypeScript
+- **Desktop Packaging**: Tauri (`@tauri-apps/api`, `@tauri-apps/plugin-http`)
+- **State Management**: Zustand (global state) & TanStack React Query (server state)
+- **Routing**: React Router (`react-router-dom` v7)
+- **API Client Generation**: Orval (generates hooks from OpenAPI) & Axios
+
+## UI & Styling
+- **Styling**: Tailwind CSS with `tailwindcss-animate`
+- **Components**: Radix UI Primitives (headless components)
+- **Icons & Animations**: Lucide React, Lottie (`@lottiefiles/dotlottie-react`)
+- **Tables & Charts**: TanStack React Table, Recharts
+- **Forms & Validation**: React Hook Form, Zod
+
+## Internationalization (i18n)
+- Uses `i18next` and `react-i18next`. Always wrap UI strings in translation hooks `useTranslation()`.
+
+## Development Commands
+- **Run Web Dev Server**: `npm run dev`
+- **Run Tauri Desktop Server**: `npm run tauri:dev`
+- **Type Check & Build Web**: `npm run build`
+- **Build Tauri App**: `npm run tauri:build`
+- **Run Tests**: `npm run test` (Vitest)
+- **Lint**: `npm run lint`
+- **Generate API Client**: `npm run generate:api` (Uses Orval)
+
+## Architecture Guidelines
+1. **API Integration**: Do not write manual fetch calls. Use `npm run generate:api` to update the React Query hooks via Orval when the backend OpenAPI schema changes.
+2. **Components**: Use Radix UI primitives as the foundation for accessible components, styled with Tailwind via `clsx` and `tailwind-merge`.
+3. **Forms**: All forms must be strictly typed using Zod schemas and controlled via React Hook Form.
+
+## Related Projects (Ecosystem)
+When working on API integrations, data fetching, or checkout flows, you may need to reference the backend or POS system. You can find them at:
+- **Sufrix Backend**: `/Users/shawket/Desktop/SufrixRust` (Actix-Web Rust backend)
+- **Sufrix POS**: `/Users/shawket/Desktop/sufrix_pos` (Flutter Point of Sale)
+You can use file read commands or `cd` into these directories to analyze backend endpoints, OpenAPI schemas, or POS behavior.

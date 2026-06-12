@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { InventoryCountRow } from './inventoryCountRow';
 import type { Shift } from './shift';
 

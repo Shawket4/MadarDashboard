@@ -323,8 +323,8 @@ export default function Discounts() {
             {
               key: "value",
               header: t("discounts.value"),
-              accessor: (d: Discount) => (d.dtype === "percentage" ? d.value : d.value),
-              // percentage values stay as numbers; fixed values are piastres → money
+              // FIX: fixed-amount values are piastres — was exporting them raw; percentages stay as-is
+              accessor: (d: Discount) => (d.dtype === "percentage" ? d.value : d.value / 100),
               type: "number",
               width: 14,
             },

@@ -243,7 +243,7 @@ export function ExportDrawer({
                     ))}
                   </div>
                   {preset !== "custom" && (
-                    <p className="text-[10px] text-warning flex items-center gap-1">
+                    <p className="text-xs text-warning flex items-center gap-1">
                       <AlertTriangle size={11} />
                       {t("ordersExport.lockedGrainsHint") || "Select the 'Custom' preset to toggle columns."}
                     </p>
@@ -304,7 +304,7 @@ export function ExportDrawer({
                 onChange={(e) => setCustomFilename(e.target.value)}
                 disabled={busy}
               />
-              <p className="text-[10px] text-muted-foreground">{t("ordersExport.filenameHint")}</p>
+              <p className="text-xs text-muted-foreground">{t("ordersExport.filenameHint")}</p>
             </div>
           </div>
         </DialogBody>

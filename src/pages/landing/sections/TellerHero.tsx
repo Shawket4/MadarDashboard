@@ -9,7 +9,7 @@ export default function TellerHero({ pageIndex }: { pageIndex: number }) {
     <Page>
       <div className="absolute inset-0 flex flex-col px-20 py-14">
         <header className="flex items-center justify-between">
-          <span className="text-[10px] tracking-[0.32em] uppercase text-navy/50 font-medium">
+          <span className="text-xs tracking-[0.32em] uppercase text-navy/50 font-medium">
             {t("tellerHero.eyebrow")}
           </span>
           <img src="/Icon.svg" alt="" className="h-9" aria-hidden />
@@ -25,7 +25,7 @@ export default function TellerHero({ pageIndex }: { pageIndex: number }) {
           <IPad src="/screenshots/teller-hero.png" className="w-[520px] object-contain" />
         </div>
 
-        <p className="text-[11px] tracking-[0.24em] uppercase text-navy/45 font-semibold mt-6 mb-4">
+        <p className="text-xs tracking-[0.24em] uppercase text-navy/45 font-semibold mt-6 mb-4">
           {t("tellerHero.caption")}
         </p>
 

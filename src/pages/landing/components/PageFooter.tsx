@@ -15,10 +15,10 @@ export default function PageFooter({ page }: Props) {
   const { t } = useTranslation();
   return (
     <footer className="flex items-center justify-between mt-8 pt-5 border-t border-navy/10">
-      <span className="text-[10px] tracking-[0.28em] uppercase text-navy/45 font-medium">
+      <span className="text-xs tracking-[0.28em] uppercase text-navy/45 font-medium">
         {t("footer.strapline")}
       </span>
-      <span className="text-[10px] tracking-[0.28em] uppercase text-navy/45 font-medium tabular">
+      <span className="text-xs tracking-[0.28em] uppercase text-navy/45 font-medium tabular">
         {String(page).padStart(2, "0")} / {String(meta.totalPages).padStart(2, "0")}
       </span>
     </footer>

@@ -52,7 +52,7 @@ export function SuggestionCard({
             <CardTitle className="flex items-center gap-2 flex-wrap">
               {title}
               {tags.map((tag, i) => (
-                <Badge key={i} variant={tag.variant} className="text-[10px] uppercase tracking-wider px-1.5 py-0">
+                <Badge key={i} variant={tag.variant} className="text-xs uppercase tracking-wider px-1.5 py-0">
                   {tag.label}
                 </Badge>
               ))}

@@ -16,7 +16,7 @@ export default function RoadmapFeature({ pageIndex }: { pageIndex: number }) {
     <Page>
       <div className="absolute inset-0 flex flex-col px-20 py-14">
         <header className="flex items-center justify-between">
-          <span className="text-[10px] tracking-[0.32em] uppercase text-navy/50 font-medium">
+          <span className="text-xs tracking-[0.32em] uppercase text-navy/50 font-medium">
             {t("roadmap.eyebrow")}
           </span>
           <img src="/Icon.svg" alt="" className="h-9" aria-hidden />
@@ -51,7 +51,7 @@ export default function RoadmapFeature({ pageIndex }: { pageIndex: number }) {
                           <Icon className="w-6 h-6 text-terracotta" strokeWidth={2} />
                         </div>
                         <div className="flex flex-col flex-1 items-start pt-1">
-                          <span className="bg-terracotta text-cream text-[10px] uppercase tracking-[0.2em] font-bold px-3 py-1 rounded-full mb-2 shadow-sm">
+                          <span className="bg-terracotta text-cream text-xs uppercase tracking-[0.2em] font-bold px-3 py-1 rounded-full mb-2 shadow-sm">
                             {t(`roadmap.items.${item.id}.badge`)}
                           </span>
                           <h4 className="font-bold text-navy text-[18px] tracking-[-0.01em]">

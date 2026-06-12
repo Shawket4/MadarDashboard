@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { UpdateOptionalFieldRequestNameTranslations } from './updateOptionalFieldRequestNameTranslations';
 
 export interface UpdateOptionalFieldRequest {

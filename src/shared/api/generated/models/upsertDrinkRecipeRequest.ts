@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 
 export interface UpsertDrinkRecipeRequest {
   ingredient_name: string;

@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 
 /**
  * Login is dual-mode:
@@ -9,14 +7,13 @@
  * - **Email + password** (admins, managers, super-admins): supply
  *   `email` and `password`. `org_id` is optional — if provided, the
  *   user must belong to that org; if omitted, lookup is by email only.
- * - **PIN + name** (tellers): supply `name` and `pin`. The first
- *   active teller with a matching name and a `pin_hash` that verifies
- *   wins. `branch_id` may be supplied to lock the issued JWT to that
- *   branch; tellers without a branch lock can later be reassigned.
+ * - **PIN + name** (tellers): supply `name`, `pin`, and **`branch_id`**
+ *   (required). The teller must be assigned to that branch. `org_id` is
+ *   derived server-side from the branch — never trusted from the client.
  */
 export interface LoginRequest {
   /**
-     * Teller-only: locks the issued JWT to a specific branch.
+     * Required for PIN login. The org is derived from this branch server-side.
      * @nullable
      */
   branch_id?: string | null;

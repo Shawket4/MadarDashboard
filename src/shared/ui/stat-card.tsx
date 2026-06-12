@@ -134,11 +134,11 @@ export function StatCard({
     >
       <div className="flex items-start justify-between gap-2.5">
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate">{label}</p>
+          <p className="text-xs sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate">{label}</p>
           <div className="mt-1">{valueNode}</div>
-          {sub && <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 truncate">{sub}</p>}
+          {sub && <p className="text-xs sm:text-xs text-muted-foreground mt-1 truncate">{sub}</p>}
           {trend && (
-            <p className={cn("text-[10px] sm:text-xs font-semibold mt-1 truncate", trend.value >= 0 ? "text-success" : "text-destructive")}>
+            <p className={cn("text-xs sm:text-xs font-semibold mt-1 truncate", trend.value >= 0 ? "text-success" : "text-destructive")}>
               {trend.value >= 0 ? "↑" : "↓"} {Math.abs(trend.value).toFixed(1)}% {trend.label}
             </p>
           )}

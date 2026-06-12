@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import {
   useMutation,
   useQuery
@@ -23,6 +21,7 @@ import type {
 
 import type {
   AddToStockRequest,
+  AddonCost,
   AddonIngredient,
   AddonItem,
   AddonOverride,
@@ -38,6 +37,7 @@ import type {
   BranchInventoryAdjustment,
   BranchInventoryItem,
   BranchInventoryTransfer,
+  BranchMenuEngineeringParams,
   BranchSalesParams,
   BranchSalesReport,
   BranchSalesTimeseriesParams,
@@ -46,7 +46,9 @@ import type {
   BundlePerformanceParams,
   BundlePerformanceResponse,
   BundleSalesRow,
+  BundleSuggestionRecord,
   BundleWithComponents,
+  CalibrationSummary,
   CashMovement,
   CashMovementRequest,
   Category,
@@ -66,9 +68,12 @@ import type {
   CreateOrderRequest,
   CreateOrgMultipart,
   CreatePaymentMethodRequest,
+  CreateRunBody,
+  CreateRunResponse,
   CreateTransferRequest,
   CreateUserRequest,
   CreateUserResponse,
+  DecisionRecord,
   DeductionLogRow,
   DeleteAddonIngredientParams,
   DeleteDrinkRecipeParams,
@@ -78,22 +83,33 @@ import type {
   ExportOrdersParams,
   ExportResponse,
   ForceCloseRequest,
+  GetCalibrationHandlerParams,
+  GetLatestRunHandlerParams,
   InventoryDiscrepancy,
   ItemSize,
+  ListAddonCostsParams,
   ListAddonItemsParams,
   ListBranchesParams,
+  ListBundleSuggestionsHandlerParams,
   ListBundlesParams,
   ListCategoriesParams,
+  ListDecisionsHandlerParams,
   ListDiscountsParams,
   ListMenuItemsParams,
   ListOrdersParams,
+  ListPriceSuggestionsHandlerParams,
+  ListRemovalScenariosHandlerParams,
+  ListRunsHandlerParams,
+  ListSkuCostsParams,
   ListTransfersParams,
   ListUsersParams,
   LoginRequest,
   LoginResponse,
   MeResponse,
+  MenuEngineeringReport,
   MenuItem,
   MenuItemFull,
+  OnboardingStatus,
   OpenShiftRequest,
   OptionalField,
   Order,
@@ -107,15 +123,23 @@ import type {
   PaginatedOrders,
   Permission,
   PermissionMatrix,
+  PersistedRun,
   PreviewIngredient,
   PreviewRecipeRequest,
+  PriceSuggestionRecord,
+  PromoteBundleBody,
   PublicMenuResponse,
   PublicOrg,
+  RecordDecisionBody,
+  RemovalScenarioRecord,
+  ResolveBranchRequest,
+  ResolveBranchResponse,
   RolePermission,
   Shift,
   ShiftPreFill,
   ShiftReportResponse,
   ShiftSummary,
+  SkuCost,
   TellerStats,
   TimeseriesPoint,
   UpdateAddonItemRequest,
@@ -645,6 +669,64 @@ export function useGetMyPermissions<TData = Awaited<ReturnType<typeof getMyPermi
 
 
 
+
+export const resolveBranch = (
+    resolveBranchRequest: ResolveBranchRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ResolveBranchResponse>(
+      {url: `/auth/resolve-branch`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: resolveBranchRequest, signal
+    },
+      options);
+    }
+
+
+
+export const getResolveBranchMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resolveBranch>>, TError,{data: ResolveBranchRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof resolveBranch>>, TError,{data: ResolveBranchRequest}, TContext> => {
+
+const mutationKey = ['resolveBranch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resolveBranch>>, {data: ResolveBranchRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  resolveBranch(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResolveBranchMutationResult = NonNullable<Awaited<ReturnType<typeof resolveBranch>>>
+    export type ResolveBranchMutationBody = ResolveBranchRequest
+    export type ResolveBranchMutationError = ErrorBody
+
+    export const useResolveBranch = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resolveBranch>>, TError,{data: ResolveBranchRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resolveBranch>>,
+        TError,
+        {data: ResolveBranchRequest},
+        TContext
+      > => {
+      return useMutation(getResolveBranchMutationOptions(options), queryClient);
+    }
 
 export const listBranches = (
     params: ListBranchesParams,
@@ -1898,6 +1980,182 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getUpdateCategoryMutationOptions(options), queryClient);
     }
 
+export const listAddonCosts = (
+    params: ListAddonCostsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AddonCost[]>(
+      {url: `/costing/addon-items`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListAddonCostsQueryKey = (params?: ListAddonCostsParams,) => {
+    return [
+    `/costing/addon-items`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAddonCostsQueryOptions = <TData = Awaited<ReturnType<typeof listAddonCosts>>, TError = ErrorBody>(params: ListAddonCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAddonCosts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAddonCostsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAddonCosts>>> = ({ signal }) => listAddonCosts(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAddonCosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAddonCostsQueryResult = NonNullable<Awaited<ReturnType<typeof listAddonCosts>>>
+export type ListAddonCostsQueryError = ErrorBody
+
+
+export function useListAddonCosts<TData = Awaited<ReturnType<typeof listAddonCosts>>, TError = ErrorBody>(
+ params: ListAddonCostsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAddonCosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAddonCosts>>,
+          TError,
+          Awaited<ReturnType<typeof listAddonCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAddonCosts<TData = Awaited<ReturnType<typeof listAddonCosts>>, TError = ErrorBody>(
+ params: ListAddonCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAddonCosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAddonCosts>>,
+          TError,
+          Awaited<ReturnType<typeof listAddonCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAddonCosts<TData = Awaited<ReturnType<typeof listAddonCosts>>, TError = ErrorBody>(
+ params: ListAddonCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAddonCosts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListAddonCosts<TData = Awaited<ReturnType<typeof listAddonCosts>>, TError = ErrorBody>(
+ params: ListAddonCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAddonCosts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAddonCostsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const listSkuCosts = (
+    params: ListSkuCostsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SkuCost[]>(
+      {url: `/costing/menu-items`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListSkuCostsQueryKey = (params?: ListSkuCostsParams,) => {
+    return [
+    `/costing/menu-items`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListSkuCostsQueryOptions = <TData = Awaited<ReturnType<typeof listSkuCosts>>, TError = ErrorBody>(params: ListSkuCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSkuCosts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSkuCostsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSkuCosts>>> = ({ signal }) => listSkuCosts(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSkuCosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSkuCostsQueryResult = NonNullable<Awaited<ReturnType<typeof listSkuCosts>>>
+export type ListSkuCostsQueryError = ErrorBody
+
+
+export function useListSkuCosts<TData = Awaited<ReturnType<typeof listSkuCosts>>, TError = ErrorBody>(
+ params: ListSkuCostsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSkuCosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSkuCosts>>,
+          TError,
+          Awaited<ReturnType<typeof listSkuCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSkuCosts<TData = Awaited<ReturnType<typeof listSkuCosts>>, TError = ErrorBody>(
+ params: ListSkuCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSkuCosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSkuCosts>>,
+          TError,
+          Awaited<ReturnType<typeof listSkuCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSkuCosts<TData = Awaited<ReturnType<typeof listSkuCosts>>, TError = ErrorBody>(
+ params: ListSkuCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSkuCosts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListSkuCosts<TData = Awaited<ReturnType<typeof listSkuCosts>>, TError = ErrorBody>(
+ params: ListSkuCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSkuCosts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSkuCostsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const listDiscounts = (
     params: ListDiscountsParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -3098,6 +3356,1383 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateTransferMutationOptions(options), queryClient);
     }
+
+export const getCalibrationHandler = (
+    branchId: string,
+    params?: GetCalibrationHandlerParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CalibrationSummary>(
+      {url: `/menu-advisor/branches/${branchId}/calibration`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetCalibrationHandlerQueryKey = (branchId: string,
+    params?: GetCalibrationHandlerParams,) => {
+    return [
+    `/menu-advisor/branches/${branchId}/calibration`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetCalibrationHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getCalibrationHandler>>, TError = ErrorBody>(branchId: string,
+    params?: GetCalibrationHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCalibrationHandlerQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCalibrationHandler>>> = ({ signal }) => getCalibrationHandler(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCalibrationHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getCalibrationHandler>>>
+export type GetCalibrationHandlerQueryError = ErrorBody
+
+
+export function useGetCalibrationHandler<TData = Awaited<ReturnType<typeof getCalibrationHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  GetCalibrationHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCalibrationHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getCalibrationHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCalibrationHandler<TData = Awaited<ReturnType<typeof getCalibrationHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: GetCalibrationHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCalibrationHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getCalibrationHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCalibrationHandler<TData = Awaited<ReturnType<typeof getCalibrationHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: GetCalibrationHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCalibrationHandler<TData = Awaited<ReturnType<typeof getCalibrationHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: GetCalibrationHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCalibrationHandlerQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const listDecisionsHandler = (
+    branchId: string,
+    params?: ListDecisionsHandlerParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DecisionRecord[]>(
+      {url: `/menu-advisor/branches/${branchId}/decisions`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListDecisionsHandlerQueryKey = (branchId: string,
+    params?: ListDecisionsHandlerParams,) => {
+    return [
+    `/menu-advisor/branches/${branchId}/decisions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListDecisionsHandlerQueryOptions = <TData = Awaited<ReturnType<typeof listDecisionsHandler>>, TError = ErrorBody>(branchId: string,
+    params?: ListDecisionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDecisionsHandlerQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDecisionsHandler>>> = ({ signal }) => listDecisionsHandler(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListDecisionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listDecisionsHandler>>>
+export type ListDecisionsHandlerQueryError = ErrorBody
+
+
+export function useListDecisionsHandler<TData = Awaited<ReturnType<typeof listDecisionsHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  ListDecisionsHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDecisionsHandler>>,
+          TError,
+          Awaited<ReturnType<typeof listDecisionsHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDecisionsHandler<TData = Awaited<ReturnType<typeof listDecisionsHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: ListDecisionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDecisionsHandler>>,
+          TError,
+          Awaited<ReturnType<typeof listDecisionsHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDecisionsHandler<TData = Awaited<ReturnType<typeof listDecisionsHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: ListDecisionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListDecisionsHandler<TData = Awaited<ReturnType<typeof listDecisionsHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: ListDecisionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListDecisionsHandlerQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getLatestItemKpiHandler = (
+    branchId: string,
+    menuItemId: string,
+    sizeLabel: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PriceSuggestionRecord>(
+      {url: `/menu-advisor/branches/${branchId}/items/${menuItemId}/sizes/${sizeLabel}/latest-kpi`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLatestItemKpiHandlerQueryKey = (branchId: string,
+    menuItemId: string,
+    sizeLabel: string,) => {
+    return [
+    `/menu-advisor/branches/${branchId}/items/${menuItemId}/sizes/${sizeLabel}/latest-kpi`
+    ] as const;
+    }
+
+
+export const getGetLatestItemKpiHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError = ErrorBody>(branchId: string,
+    menuItemId: string,
+    sizeLabel: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLatestItemKpiHandlerQueryKey(branchId,menuItemId,sizeLabel);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLatestItemKpiHandler>>> = ({ signal }) => getLatestItemKpiHandler(branchId,menuItemId,sizeLabel, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined && menuItemId !== null && menuItemId !== undefined && sizeLabel !== null && sizeLabel !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLatestItemKpiHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getLatestItemKpiHandler>>>
+export type GetLatestItemKpiHandlerQueryError = ErrorBody
+
+
+export function useGetLatestItemKpiHandler<TData = Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError = ErrorBody>(
+ branchId: string,
+    menuItemId: string,
+    sizeLabel: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLatestItemKpiHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getLatestItemKpiHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLatestItemKpiHandler<TData = Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError = ErrorBody>(
+ branchId: string,
+    menuItemId: string,
+    sizeLabel: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLatestItemKpiHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getLatestItemKpiHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLatestItemKpiHandler<TData = Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError = ErrorBody>(
+ branchId: string,
+    menuItemId: string,
+    sizeLabel: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLatestItemKpiHandler<TData = Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError = ErrorBody>(
+ branchId: string,
+    menuItemId: string,
+    sizeLabel: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLatestItemKpiHandlerQueryOptions(branchId,menuItemId,sizeLabel,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const listRunsHandler = (
+    branchId: string,
+    params?: ListRunsHandlerParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PersistedRun[]>(
+      {url: `/menu-advisor/branches/${branchId}/runs`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListRunsHandlerQueryKey = (branchId: string,
+    params?: ListRunsHandlerParams,) => {
+    return [
+    `/menu-advisor/branches/${branchId}/runs`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListRunsHandlerQueryOptions = <TData = Awaited<ReturnType<typeof listRunsHandler>>, TError = ErrorBody>(branchId: string,
+    params?: ListRunsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRunsHandlerQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRunsHandler>>> = ({ signal }) => listRunsHandler(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRunsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listRunsHandler>>>
+export type ListRunsHandlerQueryError = ErrorBody
+
+
+export function useListRunsHandler<TData = Awaited<ReturnType<typeof listRunsHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  ListRunsHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRunsHandler>>,
+          TError,
+          Awaited<ReturnType<typeof listRunsHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRunsHandler<TData = Awaited<ReturnType<typeof listRunsHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: ListRunsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRunsHandler>>,
+          TError,
+          Awaited<ReturnType<typeof listRunsHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRunsHandler<TData = Awaited<ReturnType<typeof listRunsHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: ListRunsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRunsHandler<TData = Awaited<ReturnType<typeof listRunsHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: ListRunsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRunsHandlerQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const createRunHandler = (
+    branchId: string,
+    createRunBody: CreateRunBody,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CreateRunResponse>(
+      {url: `/menu-advisor/branches/${branchId}/runs`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createRunBody, signal
+    },
+      options);
+    }
+
+
+
+export const getCreateRunHandlerMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRunHandler>>, TError,{branchId: string;data: CreateRunBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createRunHandler>>, TError,{branchId: string;data: CreateRunBody}, TContext> => {
+
+const mutationKey = ['createRunHandler'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRunHandler>>, {branchId: string;data: CreateRunBody}> = (props) => {
+          const {branchId,data} = props ?? {};
+
+          return  createRunHandler(branchId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateRunHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof createRunHandler>>>
+    export type CreateRunHandlerMutationBody = CreateRunBody
+    export type CreateRunHandlerMutationError = ErrorBody
+
+    export const useCreateRunHandler = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRunHandler>>, TError,{branchId: string;data: CreateRunBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createRunHandler>>,
+        TError,
+        {branchId: string;data: CreateRunBody},
+        TContext
+      > => {
+      return useMutation(getCreateRunHandlerMutationOptions(options), queryClient);
+    }
+
+export const getActiveRunHandler = (
+    branchId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PersistedRun>(
+      {url: `/menu-advisor/branches/${branchId}/runs/active`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetActiveRunHandlerQueryKey = (branchId: string,) => {
+    return [
+    `/menu-advisor/branches/${branchId}/runs/active`
+    ] as const;
+    }
+
+
+export const getGetActiveRunHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getActiveRunHandler>>, TError = ErrorBody>(branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetActiveRunHandlerQueryKey(branchId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getActiveRunHandler>>> = ({ signal }) => getActiveRunHandler(branchId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetActiveRunHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getActiveRunHandler>>>
+export type GetActiveRunHandlerQueryError = ErrorBody
+
+
+export function useGetActiveRunHandler<TData = Awaited<ReturnType<typeof getActiveRunHandler>>, TError = ErrorBody>(
+ branchId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getActiveRunHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getActiveRunHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetActiveRunHandler<TData = Awaited<ReturnType<typeof getActiveRunHandler>>, TError = ErrorBody>(
+ branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getActiveRunHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getActiveRunHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetActiveRunHandler<TData = Awaited<ReturnType<typeof getActiveRunHandler>>, TError = ErrorBody>(
+ branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetActiveRunHandler<TData = Awaited<ReturnType<typeof getActiveRunHandler>>, TError = ErrorBody>(
+ branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetActiveRunHandlerQueryOptions(branchId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getLatestRunHandler = (
+    branchId: string,
+    params?: GetLatestRunHandlerParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PersistedRun>(
+      {url: `/menu-advisor/branches/${branchId}/runs/latest`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLatestRunHandlerQueryKey = (branchId: string,
+    params?: GetLatestRunHandlerParams,) => {
+    return [
+    `/menu-advisor/branches/${branchId}/runs/latest`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLatestRunHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getLatestRunHandler>>, TError = ErrorBody>(branchId: string,
+    params?: GetLatestRunHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLatestRunHandlerQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLatestRunHandler>>> = ({ signal }) => getLatestRunHandler(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLatestRunHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getLatestRunHandler>>>
+export type GetLatestRunHandlerQueryError = ErrorBody
+
+
+export function useGetLatestRunHandler<TData = Awaited<ReturnType<typeof getLatestRunHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  GetLatestRunHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLatestRunHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getLatestRunHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLatestRunHandler<TData = Awaited<ReturnType<typeof getLatestRunHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: GetLatestRunHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLatestRunHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getLatestRunHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLatestRunHandler<TData = Awaited<ReturnType<typeof getLatestRunHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: GetLatestRunHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLatestRunHandler<TData = Awaited<ReturnType<typeof getLatestRunHandler>>, TError = ErrorBody>(
+ branchId: string,
+    params?: GetLatestRunHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLatestRunHandlerQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getBundleSuggestionHandler = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BundleSuggestionRecord>(
+      {url: `/menu-advisor/bundle-suggestions/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetBundleSuggestionHandlerQueryKey = (id: string,) => {
+    return [
+    `/menu-advisor/bundle-suggestions/${id}`
+    ] as const;
+    }
+
+
+export const getGetBundleSuggestionHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBundleSuggestionHandlerQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBundleSuggestionHandler>>> = ({ signal }) => getBundleSuggestionHandler(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBundleSuggestionHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getBundleSuggestionHandler>>>
+export type GetBundleSuggestionHandlerQueryError = ErrorBody
+
+
+export function useGetBundleSuggestionHandler<TData = Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBundleSuggestionHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getBundleSuggestionHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBundleSuggestionHandler<TData = Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBundleSuggestionHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getBundleSuggestionHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBundleSuggestionHandler<TData = Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBundleSuggestionHandler<TData = Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBundleSuggestionHandlerQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const setBundlePromotedHandler = (
+    id: string,
+    promoteBundleBody: PromoteBundleBody,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/menu-advisor/bundle-suggestions/${id}/promote`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: promoteBundleBody, signal
+    },
+      options);
+    }
+
+
+
+export const getSetBundlePromotedHandlerMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setBundlePromotedHandler>>, TError,{id: string;data: PromoteBundleBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof setBundlePromotedHandler>>, TError,{id: string;data: PromoteBundleBody}, TContext> => {
+
+const mutationKey = ['setBundlePromotedHandler'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setBundlePromotedHandler>>, {id: string;data: PromoteBundleBody}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setBundlePromotedHandler(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetBundlePromotedHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof setBundlePromotedHandler>>>
+    export type SetBundlePromotedHandlerMutationBody = PromoteBundleBody
+    export type SetBundlePromotedHandlerMutationError = ErrorBody
+
+    export const useSetBundlePromotedHandler = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setBundlePromotedHandler>>, TError,{id: string;data: PromoteBundleBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setBundlePromotedHandler>>,
+        TError,
+        {id: string;data: PromoteBundleBody},
+        TContext
+      > => {
+      return useMutation(getSetBundlePromotedHandlerMutationOptions(options), queryClient);
+    }
+
+export const recordDecisionHandler = (
+    recordDecisionBody: RecordDecisionBody,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DecisionRecord>(
+      {url: `/menu-advisor/decisions`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: recordDecisionBody, signal
+    },
+      options);
+    }
+
+
+
+export const getRecordDecisionHandlerMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordDecisionHandler>>, TError,{data: RecordDecisionBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordDecisionHandler>>, TError,{data: RecordDecisionBody}, TContext> => {
+
+const mutationKey = ['recordDecisionHandler'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordDecisionHandler>>, {data: RecordDecisionBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordDecisionHandler(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordDecisionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof recordDecisionHandler>>>
+    export type RecordDecisionHandlerMutationBody = RecordDecisionBody
+    export type RecordDecisionHandlerMutationError = ErrorBody
+
+    export const useRecordDecisionHandler = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordDecisionHandler>>, TError,{data: RecordDecisionBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recordDecisionHandler>>,
+        TError,
+        {data: RecordDecisionBody},
+        TContext
+      > => {
+      return useMutation(getRecordDecisionHandlerMutationOptions(options), queryClient);
+    }
+
+export const getPriceSuggestionHandler = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PriceSuggestionRecord>(
+      {url: `/menu-advisor/price-suggestions/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetPriceSuggestionHandlerQueryKey = (id: string,) => {
+    return [
+    `/menu-advisor/price-suggestions/${id}`
+    ] as const;
+    }
+
+
+export const getGetPriceSuggestionHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPriceSuggestionHandlerQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPriceSuggestionHandler>>> = ({ signal }) => getPriceSuggestionHandler(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPriceSuggestionHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getPriceSuggestionHandler>>>
+export type GetPriceSuggestionHandlerQueryError = ErrorBody
+
+
+export function useGetPriceSuggestionHandler<TData = Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPriceSuggestionHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getPriceSuggestionHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPriceSuggestionHandler<TData = Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPriceSuggestionHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getPriceSuggestionHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPriceSuggestionHandler<TData = Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPriceSuggestionHandler<TData = Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPriceSuggestionHandlerQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRemovalScenarioHandler = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RemovalScenarioRecord>(
+      {url: `/menu-advisor/removal-scenarios/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetRemovalScenarioHandlerQueryKey = (id: string,) => {
+    return [
+    `/menu-advisor/removal-scenarios/${id}`
+    ] as const;
+    }
+
+
+export const getGetRemovalScenarioHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRemovalScenarioHandlerQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRemovalScenarioHandler>>> = ({ signal }) => getRemovalScenarioHandler(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRemovalScenarioHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getRemovalScenarioHandler>>>
+export type GetRemovalScenarioHandlerQueryError = ErrorBody
+
+
+export function useGetRemovalScenarioHandler<TData = Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRemovalScenarioHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getRemovalScenarioHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRemovalScenarioHandler<TData = Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRemovalScenarioHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getRemovalScenarioHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRemovalScenarioHandler<TData = Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRemovalScenarioHandler<TData = Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRemovalScenarioHandlerQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRunHandler = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PersistedRun>(
+      {url: `/menu-advisor/runs/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetRunHandlerQueryKey = (id: string,) => {
+    return [
+    `/menu-advisor/runs/${id}`
+    ] as const;
+    }
+
+
+export const getGetRunHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getRunHandler>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRunHandlerQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRunHandler>>> = ({ signal }) => getRunHandler(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRunHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getRunHandler>>>
+export type GetRunHandlerQueryError = ErrorBody
+
+
+export function useGetRunHandler<TData = Awaited<ReturnType<typeof getRunHandler>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRunHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getRunHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRunHandler<TData = Awaited<ReturnType<typeof getRunHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRunHandler>>,
+          TError,
+          Awaited<ReturnType<typeof getRunHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRunHandler<TData = Awaited<ReturnType<typeof getRunHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRunHandler<TData = Awaited<ReturnType<typeof getRunHandler>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRunHandlerQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const listBundleSuggestionsHandler = (
+    id: string,
+    params?: ListBundleSuggestionsHandlerParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BundleSuggestionRecord[]>(
+      {url: `/menu-advisor/runs/${id}/bundle-suggestions`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListBundleSuggestionsHandlerQueryKey = (id: string,
+    params?: ListBundleSuggestionsHandlerParams,) => {
+    return [
+    `/menu-advisor/runs/${id}/bundle-suggestions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListBundleSuggestionsHandlerQueryOptions = <TData = Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError = ErrorBody>(id: string,
+    params?: ListBundleSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBundleSuggestionsHandlerQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>> = ({ signal }) => listBundleSuggestionsHandler(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBundleSuggestionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>>
+export type ListBundleSuggestionsHandlerQueryError = ErrorBody
+
+
+export function useListBundleSuggestionsHandler<TData = Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError = ErrorBody>(
+ id: string,
+    params: undefined |  ListBundleSuggestionsHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBundleSuggestionsHandler>>,
+          TError,
+          Awaited<ReturnType<typeof listBundleSuggestionsHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBundleSuggestionsHandler<TData = Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError = ErrorBody>(
+ id: string,
+    params?: ListBundleSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBundleSuggestionsHandler>>,
+          TError,
+          Awaited<ReturnType<typeof listBundleSuggestionsHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBundleSuggestionsHandler<TData = Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError = ErrorBody>(
+ id: string,
+    params?: ListBundleSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBundleSuggestionsHandler<TData = Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError = ErrorBody>(
+ id: string,
+    params?: ListBundleSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBundleSuggestionsHandlerQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const listPriceSuggestionsHandler = (
+    id: string,
+    params?: ListPriceSuggestionsHandlerParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PriceSuggestionRecord[]>(
+      {url: `/menu-advisor/runs/${id}/price-suggestions`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListPriceSuggestionsHandlerQueryKey = (id: string,
+    params?: ListPriceSuggestionsHandlerParams,) => {
+    return [
+    `/menu-advisor/runs/${id}/price-suggestions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPriceSuggestionsHandlerQueryOptions = <TData = Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError = ErrorBody>(id: string,
+    params?: ListPriceSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPriceSuggestionsHandlerQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>> = ({ signal }) => listPriceSuggestionsHandler(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPriceSuggestionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>>
+export type ListPriceSuggestionsHandlerQueryError = ErrorBody
+
+
+export function useListPriceSuggestionsHandler<TData = Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError = ErrorBody>(
+ id: string,
+    params: undefined |  ListPriceSuggestionsHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPriceSuggestionsHandler>>,
+          TError,
+          Awaited<ReturnType<typeof listPriceSuggestionsHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPriceSuggestionsHandler<TData = Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError = ErrorBody>(
+ id: string,
+    params?: ListPriceSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPriceSuggestionsHandler>>,
+          TError,
+          Awaited<ReturnType<typeof listPriceSuggestionsHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPriceSuggestionsHandler<TData = Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError = ErrorBody>(
+ id: string,
+    params?: ListPriceSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPriceSuggestionsHandler<TData = Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError = ErrorBody>(
+ id: string,
+    params?: ListPriceSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPriceSuggestionsHandlerQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const listRemovalScenariosHandler = (
+    id: string,
+    params?: ListRemovalScenariosHandlerParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RemovalScenarioRecord[]>(
+      {url: `/menu-advisor/runs/${id}/removal-scenarios`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListRemovalScenariosHandlerQueryKey = (id: string,
+    params?: ListRemovalScenariosHandlerParams,) => {
+    return [
+    `/menu-advisor/runs/${id}/removal-scenarios`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListRemovalScenariosHandlerQueryOptions = <TData = Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError = ErrorBody>(id: string,
+    params?: ListRemovalScenariosHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRemovalScenariosHandlerQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRemovalScenariosHandler>>> = ({ signal }) => listRemovalScenariosHandler(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRemovalScenariosHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listRemovalScenariosHandler>>>
+export type ListRemovalScenariosHandlerQueryError = ErrorBody
+
+
+export function useListRemovalScenariosHandler<TData = Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError = ErrorBody>(
+ id: string,
+    params: undefined |  ListRemovalScenariosHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRemovalScenariosHandler>>,
+          TError,
+          Awaited<ReturnType<typeof listRemovalScenariosHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRemovalScenariosHandler<TData = Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError = ErrorBody>(
+ id: string,
+    params?: ListRemovalScenariosHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRemovalScenariosHandler>>,
+          TError,
+          Awaited<ReturnType<typeof listRemovalScenariosHandler>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRemovalScenariosHandler<TData = Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError = ErrorBody>(
+ id: string,
+    params?: ListRemovalScenariosHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRemovalScenariosHandler<TData = Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError = ErrorBody>(
+ id: string,
+    params?: ListRemovalScenariosHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRemovalScenariosHandlerQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const listMenuItems = (
     params: ListMenuItemsParams,
@@ -5240,6 +6875,149 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getUploadOrgLogoMutationOptions(options), queryClient);
     }
 
+export const getOnboarding = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OnboardingStatus>(
+      {url: `/orgs/${id}/onboarding`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetOnboardingQueryKey = (id: string,) => {
+    return [
+    `/orgs/${id}/onboarding`
+    ] as const;
+    }
+
+
+export const getGetOnboardingQueryOptions = <TData = Awaited<ReturnType<typeof getOnboarding>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOnboarding>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOnboardingQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOnboarding>>> = ({ signal }) => getOnboarding(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOnboarding>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOnboardingQueryResult = NonNullable<Awaited<ReturnType<typeof getOnboarding>>>
+export type GetOnboardingQueryError = ErrorBody
+
+
+export function useGetOnboarding<TData = Awaited<ReturnType<typeof getOnboarding>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOnboarding>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOnboarding>>,
+          TError,
+          Awaited<ReturnType<typeof getOnboarding>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOnboarding<TData = Awaited<ReturnType<typeof getOnboarding>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOnboarding>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOnboarding>>,
+          TError,
+          Awaited<ReturnType<typeof getOnboarding>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOnboarding<TData = Awaited<ReturnType<typeof getOnboarding>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOnboarding>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOnboarding<TData = Awaited<ReturnType<typeof getOnboarding>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOnboarding>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOnboardingQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const completeOnboarding = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OnboardingStatus>(
+      {url: `/orgs/${id}/onboarding/complete`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+export const getCompleteOnboardingMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeOnboarding>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeOnboarding>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['completeOnboarding'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeOnboarding>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  completeOnboarding(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteOnboardingMutationResult = NonNullable<Awaited<ReturnType<typeof completeOnboarding>>>
+
+    export type CompleteOnboardingMutationError = ErrorBody
+
+    export const useCompleteOnboarding = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeOnboarding>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof completeOnboarding>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getCompleteOnboardingMutationOptions(options), queryClient);
+    }
+
 export const listPaymentMethods = (
 
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -6761,6 +8539,101 @@ export function useBranchCombinedItemSales<TData = Awaited<ReturnType<typeof bra
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getBranchCombinedItemSalesQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const branchMenuEngineering = (
+    branchId: string,
+    params?: BranchMenuEngineeringParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MenuEngineeringReport>(
+      {url: `/reports/branches/${branchId}/menu-engineering`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchMenuEngineeringQueryKey = (branchId: string,
+    params?: BranchMenuEngineeringParams,) => {
+    return [
+    `/reports/branches/${branchId}/menu-engineering`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchMenuEngineeringQueryOptions = <TData = Awaited<ReturnType<typeof branchMenuEngineering>>, TError = ErrorBody>(branchId: string,
+    params?: BranchMenuEngineeringParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchMenuEngineeringQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchMenuEngineering>>> = ({ signal }) => branchMenuEngineering(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchMenuEngineeringQueryResult = NonNullable<Awaited<ReturnType<typeof branchMenuEngineering>>>
+export type BranchMenuEngineeringQueryError = ErrorBody
+
+
+export function useBranchMenuEngineering<TData = Awaited<ReturnType<typeof branchMenuEngineering>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  BranchMenuEngineeringParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchMenuEngineering>>,
+          TError,
+          Awaited<ReturnType<typeof branchMenuEngineering>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchMenuEngineering<TData = Awaited<ReturnType<typeof branchMenuEngineering>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchMenuEngineeringParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchMenuEngineering>>,
+          TError,
+          Awaited<ReturnType<typeof branchMenuEngineering>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchMenuEngineering<TData = Awaited<ReturnType<typeof branchMenuEngineering>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchMenuEngineeringParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchMenuEngineering<TData = Awaited<ReturnType<typeof branchMenuEngineering>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchMenuEngineeringParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchMenuEngineeringQueryOptions(branchId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

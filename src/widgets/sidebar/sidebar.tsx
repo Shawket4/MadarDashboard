@@ -1,5 +1,5 @@
 import { /* useEffect, */ useMemo, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   BarChart2,
@@ -49,6 +49,8 @@ interface NavItem {
   key: string;
   roles: Role[];
   resource?: string;
+  /** Sub-items render as an expandable group (e.g. the Menu domain). */
+  children?: NavItem[];
 }
 
 interface NavGroup {
@@ -75,11 +77,21 @@ const NAV: NavGroup[] = [
   {
     heading: "nav.catalog",
     items: [
-      { to: "/menu", icon: Coffee, key: "nav.menu", roles: ["super_admin", "org_admin", "branch_manager"], resource: "menu_items" },
-      { to: "/bundles", icon: Boxes, key: "nav.bundles", roles: ["super_admin", "org_admin", "branch_manager"], resource: "menu_items" },
-      { to: "/recipes", icon: BookOpen, key: "nav.recipes", roles: ["super_admin", "org_admin", "branch_manager"], resource: "recipes" },
+      {
+        to: "/menu",
+        icon: Coffee,
+        key: "nav.menu",
+        roles: ["super_admin", "org_admin", "branch_manager"],
+        resource: "menu_items",
+        children: [
+          { to: "/menu/items", icon: Coffee, key: "menu.tabs.items", roles: ["super_admin", "org_admin", "branch_manager"], resource: "menu_items" },
+          { to: "/menu/recipes", icon: BookOpen, key: "menu.tabs.recipes", roles: ["super_admin", "org_admin", "branch_manager"], resource: "recipes" },
+          { to: "/menu/bundles", icon: Boxes, key: "menu.tabs.bundles", roles: ["super_admin", "org_admin", "branch_manager"], resource: "menu_items" },
+          { to: "/menu/engineering", icon: BarChart2, key: "menu.tabs.engineering", roles: ["super_admin", "org_admin", "branch_manager"], resource: "orders" },
+          { to: "/menu/advisor", icon: Sparkles, key: "menu.tabs.advisor", roles: ["super_admin", "org_admin", "branch_manager"], resource: "menu_items" },
+        ],
+      },
       { to: "/discounts", icon: Tag, key: "nav.discounts", roles: ["super_admin", "org_admin", "branch_manager"], resource: "discounts" },
-      { to: "/menu-advisor", icon: Sparkles, key: "nav.menuAdvisor", roles: ["super_admin", "org_admin", "branch_manager"], resource: "menu_items" },
     ],
   },
   {
@@ -213,6 +225,64 @@ function NavRow({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Expandable nav group — parent toggles, children indent. Auto-expands while
+// the route lives inside it. Collapsed rail falls back to a plain link to the
+// first child (tooltip shows the group name).
+// ─────────────────────────────────────────────────────────────────────────────
+function NavGroupRow({
+  item,
+  collapsed,
+  onClick,
+}: {
+  item: NavItem;
+  collapsed: boolean;
+  onClick?: () => void;
+}) {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const inside = location.pathname.startsWith(item.to);
+  const [open, setOpen] = useState(inside);
+  const Icon = item.icon;
+  const children = item.children ?? [];
+
+  if (collapsed) {
+    return (
+      <NavRow
+        to={children[0]?.to ?? item.to}
+        icon={item.icon}
+        label={t(item.key)}
+        collapsed
+        onClick={onClick}
+      />
+    );
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          "w-full relative flex items-center rounded-md h-9 px-3 gap-3 transition-colors duration-150",
+          inside ? "text-foreground font-semibold" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+        )}
+      >
+        <Icon size={15} strokeWidth={inside ? 2.2 : 1.75} className={cn("flex-shrink-0", inside && "text-primary")} />
+        <span className="text-sm truncate flex-1 text-start">{t(item.key)}</span>
+        <ChevronRight size={13} className={cn("transition-transform rtl:rotate-180", open && "rotate-90 rtl:rotate-90")} />
+      </button>
+      {(open || inside) && (
+        <div className="ms-4 ps-2 border-s space-y-0.5 mt-0.5">
+          {children.map((c) => (
+            <NavRow key={c.to} to={c.to} icon={c.icon} label={t(c.key)} collapsed={false} onClick={onClick} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Sidebar content (shared between desktop + mobile drawer)
 // ─────────────────────────────────────────────────────────────────────────────
 function SidebarContent({
@@ -237,14 +307,24 @@ function SidebarContent({
 
   const groups = useMemo(() => {
     const q = normalize(search);
+    const allowed = (i: NavItem) =>
+      !!role && i.roles.includes(role) && (!i.resource || can(i.resource, "read"));
+    const matches = (i: NavItem) => !q || normalize(t(i.key)).includes(q);
+
     return NAV.map((g) => ({
       ...g,
-      items: g.items.filter((i) => {
-        if (!role || !i.roles.includes(role)) return false;
-        if (i.resource && !can(i.resource, "read")) return false;
-        if (!q) return true;
-        return normalize(t(i.key)).includes(q);
-      }),
+      items: g.items
+        .map((i) => {
+          if (!allowed(i)) return null;
+          if (!i.children) return matches(i) ? i : null;
+          // RBAC filters each sub-item; search matches parent or any child
+          const children = i.children.filter(allowed);
+          if (children.length === 0) return null;
+          if (matches(i)) return { ...i, children };
+          const matched = children.filter(matches);
+          return matched.length > 0 ? { ...i, children: matched } : null;
+        })
+        .filter((i): i is NavItem => i !== null),
     })).filter((g) => g.items.length > 0);
   }, [role, search, t, can]);
 
@@ -286,7 +366,7 @@ function SidebarContent({
               className="ps-9 pe-14 h-9 bg-muted/50 border-0 focus-visible:bg-background focus-visible:ring-1"
             />
             {/* ⌘K hint — visual only for now */}
-            <kbd className="pointer-events-none absolute end-2 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 rounded border bg-background px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+            <kbd className="pointer-events-none absolute end-2 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 rounded border bg-background px-1.5 py-0.5 text-xs font-mono text-muted-foreground">
               ⌘K
             </kbd>
           </div>
@@ -301,23 +381,27 @@ function SidebarContent({
         {groups.map((group, gi) => (
           <div key={group.heading} className={cn("first:mt-0", gi > 0 && "mt-4")}>
             {!collapsed ? (
-              <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.08em] px-2 mb-1.5">
+              <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-[0.08em] px-2 mb-1.5">
                 {t(group.heading)}
               </p>
             ) : (
               gi > 0 && <div className="h-px bg-border/50 mx-1 my-3" aria-hidden />
             )}
             <div className="space-y-0.5">
-              {group.items.map((item) => (
-                <NavRow
-                  key={item.to}
-                  to={item.to}
-                  icon={item.icon}
-                  label={t(item.key)}
-                  collapsed={collapsed}
-                  onClick={onClose}
-                />
-              ))}
+              {group.items.map((item) =>
+                item.children ? (
+                  <NavGroupRow key={item.to} item={item} collapsed={collapsed} onClick={onClose} />
+                ) : (
+                  <NavRow
+                    key={item.to}
+                    to={item.to}
+                    icon={item.icon}
+                    label={t(item.key)}
+                    collapsed={collapsed}
+                    onClick={onClose}
+                  />
+                ),
+              )}
             </div>
           </div>
         ))}
@@ -335,7 +419,7 @@ function SidebarContent({
           )}
         >
           {!collapsed && (
-            <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
               {t("nav.preferences")}
             </span>
           )}
@@ -376,7 +460,7 @@ function SidebarContent({
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{user?.name}</p>
-                <p className="text-[11px] text-muted-foreground truncate">
+                <p className="text-xs text-muted-foreground truncate">
                   {role ? t(`roles.${role}`) : ""}
                 </p>
               </div>

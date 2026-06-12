@@ -115,7 +115,7 @@ export default function Permissions() {
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{u.name}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{t(`roles.${u.role}`)}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t(`roles.${u.role}`)}</p>
                     </div>
                     {selUser === u.id && <ChevronRight size={14} className="text-primary flex-shrink-0 rtl:rotate-180" />}
                   </button>

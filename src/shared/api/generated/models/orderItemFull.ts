@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { OrderBundleComponentFull } from './orderBundleComponentFull';
 import type { OrderItem } from './orderItem';
 import type { OrderItemAddon } from './orderItemAddon';

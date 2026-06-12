@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { CategorySalesCategoryNameTranslations } from './categorySalesCategoryNameTranslations';
 import type { ItemSales } from './itemSales';
 

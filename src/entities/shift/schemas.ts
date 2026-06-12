@@ -6,7 +6,6 @@ export type OpenShiftValues = z.infer<typeof openShiftSchema>;
 
 export const closeShiftSchema = z.object({
   closing_cash_declared: egpToPiastres,
-  notes: z.string().trim().nullish().or(z.literal("")),
 });
 export type CloseShiftValues = z.infer<typeof closeShiftSchema>;
 

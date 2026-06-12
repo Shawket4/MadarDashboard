@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { AddonItemIngredient } from './addonItemIngredient';
 import type { AddonItemNameTranslations } from './addonItemNameTranslations';
 

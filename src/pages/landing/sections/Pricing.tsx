@@ -12,7 +12,7 @@ export default function Pricing({ pageIndex }: { pageIndex: number }) {
     <Page>
       <div className="absolute inset-0 flex flex-col px-20 py-10">
         <header className="flex items-center justify-between">
-          <span className="text-[10px] tracking-[0.32em] uppercase text-navy/50 font-medium">
+          <span className="text-xs tracking-[0.32em] uppercase text-navy/50 font-medium">
             {t("pricing.eyebrow")}
           </span>
           <img src="/Icon.svg" alt="" className="h-9" aria-hidden />

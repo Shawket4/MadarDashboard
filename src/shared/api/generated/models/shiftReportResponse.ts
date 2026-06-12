@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { CashMovementSummaryRow } from './cashMovementSummaryRow';
 import type { PaymentSummaryRow } from './paymentSummaryRow';
 import type { Shift } from './shift';

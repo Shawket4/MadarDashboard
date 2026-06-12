@@ -10,7 +10,7 @@ export default function BackCover({ pageIndex }: { pageIndex: number }) {
     <Page>
       <div className="absolute inset-0 flex flex-col px-20 py-16">
         <header className="flex items-start justify-between">
-          <span className="text-[10px] tracking-[0.32em] uppercase text-navy/50 font-medium">
+          <span className="text-xs tracking-[0.32em] uppercase text-navy/50 font-medium">
             {t("backCover.eyebrow")}
           </span>
           <img src="/Icon.svg" alt="" className="h-12" aria-hidden />
@@ -28,16 +28,16 @@ export default function BackCover({ pageIndex }: { pageIndex: number }) {
         <div className="flex items-end justify-between gap-12 pt-8 border-t border-navy/10">
           <div className="flex flex-col gap-2">
             <img src={wordmark} alt={meta.brand} className="h-12" />
-            <span className="text-[10px] tracking-[0.32em] uppercase text-navy/55 font-medium mt-1.5">
+            <span className="text-xs tracking-[0.32em] uppercase text-navy/55 font-medium mt-1.5">
               {t("backCover.edition")}
             </span>
           </div>
 
           <div className="flex flex-col items-end gap-1.5">
-            <span className="text-[10px] tracking-[0.28em] uppercase text-navy/45 font-semibold">
+            <span className="text-xs tracking-[0.28em] uppercase text-navy/45 font-semibold">
               {t("backCover.contact")}
             </span>
-            <div className="flex items-center gap-2.5 text-[11px] tracking-[0.24em] uppercase text-navy/70 font-semibold">
+            <div className="flex items-center gap-2.5 text-xs tracking-[0.24em] uppercase text-navy/70 font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-terracotta" />
               <span>{meta.domain}</span>
             </div>

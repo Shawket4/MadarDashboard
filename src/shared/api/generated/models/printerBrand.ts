@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 
 export type PrinterBrand = typeof PrinterBrand[keyof typeof PrinterBrand];
 

@@ -9,7 +9,25 @@ interface PageShellProps {
   className?: string;
 }
 
+/**
+ * True when the page renders inside a parent shell (e.g. the /menu tab
+ * layout). Nested pages keep their PageShell call — padding, title and
+ * description are suppressed so they don't double up; the action slot stays.
+ */
+export const NestedPageShellContext = React.createContext(false);
+
 export function PageShell({ title, description, action, children, className }: PageShellProps) {
+  const nested = React.useContext(NestedPageShellContext);
+
+  if (nested) {
+    return (
+      <div className={cn("space-y-5 animate-fade-in", className)}>
+        {action && <div className="flex justify-end">{action}</div>}
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div className={cn("p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-5 animate-fade-in", className)}>
       <div className="flex items-start justify-between gap-4 flex-wrap">

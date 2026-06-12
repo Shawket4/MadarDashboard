@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { PrinterBrand } from './printerBrand';
 
 /**
@@ -19,7 +17,13 @@ export interface UpdateBranchRequest {
   /** @nullable */
   address?: string | null;
   /** @nullable */
+  geo_radius_meters?: number | null;
+  /** @nullable */
   is_active?: boolean | null;
+  /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
   /** @nullable */
   name?: string | null;
   /** @nullable */

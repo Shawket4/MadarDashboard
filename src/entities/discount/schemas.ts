@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { egpToPiastres } from "@/shared/lib/zod-utils";
+import { egpToPiastres, translationMap } from "@/shared/lib/zod-utils";
 
 export const discountBaseSchema = z.object({
   name: z.string().trim().min(1),
-  name_translations: z.record(z.string()).default({}),
+  name_translations: translationMap,
   dtype: z.enum(["percentage", "fixed"]),
   percent_value: z.coerce.number().int().min(1).max(100).optional(),
   fixed_value: egpToPiastres.optional(),

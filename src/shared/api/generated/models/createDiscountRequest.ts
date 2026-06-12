@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { CreateDiscountRequestNameTranslations } from './createDiscountRequestNameTranslations';
 
 export interface CreateDiscountRequest {

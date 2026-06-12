@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { AddonSlotLabelTranslations } from './addonSlotLabelTranslations';
 
 export interface AddonSlot {

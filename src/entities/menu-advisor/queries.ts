@@ -1,5 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/api/errors";
 import { menuAdvisorApi } from "./api";
 import type {
   PriceSuggestionFilter, BundleSuggestionFilter, RemovalScenarioFilter,
@@ -62,6 +65,16 @@ export const useCreateRun = () => {
     mutationFn: (branchId: string) => menuAdvisorApi.createRun(branchId),
     onSuccess: (_, branchId) => {
       qc.invalidateQueries({ queryKey: QUERY_KEYS.activeRun(branchId) });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.latestRun(branchId) });
+    },
+    onError: (error: unknown, branchId) => {
+      // 409 = a run is already in flight — that's "start polling", not an error
+      if (isAxiosError(error) && error.response?.status === 409) {
+        qc.invalidateQueries({ queryKey: QUERY_KEYS.activeRun(branchId) });
+        qc.invalidateQueries({ queryKey: QUERY_KEYS.latestRun(branchId) });
+        return;
+      }
+      toast.error(getErrorMessage(error));
     },
   });
 };

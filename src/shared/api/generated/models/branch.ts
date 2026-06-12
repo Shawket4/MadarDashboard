@@ -1,15 +1,28 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { PrinterBrand } from './printerBrand';
 
 export interface Branch {
   /** @nullable */
   address?: string | null;
   created_at: string;
+  /**
+     * Radius in meters within which this branch is considered a match. Defaults to 200.
+     * @nullable
+     */
+  geo_radius_meters?: number | null;
   id: string;
   is_active: boolean;
+  /**
+     * WGS-84 latitude for geofenced branch resolution.
+     * @nullable
+     */
+  latitude?: number | null;
+  /**
+     * WGS-84 longitude for geofenced branch resolution.
+     * @nullable
+     */
+  longitude?: number | null;
   name: string;
   org_id: string;
   /**

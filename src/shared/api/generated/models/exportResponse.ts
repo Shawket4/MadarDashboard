@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { ExportResponseIngredientCosts } from './exportResponseIngredientCosts';
 import type { OrderExport } from './orderExport';
 import type { OrderSummary } from './orderSummary';

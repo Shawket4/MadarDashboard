@@ -11,7 +11,7 @@ export default defineConfig({
       mock: true,
       httpClient: 'axios',
       override: {
-        header: () => ['/* eslint-disable */', '// @ts-nocheck'],
+        header: () => '/* eslint-disable */\n// @ts-nocheck\n',
         mutator: {
           path: 'src/shared/api/custom-instance.ts',
           name: 'customInstance',
@@ -26,7 +26,7 @@ export default defineConfig({
       target: 'src/shared/api/generated/zod/api.zod.ts',
       client: 'zod',
       override: {
-        header: () => ['/* eslint-disable */', '// @ts-nocheck'],
+        header: () => '/* eslint-disable */\n// @ts-nocheck\n',
       }
     }
   }

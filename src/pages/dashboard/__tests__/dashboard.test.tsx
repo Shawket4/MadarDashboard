@@ -6,6 +6,7 @@ import { server } from '@/test/mocks/server'
 import Dashboard from '../dashboard'
 import { env } from '@/shared/config/env'
 import * as useCurrentContextMock from '@/shared/hooks/use-current-context'
+import { useScopeStore } from '@/shared/scope/scope-store'
 
 // Mock navigate
 const mockNavigate = vi.fn()
@@ -28,6 +29,8 @@ describe('Dashboard Page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     queryClient.clear()
+    // recent orders + KPI row read the global scope (B.2)
+    useScopeStore.setState({ branchId: 'b1' })
     
     vi.spyOn(useCurrentContextMock, 'useCurrentContext').mockReturnValue({
       user: { id: 'u1', name: 'Admin User', email: 'admin@sufrix.com', role: 'super_admin' },
@@ -110,7 +113,7 @@ describe('Dashboard Page', () => {
 
     await waitFor(() => {
       expect(screen.getByText('dashboard.noOrdersYet')).toBeInTheDocument()
-      expect(screen.getByText('dashboard.allStockOk')).toBeInTheDocument()
+      expect(screen.getByText('dashboard.allClear')).toBeInTheDocument()
     })
   })
 
@@ -128,17 +131,17 @@ describe('Dashboard Page', () => {
     })
   })
 
-  it('navigates when clicking on quick action buttons', async () => {
+  it('drills into orders with branch scope when clicking a branch card', async () => {
     const user = userEvent.setup()
     render(<Dashboard />)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /nav.orders/i })).toBeInTheDocument()
+      expect(screen.getByText('Branch 1')).toBeInTheDocument()
     })
 
-    const ordersBtn = screen.getByRole('button', { name: /nav.orders/i })
-    await user.click(ordersBtn)
+    await user.click(screen.getByText('Branch 1'))
 
+    expect(useScopeStore.getState().branchId).toBe('b1')
     expect(mockNavigate).toHaveBeenCalledWith('/orders')
   })
 

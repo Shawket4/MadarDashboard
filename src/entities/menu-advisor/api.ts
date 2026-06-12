@@ -24,7 +24,10 @@ export const menuAdvisorApi = {
   },
 
   getLatestRun: async (branchId: string): Promise<RunRecord | null> => {
-    const { data } = await apiClient.get(`/menu-advisor/branches/${branchId}/runs/latest`);
+    // any_status: failed and in-progress runs must surface too (three-way empty state)
+    const { data } = await apiClient.get(`/menu-advisor/branches/${branchId}/runs/latest`, {
+      params: { any_status: true },
+    });
     return data;
   },
 

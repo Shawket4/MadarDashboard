@@ -911,7 +911,7 @@ export default function PublicMenuPage() {
               <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900 leading-tight truncate">
                 {menu.org_name}
               </h1>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 font-bold leading-tight truncate">
+              <p className="text-xs sm:text-xs text-slate-400 font-bold leading-tight truncate">
                 {t("menu.header.subtitle")}
               </p>
             </div>
@@ -932,7 +932,7 @@ export default function PublicMenuPage() {
             {cartCount > 0 && (
               <span
                 key={cartCount}
-                className="absolute -top-1 -end-1 h-5 min-w-5 px-1 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center animate-in zoom-in-50 duration-300 tabular-nums"
+                className="absolute -top-1 -end-1 h-5 min-w-5 px-1 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center animate-in zoom-in-50 duration-300 tabular-nums"
               >
                 {cartCount}
               </span>
@@ -1123,7 +1123,7 @@ function FloatingOrderBar({
         className="w-full h-[68px] sm:h-20 bg-slate-900 text-white rounded-[1.75rem] sm:rounded-[2rem] font-bold flex items-center justify-between ps-5 pe-2 sm:ps-7 sm:pe-3 shadow-2xl shadow-slate-900/30 hover:bg-slate-800 transition-all active:scale-[0.98] border border-white/10 overflow-hidden relative"
       >
         <div className="flex flex-col items-start relative z-10 min-w-0">
-          <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">
+          <span className="text-xs text-slate-400 font-black uppercase tracking-[0.2em]">
             {t("menu.bar.yourOrder")}
           </span>
           <span className="text-base sm:text-lg tracking-tight font-black">
@@ -1213,7 +1213,7 @@ function MenuItemCard({
 
         <div className="flex items-center justify-between mt-3 sm:mt-4">
           <div className="flex flex-col">
-            <span className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-wider">
+            <span className="text-xs sm:text-xs font-black text-slate-400 uppercase tracking-wider">
               {item.sizes && item.sizes.length > 1
                 ? t("menu.card.startsAt")
                 : t("menu.card.price")}
@@ -1777,7 +1777,7 @@ function Section({
           {title}
         </h3>
         {subtitle && (
-          <span className="text-[11px] text-slate-400 font-bold text-end">
+          <span className="text-xs text-slate-400 font-bold text-end">
             {subtitle}
           </span>
         )}
@@ -1821,7 +1821,7 @@ function CartDialog({
             <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
               {t("menu.cart.title")}
             </h2>
-            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
               {t("menu.cart.lines", { count: cart.length })}
             </p>
           </div>
@@ -1871,7 +1871,7 @@ function CartDialog({
                           </p>
                         )}
                         {line.addons.length > 0 && (
-                          <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2">
+                          <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">
                             {line.addons.map((a) => a.addonName).join(", ")}
                           </p>
                         )}
@@ -2004,7 +2004,7 @@ function ShowToTellerDialog({
           <div className="px-5 sm:px-6 -mt-8 relative z-10">
             <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-5 flex items-center justify-center animate-in fade-in slide-in-from-bottom-3 duration-500">
               <div className="text-center">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
                   {t("menu.teller.total")}
                 </p>
                 <p className="text-2xl sm:text-3xl font-black tracking-tighter text-primary tabular-nums mt-1">
@@ -2042,7 +2042,7 @@ function ShowToTellerDialog({
                         </p>
                       )}
                       {line.addons.length > 0 && (
-                        <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed">
                           {line.addons.map((a) => a.addonName).join(" • ")}
                         </p>
                       )}
@@ -2066,7 +2066,7 @@ function ShowToTellerDialog({
                 <p className="text-xs font-black uppercase tracking-wider text-slate-700">
                   {t("menu.teller.noteTitle")}
                 </p>
-                <p className="text-[11px] text-slate-500 font-medium leading-snug mt-0.5">
+                <p className="text-xs text-slate-500 font-medium leading-snug mt-0.5">
                   {t("menu.teller.noteBody")}
                 </p>
               </div>

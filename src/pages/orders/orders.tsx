@@ -1,349 +1,55 @@
-import { useState, useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   Ban, ChevronLeft, ChevronRight, CreditCard, Receipt, ShoppingBag, X, CircleDollarSign,
 } from "lucide-react";
-import { toast } from "sonner";
 import { PageShell } from "@/shared/ui/page-shell";
 import { DataTable } from "@/shared/ui/data-table";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { Card, CardContent } from "@/shared/ui/card";
-import { Checkbox } from "@/shared/ui/checkbox";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { EmptyState } from "@/shared/ui/empty-state";
+import { AsyncBoundary } from "@/shared/ui/async-boundary";
 import { StatCard } from "@/shared/ui/stat-card";
-import { DateRangePicker } from "@/shared/ui/date-range-picker";
 import { ExportDrawer } from "@/features/orders-export";
-import {
-  Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/shared/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { 
-  useListOrders, useGetOrder, useVoidOrder,
-  getListOrdersQueryKey 
-} from "@/shared/api/generated/api";
-import { voidOrderSchema, type VoidOrderValues } from "@/entities/order/schemas";
+import { useListOrders } from "@/shared/api/generated/api";
 import { useListBranches as useBranches } from "@/shared/api/generated/api";
+import { useScopedParams } from "@/shared/scope/use-scoped-params";
 import { useListShifts } from "@/shared/api/generated/api";
 import { ORDER_STATUSES } from "@/shared/config/constants";
 import { usePaymentMethods } from "@/shared/hooks/use-payment-methods";
-import { getTranslatedName } from "@/shared/lib/translation";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
-import { getErrorMessage } from "@/shared/api/errors";
-import { fmtDateTime, fmtMoney, fmtUnit } from "@/shared/lib/format";
+import { fmtDateTime, fmtMoney } from "@/shared/lib/format";
 import type { OrdersQuery, OrderStatus } from "@/shared/types";
 import type { Order } from "@/shared/api/generated/models/order";
-import type { OrderFull } from "@/shared/api/generated/models/orderFull";
 
-function VoidDialog({ open, onClose, order }: { open: boolean; onClose: () => void; order: Order | null }) {
-  const { t } = useTranslation();
-  const qc = useQueryClient();
-
-  const form = useForm<VoidOrderValues>({
-    resolver: zodResolver(voidOrderSchema),
-    defaultValues: { reason: "customer_request", restore_inventory: true },
-  });
-
-  const voidOrder = useVoidOrder({
-    mutation: {
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: getListOrdersQueryKey() });
-        toast.success(t("orders.voidedToast"));
-        onClose();
-      },
-      onError: (e) => toast.error(getErrorMessage(e)),
-    }
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("orders.voidOrder")}</DialogTitle>
-          <DialogDescription>
-            {t("orders.orderNumber", { n: order?.order_number })} · {fmtMoney(order?.total_amount ?? 0)}
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => voidOrder.mutate({ orderId: order!.id, data: v }))}>
-            <DialogBody>
-              <FormField control={form.control} name="reason" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("orders.voidConfirm")}</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      <SelectItem value="customer_request">{t("orders.voidReasons.customer_request")}</SelectItem>
-                      <SelectItem value="wrong_order">{t("orders.voidReasons.wrong_order")}</SelectItem>
-                      <SelectItem value="quality_issue">{t("orders.voidReasons.quality_issue")}</SelectItem>
-                      <SelectItem value="other">{t("orders.voidReasons.other")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="restore_inventory" render={({ field }) => (
-                <FormItem className="flex items-center gap-2 rounded-lg bg-muted p-3 !space-y-0">
-                  <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                  <FormLabel className="!m-0 cursor-pointer">{t("orders.restoreInventory")}</FormLabel>
-                </FormItem>
-              )} />
-            </DialogBody>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" variant="destructive" loading={voidOrder.isPending}><Ban /> {t("orders.voidOrder")}</Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function OrderDetailDrawer({ open, onClose, orderId, onVoid }: { open: boolean; onClose: () => void; orderId: string | null; onVoid: (o: OrderFull) => void }) {
-  const { t, i18n } = useTranslation();
-  const { getLabel } = usePaymentMethods();
-  const { data: order, isLoading } = useGetOrder(orderId ?? "", { query: { enabled: !!orderId } });
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent sheet="right" showClose={false} className="p-0">
-        <div className="sticky top-0 z-10 bg-background border-b p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">{t("orders.title")}</p>
-            {order && <p className="font-bold">{t("orders.orderNumber", { n: order.order_number })}</p>}
-          </div>
-          <div className="flex gap-1">
-            {order && order.status === "completed" && (
-              <Button size="sm" variant="destructive" onClick={() => onVoid(order)}><Ban /> {t("orders.voidOrder")}</Button>
-            )}
-            <Button variant="ghost" size="iconSm" onClick={onClose}><X /></Button>
-          </div>
-        </div>
-
-        {isLoading || !order ? (
-          <div className="p-4 space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}</div>
-        ) : (
-          <div className="p-4 space-y-4">
-            {order.status === "voided" && (
-              <Card className="border-destructive/30 bg-destructive/5">
-                <CardContent className="p-4 flex items-center gap-2 text-sm">
-                  <Ban className="text-destructive" size={16} />
-                  <div>
-                    <p className="font-bold text-destructive">{t("orderStatus.voided")}</p>
-                    {order.void_reason && <p className="text-xs text-muted-foreground">{t(`orders.voidReasons.${order.void_reason}`, { defaultValue: order.void_reason })}</p>}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card>
-              <CardContent className="p-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">{t("common.date")}</span><span>{fmtDateTime(order.created_at)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">{t("dashboard.teller")}</span><span>{order.teller_name}</span></div>
-                {order.customer_name && <div className="flex justify-between"><span className="text-muted-foreground">{t("orders.customer")}</span><span>{order.customer_name}</span></div>}
-                <div className="flex justify-between"><span className="text-muted-foreground">{t("orders.payment")}</span><Badge variant="outline">{getLabel(order.payment_method)}</Badge></div>
-              </CardContent>
-            </Card>
-
-            {order.items && order.items.length > 0 && (
-              <Card>
-                <CardContent className="p-4 space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("menu.items")}</p>
-                  {order.items.map((it) => {
-                    // Group deductions by bundle component
-                    const groupedDeductions: Record<string, any[]> = {};
-                    if (it.deductions_snapshot && Array.isArray(it.deductions_snapshot)) {
-                      it.deductions_snapshot.forEach((d: any) => {
-                        let grpName = "";
-                        if (d.source && d.source.startsWith("bundle_component:")) {
-                          grpName = d.source.substring("bundle_component:".length);
-                        } else {
-                          grpName = it.item_name;
-                        }
-                        if (!groupedDeductions[grpName]) {
-                          groupedDeductions[grpName] = [];
-                        }
-                        groupedDeductions[grpName].push(d);
-                      });
-                    }
-
-                    return (
-                      <div key={it.id} className="py-2 border-b last:border-0 space-y-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="font-semibold text-sm flex items-center flex-wrap gap-1">
-                              {getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, i18n.language)}
-                              {it.size_label && <span className="text-muted-foreground">({it.size_label})</span>}
-                              {it.bundle_id && (
-                                <Badge variant="default" className="px-1 py-0 text-[10px] uppercase font-bold tracking-wider leading-none">
-                                  Combo
-                                </Badge>
-                              )}
-                            </p>
-                            <p className="text-xs text-muted-foreground">× {it.quantity} · {fmtMoney(it.unit_price)}</p>
-                            {it.addons.length > 0 && (
-                              <div className="mt-1 space-y-0.5">
-                                {it.addons.map((a) => (
-                                  <p key={a.id} className="text-xs ps-2">+ {getTranslatedName({ name: a.addon_name, name_translations: a.name_translations }, i18n.language)} {a.quantity > 1 && `×${a.quantity}`}{a.line_total > 0 && <span className="text-muted-foreground ms-1">({fmtMoney(a.line_total)})</span>}</p>
-                                ))}
-                              </div>
-                            )}
-                            {it.optionals && it.optionals.length > 0 && (
-                              <div className="mt-1.5 flex flex-wrap gap-1">
-                                {it.optionals.map((o, idx) => {
-                                  const optionName = getTranslatedName({ name: o.field_name || '', name_translations: o.name_translations }, i18n.language);
-                                  if (!optionName) return null;
-                                  const hasPrice = o.price > 0;
-                                  return (
-                                    <Badge
-                                      key={idx}
-                                      variant="warning"
-                                      className="px-1.5 py-0.5 text-[10px] font-semibold rounded"
-                                    >
-                                      {optionName}{hasPrice && ` +${fmtMoney(o.price)}`}
-                                    </Badge>
-                                  );
-                                })}
-                              </div>
-                            )}
-                            {it.bundle_components && it.bundle_components.length > 0 && (
-                              <div className="mt-2 ps-3 border-l-2 border-muted space-y-2">
-                                {it.bundle_components.map((c, cIdx) => (
-                                  <div key={cIdx} className="space-y-0.5">
-                                    <p className="text-xs font-semibold text-foreground">
-                                      – {getTranslatedName({ name: c.item_name, name_translations: c.name_translations }, i18n.language)} {c.size_label && <span className="text-muted-foreground">({c.size_label})</span>}
-                                      <span className="text-muted-foreground ms-1">× {c.quantity * it.quantity}</span>
-                                    </p>
-                                    {c.addons && c.addons.length > 0 && (
-                                      <div className="space-y-0.5 ps-2">
-                                        {c.addons.map((a, aIdx) => (
-                                          <p key={aIdx} className="text-[11px] text-muted-foreground">
-                                            + {getTranslatedName({ name: a.addon_name, name_translations: a.name_translations }, i18n.language)} {a.quantity > 1 && `×${a.quantity}`}{a.unit_price > 0 && <span className="ms-1">({fmtMoney(a.unit_price * a.quantity)})</span>}
-                                          </p>
-                                        ))}
-                                      </div>
-                                    )}
-                                    {c.optionals && c.optionals.length > 0 && (
-                                      <div className="flex flex-wrap gap-1 ps-2 mt-0.5">
-                                        {c.optionals.map((o, oIdx) => (
-                                          <Badge
-                                            key={oIdx}
-                                            variant="warning"
-                                            className="px-1 py-0 text-[9px] font-semibold rounded"
-                                          >
-                                            {o.field_name}{o.price > 0 && ` +${fmtMoney(o.price)}`}
-                                          </Badge>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                            {it.notes && <p className="text-xs italic text-muted-foreground mt-1">{it.notes}</p>}
-                          </div>
-                          <span className="font-semibold tabular text-sm flex-shrink-0">{fmtMoney(it.line_total)}</span>
-                        </div>
-                        {Array.isArray(it.deductions_snapshot) && it.deductions_snapshot.length > 0 && (
-                          <details className="text-xs text-muted-foreground mt-2 border-t pt-1">
-                            <summary className="cursor-pointer font-medium hover:text-foreground transition-colors py-0.5">
-                              {t("orders.ingredientsUsed")} ({(it.deductions_snapshot as any[]).length})
-                            </summary>
-                            <div className="ps-3 mt-2 space-y-3">
-                              {Object.entries(groupedDeductions).map(([compName, deductions]) => (
-                                <div key={compName} className="space-y-1">
-                                  <p className="font-semibold text-[11px] text-foreground flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                    {compName}
-                                  </p>
-                                  <div className="ps-2.5 border-l-2 border-muted space-y-0.5">
-                                    {deductions.map((d: any, dIdx: number) => (
-                                      <p key={dIdx} className="tabular text-[11px]">
-                                        {d.ingredient_name}: {Number(d.quantity).toFixed(3)} {fmtUnit(d.unit)}
-                                        <span className="text-[10px] text-muted-foreground ms-1.5 opacity-80">
-                                          ({d.source === "drink_recipe" || d.source === "base"
-                                            ? "base"
-                                            : d.source.startsWith("bundle_component:")
-                                            ? "combo base"
-                                            : d.source.startsWith("optional:")
-                                            ? d.source.substring("optional:".length)
-                                            : d.source.startsWith("addon_swap:")
-                                            ? d.source.substring("addon_swap:".length)
-                                            : d.source})
-                                        </span>
-                                      </p>
-                                    ))}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </details>
-                        )}
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            )}
-
-            <Card>
-              <CardContent className="p-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">{t("common.subtotal")}</span><span className="tabular">{fmtMoney(order.subtotal)}</span></div>
-                {order.discount_amount > 0 && (
-                  <div className="flex justify-between text-success"><span>{t("orders.discountAmount")}</span><span className="tabular">−{fmtMoney(order.discount_amount)}</span></div>
-                )}
-                {order.tax_amount > 0 && (
-                  <div className="flex justify-between"><span className="text-muted-foreground">{t("orders.tax")}</span><span className="tabular">{fmtMoney(order.tax_amount)}</span></div>
-                )}
-                {order.tip_amount ? (
-                  <div className="flex justify-between"><span className="text-muted-foreground">{t("orders.tip")}</span><span className="tabular">{fmtMoney(order.tip_amount)}</span></div>
-                ) : null}
-                <div className="flex justify-between pt-2 mt-2 border-t font-bold">
-                  <span>{t("common.total")}</span>
-                  <span className="tabular text-primary text-lg">{fmtMoney(order.total_amount)}</span>
-                </div>
-                {order.amount_tendered && (
-                  <div className="flex justify-between text-xs text-muted-foreground pt-1"><span>{t("orders.cashTendered")}</span><span className="tabular">{fmtMoney(order.amount_tendered)}</span></div>
-                )}
-                {order.change_given ? (
-                  <div className="flex justify-between text-xs text-muted-foreground"><span>{t("orders.changeGiven")}</span><span className="tabular">{fmtMoney(order.change_given)}</span></div>
-                ) : null}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
+import { VoidDialog } from "./void-dialog";
+import { OrderDetailDrawer } from "./detail-drawer";
 
 export default function Orders() {
   const { t } = useTranslation();
-  const { orgId, branchId: ctxBranch } = useCurrentContext();
+  const { orgId } = useCurrentContext();
   const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
-  const [selBranch, setSelBranch] = useState<string>(ctxBranch ?? "");
+  // Branch and period come from the global scope bar in the header (B.1)
+  const { branchId, from, to } = useScopedParams();
+  const selBranch = branchId ?? "";
   const [selShift, setSelShift] = useState<string>("");
   const [payment, setPayment] = useState<string>("");
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [tellerName, setTellerName] = useState("");
-  const [from, setFrom] = useState<string | null>(null);
-  const [to, setTo] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const perPage = 25;
   const [detailId, setDetailId] = useState<string | null>(null);
   const [voidTarget, setVoidTarget] = useState<Order | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
 
-  useMemo(() => {
-    if (!selBranch && branches.length > 0) setSelBranch(branches[0].id);
-  }, [branches, selBranch]);
+  // Scope changes restart pagination (and shift filter, which is per-branch)
+  useEffect(() => {
+    setPage(1);
+    setSelShift("");
+  }, [selBranch, from, to]);
 
   const { data: shifts = [] } = useListShifts(selBranch ?? "", { query: { enabled: !!selBranch } });
 
@@ -388,7 +94,7 @@ const stats = data?.summary ?? { revenue: 0, completed: 0, voided: 0, discounts:
       cell: ({ row }) => (
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full" style={{ background: colorMap[row.original.payment_method] || "#ccc" }} />
-          <Badge variant="outline" className="text-[10px]">{getLabel(row.original.payment_method)}</Badge>
+          <Badge variant="outline" className="text-xs">{getLabel(row.original.payment_method)}</Badge>
         </span>
       ),
     },
@@ -407,24 +113,11 @@ const stats = data?.summary ?? { revenue: 0, completed: 0, voided: 0, discounts:
     setPayment("");
     setStatus("");
     setTellerName("");
-    setFrom(null);
-    setTo(null);
     setPage(1);
   };
 
   return (
-    <PageShell
-      title={t("orders.title")}
-      description={t("orders.subtitle")}
-      action={
-        branches.length > 1 && (
-          <Select value={selBranch} onValueChange={(v) => { setSelBranch(v); setPage(1); }}>
-            <SelectTrigger className="w-40 h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
-          </Select>
-        )
-      }
-    >
+    <PageShell title={t("orders.title")} description={t("orders.subtitle")}>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
         <StatCard label={t("orders.totalRevenue")} value={stats.revenue} formatType="money" loading={isLoading} icon={Receipt} accent="success" />
         <StatCard label={t("orders.completed")} value={stats.completed} loading={isLoading} icon={ShoppingBag} accent="info" />
@@ -457,20 +150,21 @@ const stats = data?.summary ?? { revenue: 0, completed: 0, voided: 0, discounts:
                 {ORDER_STATUSES.map((s) => <SelectItem key={s} value={s}>{t(`orderStatus.${s}`)}</SelectItem>)}
               </SelectContent>
             </Select>
-            {(selShift || payment || status || tellerName || from || to) && (
+            {(selShift || payment || status || tellerName) && (
               <Button variant="ghost" size="sm" onClick={clearFilters}><X size={12} /> {t("common.clearAll")}</Button>
             )}
           </div>
-          <DateRangePicker from={from} to={to} onChange={(f, tt) => { setFrom(f); setTo(tt); setPage(1); }} />
         </CardContent>
       </Card>
 
       {!selBranch ? (
         <EmptyState icon={ShoppingBag} title={t("orders.selectBranch")} />
-      ) : orders.length === 0 && !isLoading ? (
-        <EmptyState icon={ShoppingBag} title={t("orders.noMatch")} description={t("orders.noMatchHint")} />
       ) : (
-        <>
+        <AsyncBoundary
+          isLoading={isLoading && orders.length === 0}
+          isEmpty={orders.length === 0}
+          emptyState={<EmptyState icon={ShoppingBag} title={t("orders.noMatch")} description={t("orders.noMatchHint")} />}
+        >
           <DataTable
             columns={cols}
             data={orders}
@@ -494,7 +188,7 @@ const stats = data?.summary ?? { revenue: 0, completed: 0, voided: 0, discounts:
               <Button variant="outline" size="iconSm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}><ChevronRight className="rtl:rotate-180" /></Button>
             </div>
           </div>
-        </>
+        </AsyncBoundary>
       )}
 
       <OrderDetailDrawer
@@ -520,3 +214,4 @@ const stats = data?.summary ?? { revenue: 0, completed: 0, voided: 0, discounts:
     </PageShell>
   );
 }
+

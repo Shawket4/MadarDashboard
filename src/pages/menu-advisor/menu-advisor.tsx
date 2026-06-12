@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Sparkles,
@@ -12,15 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { PageShell } from "@/shared/ui/page-shell";
-import { useCurrentContext } from "@/shared/hooks/use-current-context";
-import { useListBranches as useBranches } from "@/shared/api/generated/api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/select";
+import { useScopedParams } from "@/shared/scope/use-scoped-params";
 import { Button } from "@/shared/ui/button";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { SuggestionCard } from "@/shared/ui/suggestion-card";
@@ -104,6 +95,10 @@ function PriceSuggestionItem({
 
   if (record.cost_missing) {
     tags.push({ label: t("menuAdvisor.costMissing"), variant: "secondary" });
+  }
+
+  if (record.price_changed_in_window) {
+    tags.push({ label: t("menuAdvisor.recentlyRepriced"), variant: "warning" });
   }
 
   const ArrowIcon =
@@ -301,14 +296,9 @@ function RemovalScenarioItem({
 
 export default function MenuAdvisorDashboard() {
   const { t } = useTranslation();
-  const { orgId, branchId: ctxBranch } = useCurrentContext(); // ← restore orgId
-  const { data: branches = [] } = useBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } }); // ← pass it
-  const [selBranch, setSelBranch] = useState<string>(ctxBranch ?? "");
-
-  // Default to first branch when none selected — effect, not memo.
-  useEffect(() => {
-    if (!selBranch && branches.length > 0) setSelBranch(branches[0].id);
-  }, [branches, selBranch]);
+  // Branch comes from the global scope bar in the header (B.1)
+  const { branchId } = useScopedParams();
+  const selBranch = branchId ?? "";
 
   const { data: activeRun, isLoading: isActiveLoading } = useActiveRun(
     selBranch || undefined,
@@ -362,7 +352,10 @@ export default function MenuAdvisorDashboard() {
       );
     }
 
-    if (activeRun) {
+    // in_progress → progress state + poll (useActiveRun polls every 5s and
+    // flips latestRun when it finishes; runs stuck >15 min are auto-failed
+    // server-side, so no manual escape hatch is needed)
+    if (activeRun || latestRun?.status === "in_progress") {
       return (
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="p-12 text-center space-y-4">
@@ -382,6 +375,25 @@ export default function MenuAdvisorDashboard() {
           <Skeleton className="h-64" />
           <Skeleton className="h-64" />
         </div>
+      );
+    }
+
+    // failed → error card with the backend's error_message + "Run again"
+    if (latestRun?.status === "failed") {
+      return (
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="p-12 text-center space-y-4">
+            <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
+            <h3 className="text-xl font-bold">{t("menuAdvisor.runFailed")}</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              {latestRun.error_message || t("menuAdvisor.runFailedDesc")}
+            </p>
+            <Button onClick={handleCreateRun} loading={createRunMut.isPending}>
+              <RefreshCw className="w-4 h-4 me-2" />
+              {t("menuAdvisor.runAgain")}
+            </Button>
+          </CardContent>
+        </Card>
       );
     }
 
@@ -525,26 +537,7 @@ export default function MenuAdvisorDashboard() {
   };
 
   return (
-    <PageShell
-      title={t("menuAdvisor.title")}
-      description={t("menuAdvisor.subtitle")}
-      action={
-        branches.length > 1 && (
-          <Select value={selBranch} onValueChange={setSelBranch}>
-            <SelectTrigger className="w-40 h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {branches.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )
-      }
-    >
+    <PageShell title={t("menuAdvisor.title")} description={t("menuAdvisor.subtitle")}>
       {renderContent()}
     </PageShell>
   );

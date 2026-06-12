@@ -1,551 +1,50 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Coffee, Edit2, Package, Plus, Tag, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
+import { Coffee, Package, Plus, Tag, ToggleLeft, ToggleRight } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell } from "@/shared/ui/page-shell";
 import { DataTable } from "@/shared/ui/data-table";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
-import { Input } from "@/shared/ui/input";
-import { Switch } from "@/shared/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
-import {
-  Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle,
-} from "@/shared/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { ImageUploader } from "@/shared/ui/image-uploader";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { getTranslatedName, getTranslatedDescription } from "@/shared/lib/translation";
-import { 
-  useListCategories, createCategory, updateCategory, deleteCategory,
-  useListMenuItems, useGetMenuItem, createMenuItem, updateMenuItem, deleteMenuItem, uploadMenuItemImage, upsertSize, deleteSize,
-  useListAddonItems, createAddonItem, updateAddonItem, deleteAddonItem
-} from "@/shared/api/generated/api";
 import {
-  categorySchema, menuItemSchema, addonSchema,
-  type CategoryValues, type MenuItemValues, type AddonValues,
-} from "@/entities/menu/schemas";
-import { QUERY_KEYS } from "@/shared/config/constants";
+  useListCategories, deleteCategory,
+  useListMenuItems, updateMenuItem, deleteMenuItem,
+  useListAddonItems, updateAddonItem, deleteAddonItem,
+  getListCategoriesQueryKey, getListMenuItemsQueryKey, getGetMenuItemQueryKey, getListAddonItemsQueryKey,
+} from "@/shared/api/generated/api";
+import { CategoryDialog } from "@/features/dialogs/category-dialog";
+import { AddonDialog } from "@/features/dialogs/addon-dialog";
+import { MenuItemEditor } from "@/features/dialogs/menu-item-editor";
+import { useSkuCostsByItem, useAddonCostMap } from "@/entities/costing/queries";
+import { ItemCostCell, AddonCostCell } from "@/entities/costing/cost-cells";
+import { ItemsGrid } from "./items-grid";
+import { RowActions } from "@/shared/ui/row-actions";
+import { StatusBadge } from "@/shared/ui/status-badge";
+import { SegmentedControl } from "@/shared/ui/segmented-control";
+import { SkeletonList } from "@/shared/ui/skeleton-list";
 import { useCurrentContext } from "@/shared/hooks/use-current-context";
 import { getErrorMessage } from "@/shared/api/errors";
 import { fmtMoney, piastresToEgp } from "@/shared/lib/format";
 import { exportToExcel } from "@/shared/lib/excel";
 import type { AddonItem, Category, MenuItem } from "@/shared/types";
 
-// ── Category Dialog ──────────────────────────────────────────────────────────
-function CategoryDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: () => void; edit: Category | null; orgId: string }) {
-  const { t } = useTranslation();
-  const qc = useQueryClient();
-
-  const form = useForm<CategoryValues>({
-    resolver: zodResolver(categorySchema),
-    defaultValues: {
-      name: edit?.name ?? "",
-      name_translations: edit?.name_translations ?? {},
-      display_order: edit?.display_order ?? 0,
-      is_active: edit?.is_active ?? true,
-    },
-  });
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: CategoryValues) =>
-      edit ? updateCategory(edit.id, v as any) : createCategory({ ...v, org_id: orgId } as any),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.categories(orgId) });
-      toast.success(t("common.save"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{edit ? t("menu.categoryDialog.edit") : t("menu.categoryDialog.new")}</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
-            <DialogBody>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.name")} (EN)</FormLabel>
-                      <FormControl><Input placeholder={t("menu.categoryDialog.namePh")} {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="name_translations.ar"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.name")} (AR)</FormLabel>
-                      <FormControl><Input placeholder="الاسم بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="display_order"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("menu.displayOrder")}</FormLabel>
-                    <FormControl><Input type="number" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </DialogBody>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" loading={isPending}>{t("common.save")}</Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ── Menu Item Dialog ─────────────────────────────────────────────────────────
-function MenuItemDialog({
-  open, onClose, edit, orgId, categories,
-}: {
-  open: boolean;
-  onClose: () => void;
-  edit: MenuItem | null;
-  orgId: string;
-  categories: Category[];
-}) {
-  const { t } = useTranslation();
-  const qc = useQueryClient();
-  const { data: liveItem } = useGetMenuItem(edit?.id as string, { query: { enabled: !!edit?.id } });
-
-  const form = useForm<MenuItemValues>({
-    resolver: zodResolver(menuItemSchema),
-    defaultValues: {
-      name: edit?.name ?? "",
-      name_translations: edit?.name_translations ?? {},
-      description: edit?.description ?? "",
-      description_translations: edit?.description_translations ?? {},
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      base_price: (edit ? String(edit.base_price / 100) : "") as any,
-      category_id: edit?.category_id ?? "",
-      is_active: edit?.is_active ?? true,
-      display_order: edit?.display_order ?? 0,
-      sizes: [],
-    },
-  });
-
-  const { fields: sizes, append: appendSize, remove: removeSizeField } = useFieldArray({
-    control: form.control,
-    name: "sizes",
-  });
-
-  useEffect(() => {
-    if (liveItem) {
-      form.reset({
-        ...form.getValues(),
-        sizes: liveItem.sizes.map((s: any) => ({
-          id: s.id,
-          label: s.label,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          price_override: String(s.price_override / 100) as any,
-          display_order: s.display_order,
-        })),
-      });
-    }
-  }, [liveItem, form]);
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (v: MenuItemValues) => {
-      const payload = {
-        name: v.name,
-        description: v.description || null,
-        base_price: v.base_price,
-        category_id: v.category_id || null,
-        is_active: v.is_active,
-        display_order: v.display_order,
-      };
-      
-      const itemRes = await (edit 
-        ? updateMenuItem(edit.id, payload as any) 
-        : createMenuItem({ ...payload, org_id: orgId } as any));
-        
-      const itemId = itemRes.id;
-
-      // Handle Sizes
-      const existingSizes = liveItem?.sizes || [];
-      const newSizeIds = new Set((v.sizes ?? []).map((s) => s.id).filter(Boolean));
-      const toDelete = existingSizes.filter((s: any) => !newSizeIds.has(s.id));
-      
-      await Promise.all(toDelete.map((s: any) => deleteSize(itemId, s.id)));
-
-      for (const [idx, s] of (v.sizes ?? []).entries()) {
-        await upsertSize(itemId, {
-          label: s.label,
-          price_override: s.price_override,
-          display_order: s.display_order ?? idx,
-        } as any);
-      }
-
-      return itemRes;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["menu-items"] });
-      toast.success(t("common.save"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
-
-  // ── Image upload wiring ──────────────────────────────────────────────────
-  // The backend upload endpoint (POST /uploads/menu-items/:id) requires the
-  // item to already exist, so in create mode we hide the uploader behind a
-  // hint. In edit mode we trust `edit.image_url` and let the ImageUploader
-  // own its own optimistic state; we just invalidate the list so any image
-  // column on the outer table refreshes.
-  const uploadImage = useMutation({
-    mutationFn: (file: File) => uploadMenuItemImage(edit!.id, { image: file as any }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["menu-items"] });
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
-
-  const removeImage = useMutation({
-    mutationFn: () => updateMenuItem(edit!.id, { image_url: null } as any),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["menu-items"] });
-      toast.success(t("menu.itemDialog.imageRemoved"));
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent size="lg">
-        <DialogHeader>
-          <DialogTitle>{edit ? t("menu.itemDialog.edit") : t("menu.itemDialog.new")}</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
-            <DialogBody>
-              {/* Image — only shown in edit mode since upload requires an id */}
-              {edit ? (
-                <div className="space-y-1.5">
-                  <p className="text-sm font-medium">{t("menu.itemDialog.image")}</p>
-                  <ImageUploader
-                    value={liveItem?.image_url ?? edit.image_url}
-                    onUpload={async (file) => {
-                      const res: any = await uploadImage.mutateAsync(file);
-                      return res.image_url;
-                    }}
-                    onRemove={liveItem?.image_url || edit.image_url ? async () => { await removeImage.mutateAsync(); } : undefined}
-                    hint={t("menu.itemDialog.imageHint")}
-                  />
-                </div>
-              ) : (
-                <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-xs text-muted-foreground">
-                  {t("menu.itemDialog.imageAfterSave")}
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.name")} (EN)</FormLabel>
-                      <FormControl><Input placeholder={t("menu.itemDialog.namePh")} {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="name_translations.ar"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.name")} (AR)</FormLabel>
-                      <FormControl><Input placeholder="الاسم بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.description")} (EN)</FormLabel>
-                      <FormControl><Input placeholder={t("menu.itemDialog.descPh")} {...field} value={field.value ?? ""} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description_translations.ar"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.description")} (AR)</FormLabel>
-                      <FormControl><Input placeholder="الوصف بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="base_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.price")} (EGP)</FormLabel>
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      <FormControl><Input type="number" step="0.5" {...(field as any)} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="category_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.category")}</FormLabel>
-                      <Select value={field.value || "__none__"} onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="__none__">{t("menu.noCategory")}</SelectItem>
-                          {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="is_active"
-                render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 !space-y-0">
-                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                    <FormLabel>{t("common.active")}</FormLabel>
-                  </FormItem>
-                )}
-              />
-
-              <div className="space-y-3 pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <FormLabel className="text-base font-semibold">Sizes</FormLabel>
-                  <Button type="button" variant="outline" size="sm" onClick={() => appendSize({ label: "", price_override: 0 as unknown as number, display_order: sizes.length })}>
-                    <Plus size={14} className="me-2" /> Add Size
-                  </Button>
-                </div>
-                {sizes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-lg border border-dashed">No extra sizes added.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {sizes.map((sz, idx) => (
-                      <div key={sz.id} className="flex items-start gap-3 p-3 bg-muted/20 rounded-lg border">
-                        <FormField
-                          control={form.control}
-                          name={`sizes.${idx}.label`}
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel className="text-xs">Label</FormLabel>
-                              <FormControl><Input placeholder="e.g. Large" {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`sizes.${idx}.price_override`}
-                          render={({ field }) => (
-                            <FormItem className="w-28">
-                              <FormLabel className="text-xs">Price (EGP)</FormLabel>
-                              <FormControl><Input type="number" step="0.5" {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`sizes.${idx}.display_order`}
-                          render={({ field }) => (
-                            <FormItem className="w-20">
-                              <FormLabel className="text-xs">Order</FormLabel>
-                              <FormControl><Input type="number" {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <Button type="button" variant="ghost" size="icon" className="mt-6 text-destructive flex-shrink-0" onClick={() => removeSizeField(idx)}>
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-            </DialogBody>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" loading={isPending}>{t("common.save")}</Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ── Addon Dialog ─────────────────────────────────────────────────────────────
-function AddonDialog({ open, onClose, edit, orgId }: { open: boolean; onClose: () => void; edit: AddonItem | null; orgId: string }) {
-  const { t } = useTranslation();
-  const qc = useQueryClient();
-
-  const form = useForm<AddonValues>({
-    resolver: zodResolver(addonSchema),
-    defaultValues: {
-      name: edit?.name ?? "",
-      name_translations: edit?.name_translations ?? {},
-      addon_type: edit?.addon_type ?? "extra",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default_price: (edit ? String(edit.default_price / 100) : "") as any,
-      display_order: edit?.display_order ?? 0,
-      is_active: edit?.is_active ?? true,
-    },
-  });
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: (v: AddonValues) =>
-      edit
-        ? updateAddonItem(edit.id, v as any)
-        : createAddonItem({ ...v, org_id: orgId } as any),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["addons"] });
-      toast.success(t("common.save"));
-      onClose();
-    },
-    onError: (e) => toast.error(getErrorMessage(e)),
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{edit ? t("menu.addonDialog.edit") : t("menu.addonDialog.new")}</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => mutate(v))}>
-            <DialogBody>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.name")} (EN)</FormLabel>
-                      <FormControl><Input placeholder={t("menu.addonDialog.namePh")} {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="name_translations.ar"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.name")} (AR)</FormLabel>
-                      <FormControl><Input placeholder="الاسم بالعربي" dir="rtl" {...field} value={field.value ?? ""} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="addon_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("menu.addonDialog.typeLabel")}</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="coffee_type">{t("menu.addonTypes.coffee_type")}</SelectItem>
-                          <SelectItem value="milk_type">{t("menu.addonTypes.milk_type")}</SelectItem>
-                          <SelectItem value="extra">{t("menu.addonTypes.extra")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="default_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("menu.addonDialog.defaultPrice")}</FormLabel>
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      <FormControl><Input type="number" step="0.5" {...(field as any)} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="display_order"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("menu.displayOrder")}</FormLabel>
-                    <FormControl><Input type="number" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </DialogBody>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" loading={isPending}>{t("common.save")}</Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 // ── Main ─────────────────────────────────────────────────────────────────────
 export default function Menu() {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const { orgId } = useCurrentContext();
-  const [tab, setTab] = useState<"items" | "categories" | "addons">("items");
+  // /menu/add-ons deep-links straight to the addons tab (C.1 route)
+  const [tab, setTab] = useState<"items" | "categories" | "addons">(
+    () => (window.location.pathname.endsWith("/add-ons") ? "addons" : "items"),
+  );
+  const [itemsView, setItemsView] = useState<"grid" | "classic">("grid");
 
   const [catDlg, setCatDlg] = useState(false);
   const [itemDlg, setItemDlg] = useState(false);
@@ -566,15 +65,22 @@ export default function Menu() {
   const { data: items = [], isLoading: itemsLoading } = useListMenuItems({ org_id: orgId as string, category_id: selCat === "all" ? undefined : selCat }, { query: { enabled: !!orgId } });
   const { data: addons = [], isLoading: addonsLoading } = useListAddonItems({ org_id: orgId as string, addon_type: selType === "all" ? undefined : selType }, { query: { enabled: !!orgId } });
 
+  // A.2: recipe-cost rollups joined per (menu_item_id, size_label)
+  const skuCostsByItem = useSkuCostsByItem(orgId);
+  const addonCostMap = useAddonCostMap(orgId);
+
   const toggleItem = useMutation({
     mutationFn: (it: MenuItem) => updateMenuItem(it.id, { is_active: !it.is_active } as any),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["menu-items"] }),
+    onSuccess: (_, it) => {
+      qc.invalidateQueries({ queryKey: getListMenuItemsQueryKey() });
+      qc.invalidateQueries({ queryKey: getGetMenuItemQueryKey(it.id) });
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
   const toggleAddon = useMutation({
     mutationFn: (a: AddonItem) => updateAddonItem(a.id, { is_active: !a.is_active } as any),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["addons"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: getListAddonItemsQueryKey() }),
     onError: (e) => toast.error(getErrorMessage(e)),
   });
 
@@ -582,7 +88,12 @@ export default function Menu() {
     mutationFn: (c: NonNullable<typeof confirmDelete>) =>
       c.kind === "cat" ? deleteCategory(c.id) : c.kind === "item" ? deleteMenuItem(c.id) : deleteAddonItem(c.id),
     onSuccess: (_, c) => {
-      qc.invalidateQueries({ queryKey: c.kind === "cat" ? ["categories"] : c.kind === "item" ? ["menu-items"] : ["addons"] });
+      qc.invalidateQueries({
+        queryKey:
+          c.kind === "cat" ? getListCategoriesQueryKey()
+          : c.kind === "item" ? getListMenuItemsQueryKey()
+          : getListAddonItemsQueryKey(),
+      });
       toast.success(t("common.delete"));
       setConfirmDelete(null);
     },
@@ -608,6 +119,11 @@ export default function Menu() {
       cell: ({ row }) => <span className="font-semibold tabular">{fmtMoney(row.original.base_price)}</span>,
     },
     {
+      id: "cost",
+      header: t("menu.costMargin"),
+      cell: ({ row }) => <ItemCostCell skus={skuCostsByItem.get(row.original.id) ?? []} />,
+    },
+    {
       accessorKey: "category_id",
       header: t("common.category"),
       cell: ({ row }) => {
@@ -628,17 +144,10 @@ export default function Menu() {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="iconSm" onClick={() => { setEditItem(row.original); setItemDlg(true); }}>
-            <Edit2 size={13} />
-          </Button>
-          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete({ kind: "item", id: row.original.id, name: row.original.name })}>
-            <Trash2 size={13} />
-          </Button>
-        </div>
+        <RowActions onEdit={() => { setEditItem(row.original); setItemDlg(true); }} onDelete={() => setConfirmDelete({ kind: "item", id: row.original.id, name: row.original.name })} />
       ),
     },
-  ], [categories, t, toggleItem]);
+  ], [categories, t, toggleItem, skuCostsByItem]);
 
   const catCols: ColumnDef<Category>[] = useMemo(() => [
     { accessorKey: "name", header: t("common.name"), cell: ({ row }) => <span className="font-semibold">{getTranslatedName(row.original, i18n.language)}</span> },
@@ -646,20 +155,13 @@ export default function Menu() {
     {
       accessorKey: "is_active",
       header: t("common.status"),
-      cell: ({ row }) => <Badge variant={row.original.is_active ? "success" : "outline"}>{row.original.is_active ? t("common.active") : t("common.inactive")}</Badge>,
+      cell: ({ row }) => <StatusBadge active={row.original.is_active} />,
     },
     {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="iconSm" onClick={() => { setEditCat(row.original); setCatDlg(true); }}>
-            <Edit2 size={13} />
-          </Button>
-          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete({ kind: "cat", id: row.original.id, name: row.original.name })}>
-            <Trash2 size={13} />
-          </Button>
-        </div>
+        <RowActions onEdit={() => { setEditCat(row.original); setCatDlg(true); }} onDelete={() => setConfirmDelete({ kind: "cat", id: row.original.id, name: row.original.name })} />
       ),
     },
   ], [t]);
@@ -677,6 +179,11 @@ export default function Menu() {
     },
     { accessorKey: "default_price", header: t("common.price"), cell: ({ row }) => <span className="tabular">{fmtMoney(row.original.default_price)}</span> },
     {
+      id: "cost",
+      header: t("menu.costMargin"),
+      cell: ({ row }) => <AddonCostCell cost={addonCostMap.get(row.original.id)} />,
+    },
+    {
       accessorKey: "is_active",
       header: t("common.active"),
       cell: ({ row }) => (
@@ -689,17 +196,10 @@ export default function Menu() {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="iconSm" onClick={() => { setEditAddon(row.original); setAddonDlg(true); }}>
-            <Edit2 size={13} />
-          </Button>
-          <Button variant="ghost" size="iconSm" className="text-destructive" onClick={() => setConfirmDelete({ kind: "addon", id: row.original.id, name: row.original.name })}>
-            <Trash2 size={13} />
-          </Button>
-        </div>
+        <RowActions onEdit={() => { setEditAddon(row.original); setAddonDlg(true); }} onDelete={() => setConfirmDelete({ kind: "addon", id: row.original.id, name: row.original.name })} />
       ),
     },
-  ], [t, toggleAddon]);
+  ], [t, toggleAddon, addonCostMap]);
 
   const handleExport = () =>
     exportToExcel({
@@ -777,12 +277,36 @@ export default function Menu() {
                 {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button size="sm" className="ms-auto" onClick={() => { setEditItem(null); setItemDlg(true); }}>
-              <Plus /> {t("menu.addItem")}
-            </Button>
+            {/* inline grid is the default; the classic table stays available */}
+            <SegmentedControl
+              value={itemsView}
+              onChange={setItemsView}
+              options={[
+                { value: "grid", label: t("menu.grid.views.grid") },
+                { value: "classic", label: t("menu.grid.views.classic") },
+              ]}
+            />
+            {itemsView === "classic" && (
+              <Button size="sm" className="ms-auto" onClick={() => { setEditItem(null); setItemDlg(true); }}>
+                <Plus /> {t("menu.addItem")}
+              </Button>
+            )}
           </div>
-          {itemsLoading ? (
-            <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}</div>
+          {itemsView === "grid" ? (
+            <div dir={i18n.language === "ar" ? "rtl" : "ltr"}>
+              <ItemsGrid
+                orgId={orgId}
+                items={items}
+                categories={categories}
+                skuCostsByItem={skuCostsByItem}
+                isLoading={itemsLoading}
+                onEditFull={(it) => { setEditItem(it); setItemDlg(true); }}
+                onDelete={(it) => setConfirmDelete({ kind: "item", id: it.id, name: it.name })}
+                onAdd={() => { setEditItem(null); setItemDlg(true); }}
+              />
+            </div>
+          ) : itemsLoading ? (
+            <SkeletonList count={5} />
           ) : items.length === 0 ? (
             <EmptyState icon={Coffee} title={t("menu.emptyItems")} />
           ) : (
@@ -799,7 +323,7 @@ export default function Menu() {
             </Button>
           </div>
           {catsLoading ? (
-            <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}</div>
+            <SkeletonList count={4} height="h-12" />
           ) : categories.length === 0 ? (
             <EmptyState icon={Tag} title={t("menu.emptyCategories")} />
           ) : (
@@ -825,7 +349,7 @@ export default function Menu() {
             </Button>
           </div>
           {addonsLoading ? (
-            <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}</div>
+            <SkeletonList count={5} height="h-12" />
           ) : addons.length === 0 ? (
             <EmptyState icon={Package} title={t("menu.emptyAddons")} />
           ) : (
@@ -837,7 +361,7 @@ export default function Menu() {
       </Tabs>
 
       <CategoryDialog open={catDlg} onClose={() => { setCatDlg(false); setEditCat(null); }} edit={editCat} orgId={orgId} key={`cat-${editCat?.id ?? "new"}`} />
-      <MenuItemDialog open={itemDlg} onClose={() => { setItemDlg(false); setEditItem(null); }} edit={editItem} orgId={orgId} categories={categories} key={`item-${editItem?.id ?? "new"}`} />
+      <MenuItemEditor open={itemDlg} onClose={() => { setItemDlg(false); setEditItem(null); }} edit={editItem} orgId={orgId} categories={categories} key={`item-${editItem?.id ?? "new"}`} />
       <AddonDialog open={addonDlg} onClose={() => { setAddonDlg(false); setEditAddon(null); }} edit={editAddon} orgId={orgId} key={`addon-${editAddon?.id ?? "new"}`} />
 
       <ConfirmDialog

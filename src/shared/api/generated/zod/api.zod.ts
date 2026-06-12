@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import * as zod from 'zod';
 
 
@@ -97,13 +95,13 @@ export const loginBodyPinRegExp = new RegExp('^[0-9]{4,6}$');
 
 
 export const LoginBody = zod.object({
-  "branch_id": zod.string().uuid().nullish().describe('Teller-only: locks the issued JWT to a specific branch.'),
+  "branch_id": zod.string().uuid().nullish().describe('Required for PIN login. The org is derived from this branch server-side.'),
   "email": zod.string().email().nullish(),
   "name": zod.string().nullish().describe('Teller\'s display name (required for PIN login, unused otherwise).'),
   "org_id": zod.string().uuid().nullish(),
   "password": zod.string().nullish(),
   "pin": zod.string().min(loginBodyPinMin).max(loginBodyPinMax).regex(loginBodyPinRegExp).nullish()
-}).describe('Login is dual-mode:\n\n- \*\*Email + password\*\* (admins, managers, super-admins): supply\n  `email` and `password`. `org_id` is optional — if provided, the\n  user must belong to that org; if omitted, lookup is by email only.\n- \*\*PIN + name\*\* (tellers): supply `name` and `pin`. The first\n  active teller with a matching name and a `pin_hash` that verifies\n  wins. `branch_id` may be supplied to lock the issued JWT to that\n  branch; tellers without a branch lock can later be reassigned.')
+}).describe('Login is dual-mode:\n\n- \*\*Email + password\*\* (admins, managers, super-admins): supply\n  `email` and `password`. `org_id` is optional — if provided, the\n  user must belong to that org; if omitted, lookup is by email only.\n- \*\*PIN + name\*\* (tellers): supply `name`, `pin`, and \*\*`branch_id`\*\*\n  (required). The teller must be assigned to that branch. `org_id` is\n  derived server-side from the branch — never trusted from the client.')
 
 export const LoginResponse = zod.object({
   "token": zod.string().describe('JWT to send as `Authorization: Bearer <token>` on subsequent requests.'),
@@ -143,6 +141,19 @@ export const GetMyPermissionsResponse = zod.object({
 })
 
 
+export const ResolveBranchBody = zod.object({
+  "latitude": zod.number().describe('Device GPS latitude (WGS-84).'),
+  "longitude": zod.number().describe('Device GPS longitude (WGS-84).'),
+  "org_id": zod.string().uuid().describe('Organization to search within.')
+})
+
+export const ResolveBranchResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "branch_name": zod.string(),
+  "distance_meters": zod.number().describe('Straight-line distance from the supplied coordinates to the branch, in metres.')
+})
+
+
 export const ListBranchesQueryParams = zod.object({
   "org_id": zod.string().uuid().describe('Organization whose branches to list. Must match the caller\'s JWT org.')
 })
@@ -150,8 +161,11 @@ export const ListBranchesQueryParams = zod.object({
 export const ListBranchesResponseItem = zod.object({
   "address": zod.string().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
+  "geo_radius_meters": zod.number().nullish().describe('Radius in meters within which this branch is considered a match. Defaults to 200.'),
   "id": zod.string().uuid(),
   "is_active": zod.boolean(),
+  "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
+  "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
   "org_id": zod.string().uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
@@ -167,6 +181,9 @@ export const ListBranchesResponse = zod.array(ListBranchesResponseItem)
 
 export const CreateBranchBody = zod.object({
   "address": zod.string().nullish(),
+  "geo_radius_meters": zod.number().nullish().describe('Geofence radius in meters. Defaults to 200.'),
+  "latitude": zod.number().nullish(),
+  "longitude": zod.number().nullish(),
   "name": zod.string(),
   "org_id": zod.string().uuid(),
   "phone": zod.string().nullish(),
@@ -184,8 +201,11 @@ export const GetBranchParams = zod.object({
 export const GetBranchResponse = zod.object({
   "address": zod.string().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
+  "geo_radius_meters": zod.number().nullish().describe('Radius in meters within which this branch is considered a match. Defaults to 200.'),
   "id": zod.string().uuid(),
   "is_active": zod.boolean(),
+  "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
+  "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
   "org_id": zod.string().uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
@@ -204,7 +224,10 @@ export const UpdateBranchParams = zod.object({
 
 export const UpdateBranchBody = zod.object({
   "address": zod.string().nullish(),
+  "geo_radius_meters": zod.number().nullish(),
   "is_active": zod.boolean().nullish(),
+  "latitude": zod.number().nullish(),
+  "longitude": zod.number().nullish(),
   "name": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
@@ -216,8 +239,11 @@ export const UpdateBranchBody = zod.object({
 export const UpdateBranchResponse = zod.object({
   "address": zod.string().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
+  "geo_radius_meters": zod.number().nullish().describe('Radius in meters within which this branch is considered a match. Defaults to 200.'),
   "id": zod.string().uuid(),
   "is_active": zod.boolean(),
+  "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
+  "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
   "org_id": zod.string().uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
@@ -611,6 +637,40 @@ export const UpdateCategoryResponse = zod.object({
 })
 
 
+export const ListAddonCostsQueryParams = zod.object({
+  "org_id": zod.string().uuid()
+})
+
+export const ListAddonCostsResponseItem = zod.object({
+  "addon_item_id": zod.string().uuid(),
+  "addon_type": zod.string(),
+  "cost": zod.number().nullish().describe('Ingredient cost rollup in piastres. `null` ⟺ unknown.'),
+  "cost_missing": zod.boolean(),
+  "margin_pct": zod.number().nullish(),
+  "name": zod.string(),
+  "price": zod.number().describe('Default price in piastres.')
+}).describe('Computed cost for one addon item.')
+export const ListAddonCostsResponse = zod.array(ListAddonCostsResponseItem)
+
+
+export const ListSkuCostsQueryParams = zod.object({
+  "org_id": zod.string().uuid()
+})
+
+export const ListSkuCostsResponseItem = zod.object({
+  "category_id": zod.string().uuid().nullish(),
+  "cost": zod.number().nullish().describe('Recipe cost rollup in piastres. `null` ⟺ unknown (no recipe, or any\ningredient unlinked \/ missing a cost).'),
+  "cost_missing": zod.boolean(),
+  "food_cost_pct": zod.number().nullish().describe('`cost \/ price` when both known and price > 0.'),
+  "item_name": zod.string(),
+  "margin_pct": zod.number().nullish().describe('`(price - cost) \/ price` when both known and price > 0.'),
+  "menu_item_id": zod.string().uuid(),
+  "price": zod.number().describe('Current price in piastres for this SKU.'),
+  "size_label": zod.string().describe('`\"one_size\"` when the item has no sizes.')
+}).describe('Computed cost for one sellable SKU (menu item × size).')
+export const ListSkuCostsResponse = zod.array(ListSkuCostsResponseItem)
+
+
 export const ListDiscountsQueryParams = zod.object({
   "org_id": zod.string().uuid()
 })
@@ -717,7 +777,7 @@ export const ListBranchStockParams = zod.object({
 export const ListBranchStockResponseItem = zod.object({
   "below_reorder": zod.boolean(),
   "branch_id": zod.string().uuid(),
-  "cost_per_unit": zod.number(),
+  "cost_per_unit": zod.number().nullish().describe('Piastres per unit; `null` ⟺ cost never entered.'),
   "created_at": zod.string().datetime({"offset":true}),
   "current_stock": zod.number(),
   "description": zod.string().nullish(),
@@ -761,7 +821,7 @@ export const UpdateBranchStockBody = zod.object({
 export const UpdateBranchStockResponse = zod.object({
   "below_reorder": zod.boolean(),
   "branch_id": zod.string().uuid(),
-  "cost_per_unit": zod.number(),
+  "cost_per_unit": zod.number().nullish().describe('Piastres per unit; `null` ⟺ cost never entered.'),
   "created_at": zod.string().datetime({"offset":true}),
   "current_stock": zod.number(),
   "description": zod.string().nullish(),
@@ -807,7 +867,7 @@ export const ListCatalogParams = zod.object({
 
 export const ListCatalogResponseItem = zod.object({
   "category": zod.string(),
-  "cost_per_unit": zod.number(),
+  "cost_per_unit": zod.number().nullish().describe('Piastres per unit. `null` ⟺ never entered (unknown, NOT free) —\nrecipes using this ingredient are cost-missing everywhere.'),
   "created_at": zod.string().datetime({"offset":true}),
   "description": zod.string().nullish(),
   "id": zod.string().uuid(),
@@ -855,7 +915,7 @@ export const UpdateCatalogItemBody = zod.object({
 
 export const UpdateCatalogItemResponse = zod.object({
   "category": zod.string(),
-  "cost_per_unit": zod.number(),
+  "cost_per_unit": zod.number().nullish().describe('Piastres per unit. `null` ⟺ never entered (unknown, NOT free) —\nrecipes using this ingredient are cost-missing everywhere.'),
   "created_at": zod.string().datetime({"offset":true}),
   "description": zod.string().nullish(),
   "id": zod.string().uuid(),
@@ -905,6 +965,933 @@ export const UpdateTransferResponse = zod.object({
   "source_branch_name": zod.string(),
   "unit": zod.string()
 })
+
+
+export const GetCalibrationHandlerParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch ID')
+})
+
+export const GetCalibrationHandlerQueryParams = zod.object({
+  "since": zod.string().datetime({"offset":true}).optional().describe('Only decisions made at or after this instant.')
+})
+
+export const GetCalibrationHandlerResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "cm_in_range_pct": zod.number().nullish().describe('Fraction of accepted CM suggestions whose realized price landed\nwithin ±2% of the suggested price. `None` below 10 samples.'),
+  "points_cm": zod.array(zod.object({
+  "classification_mode": zod.string().describe('Classification at suggestion time: \"cm\" or \"revenue\"'),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "item_name": zod.string(),
+  "menu_item_id": zod.string().uuid(),
+  "predicted_delta_pct": zod.number(),
+  "previous_price": zod.number(),
+  "realized_at": zod.string().datetime({"offset":true}),
+  "realized_delta_pct": zod.number(),
+  "realized_price": zod.number(),
+  "size_label": zod.string(),
+  "suggested_price": zod.number(),
+  "suggestion_id": zod.string().uuid()
+})),
+  "points_revenue": zod.array(zod.object({
+  "classification_mode": zod.string().describe('Classification at suggestion time: \"cm\" or \"revenue\"'),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "item_name": zod.string(),
+  "menu_item_id": zod.string().uuid(),
+  "predicted_delta_pct": zod.number(),
+  "previous_price": zod.number(),
+  "realized_at": zod.string().datetime({"offset":true}),
+  "realized_delta_pct": zod.number(),
+  "realized_price": zod.number(),
+  "size_label": zod.string(),
+  "suggested_price": zod.number(),
+  "suggestion_id": zod.string().uuid()
+})),
+  "revenue_in_range_pct": zod.number().nullish(),
+  "since": zod.string().datetime({"offset":true}).nullish()
+})
+
+
+export const ListDecisionsHandlerParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch ID')
+})
+
+export const ListDecisionsHandlerQueryParams = zod.object({
+  "since": zod.string().datetime({"offset":true}).optional().describe('Only decisions made at or after this instant.')
+})
+
+export const ListDecisionsHandlerResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "decided_by": zod.string().uuid(),
+  "decision": zod.enum(['accepted', 'rejected', 'ignored']),
+  "id": zod.string().uuid(),
+  "notes": zod.string().nullish(),
+  "suggestion_id": zod.string().uuid(),
+  "suggestion_kind": zod.enum(['price', 'bundle', 'removal'])
+})
+export const ListDecisionsHandlerResponse = zod.array(ListDecisionsHandlerResponseItem)
+
+
+export const GetLatestItemKpiHandlerParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch ID'),
+  "menu_item_id": zod.string().uuid().describe('Menu item ID'),
+  "size_label": zod.string().describe('Size label, e.g. one_size')
+})
+
+export const getLatestItemKpiHandlerResponseOnePeerComparisonTwoSameCategoryCountMin = 0;
+
+
+
+export const GetLatestItemKpiHandlerResponse = zod.object({
+  "action": zod.enum(['hold', 'raise_price', 'lower_price', 'bundle', 'remove', 'reformulate', 'monitor']),
+  "anchors": zod.object({
+  "cost_plus": zod.number().nullish(),
+  "peer_median": zod.number(),
+  "status_quo": zod.number()
+}).describe('Two anchors are universal; the cost-plus anchor is only meaningful with\ncost data, so it\'s optional.'),
+  "classification": zod.union([zod.object({
+  "mode": zod.enum(['cm']),
+  "quadrant": zod.enum(['star', 'plowhorse', 'puzzle', 'dog'])
+}),zod.object({
+  "class": zod.enum(['hero', 'steady', 'slow', 'quiet']),
+  "mode": zod.enum(['revenue'])
+}),zod.object({
+  "mode": zod.enum(['insufficient'])
+})]).describe('Wire shape: `{\"mode\":\"cm\",\"quadrant\":\"star\"}` \/ `{\"mode\":\"revenue\",\"class\":\"hero\"}`\n\/ `{\"mode\":\"insufficient\"}`. By construction `Cm` only ever describes\ncost-tracked items and `Revenue` only cost-missing ones.'),
+  "cm_per_unit": zod.number().nullish(),
+  "confidence": zod.enum(['low', 'medium', 'high']),
+  "cost_missing": zod.boolean().describe('True when cost data is unavailable for this item. Mirrors\n`classification` mode, exposed flat for UI badge rendering.'),
+  "cost_reduction_whatif_margin": zod.number().nullish().describe('Only computed for CM-tracked Plowhorses.'),
+  "current_price": zod.number(),
+  "effective_price": zod.number(),
+  "explanation": zod.string(),
+  "food_cost_pct": zod.number().nullish(),
+  "guard_clips": zod.array(zod.enum(['margin_floor', 'change_cap', 'cultural_rounding'])),
+  "item_name": zod.string(),
+  "key": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "margin_pct": zod.number().nullish(),
+  "peer_comparison": zod.union([zod.null(),zod.object({
+  "median_cm_per_unit_peers": zod.number().nullish(),
+  "median_effective_price_peers": zod.number(),
+  "median_margin_pct_peers": zod.number().nullish().describe('Only set when this item is CM-tracked AND peers are CM-tracked too.'),
+  "same_category_count": zod.number().min(getLatestItemKpiHandlerResponseOnePeerComparisonTwoSameCategoryCountMin),
+  "your_position": zod.enum(['above', 'at', 'below'])
+})]).optional(),
+  "popularity_share": zod.number(),
+  "price_changed_in_window": zod.boolean(),
+  "suggested_delta_abs": zod.number().nullish(),
+  "suggested_delta_pct": zod.number().nullish(),
+  "suggested_price": zod.number().nullish(),
+  "units_sold_raw": zod.number()
+}).and(zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "decision": zod.union([zod.null(),zod.object({
+  "branch_id": zod.string().uuid(),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "decided_by": zod.string().uuid(),
+  "decision": zod.enum(['accepted', 'rejected', 'ignored']),
+  "id": zod.string().uuid(),
+  "notes": zod.string().nullish(),
+  "suggestion_id": zod.string().uuid(),
+  "suggestion_kind": zod.enum(['price', 'bundle', 'removal'])
+})]).optional(),
+  "id": zod.string().uuid(),
+  "run_id": zod.string().uuid()
+}))
+
+
+export const ListRunsHandlerParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch ID')
+})
+
+export const ListRunsHandlerQueryParams = zod.object({
+  "limit": zod.number().optional().describe('Page size, clamped to [1, 100]. Default 20.'),
+  "before": zod.string().datetime({"offset":true}).optional().describe('Return runs started strictly before this instant (pagination cursor).')
+})
+
+export const listRunsHandlerResponseConfigAnalysisWindowDaysDefault = 30;
+export const listRunsHandlerResponseConfigBundleDiscountPctRangeDefault = [0.1, 0.25];
+export const listRunsHandlerResponseConfigBundleMaxSizeDefault = 3;
+export const listRunsHandlerResponseConfigBundleMaxSizeMin = 0;
+
+export const listRunsHandlerResponseConfigBundleTopKPartnersDefault = 5;
+export const listRunsHandlerResponseConfigBundleTopKPartnersMin = 0;
+
+export const listRunsHandlerResponseConfigBundleTopNPerFocusDefault = 3;
+export const listRunsHandlerResponseConfigBundleTopNPerFocusMin = 0;
+
+export const listRunsHandlerResponseConfigHaloRepeatRateDefault = 0.15;
+export const listRunsHandlerResponseConfigMaxPriceChangePctPerCycleDefault = 0.15;
+export const listRunsHandlerResponseConfigMinCooccurrencesForBundleDefault = 8;
+export const listRunsHandlerResponseConfigMinGrossMarginPctDefault = 0.55;
+export const listRunsHandlerResponseConfigMinLiftForBundleDefault = 1.2;
+export const listRunsHandlerResponseConfigMinUnitsForClassificationDefault = 20;
+export const listRunsHandlerResponseConfigPriceRoundingRuleDefault = `EgyptianCafe`;
+export const listRunsHandlerResponseConfigPromotionLiftPriorDefault = 1.25;
+export const listRunsHandlerResponseConfigRecencyHalfLifeDaysDefault = 14;
+export const listRunsHandlerResponseConfigRevenueModeMaxRaisePctDefault = 0.05;
+export const listRunsHandlerResponseConfigTargetFoodCostPctDefault = 0.3;
+export const listRunsHandlerResponseModeSummaryItemsCmTrackedMin = 0;
+
+export const listRunsHandlerResponseModeSummaryItemsInsufficientMin = 0;
+
+export const listRunsHandlerResponseModeSummaryItemsRevenueOnlyMin = 0;
+
+export const listRunsHandlerResponseModeSummaryItemsTotalMin = 0;
+
+
+
+export const ListRunsHandlerResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "completed_at": zod.string().datetime({"offset":true}).nullish(),
+  "config": zod.object({
+  "analysis_window_days": zod.number().default(listRunsHandlerResponseConfigAnalysisWindowDaysDefault),
+  "bundle_discount_pct_range": zod.tuple([zod.number(),
+zod.number()]).default(listRunsHandlerResponseConfigBundleDiscountPctRangeDefault),
+  "bundle_max_size": zod.number().min(listRunsHandlerResponseConfigBundleMaxSizeMin).default(listRunsHandlerResponseConfigBundleMaxSizeDefault),
+  "bundle_top_k_partners": zod.number().min(listRunsHandlerResponseConfigBundleTopKPartnersMin).default(listRunsHandlerResponseConfigBundleTopKPartnersDefault),
+  "bundle_top_n_per_focus": zod.number().min(listRunsHandlerResponseConfigBundleTopNPerFocusMin).default(listRunsHandlerResponseConfigBundleTopNPerFocusDefault),
+  "halo_repeat_rate": zod.number().default(listRunsHandlerResponseConfigHaloRepeatRateDefault),
+  "max_price_change_pct_per_cycle": zod.number().default(listRunsHandlerResponseConfigMaxPriceChangePctPerCycleDefault),
+  "min_cooccurrences_for_bundle": zod.number().default(listRunsHandlerResponseConfigMinCooccurrencesForBundleDefault),
+  "min_gross_margin_pct": zod.number().default(listRunsHandlerResponseConfigMinGrossMarginPctDefault),
+  "min_lift_for_bundle": zod.number().default(listRunsHandlerResponseConfigMinLiftForBundleDefault),
+  "min_units_for_classification": zod.number().default(listRunsHandlerResponseConfigMinUnitsForClassificationDefault),
+  "price_rounding_rule": zod.enum(['EgyptianCafe', 'NearestUnit']).describe('Serializes as `\"EgyptianCafe\"` \/ `\"NearestUnit\"` — PascalCase on the wire\n(no `rename_all`); existing clients depend on it.').default(listRunsHandlerResponseConfigPriceRoundingRuleDefault),
+  "promotion_lift_prior": zod.number().default(listRunsHandlerResponseConfigPromotionLiftPriorDefault),
+  "recency_half_life_days": zod.number().default(listRunsHandlerResponseConfigRecencyHalfLifeDaysDefault),
+  "revenue_mode_max_raise_pct": zod.number().default(listRunsHandlerResponseConfigRevenueModeMaxRaisePctDefault).describe('Conservative max-raise cap for revenue-only items (no margin floor to\nguard against).'),
+  "target_food_cost_pct": zod.number().default(listRunsHandlerResponseConfigTargetFoodCostPctDefault)
+}).describe('`#[serde(default)]` lets clients send partial configs; missing fields\ntake the values below. Output serialization is unaffected.'),
+  "error_message": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "mode_summary": zod.object({
+  "items_cm_tracked": zod.number().min(listRunsHandlerResponseModeSummaryItemsCmTrackedMin),
+  "items_insufficient": zod.number().min(listRunsHandlerResponseModeSummaryItemsInsufficientMin),
+  "items_revenue_only": zod.number().min(listRunsHandlerResponseModeSummaryItemsRevenueOnlyMin),
+  "items_total": zod.number().min(listRunsHandlerResponseModeSummaryItemsTotalMin)
+}),
+  "org_id": zod.string().uuid(),
+  "started_at": zod.string().datetime({"offset":true}),
+  "status": zod.enum(['in_progress', 'completed', 'failed']),
+  "window_days": zod.number()
+})
+export const ListRunsHandlerResponse = zod.array(ListRunsHandlerResponseItem)
+
+
+export const CreateRunHandlerParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch ID')
+})
+
+export const createRunHandlerBodyConfigTwoAnalysisWindowDaysDefault = 30;
+export const createRunHandlerBodyConfigTwoBundleDiscountPctRangeDefault = [0.1, 0.25];
+export const createRunHandlerBodyConfigTwoBundleMaxSizeDefault = 3;
+export const createRunHandlerBodyConfigTwoBundleMaxSizeMin = 0;
+
+export const createRunHandlerBodyConfigTwoBundleTopKPartnersDefault = 5;
+export const createRunHandlerBodyConfigTwoBundleTopKPartnersMin = 0;
+
+export const createRunHandlerBodyConfigTwoBundleTopNPerFocusDefault = 3;
+export const createRunHandlerBodyConfigTwoBundleTopNPerFocusMin = 0;
+
+export const createRunHandlerBodyConfigTwoHaloRepeatRateDefault = 0.15;
+export const createRunHandlerBodyConfigTwoMaxPriceChangePctPerCycleDefault = 0.15;
+export const createRunHandlerBodyConfigTwoMinCooccurrencesForBundleDefault = 8;
+export const createRunHandlerBodyConfigTwoMinGrossMarginPctDefault = 0.55;
+export const createRunHandlerBodyConfigTwoMinLiftForBundleDefault = 1.2;
+export const createRunHandlerBodyConfigTwoMinUnitsForClassificationDefault = 20;
+export const createRunHandlerBodyConfigTwoPriceRoundingRuleDefault = `EgyptianCafe`;
+export const createRunHandlerBodyConfigTwoPromotionLiftPriorDefault = 1.25;
+export const createRunHandlerBodyConfigTwoRecencyHalfLifeDaysDefault = 14;
+export const createRunHandlerBodyConfigTwoRevenueModeMaxRaisePctDefault = 0.05;
+export const createRunHandlerBodyConfigTwoTargetFoodCostPctDefault = 0.3;
+
+export const CreateRunHandlerBody = zod.object({
+  "config": zod.union([zod.null(),zod.object({
+  "analysis_window_days": zod.number().default(createRunHandlerBodyConfigTwoAnalysisWindowDaysDefault),
+  "bundle_discount_pct_range": zod.tuple([zod.number(),
+zod.number()]).default(createRunHandlerBodyConfigTwoBundleDiscountPctRangeDefault),
+  "bundle_max_size": zod.number().min(createRunHandlerBodyConfigTwoBundleMaxSizeMin).default(createRunHandlerBodyConfigTwoBundleMaxSizeDefault),
+  "bundle_top_k_partners": zod.number().min(createRunHandlerBodyConfigTwoBundleTopKPartnersMin).default(createRunHandlerBodyConfigTwoBundleTopKPartnersDefault),
+  "bundle_top_n_per_focus": zod.number().min(createRunHandlerBodyConfigTwoBundleTopNPerFocusMin).default(createRunHandlerBodyConfigTwoBundleTopNPerFocusDefault),
+  "halo_repeat_rate": zod.number().default(createRunHandlerBodyConfigTwoHaloRepeatRateDefault),
+  "max_price_change_pct_per_cycle": zod.number().default(createRunHandlerBodyConfigTwoMaxPriceChangePctPerCycleDefault),
+  "min_cooccurrences_for_bundle": zod.number().default(createRunHandlerBodyConfigTwoMinCooccurrencesForBundleDefault),
+  "min_gross_margin_pct": zod.number().default(createRunHandlerBodyConfigTwoMinGrossMarginPctDefault),
+  "min_lift_for_bundle": zod.number().default(createRunHandlerBodyConfigTwoMinLiftForBundleDefault),
+  "min_units_for_classification": zod.number().default(createRunHandlerBodyConfigTwoMinUnitsForClassificationDefault),
+  "price_rounding_rule": zod.enum(['EgyptianCafe', 'NearestUnit']).describe('Serializes as `\"EgyptianCafe\"` \/ `\"NearestUnit\"` — PascalCase on the wire\n(no `rename_all`); existing clients depend on it.').default(createRunHandlerBodyConfigTwoPriceRoundingRuleDefault),
+  "promotion_lift_prior": zod.number().default(createRunHandlerBodyConfigTwoPromotionLiftPriorDefault),
+  "recency_half_life_days": zod.number().default(createRunHandlerBodyConfigTwoRecencyHalfLifeDaysDefault),
+  "revenue_mode_max_raise_pct": zod.number().default(createRunHandlerBodyConfigTwoRevenueModeMaxRaisePctDefault).describe('Conservative max-raise cap for revenue-only items (no margin floor to\nguard against).'),
+  "target_food_cost_pct": zod.number().default(createRunHandlerBodyConfigTwoTargetFoodCostPctDefault)
+}).describe('`#[serde(default)]` lets clients send partial configs; missing fields\ntake the values below. Output serialization is unaffected.')]).optional()
+})
+
+
+export const GetActiveRunHandlerParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch ID')
+})
+
+export const getActiveRunHandlerResponseConfigAnalysisWindowDaysDefault = 30;
+export const getActiveRunHandlerResponseConfigBundleDiscountPctRangeDefault = [0.1, 0.25];
+export const getActiveRunHandlerResponseConfigBundleMaxSizeDefault = 3;
+export const getActiveRunHandlerResponseConfigBundleMaxSizeMin = 0;
+
+export const getActiveRunHandlerResponseConfigBundleTopKPartnersDefault = 5;
+export const getActiveRunHandlerResponseConfigBundleTopKPartnersMin = 0;
+
+export const getActiveRunHandlerResponseConfigBundleTopNPerFocusDefault = 3;
+export const getActiveRunHandlerResponseConfigBundleTopNPerFocusMin = 0;
+
+export const getActiveRunHandlerResponseConfigHaloRepeatRateDefault = 0.15;
+export const getActiveRunHandlerResponseConfigMaxPriceChangePctPerCycleDefault = 0.15;
+export const getActiveRunHandlerResponseConfigMinCooccurrencesForBundleDefault = 8;
+export const getActiveRunHandlerResponseConfigMinGrossMarginPctDefault = 0.55;
+export const getActiveRunHandlerResponseConfigMinLiftForBundleDefault = 1.2;
+export const getActiveRunHandlerResponseConfigMinUnitsForClassificationDefault = 20;
+export const getActiveRunHandlerResponseConfigPriceRoundingRuleDefault = `EgyptianCafe`;
+export const getActiveRunHandlerResponseConfigPromotionLiftPriorDefault = 1.25;
+export const getActiveRunHandlerResponseConfigRecencyHalfLifeDaysDefault = 14;
+export const getActiveRunHandlerResponseConfigRevenueModeMaxRaisePctDefault = 0.05;
+export const getActiveRunHandlerResponseConfigTargetFoodCostPctDefault = 0.3;
+export const getActiveRunHandlerResponseModeSummaryItemsCmTrackedMin = 0;
+
+export const getActiveRunHandlerResponseModeSummaryItemsInsufficientMin = 0;
+
+export const getActiveRunHandlerResponseModeSummaryItemsRevenueOnlyMin = 0;
+
+export const getActiveRunHandlerResponseModeSummaryItemsTotalMin = 0;
+
+
+
+export const GetActiveRunHandlerResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "completed_at": zod.string().datetime({"offset":true}).nullish(),
+  "config": zod.object({
+  "analysis_window_days": zod.number().default(getActiveRunHandlerResponseConfigAnalysisWindowDaysDefault),
+  "bundle_discount_pct_range": zod.tuple([zod.number(),
+zod.number()]).default(getActiveRunHandlerResponseConfigBundleDiscountPctRangeDefault),
+  "bundle_max_size": zod.number().min(getActiveRunHandlerResponseConfigBundleMaxSizeMin).default(getActiveRunHandlerResponseConfigBundleMaxSizeDefault),
+  "bundle_top_k_partners": zod.number().min(getActiveRunHandlerResponseConfigBundleTopKPartnersMin).default(getActiveRunHandlerResponseConfigBundleTopKPartnersDefault),
+  "bundle_top_n_per_focus": zod.number().min(getActiveRunHandlerResponseConfigBundleTopNPerFocusMin).default(getActiveRunHandlerResponseConfigBundleTopNPerFocusDefault),
+  "halo_repeat_rate": zod.number().default(getActiveRunHandlerResponseConfigHaloRepeatRateDefault),
+  "max_price_change_pct_per_cycle": zod.number().default(getActiveRunHandlerResponseConfigMaxPriceChangePctPerCycleDefault),
+  "min_cooccurrences_for_bundle": zod.number().default(getActiveRunHandlerResponseConfigMinCooccurrencesForBundleDefault),
+  "min_gross_margin_pct": zod.number().default(getActiveRunHandlerResponseConfigMinGrossMarginPctDefault),
+  "min_lift_for_bundle": zod.number().default(getActiveRunHandlerResponseConfigMinLiftForBundleDefault),
+  "min_units_for_classification": zod.number().default(getActiveRunHandlerResponseConfigMinUnitsForClassificationDefault),
+  "price_rounding_rule": zod.enum(['EgyptianCafe', 'NearestUnit']).describe('Serializes as `\"EgyptianCafe\"` \/ `\"NearestUnit\"` — PascalCase on the wire\n(no `rename_all`); existing clients depend on it.').default(getActiveRunHandlerResponseConfigPriceRoundingRuleDefault),
+  "promotion_lift_prior": zod.number().default(getActiveRunHandlerResponseConfigPromotionLiftPriorDefault),
+  "recency_half_life_days": zod.number().default(getActiveRunHandlerResponseConfigRecencyHalfLifeDaysDefault),
+  "revenue_mode_max_raise_pct": zod.number().default(getActiveRunHandlerResponseConfigRevenueModeMaxRaisePctDefault).describe('Conservative max-raise cap for revenue-only items (no margin floor to\nguard against).'),
+  "target_food_cost_pct": zod.number().default(getActiveRunHandlerResponseConfigTargetFoodCostPctDefault)
+}).describe('`#[serde(default)]` lets clients send partial configs; missing fields\ntake the values below. Output serialization is unaffected.'),
+  "error_message": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "mode_summary": zod.object({
+  "items_cm_tracked": zod.number().min(getActiveRunHandlerResponseModeSummaryItemsCmTrackedMin),
+  "items_insufficient": zod.number().min(getActiveRunHandlerResponseModeSummaryItemsInsufficientMin),
+  "items_revenue_only": zod.number().min(getActiveRunHandlerResponseModeSummaryItemsRevenueOnlyMin),
+  "items_total": zod.number().min(getActiveRunHandlerResponseModeSummaryItemsTotalMin)
+}),
+  "org_id": zod.string().uuid(),
+  "started_at": zod.string().datetime({"offset":true}),
+  "status": zod.enum(['in_progress', 'completed', 'failed']),
+  "window_days": zod.number()
+})
+
+
+export const GetLatestRunHandlerParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch ID')
+})
+
+export const GetLatestRunHandlerQueryParams = zod.object({
+  "any_status": zod.boolean().optional().describe('When true, return the latest run regardless of status so the client\ncan show failed runs (error_message) instead of an empty state.')
+})
+
+export const getLatestRunHandlerResponseConfigAnalysisWindowDaysDefault = 30;
+export const getLatestRunHandlerResponseConfigBundleDiscountPctRangeDefault = [0.1, 0.25];
+export const getLatestRunHandlerResponseConfigBundleMaxSizeDefault = 3;
+export const getLatestRunHandlerResponseConfigBundleMaxSizeMin = 0;
+
+export const getLatestRunHandlerResponseConfigBundleTopKPartnersDefault = 5;
+export const getLatestRunHandlerResponseConfigBundleTopKPartnersMin = 0;
+
+export const getLatestRunHandlerResponseConfigBundleTopNPerFocusDefault = 3;
+export const getLatestRunHandlerResponseConfigBundleTopNPerFocusMin = 0;
+
+export const getLatestRunHandlerResponseConfigHaloRepeatRateDefault = 0.15;
+export const getLatestRunHandlerResponseConfigMaxPriceChangePctPerCycleDefault = 0.15;
+export const getLatestRunHandlerResponseConfigMinCooccurrencesForBundleDefault = 8;
+export const getLatestRunHandlerResponseConfigMinGrossMarginPctDefault = 0.55;
+export const getLatestRunHandlerResponseConfigMinLiftForBundleDefault = 1.2;
+export const getLatestRunHandlerResponseConfigMinUnitsForClassificationDefault = 20;
+export const getLatestRunHandlerResponseConfigPriceRoundingRuleDefault = `EgyptianCafe`;
+export const getLatestRunHandlerResponseConfigPromotionLiftPriorDefault = 1.25;
+export const getLatestRunHandlerResponseConfigRecencyHalfLifeDaysDefault = 14;
+export const getLatestRunHandlerResponseConfigRevenueModeMaxRaisePctDefault = 0.05;
+export const getLatestRunHandlerResponseConfigTargetFoodCostPctDefault = 0.3;
+export const getLatestRunHandlerResponseModeSummaryItemsCmTrackedMin = 0;
+
+export const getLatestRunHandlerResponseModeSummaryItemsInsufficientMin = 0;
+
+export const getLatestRunHandlerResponseModeSummaryItemsRevenueOnlyMin = 0;
+
+export const getLatestRunHandlerResponseModeSummaryItemsTotalMin = 0;
+
+
+
+export const GetLatestRunHandlerResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "completed_at": zod.string().datetime({"offset":true}).nullish(),
+  "config": zod.object({
+  "analysis_window_days": zod.number().default(getLatestRunHandlerResponseConfigAnalysisWindowDaysDefault),
+  "bundle_discount_pct_range": zod.tuple([zod.number(),
+zod.number()]).default(getLatestRunHandlerResponseConfigBundleDiscountPctRangeDefault),
+  "bundle_max_size": zod.number().min(getLatestRunHandlerResponseConfigBundleMaxSizeMin).default(getLatestRunHandlerResponseConfigBundleMaxSizeDefault),
+  "bundle_top_k_partners": zod.number().min(getLatestRunHandlerResponseConfigBundleTopKPartnersMin).default(getLatestRunHandlerResponseConfigBundleTopKPartnersDefault),
+  "bundle_top_n_per_focus": zod.number().min(getLatestRunHandlerResponseConfigBundleTopNPerFocusMin).default(getLatestRunHandlerResponseConfigBundleTopNPerFocusDefault),
+  "halo_repeat_rate": zod.number().default(getLatestRunHandlerResponseConfigHaloRepeatRateDefault),
+  "max_price_change_pct_per_cycle": zod.number().default(getLatestRunHandlerResponseConfigMaxPriceChangePctPerCycleDefault),
+  "min_cooccurrences_for_bundle": zod.number().default(getLatestRunHandlerResponseConfigMinCooccurrencesForBundleDefault),
+  "min_gross_margin_pct": zod.number().default(getLatestRunHandlerResponseConfigMinGrossMarginPctDefault),
+  "min_lift_for_bundle": zod.number().default(getLatestRunHandlerResponseConfigMinLiftForBundleDefault),
+  "min_units_for_classification": zod.number().default(getLatestRunHandlerResponseConfigMinUnitsForClassificationDefault),
+  "price_rounding_rule": zod.enum(['EgyptianCafe', 'NearestUnit']).describe('Serializes as `\"EgyptianCafe\"` \/ `\"NearestUnit\"` — PascalCase on the wire\n(no `rename_all`); existing clients depend on it.').default(getLatestRunHandlerResponseConfigPriceRoundingRuleDefault),
+  "promotion_lift_prior": zod.number().default(getLatestRunHandlerResponseConfigPromotionLiftPriorDefault),
+  "recency_half_life_days": zod.number().default(getLatestRunHandlerResponseConfigRecencyHalfLifeDaysDefault),
+  "revenue_mode_max_raise_pct": zod.number().default(getLatestRunHandlerResponseConfigRevenueModeMaxRaisePctDefault).describe('Conservative max-raise cap for revenue-only items (no margin floor to\nguard against).'),
+  "target_food_cost_pct": zod.number().default(getLatestRunHandlerResponseConfigTargetFoodCostPctDefault)
+}).describe('`#[serde(default)]` lets clients send partial configs; missing fields\ntake the values below. Output serialization is unaffected.'),
+  "error_message": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "mode_summary": zod.object({
+  "items_cm_tracked": zod.number().min(getLatestRunHandlerResponseModeSummaryItemsCmTrackedMin),
+  "items_insufficient": zod.number().min(getLatestRunHandlerResponseModeSummaryItemsInsufficientMin),
+  "items_revenue_only": zod.number().min(getLatestRunHandlerResponseModeSummaryItemsRevenueOnlyMin),
+  "items_total": zod.number().min(getLatestRunHandlerResponseModeSummaryItemsTotalMin)
+}),
+  "org_id": zod.string().uuid(),
+  "started_at": zod.string().datetime({"offset":true}),
+  "status": zod.enum(['in_progress', 'completed', 'failed']),
+  "window_days": zod.number()
+})
+
+
+export const GetBundleSuggestionHandlerParams = zod.object({
+  "id": zod.string().uuid().describe('Bundle suggestion ID')
+})
+
+export const GetBundleSuggestionHandlerResponse = zod.object({
+  "association": zod.object({
+  "composite_score": zod.number(),
+  "pair_lifts": zod.array(zod.object({
+  "confidence_ab": zod.number().describe('Directional: P(item_b in basket | item_a in basket), item_a = focus.'),
+  "item_a": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "item_b": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "lift": zod.number(),
+  "support": zod.number()
+}))
+}),
+  "bundle_cm": zod.number().nullish(),
+  "bundle_cost": zod.number().nullish().describe('All cost-derived fields are `None` when any component lacks cost data.'),
+  "bundle_discount_pct": zod.number(),
+  "bundle_items": zod.array(zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.')),
+  "bundle_list_price": zod.number(),
+  "bundle_margin_pct": zod.number().nullish(),
+  "bundle_suggested_price": zod.number(),
+  "explanation": zod.string(),
+  "focus_item": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "forecast": zod.object({
+  "expected_velocity": zod.object({
+  "hi": zod.number(),
+  "lo": zod.number(),
+  "mid": zod.number()
+}),
+  "halo_units_x": zod.number(),
+  "incremental_cm": zod.union([zod.null(),zod.object({
+  "hi": zod.number(),
+  "lo": zod.number(),
+  "mid": zod.number()
+}).describe('`None` when any component is cost-missing — CM math is impossible.')]).optional(),
+  "inside_bundle_units_x": zod.number(),
+  "total_units_uplift_x": zod.number()
+}),
+  "guard_clips": zod.array(zod.enum(['margin_floor', 'change_cap', 'cultural_rounding'])),
+  "missing_costs": zod.boolean().describe('True ⟺ at least one component is cost-missing.')
+}).and(zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "decision": zod.union([zod.null(),zod.object({
+  "branch_id": zod.string().uuid(),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "decided_by": zod.string().uuid(),
+  "decision": zod.enum(['accepted', 'rejected', 'ignored']),
+  "id": zod.string().uuid(),
+  "notes": zod.string().nullish(),
+  "suggestion_id": zod.string().uuid(),
+  "suggestion_kind": zod.enum(['price', 'bundle', 'removal'])
+})]).optional(),
+  "id": zod.string().uuid(),
+  "promoted_bundle_id": zod.string().uuid().nullish(),
+  "run_id": zod.string().uuid()
+}))
+
+
+export const SetBundlePromotedHandlerParams = zod.object({
+  "id": zod.string().uuid().describe('Bundle suggestion ID')
+})
+
+export const SetBundlePromotedHandlerBody = zod.object({
+  "bundle_id": zod.string().uuid()
+})
+
+
+export const RecordDecisionHandlerBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "decision": zod.string().describe('accepted | rejected | ignored — kept as a string so invalid values\nyield a 400 instead of a deserialization error.'),
+  "notes": zod.string().nullish(),
+  "suggestion_id": zod.string().uuid(),
+  "suggestion_kind": zod.enum(['price', 'bundle', 'removal'])
+})
+
+export const RecordDecisionHandlerResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "decided_by": zod.string().uuid(),
+  "decision": zod.enum(['accepted', 'rejected', 'ignored']),
+  "id": zod.string().uuid(),
+  "notes": zod.string().nullish(),
+  "suggestion_id": zod.string().uuid(),
+  "suggestion_kind": zod.enum(['price', 'bundle', 'removal'])
+})
+
+
+export const GetPriceSuggestionHandlerParams = zod.object({
+  "id": zod.string().uuid().describe('Price suggestion ID')
+})
+
+export const getPriceSuggestionHandlerResponseOnePeerComparisonTwoSameCategoryCountMin = 0;
+
+
+
+export const GetPriceSuggestionHandlerResponse = zod.object({
+  "action": zod.enum(['hold', 'raise_price', 'lower_price', 'bundle', 'remove', 'reformulate', 'monitor']),
+  "anchors": zod.object({
+  "cost_plus": zod.number().nullish(),
+  "peer_median": zod.number(),
+  "status_quo": zod.number()
+}).describe('Two anchors are universal; the cost-plus anchor is only meaningful with\ncost data, so it\'s optional.'),
+  "classification": zod.union([zod.object({
+  "mode": zod.enum(['cm']),
+  "quadrant": zod.enum(['star', 'plowhorse', 'puzzle', 'dog'])
+}),zod.object({
+  "class": zod.enum(['hero', 'steady', 'slow', 'quiet']),
+  "mode": zod.enum(['revenue'])
+}),zod.object({
+  "mode": zod.enum(['insufficient'])
+})]).describe('Wire shape: `{\"mode\":\"cm\",\"quadrant\":\"star\"}` \/ `{\"mode\":\"revenue\",\"class\":\"hero\"}`\n\/ `{\"mode\":\"insufficient\"}`. By construction `Cm` only ever describes\ncost-tracked items and `Revenue` only cost-missing ones.'),
+  "cm_per_unit": zod.number().nullish(),
+  "confidence": zod.enum(['low', 'medium', 'high']),
+  "cost_missing": zod.boolean().describe('True when cost data is unavailable for this item. Mirrors\n`classification` mode, exposed flat for UI badge rendering.'),
+  "cost_reduction_whatif_margin": zod.number().nullish().describe('Only computed for CM-tracked Plowhorses.'),
+  "current_price": zod.number(),
+  "effective_price": zod.number(),
+  "explanation": zod.string(),
+  "food_cost_pct": zod.number().nullish(),
+  "guard_clips": zod.array(zod.enum(['margin_floor', 'change_cap', 'cultural_rounding'])),
+  "item_name": zod.string(),
+  "key": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "margin_pct": zod.number().nullish(),
+  "peer_comparison": zod.union([zod.null(),zod.object({
+  "median_cm_per_unit_peers": zod.number().nullish(),
+  "median_effective_price_peers": zod.number(),
+  "median_margin_pct_peers": zod.number().nullish().describe('Only set when this item is CM-tracked AND peers are CM-tracked too.'),
+  "same_category_count": zod.number().min(getPriceSuggestionHandlerResponseOnePeerComparisonTwoSameCategoryCountMin),
+  "your_position": zod.enum(['above', 'at', 'below'])
+})]).optional(),
+  "popularity_share": zod.number(),
+  "price_changed_in_window": zod.boolean(),
+  "suggested_delta_abs": zod.number().nullish(),
+  "suggested_delta_pct": zod.number().nullish(),
+  "suggested_price": zod.number().nullish(),
+  "units_sold_raw": zod.number()
+}).and(zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "decision": zod.union([zod.null(),zod.object({
+  "branch_id": zod.string().uuid(),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "decided_by": zod.string().uuid(),
+  "decision": zod.enum(['accepted', 'rejected', 'ignored']),
+  "id": zod.string().uuid(),
+  "notes": zod.string().nullish(),
+  "suggestion_id": zod.string().uuid(),
+  "suggestion_kind": zod.enum(['price', 'bundle', 'removal'])
+})]).optional(),
+  "id": zod.string().uuid(),
+  "run_id": zod.string().uuid()
+}))
+
+
+export const GetRemovalScenarioHandlerParams = zod.object({
+  "id": zod.string().uuid().describe('Removal scenario ID')
+})
+
+export const GetRemovalScenarioHandlerResponse = zod.object({
+  "absorbed_by": zod.array(zod.object({
+  "absorbed_cm": zod.number(),
+  "absorbed_units": zod.number(),
+  "key": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.')
+})),
+  "baseline_cm": zod.number(),
+  "complementary_losses": zod.array(zod.object({
+  "key": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "lost_cm": zod.number(),
+  "lost_units": zod.number()
+})),
+  "explanation": zod.string(),
+  "item_name": zod.string(),
+  "key": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "net_cm_change": zod.number(),
+  "net_cm_change_hi": zod.number(),
+  "net_cm_change_lo": zod.number(),
+  "recommendation": zod.enum(['remove', 'keep_and_bundle', 'keep_and_reformulate', 'no_strong_signal'])
+}).and(zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "decision": zod.union([zod.null(),zod.object({
+  "branch_id": zod.string().uuid(),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "decided_by": zod.string().uuid(),
+  "decision": zod.enum(['accepted', 'rejected', 'ignored']),
+  "id": zod.string().uuid(),
+  "notes": zod.string().nullish(),
+  "suggestion_id": zod.string().uuid(),
+  "suggestion_kind": zod.enum(['price', 'bundle', 'removal'])
+})]).optional(),
+  "id": zod.string().uuid(),
+  "run_id": zod.string().uuid()
+}))
+
+
+export const GetRunHandlerParams = zod.object({
+  "id": zod.string().uuid().describe('Run ID')
+})
+
+export const getRunHandlerResponseConfigAnalysisWindowDaysDefault = 30;
+export const getRunHandlerResponseConfigBundleDiscountPctRangeDefault = [0.1, 0.25];
+export const getRunHandlerResponseConfigBundleMaxSizeDefault = 3;
+export const getRunHandlerResponseConfigBundleMaxSizeMin = 0;
+
+export const getRunHandlerResponseConfigBundleTopKPartnersDefault = 5;
+export const getRunHandlerResponseConfigBundleTopKPartnersMin = 0;
+
+export const getRunHandlerResponseConfigBundleTopNPerFocusDefault = 3;
+export const getRunHandlerResponseConfigBundleTopNPerFocusMin = 0;
+
+export const getRunHandlerResponseConfigHaloRepeatRateDefault = 0.15;
+export const getRunHandlerResponseConfigMaxPriceChangePctPerCycleDefault = 0.15;
+export const getRunHandlerResponseConfigMinCooccurrencesForBundleDefault = 8;
+export const getRunHandlerResponseConfigMinGrossMarginPctDefault = 0.55;
+export const getRunHandlerResponseConfigMinLiftForBundleDefault = 1.2;
+export const getRunHandlerResponseConfigMinUnitsForClassificationDefault = 20;
+export const getRunHandlerResponseConfigPriceRoundingRuleDefault = `EgyptianCafe`;
+export const getRunHandlerResponseConfigPromotionLiftPriorDefault = 1.25;
+export const getRunHandlerResponseConfigRecencyHalfLifeDaysDefault = 14;
+export const getRunHandlerResponseConfigRevenueModeMaxRaisePctDefault = 0.05;
+export const getRunHandlerResponseConfigTargetFoodCostPctDefault = 0.3;
+export const getRunHandlerResponseModeSummaryItemsCmTrackedMin = 0;
+
+export const getRunHandlerResponseModeSummaryItemsInsufficientMin = 0;
+
+export const getRunHandlerResponseModeSummaryItemsRevenueOnlyMin = 0;
+
+export const getRunHandlerResponseModeSummaryItemsTotalMin = 0;
+
+
+
+export const GetRunHandlerResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "completed_at": zod.string().datetime({"offset":true}).nullish(),
+  "config": zod.object({
+  "analysis_window_days": zod.number().default(getRunHandlerResponseConfigAnalysisWindowDaysDefault),
+  "bundle_discount_pct_range": zod.tuple([zod.number(),
+zod.number()]).default(getRunHandlerResponseConfigBundleDiscountPctRangeDefault),
+  "bundle_max_size": zod.number().min(getRunHandlerResponseConfigBundleMaxSizeMin).default(getRunHandlerResponseConfigBundleMaxSizeDefault),
+  "bundle_top_k_partners": zod.number().min(getRunHandlerResponseConfigBundleTopKPartnersMin).default(getRunHandlerResponseConfigBundleTopKPartnersDefault),
+  "bundle_top_n_per_focus": zod.number().min(getRunHandlerResponseConfigBundleTopNPerFocusMin).default(getRunHandlerResponseConfigBundleTopNPerFocusDefault),
+  "halo_repeat_rate": zod.number().default(getRunHandlerResponseConfigHaloRepeatRateDefault),
+  "max_price_change_pct_per_cycle": zod.number().default(getRunHandlerResponseConfigMaxPriceChangePctPerCycleDefault),
+  "min_cooccurrences_for_bundle": zod.number().default(getRunHandlerResponseConfigMinCooccurrencesForBundleDefault),
+  "min_gross_margin_pct": zod.number().default(getRunHandlerResponseConfigMinGrossMarginPctDefault),
+  "min_lift_for_bundle": zod.number().default(getRunHandlerResponseConfigMinLiftForBundleDefault),
+  "min_units_for_classification": zod.number().default(getRunHandlerResponseConfigMinUnitsForClassificationDefault),
+  "price_rounding_rule": zod.enum(['EgyptianCafe', 'NearestUnit']).describe('Serializes as `\"EgyptianCafe\"` \/ `\"NearestUnit\"` — PascalCase on the wire\n(no `rename_all`); existing clients depend on it.').default(getRunHandlerResponseConfigPriceRoundingRuleDefault),
+  "promotion_lift_prior": zod.number().default(getRunHandlerResponseConfigPromotionLiftPriorDefault),
+  "recency_half_life_days": zod.number().default(getRunHandlerResponseConfigRecencyHalfLifeDaysDefault),
+  "revenue_mode_max_raise_pct": zod.number().default(getRunHandlerResponseConfigRevenueModeMaxRaisePctDefault).describe('Conservative max-raise cap for revenue-only items (no margin floor to\nguard against).'),
+  "target_food_cost_pct": zod.number().default(getRunHandlerResponseConfigTargetFoodCostPctDefault)
+}).describe('`#[serde(default)]` lets clients send partial configs; missing fields\ntake the values below. Output serialization is unaffected.'),
+  "error_message": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "mode_summary": zod.object({
+  "items_cm_tracked": zod.number().min(getRunHandlerResponseModeSummaryItemsCmTrackedMin),
+  "items_insufficient": zod.number().min(getRunHandlerResponseModeSummaryItemsInsufficientMin),
+  "items_revenue_only": zod.number().min(getRunHandlerResponseModeSummaryItemsRevenueOnlyMin),
+  "items_total": zod.number().min(getRunHandlerResponseModeSummaryItemsTotalMin)
+}),
+  "org_id": zod.string().uuid(),
+  "started_at": zod.string().datetime({"offset":true}),
+  "status": zod.enum(['in_progress', 'completed', 'failed']),
+  "window_days": zod.number()
+})
+
+
+export const ListBundleSuggestionsHandlerParams = zod.object({
+  "id": zod.string().uuid().describe('Run ID')
+})
+
+export const ListBundleSuggestionsHandlerQueryParams = zod.object({
+  "missing_costs": zod.boolean().optional(),
+  "focus_menu_item_id": zod.string().uuid().optional(),
+  "decision_status": zod.string().optional().describe('accepted | rejected | ignored | pending')
+})
+
+export const ListBundleSuggestionsHandlerResponseItem = zod.object({
+  "association": zod.object({
+  "composite_score": zod.number(),
+  "pair_lifts": zod.array(zod.object({
+  "confidence_ab": zod.number().describe('Directional: P(item_b in basket | item_a in basket), item_a = focus.'),
+  "item_a": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "item_b": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "lift": zod.number(),
+  "support": zod.number()
+}))
+}),
+  "bundle_cm": zod.number().nullish(),
+  "bundle_cost": zod.number().nullish().describe('All cost-derived fields are `None` when any component lacks cost data.'),
+  "bundle_discount_pct": zod.number(),
+  "bundle_items": zod.array(zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.')),
+  "bundle_list_price": zod.number(),
+  "bundle_margin_pct": zod.number().nullish(),
+  "bundle_suggested_price": zod.number(),
+  "explanation": zod.string(),
+  "focus_item": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "forecast": zod.object({
+  "expected_velocity": zod.object({
+  "hi": zod.number(),
+  "lo": zod.number(),
+  "mid": zod.number()
+}),
+  "halo_units_x": zod.number(),
+  "incremental_cm": zod.union([zod.null(),zod.object({
+  "hi": zod.number(),
+  "lo": zod.number(),
+  "mid": zod.number()
+}).describe('`None` when any component is cost-missing — CM math is impossible.')]).optional(),
+  "inside_bundle_units_x": zod.number(),
+  "total_units_uplift_x": zod.number()
+}),
+  "guard_clips": zod.array(zod.enum(['margin_floor', 'change_cap', 'cultural_rounding'])),
+  "missing_costs": zod.boolean().describe('True ⟺ at least one component is cost-missing.')
+}).and(zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "decision": zod.union([zod.null(),zod.object({
+  "branch_id": zod.string().uuid(),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "decided_by": zod.string().uuid(),
+  "decision": zod.enum(['accepted', 'rejected', 'ignored']),
+  "id": zod.string().uuid(),
+  "notes": zod.string().nullish(),
+  "suggestion_id": zod.string().uuid(),
+  "suggestion_kind": zod.enum(['price', 'bundle', 'removal'])
+})]).optional(),
+  "id": zod.string().uuid(),
+  "promoted_bundle_id": zod.string().uuid().nullish(),
+  "run_id": zod.string().uuid()
+}))
+export const ListBundleSuggestionsHandlerResponse = zod.array(ListBundleSuggestionsHandlerResponseItem)
+
+
+export const ListPriceSuggestionsHandlerParams = zod.object({
+  "id": zod.string().uuid().describe('Run ID')
+})
+
+export const ListPriceSuggestionsHandlerQueryParams = zod.object({
+  "classification_mode": zod.string().optional().describe('cm | revenue | insufficient'),
+  "cm_quadrant": zod.string().optional().describe('star | plowhorse | puzzle | dog'),
+  "revenue_class": zod.string().optional().describe('hero | steady | slow | quiet'),
+  "action": zod.string().optional().describe('hold | raise_price | lower_price | bundle | remove | reformulate | monitor'),
+  "confidence": zod.string().optional().describe('low | medium | high'),
+  "category_id": zod.string().uuid().optional(),
+  "decision_status": zod.string().optional().describe('accepted | rejected | ignored | pending'),
+  "search": zod.string().optional().describe('Case-insensitive substring match on item name.')
+})
+
+export const listPriceSuggestionsHandlerResponseOnePeerComparisonTwoSameCategoryCountMin = 0;
+
+
+
+export const ListPriceSuggestionsHandlerResponseItem = zod.object({
+  "action": zod.enum(['hold', 'raise_price', 'lower_price', 'bundle', 'remove', 'reformulate', 'monitor']),
+  "anchors": zod.object({
+  "cost_plus": zod.number().nullish(),
+  "peer_median": zod.number(),
+  "status_quo": zod.number()
+}).describe('Two anchors are universal; the cost-plus anchor is only meaningful with\ncost data, so it\'s optional.'),
+  "classification": zod.union([zod.object({
+  "mode": zod.enum(['cm']),
+  "quadrant": zod.enum(['star', 'plowhorse', 'puzzle', 'dog'])
+}),zod.object({
+  "class": zod.enum(['hero', 'steady', 'slow', 'quiet']),
+  "mode": zod.enum(['revenue'])
+}),zod.object({
+  "mode": zod.enum(['insufficient'])
+})]).describe('Wire shape: `{\"mode\":\"cm\",\"quadrant\":\"star\"}` \/ `{\"mode\":\"revenue\",\"class\":\"hero\"}`\n\/ `{\"mode\":\"insufficient\"}`. By construction `Cm` only ever describes\ncost-tracked items and `Revenue` only cost-missing ones.'),
+  "cm_per_unit": zod.number().nullish(),
+  "confidence": zod.enum(['low', 'medium', 'high']),
+  "cost_missing": zod.boolean().describe('True when cost data is unavailable for this item. Mirrors\n`classification` mode, exposed flat for UI badge rendering.'),
+  "cost_reduction_whatif_margin": zod.number().nullish().describe('Only computed for CM-tracked Plowhorses.'),
+  "current_price": zod.number(),
+  "effective_price": zod.number(),
+  "explanation": zod.string(),
+  "food_cost_pct": zod.number().nullish(),
+  "guard_clips": zod.array(zod.enum(['margin_floor', 'change_cap', 'cultural_rounding'])),
+  "item_name": zod.string(),
+  "key": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "margin_pct": zod.number().nullish(),
+  "peer_comparison": zod.union([zod.null(),zod.object({
+  "median_cm_per_unit_peers": zod.number().nullish(),
+  "median_effective_price_peers": zod.number(),
+  "median_margin_pct_peers": zod.number().nullish().describe('Only set when this item is CM-tracked AND peers are CM-tracked too.'),
+  "same_category_count": zod.number().min(listPriceSuggestionsHandlerResponseOnePeerComparisonTwoSameCategoryCountMin),
+  "your_position": zod.enum(['above', 'at', 'below'])
+})]).optional(),
+  "popularity_share": zod.number(),
+  "price_changed_in_window": zod.boolean(),
+  "suggested_delta_abs": zod.number().nullish(),
+  "suggested_delta_pct": zod.number().nullish(),
+  "suggested_price": zod.number().nullish(),
+  "units_sold_raw": zod.number()
+}).and(zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "decision": zod.union([zod.null(),zod.object({
+  "branch_id": zod.string().uuid(),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "decided_by": zod.string().uuid(),
+  "decision": zod.enum(['accepted', 'rejected', 'ignored']),
+  "id": zod.string().uuid(),
+  "notes": zod.string().nullish(),
+  "suggestion_id": zod.string().uuid(),
+  "suggestion_kind": zod.enum(['price', 'bundle', 'removal'])
+})]).optional(),
+  "id": zod.string().uuid(),
+  "run_id": zod.string().uuid()
+}))
+export const ListPriceSuggestionsHandlerResponse = zod.array(ListPriceSuggestionsHandlerResponseItem)
+
+
+export const ListRemovalScenariosHandlerParams = zod.object({
+  "id": zod.string().uuid().describe('Run ID')
+})
+
+export const ListRemovalScenariosHandlerQueryParams = zod.object({
+  "recommendation": zod.string().optional().describe('remove | keep_and_bundle | keep_and_reformulate | no_strong_signal'),
+  "decision_status": zod.string().optional().describe('accepted | rejected | ignored | pending')
+})
+
+export const ListRemovalScenariosHandlerResponseItem = zod.object({
+  "absorbed_by": zod.array(zod.object({
+  "absorbed_cm": zod.number(),
+  "absorbed_units": zod.number(),
+  "key": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.')
+})),
+  "baseline_cm": zod.number(),
+  "complementary_losses": zod.array(zod.object({
+  "key": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "lost_cm": zod.number(),
+  "lost_units": zod.number()
+})),
+  "explanation": zod.string(),
+  "item_name": zod.string(),
+  "key": zod.object({
+  "menu_item_id": zod.string().uuid(),
+  "size_label": zod.string()
+}).describe('One sellable SKU: a (menu_item_id, size_label) pair.\n`size_label = \"one_size\"` for items without sizes.'),
+  "net_cm_change": zod.number(),
+  "net_cm_change_hi": zod.number(),
+  "net_cm_change_lo": zod.number(),
+  "recommendation": zod.enum(['remove', 'keep_and_bundle', 'keep_and_reformulate', 'no_strong_signal'])
+}).and(zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "decision": zod.union([zod.null(),zod.object({
+  "branch_id": zod.string().uuid(),
+  "decided_at": zod.string().datetime({"offset":true}),
+  "decided_by": zod.string().uuid(),
+  "decision": zod.enum(['accepted', 'rejected', 'ignored']),
+  "id": zod.string().uuid(),
+  "notes": zod.string().nullish(),
+  "suggestion_id": zod.string().uuid(),
+  "suggestion_kind": zod.enum(['price', 'bundle', 'removal'])
+})]).optional(),
+  "id": zod.string().uuid(),
+  "run_id": zod.string().uuid()
+}))
+export const ListRemovalScenariosHandlerResponse = zod.array(ListRemovalScenariosHandlerResponseItem)
 
 
 export const ListMenuItemsQueryParams = zod.object({
@@ -1451,7 +2438,8 @@ export const ListOrdersQueryParams = zod.object({
   "payment_method": zod.string().optional(),
   "status": zod.string().optional(),
   "from": zod.string().datetime({"offset":true}).optional(),
-  "to": zod.string().datetime({"offset":true}).optional()
+  "to": zod.string().datetime({"offset":true}).optional(),
+  "include_items": zod.boolean().optional().describe('When true, each order in `data` embeds its full line items\n(addons\/optionals\/bundle components) — the response shape becomes\n[PaginatedOrdersFull]. Lets offline-first clients cache complete\norders in one round trip instead of fetching each order separately.')
 })
 
 export const ListOrdersResponse = zod.object({
@@ -1580,9 +2568,11 @@ export const ExportOrdersResponse = zod.object({
   "items": zod.array(zod.object({
   "bundle_id": zod.string().uuid().nullish(),
   "bundle_unit_price": zod.number().nullish(),
+  "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.string().uuid(),
   "item_name": zod.string(),
+  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
   "line_total": zod.number(),
   "menu_item_id": zod.string().uuid().nullish(),
   "name_translations": zod.object({
@@ -1592,12 +2582,14 @@ export const ExportOrdersResponse = zod.object({
   "order_id": zod.string().uuid(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish(),
+  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
   "unit_price": zod.number()
 }).and(zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.string().uuid(),
   "addon_name": zod.string(),
   "id": zod.string().uuid(),
+  "line_cost": zod.number().nullish().describe('Ingredient cost of this addon line in piastres. `null` ⟺ unknown, or\na swap addon (its cost lives in the item\'s recipe cost).'),
   "line_total": zod.number(),
   "name_translations": zod.object({
 
@@ -1640,6 +2632,7 @@ export const ExportOrdersResponse = zod.object({
   "size_label": zod.string().nullish()
 })).optional(),
   "optionals": zod.array(zod.object({
+  "cost": zod.number().nullish().describe('Ingredient cost per parent-item unit in piastres. `null` ⟺ unknown or\nno ingredient linked.'),
   "field_name": zod.string(),
   "id": zod.string().uuid(),
   "ingredient_name": zod.string().nullish(),
@@ -1730,9 +2723,11 @@ export const GetOrderResponse = zod.object({
   "items": zod.array(zod.object({
   "bundle_id": zod.string().uuid().nullish(),
   "bundle_unit_price": zod.number().nullish(),
+  "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.string().uuid(),
   "item_name": zod.string(),
+  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
   "line_total": zod.number(),
   "menu_item_id": zod.string().uuid().nullish(),
   "name_translations": zod.object({
@@ -1742,12 +2737,14 @@ export const GetOrderResponse = zod.object({
   "order_id": zod.string().uuid(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish(),
+  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
   "unit_price": zod.number()
 }).and(zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.string().uuid(),
   "addon_name": zod.string(),
   "id": zod.string().uuid(),
+  "line_cost": zod.number().nullish().describe('Ingredient cost of this addon line in piastres. `null` ⟺ unknown, or\na swap addon (its cost lives in the item\'s recipe cost).'),
   "line_total": zod.number(),
   "name_translations": zod.object({
 
@@ -1790,6 +2787,7 @@ export const GetOrderResponse = zod.object({
   "size_label": zod.string().nullish()
 })).optional(),
   "optionals": zod.array(zod.object({
+  "cost": zod.number().nullish().describe('Ingredient cost per parent-item unit in piastres. `null` ⟺ unknown or\nno ingredient linked.'),
   "field_name": zod.string(),
   "id": zod.string().uuid(),
   "ingredient_name": zod.string().nullish(),
@@ -1933,6 +2931,44 @@ export const UploadOrgLogoResponse = zod.object({
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.')
+})
+
+
+export const GetOnboardingParams = zod.object({
+  "id": zod.string().uuid().describe('Organization ID')
+})
+
+export const GetOnboardingResponse = zod.object({
+  "can_complete": zod.boolean().describe('True when every `required` step is done (the Finish button enabler).'),
+  "completed": zod.boolean().describe('Persisted terminal flag — the dashboard routes into the wizard\nwhen this is false.'),
+  "completed_at": zod.string().datetime({"offset":true}).nullish(),
+  "org_id": zod.string().uuid(),
+  "recipe_coverage": zod.number().describe('Recipe coverage across active menu items (0..1) — drives the cost\nengine; surfaced separately because it\'s a percentage, not a bool.'),
+  "steps": zod.array(zod.object({
+  "count": zod.number().describe('Supporting count (branches created, items added, …).'),
+  "done": zod.boolean().describe('True when the underlying data exists.'),
+  "key": zod.string().describe('Stable key the dashboard switches on — never localized.'),
+  "required": zod.boolean().describe('Steps that are encouraged but not blocking (`required = false`\nnever gates `can_complete`).')
+}).describe('One derived setup step.'))
+})
+
+
+export const CompleteOnboardingParams = zod.object({
+  "id": zod.string().uuid().describe('Organization ID')
+})
+
+export const CompleteOnboardingResponse = zod.object({
+  "can_complete": zod.boolean().describe('True when every `required` step is done (the Finish button enabler).'),
+  "completed": zod.boolean().describe('Persisted terminal flag — the dashboard routes into the wizard\nwhen this is false.'),
+  "completed_at": zod.string().datetime({"offset":true}).nullish(),
+  "org_id": zod.string().uuid(),
+  "recipe_coverage": zod.number().describe('Recipe coverage across active menu items (0..1) — drives the cost\nengine; surfaced separately because it\'s a percentage, not a bool.'),
+  "steps": zod.array(zod.object({
+  "count": zod.number().describe('Supporting count (branches created, items added, …).'),
+  "done": zod.boolean().describe('True when the underlying data exists.'),
+  "key": zod.string().describe('Stable key the dashboard switches on — never localized.'),
+  "required": zod.boolean().describe('Steps that are encouraged but not blocking (`required = false`\nnever gates `can_complete`).')
+}).describe('One derived setup step.'))
 })
 
 
@@ -2277,6 +3313,47 @@ export const BranchCombinedItemSalesResponseItem = zod.object({
 export const BranchCombinedItemSalesResponse = zod.array(BranchCombinedItemSalesResponseItem)
 
 
+export const BranchMenuEngineeringParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const BranchMenuEngineeringQueryParams = zod.object({
+  "from": zod.string().datetime({"offset":true}).optional(),
+  "to": zod.string().datetime({"offset":true}).optional(),
+  "limit": zod.number().optional(),
+  "cost_basis": zod.string().optional().describe('`snapshot` (default) — COGS from sale-time order snapshots.\n`current` — COGS from today\'s recipe rollups.')
+})
+
+export const BranchMenuEngineeringResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "cost_basis": zod.string().describe('Cost basis the report was computed with: \"snapshot\" | \"current\".'),
+  "excluded_sales": zod.number().describe('Realized revenue (piastres) carried by the excluded SKUs — explains\nwhy `total_sales` differs between cost bases: each basis excludes a\ndifferent set of un-costable rows.'),
+  "from": zod.string().datetime({"offset":true}).nullish(),
+  "rows": zod.array(zod.object({
+  "category_id": zod.string().uuid().nullish(),
+  "category_name": zod.string().nullish(),
+  "class": zod.string().describe('star | workhorse | challenge | dog (Foodics names).'),
+  "cost_missing_lines": zod.number().describe('Lines in the window whose sale-time cost could not be resolved.\nAlways reports snapshot data quality, regardless of `cost_basis` —\nunder `current`, an included row can still carry snapshot gaps.'),
+  "item_name": zod.string(),
+  "item_profit": zod.number().describe('Average profit per unit, piastres (`(sales - cost) \/ qty`).'),
+  "menu_item_id": zod.string().uuid(),
+  "popularity_category": zod.string().describe('\"high\" | \"low\" — Kasavana-Smith 70% rule (0.70 \/ n).'),
+  "popularity_pct": zod.number().describe('Share of units among the rows in this report (cost-tracked only).'),
+  "profit_category": zod.string().describe('\"high\" | \"low\" — vs weighted-average per-unit profit.'),
+  "quantity_sold": zod.number().describe('Units sold (standalone lines only — bundle lines are excluded so the\nper-unit economics stay clean; bundle performance has its own report).'),
+  "sales": zod.number().describe('Revenue from those lines, piastres.'),
+  "size_label": zod.string().describe('`\"one_size\"` for items without sizes.'),
+  "total_cost": zod.number().describe('COGS in piastres. Snapshot basis: `SUM(line_cost)` over the window;\ncurrent basis: today\'s recipe rollup × quantity. Rows where this is\nunresolvable are excluded from the report, so it is always present.'),
+  "total_profit": zod.number().describe('`sales - total_cost`, piastres.')
+})),
+  "rows_cost_missing": zod.number().describe('SKUs sold in the window but EXCLUDED from this report because their\ncost was unresolvable under the chosen basis.'),
+  "to": zod.string().datetime({"offset":true}).nullish(),
+  "total_cost": zod.number(),
+  "total_profit": zod.number(),
+  "total_sales": zod.number().describe('Totals over the returned rows.')
+})
+
+
 export const BranchSalesParams = zod.object({
   "branch_id": zod.string().uuid()
 })
@@ -2362,7 +3439,7 @@ export const BranchStockResponse = zod.object({
   "items": zod.array(zod.object({
   "below_reorder": zod.boolean(),
   "branch_inventory_id": zod.string().uuid(),
-  "cost_per_unit": zod.number(),
+  "cost_per_unit": zod.number().nullish().describe('Piastres per unit; `null` ⟺ cost never entered.'),
   "current_stock": zod.number(),
   "ingredient_name": zod.string(),
   "reorder_threshold": zod.number(),
@@ -2707,6 +3784,7 @@ export const GetShiftReportResponse = zod.object({
   "cash_movements_out": zod.number(),
   "net_payments": zod.number(),
   "payment_summary": zod.array(zod.object({
+  "is_cash": zod.boolean(),
   "order_count": zod.number(),
   "payment_method": zod.string(),
   "total": zod.number()

@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { OrderBundleComponentAddon } from './orderBundleComponentAddon';
 import type { OrderBundleComponentFullNameTranslations } from './orderBundleComponentFullNameTranslations';
 import type { OrderBundleComponentOptional } from './orderBundleComponentOptional';

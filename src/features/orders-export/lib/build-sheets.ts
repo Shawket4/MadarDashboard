@@ -45,6 +45,8 @@ export function buildSheets(
         quantity: it.quantity,
         unit_price: it.unit_price,
         line_total: it.line_total,
+        // true sale-time COGS; null = unknown, never coerced to 0
+        line_cost: it.line_cost ?? null,
         addons: (it.addons || [])
           .map((a) => `+ ${getTranslatedName({ name: a.addon_name, name_translations: a.name_translations }, lang)}${a.quantity > 1 ? ` ×${a.quantity}` : ""}`)
           .join(", "),

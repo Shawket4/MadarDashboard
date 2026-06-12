@@ -31,7 +31,7 @@ export default function ImageSlot({
         <>
           <div className="absolute inset-3 border border-dashed border-navy/15 rounded pointer-events-none" />
           <div className="w-full h-full flex flex-col items-center justify-center gap-1.5">
-            <div className="text-navy/40 text-[11px] font-semibold uppercase tracking-[0.22em]">
+            <div className="text-navy/40 text-xs font-semibold uppercase tracking-[0.22em]">
               {label}
             </div>
             {subtitle && (

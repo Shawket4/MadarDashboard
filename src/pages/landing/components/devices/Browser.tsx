@@ -55,7 +55,7 @@ export default function Browser({
         <div className="flex-1 flex justify-center px-4">
           {url && (
             <div
-              className={`${darkMode ? 'bg-[#333] text-[#aaa]' : 'bg-white text-[#777] shadow-sm'} text-[10px] font-medium px-4 py-[3px] rounded-md tabular tracking-wide w-full max-w-[240px] text-center`}
+              className={`${darkMode ? 'bg-[#333] text-[#aaa]' : 'bg-white text-[#777] shadow-sm'} text-xs font-medium px-4 py-[3px] rounded-md tabular tracking-wide w-full max-w-[240px] text-center`}
               dir="ltr"
             >
               {url}

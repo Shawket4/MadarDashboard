@@ -105,6 +105,7 @@ export interface LineItemRow {
   quantity: number;
   unit_price: number;
   line_total: number;
+  line_cost: number | null;
   addons: string;
   optionals: string;
   notes: string | null;
@@ -165,6 +166,14 @@ export const lineItemColumns = (t: TFunction): ExcelColumn<LineItemRow>[] => [
     key: "line_total",
     header: t("orders.total", { defaultValue: "Line Total" }),
     accessor: (r) => r.line_total,
+    type: "money",
+    width: 15,
+    total: true,
+  },
+  {
+    key: "line_cost",
+    header: t("orders.cogs", { defaultValue: "COGS" }),
+    accessor: (r) => r.line_cost,
     type: "money",
     width: 15,
     total: true,

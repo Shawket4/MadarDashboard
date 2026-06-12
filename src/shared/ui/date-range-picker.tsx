@@ -166,7 +166,7 @@ export function DateRangePicker({ from, to, onChange }: Props) {
 
           <div className="grid grid-cols-7 mb-1">
             {weekdayNames.map((d) => (
-              <div key={d} className="text-center text-[10px] font-semibold text-muted-foreground py-1">
+              <div key={d} className="text-center text-xs font-semibold text-muted-foreground py-1">
                 {d}
               </div>
             ))}

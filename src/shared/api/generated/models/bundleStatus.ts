@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 
 export type BundleStatus = typeof BundleStatus[keyof typeof BundleStatus];
 

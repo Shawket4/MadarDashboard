@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { CategoryNameTranslations } from './categoryNameTranslations';
 
 export interface Category {

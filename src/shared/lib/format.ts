@@ -17,23 +17,33 @@ const withTZ = (opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions =>
 // ── Money ────────────────────────────────────────────────────────────────────
 
 /** Convert piastres (integer) → EGP number (float) */
-export const piastresToEgp = (p: number): number => (p ?? 0) / 100;
+export const piastresToEgp = (p: number): number => p / 100;
 
-/** Format piastres as currency in user's locale */
-export const fmtMoney = (piastres: number | null | undefined, opts?: { fractionDigits?: 0 | 2 }): string => {
-  const value = piastresToEgp(piastres ?? 0);
+/** Convert an EGP amount (user input) → integer piastres for the API */
+export const egpToPiastres = (egp: number): number => Math.trunc(egp * 100);
+
+/**
+ * Format piastres as currency in user's locale.
+ * null/undefined means "cost unknown", NOT free — renders an em-dash.
+ */
+// FIX: was displaying null cost as "0.00 EGP"; null is unknown, not free
+export const fmtMoney = (piastres: number | null | undefined, opts?: { fractionDigits?: 0 | 2; maxFractionDigits?: number }): string => {
+  if (piastres === null || piastres === undefined) return "—";
+  const value = piastresToEgp(piastres);
   const fd = opts?.fractionDigits ?? 2;
   return new Intl.NumberFormat(getLocale(), {
     style: "currency",
     currency: DEFAULT_CURRENCY,
     minimumFractionDigits: fd,
-    maximumFractionDigits: fd,
+    maximumFractionDigits: Math.max(fd, opts?.maxFractionDigits ?? fd),
   }).format(value);
 };
 
-/** Compact variant — "EGP 1.2K" style */
+/** Compact variant — "EGP 1.2K" style. null/undefined renders an em-dash. */
+// FIX: was displaying null cost as "0.00 EGP"; null is unknown, not free
 export const fmtMoneyCompact = (piastres: number | null | undefined): string => {
-  const value = piastresToEgp(piastres ?? 0);
+  if (piastres === null || piastres === undefined) return "—";
+  const value = piastresToEgp(piastres);
   return new Intl.NumberFormat(getLocale(), {
     style: "currency",
     currency: DEFAULT_CURRENCY,

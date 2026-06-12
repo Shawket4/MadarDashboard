@@ -1,10 +1,14 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { OrderItemOptionalNameTranslations } from './orderItemOptionalNameTranslations';
 
 export interface OrderItemOptional {
+  /**
+     * Ingredient cost per parent-item unit in piastres. `null` ⟺ unknown or
+   * no ingredient linked.
+     * @nullable
+     */
+  cost?: number | null;
   field_name: string;
   id: string;
   /** @nullable */

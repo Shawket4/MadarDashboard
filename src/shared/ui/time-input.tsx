@@ -112,7 +112,7 @@ export function TimeInput({ value, onChange, disabled, className }: TimeInputPro
       </Select>
 
       {/* AM / PM toggle */}
-      <div className="flex shrink-0 rounded-md overflow-hidden border border-input text-[10px] font-bold">
+      <div className="flex shrink-0 rounded-md overflow-hidden border border-input text-xs font-bold">
         {(["AM", "PM"] as const).map((ap) => (
           <button
             key={ap}

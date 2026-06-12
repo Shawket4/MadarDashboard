@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { PublicCategoryNameTranslations } from './publicCategoryNameTranslations';
 import type { PublicMenuItem } from './publicMenuItem';
 

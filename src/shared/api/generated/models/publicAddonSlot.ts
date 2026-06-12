@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { PublicAddonItem } from './publicAddonItem';
 import type { PublicAddonSlotLabelTranslations } from './publicAddonSlotLabelTranslations';
 

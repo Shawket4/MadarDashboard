@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { CreateMenuItemRequestDescriptionTranslations } from './createMenuItemRequestDescriptionTranslations';
 import type { CreateMenuItemRequestNameTranslations } from './createMenuItemRequestNameTranslations';
 

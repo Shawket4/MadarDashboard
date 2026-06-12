@@ -131,7 +131,7 @@ describe('Recipes Page', () => {
     })
   })
 
-  it('handles drink recipe deletion', async () => {
+  it('handles drink recipe deletion via the builder save flow', async () => {
     const user = userEvent.setup()
     render(<Recipes />)
     
@@ -149,17 +149,15 @@ describe('Recipes Page', () => {
       expect(screen.getByText('Milk')).toBeInTheDocument()
     })
 
+    // remove the line in the builder, then commit with Save
     const deleteBtns = screen.getAllByRole('button').filter(b => b.className.includes('text-destructive'))
     await user.click(deleteBtns[0])
 
-    const dialog = await screen.findByRole('dialog')
-    expect(dialog).toBeInTheDocument()
-
-    const confirmBtn = screen.getByRole('button', { name: /common.confirm/i })
-    await user.click(confirmBtn)
+    const saveBtn = screen.getByRole('button', { name: /recipes.builder.saveAll/i })
+    await user.click(saveBtn)
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('recipes.ingredientRemoved')
+      expect(toast.success).toHaveBeenCalledWith('recipes.builder.saved')
     })
   })
 })

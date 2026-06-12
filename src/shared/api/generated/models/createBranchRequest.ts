@@ -1,12 +1,19 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { PrinterBrand } from './printerBrand';
 
 export interface CreateBranchRequest {
   /** @nullable */
   address?: string | null;
+  /**
+     * Geofence radius in meters. Defaults to 200.
+     * @nullable
+     */
+  geo_radius_meters?: number | null;
+  /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
   name: string;
   org_id: string;
   /** @nullable */

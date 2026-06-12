@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 import type { Bundle } from './bundle';
 import type { BundleComponentHydrated } from './bundleComponentHydrated';
 

@@ -16,7 +16,7 @@ export default function SmartPricing({ pageIndex }: { pageIndex: number }) {
     <Page>
       <div className="absolute inset-0 flex flex-col px-20 py-14">
         <header className="flex items-center justify-between">
-          <span className="text-[10px] tracking-[0.32em] uppercase text-navy/50 font-medium">
+          <span className="text-xs tracking-[0.32em] uppercase text-navy/50 font-medium">
             {t("smartPricing.eyebrow")}
           </span>
           <img src="/Icon.svg" alt="" className="h-9" aria-hidden />
@@ -66,7 +66,7 @@ export default function SmartPricing({ pageIndex }: { pageIndex: number }) {
                 <h4 className="font-bold text-navy text-[20px] tracking-[-0.015em]">
                   {t("smartPricing.card.title")}
                 </h4>
-                <span className="text-[10px] tracking-[0.22em] uppercase text-navy/40 font-semibold tabular">
+                <span className="text-xs tracking-[0.22em] uppercase text-navy/40 font-semibold tabular">
                   {t("smartPricing.card.currentLabel")}
                 </span>
               </div>
@@ -91,7 +91,7 @@ export default function SmartPricing({ pageIndex }: { pageIndex: number }) {
                   <span className="text-[9.5px] tracking-[0.24em] uppercase text-cream/55 font-semibold">
                     {t("smartPricing.card.suggestionLabel")}
                   </span>
-                  <span className="text-[10px] tracking-[0.18em] uppercase text-terracotta font-bold tabular">
+                  <span className="text-xs tracking-[0.18em] uppercase text-terracotta font-bold tabular">
                     {t("smartPricing.card.impactValue")}
                   </span>
                 </div>

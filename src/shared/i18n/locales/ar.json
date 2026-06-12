@@ -68,7 +68,9 @@
     "noResults": "لا توجد نتائج",
     "confirmDelete": "حذف «{{name}}»؟",
     "requiredField": "هذا الحقل إلزامي",
-    "somethingWrong": "حدث خطأ ما"
+    "somethingWrong": "حدث خطأ ما",
+    "undo": "تراجع",
+    "autoTranslated": "يُترجم تلقائياً إذا تُرك فارغاً"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -181,7 +183,10 @@
     "quickActions": "إجراءات سريعة",
     "systemStatus": "حالة النظام",
     "lowStockItems": "{{count}} صنف منخفض المخزون",
-    "lowStockItems_other": "{{count}} أصناف منخفضة المخزون"
+    "lowStockItems_other": "{{count}} أصناف منخفضة المخزون",
+    "attention": "يحتاج انتباهك",
+    "allClear": "كل شيء تمام — لا يوجد ما يحتاج انتباهك",
+    "noOpenShiftAt": "لا توجد وردية مفتوحة في {{branch}}"
   },
   "orgs": {
     "title": "المؤسسات",
@@ -319,7 +324,12 @@
       "image": "صورة الصنف",
       "imageHint": "PNG أو JPG أو WebP · بحد أقصى 5 ميجابايت",
       "imageRemoved": "تم حذف الصورة",
-      "imageAfterSave": "احفظ الصنف أولاً، ثم يمكنك إضافة صورة."
+      "imageAfterSave": "احفظ الصنف أولاً، ثم يمكنك إضافة صورة.",
+      "imageUploadsAfterSave": "سيتم رفع الصورة فور إنشاء الصنف",
+      "applyTemplate": "تطبيق قالب",
+      "saveTemplate": "حفظ كقالب",
+      "templateNamePrompt": "اسم القالب",
+      "templateSaved": "تم حفظ القالب \"{{name}}\""
     },
     "categoryDialog": {
       "new": "فئة جديدة",
@@ -399,6 +409,49 @@
       "title": "المنيو مش متاح",
       "body": "مش لاقيين المنيو ده. ممكن اللينك يكون انتهى أو اتغيّر.",
       "refresh": "حاول تاني"
+    },
+    "costMargin": "التكلفة / الهامش",
+    "costMissingFix": "أضف تكلفة المكونات لحساب هذا",
+    "tabs": {
+      "items": "الأصناف",
+      "recipes": "الوصفات",
+      "bundles": "الباقات",
+      "engineering": "هندسة المنيو",
+      "advisor": "المستشار"
+    },
+    "grid": {
+      "views": {
+        "grid": "تعديل سريع",
+        "classic": "كلاسيكي"
+      },
+      "fullEditor": "افتح المحرر الكامل (الأحجام والترجمات)",
+      "duplicate": "نسخ",
+      "duplicated": "تم نسخ {{name}}",
+      "bulkPriceAction": "تعديل الأسعار",
+      "bulkPrice": "تعديل الأسعار ({{count}} صنف)",
+      "addEgp": "+ جنيه",
+      "multiplyPct": "× %",
+      "addEgpHint": "يضيف مبلغاً ثابتاً بالجنيه لكل سعر محدد.",
+      "multiplyPctHint": "يضرب كل سعر محدد (110 = +10%).",
+      "bulkSummary": "تم تحديث {{count}} سعر",
+      "bulkSummaryFailed": "تم تحديث {{ok}}، فشل {{failed}}",
+      "bulkCreated": "تم إنشاء {{count}} صنف",
+      "bulkCreateFailed": "تم إنشاء {{ok}}، فشل {{failed}}",
+      "retryFailed": "إعادة المحاولة",
+      "nameRequired": "الاسم مطلوب",
+      "priceInvalid": "سعر غير صالح",
+      "categoryUnknown": "القسم لازم يطابق قسماً موجوداً"
+    },
+    "editor": {
+      "newHint": "كل شيء في مكان واحد — القسم والتسعير والمقاسات والوصفة. تقدر تكمل الوصفة لاحقاً.",
+      "pickCategory": "اختر قسماً…",
+      "sizes": "المقاسات",
+      "sizesHint": "اختياري — اتركه فارغاً لصنف بمقاس واحد",
+      "addSize": "إضافة مقاس",
+      "noSizes": "لا مقاسات إضافية — يُباع الصنف بالسعر الأساسي.",
+      "sizeLabel": "الاسم",
+      "recipe": "الوصفة والتكلفة",
+      "recipeHint": "اختياري — اربط المكونات لحساب التكلفة والهامش"
     }
   },
   "recipes": {
@@ -448,6 +501,16 @@
       "saveField": "حفظ الحقل",
       "addField": "إضافة حقل مخصص",
       "deducts": "يخصم: {{qty}} {{unit}} من {{name}}"
+    },
+    "builder": {
+      "copyFrom": "نسخ الوصفة من…",
+      "scaleFromBase": "تحجيم المقاسات من {{base}}",
+      "applyScaling": "تطبيق التحجيم",
+      "estimate": "تقدير التكلفة الحالية",
+      "margin": "الهامش",
+      "unsaved": "تغييرات غير محفوظة",
+      "saveAll": "حفظ الوصفة",
+      "saved": "تم حفظ الوصفة"
     }
   },
   "inventory": {
@@ -466,7 +529,7 @@
       "subtitle": "مكونات على مستوى المؤسسة تُستخدم في الوصفات ومخزون الفروع",
       "newIngredient": "مكوّن جديد",
       "namePh": "مثال: حليب الشوفان",
-      "costPerUnit": "التكلفة لكل وحدة (ج.م)",
+      "costPerUnit": "التكلفة لكل وحدة",
       "categoryGeneral": "عام",
       "categoryMilk": "حليب",
       "categoryCoffee": "حبوب قهوة",
@@ -489,7 +552,29 @@
       "ok": "جيد",
       "thresholdUpdated": "تم تحديث حد إعادة الطلب",
       "addedToast": "تمت الإضافة لمخزون الفرع",
-      "removedToast": "تمت الإزالة من الفرع"
+      "removedToast": "تمت الإزالة من الفرع",
+      "savedToast": "تم تحديث المخزون",
+      "deliveryNote": "استلام توريد",
+      "deliverySummary": "تم استلام {{count}} توريد",
+      "deliverySummaryFailed": "تم استلام {{ok}}، فشل {{failed}}",
+      "receiveDelivery": "استلام توريد",
+      "receiveN": "استلام {{count}}",
+      "restockLow": "تعويض الناقص ({{count}})",
+      "showForecast": "توقع النفاد",
+      "hideForecast": "إخفاء التوقع",
+      "forecastTitle": "توقع النفاد",
+      "forecastHint": "عدد الأكواب حتى نفاد كل مكوّن حسب الوصفات الحالية — تقدير وليس وعداً.",
+      "forecastEmpty": "لا توجد وصفة تستخدم المكونات المتتبعة بعد.",
+      "forecastServings": "≈ {{count}} كوب (يحدّه {{item}})",
+      "stockTakeNote": "جرد",
+      "stockTakeDone": "تم تطبيق الجرد على {{count}} مكوّن",
+      "stockTakeFailed": "تم تطبيق {{ok}}، فشل {{failed}}",
+      "countedQty": "الكمية المعدودة",
+      "unknownIngredient": "غير متتبع في هذا الفرع",
+      "badQty": "كمية غير صالحة",
+      "transferFrom": "نقل من فرع آخر",
+      "transferFromNote": "تعويض من {{branch}}",
+      "noSurplus": "لا يوجد فائض من {{name}} في فرع آخر"
     },
     "adjustments": {
       "title": "التسويات",
@@ -637,7 +722,12 @@
     "dateRange": "النطاق الزمني",
     "showing": "عرض {{from}}-{{to}} من {{total}}",
     "totalUsage": "إجمالي الكمية",
-    "occurrences": "مرات الاستخدام"
+    "occurrences": "مرات الاستخدام",
+    "cost": "التكلفة",
+    "cogs": "تكلفة البضاعة",
+    "grossProfit": "إجمالي الربح",
+    "costMissing": "تكلفة هذا البند غير معروفة",
+    "costMissingLines": "{{count}} بند بدون تكلفة — الربح الفعلي قد يكون أقل"
   },
   "ordersExport": {
     "title": "تصدير الطلبات",
@@ -891,7 +981,10 @@
     },
     "bundleOpportunity": "فرصة باقة",
     "bundleTitleCount": "باقة من {{count}}",
-    "costMissing": "التكلفة مفقودة"
+    "costMissing": "التكلفة مفقودة",
+    "recentlyRepriced": "تم تعديل سعره مؤخراً",
+    "runFailed": "فشل التحليل",
+    "runFailedDesc": "آخر تحليل لم يكتمل. جرّب تشغيله مرة أخرى."
   },
   "timePicker": {
     "clearTime": "مسح الوقت",
@@ -1344,5 +1437,173 @@
       "flex": "المرونة",
       "contact": "تواصل معنا"
     }
+  },
+  "onboarding": {
+    "title": "جهّز مطعمك",
+    "back": "رجوع",
+    "continue": "متابعة",
+    "skipStep": "تخطَّ الآن",
+    "skipSetup": "إنهاء الإعداد الآن",
+    "steps": {
+      "welcome": "مرحباً",
+      "branch": "الفرع",
+      "payments": "طرق الدفع",
+      "menu": "المنيو",
+      "costs": "تكلفة المكونات",
+      "addons": "الإضافات",
+      "team": "الفريق",
+      "review": "المراجعة والإنهاء"
+    },
+    "stepKeys": {
+      "branch": "إنشاء فرع",
+      "payment_methods": "طرق الدفع",
+      "categories": "أقسام المنيو",
+      "menu_items": "أصناف المنيو",
+      "ingredients": "قائمة المكونات",
+      "recipes": "الوصفات والتكاليف",
+      "addons": "الإضافات والزيادات",
+      "team": "دعوة الفريق",
+      "first_order": "سجّل أول طلب"
+    },
+    "welcome": {
+      "title": "أهلاً بيك في سوفريكس",
+      "description": "هنجهّز مطعمك في خطوات بسيطة وبعدها تقدر تستقبل الطلبات على طول.",
+      "pickingUp": "بنكمّل من حيث وقفت — في خطوات خلصت بالفعل.",
+      "jumpToNext": "روح للخطوة الجاية",
+      "orgName": "اسم المطعم",
+      "orgNamePh": "مثال: قهوة وسط البلد",
+      "logo": "اللوجو"
+    },
+    "branch": {
+      "title": "أنشئ أول فرع",
+      "description": "الفرع هو المكان الفعلي — كل وردية وطلب ومخزون بيتسجل تحت فرع.",
+      "doneHint": "تم إنشاء الفرع — تقدر تضيف فروع تانية في أي وقت.",
+      "emptyTitle": "لسه مفيش فروع",
+      "emptyDescription": "ضيف أول فرع علشان تفتح الورديات والطلبات.",
+      "add": "إنشاء فرع",
+      "addAnother": "إضافة فرع آخر"
+    },
+    "payments": {
+      "title": "العملاء بيدفعوا إزاي؟",
+      "description": "الطرق دي شغّالة بالفعل — راجعها واقفل اللي مش بتستخدمه.",
+      "noneActive": "لازم تكون في طريقة دفع واحدة مفعّلة على الأقل قبل إنهاء الإعداد.",
+      "addCustom": "إضافة طريقة مخصصة"
+    },
+    "menu": {
+      "title": "ابنِ المنيو",
+      "description": "أنشئ قسم وصنف واحد على الأقل — وكمّل الباقي بعدين.",
+      "noCategories": "لسه مفيش أقسام",
+      "noItems": "لسه مفيش أصناف",
+      "categoryFirst": "أنشئ قسم الأول"
+    },
+    "costs": {
+      "title": "تكلفة المكونات (مُستحسن)",
+      "description": "ضيف تكلفة المكونات وسوفريكس هيحسب ربح كل صنف — الهوامش ونسبة تكلفة الأكل ونجوم المنيو.",
+      "coverageLabel": "تغطية الوصفات",
+      "openRecipes": "افتح محرر الوصفات",
+      "emptyHint": "ضيف أول مكوّن بتكلفته لكل وحدة علشان تبدأ متابعة الربح."
+    },
+    "addons": {
+      "title": "الإضافات والزيادات",
+      "description": "شوت زيادة، توبينج، أطباق جانبية — أي حاجة العميل بيضيفها على الصنف.",
+      "emptyTitle": "لسه مفيش إضافات",
+      "emptyDescription": "اختياري — تقدر تضيفها في أي وقت من شاشة المنيو.",
+      "add": "إضافة"
+    },
+    "team": {
+      "title": "ادعُ فريقك",
+      "description": "ضيف الكاشير والمديرين علشان يقدروا يفتحوا ورديات ويسجلوا طلبات.",
+      "emptyTitle": "لسه أنت لوحدك",
+      "emptyDescription": "اختياري — ادعُ فريقك دلوقتي أو بعدين من شاشة المستخدمين.",
+      "add": "إضافة عضو"
+    },
+    "review": {
+      "title": "المراجعة والإنهاء",
+      "description": "ده كل اللي جهّزته. الخطوات الاختيارية تستنى — أنهِ الإعداد وقت ما تكون جاهز.",
+      "finish": "إنهاء الإعداد",
+      "finishRequires": "الإنهاء يتطلب: {{steps}}",
+      "later": "لاحقاً",
+      "required": "مطلوب",
+      "fix": "روح للخطوة"
+    },
+    "checklist": {
+      "title": "كمّل الإعداد",
+      "firstOrderHint": "افتح وردية على الآيباد وسجّل أول طلب"
+    },
+    "lockedHint": "أكمل الخطوات المطلوبة للدخول إلى اللوحة"
+  },
+  "scope": {
+    "selectBranch": "اختر الفرع",
+    "presets": {
+      "today": "اليوم",
+      "yesterday": "أمس",
+      "7d": "٧ أيام",
+      "30d": "٣٠ يوم",
+      "mtd": "من بداية الشهر"
+    }
+  },
+  "menuEngineering": {
+    "title": "هندسة المنيو",
+    "subtitle": "الربح مقابل الشعبية لكل صنف — اعرف نجومك وأعباءك",
+    "empty": "لا مبيعات في هذه الفترة",
+    "emptyHint": "اختر فترة أو فرعاً مختلفاً من شريط النطاق بالأعلى.",
+    "totalSales": "إجمالي المبيعات",
+    "totalCogs": "إجمالي تكلفة البضاعة",
+    "grossProfit": "إجمالي الربح",
+    "missingCosts": "أصناف بدون تكلفة",
+    "clearMissingFilter": "عرض الأصناف بدون تكلفة فقط — إلغاء",
+    "views": {
+      "scatter": "الرُبيعات",
+      "table": "جدول"
+    },
+    "costBasis": {
+      "snapshot": "كما بيعت",
+      "current": "التكاليف الحالية",
+      "currentHint": "أعيد التصنيف بتكاليف المكونات الحالية"
+    },
+    "excludedRevenue": "{{amount}} مبيعات مستبعدة",
+    "quadrants": {
+      "stars": "النجوم",
+      "workhorses": "أحصنة العمل",
+      "challenges": "الألغاز",
+      "dogs": "الأعباء"
+    },
+    "classes": {
+      "star": "نجم",
+      "workhorse": "حصان عمل",
+      "challenge": "لغز",
+      "dog": "عبء",
+      "unclassified": "يحتاج تكاليف"
+    },
+    "levels": {
+      "high": "مرتفع",
+      "low": "منخفض"
+    },
+    "sales": "المبيعات",
+    "quantity": "الكمية",
+    "totalCost": "إجمالي التكلفة",
+    "itemProfit": "ربح الوحدة",
+    "totalProfit": "إجمالي الربح",
+    "popularity": "الشعبية",
+    "profitCategory": "الربح",
+    "popularityCategory": "فئة الشعبية",
+    "class": "التصنيف",
+    "size": "الحجم",
+    "allCategories": "كل الأقسام",
+    "missingLines": "{{count}} بند بدون تكلفة",
+    "unclassifiedHint": "أضف تكلفة المكونات للتصنيف",
+    "margin": "الهامش %"
+  },
+  "grid": {
+    "pasteTitle": "لصق صفوف",
+    "pasteHint": "الصق صفوفاً من جدول بيانات (مفصولة بمسافة جدولة أو فاصلة)، كل صف في سطر.",
+    "column": "العمود {{n}}",
+    "ignore": "— تجاهل —",
+    "pasteSummary": "{{valid}} من {{total}} صفوف صالحة",
+    "createN": "إنشاء {{count}}",
+    "pasteRows": "لصق صفوف",
+    "selectAll": "تحديد الكل",
+    "selectRow": "تحديد الصف",
+    "selectedCount": "{{count}} محدد"
   }
 }

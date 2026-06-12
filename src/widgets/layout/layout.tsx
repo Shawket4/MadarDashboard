@@ -4,10 +4,12 @@ import { useTranslation } from "react-i18next";
 import { Sidebar } from "@/widgets/sidebar/sidebar";
 import { Header } from "@/widgets/header/header";
 import { CommandPalette } from "@/widgets/command-palette/command-palette";
+import { useScopeUrlSync } from "@/shared/scope/use-scope-url-sync";
 
 export function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { t } = useTranslation();
+  useScopeUrlSync();
 
   return (
     <div className="flex h-screen bg-background overflow-hidden safe-top safe-bottom">

@@ -1,12 +1,14 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 
 export interface BranchInventoryItem {
   below_reorder: boolean;
   branch_id: string;
-  cost_per_unit: number;
+  /**
+     * Piastres per unit; `null` ⟺ cost never entered.
+     * @nullable
+     */
+  cost_per_unit?: number | null;
   created_at: string;
   current_stock: number;
   /** @nullable */

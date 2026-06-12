@@ -1,7 +1,5 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 
 export type ListOrdersParams = {
 branch_id?: string;
@@ -14,4 +12,11 @@ payment_method?: string;
 status?: string;
 from?: string;
 to?: string;
+/**
+ * When true, each order in `data` embeds its full line items
+ * (addons/optionals/bundle components) — the response shape becomes
+ * [PaginatedOrdersFull]. Lets offline-first clients cache complete
+ * orders in one round trip instead of fetching each order separately.
+ */
+include_items?: boolean;
 };

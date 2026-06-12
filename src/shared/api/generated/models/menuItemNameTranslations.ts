@@ -1,6 +1,4 @@
-/* /* eslint-disable *\/ */
-/**
- * // @ts-nocheck
- */
+/* eslint-disable */
+// @ts-nocheck
 
 export type MenuItemNameTranslations = { [key: string]: unknown };

@@ -2,6 +2,7 @@ import { render, screen, waitFor, queryClient } from '@/test/utils'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { server } from '@/test/mocks/server'
+import { useScopeStore } from '@/shared/scope/scope-store'
 import Analytics from '../analytics'
 import * as useCurrentContextMock from '@/shared/hooks/use-current-context'
 import { 
@@ -93,6 +94,8 @@ const MOCK_ORG_COMPARISON = {
 describe('Analytics Page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // pages now read branch scope from the global scope store (B.1)
+    useScopeStore.setState({ branchId: '1' })
     queryClient.clear()
     
     vi.spyOn(useCurrentContextMock, 'useCurrentContext').mockReturnValue({
