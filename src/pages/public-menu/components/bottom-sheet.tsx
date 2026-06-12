@@ -1,142 +1,115 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/shared/lib/cn";
-import { haptic } from "../lib/menu-format";
 
-/**
- * Mobile-first modal: full-width sheet anchored to the bottom with
- * drag-to-dismiss; on desktop it becomes a centred, rounded card. Portals to
- * <body>, locks scroll, and closes on ESC / backdrop / downward drag.
- */
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  ariaLabel?: string;
+  children: ReactNode;
+  maxHeightClass?: string;
+}
+
 export function BottomSheet({
   open,
   onClose,
   ariaLabel,
   children,
-}: {
-  open: boolean;
-  onClose: () => void;
-  ariaLabel?: string;
-  children: ReactNode;
-}) {
+  maxHeightClass = "max-h-[92dvh]",
+}: Props) {
   const [mounted, setMounted] = useState(open);
-  const [animate, setAnimate] = useState(false);
-  const sheetRef = useRef<HTMLDivElement | null>(null);
-  const dragRef = useRef<{ startY: number; offset: number } | null>(null);
+  const [visible, setVisible] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const drag = useRef<{ startY: number } | null>(null);
 
-  // Mount/unmount around the enter/exit transition.
   useEffect(() => {
     if (open) {
       setMounted(true);
-    } else if (mounted) {
-      setAnimate(false);
-      const t = window.setTimeout(() => setMounted(false), 300);
+      const id = requestAnimationFrame(() =>
+        requestAnimationFrame(() => setVisible(true))
+      );
+      return () => cancelAnimationFrame(id);
+    } else {
+      setVisible(false);
+      const t = window.setTimeout(() => setMounted(false), 350);
       return () => window.clearTimeout(t);
     }
-  }, [open, mounted]);
+  }, [open]);
 
-  useEffect(() => {
-    if (mounted && open) {
-      const id = window.setTimeout(() => setAnimate(true), 16);
-      return () => window.clearTimeout(id);
-    }
-  }, [mounted, open]);
-
-  // Lock body scroll + compensate the scrollbar while mounted.
   useEffect(() => {
     if (!mounted) return;
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
-    };
+    return () => { document.body.style.overflow = prev; };
   }, [mounted]);
 
-  // ESC to close.
   useEffect(() => {
-    if (!mounted) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [mounted, onClose]);
+    if (!open) return;
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [open, onClose]);
 
-  const handlePointerDown = (e: PointerEvent<HTMLDivElement>) => {
-    if (!sheetRef.current) return;
-    dragRef.current = { startY: e.clientY, offset: 0 };
-    sheetRef.current.style.transition = "none";
-    e.currentTarget.setPointerCapture(e.pointerId);
+  const onPointerDown = (e: PointerEvent) => {
+    drag.current = { startY: e.clientY };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: PointerEvent) => {
+    if (!drag.current || !panelRef.current) return;
+    const dy = Math.max(0, e.clientY - drag.current.startY);
+    panelRef.current.style.transition = "none";
+    panelRef.current.style.transform = `translateY(${dy}px)`;
+  };
+  const onPointerUp = (e: PointerEvent) => {
+    if (!drag.current || !panelRef.current) return;
+    const dy = Math.max(0, e.clientY - drag.current.startY);
+    drag.current = null;
+    panelRef.current.style.transition = "";
+    panelRef.current.style.transform = "";
+    if (dy > 88) onClose();
   };
 
-  const handlePointerMove = (e: PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current || !sheetRef.current) return;
-    const delta = Math.max(0, e.clientY - dragRef.current.startY);
-    dragRef.current.offset = delta;
-    const eased = delta < 40 ? delta : 40 + (delta - 40) * 0.85;
-    sheetRef.current.style.transform = `translate3d(0, ${eased}px, 0)`;
-  };
-
-  const handlePointerUp = (e: PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current || !sheetRef.current) return;
-    e.currentTarget.releasePointerCapture(e.pointerId);
-    const height = sheetRef.current.getBoundingClientRect().height;
-    const shouldClose = dragRef.current.offset > height * 0.22;
-    sheetRef.current.style.transition = "";
-    sheetRef.current.style.transform = "";
-    dragRef.current = null;
-    if (shouldClose) {
-      haptic("light");
-      onClose();
-    }
-  };
-
-  if (!mounted || typeof document === "undefined") return null;
+  if (!mounted) return null;
 
   return createPortal(
-    <div className={cn("fixed inset-0 z-50 light-theme", !animate && "pointer-events-none")}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={ariaLabel}
+      className="fixed inset-0 z-50 flex items-end justify-center"
+    >
       <div
-        onClick={onClose}
-        aria-hidden
         className={cn(
-          "absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 ease-out",
-          animate ? "opacity-100" : "opacity-0 pointer-events-none",
+          "absolute inset-0 bg-black/40 transition-opacity duration-300",
+          visible ? "opacity-100" : "opacity-0"
         )}
+        onClick={onClose}
       />
 
       <div
-        ref={sheetRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={ariaLabel}
+        ref={panelRef}
         className={cn(
-          "fixed inset-x-0 bottom-0",
-          "sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:bottom-6 sm:w-full sm:max-w-2xl",
-          "bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl overflow-hidden flex flex-col",
-          "max-h-[86vh] sm:max-h-[80vh]",
-          "transform-gpu will-change-transform",
-          "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-          animate
-            ? "translate-y-0"
-            : "translate-y-full sm:translate-y-[calc(100%+1.5rem)] pointer-events-none",
+          "relative w-full sm:max-w-md bg-white rounded-t-[28px] shadow-2xl flex flex-col",
+          maxHeightClass,
+          "transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
+          visible ? "translate-y-0" : "translate-y-full"
         )}
+        style={{ willChange: "transform" }}
       >
-        {/* Drag handle (mobile only) */}
+        {/* Drag handle */}
         <div
-          className="absolute top-0 inset-x-0 z-30 sm:hidden flex justify-center pt-3 pb-3 touch-none cursor-grab active:cursor-grabbing"
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
+          className="flex-shrink-0 flex justify-center pt-[10px] pb-2 cursor-grab touch-none select-none"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
         >
-          <div className="h-1.5 w-11 rounded-full bg-white/70 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.15)]" />
+          <div className="w-10 h-[5px] rounded-full bg-neutral-200" />
         </div>
 
         {children}
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }

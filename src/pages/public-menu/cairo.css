@@ -1,39 +1,65 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
 
-/* Fallback local Cairo font definitions in case Google Fonts is offline */
 @font-face {
   font-family: 'Cairo Fallback';
   src: url('/fonts/Cairo-Regular.ttf') format('truetype');
   font-weight: 400;
-  font-style: normal;
   font-display: swap;
 }
-
 @font-face {
   font-family: 'Cairo Fallback';
   src: url('/fonts/Cairo-SemiBold.ttf') format('truetype');
-  font-weight: 600;
-  font-style: normal;
+  font-weight: 600 700 900;
   font-display: swap;
 }
 
-@font-face {
-  font-family: 'Cairo Fallback';
-  src: url('/fonts/Cairo-SemiBold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
+/* ── Public Menu Keyframes ─────────────────────────────────────────────────── */
+@keyframes pm-sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes pm-sheet-out {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+@keyframes pm-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pm-backdrop-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes pm-card-rise {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pm-badge-pop {
+  0%   { transform: scale(0.4); }
+  65%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+@keyframes pm-bar-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@font-face {
-  font-family: 'Cairo Fallback';
-  src: url('/fonts/Cairo-SemiBold.ttf') format('truetype');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-.public-menu-root, 
-.public-menu-root * {
+/* ── Utility classes ──────────────────────────────────────────────────────── */
+.pm-root,
+.pm-root * {
   font-family: 'Cairo', 'Cairo Fallback', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Hide scrollbar on category rail while keeping it scrollable */
+.pm-cat-rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.pm-cat-rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prevent content from poking out under rounded sheet */
+.pm-sheet-inner {
+  overscroll-behavior: contain;
 }

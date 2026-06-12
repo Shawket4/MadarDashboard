@@ -1,64 +1,86 @@
 import { useTranslation } from "react-i18next";
-import { Coffee } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { SearchX } from "lucide-react";
 
-/** First-paint loading placeholder mirroring the real layout. */
+/** Shimmer skeleton for initial load */
 export function MenuSkeleton() {
-  const { i18n } = useTranslation();
   return (
-    <div
-      dir={i18n.dir()}
-      className="public-menu-root max-w-4xl mx-auto p-4 space-y-8 animate-in fade-in duration-500"
-    >
-      <div className="flex items-center gap-4 mt-6">
-        <Skeleton className="h-14 w-14 rounded-2xl" />
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-44" />
-          <Skeleton className="h-3 w-28" />
+    <div className="max-w-lg mx-auto px-4 pt-4 pb-20 space-y-10 animate-pulse">
+      {/* Fake header */}
+      <div className="flex items-center justify-between h-14">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-neutral-200" />
+          <div className="w-28 h-4 rounded-full bg-neutral-200" />
         </div>
+        <div className="w-10 h-10 rounded-2xl bg-neutral-200" />
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-10 w-24 rounded-full flex-shrink-0" />
+
+      {/* Fake category pills */}
+      <div className="flex gap-2">
+        {[60, 80, 56, 72].map((w, i) => (
+          <div key={i} className="h-8 rounded-full bg-neutral-200" style={{ width: w }} />
         ))}
       </div>
-      <div className="space-y-12">
-        {[1, 2].map((group) => (
-          <div key={group} className="space-y-4">
-            <Skeleton className="h-8 w-40" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-32 rounded-[2rem]" />
-              ))}
-            </div>
+
+      {/* Fake sections */}
+      {[4, 3].map((count, si) => (
+        <div key={si} className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="h-4 w-24 rounded-full bg-neutral-200" />
+            <div className="flex-1 h-px bg-neutral-100" />
           </div>
-        ))}
-      </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {Array.from({ length: count }).map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden bg-white shadow-sm">
+                <div className="aspect-[3/4] bg-neutral-100" />
+                <div className="px-3 py-2.5 space-y-1.5">
+                  <div className="h-3.5 rounded-full bg-neutral-100 w-3/4" />
+                  <div className="h-3 rounded-full bg-neutral-100 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
-/** Full-screen error state with a refresh action. */
+/** Generic fetch error */
 export function MenuError() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   return (
-    <div
-      dir={i18n.dir()}
-      className="public-menu-root min-h-screen flex items-center justify-center p-4 bg-slate-50"
-    >
-      <div className="text-center space-y-6 max-w-sm animate-in fade-in zoom-in-95 duration-500">
-        <div className="h-24 w-24 bg-white shadow-sm rounded-3xl flex items-center justify-center mx-auto text-slate-300 border border-slate-100">
-          <Coffee size={48} />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-slate-900">{t("menu.errors.title")}</h2>
-          <p className="text-slate-500">{t("menu.errors.body")}</p>
-        </div>
-        <Button variant="outline" onClick={() => window.location.reload()}>
-          {t("menu.errors.refresh")}
-        </Button>
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="w-16 h-16 rounded-3xl bg-neutral-100 flex items-center justify-center">
+        <SearchX size={24} className="text-neutral-400" />
       </div>
+      <div className="space-y-1">
+        <p className="font-semibold text-[#0A2540]">{t("menu.error.title", "Menu unavailable")}</p>
+        <p className="text-sm text-neutral-500">{t("menu.error.body", "Please try again in a moment.")}</p>
+      </div>
+      <button
+        onClick={() => window.location.reload()}
+        className="mt-2 px-5 py-2.5 rounded-full bg-[#0A2540] text-white text-sm font-medium active:opacity-80"
+      >
+        {t("common.retry", "Retry")}
+      </button>
+    </div>
+  );
+}
+
+/** Empty search results */
+export function MenuSearchEmpty({ query }: { query: string }) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+      <div className="w-16 h-16 rounded-3xl bg-neutral-100 flex items-center justify-center">
+        <SearchX size={22} className="text-neutral-300" />
+      </div>
+      <p className="font-semibold text-[#0A2540]">
+        {t("menu.search.noResults", { query })}
+      </p>
+      <p className="text-sm text-neutral-400 max-w-[220px]">
+        {t("menu.search.noResultsHint", "Try a different keyword")}
+      </p>
     </div>
   );
 }

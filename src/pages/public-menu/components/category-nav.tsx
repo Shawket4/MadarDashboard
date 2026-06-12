@@ -2,43 +2,39 @@ import { type MouseEvent } from "react";
 import { cn } from "@/shared/lib/cn";
 import type { PublicCategory } from "@/shared/api/generated/models";
 
-/** Sticky, horizontally-scrolling category pills with scroll-spy highlight. */
-export function CategoryNav({
-  categories,
-  activeCat,
-  registerPill,
-  onPillClick,
-}: {
+interface Props {
   categories: PublicCategory[];
   activeCat: string | null;
   registerPill: (id: string, el: HTMLAnchorElement | null) => void;
-  onPillClick: (e: MouseEvent<HTMLAnchorElement>, id: string) => void;
-}) {
+  onPillClick: (e: MouseEvent<HTMLAnchorElement>, catId: string) => void;
+}
+
+export function CategoryNav({ categories, activeCat, registerPill, onPillClick }: Props) {
+  if (categories.length === 0) return null;
+
   return (
-    <nav
-      aria-label="Menu categories"
-      className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide sticky top-16 sm:top-20 z-20 py-2 -mx-4 px-4 bg-[#F8FAFC]/90 backdrop-blur-md"
-    >
-      {categories.map((cat) => {
-        const id = String(cat.id);
-        const isActive = activeCat === id;
-        return (
-          <a
-            key={id}
-            href={`#cat-${id}`}
-            ref={(el) => registerPill(id, el)}
-            onClick={(e) => onPillClick(e, id)}
-            className={cn(
-              "whitespace-nowrap px-5 sm:px-6 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 active:scale-95 flex items-center gap-2 border shadow-sm",
-              isActive
-                ? "bg-slate-900 border-slate-900 text-white shadow-slate-900/20"
-                : "bg-white border-slate-200 text-slate-600 hover:border-primary/30 hover:text-primary",
-            )}
-          >
-            {cat.name}
-          </a>
-        );
-      })}
-    </nav>
+    <div className="sticky top-14 z-20 -mx-4 px-4 py-2.5 bg-[#FAF8F5]/90 backdrop-blur-md">
+      <div className="pm-cat-rail flex gap-2 overflow-x-auto">
+        {categories.map((cat) => {
+          const isActive = activeCat === String(cat.id);
+          return (
+            <a
+              key={cat.id}
+              ref={(el) => registerPill(String(cat.id), el)}
+              href={`#cat-${cat.id}`}
+              onClick={(e) => onPillClick(e, String(cat.id))}
+              className={cn(
+                "flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-[#0A2540] text-white shadow-sm"
+                  : "bg-white text-neutral-500 border border-neutral-200 hover:border-neutral-300 hover:text-neutral-700"
+              )}
+            >
+              {cat.name}
+            </a>
+          );
+        })}
+      </div>
+    </div>
   );
 }

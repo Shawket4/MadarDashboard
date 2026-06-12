@@ -1,66 +1,47 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useState } from "react";
 import { cn } from "@/shared/lib/cn";
-import { MissingItemThumb } from "./missing-item-thumb";
-import type { ThumbVariant } from "../lib/types";
+import { getMonogram } from "../lib/menu-format";
 
-/**
- * Lazy image with a typographic fallback. Fixed aspect via the caller's sizing
- * className (avoids CLS); fades in on load. `priority` opts a small number of
- * above-the-fold images (logo, hero) into eager/high-priority loading.
- */
-export const ItemImage = memo(function ItemImage({
-  src,
-  alt,
-  className,
-  fallbackName,
-  fallbackVariant = "card",
-  disableFade = false,
-  priority = false,
-}: {
+interface Props {
   src?: string | null;
-  alt: string;
+  name: string;
   className?: string;
-  fallbackName?: string;
-  fallbackVariant?: ThumbVariant;
-  disableFade?: boolean;
-  priority?: boolean;
-}) {
-  const [failed, setFailed] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const imgRef = useRef<HTMLImageElement | null>(null);
+  /** Whether to show an animated skeleton while loading */
+  skeleton?: boolean;
+}
 
-  useEffect(() => {
-    setFailed(false);
-    setLoaded(false);
-    // Already cached/complete → mark loaded so we don't flash the placeholder.
-    if (imgRef.current?.complete) setLoaded(true);
-  }, [src]);
+/** Image with graceful fallback: skeleton on load, monogram avatar on error. */
+export const ItemImage = memo(function ItemImage({ src, name, className, skeleton = true }: Props) {
+  const [status, setStatus] = useState<"loading" | "loaded" | "error">(
+    src ? "loading" : "error"
+  );
 
-  if (!src || failed) {
-    if (fallbackName) {
-      return <MissingItemThumb name={fallbackName} variant={fallbackVariant} className={className} />;
-    }
-    return <div className={cn("relative overflow-hidden bg-slate-100", className)} />;
+  if (!src || status === "error") {
+    return (
+      <div className={cn("flex items-center justify-center bg-gradient-to-br from-[#EEF2F7] to-[#DDE4ED]", className)}>
+        <span className="text-[#0A2540]/30 font-bold select-none" style={{ fontSize: "clamp(1.5rem, 8cqw, 3rem)" }}>
+          {getMonogram(name)}
+        </span>
+      </div>
+    );
   }
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
-      {!loaded && <div className="absolute inset-0 bg-slate-100 animate-pulse" />}
+      {skeleton && status === "loading" && (
+        <div className="absolute inset-0 bg-neutral-100 animate-pulse" />
+      )}
       <img
-        ref={imgRef}
         src={src}
-        alt={alt}
-        loading={priority ? "eager" : "lazy"}
-        decoding="async"
-        fetchPriority={priority ? "high" : "low"}
-        onLoad={() => setLoaded(true)}
-        onError={() => setFailed(true)}
+        alt={name}
         className={cn(
-          "h-full w-full object-cover",
-          disableFade
-            ? "opacity-100"
-            : cn("transition-opacity duration-500", loaded ? "opacity-100" : "opacity-0"),
+          "w-full h-full object-cover transition-opacity duration-300",
+          status === "loaded" ? "opacity-100" : "opacity-0"
         )}
+        onLoad={() => setStatus("loaded")}
+        onError={() => setStatus("error")}
+        loading="lazy"
+        decoding="async"
       />
     </div>
   );
