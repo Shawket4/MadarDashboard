@@ -1,0 +1,2074 @@
+{
+  "app": {
+    "name": "Sufrix",
+    "tagline": "Coffee Shop Management"
+  },
+  "common": {
+    "copyright": "© {{year}} Sufrix. All rights reserved.",
+    "source": "Source",
+    "save": "Save",
+    "saveChanges": "Save Changes",
+    "savedChanges": "Changes saved",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "new": "New",
+    "add": "Add",
+    "remove": "Remove",
+    "search": "Search",
+    "searchPlaceholder": "Search…",
+    "filter": "Filter",
+    "filters": "Filters",
+    "clearAll": "Clear all",
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "done": "Done",
+    "optional": "Optional",
+    "required": "Required",
+    "active": "Active",
+    "inactive": "Inactive",
+    "status": "Status",
+    "actions": "Actions",
+    "name": "Name",
+    "description": "Description",
+    "details": "Details",
+    "notes": "Notes",
+    "total": "Total",
+    "totals": "Totals",
+    "subtotal": "Subtotal",
+    "quantity": "Quantity",
+    "qty": "Qty",
+    "price": "Price",
+    "amount": "Amount",
+    "date": "Date",
+    "time": "Time",
+    "from": "From",
+    "to": "To",
+    "by": "By",
+    "type": "Type",
+    "category": "Category",
+    "yes": "Yes",
+    "no": "No",
+    "none": "None",
+    "all": "All",
+    "any": "Any",
+    "of": "of",
+    "rows": "{{count}} row",
+    "rows_other": "{{count}} rows",
+    "page": "Page {{current}} of {{total}}",
+    "export": "Export Excel",
+    "refresh": "Refresh",
+    "comingSoon": "Coming soon",
+    "noResults": "No results found",
+    "confirmDelete": "Delete \"{{name}}\"?",
+    "requiredField": "This field is required",
+    "somethingWrong": "Something went wrong",
+    "undo": "Undo",
+    "autoTranslated": "auto-translates if empty",
+    "account": "Account",
+    "comingSoonDesc": "This screen is being rebuilt as part of the new Sufrix experience.",
+    "accept": "Accept",
+    "reject": "Reject",
+    "ignore": "Ignore",
+    "invalidEmail": "Invalid email",
+    "saved": "Saved"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "orgs": "Organizations",
+    "users": "Users",
+    "branches": "Branches",
+    "menu": "Menu",
+    "inventory": "Inventory",
+    "recipes": "Recipes",
+    "shifts": "Shifts",
+    "analytics": "Analytics",
+    "orders": "Orders",
+    "discounts": "Discounts",
+    "bundles": "Bundles",
+    "menuAdvisor": "Menu Advisor",
+    "permissions": "Permissions",
+    "settings": "Settings",
+    "signOut": "Sign Out",
+    "overview": "Overview",
+    "operations": "Operations",
+    "catalog": "Catalog",
+    "admin": "Administration",
+    "preferences": "Preferences",
+    "management": "Management",
+    "appearance": "Appearance",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "language": "Language",
+    "items": "Items",
+    "engineering": "Menu Engineering",
+    "invToday": "Today",
+    "invItems": "Items",
+    "invPurchasing": "Purchasing",
+    "invCounts": "Stock counts",
+    "invWaste": "Waste",
+    "invTransfers": "Transfers",
+    "invReports": "Reports",
+    "invSettings": "Settings"
+  },
+  "auth": {
+    "welcome": "Welcome back",
+    "signInSubtitle": "Sign in to your account to continue",
+    "email": "Email address",
+    "password": "Password",
+    "pin": "PIN",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "forgotPassword": "Forgot password?",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "features": {
+      "realtime": "Real-time shifts",
+      "realtimeDesc": "Live order tracking across all branches",
+      "rbac": "Role-based access",
+      "rbacDesc": "Granular permissions per user",
+      "multi": "Multi-branch",
+      "multiDesc": "Manage all locations from one place"
+    },
+    "errors": {
+      "invalid": "Invalid credentials",
+      "required": "Email and password are required",
+      "invalidEmail": "Enter a valid email"
+    }
+  },
+  "roles": {
+    "super_admin": "Super Admin",
+    "org_admin": "Organization Admin",
+    "branch_manager": "Branch Manager",
+    "teller": "Teller"
+  },
+  "payments": {
+    "cash": "Cash",
+    "card": "Card",
+    "digital_wallet": "Digital Wallet",
+    "mixed": "Mixed",
+    "talabat_online": "Talabat Online",
+    "talabat_cash": "Talabat Cash",
+    "talabat_total": "Talabat (Total)"
+  },
+  "units": {
+    "g": "g",
+    "kg": "kg",
+    "ml": "ml",
+    "l": "L",
+    "pcs": "pcs"
+  },
+  "shiftStatus": {
+    "open": "Open",
+    "closed": "Closed",
+    "force_closed": "Force Closed"
+  },
+  "orderStatus": {
+    "completed": "Completed",
+    "voided": "Voided"
+  },
+  "dashboard": {
+    "greetingMorning": "Good Morning, {{name}}",
+    "greetingAfternoon": "Good Afternoon, {{name}}",
+    "greetingEvening": "Good Evening, {{name}}",
+    "subtitle": "System overview",
+    "branchesCount": "{{count}} branch",
+    "branchesCount_other": "{{count}} branches",
+    "overview": "Branch Overview",
+    "totalSales": "Today's Sales",
+    "orders": "Orders",
+    "activeShifts": "Active Shifts",
+    "ofBranches": "of {{count}} branches",
+    "staff": "Staff",
+    "operating": "Operating",
+    "branchStatus": "Branch Status",
+    "recentOrders": "Recent Orders",
+    "lowStock": "Low Stock",
+    "allStockOk": "All stock levels OK",
+    "noActiveShift": "No active shift",
+    "noShiftFound": "No open shift found",
+    "noOrdersYet": "No orders yet this shift",
+    "todaySales": "Today's Sales",
+    "teller": "Teller",
+    "running": "Running",
+    "opening": "Opening",
+    "quickActions": "Quick Actions",
+    "systemStatus": "System Status",
+    "lowStockItems": "{{count}} item low on stock",
+    "lowStockItems_other": "{{count}} items low on stock",
+    "attention": "Needs attention",
+    "allClear": "All clear — nothing needs attention",
+    "noOpenShiftAt": "No open shift at {{branch}}",
+    "greeting": "Welcome back",
+    "greetingName": "Welcome back, {{name}}",
+    "revenue": "Revenue",
+    "avgTicket": "Avg ticket",
+    "voided": "Voided",
+    "revenueTrend": "Revenue trend",
+    "payments": "Payment mix",
+    "pickBranchTrend": "Select a branch to see its revenue trend",
+    "branchPerformance": "Branch performance"
+  },
+  "orgs": {
+    "title": "Organizations",
+    "subtitle": "Manage all coffee brands and franchises",
+    "newTitle": "New Organization",
+    "editTitle": "Edit Organization",
+    "orgName": "Organization Name",
+    "slug": "Slug",
+    "currency": "Currency",
+    "taxRate": "Tax Rate (%)",
+    "receiptFooter": "Receipt Footer",
+    "avgTax": "Avg Tax",
+    "createdToast": "Organization created",
+    "updatedToast": "Organization updated",
+    "deletedToast": "Organization deleted",
+    "logo": "Logo",
+    "logoHint": "Recommended: square PNG or SVG, at least 128×128 px",
+    "logoRemoved": "Logo removed"
+  },
+  "branches": {
+    "title": "Branches",
+    "subtitle": "Manage your branch locations and printer config",
+    "newTitle": "New Branch",
+    "editTitle": "Edit Branch",
+    "branchName": "Branch Name",
+    "address": "Address",
+    "phone": "Phone",
+    "timezone": "Timezone",
+    "printer": "Printer",
+    "printerConfig": "Printer Configuration",
+    "printerBrand": "Printer Model",
+    "printerIp": "Printer IP",
+    "printerPort": "Port",
+    "noPrinter": "No printer",
+    "brands": {
+      "none": "None (no printer)",
+      "star": "Star TSP100",
+      "epson": "Epson TM-T88"
+    },
+    "withPrinter": "With Printer",
+    "createdToast": "Branch created",
+    "updatedToast": "Branch updated",
+    "deletedToast": "Branch deleted",
+    "location": "Location (geofencing)",
+    "geoHint": "Optional. Used to auto-resolve which branch a device is at.",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "geoRadius": "Radius (m)",
+    "activeHint": "Inactive branches are hidden from the POS.",
+    "pickOrg": "Select an organization"
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage staff accounts and access",
+    "newTitle": "New User",
+    "editTitle": "Edit User",
+    "fullName": "Full Name",
+    "phone": "Phone",
+    "role": "Role",
+    "org": "Organization",
+    "pin": "PIN (4-6 digits)",
+    "password": "Password",
+    "activeAccount": "Active Account",
+    "activeHint": "Inactive users cannot log in",
+    "branchAccess": "Branch Access",
+    "branchAccessHint": "Toggle branch access for {{name}}",
+    "permissions": "Manage permissions",
+    "assignBranches": "Assign branches",
+    "totalUsers": "Total Users",
+    "orgAdmins": "Org Admins",
+    "branchManagers": "Tellers",
+    "tellers": "Tellers",
+    "createdToast": "User created",
+    "updatedToast": "User updated",
+    "deletedToast": "User deleted",
+    "pickOrg": "Select an organization",
+    "pinError": "PIN must be 4-6 digits",
+    "leaveBlank": "Leave blank to keep"
+  },
+  "permissions": {
+    "title": "Permissions",
+    "subtitle": "Manage per-user access overrides",
+    "selectUser": "Select a user",
+    "selectUserHint": "Choose a user to view and manage their permissions",
+    "resource": "Resource",
+    "override": "Override",
+    "overrideGranted": "Override granted",
+    "overrideDenied": "Override denied",
+    "roleDefault": "Role default",
+    "overridesApplied": "Overrides applied on top of role defaults",
+    "actions": {
+      "read": "Read",
+      "create": "Create",
+      "update": "Update",
+      "delete": "Delete"
+    },
+    "resources": {
+      "orders": "Orders",
+      "shifts": "Shifts",
+      "branches": "Branches",
+      "users": "Users",
+      "menu_items": "Menu Items",
+      "categories": "Categories",
+      "addon_items": "Addon Items",
+      "inventory": "Inventory",
+      "inventory_adjustments": "Inventory Adjustments",
+      "inventory_transfers": "Inventory Transfers",
+      "recipes": "Recipes",
+      "permissions": "Permissions",
+      "shift_counts": "Shift Counts",
+      "orgs": "Organizations",
+      "addon_groups": "Addon Groups",
+      "order_items": "Order Items",
+      "payments": "Payments",
+      "soft_serve_batches": "Soft Serve Batches",
+      "settings": "Settings",
+      "stocktakes": "Stocktakes",
+      "inventory_waste": "Inventory Waste",
+      "suppliers": "Suppliers",
+      "purchase_orders": "Purchase Orders"
+    }
+  },
+  "menu": {
+    "itemName": "Item Name",
+    "size": "Size",
+    "unitPrice": "Unit Price",
+    "optionals": "Optionals",
+    "title": "Menu",
+    "subtitle": "Categories, items and addons",
+    "items": "Items",
+    "itemsCount": "Items ({{count}})",
+    "categories": "Categories",
+    "categoriesCount": "Categories ({{count}})",
+    "addons": "Addons",
+    "addonsCount": "Addons ({{count}})",
+    "addItem": "Add Item",
+    "addCategory": "Add Category",
+    "addAddon": "Add Addon",
+    "allCategories": "All categories",
+    "allTypes": "All types",
+    "noCategory": "No category",
+    "uncategorised": "Uncategorised",
+    "displayOrder": "Display Order",
+    "itemDialog": {
+      "new": "New Item",
+      "edit": "Edit Item",
+      "namePh": "e.g. Latte",
+      "descPh": "Optional",
+      "image": "Item image",
+      "imageHint": "PNG, JPG or WebP · up to 5 MB",
+      "imageRemoved": "Image removed",
+      "imageAfterSave": "Save the item first, then you can add an image.",
+      "imageUploadsAfterSave": "Image uploads right after the item is created",
+      "applyTemplate": "Apply template",
+      "saveTemplate": "Save as template",
+      "templateNamePrompt": "Template name",
+      "templateSaved": "Template \"{{name}}\" saved"
+    },
+    "categoryDialog": {
+      "new": "New Category",
+      "edit": "Edit Category",
+      "namePh": "e.g. Hot Drinks"
+    },
+    "addonDialog": {
+      "new": "New Addon",
+      "edit": "Edit Addon",
+      "namePh": "e.g. Oat Milk",
+      "typeLabel": "Type",
+      "defaultPrice": "Default Price (EGP)"
+    },
+    "addonTypes": {
+      "coffee_type": "Coffee Type",
+      "milk_type": "Milk Type",
+      "extra": "Extra"
+    },
+    "emptyItems": "No items found",
+    "emptyCategories": "No categories found",
+    "emptyAddons": "No addons found",
+    "searchItems": "Search items…",
+    "searchCategories": "Search categories…",
+    "searchAddons": "Search addons…",
+    "header": {
+      "subtitle": "Browse, build your order, take your time."
+    },
+    "search": {
+      "placeholder": "Search the menu…",
+      "noResults": "Nothing matches \"{{query}}\".",
+      "noResultsHint": "Try a different word or browse the categories."
+    },
+    "card": {
+      "startsAt": "Starts at",
+      "price": "Price"
+    },
+    "detail": {
+      "size": "Size",
+      "quantity": "Quantity",
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity",
+      "close": "Close",
+      "addToOrder_one": "Add {{count}} to order",
+      "addToOrder_other": "Add {{count}} to order",
+      "requiredChooseOne": "Required • pick 1",
+      "requiredChooseRange": "Required • pick {{min}}–{{max}}",
+      "requiredChooseExact": "Required • pick {{count}}",
+      "chooseUpTo": "Pick up to {{max}}",
+      "optional": "Optional"
+    },
+    "cart": {
+      "title": "Your order",
+      "lines_one": "{{count}} item",
+      "lines_other": "{{count}} items",
+      "empty": "Nothing here yet — pick something good.",
+      "remove": "Remove",
+      "total": "Total",
+      "showToBarista": "Show to barista"
+    },
+    "bar": {
+      "yourOrder": "Your order",
+      "items_one": "{{count}} item",
+      "items_other": "{{count}} items",
+      "view": "View",
+      "viewOrder": "View order"
+    },
+    "teller": {
+      "title": "You're all set ☕",
+      "subtitle": "Show this to our skilled barista and they'll take it from here.",
+      "orderCode": "Order code",
+      "total": "Total",
+      "done": "Done",
+      "noteTitle": "One more thing",
+      "noteBody": "Take a screenshot of this screen or keep it open."
+    },
+    "errors": {
+      "title": "Menu not available",
+      "body": "We couldn't find this menu. The link might have expired or moved.",
+      "refresh": "Try again"
+    },
+    "costMargin": "Cost / Margin",
+    "costMissingFix": "Add ingredient costs to compute this",
+    "tabs": {
+      "items": "Items",
+      "recipes": "Recipes",
+      "bundles": "Bundles",
+      "engineering": "Engineering",
+      "advisor": "Advisor"
+    },
+    "grid": {
+      "views": {
+        "grid": "Quick edit",
+        "classic": "Classic"
+      },
+      "fullEditor": "Open full editor (sizes, translations)",
+      "duplicate": "Duplicate",
+      "duplicated": "Duplicated {{name}}",
+      "bulkPriceAction": "Adjust prices",
+      "bulkPrice": "Adjust prices ({{count}} items)",
+      "addEgp": "+ EGP",
+      "multiplyPct": "× %",
+      "addEgpHint": "Adds a flat EGP amount to each selected price.",
+      "multiplyPctHint": "Multiplies each selected price (110 = +10%).",
+      "bulkSummary": "Updated {{count}} prices",
+      "bulkSummaryFailed": "Updated {{ok}}, {{failed}} failed",
+      "bulkCreated": "Created {{count}} items",
+      "bulkCreateFailed": "Created {{ok}}, {{failed}} failed",
+      "retryFailed": "Retry failed",
+      "nameRequired": "Name required",
+      "priceInvalid": "Invalid price",
+      "categoryUnknown": "Category must match an existing category"
+    },
+    "editor": {
+      "newHint": "Everything in one place — category, pricing, sizes and the recipe. You can fill the recipe later too.",
+      "pickCategory": "Pick a category…",
+      "sizes": "Sizes",
+      "sizesHint": "optional — leave empty for a one-size item",
+      "addSize": "Add size",
+      "noSizes": "No extra sizes — the item sells at the base price.",
+      "sizeLabel": "Label",
+      "recipe": "Recipe & cost",
+      "recipeHint": "optional — link ingredients to compute cost and margin"
+    },
+    "item": "Item",
+    "newItem": "New item",
+    "editItem": "Edit item",
+    "itemDesc": "Define the product, price and category.",
+    "newAddon": "New add-on",
+    "editAddon": "Edit add-on",
+    "addonDesc": "Add-ons are modifiers like extra shots or milk types.",
+    "newCategory": "New category",
+    "editCategory": "Edit category",
+    "categoryDesc": "Categories group your menu items.",
+    "basePrice": "Base price (EGP)",
+    "defaultPrice": "Default price (EGP)",
+    "addonType": "Type",
+    "selectCategory": "Select category",
+    "noItems": "No items yet",
+    "noAddons": "No add-ons yet",
+    "noCategories": "No categories yet",
+    "pickOrg": "Select an organization to manage its menu",
+    "sizes": "Sizes",
+    "addSize": "Add size",
+    "sizeLabel": "Label",
+    "noSizes": "No sizes — the base price applies.",
+    "itemImage": "Image",
+    "imageHint": "PNG/JPG/WebP, up to 5 MB",
+    "imageAfterSave": "Uploads after the item is saved",
+    "recipeOnRecipesPage": "Per-size ingredient recipes are managed on the Recipes tab.",
+    "recipe": "Recipe",
+    "recipeHint": "What this item consumes, per size"
+  },
+  "recipes": {
+    "title": "Recipes",
+    "subtitle": "Define what each item and add-on consumes",
+    "tabs": {
+      "drinks": "Drinks",
+      "addons": "Add-ons",
+      "slotsOptionals": "Slots & Optionals"
+    },
+    "pickOrg": "Select an organization",
+    "pickItem": "Select an item to edit its recipe",
+    "pickAddon": "Select an add-on to edit its recipe",
+    "ingredient": "Ingredient",
+    "quantity": "Qty",
+    "unit": "Unit",
+    "addIngredient": "Add ingredient",
+    "noLines": "No ingredients yet",
+    "size": "Size",
+    "oneSize": "One size",
+    "totalCost": "Recipe cost",
+    "searchItems": "Search items…",
+    "searchAddons": "Search add-ons…",
+    "noItems": "No items",
+    "noAddons": "No add-ons",
+    "costMissing": "cost unknown",
+    "perSize": "Per size",
+    "selectDrink": "Select an item",
+    "selectDrinkHint": "Pick an item to edit its recipe per size",
+    "selectAddon": "Select an add-on",
+    "selectAddonHint": "Pick an add-on to edit its recipe",
+    "ingredients": "Ingredients",
+    "export": "Export",
+    "newIngredient": "New ingredient",
+    "createIngredient": "Create ingredient",
+    "builder": {
+      "copyFrom": "Copy from…",
+      "scaleFromBase": "Scale from {{base}}",
+      "applyScaling": "Apply scaling",
+      "estimate": "Cost",
+      "margin": "margin",
+      "unsaved": "Unsaved changes",
+      "saveAll": "Save recipe",
+      "saved": "Recipe saved"
+    },
+    "slots": {
+      "title": "Add-on slots",
+      "info": "Which add-on groups customers can pick for this item, and how many.",
+      "addSlot": "Add slot",
+      "empty": "No add-on slots",
+      "required": "Required",
+      "optional": "Optional",
+      "addonType": "Add-on type",
+      "displayLabel": "Display label",
+      "labelPh": "e.g. Choose your milk",
+      "minSelections": "Min selections",
+      "maxSelections": "Max selections",
+      "maxHint": "blank = unlimited",
+      "requiredHint": "Customer must choose at least the minimum",
+      "saved": "Slot saved",
+      "removed": "Slot removed"
+    },
+    "optionals": {
+      "title": "Optional fields",
+      "info": "Yes/no checkboxes (e.g. extra hot) that can deduct an ingredient.",
+      "addField": "Add field",
+      "empty": "No optional fields",
+      "deducts": "Deducts {{qty}} {{unit}} {{name}}",
+      "checkboxLabel": "Checkbox label",
+      "labelPh": "e.g. Extra hot",
+      "inventoryItem": "Deduct an inventory item (optional)",
+      "saveField": "Save field"
+    }
+  },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "Ingredients, stock, purchasing and reports",
+    "pickBranch": "Select a branch to manage its stock",
+    "pickOrg": "Select an organization to manage inventory",
+    "tabs": {
+      "catalog": "Catalog",
+      "stock": "Stock",
+      "movements": "Movements",
+      "waste": "Waste",
+      "stocktakes": "Stocktakes",
+      "purchasing": "Purchasing",
+      "reports": "Reports",
+      "adjustments": "Adjustments",
+      "transfers": "Transfers"
+    },
+    "catalog": {
+      "title": "Ingredient catalog",
+      "newItem": "New ingredient",
+      "name": "Name",
+      "category": "Category",
+      "unit": "Unit",
+      "costPerUnit": "Cost / unit (EGP)",
+      "description": "Description",
+      "active": "Active",
+      "noItems": "No ingredients yet",
+      "editTitle": "Edit ingredient",
+      "cat_general": "General",
+      "cat_milk": "Milk",
+      "cat_coffee_bean": "Coffee bean",
+      "supplier": "Supplier",
+      "noSupplier": "No supplier",
+      "perBranchStock": "Per-branch stock & low-stock level",
+      "search": "Search ingredients",
+      "advanced": "Advanced",
+      "lowStockLevel": "Low-stock level",
+      "onHand": "On hand",
+      "usedIn": "Used in",
+      "unitChangeNotice": "Changing the unit will convert this ingredient's recipes, stock and cost to the new unit."
+    },
+    "stock": {
+      "title": "Branch stock",
+      "addItem": "Add ingredient",
+      "ingredient": "Ingredient",
+      "currentStock": "Current stock",
+      "reorder": "Reorder at",
+      "status": "Status",
+      "low": "Low",
+      "ok": "OK",
+      "noStock": "No stock tracked",
+      "removeConfirm": "Stop tracking \"{{name}}\" at this branch?",
+      "receive": "Receive delivery",
+      "receiveTitle": "Receive delivery",
+      "received": "Received",
+      "restockLow": "Restock low ({{count}})",
+      "transferFrom": "Transfer from another branch",
+      "qtyReceived": "Quantity received",
+      "alreadyTracked": "Already tracked",
+      "pickIngredient": "Pick an ingredient",
+      "noSurplus": "No other branch has surplus {{name}}"
+    },
+    "movements": {
+      "title": "Stock movements",
+      "type": "Type",
+      "quantity": "Quantity",
+      "balance": "Balance after",
+      "cost": "Unit cost",
+      "reason": "Reason",
+      "note": "Note",
+      "by": "By",
+      "date": "Date",
+      "noMovements": "No movements yet",
+      "allTypes": "All types",
+      "allIngredients": "All ingredients",
+      "belowZero": "Drove stock below zero",
+      "ingredient": "Ingredient",
+      "types": {
+        "sale": "Sale",
+        "void_restock": "Void restock",
+        "adjustment_add": "Adjustment +",
+        "adjustment_remove": "Adjustment −",
+        "waste": "Waste",
+        "transfer_out": "Transfer out",
+        "transfer_in": "Transfer in",
+        "purchase_in": "Purchase",
+        "stock_count": "Stock count"
+      }
+    },
+    "waste": {
+      "title": "Waste log",
+      "record": "Record waste",
+      "recordTitle": "Record waste",
+      "reason": "Reason",
+      "quantity": "Quantity",
+      "note": "Note",
+      "noWaste": "No waste recorded",
+      "ingredient": "Ingredient",
+      "reasons": {
+        "expired": "Expired",
+        "spoiled": "Spoiled",
+        "damaged": "Damaged",
+        "overproduction": "Overproduction",
+        "theft": "Theft",
+        "other": "Other"
+      },
+      "onHandHint": "{{qty}} {{unit}} on hand",
+      "byReason": "By reason",
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "totalPeriod": "Total this period",
+      "value": "Value",
+      "quantityExceeds": "More than on hand"
+    },
+    "stocktakes": {
+      "title": "Stocktakes",
+      "start": "Start stocktake",
+      "startTitle": "Start a stocktake",
+      "status": "Status",
+      "started": "Started",
+      "finalized": "Finalized",
+      "expected": "Expected",
+      "counted": "Counted",
+      "variance": "Variance",
+      "value": "Value",
+      "noStocktakes": "No stocktakes yet",
+      "count": "Enter counts",
+      "finalize": "Finalize",
+      "cancel": "Cancel stocktake",
+      "finalizeConfirm": "Finalize this stocktake? Stock will be set to the counted values and variance movements posted.",
+      "cancelConfirm": "Cancel this open stocktake?",
+      "varianceReport": "Variance report",
+      "shrinkage": "Shrinkage",
+      "overage": "Overage",
+      "net": "Net variance",
+      "unknownCost": "{{count}} item(s) with unknown cost",
+      "saveCounts": "Save counts",
+      "countsSaved": "Counts saved",
+      "open": "Open",
+      "note": "Note",
+      "ingredient": "Ingredient",
+      "st_open": "Open",
+      "st_finalized": "Finalized",
+      "st_cancelled": "Cancelled",
+      "inProgress": "In progress",
+      "reviewFinalize": "Review & finalize",
+      "netDifference": "Net difference",
+      "difference": "Difference",
+      "notCounted": "not counted",
+      "showOnlyCounted": "Show only counted",
+      "allCategories": "All categories",
+      "reason": "Reason",
+      "progress": "{{done}}/{{total}} done",
+      "finalizeBlocked": "Add a reason to every flagged item before finalizing",
+      "salesWarning": "Sales keep deducting while you count — finalizing sets stock to your counts.",
+      "viewReport": "View report",
+      "noOpenCount": "No open count",
+      "startHint": "Start a count to reconcile this branch's stock.",
+      "openCount": "Open count"
+    },
+    "purchasing": {
+      "title": "Purchasing",
+      "suppliers": "Suppliers",
+      "orders": "Purchase orders",
+      "supplier": "Supplier",
+      "newSupplier": "New supplier",
+      "editSupplier": "Edit supplier",
+      "contactName": "Contact name",
+      "email": "Email",
+      "phone": "Phone",
+      "supplierActive": "Active",
+      "noSuppliers": "No suppliers yet",
+      "deleteSupplierConfirm": "Delete supplier \"{{name}}\"?",
+      "newOrder": "New purchase order",
+      "reference": "Reference",
+      "expectedAt": "Expected",
+      "status": "Status",
+      "lines": "Lines",
+      "addLine": "Add line",
+      "purchaseUnit": "Purchase unit",
+      "unitsPerPurchaseUnit": "Units per pack",
+      "qtyOrdered": "Ordered",
+      "qtyReceived": "Received",
+      "unitCost": "Unit cost (EGP)",
+      "receive": "Receive",
+      "receiveTitle": "Receive order",
+      "cancel": "Cancel order",
+      "cancelConfirm": "Cancel this purchase order?",
+      "noOrders": "No purchase orders yet",
+      "total": "Total",
+      "po_draft": "Open",
+      "po_received": "Received",
+      "po_cancelled": "Cancelled",
+      "createdAt": "Created",
+      "packHint": "Stock units per purchase unit (e.g. a 24-pack → 24)",
+      "statuses": {
+        "draft": "Open",
+        "ordered": "Ordered",
+        "partially_received": "Partially received",
+        "received": "Received",
+        "cancelled": "Cancelled"
+      },
+      "remaining": "Remaining",
+      "receiveRemaining": "Receive remaining",
+      "receiving": "Receiving",
+      "alreadyReceived": "Already",
+      "order": "Place order",
+      "saveDraft": "Save draft",
+      "grandTotal": "Total",
+      "branch": "Branch",
+      "allBranches": "All branches",
+      "allStatuses": "All statuses",
+      "viewOrder": "View order",
+      "partialHint": "Receive what arrived — the order stays open for the rest.",
+      "pickSupplier": "Select a supplier",
+      "pickIngredient": "Pick an ingredient"
+    },
+    "reports": {
+      "title": "Inventory reports",
+      "valuation": "Valuation",
+      "lowStock": "Low stock",
+      "consumption": "Consumption",
+      "wasteReport": "Waste",
+      "totalValue": "Total value",
+      "unknownCost": "{{count}} with unknown cost",
+      "value": "Value",
+      "consumed": "Consumed",
+      "consumedValue": "Consumed value",
+      "wasteValue": "Waste value",
+      "deficit": "Deficit",
+      "noData": "No data",
+      "scope": "Scope",
+      "branch": "This branch",
+      "org": "Whole organization",
+      "ingredient": "Ingredient",
+      "currentStock": "Current stock",
+      "branchName": "Branch",
+      "cogs": "COGS & margins",
+      "shrinkage": "Shrinkage",
+      "byCategory": "By category",
+      "margin": "Margin",
+      "sold": "Sold",
+      "revenue": "Revenue",
+      "cost": "Cost",
+      "profit": "Profit",
+      "reason": "Reason",
+      "costBasis": "Cost basis",
+      "snapshot": "Snapshot",
+      "current": "Current",
+      "qty": "Quantity"
+    },
+    "adjustments": {
+      "title": "Adjustments",
+      "create": "New adjustment",
+      "createTitle": "Manual adjustment",
+      "type": "Type",
+      "add": "Add",
+      "remove": "Remove",
+      "quantity": "Quantity",
+      "note": "Note",
+      "by": "By",
+      "date": "Date",
+      "noAdjustments": "No adjustments yet",
+      "reverse": "Reverse",
+      "reverseConfirm": "Reverse this adjustment with a compensating entry?",
+      "reversalOf": "Reversal of: {{note}}",
+      "ingredient": "Ingredient",
+      "notePh": "Reason for adjustment…",
+      "t_add": "Add",
+      "t_remove": "Remove",
+      "t_transfer_in": "Transfer in",
+      "t_transfer_out": "Transfer out"
+    },
+    "transfers": {
+      "title": "Transfers",
+      "create": "New transfer",
+      "createTitle": "New transfer",
+      "source": "From branch",
+      "destination": "To branch",
+      "ingredient": "Ingredient",
+      "quantity": "Quantity",
+      "note": "Note",
+      "by": "By",
+      "date": "Date",
+      "noTransfers": "No transfers found",
+      "direction": "Direction",
+      "all": "All transfers",
+      "incoming": "Incoming",
+      "outgoing": "Outgoing",
+      "editNote": "Edit note",
+      "deleteConfirm": "Reverse and delete this transfer?",
+      "sameBranch": "Source and destination must differ",
+      "pickBranch": "Pick a branch",
+      "onHandHint": "{{branch}} on hand: {{qty}} {{unit}}",
+      "recent": "Recent transfers",
+      "from": "From",
+      "to": "To"
+    },
+    "today": {
+      "title": "Today",
+      "subtitle": "Your morning briefing: alerts, deliveries and counts due",
+      "stockValue": "Stock value",
+      "unknownCost": "{{count}} unknown cost",
+      "lowStock": "Low stock",
+      "lowStockItems": "{{count}} items",
+      "critical": "{{count}} critical",
+      "deliveries": "Deliveries",
+      "arrivingToday": "arriving today",
+      "countsDue": "Counts due",
+      "countsOverdue": ">14 days or never",
+      "lowStockHeading": "Low stock — reorder soon",
+      "viewAll": "View all",
+      "allGood": "All good — nothing below its low-stock level 🎉",
+      "onHand": "On hand",
+      "lowStockLevel": "Low-stock level",
+      "reorder": "Reorder",
+      "createPo": "Create PO",
+      "arriving": "Arriving today",
+      "noDeliveries": "No deliveries scheduled today",
+      "todaysWaste": "Today's waste",
+      "noWasteToday": "No waste logged today",
+      "logWaste": "Log waste",
+      "receive": "Receive",
+      "statusCritical": "Critical",
+      "statusLow": "Low"
+    },
+    "settings": {
+      "title": "Inventory settings",
+      "subtitle": "Organization-wide inventory rules",
+      "varianceThreshold": "Stock-count variance tolerance",
+      "varianceThresholdHint": "A counted item is flagged when its difference from expected is at least this percent. Flagged items need a reason before a count can be finalized.",
+      "percent": "Percent",
+      "saved": "Settings saved"
+    },
+    "varianceReasons": {
+      "theft": "Theft",
+      "spoilage": "Spoilage",
+      "breakage": "Breakage",
+      "miscount": "Miscount",
+      "supplier_short": "Supplier short",
+      "transfer_error": "Transfer error",
+      "other": "Other"
+    },
+    "reasonRequired": "A reason is required for flagged items",
+    "flagged": "Flagged",
+    "difference": "Difference",
+    "stockHistory": "Stock history",
+    "usedIn": "Used in {{count}} recipes",
+    "viewRecipes": "View recipes",
+    "adjust": "Adjust stock"
+  },
+  "shifts": {
+    "teller": "Teller",
+    "title": "Shifts",
+    "subtitle": "Reports and shift management",
+    "openShift": "Open Shift",
+    "forceClose": "Force Close",
+    "cashMovement": "Cash Movement",
+    "reportBtn": "Report",
+    "close": "Close",
+    "duration": "Duration",
+    "opened": "Opened",
+    "closed": "Closed",
+    "stillOpen": "Still open",
+    "openingCash": "Opening Cash",
+    "closingCashDeclared": "Declared Closing Cash",
+    "expectedCash": "Expected Cash",
+    "declaredCash": "Declared Cash",
+    "cashDiscrepancy": "Cash Discrepancy",
+    "exactMatch": "Exact Match",
+    "over": "Over",
+    "short": "Short",
+    "suggestedOpening": "Suggested opening cash: {{amount}}",
+    "shiftIsOpen": "Shift is open",
+    "noShiftsYet": "No shifts yet",
+    "noShiftsHint": "Open a shift to start taking orders",
+    "forceCloseWarning": "Force closing ends the shift without a proper cash count. Use only when necessary.",
+    "forceCloseReason": "Reason",
+    "forceCloseReasonPh": "Required reason…",
+    "deleteConfirmTitle": "Delete Shift?",
+    "deleteConfirmDesc": "This will permanently delete the shift, all of its orders, and all related records. This action is extremely destructive and cannot be undone.",
+    "cashDialog": {
+      "title": "Cash Movement",
+      "direction": "Direction",
+      "in": "Cash In — add to drawer",
+      "out": "Cash Out — remove from drawer",
+      "notePh": "Reason for movement"
+    },
+    "report": {
+      "title": "Shift Report",
+      "details": "Shift Details",
+      "paymentBreakdown": "Payment Breakdown",
+      "cashSummary": "Cash Summary",
+      "cashSales": "Cash Sales",
+      "movementsIn": "Movements In",
+      "movementsOut": "Movements Out",
+      "netMovements": "Net Movements",
+      "movements": "Cash Movements",
+      "totalRevenue": "Total Revenue",
+      "voided": "Voided",
+      "netPayments": "Net Payments",
+      "printedAt": "Report generated {{date}}",
+      "print": "Print"
+    },
+    "toasts": {
+      "opened": "Shift opened",
+      "closed": "Shift closed",
+      "forceClosed": "Shift force closed",
+      "cashRecorded": "Cash movement recorded",
+      "deleted": "Shift deleted successfully"
+    },
+    "openedToast": "Shift opened",
+    "closedToast": "Shift closed",
+    "openDesc": "Declare the opening cash float to start a shift.",
+    "suggested": "Suggested",
+    "closeShift": "Close shift",
+    "closeDesc": "Count the drawer and declare the closing cash.",
+    "closingCash": "Closing cash",
+    "cashMovementDesc": "Record cash paid into or taken out of the drawer.",
+    "cashIn": "Cash in",
+    "cashOut": "Cash out",
+    "cashRecorded": "Cash movement recorded",
+    "cashNotePlaceholder": "Reason for this movement",
+    "paymentSummary": "Payment summary",
+    "netPayments": "Net payments",
+    "cashReconciliation": "Cash reconciliation",
+    "cashMovements": "Cash movements",
+    "discrepancy": "Discrepancy",
+    "forceCloseDesc": "Closes the shift without a cash count. Use only when a teller can't close normally.",
+    "forceClosed": "Shift force-closed",
+    "deleteTitle": "Delete shift",
+    "deleted": "Shift deleted",
+    "pickBranch": "Select a branch to view its shifts",
+    "empty": "No shifts yet",
+    "viewReport": "View report"
+  },
+  "orders": {
+    "branch": "Branch",
+    "date": "Date",
+    "paymentMethod": "Payment Method",
+    "reference": "Reference",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "voidReason": "Reason",
+    "allTime": "All Time",
+    "title": "Orders",
+    "subtitle": "Browse, filter and export orders by branch and shift",
+    "allShifts": "All shifts",
+    "allTellers": "All tellers",
+    "allMethods": "All methods",
+    "allStatuses": "All statuses",
+    "shift": "Shift",
+    "teller": "Teller",
+    "customer": "Customer",
+    "payment": "Payment",
+    "discount": "Discount",
+    "discountAmount": "Discount Amount",
+    "tax": "Tax",
+    "change": "Change",
+    "tip": "Tip",
+    "completed": "Completed",
+    "voidedOrders": "Voided",
+    "totalRevenue": "Total Revenue",
+    "totalDiscounts": "Total Discounts",
+    "totalTips": "Total Tips",
+    "voidOrder": "Void Order",
+    "voidConfirm": "Void this order?",
+    "voidReasons": {
+      "customer_request": "Customer request",
+      "wrong_order": "Wrong order",
+      "quality_issue": "Quality issue",
+      "other": "Other"
+    },
+    "restoreInventory": "Restore inventory from this order",
+    "ingredientsUsed": "Ingredients Used",
+    "cashTendered": "Cash Tendered",
+    "changeGiven": "Change Given",
+    "orderNumber": "Order #{{n}}",
+    "voidedToast": "Order voided",
+    "selectBranch": "Select a branch",
+    "noMatch": "No orders match your filters",
+    "noMatchHint": "Try adjusting the branch, shift or date range",
+    "dateRange": "Date Range",
+    "showing": "Showing {{from}}-{{to}} of {{total}}",
+    "totalUsage": "Total Quantity",
+    "occurrences": "Occurrences",
+    "cost": "Cost",
+    "cogs": "COGS",
+    "grossProfit": "Gross profit",
+    "costMissing": "Cost unknown for this line",
+    "costMissingLines": "{{count}} line(s) missing cost — actual profit may be lower",
+    "order": "Order",
+    "discounts": "Discounts",
+    "combo": "Combo",
+    "void": "Void order",
+    "voided": "Order voided",
+    "voidTitle": "Void order",
+    "voidDesc": "This reverses the sale. You can optionally restore the deducted inventory.",
+    "reason": "Reason",
+    "reasonPlaceholder": "Why is this order being voided?",
+    "searchTeller": "Search teller…",
+    "allPayments": "All payments",
+    "exportTitle": "Orders report",
+    "exportDesc": "Choose the columns to include in the Excel export.",
+    "exportItemsTitle": "Order items",
+    "itemized": "Add itemized sheet",
+    "orderNumberShort": "Order #",
+    "voidNote": "Note",
+    "voidNoteRequired": "A note is required for \"Other\"",
+    "voidNotePh": "Add details…"
+  },
+  "ordersExport": {
+    "title": "Export Orders",
+    "subtitle": "Download detailed Excel sheet exports tailored to your custom specifications.",
+    "selectBranchError": "Please select a branch first",
+    "noGrainsSelected": "Please select at least one sheet to export",
+    "noOrders": "No matching orders found for this export selection.",
+    "success": "Excel workbook exported successfully!",
+    "tooLarge": "Export limit exceeded. Please narrow your date range or filters.",
+    "customizeBtn": "Customize export sheets",
+    "lockedGrainsHint": "Locked. Switch to Custom preset to manually select sheets.",
+    "grainsSection": "Select sheets to include in your workbook:",
+    "filtersSummary": "Filters Snapshot",
+    "filename": "Filename",
+    "filenameHint": "Leave blank to auto-generate a structured filename based on the preset.",
+    "rowEstimate": "Estimated rows: {{count}}",
+    "cancelButton": "Cancel",
+    "exportButton": "Export Workbook",
+    "presets": {
+      "title": "Export Presets",
+      "accountantDaily": {
+        "label": "Daily Accountant Export",
+        "desc": "Completed orders and summaries optimized for auditing."
+      },
+      "talabatReconcile": {
+        "label": "Talabat Reconciliation",
+        "desc": "Orders paid online/cash via Talabat for swift matching."
+      },
+      "shiftHandoff": {
+        "label": "Shift Handoff Summary",
+        "desc": "Order and split-payment workbook breakdown for the shift."
+      },
+      "ingredientConsumption": {
+        "label": "Ingredient Consumption",
+        "desc": "Exact and aggregated snapshots of deducted recipe ingredients."
+      },
+      "custom": {
+        "label": "Custom Configuration",
+        "desc": "Manually toggle data grains and set custom parameters."
+      }
+    },
+    "grains": {
+      "order": "Orders Summary",
+      "line_item": "Detailed Line Items",
+      "payment": "Split Payments Breakdown",
+      "deduction": "Ingredient Inventory Deductions"
+    },
+    "sheets": {
+      "orders": "Orders",
+      "lineItems": "Line Items",
+      "payments": "Payments",
+      "deductionsRaw": "Ingredient Usage",
+      "deductionsAgg": "Ingredient Usage (Totals)"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Reports & trends",
+    "tabs": {
+      "overview": "Overview",
+      "revenue": "Revenue",
+      "items": "Items",
+      "tellers": "Tellers",
+      "branches": "Branches",
+      "inventory": "Inventory"
+    },
+    "granularity": {
+      "hourly": "Hourly",
+      "daily": "Daily",
+      "monthly": "Monthly"
+    },
+    "revenueByPayment": "Revenue by Payment Method",
+    "topItems": "Top Items",
+    "topItemsRev": "Top Items by Revenue",
+    "revenueOverTime": "Revenue Over Time",
+    "ordersOverTime": "Orders Over Time",
+    "discountsOverTime": "Discounts Over Time",
+    "byCategory": "By Category",
+    "addonSales": "Addon Sales",
+    "revenueByTeller": "Revenue by Teller",
+    "revenueByBranch": "Revenue by Branch",
+    "stockLevels": "Stock Levels",
+    "voidRate": "Void Rate",
+    "avgOrder": "Avg Order",
+    "share": "Share",
+    "sold": "sold",
+    "lowRatio": "Low Stock Ratio",
+    "aov": "AOV",
+    "noData": "No data for this period",
+    "standalone": "Standalone",
+    "inBundles": "In bundles",
+    "totalSold": "Total sold",
+    "pickBranch": "Select a branch",
+    "pickBranchHint": "Choose a branch in the scope bar to view this report."
+  },
+  "discounts": {
+    "title": "Discounts",
+    "subtitle": "Percentage and fixed-amount discounts",
+    "new": "New discount",
+    "newTitle": "New discount",
+    "editTitle": "Edit discount",
+    "discountName": "Discount name",
+    "namePh": "e.g. Student 10%",
+    "dtype": "Type",
+    "percentage": "Percentage",
+    "fixed": "Fixed amount",
+    "percentageValue": "Percentage (%)",
+    "amountValue": "Amount (EGP)",
+    "valuePhPct": "10",
+    "valuePhFixed": "25.00",
+    "value": "Value",
+    "activeHint": "Inactive discounts can't be applied at checkout.",
+    "empty": "No discounts yet",
+    "emptyHint": "Create your first discount to use at checkout.",
+    "createFirst": "Create discount",
+    "createdToast": "Discount created",
+    "updatedToast": "Discount updated",
+    "deletedToast": "Discount deleted",
+    "pickOrg": "Select an organization",
+    "pctOff": "{{value}}% off",
+    "amountOff": "{{value}} off"
+  },
+  "bundles": {
+    "title": "Bundles",
+    "subtitle": "Combo deals that group items at a special price",
+    "new": "New bundle",
+    "newTitle": "New bundle",
+    "editTitle": "Edit bundle",
+    "bundleName": "Bundle name",
+    "namePh": "e.g. Breakfast Combo",
+    "descPh": "Short description shown to customers",
+    "price": "Bundle price (EGP)",
+    "cost": "Retail value",
+    "computedCostLabel": "Recipe cost",
+    "computedProfitLabel": "Profit",
+    "customerSavings": "Customer saves",
+    "components": "Items",
+    "componentsHint": "Add 2–6 items that make up this bundle.",
+    "addItem": "Add item",
+    "itemPh": "Select item",
+    "branches": "Branches",
+    "branchesHint": "Leave empty to offer at all branches.",
+    "image": "Cover image",
+    "imageHint": "PNG/JPG/WebP, up to 5 MB",
+    "imageAfterSave": "You can upload a cover image after saving.",
+    "availability": "Availability",
+    "empty": "No bundles yet",
+    "emptyHint": "Create your first combo deal to boost average order value.",
+    "activate": "Activate",
+    "archive": "Archive",
+    "activatedToast": "Bundle activated",
+    "archivedToast": "Bundle archived",
+    "deletedToast": "Bundle deleted",
+    "createdToast": "Bundle created",
+    "updatedToast": "Bundle updated",
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "avail": {
+      "permanent": "Always",
+      "dateRange": "Date range",
+      "timeWindow": "Time window",
+      "dateAndTime": "Date + time",
+      "hint": "When is this bundle available?",
+      "permanentTitle": "Always available",
+      "permanentDesc": "No date or time restrictions.",
+      "willClear": "Will clear",
+      "dateRangeLabel": "Date range",
+      "timeWindowLabel": "Daily time window",
+      "timeWindowHint": "(repeats every day)"
+    },
+    "availableFromDate": "From date",
+    "availableUntilDate": "Until date",
+    "availableFromTime": "From time",
+    "availableUntilTime": "Until time",
+    "performance": {
+      "title": "Performance",
+      "sales": "Sales",
+      "revenue": "Revenue",
+      "profit": "Profit",
+      "popularity": "Component popularity",
+      "sold": "{{qty}} sold"
+    }
+  },
+  "menuAdvisor": {
+    "title": "Menu Advisor",
+    "subtitle": "Data-driven pricing, bundling and cleanup suggestions",
+    "selectBranch": "Select a branch",
+    "selectBranchDesc": "Pick a branch from the scope bar to see its insights.",
+    "analyzing": "Analyzing your menu…",
+    "analyzingDesc": "Crunching sales, costs and baskets. This takes a moment.",
+    "runFailed": "Analysis failed",
+    "runFailedDesc": "Something went wrong generating insights.",
+    "runAgain": "Run again",
+    "noInsights": "No insights yet",
+    "noInsightsDesc": "Generate your first analysis to see pricing and bundle ideas.",
+    "generateInsights": "Generate insights",
+    "noSuggestions": "No suggestions",
+    "noSuggestionsDesc": "The latest run found nothing actionable. Try again after more sales.",
+    "latestRun": "Latest run",
+    "status": "Status",
+    "refreshAnalysis": "Refresh",
+    "quickPricingWins": "Quick pricing wins",
+    "quickPricingWinsDesc": "Items where a price tweak likely lifts profit.",
+    "menuPairings": "Menu pairings",
+    "menuPairingsDesc": "Items frequently bought together — bundle them.",
+    "menuCleanup": "Menu cleanup",
+    "menuCleanupDesc": "Underperformers you could remove with little downside.",
+    "currentPrice": "Current price",
+    "suggestedPrice": "Suggested price",
+    "currentMargin": "Margin",
+    "costMissing": "Cost missing",
+    "recentlyRepriced": "Recently repriced",
+    "size": "Size {{size}}",
+    "bundleOpportunity": "Bundle opportunity",
+    "bundleTitle": "Bundle of {{count}}",
+    "frequentlyBoughtTogether": "Frequently bought together",
+    "listPrice": "List price",
+    "bundlePrice": "Bundle price",
+    "discount": "Discount",
+    "estUplift": "Est. uplift",
+    "netCmImpact": "Net margin impact",
+    "perMonth": "/ month",
+    "quadrant": {
+      "star": "Star",
+      "plowhorse": "Plowhorse",
+      "puzzle": "Puzzle",
+      "dog": "Dog"
+    },
+    "revenueClass": {
+      "hero": "Hero",
+      "steady": "Steady",
+      "slow": "Slow",
+      "quiet": "Quiet"
+    },
+    "removalRec": {
+      "remove": "Remove",
+      "reformulate": "Reformulate",
+      "monitor": "Monitor",
+      "keep": "Keep"
+    }
+  },
+  "timePicker": {
+    "clearTime": "Clear time",
+    "hour": "Hour",
+    "minute": "Minute"
+  },
+  "datePicker": {
+    "today": "Today",
+    "days7": "7 days",
+    "days30": "30 days",
+    "days90": "90 days",
+    "allTime": "All time",
+    "custom": "Custom",
+    "clickStart": "Click a start date",
+    "clickEnd": "Click an end date",
+    "rangeSelected": "Range selected",
+    "apply": "Apply",
+    "pickDate": "Pick a date",
+    "clickDay": "Click a day",
+    "pastWarning": "This date is in the past"
+  },
+  "excel": {
+    "generating": "Gathering data…",
+    "downloading": "Downloading file…",
+    "done": "Exported {{count}} row",
+    "done_other": "Exported {{count}} rows",
+    "failed": "Export failed",
+    "nothingToExport": "Nothing to export",
+    "generated": "Generated",
+    "totals": "TOTALS"
+  },
+  "errors": {
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "networkError": "Network error — please check your connection.",
+    "unauthorized": "You don't have permission to perform this action.",
+    "notFound": "Not found.",
+    "conflict": "This action conflicts with the current state.",
+    "validation": "Please check the highlighted fields.",
+    "server": "Server error — please try again later.",
+    "unknown": "An unexpected error occurred."
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "toggle": "Toggle theme"
+  },
+  "uploader": {
+    "choose": "Choose Image",
+    "notAnImage": "Selected file must be an image",
+    "remove": "Remove",
+    "replace": "Replace",
+    "tooLarge": "Image size exceeds 5MB limit",
+    "uploading": "Uploading..."
+  },
+  "settings": {
+    "paymentMethods": "Payment Methods",
+    "paymentMethodsHint": "Manage dynamic payment methods and colors",
+    "themeHint": "Theme",
+    "pm": {
+      "id": "Identifier",
+      "idHint": "A unique internal identifier (lowercase, underscores only).",
+      "idLocked": "Identifiers cannot be changed.",
+      "idError": "Lowercase letters, numbers and underscores only",
+      "labelEn": "Label (English)",
+      "labelAr": "Label (Arabic)",
+      "icon": "Icon",
+      "color": "Color",
+      "acceptsCash": "Accepts cash",
+      "acceptsCashHint": "Counts toward cash drawer.",
+      "statusHint": "Available at checkout.",
+      "newTitle": "New payment method",
+      "editTitle": "Edit payment method",
+      "system": "System",
+      "cashBase": "Cash",
+      "nonCash": "Non-cash",
+      "systemMethods": "System methods"
+    }
+  },
+  "meta": {
+    "publication": "Capability Portfolio",
+    "edition": "Vol. 1",
+    "intro": "An introduction"
+  },
+  "cover": {
+    "headline": "The POS for\noperators who care\nabout their numbers.",
+    "eyebrow": "Vol. 1 · An introduction",
+    "subtitle": "An offline-first point-of-sale system engineered for arithmetic correctness. Built with accountant-grade shift rigor, true write-ahead offline sync, and advanced menu engineering logic—for the operators running serious food & beverage."
+  },
+  "pillars": {
+    "eyebrow": "Chapter 1 · Four pillars",
+    "title": "What sets Sufrix apart.",
+    "items": {
+      "01": {
+        "n": "1",
+        "title": "True Offline Resilience",
+        "lede": "No half-measures. It just works.",
+        "body": "We don't use fragile caching. The iPad utilizes a secure write-ahead queue to store orders, cash movements, and shift opens locally. When the internet comes back, it syncs flawlessly without double-charging or lost sales."
+      },
+      "02": {
+        "n": "2",
+        "title": "Built-In Barista Training",
+        "lede": "Quality control baked into the till.",
+        "body": "Recipes dictate the workflow. The system guides baristas step-by-step, automatically adjusting stock (like swapping oat milk for whole milk without double-counting) and ensuring perfect consistency across every branch, every time."
+      },
+      "03": {
+        "n": "3",
+        "title": "Algorithmic Menu Advisor",
+        "lede": "Your digital menu engineer.",
+        "body": "More than just sales reports. Our engine uses proven menu engineering math to score every drink on velocity and margin, offering mathematically defendable 'Lift, Hold, or Soften' price suggestions to maximize your profit."
+      },
+      "04": {
+        "n": "4",
+        "title": "Direct Support & Custom Logic",
+        "lede": "A partnership, not a vendor roadmap.",
+        "body": "You get a direct line to the creator. Need custom business logic built for your unique operation? It gets built on request, exactly how you need it. No waiting months for generic feature updates."
+      }
+    }
+  },
+  "problem": {
+    "eyebrow": "Chapter 2 · The state of the art",
+    "title": "What today's POS gets wrong.",
+    "items": {
+      "01": {
+        "n": "1",
+        "title": "Treating offline as a failure.",
+        "body": "Most modern systems treat offline as a total failure mode, leaving you stranded. The shop in Maadi shouldn't stop making money because the cell tower went down."
+      },
+      "02": {
+        "n": "2",
+        "title": "Poor local support by default.",
+        "body": "Arabic timestamps, dual-brand printer support (Star & Epson), and right-to-left interfaces aren't optional toggles—they need to be native."
+      },
+      "03": {
+        "n": "3",
+        "title": "Hiding your own numbers.",
+        "body": "Want yesterday's revenue filtered by branch, formatted cleanly in Excel with SUM formulas? Most systems make you file a ticket or wait for a morning email."
+      },
+      "04": {
+        "n": "4",
+        "title": "Operating without a ledger.",
+        "body": "A POS that lets you ring sales without forcing the cash counts to reconcile is just an iPad calculator. Not a real accounting tool."
+      }
+    }
+  },
+  "tellerHero": {
+    "eyebrow": "Chapter 3 · The teller",
+    "title": "Where the operation\nmeets the customer.",
+    "caption": "The Sufrix teller — iPad, offline-first."
+  },
+  "tellerDetail": {
+    "eyebrow": "Chapter 3 · The Teller, continued",
+    "title": "Built for speed\nof service.",
+    "body": "Orders ring up in seconds. Modifiers are handled fluidly. First-class support for both Star and Epson printers without wonky drivers. Every action is saved instantly to the iPad first, then syncs backwards to the operation.",
+    "details": {
+      "01": {
+        "title": "Split Payments",
+        "body": "Cash, visa, and customer credit—with granular tipping per tender—handled in one pane."
+      },
+      "02": {
+        "title": "Strict Modifiers",
+        "body": "Modifiers are hard-linked to the recipe, preventing free-text chaos and protecting inventory."
+      },
+      "03": {
+        "title": "Blind Drops",
+        "body": "Mandatory cash counting at shift open and close, flagging discrepancies before the drawer locks."
+      }
+    }
+  },
+  "featureMixedCheckout": {
+    "eyebrow": "Chapter 3 · The Teller, continued",
+    "title": "Flexible checkout\nin one screen.",
+    "body": "Customers don't always pay with exact change or a single card. Sufrix handles split payments natively—letting you seamlessly split a single order across cash, card, and credit without jumping through menus.",
+    "details": {
+      "01": {
+        "title": "Split Payments",
+        "body": "Accept any combination of cash, visa, and customer credit seamlessly."
+      },
+      "02": {
+        "title": "Exact Change",
+        "body": "Quick-tap buttons for common bill denominations."
+      },
+      "03": {
+        "title": "Tip Allocation",
+        "body": "Attribute tips to specific payment methods for accurate reconciliation."
+      }
+    }
+  },
+  "featureCashMovement": {
+    "eyebrow": "Chapter 3 · The Teller, continued",
+    "title": "Bank-grade cash\nmovements.",
+    "body": "The cash drawer is treated as a strict ledger. Every time money moves in or out of the drawer for expenses, petty cash, or bank drops, it's explicitly recorded and categorized.",
+    "details": {
+      "01": {
+        "title": "Petty Cash",
+        "body": "Log mid-shift expenses like ice runs directly on the till."
+      },
+      "02": {
+        "title": "Bank Drops",
+        "body": "Securely transfer excess cash out of the drawer."
+      },
+      "03": {
+        "title": "Accountability",
+        "body": "Every movement is tagged with the responsible user and a mandatory note."
+      }
+    }
+  },
+  "featureOffline": {
+    "eyebrow": "Chapter 4 · Resilience",
+    "title": "True Offline\nResilience.",
+    "body": "When the internet goes down, Sufrix doesn't just cache basic sales and hope for the best. It uses a persistent write-ahead queue to store every transaction, shift open, and cash movement locally.",
+    "details": {
+      "01": {
+        "title": "Write-Ahead Queue",
+        "body": "A ledger on your iPad that safely queues every action."
+      },
+      "02": {
+        "title": "Idempotent Sync",
+        "body": "When the connection returns, it syncs everything exactly once. No double charging."
+      },
+      "03": {
+        "title": "Uninterrupted Service",
+        "body": "Your tellers never see a loading spinner waiting for the cloud."
+      }
+    }
+  },
+  "featureRecipe": {
+    "eyebrow": "Chapter 5 · Barista workflow",
+    "title": "Built-in\nBarista Training.",
+    "body": "Sufrix recipes don't just calculate costs—they dictate the workflow. The system shows exact measurements and steps, cutting down training time drastically and ensuring your signature drinks taste the same no matter who is on shift.",
+    "details": {
+      "01": {
+        "title": "Smart Swaps",
+        "body": "Swap whole milk for oat milk? The system adjusts the cost and deducts the right inventory automatically."
+      },
+      "02": {
+        "title": "Quality Control",
+        "body": "Removes the guesswork. Every modifier and instruction is clear."
+      }
+    }
+  },
+  "managementHero": {
+    "eyebrow": "Chapter 6 · Management",
+    "title": "The whole operation,\non one screen.",
+    "caption": "The Sufrix dashboard — available on Desktop and Web."
+  },
+  "managementDetail": {
+    "eyebrow": "Chapter 6 · Management, continued",
+    "title": "Headquarters in your browser.",
+    "body": "Today's revenue by branch. Yesterday's recipes by margin. This month's labor by shift. Everything filterable by anything, everything exportable, everything live. Built for speed and reliability.",
+    "details": {
+      "01": {
+        "title": "Live analytics",
+        "body": "Across every branch, with totals you can break down by specific payment methods or categories."
+      },
+      "02": {
+        "title": "Global Inventory",
+        "body": "One central catalog. Stock tracked uniquely per branch, adjusting instantly as recipes are sold."
+      },
+      "03": {
+        "title": "Strict Reconciliation",
+        "body": "Complete shift histories with flagged cash differences."
+      }
+    }
+  },
+  "operations": {
+    "eyebrow": "Chapter 7 · Deep Operations",
+    "title": "An unshakeable ledger.",
+    "lede": "Sufrix isn't just a way to ring sales. It's the operational backbone, built on a strict, append-only architecture that behaves like an accountant.",
+    "sections": {
+      "01": {
+        "title": "Append-Only History",
+        "body": "Every record has a full history. Who created it, who changed it, when, and from what to what. Nothing is ever truly deleted, only voided and logged."
+      },
+      "02": {
+        "title": "Smart Inventory Deductions",
+        "body": "Our engine maps complex modifiers directly to stock. Build a custom order, and the specific substitutions are deducted flawlessly."
+      },
+      "03": {
+        "title": "Shift Trust",
+        "body": "Because every penny is tied to the ledger, cash handling stops being an exercise in trust and becomes an exercise in math."
+      }
+    }
+  },
+  "featureExport": {
+    "eyebrow": "Chapter 8 · Accountant ready",
+    "title": "Exports you can\nactually use.",
+    "body": "We abandoned messy CSV dumps. Sufrix uses a custom generation engine to export beautifully formatted Excel sheets directly from the dashboard, saving your accountant hours of formatting.",
+    "details": {
+      "01": {
+        "title": "SUM Formulas Included",
+        "body": "Columns automatically sum up. No manual math required."
+      },
+      "02": {
+        "title": "Exact Filtering",
+        "body": "Whatever you filter on the screen is exactly what gets exported."
+      },
+      "03": {
+        "title": "Instant Delivery",
+        "body": "Generated on the spot. No waiting for a daily scheduled email."
+      }
+    }
+  },
+  "smartPricing": {
+    "eyebrow": "Chapter 9 · The Advisor",
+    "title": "The Menu\nEngineer.",
+    "lede": "Sufrix watches your sales velocity and item margins simultaneously, utilizing proven menu engineering methodologies to surface exact pricing adjustments.",
+    "sections": {
+      "01": {
+        "n": "1",
+        "title": "Velocity × Margin Matrix",
+        "body": "Every item is scored on a dynamic quadrant, updated continuously, separating your stars from your dogs."
+      },
+      "02": {
+        "n": "2",
+        "title": "Defendable Math",
+        "body": "Clear lift / hold / soften calls using 95% confidence intervals. No black-box AI guessing."
+      },
+      "03": {
+        "n": "3",
+        "title": "Predictive Impact",
+        "body": "See exactly how much revenue a 15 EGP increase on your Iced Latte might generate next week."
+      }
+    },
+    "card": {
+      "title": "Iced Latte",
+      "currentLabel": "Current",
+      "currentValue": "EGP 95",
+      "velocityLabel": "Velocity",
+      "velocityValue": "High · +12%",
+      "marginLabel": "Margin",
+      "marginValue": "Low · 28%",
+      "suggestionLabel": "Suggestion",
+      "suggestionValue": "Lift to EGP 110",
+      "impactLabel": "Est. impact",
+      "impactValue": "+14% wk"
+    }
+  },
+  "builtToFlex": {
+    "eyebrow": "Chapter 11 · Beyond the counter",
+    "title": "Smart Bundles.",
+    "lede": "Build complex menus that flex with your day, your branch, or your specific marketing campaign without confusing the kitchen.",
+    "sections": {
+      "01": {
+        "n": "1",
+        "title": "Dynamic Combos",
+        "body": "Group a coffee, pastry, and side into a single discounted bundle. The system still deducts the exact ingredients for each sub-item perfectly.",
+        "badge": null
+      },
+      "02": {
+        "n": "2",
+        "title": "Time-Based Promos",
+        "body": "Set pricing rules that activate automatically during morning rushes or slow afternoons.",
+        "badge": "On the roadmap"
+      }
+    }
+  },
+  "pricing": {
+    "eyebrow": "Chapter 12 · Pricing",
+    "title": "Standardized\nPackages.",
+    "lede": "Transparent pricing designed to scale with your operation. Choose the tier that matches your business, and save by committing long-term.",
+    "tiers": {
+      "essential": {
+        "name": "Essential Cafe",
+        "price": "2,500 EGP / mo",
+        "features": [
+          "Core POS functionality",
+          "True offline capabilities",
+          "Menu Advisor & Smart Bundles",
+          "Accountant-ready Excel exports",
+          "Live inventory & shift tracking"
+        ],
+        "plans": {
+          "1mo": {
+            "label": "Monthly",
+            "value": "2,500 EGP"
+          },
+          "3mo": {
+            "label": "3 Months (Save 500 EGP)",
+            "value": "7,000 EGP"
+          },
+          "6mo": {
+            "label": "6 Months (Save 2,000 EGP)",
+            "value": "13,000 EGP"
+          },
+          "12mo": {
+            "label": "1 Year (Save 5,000 EGP)",
+            "value": "25,000 EGP"
+          }
+        }
+      },
+      "advanced": {
+        "name": "Advanced Operation",
+        "price": "3,000 EGP / mo",
+        "features": [
+          "Everything in Essential Cafe",
+          "Custom integrations on request",
+          "Native Talabat integration",
+          "Priority on-site support",
+          "Custom business logic"
+        ],
+        "plans": {
+          "1mo": {
+            "label": "Monthly",
+            "value": "3,000 EGP"
+          },
+          "3mo": {
+            "label": "3 Months (Save 500 EGP)",
+            "value": "8,500 EGP"
+          },
+          "6mo": {
+            "label": "6 Months (Save 2,000 EGP)",
+            "value": "16,000 EGP"
+          },
+          "12mo": {
+            "label": "1 Year (Save 6,000 EGP)",
+            "value": "30,000 EGP"
+          }
+        }
+      }
+    }
+  },
+  "roadmap": {
+    "eyebrow": "Chapter 13 · The Future",
+    "title": "On the roadmap.",
+    "body": "Sufrix is constantly evolving. Here is what is currently in active development or coming next to enhance your operations.",
+    "items": {
+      "01": {
+        "title": "Egyptian eInvoicing",
+        "badge": "In Development",
+        "body": "Native tax integration directly with the Egyptian Tax Authority portal to ensure full, automated compliance without manual data entry."
+      },
+      "02": {
+        "title": "Public Ordering Menu",
+        "badge": "In Development",
+        "body": "A customer-facing web endpoint where patrons can build orders and view totals. Future updates will route these directly to the teller with flexible delivery zones—free for inside-mall addressing, dynamic fees for outside radiuses."
+      },
+      "03": {
+        "title": "Native Talabat Sink",
+        "badge": "Roadmap",
+        "body": "A direct API pipeline to Talabat, bringing third-party delivery orders directly into the Sufrix write-ahead queue without needing a secondary tablet."
+      },
+      "04": {
+        "title": "Centralized Music Control",
+        "badge": "Roadmap",
+        "body": "Control and synchronize the ambiance directly from both the teller screen and the dashboard."
+      }
+    }
+  },
+  "backCover": {
+    "eyebrow": "Chapter 14 · Partnership",
+    "title": "Looking forward to\nbuilding together.",
+    "body": "Sufrix isn't just software looking for a customer; it's an operational partnership. We're ready to deploy our system into your branches, customize the logic to your exact needs, and help you scale securely. Standard installs ship with everything here, but we build new screens, fields, and integrations on request.",
+    "contact": "Get in touch",
+    "edition": "Capability Portfolio · Vol. 1 · 2026"
+  },
+  "footer": {
+    "strapline": "Sufrix · Capability Portfolio"
+  },
+  "landing": {
+    "cta": {
+      "title": "Ready to upgrade your operations?",
+      "subtitle": "Sufrix is built to flex with your business. Contact our creator today to get started.",
+      "creator": "Creator",
+      "email": "Email",
+      "dropEmail": "Drop an email"
+    },
+    "trustedBy": {
+      "since": "Since",
+      "branch": "Branch",
+      "branches": "Branches"
+    },
+    "nav": {
+      "pos": "POS Features",
+      "dashboard": "Dashboard",
+      "flex": "Flexibility",
+      "contact": "Contact"
+    },
+    "openDashboard": "Open dashboard",
+    "getStarted": "Get started",
+    "learnMore": "Learn more",
+    "featuresTitle": "Everything your counter needs",
+    "featuresSubtitle": "Purpose-built for cafés and quick-service — fast, reliable, and bilingual.",
+    "hero": {
+      "title": "Run your coffee shop, end to end.",
+      "subtitle": "Point of sale, menu & recipe costing, inventory, shifts and analytics — one bilingual platform that works online and off."
+    },
+    "features": {
+      "pos": {
+        "title": "Fast point of sale",
+        "desc": "Take orders in seconds with mixed payments, discounts and instant receipts."
+      },
+      "menu": {
+        "title": "Menu & recipe costing",
+        "desc": "Build menus, recipes and add-ons — and know the true cost of every cup."
+      },
+      "analytics": {
+        "title": "Analytics & reports",
+        "desc": "Revenue, top items, tellers and branch comparison, exportable any time."
+      },
+      "multibranch": {
+        "title": "Multi-branch & roles",
+        "desc": "Manage every location and staff member with granular permissions."
+      },
+      "offline": {
+        "title": "Offline-first",
+        "desc": "Keep ringing up orders even when the internet drops."
+      },
+      "bilingual": {
+        "title": "Arabic & English",
+        "desc": "Fully bilingual with first-class right-to-left support."
+      }
+    }
+  },
+  "onboarding": {
+    "title": "Set up your restaurant",
+    "back": "Back",
+    "continue": "Continue",
+    "skipStep": "Skip for now",
+    "skipSetup": "Finish setup now →",
+    "steps": {
+      "welcome": "Welcome",
+      "branch": "Branch",
+      "payments": "Payments",
+      "menu": "Menu",
+      "costs": "Ingredient costs",
+      "addons": "Addons",
+      "team": "Team",
+      "review": "Review & finish"
+    },
+    "stepKeys": {
+      "branch": "Create a branch",
+      "payment_methods": "Payment methods",
+      "categories": "Menu categories",
+      "menu_items": "Menu items",
+      "ingredients": "Ingredient catalog",
+      "recipes": "Recipes & costs",
+      "addons": "Addons & extras",
+      "team": "Invite your team",
+      "first_order": "Ring up your first order"
+    },
+    "welcome": {
+      "title": "Welcome to Sufrix",
+      "description": "Let's get your restaurant set up. A few quick steps and you're ready to take orders.",
+      "pickingUp": "Picking up where you left off — some steps are already done.",
+      "jumpToNext": "Jump to next step",
+      "orgName": "Restaurant name",
+      "orgNamePh": "e.g. Cairo Coffee House",
+      "logo": "Logo"
+    },
+    "branch": {
+      "title": "Create your first branch",
+      "description": "A branch is a physical location — every shift, order and stock count lives under one.",
+      "doneHint": "Branch created — you can add more locations any time.",
+      "emptyTitle": "No branches yet",
+      "emptyDescription": "Add your first location to unlock shifts and orders.",
+      "add": "Create branch",
+      "addAnother": "Add another branch"
+    },
+    "payments": {
+      "title": "How do customers pay?",
+      "description": "These methods are already on — confirm them and switch off anything you don't take.",
+      "noneActive": "At least one active payment method is needed before you can finish setup.",
+      "addCustom": "Add custom method"
+    },
+    "menu": {
+      "title": "Build your menu",
+      "description": "Create at least one category and one item — you can fill in the rest later.",
+      "noCategories": "No categories yet",
+      "noItems": "No items yet",
+      "categoryFirst": "Create a category first"
+    },
+    "costs": {
+      "title": "Ingredient costs (recommended)",
+      "description": "Add ingredient costs and Sufrix computes profit per item — margins, food cost % and your menu's stars.",
+      "coverageLabel": "Recipe coverage",
+      "openRecipes": "Open recipe editor",
+      "emptyHint": "Add your first ingredient with its cost per unit to start tracking profit."
+    },
+    "addons": {
+      "title": "Addons & extras",
+      "description": "Extra shots, toppings, sides — anything customers add onto an item.",
+      "emptyTitle": "No addons yet",
+      "emptyDescription": "Optional — you can add these any time from the menu screen.",
+      "add": "Add addon"
+    },
+    "team": {
+      "title": "Invite your team",
+      "description": "Add tellers and managers so they can open shifts and ring up orders.",
+      "emptyTitle": "Just you so far",
+      "emptyDescription": "Optional — invite your team now or later from the Users screen.",
+      "add": "Add team member"
+    },
+    "review": "Review",
+    "checklist": {
+      "title": "Finish setting up",
+      "firstOrderHint": "Open a shift on the iPad and ring up your first order"
+    },
+    "lockedHint": "Complete the required steps to enter the dashboard",
+    "recipeCoverage": "Recipe cost coverage",
+    "recipeCoverageHint": "Add ingredient recipes so every item has a known cost.",
+    "progress": "{{done}} of {{total}} required steps done",
+    "setUp": "Set up",
+    "finish": "Finish setup",
+    "finishHint": "Complete the required steps above to finish.",
+    "finishedToast": "Setup complete — welcome aboard!",
+    "skipToDashboard": "Skip to dashboard",
+    "optionalTag": "Optional",
+    "countAdded": "{{count}} added"
+  },
+  "scope": {
+    "selectBranch": "Select branch",
+    "branch": "Branch",
+    "period": "Period",
+    "customRange": "Custom range",
+    "custom": "Custom",
+    "presets": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "7d": "7D",
+      "30d": "30D",
+      "mtd": "MTD"
+    },
+    "allBranches": "All branches",
+    "preset": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "mtd": "Month to date",
+      "custom": "Custom"
+    }
+  },
+  "menuEngineering": {
+    "title": "Menu Engineering",
+    "subtitle": "Profit vs popularity for every item — find your stars and your dead weight",
+    "empty": "No sales in this period",
+    "emptyHint": "Pick a different period or branch from the scope bar.",
+    "totalSales": "Total Sales",
+    "totalCogs": "Total COGS",
+    "grossProfit": "Gross Profit",
+    "missingCosts": "Items missing costs",
+    "views": {
+      "scatter": "Quadrant",
+      "table": "Table"
+    },
+    "costBasis": {
+      "snapshot": "As sold",
+      "current": "Current costs",
+      "currentHint": "Reclassified with today's ingredient costs"
+    },
+    "excludedRevenue": "{{amount}} in sales excluded",
+    "quadrants": {
+      "stars": "Stars",
+      "workhorses": "Workhorses",
+      "challenges": "Challenges",
+      "dogs": "Dogs"
+    },
+    "classes": {
+      "star": "Star",
+      "workhorse": "Workhorse",
+      "challenge": "Challenge",
+      "dog": "Dog"
+    },
+    "levels": {
+      "high": "High",
+      "low": "Low"
+    },
+    "sales": "Sales",
+    "quantity": "Qty",
+    "totalCost": "Total Cost",
+    "itemProfit": "Item Profit",
+    "totalProfit": "Total Profit",
+    "popularity": "Popularity",
+    "profitCategory": "Profit",
+    "popularityCategory": "Popularity",
+    "class": "Class",
+    "size": "Size",
+    "allCategories": "All categories",
+    "missingLines": "{{count}} lines missing cost",
+    "margin": "Margin %"
+  },
+  "grid": {
+    "pasteTitle": "Paste rows",
+    "pasteHint": "Paste rows from a spreadsheet (tab- or comma-separated), one row per line.",
+    "column": "Column {{n}}",
+    "ignore": "— ignore —",
+    "pasteSummary": "{{valid}} of {{total}} rows are valid",
+    "createN": "Create {{count}}",
+    "pasteRows": "Paste rows",
+    "selectAll": "Select all",
+    "selectRow": "Select row",
+    "selectedCount": "{{count}} selected"
+  },
+  "language": {
+    "switch": "Switch language"
+  },
+  "commandPalette": {
+    "hint": "Jump to any page"
+  },
+  "inventoryUnits": {
+    "g": "g",
+    "kg": "kg",
+    "ml": "ml",
+    "l": "L",
+    "pcs": "pcs"
+  },
+  "publicMenu": {
+    "size": "Size",
+    "options": "Options",
+    "required": "Required",
+    "optional": "Optional",
+    "upTo": "up to",
+    "add": "Add",
+    "viewOrder": "View order",
+    "yourOrder": "Your order",
+    "emptyOrder": "Your order is empty",
+    "showBarista": "Show this screen to the barista to place your order.",
+    "tagline": "Browse & build your order",
+    "noResults": "Nothing matches your search",
+    "unavailable": "Menu unavailable",
+    "unavailableHint": "This menu could not be loaded. Please try again later."
+  }
+}

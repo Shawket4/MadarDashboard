@@ -5,15 +5,15 @@ export default defineConfig({
     input: '../SufrixRust/openapi.json',
     output: {
       mode: 'split',
-      target: 'src/shared/api/generated/api.ts',
-      schemas: 'src/shared/api/generated/models',
+      target: 'src/data/api/generated/api.ts',
+      schemas: 'src/data/api/generated/models',
       client: 'react-query',
       mock: true,
       httpClient: 'axios',
       override: {
         header: () => '/* eslint-disable */\n// @ts-nocheck\n',
         mutator: {
-          path: 'src/shared/api/custom-instance.ts',
+          path: 'src/data/api/custom-instance.ts',
           name: 'customInstance',
         },
       },
@@ -23,7 +23,7 @@ export default defineConfig({
     input: '../SufrixRust/openapi.json',
     output: {
       mode: 'split',
-      target: 'src/shared/api/generated/zod/api.zod.ts',
+      target: 'src/data/api/generated/zod/api.zod.ts',
       client: 'zod',
       override: {
         header: () => '/* eslint-disable */\n// @ts-nocheck\n',

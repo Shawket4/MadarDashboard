@@ -7,7 +7,13 @@ import tsPlugin from '@typescript-eslint/eslint-plugin'
 
 export default [
   {
-    ignores: ['dist', '.gemini', 'node_modules'],
+    ignores: [
+      'dist',
+      '.gemini',
+      'node_modules',
+      'src/routeTree.gen.ts',
+      'src/data/api/generated/**',
+    ],
   },
   js.configs.recommended,
   {
