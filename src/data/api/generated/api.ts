@@ -9951,6 +9951,93 @@ export function useBranchCombinedItemSales<TData = Awaited<ReturnType<typeof bra
 
 
 
+export const branchLowStock = (
+    branchId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<LowStockRow[]>(
+      {url: `/reports/branches/${branchId}/low-stock`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchLowStockQueryKey = (branchId: string,) => {
+    return [
+    `/reports/branches/${branchId}/low-stock`
+    ] as const;
+    }
+
+
+export const getBranchLowStockQueryOptions = <TData = Awaited<ReturnType<typeof branchLowStock>>, TError = ErrorBody>(branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchLowStock>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchLowStockQueryKey(branchId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchLowStock>>> = ({ signal }) => branchLowStock(branchId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchLowStock>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchLowStockQueryResult = NonNullable<Awaited<ReturnType<typeof branchLowStock>>>
+export type BranchLowStockQueryError = ErrorBody
+
+
+export function useBranchLowStock<TData = Awaited<ReturnType<typeof branchLowStock>>, TError = ErrorBody>(
+ branchId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchLowStock>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchLowStock>>,
+          TError,
+          Awaited<ReturnType<typeof branchLowStock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchLowStock<TData = Awaited<ReturnType<typeof branchLowStock>>, TError = ErrorBody>(
+ branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchLowStock>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchLowStock>>,
+          TError,
+          Awaited<ReturnType<typeof branchLowStock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchLowStock<TData = Awaited<ReturnType<typeof branchLowStock>>, TError = ErrorBody>(
+ branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchLowStock>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchLowStock<TData = Awaited<ReturnType<typeof branchLowStock>>, TError = ErrorBody>(
+ branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchLowStock>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchLowStockQueryOptions(branchId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const branchMenuEngineering = (
     branchId: string,
     params?: BranchMenuEngineeringParams,

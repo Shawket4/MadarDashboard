@@ -72,7 +72,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-svh bg-background">
       {/* Brand panel */}
-      <aside className="relative hidden w-1/2 overflow-hidden bg-primary text-primary-foreground lg:flex xl:w-[55%]">
+      <aside className="relative hidden w-1/2 overflow-hidden bg-primary text-primary-foreground dark:brand-panel lg:flex xl:w-[55%]">
         <div className="pointer-events-none absolute -end-24 -top-24 size-96 rounded-full bg-brand/30 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -start-16 size-96 rounded-full bg-brand/20 blur-3xl" />
         <motion.div

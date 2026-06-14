@@ -3657,6 +3657,25 @@ export const BranchCombinedItemSalesResponseItem = zod.object({
 export const BranchCombinedItemSalesResponse = zod.array(BranchCombinedItemSalesResponseItem)
 
 
+export const BranchLowStockParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch ID, or the all-zeros UUID for every branch in the org')
+})
+
+export const BranchLowStockResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "branch_name": zod.string(),
+  "current_stock": zod.number(),
+  "deficit": zod.number().describe('reorder_threshold − current_stock: how much to order to reach par.'),
+  "ingredient_name": zod.string(),
+  "org_ingredient_id": zod.string().uuid(),
+  "reorder_threshold": zod.number(),
+  "supplier_id": zod.string().uuid().nullish().describe('Default supplier for this ingredient (for one-click \"create PO\"); may be null.'),
+  "supplier_name": zod.string().nullish(),
+  "unit": zod.string()
+})
+export const BranchLowStockResponse = zod.array(BranchLowStockResponseItem)
+
+
 export const BranchMenuEngineeringParams = zod.object({
   "branch_id": zod.string().uuid()
 })

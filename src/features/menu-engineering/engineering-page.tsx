@@ -31,24 +31,23 @@ function Toggle<T extends string>({ value, onChange, options }: { value: T; onCh
 
 export function MenuEngineeringPage() {
   const { t } = useTranslation();
-  const { branchId, from, to } = useScope();
+  const { scopeBranchId, from, to } = useScope();
   const [s, update] = usePageSearch<{ view: View; basis: CostBasis }>();
   const view = s.view ?? "scatter";
   const costBasis = s.basis ?? "snapshot";
 
+  // Specific branch or the all-branches roll-up — the endpoint accepts both.
   const { data: report, isLoading } = useBranchMenuEngineering(
-    branchId ?? "",
+    scopeBranchId,
     { from: from ?? undefined, to: to ?? undefined, cost_basis: costBasis === "current" ? "current" : undefined },
-    { query: { enabled: !!branchId } },
+    { query: { enabled: !!scopeBranchId } },
   );
 
   return (
     <Page>
       <PageHeader title={t("menuEngineering.title", "Menu Engineering")} description={t("menuEngineering.subtitle", "Profit vs popularity for every item")} />
 
-      {!branchId ? (
-        <EmptyState icon={BarChart2} title={t("inventory.pickBranch", "Select a branch")} />
-      ) : isLoading ? (
+      {isLoading ? (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
           <Skeleton className="h-[420px] rounded-xl" />

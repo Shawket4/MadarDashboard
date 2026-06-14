@@ -369,6 +369,8 @@ export const getBranchInventoryValuationResponseMock = (overrideResponse: Partia
 
 export const getBranchCombinedItemSalesResponseMock = (): CombinedItemSalesRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({bundle_qty: faker.number.int(), item_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), item_name: faker.string.alpha({length: {min: 10, max: 20}}), item_name_translations: {}, standalone_qty: faker.number.int(), total_qty: faker.number.int()})))
 
+export const getBranchLowStockResponseMock = (): LowStockRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), current_stock: faker.number.float({fractionDigits: 2}), deficit: faker.number.float({fractionDigits: 2}), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), org_ingredient_id: faker.string.uuid(), reorder_threshold: faker.number.float({fractionDigits: 2}), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), unit: faker.string.alpha({length: {min: 10, max: 20}})})))
+
 export const getBranchMenuEngineeringResponseMock = (overrideResponse: Partial<Extract<MenuEngineeringReport, object>> = {}): MenuEngineeringReport => ({branch_id: faker.string.uuid(), cost_basis: faker.string.alpha({length: {min: 10, max: 20}}), excluded_sales: faker.number.int(), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), rows: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), class: faker.string.alpha({length: {min: 10, max: 20}}), cost_missing_lines: faker.number.int(), item_name: faker.string.alpha({length: {min: 10, max: 20}}), item_profit: faker.number.int(), menu_item_id: faker.string.uuid(), popularity_category: faker.string.alpha({length: {min: 10, max: 20}}), popularity_pct: faker.number.float({fractionDigits: 2}), profit_category: faker.string.alpha({length: {min: 10, max: 20}}), quantity_sold: faker.number.int(), sales: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}}), total_cost: faker.number.int(), total_profit: faker.number.int()})), rows_cost_missing: faker.number.int(), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), total_cost: faker.number.int(), total_profit: faker.number.int(), total_sales: faker.number.int(), ...overrideResponse})
 
 export const getBranchSalesResponseMock = (overrideResponse: Partial<Extract<BranchSalesReport, object>> = {}): BranchSalesReport => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), by_category: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), category_name_translations: {}, item_count: faker.number.int(), items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({item_name: faker.string.alpha({length: {min: 10, max: 20}}), item_name_translations: {}, menu_item_id: faker.string.uuid(), quantity_sold: faker.number.int(), revenue: faker.number.int()})), quantity_sold: faker.number.int(), revenue: faker.number.int()})), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), revenue_by_method: {}, subtotal: faker.number.int(), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), top_items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({item_name: faker.string.alpha({length: {min: 10, max: 20}}), item_name_translations: {}, menu_item_id: faker.string.uuid(), quantity_sold: faker.number.int(), revenue: faker.number.int()})), total_discount: faker.number.int(), total_orders: faker.number.int(), total_revenue: faker.number.int(), total_tax: faker.number.int(), voided_orders: faker.number.int(), ...overrideResponse})
@@ -2016,6 +2018,18 @@ export const getBranchCombinedItemSalesMockHandler = (overrideResponse?: Combine
   }, options)
 }
 
+export const getBranchLowStockMockHandler = (overrideResponse?: LowStockRow[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<LowStockRow[]> | LowStockRow[]), options?: RequestHandlerOptions) => {
+  return http.get('*/reports/branches/:branchId/low-stock', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getBranchLowStockResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getBranchMenuEngineeringMockHandler = (overrideResponse?: MenuEngineeringReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MenuEngineeringReport> | MenuEngineeringReport), options?: RequestHandlerOptions) => {
   return http.get('*/reports/branches/:branchId/menu-engineering', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -2634,6 +2648,7 @@ export const getSufrixAPIMock = () => [
   getBranchConsumptionMockHandler(),
   getBranchInventoryValuationMockHandler(),
   getBranchCombinedItemSalesMockHandler(),
+  getBranchLowStockMockHandler(),
   getBranchMenuEngineeringMockHandler(),
   getBranchSalesMockHandler(),
   getBranchSalesTimeseriesMockHandler(),

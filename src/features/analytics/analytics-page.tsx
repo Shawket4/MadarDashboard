@@ -4,7 +4,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { BarChart3, Ban, Coins, Percent, Receipt, TrendingUp, Users } from "lucide-react";
+import { Ban, Coins, Percent, Receipt, TrendingUp } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { StatCard } from "@/components/app/stat-card";
@@ -13,7 +13,6 @@ import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { EmptyState } from "@/components/app/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod } from "@/lib/format";
 import { PAYMENT_COLORS, type PaymentMethod } from "@/data/config/constants";
 import { useScope } from "@/data/scope/use-scope";
@@ -397,7 +396,7 @@ const TABS: TabKey[] = ["overview", "revenue", "items", "tellers", "branches"];
 export function AnalyticsPage() {
   const { t } = useTranslation();
   const orgId = useOrgId();
-  const { branchId, from, to, preset } = useScope();
+  const { scopeBranchId, from, to, preset } = useScope();
   const range: Range = { from: from ?? undefined, to: to ?? undefined };
 
   const [s, update] = usePageSearch<{ tab: TabKey; gran: Granularity }>();
@@ -405,9 +404,8 @@ export function AnalyticsPage() {
   const defaultGran: Granularity = preset === "today" || preset === "yesterday" ? "hourly" : "daily";
   const gran: Granularity = s.gran ?? defaultGran;
 
-  const needsBranch = tab !== "branches";
-  const blocked = needsBranch && !branchId;
-
+  // No branch selected = "All branches": the report endpoints accept the
+  // all-branches sentinel and roll up org-wide, so nothing is blocked.
   return (
     <Page>
       <PageHeader title={t("analytics.title", "Analytics")} description={t("analytics.subtitle", "Reports & trends")} />
@@ -417,12 +415,10 @@ export function AnalyticsPage() {
         </TabsList>
       </Tabs>
 
-      {blocked ? (
-        <EmptyState icon={tab === "tellers" ? Users : BarChart3} title={t("analytics.pickBranch", "Select a branch")} description={t("analytics.pickBranchHint", "Choose a branch in the scope bar to view this report.")} className={cn("min-h-[50vh]")} />
-      ) : tab === "overview" ? <OverviewTab branchId={branchId!} range={range} />
-        : tab === "revenue" ? <RevenueTab branchId={branchId!} range={range} gran={gran} setGran={(g) => update({ gran: g })} />
-        : tab === "items" ? <ItemsTab branchId={branchId!} range={range} />
-        : tab === "tellers" ? <TellersTab branchId={branchId!} range={range} />
+      {tab === "overview" ? <OverviewTab branchId={scopeBranchId} range={range} />
+        : tab === "revenue" ? <RevenueTab branchId={scopeBranchId} range={range} gran={gran} setGran={(g) => update({ gran: g })} />
+        : tab === "items" ? <ItemsTab branchId={scopeBranchId} range={range} />
+        : tab === "tellers" ? <TellersTab branchId={scopeBranchId} range={range} />
         : <BranchesTab orgId={orgId ?? ""} range={range} />}
     </Page>
   );

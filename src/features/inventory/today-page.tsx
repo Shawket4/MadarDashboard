@@ -19,6 +19,8 @@ import {
   useListOrgPurchaseOrders,
   useListSuppliers,
   useListWaste,
+  useBranchInventoryValuation,
+  useBranchLowStock,
   useOrgInventoryValuation,
   useOrgLowStock,
 } from "@/data/api/generated/api";
@@ -49,8 +51,16 @@ export function TodayPage() {
     return { todayStartISO: cairoDateISO(y, m, d, false), todayEndISO: cairoDateISO(y, m, d, true) };
   }, []);
 
-  const valuation = useOrgInventoryValuation(orgId ?? "", { query: { enabled: !!orgId } });
-  const lowStock = useOrgLowStock(orgId ?? "", { query: { enabled: !!orgId } });
+  // Branch-specific when a branch is selected; org-wide roll-up otherwise.
+  // The all-branches case uses the org endpoints (org_id in the path) so it
+  // works for super-admins too, whose token carries no org for the branch
+  // endpoints to infer.
+  const branchVal = useBranchInventoryValuation(branchId ?? "", { query: { enabled: !!branchId } });
+  const orgVal = useOrgInventoryValuation(orgId ?? "", { query: { enabled: !branchId && !!orgId } });
+  const valuation = branchId ? branchVal : orgVal;
+  const branchLow = useBranchLowStock(branchId ?? "", { query: { enabled: !!branchId } });
+  const orgLow = useOrgLowStock(orgId ?? "", { query: { enabled: !branchId && !!orgId } });
+  const lowStock = branchId ? branchLow : orgLow;
   const pos = useListOrgPurchaseOrders(orgId ?? "", { expected_before: todayEndISO }, { query: { enabled: !!orgId } });
   const suppliers = useListSuppliers(orgId ?? "", { query: { enabled: !!orgId } });
   const catalog = useListCatalog(orgId ?? "", { query: { enabled: !!orgId } });

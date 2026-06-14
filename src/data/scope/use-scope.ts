@@ -9,8 +9,22 @@ interface ScopeSearch {
   to?: string;
 }
 
+/**
+ * The all-zeros UUID is the backend's "every branch in my org" sentinel for the
+ * `/reports/branches/{branch_id}/…` endpoints. The scope models "All branches"
+ * as `branchId === null`; report hooks pass `scopeBranchId`, which substitutes
+ * this id so a single endpoint serves both a specific branch and the roll-up.
+ */
+export const ALL_BRANCHES_ID = "00000000-0000-0000-0000-000000000000";
+
 export interface Scope {
+  /** The selected branch, or `null` for "All branches". */
   branchId: string | null;
+  /** Branch id to send to branch-scoped report endpoints: the selected branch,
+   *  or the all-branches sentinel when none is selected. Never null. */
+  scopeBranchId: string;
+  /** True when no single branch is selected (the all-branches roll-up). */
+  isAllBranches: boolean;
   preset: ScopePreset;
   /** Cairo day-bounded ISO start; resolved from the preset (or the custom range). */
   from: string | null;
@@ -41,6 +55,8 @@ export function useScope(): Scope {
 
   return {
     branchId,
+    scopeBranchId: branchId ?? ALL_BRANCHES_ID,
+    isAllBranches: branchId === null,
     preset,
     from: range.from,
     to: range.to,

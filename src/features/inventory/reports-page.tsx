@@ -18,7 +18,7 @@ import {
   useOrgWasteReport,
 } from "@/data/api/generated/api";
 import { useOrgId } from "@/hooks/use-org-id";
-import { useScope } from "@/data/scope/use-scope";
+import { useScope, ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import { fmtMoney, fmtNumber, fmtShare, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 
@@ -45,8 +45,10 @@ export function ReportsPage() {
   const valuation = isBranch ? branchVal : orgVal;
   const catalog = useListCatalog(orgId ?? "", { query: { enabled: on("valuation") && !!orgId } });
 
-  // COGS / menu engineering (branch only)
-  const cogs = useBranchMenuEngineering(branchId ?? "", { ...range, cost_basis: costBasis }, { query: { enabled: on("cogs") && !!branchId } });
+  // COGS / menu engineering has no org variant — in org scope the all-branches
+  // sentinel gives the org-wide roll-up; in branch scope it's that branch.
+  const cogsBranch = isBranch ? (branchId ?? "") : ALL_BRANCHES_ID;
+  const cogs = useBranchMenuEngineering(cogsBranch, { ...range, cost_basis: costBasis }, { query: { enabled: on("cogs") && !!cogsBranch } });
 
   // Consumption
   const branchCons = useBranchConsumption(branchId ?? "", range, { query: { enabled: isBranch && on("consumption") && !!branchId } });
@@ -227,7 +229,7 @@ export function ReportsPage() {
 
             {/* COGS & margins */}
             <TabsContent value="cogs" className="space-y-3">
-              {!branchId ? (
+              {!scopeId ? (
                 <EmptyState icon={Store} title={t("inventory.pickBranch", "Select a branch to manage its stock")} description={t("inventory.reports.branch", "This branch")} />
               ) : (
                 <>

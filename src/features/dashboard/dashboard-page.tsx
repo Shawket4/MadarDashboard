@@ -51,16 +51,18 @@ export function DashboardPage() {
   const selectedOrgId = useAppStore((s) => s.selectedOrgId);
   const orgId = role === "super_admin" ? selectedOrgId : (userOrgId ?? null);
 
-  const { branchId, from, to, preset } = useScope();
+  const { branchId, scopeBranchId, from, to, preset } = useScope();
   const granularity = preset === "today" || preset === "yesterday" ? "hourly" : "daily";
 
   const range = { from: from ?? undefined, to: to ?? undefined };
 
   const branchSales = useBranchSales(branchId ?? "", { ...range }, { query: { enabled: !!branchId } });
+  // Org-wide trend when "all branches": the timeseries endpoint takes the
+  // all-branches sentinel and rolls every branch's periods together.
   const timeseries = useBranchSalesTimeseries(
-    branchId ?? "",
+    scopeBranchId,
     { ...range, granularity },
-    { query: { enabled: !!branchId } },
+    { query: { enabled: !!orgId } },
   );
   const comparison = useOrgBranchComparison(orgId ?? "", { ...range }, { query: { enabled: !!orgId } });
 
@@ -133,9 +135,7 @@ export function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ChartCard title={t("dashboard.revenueTrend", "Revenue trend")} className="lg:col-span-2">
-          {!branchId ? (
-            <EmptyState title={t("dashboard.pickBranchTrend", "Select a branch to see its revenue trend")} className="h-64 border-0" />
-          ) : timeseries.isLoading ? (
+          {timeseries.isLoading ? (
             <Skeleton className="h-64 w-full" />
           ) : trendData.length === 0 ? (
             <EmptyState title={t("common.noResults", "No results found")} className="h-64 border-0" />
