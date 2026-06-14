@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ClipboardList, PlusCircle, Store } from "lucide-react";
+import { ClipboardList, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -23,11 +23,14 @@ import { STOCKTAKE_STATUS_STYLES, invalidateInventory, isOpenStocktake } from ".
 
 export function CountsPage() {
   const { t } = useTranslation();
-  const { branchId } = useScope();
+  const { branchId, scopeBranchId, isAllBranches } = useScope();
   const [starting, setStarting] = useState(false);
   const [reportId, setReportId] = useState<string | null>(null);
 
-  const stocktakes = useListStocktakes(branchId ?? "", { query: { enabled: !!branchId } });
+  // The list scopes to the selected branch or rolls up across the org ("All
+  // branches"). Starting a stocktake is a branch-specific action, so it stays
+  // tied to a concrete branch below.
+  const stocktakes = useListStocktakes(scopeBranchId, { query: { enabled: !!scopeBranchId } });
   const openCount = useMemo(() => (stocktakes.data ?? []).find((s) => isOpenStocktake(s.status)) ?? null, [stocktakes.data]);
   const history = useMemo(() => (stocktakes.data ?? []).filter((s) => !isOpenStocktake(s.status)), [stocktakes.data]);
 
@@ -51,6 +54,13 @@ export function CountsPage() {
       header: t("inventory.stocktakes.started", "Started"),
       cell: ({ row }) => <span className="tabular">{fmtDateTime(row.original.started_at)}</span>,
     },
+    ...(isAllBranches
+      ? ([{
+          accessorKey: "branch_name",
+          header: t("shifts.branch", "Branch"),
+          cell: ({ row }) => <span>{row.original.branch_name ?? "—"}</span>,
+        }] as ColumnDef<Stocktake>[])
+      : []),
     {
       accessorKey: "started_by_name",
       header: t("inventory.transfers.by", "By"),
@@ -82,7 +92,7 @@ export function CountsPage() {
           </div>
         ) : null,
     },
-  ], [t]);
+  ], [t, isAllBranches]);
 
   const handleExport = () => {
     const cols: ExcelColumn<Stocktake>[] = [
@@ -95,15 +105,6 @@ export function CountsPage() {
     void exportToExcel({ filename: "Sufrix-Stocktakes", sheets: [{ name: t("inventory.stocktakes.title", "Stocktakes"), title: t("inventory.stocktakes.title", "Stocktakes"), rows: history as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
-  if (!branchId) {
-    return (
-      <Page>
-        <PageHeader title={t("inventory.stocktakes.title", "Stocktakes")} />
-        <EmptyState icon={Store} title={t("inventory.pickBranch", "Select a branch to manage its stock")} />
-      </Page>
-    );
-  }
-
   return (
     <Page>
       <PageHeader
@@ -111,7 +112,7 @@ export function CountsPage() {
         actions={
           <>
             <ExportButton onExport={handleExport} disabled={!history.length} />
-            {!openCount ? (
+            {branchId && !openCount ? (
               <Button loading={starting} onClick={() => void start()}>
                 <PlusCircle className="size-4" />
                 {t("inventory.stocktakes.start", "Start stocktake")}
@@ -121,7 +122,10 @@ export function CountsPage() {
         }
       />
 
-      {openCount ? (
+      {branchId && openCount ? (
+        // The live count editor is branch-specific — only take over the page for
+        // a concrete branch. In the all-branches roll-up we always show the list
+        // (open stocktakes appear there too).
         <CountEditor
           stocktakeId={openCount.id}
           onFinalized={(id) => setReportId(id)}
@@ -130,7 +134,7 @@ export function CountsPage() {
       ) : (
         <DataTable
           columns={columns}
-          data={history}
+          data={branchId ? history : (stocktakes.data ?? [])}
           loading={stocktakes.isLoading}
           getRowId={(s) => s.id}
           onRowClick={(s) => s.status === "finalized" && setReportId(s.id)}

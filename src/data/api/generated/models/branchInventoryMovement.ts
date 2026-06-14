@@ -8,6 +8,12 @@ export interface BranchInventoryMovement {
   branch_id: string;
   /** @nullable */
   branch_inventory_id?: string | null;
+  /**
+     * Branch name; only populated by the all-branches waste roll-up (nil
+   * {branch_id}). `None` for single-branch queries that do not select it.
+     * @nullable
+     */
+  branch_name?: string | null;
   created_at: string;
   /** @nullable */
   created_by?: string | null;

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Boxes, MoreHorizontal, PackageCheck, PlusCircle, Store, Truck, Users, XCircle } from "lucide-react";
+import { Boxes, MoreHorizontal, PackageCheck, PlusCircle, Truck, Users, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -35,7 +35,7 @@ export function PurchasingPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
   const orgId = useOrgId();
-  const { branchId } = useScope();
+  const { branchId, scopeBranchId, isAllBranches } = useScope();
   const [tab, setTab] = useState("orders");
 
   // Orders state
@@ -49,10 +49,12 @@ export function PurchasingPage() {
 
   const suppliers = useListSuppliers(orgId ?? "", { query: { enabled: !!orgId } });
   const catalog = useListCatalog(orgId ?? "", { query: { enabled: !!orgId } });
+  // The list scopes to the selected branch or rolls up across the org ("All
+  // branches"). Creating an order stays tied to a concrete branch (see below).
   const orders = useListPurchaseOrders(
-    branchId ?? "",
+    scopeBranchId,
     { status: statusFilter === "all" ? undefined : statusFilter },
-    { query: { enabled: !!branchId } },
+    { query: { enabled: !!scopeBranchId } },
   );
 
   const onCancelPo = async (po: PurchaseOrder) => {
@@ -91,6 +93,13 @@ export function PurchasingPage() {
       header: t("inventory.purchasing.reference", "Reference"),
       cell: ({ row }) => row.original.reference || `#${row.original.id.slice(0, 8)}`,
     },
+    ...(isAllBranches
+      ? ([{
+          accessorKey: "branch_name",
+          header: t("inventory.purchasing.branch", "Branch"),
+          cell: ({ row }) => <span>{row.original.branch_name ?? "—"}</span>,
+        }] as ColumnDef<PurchaseOrder>[])
+      : []),
     {
       accessorKey: "supplier_name",
       header: t("inventory.purchasing.supplier", "Supplier"),
@@ -151,7 +160,7 @@ export function PurchasingPage() {
       },
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [t]);
+  ], [t, isAllBranches]);
 
   const supplierColumns = useMemo<ColumnDef<Supplier>[]>(() => [
     { accessorKey: "name", header: t("inventory.purchasing.supplier", "Supplier") },
@@ -259,27 +268,23 @@ export function PurchasingPage() {
         </TabsList>
 
         <TabsContent value="orders">
-          {!branchId ? (
-            <EmptyState icon={Store} title={t("inventory.pickBranch", "Select a branch to manage its stock")} />
-          ) : (
-            <DataTable
-              columns={orderColumns}
-              data={orders.data ?? []}
-              loading={orders.isLoading}
-              getRowId={(po) => po.id}
-              onRowClick={(po) => setReceivePoId(po.id)}
-              toolbar={
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("inventory.purchasing.allStatuses", "All statuses")}</SelectItem>
-                    {PO_STATUSES.map((s) => <SelectItem key={s} value={s}>{t(`inventory.purchasing.statuses.${s}`, s)}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              }
-              emptyState={<EmptyState icon={Truck} title={t("inventory.purchasing.noOrders", "No purchase orders yet")} />}
-            />
-          )}
+          <DataTable
+            columns={orderColumns}
+            data={orders.data ?? []}
+            loading={orders.isLoading}
+            getRowId={(po) => po.id}
+            onRowClick={(po) => setReceivePoId(po.id)}
+            toolbar={
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("inventory.purchasing.allStatuses", "All statuses")}</SelectItem>
+                  {PO_STATUSES.map((s) => <SelectItem key={s} value={s}>{t(`inventory.purchasing.statuses.${s}`, s)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            }
+            emptyState={<EmptyState icon={Truck} title={t("inventory.purchasing.noOrders", "No purchase orders yet")} />}
+          />
         </TabsContent>
 
         <TabsContent value="suppliers">

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Store, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
@@ -19,14 +19,18 @@ import { WasteDialog } from "./waste-dialog";
 
 export function WastePage() {
   const { t } = useTranslation();
-  const { branchId, from, to } = useScope();
+  const { branchId, scopeBranchId, isAllBranches, from, to } = useScope();
   const [logOpen, setLogOpen] = useState(false);
 
-  const waste = useListWaste(branchId ?? "", { query: { enabled: !!branchId } });
+  // The waste log scopes to the selected branch or rolls up across the org
+  // ("All branches"). Logging waste needs a concrete branch (gated below).
+  const waste = useListWaste(scopeBranchId, { query: { enabled: !!scopeBranchId } });
+  // The "by reason" report also rolls up org-wide for All branches (the
+  // waste-report endpoint accepts the all-branches sentinel).
   const report = useBranchWasteReport(
-    branchId ?? "",
+    scopeBranchId,
     { from: from ?? undefined, to: to ?? undefined },
-    { query: { enabled: !!branchId } },
+    { query: { enabled: !!scopeBranchId } },
   );
 
   const byReason = useMemo(() => {
@@ -54,6 +58,13 @@ export function WastePage() {
         header: t("common.date", "Date"),
         cell: ({ row }) => <span className="tabular">{fmtDateTime(row.original.created_at)}</span>,
       },
+      ...(isAllBranches
+        ? ([{
+            accessorKey: "branch_name",
+            header: t("inventory.waste.branch", "Branch"),
+            cell: ({ row }) => <span>{row.original.branch_name ?? "—"}</span>,
+          }] as ColumnDef<BranchInventoryMovement>[])
+        : []),
       { accessorKey: "ingredient_name", header: t("inventory.waste.ingredient", "Ingredient") },
       {
         accessorKey: "quantity",
@@ -74,7 +85,7 @@ export function WastePage() {
         cell: ({ row }) => row.original.created_by_name ?? "—",
       },
     ],
-    [t],
+    [t, isAllBranches],
   );
 
   const handleExport = () => {
@@ -90,15 +101,6 @@ export function WastePage() {
     void exportToExcel({ filename: "Sufrix-Waste", sheets: [{ name: t("inventory.waste.title", "Waste log"), title: t("inventory.waste.title", "Waste log"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
-  if (!branchId) {
-    return (
-      <Page>
-        <PageHeader title={t("inventory.waste.title", "Waste log")} />
-        <EmptyState icon={Store} title={t("inventory.pickBranch", "Select a branch to manage its stock")} />
-      </Page>
-    );
-  }
-
   return (
     <Page>
       <PageHeader
@@ -106,10 +108,12 @@ export function WastePage() {
         actions={
           <>
             <ExportButton onExport={handleExport} disabled={!(waste.data?.length)} />
-            <Button onClick={() => setLogOpen(true)}>
-              <Trash2 className="size-4" />
-              {t("inventory.waste.record", "Record waste")}
-            </Button>
+            {branchId ? (
+              <Button onClick={() => setLogOpen(true)}>
+                <Trash2 className="size-4" />
+                {t("inventory.waste.record", "Record waste")}
+              </Button>
+            ) : null}
           </>
         }
       />
@@ -152,7 +156,7 @@ export function WastePage() {
         </Card>
       </div>
 
-      <WasteDialog branchId={branchId} open={logOpen} onOpenChange={setLogOpen} />
+      <WasteDialog branchId={branchId ?? ""} open={logOpen} onOpenChange={setLogOpen} />
     </Page>
   );
 }

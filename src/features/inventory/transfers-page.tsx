@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowLeftRight, ArrowRight, MoreHorizontal, PlusCircle, Store, Trash2 } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, MoreHorizontal, PlusCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -37,7 +37,7 @@ export function TransfersPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
   const orgId = useOrgId();
-  const { branchId } = useScope();
+  const { branchId, scopeBranchId } = useScope();
   const [dir, setDir] = useState<Direction>("all");
   const [newOpen, setNewOpen] = useState(false);
   const [editNote, setEditNote] = useState<BranchInventoryTransfer | null>(null);
@@ -47,10 +47,13 @@ export function TransfersPage() {
   const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const activeBranches = useMemo(() => (branches.data ?? []).filter((b) => b.is_active), [branches.data]);
 
+  // The list scopes to the selected branch or rolls up across the org
+  // ("All branches"). Transfer rows carry source/destination branch names, so
+  // no extra Branch column is needed.
   const transfers = useListTransfers(
-    branchId ?? "",
+    scopeBranchId,
     { direction: dir === "all" ? undefined : dir },
-    { query: { enabled: !!branchId } },
+    { query: { enabled: !!scopeBranchId } },
   );
 
   const onReverse = async (tr: BranchInventoryTransfer) => {
@@ -161,15 +164,6 @@ export function TransfersPage() {
     void exportToExcel({ filename: "Sufrix-Transfers", sheets: [{ name: t("inventory.transfers.title", "Transfers"), title: t("inventory.transfers.title", "Transfers"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
-  if (!branchId) {
-    return (
-      <Page>
-        <PageHeader title={t("inventory.transfers.title", "Transfers")} />
-        <EmptyState icon={Store} title={t("inventory.pickBranch", "Select a branch to manage its stock")} />
-      </Page>
-    );
-  }
-
   return (
     <Page>
       <PageHeader
@@ -177,10 +171,14 @@ export function TransfersPage() {
         actions={
           <>
             <ExportButton onExport={handleExport} disabled={!(transfers.data?.length)} />
-            <Button onClick={() => setNewOpen(true)} disabled={activeBranches.length < 2}>
-              <PlusCircle className="size-4" />
-              {t("inventory.transfers.create", "New transfer")}
-            </Button>
+            {/* Creating a transfer needs a concrete source branch, so the action
+                is gated to a selected branch — hidden in the all-branches roll-up. */}
+            {branchId ? (
+              <Button onClick={() => setNewOpen(true)} disabled={activeBranches.length < 2}>
+                <PlusCircle className="size-4" />
+                {t("inventory.transfers.create", "New transfer")}
+              </Button>
+            ) : null}
           </>
         }
       />

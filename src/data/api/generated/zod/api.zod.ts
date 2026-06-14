@@ -824,6 +824,7 @@ export const ListMovementsResponseItem = zod.object({
   "below_zero": zod.boolean(),
   "branch_id": zod.string().uuid(),
   "branch_inventory_id": zod.string().uuid().nullish(),
+  "branch_name": zod.string().nullish().describe('Branch name; only populated by the all-branches waste roll-up (nil\n{branch_id}). `None` for single-branch queries that do not select it.'),
   "created_at": zod.string().datetime({"offset":true}),
   "created_by": zod.string().uuid().nullish(),
   "created_by_name": zod.string().nullish(),
@@ -944,6 +945,7 @@ export const ListWasteResponseItem = zod.object({
   "below_zero": zod.boolean(),
   "branch_id": zod.string().uuid(),
   "branch_inventory_id": zod.string().uuid().nullish(),
+  "branch_name": zod.string().nullish().describe('Branch name; only populated by the all-branches waste roll-up (nil\n{branch_id}). `None` for single-branch queries that do not select it.'),
   "created_at": zod.string().datetime({"offset":true}),
   "created_by": zod.string().uuid().nullish(),
   "created_by_name": zod.string().nullish(),
@@ -3237,6 +3239,7 @@ export const ListPurchaseOrdersQueryParams = zod.object({
 
 export const ListPurchaseOrdersResponseItem = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — populated by the order lists so the \"All branches\" view\ncan show which branch each PO belongs to; other endpoints leave it null.'),
   "created_at": zod.string().datetime({"offset":true}),
   "created_by": zod.string().uuid(),
   "expected_at": zod.string().datetime({"offset":true}).nullish(),
@@ -3279,6 +3282,7 @@ export const GetPurchaseOrderParams = zod.object({
 
 export const GetPurchaseOrderResponse = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — populated by the order lists so the \"All branches\" view\ncan show which branch each PO belongs to; other endpoints leave it null.'),
   "created_at": zod.string().datetime({"offset":true}),
   "created_by": zod.string().uuid(),
   "expected_at": zod.string().datetime({"offset":true}).nullish(),
@@ -3314,6 +3318,7 @@ export const CancelPurchaseOrderParams = zod.object({
 
 export const CancelPurchaseOrderResponse = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — populated by the order lists so the \"All branches\" view\ncan show which branch each PO belongs to; other endpoints leave it null.'),
   "created_at": zod.string().datetime({"offset":true}),
   "created_by": zod.string().uuid(),
   "expected_at": zod.string().datetime({"offset":true}).nullish(),
@@ -3343,6 +3348,7 @@ export const ReceivePurchaseOrderBody = zod.object({
 
 export const ReceivePurchaseOrderResponse = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — populated by the order lists so the \"All branches\" view\ncan show which branch each PO belongs to; other endpoints leave it null.'),
   "created_at": zod.string().datetime({"offset":true}),
   "created_by": zod.string().uuid(),
   "expected_at": zod.string().datetime({"offset":true}).nullish(),
@@ -3383,6 +3389,7 @@ export const ListOrgPurchaseOrdersQueryParams = zod.object({
 
 export const ListOrgPurchaseOrdersResponseItem = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — populated by the order lists so the \"All branches\" view\ncan show which branch each PO belongs to; other endpoints leave it null.'),
   "created_at": zod.string().datetime({"offset":true}),
   "created_by": zod.string().uuid(),
   "expected_at": zod.string().datetime({"offset":true}).nullish(),
@@ -4301,6 +4308,7 @@ export const ListStocktakesParams = zod.object({
 
 export const ListStocktakesResponseItem = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
   "created_at": zod.string().datetime({"offset":true}),
   "finalized_at": zod.string().datetime({"offset":true}).nullish(),
   "finalized_by": zod.string().uuid().nullish(),
@@ -4330,6 +4338,7 @@ export const GetStocktakeParams = zod.object({
 
 export const GetStocktakeResponse = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
   "created_at": zod.string().datetime({"offset":true}),
   "finalized_at": zod.string().datetime({"offset":true}).nullish(),
   "finalized_by": zod.string().uuid().nullish(),
@@ -4367,6 +4376,7 @@ export const CancelStocktakeParams = zod.object({
 
 export const CancelStocktakeResponse = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
   "created_at": zod.string().datetime({"offset":true}),
   "finalized_at": zod.string().datetime({"offset":true}).nullish(),
   "finalized_by": zod.string().uuid().nullish(),
@@ -4386,6 +4396,7 @@ export const FinalizeStocktakeParams = zod.object({
 
 export const FinalizeStocktakeResponse = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
   "created_at": zod.string().datetime({"offset":true}),
   "finalized_at": zod.string().datetime({"offset":true}).nullish(),
   "finalized_by": zod.string().uuid().nullish(),
@@ -4432,6 +4443,7 @@ export const UpsertItemsBody = zod.object({
 
 export const UpsertItemsResponse = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
   "created_at": zod.string().datetime({"offset":true}),
   "finalized_at": zod.string().datetime({"offset":true}).nullish(),
   "finalized_by": zod.string().uuid().nullish(),
