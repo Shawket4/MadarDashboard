@@ -196,7 +196,7 @@ export function MenuItemsPage() {
     const { ok, failed } = await runBulk(rows, (row) => {
       const categoryId = byName.get((row.category ?? "").trim().toLowerCase());
       if (!categoryId) return Promise.reject(new Error(row.category ?? ""));
-      return createMenuItem({ org_id: orgId ?? "", name: row.name, base_price: Math.trunc(parseFloat(row.base_price) * 100), category_id: categoryId, description: row.description || null });
+      return createMenuItem({ org_id: orgId ?? "", name: row.name, base_price: Math.round(parseFloat(row.base_price) * 100), category_id: categoryId, description: row.description || null });
     });
     void invalidateCatalog();
     if (failed.length > 0) {
@@ -450,7 +450,7 @@ function BulkPriceDialog({ open, rows, onClose, onDone }: { open: boolean; rows:
     setRunning(true);
     try {
       const { failed } = await runBulk(rows, (item) => {
-        const next = mode === "add" ? item.base_price + Math.trunc(n * 100) : Math.trunc(item.base_price * (n / 100));
+        const next = mode === "add" ? item.base_price + Math.round(n * 100) : Math.round(item.base_price * (n / 100));
         return updateMenuItem(item.id, { base_price: Math.max(0, next) });
       });
       if (failed.length > 0) toast.error(t("menu.grid.bulkSummaryFailed", { ok: rows.length - failed.length, failed: failed.length, defaultValue: "Some updates failed" }));

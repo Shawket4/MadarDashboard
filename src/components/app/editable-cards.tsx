@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, ClipboardPaste, MoreHorizontal, Plus, Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { fmtMoney } from "@/lib/format";
+import { egpToPiastres, fmtMoney } from "@/lib/format";
 import { normalize } from "@/lib/normalize";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,7 +61,7 @@ function InlineCell<T>({ row, col, onCommit }: { row: T; col: EditableField<T>; 
     if (col.type === "money") {
       const egp = parseFloat(trimmed);
       if (!Number.isFinite(egp) || egp < 0) return;
-      onCommit({ [col.key]: Math.trunc(egp * 100) });
+      onCommit({ [col.key]: egpToPiastres(egp) });
     } else if (col.type === "number") {
       const n = parseFloat(trimmed);
       if (!Number.isFinite(n)) return;

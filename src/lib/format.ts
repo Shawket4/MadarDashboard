@@ -19,8 +19,10 @@ const withTZ = (opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions =>
 /** Convert piastres (integer) → EGP number (float) */
 export const piastresToEgp = (p: number): number => p / 100;
 
-/** Convert an EGP amount (user input) → integer piastres for the API */
-export const egpToPiastres = (egp: number): number => Math.trunc(egp * 100);
+/** Convert an EGP amount (user input) → integer piastres for the API.
+ * Uses Math.round, not Math.trunc: `19.99 * 100` is `1998.9999…` in floating
+ * point, which truncation would drop to 1998 (losing a piastre). */
+export const egpToPiastres = (egp: number): number => Math.round(egp * 100);
 
 /**
  * Format piastres as currency in user's locale.
