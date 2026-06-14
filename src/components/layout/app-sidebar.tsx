@@ -1,6 +1,5 @@
 import { ChevronRight } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -25,9 +24,7 @@ import {
 } from "@/components/ui/sidebar";
 import { NAV, isParent, type NavLeaf } from "@/config/nav";
 import { useAuthStore } from "@/data/stores/auth.store";
-import { useScope } from "@/data/scope/use-scope";
-import { useOrgId } from "@/hooks/use-org-id";
-import { prefetchRoute } from "@/lib/route-prefetch";
+import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
 
 const useIsActive = () => {
   const { pathname } = useLocation();
@@ -46,12 +43,8 @@ export function AppSidebar() {
   const visible = (leaf: NavLeaf) => !leaf.superAdminOnly || isSuperAdmin;
   const close = () => setOpenMobile(false);
 
-  // Predictive data preloading: warm a route's primary query on hover/focus,
-  // complementing the router's code-chunk preload.
-  const qc = useQueryClient();
-  const orgId = useOrgId();
-  const { branchId, from, to } = useScope();
-  const pf = (route: string) => prefetchRoute(route, { queryClient: qc, orgId, branchId, from, to });
+  // Predictive preloading on hover/focus: route code chunk + the page's queries.
+  const pf = useRoutePrefetch();
 
   // Carry only the scope params across navigation (drop page-specific selection
   // like ?order / ?edit) so links keep branch + period but reset local state.

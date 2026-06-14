@@ -4051,6 +4051,7 @@ export const ListShiftsParams = zod.object({
 
 export const ListShiftsResponseItem = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.string().datetime({"offset":true}).nullish(),
   "closed_by": zod.string().uuid().nullish(),
@@ -4081,6 +4082,7 @@ export const GetCurrentShiftResponse = zod.object({
   "has_open_shift": zod.boolean(),
   "open_shift": zod.union([zod.null(),zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.string().datetime({"offset":true}).nullish(),
   "closed_by": zod.string().uuid().nullish(),
@@ -4123,6 +4125,7 @@ export const GetShiftParams = zod.object({
 
 export const GetShiftResponse = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.string().datetime({"offset":true}).nullish(),
   "closed_by": zod.string().uuid().nullish(),
@@ -4188,6 +4191,7 @@ export const CloseShiftBody = zod.object({
 export const CloseShiftResponse = zod.object({
   "shift": zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.string().datetime({"offset":true}).nullish(),
   "closed_by": zod.string().uuid().nullish(),
@@ -4220,6 +4224,7 @@ export const ForceCloseShiftBody = zod.object({
 
 export const ForceCloseShiftResponse = zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.string().datetime({"offset":true}).nullish(),
   "closed_by": zod.string().uuid().nullish(),
@@ -4265,6 +4270,7 @@ export const GetShiftReportResponse = zod.object({
   "printed_at": zod.string().datetime({"offset":true}),
   "shift": zod.object({
   "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.string().datetime({"offset":true}).nullish(),
   "closed_by": zod.string().uuid().nullish(),

@@ -1,11 +1,17 @@
 import type { QueryClient } from "@tanstack/react-query";
 import {
+  getBranchInventoryValuationQueryOptions,
+  getBranchLowStockQueryOptions,
   getBranchMenuEngineeringQueryOptions,
   getBranchSalesQueryOptions,
+  getBranchSalesTimeseriesQueryOptions,
+  getBranchWasteReportQueryOptions,
   getGetActiveRunHandlerQueryOptions,
   getGetCurrentShiftQueryOptions,
+  getGetInventorySettingsQueryOptions,
   getGetLatestRunHandlerQueryOptions,
   getListAddonItemsQueryOptions,
+  getListBranchStockQueryOptions,
   getListBranchesQueryOptions,
   getListBundlesQueryOptions,
   getListCatalogQueryOptions,
@@ -16,9 +22,19 @@ import {
   getListOrdersQueryOptions,
   getListOrgsQueryOptions,
   getListPaymentMethodsQueryOptions,
+  getListPurchaseOrdersQueryOptions,
   getListShiftsQueryOptions,
+  getListStocktakesQueryOptions,
+  getListSuppliersQueryOptions,
+  getListTransfersQueryOptions,
   getListUsersQueryOptions,
+  getListWasteQueryOptions,
+  getOrgBranchComparisonQueryOptions,
+  getOrgInventoryValuationQueryOptions,
+  getOrgLowStockQueryOptions,
 } from "@/data/api/generated/api";
+import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
+import type { ScopePreset } from "@/data/scope/presets";
 
 interface Ctx {
   queryClient: QueryClient;
@@ -26,6 +42,8 @@ interface Ctx {
   branchId: string | null;
   from: string | null;
   to: string | null;
+  /** Drives the dashboard timeseries granularity (hourly for intraday presets). */
+  preset: ScopePreset;
 }
 
 // Mirror the page-level query params EXACTLY so the warmed cache key is the one
@@ -38,8 +56,22 @@ const ORDERS_PER_PAGE = 20; // pageSize in orders-page
  * hovered/focused — complements the router's code-chunk preload. With the
  * global 30s staleTime, the page then renders from cache without refetching.
  */
-export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId, from, to }: Ctx): void {
+export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId, from, to, preset }: Ctx): void {
+  const period = { from: from ?? undefined, to: to ?? undefined };
   switch (route) {
+    case "/": {
+      // Dashboard: branch sales (when a branch is picked) + the org timeseries
+      // and branch comparison (when an org resolves). Mirror each hook's exact
+      // params — incl. the all-branches sentinel + granularity the page derives.
+      const scopeBranchId = branchId ?? ALL_BRANCHES_ID;
+      const granularity = preset === "today" || preset === "yesterday" ? "hourly" : "daily";
+      if (branchId) void qc.prefetchQuery(getBranchSalesQueryOptions(branchId, period));
+      if (orgId) {
+        void qc.prefetchQuery(getBranchSalesTimeseriesQueryOptions(scopeBranchId, { ...period, granularity }));
+        void qc.prefetchQuery(getOrgBranchComparisonQueryOptions(orgId, period));
+      }
+      break;
+    }
     case "/orders":
       if (branchId || orgId) {
         // Must match orders-page `baseParams` shape exactly (incl. the filter
@@ -108,7 +140,64 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
       break;
     case "/analytics":
       // Default tab is Overview → branch sales summary.
-      if (branchId) void qc.prefetchQuery(getBranchSalesQueryOptions(branchId, { from: from ?? undefined, to: to ?? undefined }));
+      if (branchId) void qc.prefetchQuery(getBranchSalesQueryOptions(branchId, period));
+      break;
+    case "/inventory": // sidebar parent + redirect target
+    case "/inventory/today":
+      // Branch-scoped vs org roll-up, mirroring the page's branch/org split. The
+      // org purchase-order list is keyed by a wall-clock cutoff, so it's left to
+      // fetch on mount rather than risk a mismatched key.
+      if (branchId) {
+        void qc.prefetchQuery(getBranchInventoryValuationQueryOptions(branchId));
+        void qc.prefetchQuery(getBranchLowStockQueryOptions(branchId));
+        void qc.prefetchQuery(getListBranchStockQueryOptions(branchId));
+        void qc.prefetchQuery(getListWasteQueryOptions(branchId));
+      } else if (orgId) {
+        void qc.prefetchQuery(getOrgInventoryValuationQueryOptions(orgId));
+        void qc.prefetchQuery(getOrgLowStockQueryOptions(orgId));
+      }
+      if (orgId) {
+        void qc.prefetchQuery(getListSuppliersQueryOptions(orgId));
+        void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
+      }
+      break;
+    case "/inventory/items":
+      if (orgId) {
+        void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
+        void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
+      }
+      if (branchId) void qc.prefetchQuery(getListBranchStockQueryOptions(branchId));
+      break;
+    case "/inventory/purchasing":
+      if (orgId) {
+        void qc.prefetchQuery(getListSuppliersQueryOptions(orgId));
+        void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
+      }
+      // Default status filter is "all" → undefined (matches the page's initial key).
+      if (branchId) void qc.prefetchQuery(getListPurchaseOrdersQueryOptions(branchId, { status: undefined }));
+      break;
+    case "/inventory/counts":
+      if (branchId) void qc.prefetchQuery(getListStocktakesQueryOptions(branchId));
+      break;
+    case "/inventory/waste":
+      if (branchId) {
+        void qc.prefetchQuery(getListWasteQueryOptions(branchId));
+        void qc.prefetchQuery(getBranchWasteReportQueryOptions(branchId, period));
+      }
+      break;
+    case "/inventory/transfers":
+      if (orgId) void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
+      // Default direction filter is "all" → undefined.
+      if (branchId) void qc.prefetchQuery(getListTransfersQueryOptions(branchId, { direction: undefined }));
+      break;
+    case "/inventory/reports":
+      // Default tab is Valuation.
+      if (orgId) void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
+      if (branchId) void qc.prefetchQuery(getBranchInventoryValuationQueryOptions(branchId));
+      else if (orgId) void qc.prefetchQuery(getOrgInventoryValuationQueryOptions(orgId));
+      break;
+    case "/inventory/settings":
+      if (orgId) void qc.prefetchQuery(getGetInventorySettingsQueryOptions(orgId));
       break;
     // NOTE: every new data-backed module should add its mount-time query here
     // (matching the page's exact params) so sidebar hover warms it.

@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/command";
 import { NAV, isParent, type NavLeaf } from "@/config/nav";
 import { useAuthStore } from "@/data/stores/auth.store";
+import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
 
 export function CommandPalette() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const prefetch = useRoutePrefetch();
   const [open, setOpen] = useState(false);
   const role = useAuthStore((s) => s.user?.role);
   const isSuperAdmin = role === "super_admin";
@@ -76,6 +78,8 @@ export function CommandPalette() {
                     key={leaf.to}
                     value={`${t(leaf.labelKey, leaf.fallback)} ${leaf.to}`}
                     onSelect={() => go(leaf.to)}
+                    onMouseEnter={() => prefetch(leaf.to)}
+                    onFocus={() => prefetch(leaf.to)}
                   >
                     <leaf.icon className="size-4" />
                     {t(leaf.labelKey, leaf.fallback)}

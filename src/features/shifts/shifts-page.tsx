@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Clock, MoreHorizontal, PlusCircle, Store, Wallet, XCircle, Trash2 } from "lucide-react";
+import { Clock, MoreHorizontal, PlusCircle, Wallet, XCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -59,7 +59,7 @@ export function ShiftsPage() {
   const confirm = useConfirm();
   const role = useAuthStore((s) => s.user?.role);
   const canManage = role === "super_admin" || role === "org_admin" || role === "branch_manager";
-  const { branchId } = useScope();
+  const { branchId, scopeBranchId, isAllBranches } = useScope();
 
   const [openShift, setOpenShift] = useState(false);
   const [closeShift, setCloseShift] = useState<Shift | null>(null);
@@ -70,8 +70,11 @@ export function ShiftsPage() {
   const setReportId = (id: string | null) =>
     void navigate({ to: ".", replace: true, search: (p: Record<string, unknown>) => ({ ...p, report: id ?? undefined }) });
 
+  // The current-shift banner + opening a shift are branch-specific actions, so
+  // they stay tied to a concrete branch. The list scopes to the selected branch
+  // or rolls up across the org ("All branches").
   const current = useGetCurrentShift(branchId ?? "", { query: { enabled: !!branchId } });
-  const shifts = useListShifts(branchId ?? "", { query: { enabled: !!branchId } });
+  const shifts = useListShifts(scopeBranchId, { query: { enabled: !!scopeBranchId } });
 
   const forceClose = useForceCloseShift({
     mutation: {
@@ -125,6 +128,13 @@ export function ShiftsPage() {
         header: t("shifts.opened", "Opened"),
         cell: ({ row }) => <span className="tabular">{fmtDateTime(row.original.opened_at)}</span>,
       },
+      ...(isAllBranches
+        ? ([{
+            accessorKey: "branch_name",
+            header: t("shifts.branch", "Branch"),
+            cell: ({ row }) => <span>{row.original.branch_name ?? "—"}</span>,
+          }] as ColumnDef<Shift>[])
+        : []),
       { accessorKey: "teller_name", header: t("shifts.teller", "Teller") },
       {
         accessorKey: "status",
@@ -188,7 +198,7 @@ export function ShiftsPage() {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, canManage],
+    [t, canManage, isAllBranches],
   );
 
   const handleExport = () => {
@@ -204,16 +214,9 @@ export function ShiftsPage() {
     void exportToExcel({ filename: "Sufrix-Shifts", sheets: [{ name: t("nav.shifts", "Shifts"), title: t("nav.shifts", "Shifts"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
-  if (!branchId) {
-    return (
-      <Page>
-        <PageHeader title={t("nav.shifts", "Shifts")} />
-        <EmptyState icon={Store} title={t("shifts.pickBranch", "Select a branch to view its shifts")} />
-      </Page>
-    );
-  }
-
-  const openShiftData = current.data?.has_open_shift ? current.data.open_shift : null;
+  // No current-shift banner / "Open shift" action in the all-branches roll-up —
+  // those need a concrete branch. The list still shows every branch's shifts.
+  const openShiftData = branchId && current.data?.has_open_shift ? current.data.open_shift : null;
 
   return (
     <Page>
@@ -223,7 +226,7 @@ export function ShiftsPage() {
         actions={
           <>
             <ExportButton onExport={handleExport} disabled={!(shifts.data?.length)} />
-            {!openShiftData ? (
+            {branchId && !openShiftData ? (
               <Button onClick={() => setOpenShift(true)}>
                 <PlusCircle className="size-4" />
                 {t("shifts.openShift", "Open shift")}
@@ -274,7 +277,7 @@ export function ShiftsPage() {
       />
 
       <OpenShiftDialog
-        branchId={branchId}
+        branchId={branchId ?? ""}
         open={openShift}
         onOpenChange={setOpenShift}
         suggestedCash={current.data?.suggested_opening_cash ?? 0}

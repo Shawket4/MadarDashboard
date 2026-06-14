@@ -3,6 +3,13 @@
 
 export interface Shift {
   branch_id: string;
+  /**
+     * Branch label — only populated by the shifts list (so the "All branches"
+   * view can show which branch each shift belongs to). Other shift endpoints
+   * leave it `null`.
+     * @nullable
+     */
+  branch_name?: string | null;
   /** @nullable */
   cash_discrepancy?: number | null;
   /** @nullable */
