@@ -10,6 +10,12 @@
 
 - **Broken Vitest harness** (`vitest.config.ts:8`). `setupFiles` referenced `./src/test/setup.ts`, which did not exist, and there were **zero** test files — so `npm run test` errored before running anything. **Fix:** added `src/test/setup.ts` (registers jest-dom matchers) + the first dashboard test (`format.test.ts`). The suite now runs green.
 
+## Tax visibility (feature, on request)
+- **Analytics**: added a "Tax" stat card (`total_tax`) next to Revenue.
+- **Orders list**: added a Tax column (`order.tax_amount`); the order-detail sheet already showed tax.
+- **Menu engineering**: subtitle now notes its figures are pre-tax (tax is order-level, not per-item, so no tax line belongs there).
+- Regenerated the Orval client for the new `/auth/login` + `/auth/me` `tax_rate`/`currency_code` fields. tsc + eslint + vitest green.
+
 ## Findings reviewed but NOT changed (and why)
 
 Logged rather than changed — they are UX/error-surfacing or design-level items that need app-level verification (RTL, server data, navigation) to change safely, which this pass couldn't exercise:
