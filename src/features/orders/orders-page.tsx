@@ -133,6 +133,11 @@ export function OrdersPage() {
         cell: ({ row }) => t(`payments.${row.original.payment_method}`, row.original.payment_method),
       },
       {
+        accessorKey: "tax_amount",
+        header: () => <div className="text-end">{t("orders.tax", "Tax")}</div>,
+        cell: ({ row }) => <div className="text-end tabular text-muted-foreground">{fmtMoney(row.original.tax_amount)}</div>,
+      },
+      {
         accessorKey: "total_amount",
         header: () => <div className="text-end">{t("common.total", "Total")}</div>,
         cell: ({ row }) => <div className="text-end font-medium tabular">{fmtMoney(row.original.total_amount)}</div>,

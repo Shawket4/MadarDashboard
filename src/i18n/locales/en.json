@@ -1983,7 +1983,7 @@
   },
   "menuEngineering": {
     "title": "Menu Engineering",
-    "subtitle": "Profit vs popularity for every item — find your stars and your dead weight",
+    "subtitle": "Profit vs popularity for every item — find your stars and your dead weight (figures are pre-tax)",
     "empty": "No sales in this period",
     "emptyHint": "Pick a different period or branch from the scope bar.",
     "totalSales": "Total Sales",

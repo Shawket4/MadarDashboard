@@ -100,6 +100,8 @@ export const LoginBody = zod.object({
 }).describe('Login is dual-mode:\n\n- \*\*Email + password\*\* (admins, managers, super-admins): supply\n  `email` and `password`. `org_id` is optional — if provided, the\n  user must belong to that org; if omitted, lookup is by email only.\n- \*\*PIN + name\*\* (tellers): supply `name`, `pin`, and \*\*`branch_id`\*\*\n  (required). The teller must be assigned to that branch. `org_id` is\n  derived server-side from the branch — never trusted from the client.')
 
 export const LoginResponse = zod.object({
+  "currency_code": zod.string(),
+  "tax_rate": zod.number().describe('Org tax rate as a decimal (e.g. 0.14 = 14% VAT); 0.0 when no org. Mirrors\n\/auth\/me so the POS has it immediately after login.'),
   "token": zod.string().describe('JWT to send as `Authorization: Bearer <token>` on subsequent requests.'),
   "user": zod.object({
   "branch_id": zod.string().uuid().nullish(),
@@ -115,6 +117,8 @@ export const LoginResponse = zod.object({
 
 
 export const MeResponse = zod.object({
+  "currency_code": zod.string().describe('Org currency code (e.g. \"EGP\").'),
+  "tax_rate": zod.number().describe('Org tax rate as a decimal (e.g. 0.14 = 14% VAT); 0.0 when the user has no\norg. Exposed so the POS can compute a tax-inclusive cart total client-side.'),
   "user": zod.object({
   "branch_id": zod.string().uuid().nullish(),
   "email": zod.string().nullish(),

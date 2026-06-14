@@ -4,7 +4,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { BarChart3, Ban, Coins, Receipt, TrendingUp, Users } from "lucide-react";
+import { BarChart3, Ban, Coins, Percent, Receipt, TrendingUp, Users } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { StatCard } from "@/components/app/stat-card";
@@ -50,8 +50,9 @@ function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <StatCard label={t("dashboard.revenue", "Revenue")} value={d?.total_revenue ?? 0} formatType="money" icon={Coins} accent="success" loading={q.isLoading} />
+        <StatCard label={t("orders.tax", "Tax")} value={d?.total_tax ?? 0} formatType="money" icon={Percent} accent="info" loading={q.isLoading} />
         <StatCard label={t("dashboard.orders", "Orders")} value={d?.total_orders ?? 0} icon={Receipt} loading={q.isLoading} />
         <StatCard label={t("analytics.avgOrder", "Avg Order")} value={aov} formatType="money" icon={TrendingUp} accent="info" loading={q.isLoading} />
         <StatCard label={t("orders.voided", "Voided")} value={d?.voided_orders ?? 0} icon={Ban} accent="warning" loading={q.isLoading} />
