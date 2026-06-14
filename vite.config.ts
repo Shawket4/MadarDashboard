@@ -36,8 +36,20 @@ export default defineConfig({
     alias: { "@": path.resolve(__dirname, "./src") },
   },
   server: { port: 5173, host: true },
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "@tanstack/react-query",
+      "@tanstack/react-router",
+      "recharts",
+      "date-fns",
+    ],
+    exclude: ["exceljs"],
+  },
   build: {
-    sourcemap: true,
+    // No prod sourcemaps: smaller dist + faster build (dev server keeps inline maps).
+    sourcemap: false,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {

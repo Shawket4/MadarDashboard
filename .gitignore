@@ -34,3 +34,6 @@ src-tauri/gen/android/app/build/
 src-tauri/gen/android/buildSrc/build/
 src-tauri/gen/android/app/release.keystore
 src-tauri/gen/android/key.properties
+
+# TypeScript incremental build cache
+*.tsbuildinfo
