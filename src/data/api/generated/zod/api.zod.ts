@@ -886,6 +886,18 @@ export const ListDeliveryOrdersResponseItem = zod.object({
 export const ListDeliveryOrdersResponse = zod.array(ListDeliveryOrdersResponseItem)
 
 
+/**
+ * @summary Server-Sent Events stream of delivery-order changes for one branch. Auth is
+the same Bearer + `delivery_orders:read` + branch-access trio as the list
+endpoint, enforced before the stream opens. The stream is **updates-only**:
+the client should `GET /delivery-orders` first to seed the list, then connect.
+On any error/disconnect the client re-GETs and reconnects.
+ */
+export const StreamDeliveryOrdersQueryParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+
 export const GetDeliveryOrderParams = zod.object({
   "id": zod.string().uuid()
 })
@@ -1152,7 +1164,7 @@ export const SetStatusResponse = zod.object({
 export const SetAcceptingBody = zod.object({
   "branch_id": zod.string().uuid(),
   "channel": zod.string().describe('\"in_mall\" | \"outside\"'),
-  "override": zod.string().describe('\"auto\" | \"open\" | \"closed\"')
+  "mode": zod.string().describe('\"auto\" | \"open\" | \"closed\". Named `mode` (not `override`) because a bare\n`override` field is a reserved word in Dart and breaks the POS client\ncode generator.')
 })
 
 export const SetAcceptingResponse = zod.object({
@@ -3126,6 +3138,8 @@ export const ListOrdersResponse = zod.object({
   "change_given": zod.number().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
   "customer_name": zod.string().nullish(),
+  "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
+  "delivery_order_id": zod.string().uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.string().uuid().nullish(),
   "discount_type": zod.string().nullish(),
@@ -3134,6 +3148,7 @@ export const ListOrdersResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
+  "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
   "payment_method": zod.string(),
   "shift_id": zod.string().uuid(),
   "status": zod.string(),
@@ -3153,6 +3168,7 @@ export const ListOrdersResponse = zod.object({
   "per_page": zod.number(),
   "summary": zod.object({
   "completed": zod.number(),
+  "delivery_fees": zod.number().optional().describe('Total delivery charges (piastres) across completed orders in scope.\nLets the dashboard surface delivery revenue separately from item sales.'),
   "discounts": zod.number(),
   "revenue": zod.number(),
   "tips": zod.number(),
@@ -3231,6 +3247,8 @@ export const ExportOrdersResponse = zod.object({
   "change_given": zod.number().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
   "customer_name": zod.string().nullish(),
+  "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
+  "delivery_order_id": zod.string().uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.string().uuid().nullish(),
   "discount_type": zod.string().nullish(),
@@ -3239,6 +3257,7 @@ export const ExportOrdersResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
+  "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
   "payment_method": zod.string(),
   "shift_id": zod.string().uuid(),
   "status": zod.string(),
@@ -3348,6 +3367,7 @@ export const ExportOrdersResponse = zod.object({
   "ingredient_costs": zod.record(zod.string(), zod.number()),
   "summary": zod.object({
   "completed": zod.number(),
+  "delivery_fees": zod.number().optional().describe('Total delivery charges (piastres) across completed orders in scope.\nLets the dashboard surface delivery revenue separately from item sales.'),
   "discounts": zod.number(),
   "revenue": zod.number(),
   "tips": zod.number(),
@@ -3388,6 +3408,8 @@ export const GetOrderResponse = zod.object({
   "change_given": zod.number().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
   "customer_name": zod.string().nullish(),
+  "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
+  "delivery_order_id": zod.string().uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.string().uuid().nullish(),
   "discount_type": zod.string().nullish(),
@@ -3396,6 +3418,7 @@ export const GetOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
+  "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
   "payment_method": zod.string(),
   "shift_id": zod.string().uuid(),
   "status": zod.string(),
@@ -3411,6 +3434,20 @@ export const GetOrderResponse = zod.object({
   "voided_at": zod.string().datetime({"offset":true}).nullish(),
   "voided_by": zod.string().uuid().nullish()
 }).and(zod.object({
+  "delivery": zod.union([zod.null(),zod.object({
+  "address_line": zod.string().nullish(),
+  "channel": zod.string().describe('\"in_mall\" or \"outside\".'),
+  "customer_phone": zod.string(),
+  "delivery_notes": zod.string().nullish(),
+  "delivery_ref": zod.string().nullish().describe('Human-readable delivery reference (e.g. \"D-DT-260614-0042\").'),
+  "floor": zod.string().nullish(),
+  "landmark": zod.string().nullish(),
+  "payment_method_hint": zod.string().nullish().describe('Payment method the customer indicated at intake (\"cash\"\/\"card\"); the\nteller confirms the actual method at finalize.'),
+  "place_name": zod.string().nullish(),
+  "road_distance_meters": zod.number().nullish().describe('Road distance (meters) used to price the delivery, when known.'),
+  "unit_number": zod.string().nullish(),
+  "zone_name": zod.string().nullish().describe('Name of the matched delivery zone ring, when an outside order matched one.')
+}).describe('Delivery context (customer phone, address, channel, zone), populated\nonly on the single-order detail endpoint and only when the order\noriginated from a delivery order. `null`\/absent for dine-in orders.')]).optional(),
   "items": zod.array(zod.object({
   "bundle_id": zod.string().uuid().nullish(),
   "bundle_unit_price": zod.number().nullish(),
@@ -3514,6 +3551,8 @@ export const VoidOrderResponse = zod.object({
   "change_given": zod.number().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
   "customer_name": zod.string().nullish(),
+  "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
+  "delivery_order_id": zod.string().uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.string().uuid().nullish(),
   "discount_type": zod.string().nullish(),
@@ -3522,6 +3561,7 @@ export const VoidOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
+  "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
   "payment_method": zod.string(),
   "shift_id": zod.string().uuid(),
   "status": zod.string(),

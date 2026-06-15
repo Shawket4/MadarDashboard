@@ -18,7 +18,15 @@ export const orderColumns = (t: TFunction): ExcelColumn<OrderExport>[] => [
   { key: "discount", header: t("orders.discount", "Discount"), accessor: (o) => o.discount_amount, type: "money", width: 15, total: true },
   { key: "tax", header: t("orders.tax", "Tax"), accessor: (o) => o.tax_amount, type: "money", width: 15, total: true },
   { key: "tip", header: t("orders.tip", "Tip"), accessor: (o) => o.tip_amount || 0, type: "money", width: 15, total: true },
+  { key: "delivery_fee", header: t("orders.deliveryFee", "Delivery fee"), accessor: (o) => o.delivery_fee || 0, type: "money", width: 15, total: true },
   { key: "total", header: t("common.total", "Total"), accessor: (o) => o.total_amount, type: "money", width: 15, total: true },
+  {
+    key: "order_type",
+    header: t("orders.type", "Type"),
+    accessor: (o) => (o.order_type === "delivery" ? t("orders.delivery", "Delivery") : t("orders.dineIn", "Dine-in")),
+    type: "text",
+    width: 14,
+  },
   { key: "status", header: t("common.status", "Status"), accessor: (o) => t(`orderStatus.${o.status}`, o.status), type: "text", width: 15 },
   {
     key: "void_reason",

@@ -1147,7 +1147,21 @@
     "voidNote": "ملاحظة",
     "voidNoteRequired": "الملاحظة مطلوبة عند اختيار «أخرى»",
     "voidNotePh": "أضف تفاصيل…",
-    "orderRef": "المرجع"
+    "orderRef": "المرجع",
+    "deliveryFee": "رسوم التوصيل",
+    "deliveryCharges": "رسوم التوصيل",
+    "deliveryInfo": "التوصيل",
+    "delivery": "توصيل",
+    "dineIn": "في المطعم",
+    "type": "النوع",
+    "phone": "الهاتف",
+    "address": "العنوان",
+    "deliveryNotes": "ملاحظات",
+    "zone": "المنطقة",
+    "distance": "المسافة",
+    "deliveryRef": "مرجع التوصيل",
+    "floor": "الطابق",
+    "unit": "وحدة"
   },
   "ordersExport": {
     "title": "تصدير الطلبات",

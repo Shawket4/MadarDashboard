@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Ban, Coins, Eye, MoreHorizontal, Receipt, Ban as VoidIcon } from "lucide-react";
+import { Ban, Coins, Eye, MoreHorizontal, Receipt, Truck, Ban as VoidIcon } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { StatCard } from "@/components/app/stat-card";
@@ -115,8 +115,14 @@ export function OrdersPage() {
         accessorKey: "order_ref",
         header: "#",
         cell: ({ row }) => (
-          <span className="font-medium tabular">
+          <span className="flex items-center gap-1.5 font-medium tabular">
             {row.original.order_ref ?? `#${row.original.order_number}`}
+            {row.original.order_type === "delivery" ? (
+              <Badge variant="secondary" className="gap-1 bg-primary/10 px-1.5 py-0 text-[10px] text-primary">
+                <Truck className="size-3" />
+                {t("orders.delivery", "Delivery")}
+              </Badge>
+            ) : null}
           </span>
         ),
       },
@@ -191,11 +197,19 @@ export function OrdersPage() {
         actions={<ExportButton onExport={() => setExportOpen(true)} disabled={!enabled} />}
       />
 
-      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-4">
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-2.5 lg:gap-4",
+          (summary?.delivery_fees ?? 0) > 0 ? "lg:grid-cols-5" : "lg:grid-cols-4",
+        )}
+      >
         <StatCard label={t("dashboard.revenue", "Revenue")} icon={Coins} accent="brand" value={summary?.revenue ?? 0} formatType="money" loading={isLoading} dense />
         <StatCard label={t("orders.completed", "Completed")} icon={Receipt} accent="success" value={summary?.completed ?? 0} formatType="number" loading={isLoading} dense />
         <StatCard label={t("dashboard.voided", "Voided")} icon={Ban} accent="destructive" value={summary?.voided ?? 0} formatType="number" loading={isLoading} dense />
         <StatCard label={t("orders.discounts", "Discounts")} icon={Coins} accent="warning" value={summary?.discounts ?? 0} formatType="money" loading={isLoading} dense />
+        {(summary?.delivery_fees ?? 0) > 0 ? (
+          <StatCard label={t("orders.deliveryCharges", "Delivery charges")} icon={Truck} accent="brand" value={summary?.delivery_fees ?? 0} formatType="money" loading={isLoading} dense />
+        ) : null}
       </div>
 
       <DataTable

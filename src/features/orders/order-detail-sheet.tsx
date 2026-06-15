@@ -69,6 +69,19 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
 
   const voided = order?.status === "voided";
   const items = order?.items ?? [];
+  const isDelivery = order?.order_type === "delivery";
+  const delivery = order?.delivery ?? null;
+  const channelLabel = (channel: string) =>
+    channel === "in_mall" ? t("delivery.channelInMall", "In-mall") : t("delivery.channelOutside", "Delivery");
+  const addressParts = delivery
+    ? [
+        delivery.place_name,
+        delivery.address_line,
+        delivery.landmark,
+        delivery.floor ? `${t("orders.floor", "Floor")} ${delivery.floor}` : null,
+        delivery.unit_number ? `${t("orders.unit", "Unit")} ${delivery.unit_number}` : null,
+      ].filter((p): p is string => !!p && p.trim().length > 0)
+    : [];
 
   // COGS / gross-profit summary — missing line costs are a lower bound, never zero.
   const knownCogs = items.filter((li) => li.line_cost != null).reduce((s, li) => s + (li.line_cost ?? 0), 0);
@@ -92,6 +105,11 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                   )}
                 >
                   {t(`orderStatus.${order.status}`, order.status)}
+                </Badge>
+              ) : null}
+              {isDelivery ? (
+                <Badge variant="secondary" className="bg-primary/10 text-primary">
+                  {delivery ? channelLabel(delivery.channel) : t("orders.delivery", "Delivery")}
                 </Badge>
               ) : null}
             </SheetTitle>
@@ -146,6 +164,36 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                   </div>
                 </CardContent>
               </Card>
+
+              {delivery ? (
+                <Card className="border-primary/20 bg-primary/[0.03] py-0">
+                  <CardContent className="space-y-2 p-4 text-sm">
+                    <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                      {t("orders.deliveryInfo", "Delivery")}
+                      <Badge variant="secondary" className="bg-primary/10 text-primary">
+                        {channelLabel(delivery.channel)}
+                      </Badge>
+                    </p>
+                    <Row label={t("orders.phone", "Phone")} value={delivery.customer_phone} />
+                    {addressParts.length > 0 ? (
+                      <Row label={t("orders.address", "Address")} value={addressParts.join(" · ")} />
+                    ) : null}
+                    {delivery.delivery_notes ? (
+                      <Row label={t("orders.deliveryNotes", "Notes")} value={delivery.delivery_notes} />
+                    ) : null}
+                    {delivery.zone_name ? <Row label={t("orders.zone", "Zone")} value={delivery.zone_name} /> : null}
+                    {delivery.road_distance_meters != null ? (
+                      <Row
+                        label={t("orders.distance", "Distance")}
+                        value={`${(delivery.road_distance_meters / 1000).toFixed(1)} ${t("delivery.kmUnit", "km")}`}
+                      />
+                    ) : null}
+                    {delivery.delivery_ref ? (
+                      <Row label={t("orders.deliveryRef", "Delivery ref")} value={delivery.delivery_ref} />
+                    ) : null}
+                  </CardContent>
+                </Card>
+              ) : null}
 
               {items.length > 0 ? (
                 <Card className="py-0">
@@ -270,6 +318,9 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                   ) : null}
                   {order.tax_amount > 0 ? <Row label={t("orders.tax", "Tax")} value={fmtMoney(order.tax_amount)} /> : null}
                   {order.tip_amount ? <Row label={t("orders.tip", "Tip")} value={fmtMoney(order.tip_amount)} /> : null}
+                  {order.delivery_fee > 0 ? (
+                    <Row label={t("orders.deliveryFee", "Delivery fee")} value={fmtMoney(order.delivery_fee)} />
+                  ) : null}
                   <div className="mt-2 flex items-center justify-between gap-2 border-t pt-2 text-base font-semibold">
                     <span>{t("common.total", "Total")}</span>
                     <span className="text-primary tabular">{fmtMoney(order.total_amount)}</span>

@@ -103,6 +103,7 @@ import type {
   DeleteChannelOverrideParams,
   DeleteDrinkRecipeParams,
   DeleteZoneParams,
+  DeliveryEvent,
   DeliveryMenu,
   DeliveryOrder,
   DeliveryOrderInput,
@@ -209,6 +210,7 @@ import type {
   StatusInput,
   Stocktake,
   StocktakeFull,
+  StreamDeliveryOrdersParams,
   Supplier,
   TellerStats,
   TimeseriesPoint,
@@ -2890,6 +2892,108 @@ export function useListDeliveryOrders<TData = Awaited<ReturnType<typeof listDeli
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListDeliveryOrdersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+/**
+ * @summary Server-Sent Events stream of delivery-order changes for one branch. Auth is
+the same Bearer + `delivery_orders:read` + branch-access trio as the list
+endpoint, enforced before the stream opens. The stream is **updates-only**:
+the client should `GET /delivery-orders` first to seed the list, then connect.
+On any error/disconnect the client re-GETs and reconnects.
+ */
+export const streamDeliveryOrders = (
+    params: StreamDeliveryOrdersParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryEvent>(
+      {url: `/delivery-orders/stream`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getStreamDeliveryOrdersQueryKey = (params?: StreamDeliveryOrdersParams,) => {
+    return [
+    `/delivery-orders/stream`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getStreamDeliveryOrdersQueryOptions = <TData = Awaited<ReturnType<typeof streamDeliveryOrders>>, TError = ErrorBody>(params: StreamDeliveryOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof streamDeliveryOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStreamDeliveryOrdersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof streamDeliveryOrders>>> = ({ signal }) => streamDeliveryOrders(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof streamDeliveryOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StreamDeliveryOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof streamDeliveryOrders>>>
+export type StreamDeliveryOrdersQueryError = ErrorBody
+
+
+export function useStreamDeliveryOrders<TData = Awaited<ReturnType<typeof streamDeliveryOrders>>, TError = ErrorBody>(
+ params: StreamDeliveryOrdersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof streamDeliveryOrders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof streamDeliveryOrders>>,
+          TError,
+          Awaited<ReturnType<typeof streamDeliveryOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStreamDeliveryOrders<TData = Awaited<ReturnType<typeof streamDeliveryOrders>>, TError = ErrorBody>(
+ params: StreamDeliveryOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof streamDeliveryOrders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof streamDeliveryOrders>>,
+          TError,
+          Awaited<ReturnType<typeof streamDeliveryOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStreamDeliveryOrders<TData = Awaited<ReturnType<typeof streamDeliveryOrders>>, TError = ErrorBody>(
+ params: StreamDeliveryOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof streamDeliveryOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Server-Sent Events stream of delivery-order changes for one branch. Auth is
+the same Bearer + `delivery_orders:read` + branch-access trio as the list
+endpoint, enforced before the stream opens. The stream is **updates-only**:
+the client should `GET /delivery-orders` first to seed the list, then connect.
+On any error/disconnect the client re-GETs and reconnects.
+ */
+
+export function useStreamDeliveryOrders<TData = Awaited<ReturnType<typeof streamDeliveryOrders>>, TError = ErrorBody>(
+ params: StreamDeliveryOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof streamDeliveryOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStreamDeliveryOrdersQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -1147,7 +1147,21 @@
     "voidNote": "Note",
     "voidNoteRequired": "A note is required for \"Other\"",
     "voidNotePh": "Add details…",
-    "orderRef": "Ref"
+    "orderRef": "Ref",
+    "deliveryFee": "Delivery fee",
+    "deliveryCharges": "Delivery charges",
+    "deliveryInfo": "Delivery",
+    "delivery": "Delivery",
+    "dineIn": "Dine-in",
+    "type": "Type",
+    "phone": "Phone",
+    "address": "Address",
+    "deliveryNotes": "Notes",
+    "zone": "Zone",
+    "distance": "Distance",
+    "deliveryRef": "Delivery ref",
+    "floor": "Floor",
+    "unit": "Unit"
   },
   "ordersExport": {
     "title": "Export Orders",
