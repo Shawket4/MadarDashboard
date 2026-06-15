@@ -2278,7 +2278,6 @@
     "otp": {
       "title": "Verify your phone",
       "sent": "We sent a code to {{phone}}. Enter it to confirm your order.",
-      "debug": "Dev code: {{code}}",
       "code": "Verification code",
       "resend": "Resend code",
       "change": "Change number",

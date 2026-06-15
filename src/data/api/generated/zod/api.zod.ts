@@ -4008,7 +4008,6 @@ export const OtpRequestBody = zod.object({
 })
 
 export const OtpRequestResponse = zod.object({
-  "debug_code": zod.string().nullish().describe('Only populated when SUFRIX_OTP_DEBUG=1 (dev\/test). Never set in prod.'),
   "sent": zod.boolean()
 })
 

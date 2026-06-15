@@ -395,7 +395,7 @@ export const getCreateDeliveryOrderResponseMock = (overrideResponse: Partial<Ext
 
 export const getListPublicOrgsResponseMock = (): PublicOrg[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({address: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_count: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}})})))
 
-export const getOtpRequestResponseMock = (overrideResponse: Partial<Extract<OtpRequestResponse, object>> = {}): OtpRequestResponse => ({debug_code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), sent: faker.datatype.boolean(), ...overrideResponse})
+export const getOtpRequestResponseMock = (overrideResponse: Partial<Extract<OtpRequestResponse, object>> = {}): OtpRequestResponse => ({sent: faker.datatype.boolean(), ...overrideResponse})
 
 export const getOtpVerifyResponseMock = (overrideResponse: Partial<Extract<OtpVerifyResponse, object>> = {}): OtpVerifyResponse => ({device_token: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 

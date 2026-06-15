@@ -12,8 +12,6 @@ interface OtpDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   phone: string;
-  /** dev-only code surfaced by the backend (SUFRIX_OTP_DEBUG=1); else undefined. */
-  debugCode?: string | null;
   sending: boolean;
   verifying: boolean;
   /** null when no error; a translated message otherwise. */
@@ -31,7 +29,6 @@ export function OtpDialog({
   open,
   onOpenChange,
   phone,
-  debugCode,
   sending,
   verifying,
   error,
@@ -125,11 +122,6 @@ export function OtpDialog({
           ))}
         </div>
 
-        {debugCode && (
-          <p className="text-center text-xs text-muted-foreground">
-            {t("order.otp.debug", { code: debugCode })}
-          </p>
-        )}
         {error && <p className="text-center text-sm text-destructive">{error}</p>}
 
         <Button

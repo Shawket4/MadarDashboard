@@ -104,7 +104,6 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
   // OTP
   const [otpOpen, setOtpOpen] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
-  const [debugCode, setDebugCode] = useState<string | null>(null);
   const idempotencyKey = useRef<string>(newUid());
 
   // ── Resolve the selected branch object (needed by channel step) ───────────
@@ -306,10 +305,8 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
     }
     // No trusted device → request an OTP, then open the verify dialog.
     setOtpError(null);
-    setDebugCode(null);
     try {
-      const res = await otpRequest.mutateAsync({ data: { phone: normalizePhone(form.phone) } });
-      setDebugCode(res.debug_code ?? null);
+      await otpRequest.mutateAsync({ data: { phone: normalizePhone(form.phone) } });
       setOtpOpen(true);
     } catch {
       setSubmitError(t("order.otp.errSend"));
@@ -336,8 +333,7 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
   const handleResend = async () => {
     setOtpError(null);
     try {
-      const res = await otpRequest.mutateAsync({ data: { phone: normalizePhone(form.phone) } });
-      setDebugCode(res.debug_code ?? null);
+      await otpRequest.mutateAsync({ data: { phone: normalizePhone(form.phone) } });
     } catch {
       setOtpError(t("order.otp.errSend"));
     }
@@ -487,7 +483,6 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
         open={otpOpen}
         onOpenChange={setOtpOpen}
         phone={form.phone}
-        debugCode={debugCode}
         sending={otpRequest.isPending}
         verifying={otpVerify.isPending || createOrder.isPending}
         error={otpError}
