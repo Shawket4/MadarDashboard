@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { CategoryDialog } from "./category-dialog";
 import { AddonDialog } from "./addon-dialog";
 import { MenuItemDialog } from "./menu-item-dialog";
+import { BranchAddonAvailabilitySwitch, BranchMenuItemAvailabilitySwitch } from "./branch-availability-switch";
 import { invalidateCatalog } from "./util";
 import { useAddonCostMap } from "./costing";
 import {
@@ -37,11 +38,15 @@ import {
   useDeleteCategory,
   useDeleteMenuItem,
   useListAddonItems,
+  useListBranchAddonOverrides,
+  useListBranchMenuOverrides,
   useListCategories,
   useListMenuCatalog,
 } from "@/data/api/generated/api";
 import type {
   AddonItem,
+  BranchAddonOverride,
+  BranchMenuOverride,
   Category,
   MenuItem,
   MenuItemWithCosts,
@@ -55,6 +60,7 @@ import { runBulk } from "@/lib/bulk-runner";
 import { useDebounced } from "@/lib/use-debounced";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { useOrgId } from "@/hooks/use-org-id";
+import { useScope } from "@/data/scope/use-scope";
 
 const ALL = "__all__";
 const ITEMS_PER_PAGE = 24;
@@ -65,6 +71,9 @@ export function MenuItemsPage() {
   const confirm = useConfirm();
   const orgId = useOrgId();
   const enabled = !!orgId;
+  // When a single branch is scoped (top bar), each card gets an inline
+  // "Available at this branch" toggle. No branch selected → org catalog only.
+  const { branchId: scopedBranchId } = useScope();
 
   const [tab, setTab] = useState("items");
   const [categoryFilter, setCategoryFilter] = useState(ALL);
@@ -106,6 +115,22 @@ export function MenuItemsPage() {
   const addons = useListAddonItems({ org_id: orgId ?? "" }, { query: { enabled } });
   const items = useListMenuCatalog(itemsParams, { query: { enabled, placeholderData: keepPreviousData } });
   const addonCostMap = useAddonCostMap(orgId, addonsActive);
+
+  // Branch availability overrides (only when a single branch is scoped). These
+  // power the inline per-branch toggle on item/add-on cards.
+  const scopedOn = enabled && !!scopedBranchId;
+  const menuOverrides = useListBranchMenuOverrides({ branch_id: scopedBranchId ?? "" }, { query: { enabled: scopedOn } });
+  const addonOverrides = useListBranchAddonOverrides({ branch_id: scopedBranchId ?? "" }, { query: { enabled: scopedOn } });
+  const ovrByItem = useMemo(() => {
+    const m = new Map<string, BranchMenuOverride>();
+    for (const o of menuOverrides.data ?? []) m.set(o.menu_item_id, o);
+    return m;
+  }, [menuOverrides.data]);
+  const ovrByAddon = useMemo(() => {
+    const m = new Map<string, BranchAddonOverride>();
+    for (const o of addonOverrides.data ?? []) m.set(o.addon_item_id, o);
+    return m;
+  }, [addonOverrides.data]);
 
   // Predictive prefetch: warm a query before the user commits to the action.
   const prefetchItem = (id: string) => void queryClient.prefetchQuery(getGetMenuItemQueryOptions(id));
@@ -295,6 +320,13 @@ export function MenuItemsPage() {
           <TabsTrigger value="categories">{t("menu.categories", "Categories")} <CountBadge n={catList.length} /></TabsTrigger>
         </TabsList>
 
+        {!scopedBranchId && (tab === "items" || tab === "addons") ? (
+          <div className="flex items-center gap-2 rounded-lg border border-dashed bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+            <Store className="size-3.5 shrink-0" />
+            {t("menu.branchToggleHint", "Select a branch in the top bar to toggle per-branch availability here.")}
+          </div>
+        ) : null}
+
         <TabsContent value="items">
           <EditableCardGrid<MenuItemWithCosts>
             rows={itemList}
@@ -302,7 +334,14 @@ export function MenuItemsPage() {
             titleField={itemTitle}
             fields={itemFields}
             renderImage={(m) => imgTile(m.image_url, CupSoda)}
-            footer={(m) => <ItemCostCell skus={m.sku_costs ?? []} />}
+            footer={(m) => (
+              <div className="space-y-2">
+                <ItemCostCell skus={m.sku_costs ?? []} />
+                {scopedBranchId ? (
+                  <BranchMenuItemAvailabilitySwitch branchId={scopedBranchId} menuItemId={m.id} override={ovrByItem.get(m.id)} />
+                ) : null}
+              </div>
+            )}
             onCommitRow={commitItem}
             onRowPrefetch={(m) => prefetchItem(m.id)}
             onPrefetchNext={prefetchNextItemsPage}
@@ -368,7 +407,14 @@ export function MenuItemsPage() {
             titleField={addonTitle}
             fields={addonFields}
             renderImage={() => imgTile(null, Tag)}
-            footer={(a) => <AddonCostCell cost={addonCostMap.get(a.id)} />}
+            footer={(a) => (
+              <div className="space-y-2">
+                <AddonCostCell cost={addonCostMap.get(a.id)} />
+                {scopedBranchId ? (
+                  <BranchAddonAvailabilitySwitch branchId={scopedBranchId} addonId={a.id} override={ovrByAddon.get(a.id)} />
+                ) : null}
+              </div>
+            )}
             onCommitRow={commitAddon}
             searchText={(a) => `${a.name} ${a.addon_type}`}
             isLoading={addons.isLoading}

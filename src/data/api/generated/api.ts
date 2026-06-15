@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AcceptingInput,
   AddToStockRequest,
   AddonCost,
   AddonIngredient,
@@ -31,18 +32,24 @@ import type {
   AuthPermissionsResponse,
   AvailableBundlesParams,
   Branch,
+  BranchAddonOverride,
+  BranchAddonOverrideInput,
   BranchAddonSalesParams,
   BranchBundleSalesParams,
   BranchCombinedItemSalesParams,
   BranchConsumptionParams,
+  BranchDeliverySettings,
   BranchInventoryAdjustment,
   BranchInventoryItem,
   BranchInventoryMovement,
   BranchInventoryTransfer,
   BranchMenuEngineeringParams,
+  BranchMenuOverride,
+  BranchMenuOverrideInput,
   BranchSalesParams,
   BranchSalesReport,
   BranchSalesTimeseriesParams,
+  BranchSettingsInput,
   BranchShrinkageParams,
   BranchStockReport,
   BranchTellerStatsParams,
@@ -53,9 +60,14 @@ import type {
   BundleSuggestionRecord,
   BundleWithComponents,
   CalibrationSummary,
+  CancelInput,
   CashMovement,
   CashMovementRequest,
   Category,
+  ChannelAddonOverride,
+  ChannelAddonOverrideInput,
+  ChannelMenuOverride,
+  ChannelOverrideInput,
   CloseShiftRequest,
   CloseShiftResponse,
   CombinedItemSalesRow,
@@ -85,24 +97,43 @@ import type {
   DecisionRecord,
   DeductionLogRow,
   DeleteAddonIngredientParams,
+  DeleteBranchAddonOverrideParams,
+  DeleteBranchMenuOverrideParams,
+  DeleteChannelAddonOverrideParams,
+  DeleteChannelOverrideParams,
   DeleteDrinkRecipeParams,
+  DeleteZoneParams,
+  DeliveryMenu,
+  DeliveryOrder,
+  DeliveryOrderInput,
+  DeliveryQuoteParams,
+  DeliveryZone,
   Discount,
   DrinkRecipe,
   ErrorBody,
   ExportOrdersParams,
   ExportResponse,
+  FinalizeInput,
+  FinalizeResponse,
   ForceCloseRequest,
+  GetBranchSettingsParams,
   GetCalibrationHandlerParams,
   GetLatestRunHandlerParams,
   InventoryValuationReport,
   ItemSize,
+  ListAddonCatalogParams,
   ListAddonCostsParams,
   ListAddonItemsParams,
+  ListBranchAddonOverridesParams,
+  ListBranchMenuOverridesParams,
   ListBranchesParams,
   ListBundleSuggestionsHandlerParams,
   ListBundlesParams,
   ListCategoriesParams,
+  ListChannelAddonOverridesParams,
+  ListChannelOverridesParams,
   ListDecisionsHandlerParams,
+  ListDeliveryOrdersParams,
   ListDiscountsParams,
   ListMenuCatalogParams,
   ListMenuItemsParams,
@@ -113,9 +144,11 @@ import type {
   ListPurchaseOrdersParams,
   ListRemovalScenariosHandlerParams,
   ListRunsHandlerParams,
+  ListShiftsParams,
   ListSkuCostsParams,
   ListTransfersParams,
   ListUsersParams,
+  ListZonesParams,
   LoginRequest,
   LoginResponse,
   LowStockRow,
@@ -137,20 +170,30 @@ import type {
   OrgPaymentMethod,
   OrgShrinkageParams,
   OrgWasteReportParams,
+  OtpRequestInput,
+  OtpRequestResponse,
+  OtpVerifyInput,
+  OtpVerifyResponse,
+  PaginatedAddonItems,
   PaginatedBundles,
   PaginatedMenuItems,
   PaginatedOrders,
+  PaginatedShifts,
   Permission,
   PermissionMatrix,
   PersistedRun,
+  PrepTimeInput,
   PreviewIngredient,
   PreviewRecipeRequest,
   PriceSuggestionRecord,
   PromoteBundleBody,
-  PublicMenuResponse,
+  PublicBranch,
+  PublicBranchesParams,
+  PublicMenuParams,
   PublicOrg,
   PurchaseOrder,
   PurchaseOrderFull,
+  QuoteResponse,
   ReceivePurchaseOrderRequest,
   RecordDecisionBody,
   RemovalScenarioRecord,
@@ -163,6 +206,7 @@ import type {
   ShiftSummary,
   ShrinkageRow,
   SkuCost,
+  StatusInput,
   Stocktake,
   StocktakeFull,
   Supplier,
@@ -198,7 +242,8 @@ import type {
   UserPublic,
   VarianceReport,
   VoidOrderRequest,
-  WasteReportRow
+  WasteReportRow,
+  ZoneInput
 } from './models';
 
 import { customInstance } from '../custom-instance';
@@ -353,6 +398,94 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCreateAddonItemMutationOptions(options), queryClient);
     }
+
+export const listAddonCatalog = (
+    params: ListAddonCatalogParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PaginatedAddonItems>(
+      {url: `/addon-items/catalog`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListAddonCatalogQueryKey = (params?: ListAddonCatalogParams,) => {
+    return [
+    `/addon-items/catalog`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAddonCatalogQueryOptions = <TData = Awaited<ReturnType<typeof listAddonCatalog>>, TError = ErrorBody>(params: ListAddonCatalogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAddonCatalog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAddonCatalogQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAddonCatalog>>> = ({ signal }) => listAddonCatalog(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAddonCatalog>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAddonCatalogQueryResult = NonNullable<Awaited<ReturnType<typeof listAddonCatalog>>>
+export type ListAddonCatalogQueryError = ErrorBody
+
+
+export function useListAddonCatalog<TData = Awaited<ReturnType<typeof listAddonCatalog>>, TError = ErrorBody>(
+ params: ListAddonCatalogParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAddonCatalog>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAddonCatalog>>,
+          TError,
+          Awaited<ReturnType<typeof listAddonCatalog>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAddonCatalog<TData = Awaited<ReturnType<typeof listAddonCatalog>>, TError = ErrorBody>(
+ params: ListAddonCatalogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAddonCatalog>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAddonCatalog>>,
+          TError,
+          Awaited<ReturnType<typeof listAddonCatalog>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAddonCatalog<TData = Awaited<ReturnType<typeof listAddonCatalog>>, TError = ErrorBody>(
+ params: ListAddonCatalogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAddonCatalog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListAddonCatalog<TData = Awaited<ReturnType<typeof listAddonCatalog>>, TError = ErrorBody>(
+ params: ListAddonCatalogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAddonCatalog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAddonCatalogQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const deleteAddonItem = (
     id: string,
@@ -757,6 +890,412 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getResolveBranchMutationOptions(options), queryClient);
+    }
+
+export const listBranchAddonOverrides = (
+    params: ListBranchAddonOverridesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BranchAddonOverride[]>(
+      {url: `/branch-addon-overrides`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListBranchAddonOverridesQueryKey = (params?: ListBranchAddonOverridesParams,) => {
+    return [
+    `/branch-addon-overrides`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListBranchAddonOverridesQueryOptions = <TData = Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError = ErrorBody>(params: ListBranchAddonOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBranchAddonOverridesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBranchAddonOverrides>>> = ({ signal }) => listBranchAddonOverrides(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBranchAddonOverridesQueryResult = NonNullable<Awaited<ReturnType<typeof listBranchAddonOverrides>>>
+export type ListBranchAddonOverridesQueryError = ErrorBody
+
+
+export function useListBranchAddonOverrides<TData = Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError = ErrorBody>(
+ params: ListBranchAddonOverridesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBranchAddonOverrides>>,
+          TError,
+          Awaited<ReturnType<typeof listBranchAddonOverrides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBranchAddonOverrides<TData = Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError = ErrorBody>(
+ params: ListBranchAddonOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBranchAddonOverrides>>,
+          TError,
+          Awaited<ReturnType<typeof listBranchAddonOverrides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBranchAddonOverrides<TData = Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError = ErrorBody>(
+ params: ListBranchAddonOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBranchAddonOverrides<TData = Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError = ErrorBody>(
+ params: ListBranchAddonOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchAddonOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBranchAddonOverridesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const upsertBranchAddonOverride = (
+    branchAddonOverrideInput: BranchAddonOverrideInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BranchAddonOverride>(
+      {url: `/branch-addon-overrides`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: branchAddonOverrideInput, signal
+    },
+      options);
+    }
+
+
+
+export const getUpsertBranchAddonOverrideMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertBranchAddonOverride>>, TError,{data: BranchAddonOverrideInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof upsertBranchAddonOverride>>, TError,{data: BranchAddonOverrideInput}, TContext> => {
+
+const mutationKey = ['upsertBranchAddonOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upsertBranchAddonOverride>>, {data: BranchAddonOverrideInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  upsertBranchAddonOverride(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpsertBranchAddonOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof upsertBranchAddonOverride>>>
+    export type UpsertBranchAddonOverrideMutationBody = BranchAddonOverrideInput
+    export type UpsertBranchAddonOverrideMutationError = ErrorBody
+
+    export const useUpsertBranchAddonOverride = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertBranchAddonOverride>>, TError,{data: BranchAddonOverrideInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof upsertBranchAddonOverride>>,
+        TError,
+        {data: BranchAddonOverrideInput},
+        TContext
+      > => {
+      return useMutation(getUpsertBranchAddonOverrideMutationOptions(options), queryClient);
+    }
+
+export const deleteBranchAddonOverride = (
+    params: DeleteBranchAddonOverrideParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/branch-addon-overrides`, method: 'DELETE',
+        params, signal
+    },
+      options);
+    }
+
+
+
+export const getDeleteBranchAddonOverrideMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBranchAddonOverride>>, TError,{params: DeleteBranchAddonOverrideParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteBranchAddonOverride>>, TError,{params: DeleteBranchAddonOverrideParams}, TContext> => {
+
+const mutationKey = ['deleteBranchAddonOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteBranchAddonOverride>>, {params: DeleteBranchAddonOverrideParams}> = (props) => {
+          const {params} = props ?? {};
+
+          return  deleteBranchAddonOverride(params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteBranchAddonOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBranchAddonOverride>>>
+
+    export type DeleteBranchAddonOverrideMutationError = ErrorBody
+
+    export const useDeleteBranchAddonOverride = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBranchAddonOverride>>, TError,{params: DeleteBranchAddonOverrideParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteBranchAddonOverride>>,
+        TError,
+        {params: DeleteBranchAddonOverrideParams},
+        TContext
+      > => {
+      return useMutation(getDeleteBranchAddonOverrideMutationOptions(options), queryClient);
+    }
+
+export const listBranchMenuOverrides = (
+    params: ListBranchMenuOverridesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BranchMenuOverride[]>(
+      {url: `/branch-menu-overrides`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListBranchMenuOverridesQueryKey = (params?: ListBranchMenuOverridesParams,) => {
+    return [
+    `/branch-menu-overrides`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListBranchMenuOverridesQueryOptions = <TData = Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError = ErrorBody>(params: ListBranchMenuOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBranchMenuOverridesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBranchMenuOverrides>>> = ({ signal }) => listBranchMenuOverrides(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBranchMenuOverridesQueryResult = NonNullable<Awaited<ReturnType<typeof listBranchMenuOverrides>>>
+export type ListBranchMenuOverridesQueryError = ErrorBody
+
+
+export function useListBranchMenuOverrides<TData = Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError = ErrorBody>(
+ params: ListBranchMenuOverridesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBranchMenuOverrides>>,
+          TError,
+          Awaited<ReturnType<typeof listBranchMenuOverrides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBranchMenuOverrides<TData = Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError = ErrorBody>(
+ params: ListBranchMenuOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBranchMenuOverrides>>,
+          TError,
+          Awaited<ReturnType<typeof listBranchMenuOverrides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBranchMenuOverrides<TData = Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError = ErrorBody>(
+ params: ListBranchMenuOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBranchMenuOverrides<TData = Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError = ErrorBody>(
+ params: ListBranchMenuOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchMenuOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBranchMenuOverridesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const upsertBranchMenuOverride = (
+    branchMenuOverrideInput: BranchMenuOverrideInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BranchMenuOverride>(
+      {url: `/branch-menu-overrides`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: branchMenuOverrideInput, signal
+    },
+      options);
+    }
+
+
+
+export const getUpsertBranchMenuOverrideMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertBranchMenuOverride>>, TError,{data: BranchMenuOverrideInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof upsertBranchMenuOverride>>, TError,{data: BranchMenuOverrideInput}, TContext> => {
+
+const mutationKey = ['upsertBranchMenuOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upsertBranchMenuOverride>>, {data: BranchMenuOverrideInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  upsertBranchMenuOverride(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpsertBranchMenuOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof upsertBranchMenuOverride>>>
+    export type UpsertBranchMenuOverrideMutationBody = BranchMenuOverrideInput
+    export type UpsertBranchMenuOverrideMutationError = ErrorBody
+
+    export const useUpsertBranchMenuOverride = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertBranchMenuOverride>>, TError,{data: BranchMenuOverrideInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof upsertBranchMenuOverride>>,
+        TError,
+        {data: BranchMenuOverrideInput},
+        TContext
+      > => {
+      return useMutation(getUpsertBranchMenuOverrideMutationOptions(options), queryClient);
+    }
+
+export const deleteBranchMenuOverride = (
+    params: DeleteBranchMenuOverrideParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/branch-menu-overrides`, method: 'DELETE',
+        params, signal
+    },
+      options);
+    }
+
+
+
+export const getDeleteBranchMenuOverrideMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBranchMenuOverride>>, TError,{params: DeleteBranchMenuOverrideParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteBranchMenuOverride>>, TError,{params: DeleteBranchMenuOverrideParams}, TContext> => {
+
+const mutationKey = ['deleteBranchMenuOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteBranchMenuOverride>>, {params: DeleteBranchMenuOverrideParams}> = (props) => {
+          const {params} = props ?? {};
+
+          return  deleteBranchMenuOverride(params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteBranchMenuOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBranchMenuOverride>>>
+
+    export type DeleteBranchMenuOverrideMutationError = ErrorBody
+
+    export const useDeleteBranchMenuOverride = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBranchMenuOverride>>, TError,{params: DeleteBranchMenuOverrideParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteBranchMenuOverride>>,
+        TError,
+        {params: DeleteBranchMenuOverrideParams},
+        TContext
+      > => {
+      return useMutation(getDeleteBranchMenuOverrideMutationOptions(options), queryClient);
     }
 
 export const listBranches = (
@@ -2274,6 +2813,1290 @@ export function useListSkuCosts<TData = Awaited<ReturnType<typeof listSkuCosts>>
 
 
 
+
+export const listDeliveryOrders = (
+    params: ListDeliveryOrdersParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryOrder[]>(
+      {url: `/delivery-orders`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListDeliveryOrdersQueryKey = (params?: ListDeliveryOrdersParams,) => {
+    return [
+    `/delivery-orders`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListDeliveryOrdersQueryOptions = <TData = Awaited<ReturnType<typeof listDeliveryOrders>>, TError = ErrorBody>(params: ListDeliveryOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDeliveryOrdersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDeliveryOrders>>> = ({ signal }) => listDeliveryOrders(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListDeliveryOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof listDeliveryOrders>>>
+export type ListDeliveryOrdersQueryError = ErrorBody
+
+
+export function useListDeliveryOrders<TData = Awaited<ReturnType<typeof listDeliveryOrders>>, TError = ErrorBody>(
+ params: ListDeliveryOrdersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOrders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDeliveryOrders>>,
+          TError,
+          Awaited<ReturnType<typeof listDeliveryOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDeliveryOrders<TData = Awaited<ReturnType<typeof listDeliveryOrders>>, TError = ErrorBody>(
+ params: ListDeliveryOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOrders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDeliveryOrders>>,
+          TError,
+          Awaited<ReturnType<typeof listDeliveryOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDeliveryOrders<TData = Awaited<ReturnType<typeof listDeliveryOrders>>, TError = ErrorBody>(
+ params: ListDeliveryOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListDeliveryOrders<TData = Awaited<ReturnType<typeof listDeliveryOrders>>, TError = ErrorBody>(
+ params: ListDeliveryOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDeliveryOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListDeliveryOrdersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getDeliveryOrder = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryOrder>(
+      {url: `/delivery-orders/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetDeliveryOrderQueryKey = (id: string,) => {
+    return [
+    `/delivery-orders/${id}`
+    ] as const;
+    }
+
+
+export const getGetDeliveryOrderQueryOptions = <TData = Awaited<ReturnType<typeof getDeliveryOrder>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeliveryOrder>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDeliveryOrderQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeliveryOrder>>> = ({ signal }) => getDeliveryOrder(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDeliveryOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDeliveryOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getDeliveryOrder>>>
+export type GetDeliveryOrderQueryError = ErrorBody
+
+
+export function useGetDeliveryOrder<TData = Awaited<ReturnType<typeof getDeliveryOrder>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeliveryOrder>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDeliveryOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getDeliveryOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDeliveryOrder<TData = Awaited<ReturnType<typeof getDeliveryOrder>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeliveryOrder>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDeliveryOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getDeliveryOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDeliveryOrder<TData = Awaited<ReturnType<typeof getDeliveryOrder>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeliveryOrder>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDeliveryOrder<TData = Awaited<ReturnType<typeof getDeliveryOrder>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDeliveryOrder>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDeliveryOrderQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const cancelDeliveryOrder = (
+    id: string,
+    cancelInput: CancelInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryOrder>(
+      {url: `/delivery-orders/${id}/cancel`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: cancelInput, signal
+    },
+      options);
+    }
+
+
+
+export const getCancelDeliveryOrderMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelDeliveryOrder>>, TError,{id: string;data: CancelInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelDeliveryOrder>>, TError,{id: string;data: CancelInput}, TContext> => {
+
+const mutationKey = ['cancelDeliveryOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelDeliveryOrder>>, {id: string;data: CancelInput}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelDeliveryOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelDeliveryOrderMutationResult = NonNullable<Awaited<ReturnType<typeof cancelDeliveryOrder>>>
+    export type CancelDeliveryOrderMutationBody = CancelInput
+    export type CancelDeliveryOrderMutationError = ErrorBody
+
+    export const useCancelDeliveryOrder = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelDeliveryOrder>>, TError,{id: string;data: CancelInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelDeliveryOrder>>,
+        TError,
+        {id: string;data: CancelInput},
+        TContext
+      > => {
+      return useMutation(getCancelDeliveryOrderMutationOptions(options), queryClient);
+    }
+
+export const finalizeDeliveryOrder = (
+    id: string,
+    finalizeInput: FinalizeInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<FinalizeResponse>(
+      {url: `/delivery-orders/${id}/finalize`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: finalizeInput, signal
+    },
+      options);
+    }
+
+
+
+export const getFinalizeDeliveryOrderMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeDeliveryOrder>>, TError,{id: string;data: FinalizeInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof finalizeDeliveryOrder>>, TError,{id: string;data: FinalizeInput}, TContext> => {
+
+const mutationKey = ['finalizeDeliveryOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof finalizeDeliveryOrder>>, {id: string;data: FinalizeInput}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  finalizeDeliveryOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FinalizeDeliveryOrderMutationResult = NonNullable<Awaited<ReturnType<typeof finalizeDeliveryOrder>>>
+    export type FinalizeDeliveryOrderMutationBody = FinalizeInput
+    export type FinalizeDeliveryOrderMutationError = ErrorBody
+
+    export const useFinalizeDeliveryOrder = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeDeliveryOrder>>, TError,{id: string;data: FinalizeInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof finalizeDeliveryOrder>>,
+        TError,
+        {id: string;data: FinalizeInput},
+        TContext
+      > => {
+      return useMutation(getFinalizeDeliveryOrderMutationOptions(options), queryClient);
+    }
+
+export const setPrepTime = (
+    id: string,
+    prepTimeInput: PrepTimeInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryOrder>(
+      {url: `/delivery-orders/${id}/prep-time`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: prepTimeInput, signal
+    },
+      options);
+    }
+
+
+
+export const getSetPrepTimeMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setPrepTime>>, TError,{id: string;data: PrepTimeInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof setPrepTime>>, TError,{id: string;data: PrepTimeInput}, TContext> => {
+
+const mutationKey = ['setPrepTime'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setPrepTime>>, {id: string;data: PrepTimeInput}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setPrepTime(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetPrepTimeMutationResult = NonNullable<Awaited<ReturnType<typeof setPrepTime>>>
+    export type SetPrepTimeMutationBody = PrepTimeInput
+    export type SetPrepTimeMutationError = ErrorBody
+
+    export const useSetPrepTime = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setPrepTime>>, TError,{id: string;data: PrepTimeInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setPrepTime>>,
+        TError,
+        {id: string;data: PrepTimeInput},
+        TContext
+      > => {
+      return useMutation(getSetPrepTimeMutationOptions(options), queryClient);
+    }
+
+export const setStatus = (
+    id: string,
+    statusInput: StatusInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryOrder>(
+      {url: `/delivery-orders/${id}/status`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: statusInput, signal
+    },
+      options);
+    }
+
+
+
+export const getSetStatusMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setStatus>>, TError,{id: string;data: StatusInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof setStatus>>, TError,{id: string;data: StatusInput}, TContext> => {
+
+const mutationKey = ['setStatus'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setStatus>>, {id: string;data: StatusInput}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setStatus(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetStatusMutationResult = NonNullable<Awaited<ReturnType<typeof setStatus>>>
+    export type SetStatusMutationBody = StatusInput
+    export type SetStatusMutationError = ErrorBody
+
+    export const useSetStatus = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setStatus>>, TError,{id: string;data: StatusInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setStatus>>,
+        TError,
+        {id: string;data: StatusInput},
+        TContext
+      > => {
+      return useMutation(getSetStatusMutationOptions(options), queryClient);
+    }
+
+export const setAccepting = (
+    acceptingInput: AcceptingInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BranchDeliverySettings>(
+      {url: `/delivery/accepting`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: acceptingInput, signal
+    },
+      options);
+    }
+
+
+
+export const getSetAcceptingMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setAccepting>>, TError,{data: AcceptingInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof setAccepting>>, TError,{data: AcceptingInput}, TContext> => {
+
+const mutationKey = ['setAccepting'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setAccepting>>, {data: AcceptingInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setAccepting(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetAcceptingMutationResult = NonNullable<Awaited<ReturnType<typeof setAccepting>>>
+    export type SetAcceptingMutationBody = AcceptingInput
+    export type SetAcceptingMutationError = ErrorBody
+
+    export const useSetAccepting = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setAccepting>>, TError,{data: AcceptingInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setAccepting>>,
+        TError,
+        {data: AcceptingInput},
+        TContext
+      > => {
+      return useMutation(getSetAcceptingMutationOptions(options), queryClient);
+    }
+
+export const listChannelAddonOverrides = (
+    params: ListChannelAddonOverridesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ChannelAddonOverride[]>(
+      {url: `/delivery/channel-addon-overrides`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListChannelAddonOverridesQueryKey = (params?: ListChannelAddonOverridesParams,) => {
+    return [
+    `/delivery/channel-addon-overrides`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListChannelAddonOverridesQueryOptions = <TData = Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError = ErrorBody>(params: ListChannelAddonOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListChannelAddonOverridesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listChannelAddonOverrides>>> = ({ signal }) => listChannelAddonOverrides(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListChannelAddonOverridesQueryResult = NonNullable<Awaited<ReturnType<typeof listChannelAddonOverrides>>>
+export type ListChannelAddonOverridesQueryError = ErrorBody
+
+
+export function useListChannelAddonOverrides<TData = Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError = ErrorBody>(
+ params: ListChannelAddonOverridesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listChannelAddonOverrides>>,
+          TError,
+          Awaited<ReturnType<typeof listChannelAddonOverrides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListChannelAddonOverrides<TData = Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError = ErrorBody>(
+ params: ListChannelAddonOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listChannelAddonOverrides>>,
+          TError,
+          Awaited<ReturnType<typeof listChannelAddonOverrides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListChannelAddonOverrides<TData = Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError = ErrorBody>(
+ params: ListChannelAddonOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListChannelAddonOverrides<TData = Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError = ErrorBody>(
+ params: ListChannelAddonOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listChannelAddonOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListChannelAddonOverridesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const upsertChannelAddonOverride = (
+    channelAddonOverrideInput: ChannelAddonOverrideInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ChannelAddonOverride>(
+      {url: `/delivery/channel-addon-overrides`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: channelAddonOverrideInput, signal
+    },
+      options);
+    }
+
+
+
+export const getUpsertChannelAddonOverrideMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertChannelAddonOverride>>, TError,{data: ChannelAddonOverrideInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof upsertChannelAddonOverride>>, TError,{data: ChannelAddonOverrideInput}, TContext> => {
+
+const mutationKey = ['upsertChannelAddonOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upsertChannelAddonOverride>>, {data: ChannelAddonOverrideInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  upsertChannelAddonOverride(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpsertChannelAddonOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof upsertChannelAddonOverride>>>
+    export type UpsertChannelAddonOverrideMutationBody = ChannelAddonOverrideInput
+    export type UpsertChannelAddonOverrideMutationError = ErrorBody
+
+    export const useUpsertChannelAddonOverride = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertChannelAddonOverride>>, TError,{data: ChannelAddonOverrideInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof upsertChannelAddonOverride>>,
+        TError,
+        {data: ChannelAddonOverrideInput},
+        TContext
+      > => {
+      return useMutation(getUpsertChannelAddonOverrideMutationOptions(options), queryClient);
+    }
+
+export const deleteChannelAddonOverride = (
+    params: DeleteChannelAddonOverrideParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/delivery/channel-addon-overrides`, method: 'DELETE',
+        params, signal
+    },
+      options);
+    }
+
+
+
+export const getDeleteChannelAddonOverrideMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteChannelAddonOverride>>, TError,{params: DeleteChannelAddonOverrideParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteChannelAddonOverride>>, TError,{params: DeleteChannelAddonOverrideParams}, TContext> => {
+
+const mutationKey = ['deleteChannelAddonOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteChannelAddonOverride>>, {params: DeleteChannelAddonOverrideParams}> = (props) => {
+          const {params} = props ?? {};
+
+          return  deleteChannelAddonOverride(params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteChannelAddonOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof deleteChannelAddonOverride>>>
+
+    export type DeleteChannelAddonOverrideMutationError = ErrorBody
+
+    export const useDeleteChannelAddonOverride = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteChannelAddonOverride>>, TError,{params: DeleteChannelAddonOverrideParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteChannelAddonOverride>>,
+        TError,
+        {params: DeleteChannelAddonOverrideParams},
+        TContext
+      > => {
+      return useMutation(getDeleteChannelAddonOverrideMutationOptions(options), queryClient);
+    }
+
+export const listChannelOverrides = (
+    params: ListChannelOverridesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ChannelMenuOverride[]>(
+      {url: `/delivery/channel-overrides`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListChannelOverridesQueryKey = (params?: ListChannelOverridesParams,) => {
+    return [
+    `/delivery/channel-overrides`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListChannelOverridesQueryOptions = <TData = Awaited<ReturnType<typeof listChannelOverrides>>, TError = ErrorBody>(params: ListChannelOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listChannelOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListChannelOverridesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listChannelOverrides>>> = ({ signal }) => listChannelOverrides(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listChannelOverrides>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListChannelOverridesQueryResult = NonNullable<Awaited<ReturnType<typeof listChannelOverrides>>>
+export type ListChannelOverridesQueryError = ErrorBody
+
+
+export function useListChannelOverrides<TData = Awaited<ReturnType<typeof listChannelOverrides>>, TError = ErrorBody>(
+ params: ListChannelOverridesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listChannelOverrides>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listChannelOverrides>>,
+          TError,
+          Awaited<ReturnType<typeof listChannelOverrides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListChannelOverrides<TData = Awaited<ReturnType<typeof listChannelOverrides>>, TError = ErrorBody>(
+ params: ListChannelOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listChannelOverrides>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listChannelOverrides>>,
+          TError,
+          Awaited<ReturnType<typeof listChannelOverrides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListChannelOverrides<TData = Awaited<ReturnType<typeof listChannelOverrides>>, TError = ErrorBody>(
+ params: ListChannelOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listChannelOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListChannelOverrides<TData = Awaited<ReturnType<typeof listChannelOverrides>>, TError = ErrorBody>(
+ params: ListChannelOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listChannelOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListChannelOverridesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const upsertChannelOverride = (
+    channelOverrideInput: ChannelOverrideInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ChannelMenuOverride>(
+      {url: `/delivery/channel-overrides`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: channelOverrideInput, signal
+    },
+      options);
+    }
+
+
+
+export const getUpsertChannelOverrideMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertChannelOverride>>, TError,{data: ChannelOverrideInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof upsertChannelOverride>>, TError,{data: ChannelOverrideInput}, TContext> => {
+
+const mutationKey = ['upsertChannelOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upsertChannelOverride>>, {data: ChannelOverrideInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  upsertChannelOverride(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpsertChannelOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof upsertChannelOverride>>>
+    export type UpsertChannelOverrideMutationBody = ChannelOverrideInput
+    export type UpsertChannelOverrideMutationError = ErrorBody
+
+    export const useUpsertChannelOverride = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertChannelOverride>>, TError,{data: ChannelOverrideInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof upsertChannelOverride>>,
+        TError,
+        {data: ChannelOverrideInput},
+        TContext
+      > => {
+      return useMutation(getUpsertChannelOverrideMutationOptions(options), queryClient);
+    }
+
+export const deleteChannelOverride = (
+    params: DeleteChannelOverrideParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/delivery/channel-overrides`, method: 'DELETE',
+        params, signal
+    },
+      options);
+    }
+
+
+
+export const getDeleteChannelOverrideMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteChannelOverride>>, TError,{params: DeleteChannelOverrideParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteChannelOverride>>, TError,{params: DeleteChannelOverrideParams}, TContext> => {
+
+const mutationKey = ['deleteChannelOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteChannelOverride>>, {params: DeleteChannelOverrideParams}> = (props) => {
+          const {params} = props ?? {};
+
+          return  deleteChannelOverride(params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteChannelOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof deleteChannelOverride>>>
+
+    export type DeleteChannelOverrideMutationError = ErrorBody
+
+    export const useDeleteChannelOverride = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteChannelOverride>>, TError,{params: DeleteChannelOverrideParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteChannelOverride>>,
+        TError,
+        {params: DeleteChannelOverrideParams},
+        TContext
+      > => {
+      return useMutation(getDeleteChannelOverrideMutationOptions(options), queryClient);
+    }
+
+export const getBranchSettings = (
+    params: GetBranchSettingsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BranchDeliverySettings>(
+      {url: `/delivery/settings`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetBranchSettingsQueryKey = (params?: GetBranchSettingsParams,) => {
+    return [
+    `/delivery/settings`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetBranchSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getBranchSettings>>, TError = ErrorBody>(params: GetBranchSettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBranchSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBranchSettingsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBranchSettings>>> = ({ signal }) => getBranchSettings(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBranchSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBranchSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getBranchSettings>>>
+export type GetBranchSettingsQueryError = ErrorBody
+
+
+export function useGetBranchSettings<TData = Awaited<ReturnType<typeof getBranchSettings>>, TError = ErrorBody>(
+ params: GetBranchSettingsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBranchSettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBranchSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getBranchSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBranchSettings<TData = Awaited<ReturnType<typeof getBranchSettings>>, TError = ErrorBody>(
+ params: GetBranchSettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBranchSettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBranchSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getBranchSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBranchSettings<TData = Awaited<ReturnType<typeof getBranchSettings>>, TError = ErrorBody>(
+ params: GetBranchSettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBranchSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBranchSettings<TData = Awaited<ReturnType<typeof getBranchSettings>>, TError = ErrorBody>(
+ params: GetBranchSettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBranchSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBranchSettingsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const putBranchSettings = (
+    branchSettingsInput: BranchSettingsInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BranchDeliverySettings>(
+      {url: `/delivery/settings`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: branchSettingsInput, signal
+    },
+      options);
+    }
+
+
+
+export const getPutBranchSettingsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putBranchSettings>>, TError,{data: BranchSettingsInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putBranchSettings>>, TError,{data: BranchSettingsInput}, TContext> => {
+
+const mutationKey = ['putBranchSettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putBranchSettings>>, {data: BranchSettingsInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  putBranchSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutBranchSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof putBranchSettings>>>
+    export type PutBranchSettingsMutationBody = BranchSettingsInput
+    export type PutBranchSettingsMutationError = ErrorBody
+
+    export const usePutBranchSettings = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putBranchSettings>>, TError,{data: BranchSettingsInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putBranchSettings>>,
+        TError,
+        {data: BranchSettingsInput},
+        TContext
+      > => {
+      return useMutation(getPutBranchSettingsMutationOptions(options), queryClient);
+    }
+
+export const listZones = (
+    params: ListZonesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryZone[]>(
+      {url: `/delivery/zones`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListZonesQueryKey = (params?: ListZonesParams,) => {
+    return [
+    `/delivery/zones`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListZonesQueryOptions = <TData = Awaited<ReturnType<typeof listZones>>, TError = ErrorBody>(params: ListZonesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listZones>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListZonesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listZones>>> = ({ signal }) => listZones(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listZones>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListZonesQueryResult = NonNullable<Awaited<ReturnType<typeof listZones>>>
+export type ListZonesQueryError = ErrorBody
+
+
+export function useListZones<TData = Awaited<ReturnType<typeof listZones>>, TError = ErrorBody>(
+ params: ListZonesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listZones>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listZones>>,
+          TError,
+          Awaited<ReturnType<typeof listZones>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListZones<TData = Awaited<ReturnType<typeof listZones>>, TError = ErrorBody>(
+ params: ListZonesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listZones>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listZones>>,
+          TError,
+          Awaited<ReturnType<typeof listZones>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListZones<TData = Awaited<ReturnType<typeof listZones>>, TError = ErrorBody>(
+ params: ListZonesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listZones>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListZones<TData = Awaited<ReturnType<typeof listZones>>, TError = ErrorBody>(
+ params: ListZonesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listZones>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListZonesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const createZone = (
+    zoneInput: ZoneInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryZone>(
+      {url: `/delivery/zones`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: zoneInput, signal
+    },
+      options);
+    }
+
+
+
+export const getCreateZoneMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createZone>>, TError,{data: ZoneInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createZone>>, TError,{data: ZoneInput}, TContext> => {
+
+const mutationKey = ['createZone'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createZone>>, {data: ZoneInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createZone(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateZoneMutationResult = NonNullable<Awaited<ReturnType<typeof createZone>>>
+    export type CreateZoneMutationBody = ZoneInput
+    export type CreateZoneMutationError = ErrorBody
+
+    export const useCreateZone = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createZone>>, TError,{data: ZoneInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createZone>>,
+        TError,
+        {data: ZoneInput},
+        TContext
+      > => {
+      return useMutation(getCreateZoneMutationOptions(options), queryClient);
+    }
+
+export const deleteZone = (
+    id: string,
+    params: DeleteZoneParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/delivery/zones/${id}`, method: 'DELETE',
+        params, signal
+    },
+      options);
+    }
+
+
+
+export const getDeleteZoneMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteZone>>, TError,{id: string;params: DeleteZoneParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteZone>>, TError,{id: string;params: DeleteZoneParams}, TContext> => {
+
+const mutationKey = ['deleteZone'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteZone>>, {id: string;params: DeleteZoneParams}> = (props) => {
+          const {id,params} = props ?? {};
+
+          return  deleteZone(id,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteZoneMutationResult = NonNullable<Awaited<ReturnType<typeof deleteZone>>>
+
+    export type DeleteZoneMutationError = ErrorBody
+
+    export const useDeleteZone = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteZone>>, TError,{id: string;params: DeleteZoneParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteZone>>,
+        TError,
+        {id: string;params: DeleteZoneParams},
+        TContext
+      > => {
+      return useMutation(getDeleteZoneMutationOptions(options), queryClient);
+    }
+
+export const updateZone = (
+    id: string,
+    zoneInput: ZoneInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryZone>(
+      {url: `/delivery/zones/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: zoneInput, signal
+    },
+      options);
+    }
+
+
+
+export const getUpdateZoneMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateZone>>, TError,{id: string;data: ZoneInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateZone>>, TError,{id: string;data: ZoneInput}, TContext> => {
+
+const mutationKey = ['updateZone'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateZone>>, {id: string;data: ZoneInput}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateZone(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateZoneMutationResult = NonNullable<Awaited<ReturnType<typeof updateZone>>>
+    export type UpdateZoneMutationBody = ZoneInput
+    export type UpdateZoneMutationError = ErrorBody
+
+    export const useUpdateZone = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateZone>>, TError,{id: string;data: ZoneInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateZone>>,
+        TError,
+        {id: string;data: ZoneInput},
+        TContext
+      > => {
+      return useMutation(getUpdateZoneMutationOptions(options), queryClient);
+    }
 
 export const listDiscounts = (
     params: ListDiscountsParams,
@@ -6433,93 +8256,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getDeleteSizeMutationOptions(options), queryClient);
     }
 
-export const getPublicMenu = (
-    orgId: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PublicMenuResponse>(
-      {url: `/menu/public/${orgId}`, method: 'GET', signal
-    },
-      options);
-    }
-
-
-
-
-export const getGetPublicMenuQueryKey = (orgId: string,) => {
-    return [
-    `/menu/public/${orgId}`
-    ] as const;
-    }
-
-
-export const getGetPublicMenuQueryOptions = <TData = Awaited<ReturnType<typeof getPublicMenu>>, TError = ErrorBody>(orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetPublicMenuQueryKey(orgId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicMenu>>> = ({ signal }) => getPublicMenu(orgId, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicMenu>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetPublicMenuQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicMenu>>>
-export type GetPublicMenuQueryError = ErrorBody
-
-
-export function useGetPublicMenu<TData = Awaited<ReturnType<typeof getPublicMenu>>, TError = ErrorBody>(
- orgId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicMenu>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPublicMenu>>,
-          TError,
-          Awaited<ReturnType<typeof getPublicMenu>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPublicMenu<TData = Awaited<ReturnType<typeof getPublicMenu>>, TError = ErrorBody>(
- orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicMenu>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPublicMenu>>,
-          TError,
-          Awaited<ReturnType<typeof getPublicMenu>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPublicMenu<TData = Awaited<ReturnType<typeof getPublicMenu>>, TError = ErrorBody>(
- orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetPublicMenu<TData = Awaited<ReturnType<typeof getPublicMenu>>, TError = ErrorBody>(
- orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetPublicMenuQueryOptions(orgId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
 export const listOrders = (
     params?: ListOrdersParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -8276,6 +10012,342 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getDeleteUserPermissionMutationOptions(options), queryClient);
     }
 
+export const publicBranches = (
+    params: PublicBranchesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PublicBranch[]>(
+      {url: `/public/branches`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicBranchesQueryKey = (params?: PublicBranchesParams,) => {
+    return [
+    `/public/branches`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPublicBranchesQueryOptions = <TData = Awaited<ReturnType<typeof publicBranches>>, TError = ErrorBody>(params: PublicBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicBranches>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicBranchesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicBranches>>> = ({ signal }) => publicBranches(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicBranches>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicBranchesQueryResult = NonNullable<Awaited<ReturnType<typeof publicBranches>>>
+export type PublicBranchesQueryError = ErrorBody
+
+
+export function usePublicBranches<TData = Awaited<ReturnType<typeof publicBranches>>, TError = ErrorBody>(
+ params: PublicBranchesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicBranches>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicBranches>>,
+          TError,
+          Awaited<ReturnType<typeof publicBranches>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicBranches<TData = Awaited<ReturnType<typeof publicBranches>>, TError = ErrorBody>(
+ params: PublicBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicBranches>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicBranches>>,
+          TError,
+          Awaited<ReturnType<typeof publicBranches>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicBranches<TData = Awaited<ReturnType<typeof publicBranches>>, TError = ErrorBody>(
+ params: PublicBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicBranches>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePublicBranches<TData = Awaited<ReturnType<typeof publicBranches>>, TError = ErrorBody>(
+ params: PublicBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicBranches>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicBranchesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const deliveryQuote = (
+    id: string,
+    params: DeliveryQuoteParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<QuoteResponse>(
+      {url: `/public/branches/${id}/delivery-quote`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getDeliveryQuoteQueryKey = (id: string,
+    params?: DeliveryQuoteParams,) => {
+    return [
+    `/public/branches/${id}/delivery-quote`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getDeliveryQuoteQueryOptions = <TData = Awaited<ReturnType<typeof deliveryQuote>>, TError = ErrorBody>(id: string,
+    params: DeliveryQuoteParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryQuote>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDeliveryQuoteQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof deliveryQuote>>> = ({ signal }) => deliveryQuote(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof deliveryQuote>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DeliveryQuoteQueryResult = NonNullable<Awaited<ReturnType<typeof deliveryQuote>>>
+export type DeliveryQuoteQueryError = ErrorBody
+
+
+export function useDeliveryQuote<TData = Awaited<ReturnType<typeof deliveryQuote>>, TError = ErrorBody>(
+ id: string,
+    params: DeliveryQuoteParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryQuote>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deliveryQuote>>,
+          TError,
+          Awaited<ReturnType<typeof deliveryQuote>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDeliveryQuote<TData = Awaited<ReturnType<typeof deliveryQuote>>, TError = ErrorBody>(
+ id: string,
+    params: DeliveryQuoteParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryQuote>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deliveryQuote>>,
+          TError,
+          Awaited<ReturnType<typeof deliveryQuote>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDeliveryQuote<TData = Awaited<ReturnType<typeof deliveryQuote>>, TError = ErrorBody>(
+ id: string,
+    params: DeliveryQuoteParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryQuote>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDeliveryQuote<TData = Awaited<ReturnType<typeof deliveryQuote>>, TError = ErrorBody>(
+ id: string,
+    params: DeliveryQuoteParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryQuote>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDeliveryQuoteQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const publicMenu = (
+    id: string,
+    params: PublicMenuParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryMenu>(
+      {url: `/public/branches/${id}/menu`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicMenuQueryKey = (id: string,
+    params?: PublicMenuParams,) => {
+    return [
+    `/public/branches/${id}/menu`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPublicMenuQueryOptions = <TData = Awaited<ReturnType<typeof publicMenu>>, TError = ErrorBody>(id: string,
+    params: PublicMenuParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicMenuQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicMenu>>> = ({ signal }) => publicMenu(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicMenu>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicMenuQueryResult = NonNullable<Awaited<ReturnType<typeof publicMenu>>>
+export type PublicMenuQueryError = ErrorBody
+
+
+export function usePublicMenu<TData = Awaited<ReturnType<typeof publicMenu>>, TError = ErrorBody>(
+ id: string,
+    params: PublicMenuParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenu>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicMenu>>,
+          TError,
+          Awaited<ReturnType<typeof publicMenu>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicMenu<TData = Awaited<ReturnType<typeof publicMenu>>, TError = ErrorBody>(
+ id: string,
+    params: PublicMenuParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenu>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicMenu>>,
+          TError,
+          Awaited<ReturnType<typeof publicMenu>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicMenu<TData = Awaited<ReturnType<typeof publicMenu>>, TError = ErrorBody>(
+ id: string,
+    params: PublicMenuParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePublicMenu<TData = Awaited<ReturnType<typeof publicMenu>>, TError = ErrorBody>(
+ id: string,
+    params: PublicMenuParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicMenuQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const createDeliveryOrder = (
+    deliveryOrderInput: DeliveryOrderInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryOrder>(
+      {url: `/public/delivery-orders`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: deliveryOrderInput, signal
+    },
+      options);
+    }
+
+
+
+export const getCreateDeliveryOrderMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDeliveryOrder>>, TError,{data: DeliveryOrderInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createDeliveryOrder>>, TError,{data: DeliveryOrderInput}, TContext> => {
+
+const mutationKey = ['createDeliveryOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDeliveryOrder>>, {data: DeliveryOrderInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createDeliveryOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateDeliveryOrderMutationResult = NonNullable<Awaited<ReturnType<typeof createDeliveryOrder>>>
+    export type CreateDeliveryOrderMutationBody = DeliveryOrderInput
+    export type CreateDeliveryOrderMutationError = ErrorBody
+
+    export const useCreateDeliveryOrder = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDeliveryOrder>>, TError,{data: DeliveryOrderInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createDeliveryOrder>>,
+        TError,
+        {data: DeliveryOrderInput},
+        TContext
+      > => {
+      return useMutation(getCreateDeliveryOrderMutationOptions(options), queryClient);
+    }
+
 export const listPublicOrgs = (
 
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -8362,6 +10434,122 @@ export function useListPublicOrgs<TData = Awaited<ReturnType<typeof listPublicOr
 
 
 
+
+export const otpRequest = (
+    otpRequestInput: OtpRequestInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OtpRequestResponse>(
+      {url: `/public/otp/request`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: otpRequestInput, signal
+    },
+      options);
+    }
+
+
+
+export const getOtpRequestMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof otpRequest>>, TError,{data: OtpRequestInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof otpRequest>>, TError,{data: OtpRequestInput}, TContext> => {
+
+const mutationKey = ['otpRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof otpRequest>>, {data: OtpRequestInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  otpRequest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OtpRequestMutationResult = NonNullable<Awaited<ReturnType<typeof otpRequest>>>
+    export type OtpRequestMutationBody = OtpRequestInput
+    export type OtpRequestMutationError = ErrorBody
+
+    export const useOtpRequest = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof otpRequest>>, TError,{data: OtpRequestInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof otpRequest>>,
+        TError,
+        {data: OtpRequestInput},
+        TContext
+      > => {
+      return useMutation(getOtpRequestMutationOptions(options), queryClient);
+    }
+
+export const otpVerify = (
+    otpVerifyInput: OtpVerifyInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OtpVerifyResponse>(
+      {url: `/public/otp/verify`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: otpVerifyInput, signal
+    },
+      options);
+    }
+
+
+
+export const getOtpVerifyMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof otpVerify>>, TError,{data: OtpVerifyInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof otpVerify>>, TError,{data: OtpVerifyInput}, TContext> => {
+
+const mutationKey = ['otpVerify'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof otpVerify>>, {data: OtpVerifyInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  otpVerify(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OtpVerifyMutationResult = NonNullable<Awaited<ReturnType<typeof otpVerify>>>
+    export type OtpVerifyMutationBody = OtpVerifyInput
+    export type OtpVerifyMutationError = ErrorBody
+
+    export const useOtpVerify = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof otpVerify>>, TError,{data: OtpVerifyInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof otpVerify>>,
+        TError,
+        {data: OtpVerifyInput},
+        TContext
+      > => {
+      return useMutation(getOtpVerifyMutationOptions(options), queryClient);
+    }
 
 export const listPurchaseOrders = (
     branchId: string,
@@ -11425,12 +13613,14 @@ export function useShiftSummary<TData = Awaited<ReturnType<typeof shiftSummary>>
 
 export const listShifts = (
     branchId: string,
+    params?: ListShiftsParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
-      return customInstance<Shift[]>(
-      {url: `/shifts/branches/${branchId}`, method: 'GET', signal
+      return customInstance<PaginatedShifts>(
+      {url: `/shifts/branches/${branchId}`, method: 'GET',
+        params, signal
     },
       options);
     }
@@ -11438,23 +13628,25 @@ export const listShifts = (
 
 
 
-export const getListShiftsQueryKey = (branchId: string,) => {
+export const getListShiftsQueryKey = (branchId: string,
+    params?: ListShiftsParams,) => {
     return [
-    `/shifts/branches/${branchId}`
+    `/shifts/branches/${branchId}`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListShiftsQueryOptions = <TData = Awaited<ReturnType<typeof listShifts>>, TError = ErrorBody>(branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShifts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getListShiftsQueryOptions = <TData = Awaited<ReturnType<typeof listShifts>>, TError = ErrorBody>(branchId: string,
+    params?: ListShiftsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShifts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListShiftsQueryKey(branchId);
+  const queryKey =  queryOptions?.queryKey ?? getListShiftsQueryKey(branchId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listShifts>>> = ({ signal }) => listShifts(branchId, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listShifts>>> = ({ signal }) => listShifts(branchId,params, requestOptions, signal);
 
 
 
@@ -11468,7 +13660,8 @@ export type ListShiftsQueryError = ErrorBody
 
 
 export function useListShifts<TData = Awaited<ReturnType<typeof listShifts>>, TError = ErrorBody>(
- branchId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShifts>>, TError, TData>> & Pick<
+ branchId: string,
+    params: undefined |  ListShiftsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShifts>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listShifts>>,
           TError,
@@ -11478,7 +13671,8 @@ export function useListShifts<TData = Awaited<ReturnType<typeof listShifts>>, TE
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListShifts<TData = Awaited<ReturnType<typeof listShifts>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShifts>>, TError, TData>> & Pick<
+ branchId: string,
+    params?: ListShiftsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShifts>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listShifts>>,
           TError,
@@ -11488,16 +13682,18 @@ export function useListShifts<TData = Awaited<ReturnType<typeof listShifts>>, TE
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListShifts<TData = Awaited<ReturnType<typeof listShifts>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShifts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ branchId: string,
+    params?: ListShiftsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShifts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListShifts<TData = Awaited<ReturnType<typeof listShifts>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShifts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ branchId: string,
+    params?: ListShiftsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShifts>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListShiftsQueryOptions(branchId,options)
+  const queryOptions = getListShiftsQueryOptions(branchId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

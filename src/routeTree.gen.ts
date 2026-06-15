@@ -14,7 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as MenuOrgIdRouteImport } from './routes/menu.$orgId'
+import { Route as OrderOrgIdRouteImport } from './routes/order.$orgId'
 import { Route as AppUsersRouteImport } from './routes/_app/users'
 import { Route as AppShiftsRouteImport } from './routes/_app/shifts'
 import { Route as AppPermissionsRouteImport } from './routes/_app/permissions'
@@ -26,11 +26,13 @@ import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
 import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/route'
 import { Route as AppMenuRouteRouteImport } from './routes/_app/menu/route'
 import { Route as AppInventoryRouteRouteImport } from './routes/_app/inventory/route'
+import { Route as AppDeliveryRouteRouteImport } from './routes/_app/delivery/route'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
 import { Route as AppMenuIndexRouteImport } from './routes/_app/menu/index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app/inventory/index'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
+import { Route as AppMenuOverridesRouteImport } from './routes/_app/menu/overrides'
 import { Route as AppMenuItemsRouteImport } from './routes/_app/menu/items'
 import { Route as AppMenuEngineeringRouteImport } from './routes/_app/menu/engineering'
 import { Route as AppMenuBundlesRouteImport } from './routes/_app/menu/bundles'
@@ -43,6 +45,9 @@ import { Route as AppInventoryReportsRouteImport } from './routes/_app/inventory
 import { Route as AppInventoryPurchasingRouteImport } from './routes/_app/inventory/purchasing'
 import { Route as AppInventoryItemsRouteImport } from './routes/_app/inventory/items'
 import { Route as AppInventoryCountsRouteImport } from './routes/_app/inventory/counts'
+import { Route as AppDeliveryZonesRouteImport } from './routes/_app/delivery/zones'
+import { Route as AppDeliverySettingsRouteImport } from './routes/_app/delivery/settings'
+import { Route as AppDeliveryChannelsRouteImport } from './routes/_app/delivery/channels'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -68,9 +73,9 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const MenuOrgIdRoute = MenuOrgIdRouteImport.update({
-  id: '/menu/$orgId',
-  path: '/menu/$orgId',
+const OrderOrgIdRoute = OrderOrgIdRouteImport.update({
+  id: '/order/$orgId',
+  path: '/order/$orgId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppUsersRoute = AppUsersRouteImport.update({
@@ -128,6 +133,11 @@ const AppInventoryRouteRoute = AppInventoryRouteRouteImport.update({
   path: '/inventory',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppDeliveryRouteRoute = AppDeliveryRouteRouteImport.update({
+  id: '/delivery',
+  path: '/delivery',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -152,6 +162,11 @@ const AppSettingsPaymentMethodsRoute =
 const AppMenuRecipesRoute = AppMenuRecipesRouteImport.update({
   id: '/recipes',
   path: '/recipes',
+  getParentRoute: () => AppMenuRouteRoute,
+} as any)
+const AppMenuOverridesRoute = AppMenuOverridesRouteImport.update({
+  id: '/overrides',
+  path: '/overrides',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
 const AppMenuItemsRoute = AppMenuItemsRouteImport.update({
@@ -214,12 +229,28 @@ const AppInventoryCountsRoute = AppInventoryCountsRouteImport.update({
   path: '/counts',
   getParentRoute: () => AppInventoryRouteRoute,
 } as any)
+const AppDeliveryZonesRoute = AppDeliveryZonesRouteImport.update({
+  id: '/zones',
+  path: '/zones',
+  getParentRoute: () => AppDeliveryRouteRoute,
+} as any)
+const AppDeliverySettingsRoute = AppDeliverySettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppDeliveryRouteRoute,
+} as any)
+const AppDeliveryChannelsRoute = AppDeliveryChannelsRouteImport.update({
+  id: '/channels',
+  path: '/channels',
+  getParentRoute: () => AppDeliveryRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/inventory': typeof AppInventoryRouteRouteWithChildren
   '/menu': typeof AppMenuRouteRouteWithChildren
   '/settings': typeof AppSettingsRouteRouteWithChildren
@@ -231,7 +262,10 @@ export interface FileRoutesByFullPath {
   '/permissions': typeof AppPermissionsRoute
   '/shifts': typeof AppShiftsRoute
   '/users': typeof AppUsersRoute
-  '/menu/$orgId': typeof MenuOrgIdRoute
+  '/order/$orgId': typeof OrderOrgIdRoute
+  '/delivery/channels': typeof AppDeliveryChannelsRoute
+  '/delivery/settings': typeof AppDeliverySettingsRoute
+  '/delivery/zones': typeof AppDeliveryZonesRoute
   '/inventory/counts': typeof AppInventoryCountsRoute
   '/inventory/items': typeof AppInventoryItemsRoute
   '/inventory/purchasing': typeof AppInventoryPurchasingRoute
@@ -244,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/menu/bundles': typeof AppMenuBundlesRoute
   '/menu/engineering': typeof AppMenuEngineeringRoute
   '/menu/items': typeof AppMenuItemsRoute
+  '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/inventory/': typeof AppInventoryIndexRoute
@@ -254,6 +289,7 @@ export interface FileRoutesByTo {
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/analytics': typeof AppAnalyticsRoute
   '/branches': typeof AppBranchesRoute
   '/discounts': typeof AppDiscountsRoute
@@ -262,8 +298,11 @@ export interface FileRoutesByTo {
   '/permissions': typeof AppPermissionsRoute
   '/shifts': typeof AppShiftsRoute
   '/users': typeof AppUsersRoute
-  '/menu/$orgId': typeof MenuOrgIdRoute
+  '/order/$orgId': typeof OrderOrgIdRoute
   '/': typeof AppIndexRoute
+  '/delivery/channels': typeof AppDeliveryChannelsRoute
+  '/delivery/settings': typeof AppDeliverySettingsRoute
+  '/delivery/zones': typeof AppDeliveryZonesRoute
   '/inventory/counts': typeof AppInventoryCountsRoute
   '/inventory/items': typeof AppInventoryItemsRoute
   '/inventory/purchasing': typeof AppInventoryPurchasingRoute
@@ -276,6 +315,7 @@ export interface FileRoutesByTo {
   '/menu/bundles': typeof AppMenuBundlesRoute
   '/menu/engineering': typeof AppMenuEngineeringRoute
   '/menu/items': typeof AppMenuItemsRoute
+  '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/inventory': typeof AppInventoryIndexRoute
@@ -288,6 +328,7 @@ export interface FileRoutesById {
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/_app/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/_app/inventory': typeof AppInventoryRouteRouteWithChildren
   '/_app/menu': typeof AppMenuRouteRouteWithChildren
   '/_app/settings': typeof AppSettingsRouteRouteWithChildren
@@ -299,8 +340,11 @@ export interface FileRoutesById {
   '/_app/permissions': typeof AppPermissionsRoute
   '/_app/shifts': typeof AppShiftsRoute
   '/_app/users': typeof AppUsersRoute
-  '/menu/$orgId': typeof MenuOrgIdRoute
+  '/order/$orgId': typeof OrderOrgIdRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/delivery/channels': typeof AppDeliveryChannelsRoute
+  '/_app/delivery/settings': typeof AppDeliverySettingsRoute
+  '/_app/delivery/zones': typeof AppDeliveryZonesRoute
   '/_app/inventory/counts': typeof AppInventoryCountsRoute
   '/_app/inventory/items': typeof AppInventoryItemsRoute
   '/_app/inventory/purchasing': typeof AppInventoryPurchasingRoute
@@ -313,6 +357,7 @@ export interface FileRoutesById {
   '/_app/menu/bundles': typeof AppMenuBundlesRoute
   '/_app/menu/engineering': typeof AppMenuEngineeringRoute
   '/_app/menu/items': typeof AppMenuItemsRoute
+  '/_app/menu/overrides': typeof AppMenuOverridesRoute
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
@@ -326,6 +371,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/login'
     | '/onboarding'
+    | '/delivery'
     | '/inventory'
     | '/menu'
     | '/settings'
@@ -337,7 +383,10 @@ export interface FileRouteTypes {
     | '/permissions'
     | '/shifts'
     | '/users'
-    | '/menu/$orgId'
+    | '/order/$orgId'
+    | '/delivery/channels'
+    | '/delivery/settings'
+    | '/delivery/zones'
     | '/inventory/counts'
     | '/inventory/items'
     | '/inventory/purchasing'
@@ -350,6 +399,7 @@ export interface FileRouteTypes {
     | '/menu/bundles'
     | '/menu/engineering'
     | '/menu/items'
+    | '/menu/overrides'
     | '/menu/recipes'
     | '/settings/payment-methods'
     | '/inventory/'
@@ -360,6 +410,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/login'
     | '/onboarding'
+    | '/delivery'
     | '/analytics'
     | '/branches'
     | '/discounts'
@@ -368,8 +419,11 @@ export interface FileRouteTypes {
     | '/permissions'
     | '/shifts'
     | '/users'
-    | '/menu/$orgId'
+    | '/order/$orgId'
     | '/'
+    | '/delivery/channels'
+    | '/delivery/settings'
+    | '/delivery/zones'
     | '/inventory/counts'
     | '/inventory/items'
     | '/inventory/purchasing'
@@ -382,6 +436,7 @@ export interface FileRouteTypes {
     | '/menu/bundles'
     | '/menu/engineering'
     | '/menu/items'
+    | '/menu/overrides'
     | '/menu/recipes'
     | '/settings/payment-methods'
     | '/inventory'
@@ -393,6 +448,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/login'
     | '/onboarding'
+    | '/_app/delivery'
     | '/_app/inventory'
     | '/_app/menu'
     | '/_app/settings'
@@ -404,8 +460,11 @@ export interface FileRouteTypes {
     | '/_app/permissions'
     | '/_app/shifts'
     | '/_app/users'
-    | '/menu/$orgId'
+    | '/order/$orgId'
     | '/_app/'
+    | '/_app/delivery/channels'
+    | '/_app/delivery/settings'
+    | '/_app/delivery/zones'
     | '/_app/inventory/counts'
     | '/_app/inventory/items'
     | '/_app/inventory/purchasing'
@@ -418,6 +477,7 @@ export interface FileRouteTypes {
     | '/_app/menu/bundles'
     | '/_app/menu/engineering'
     | '/_app/menu/items'
+    | '/_app/menu/overrides'
     | '/_app/menu/recipes'
     | '/_app/settings/payment-methods'
     | '/_app/inventory/'
@@ -430,7 +490,7 @@ export interface RootRouteChildren {
   LandingRoute: typeof LandingRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
-  MenuOrgIdRoute: typeof MenuOrgIdRoute
+  OrderOrgIdRoute: typeof OrderOrgIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -470,11 +530,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/menu/$orgId': {
-      id: '/menu/$orgId'
-      path: '/menu/$orgId'
-      fullPath: '/menu/$orgId'
-      preLoaderRoute: typeof MenuOrgIdRouteImport
+    '/order/$orgId': {
+      id: '/order/$orgId'
+      path: '/order/$orgId'
+      fullPath: '/order/$orgId'
+      preLoaderRoute: typeof OrderOrgIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/users': {
@@ -554,6 +614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInventoryRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/delivery': {
+      id: '/_app/delivery'
+      path: '/delivery'
+      fullPath: '/delivery'
+      preLoaderRoute: typeof AppDeliveryRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/settings/': {
       id: '/_app/settings/'
       path: '/'
@@ -587,6 +654,13 @@ declare module '@tanstack/react-router' {
       path: '/recipes'
       fullPath: '/menu/recipes'
       preLoaderRoute: typeof AppMenuRecipesRouteImport
+      parentRoute: typeof AppMenuRouteRoute
+    }
+    '/_app/menu/overrides': {
+      id: '/_app/menu/overrides'
+      path: '/overrides'
+      fullPath: '/menu/overrides'
+      preLoaderRoute: typeof AppMenuOverridesRouteImport
       parentRoute: typeof AppMenuRouteRoute
     }
     '/_app/menu/items': {
@@ -673,8 +747,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInventoryCountsRouteImport
       parentRoute: typeof AppInventoryRouteRoute
     }
+    '/_app/delivery/zones': {
+      id: '/_app/delivery/zones'
+      path: '/zones'
+      fullPath: '/delivery/zones'
+      preLoaderRoute: typeof AppDeliveryZonesRouteImport
+      parentRoute: typeof AppDeliveryRouteRoute
+    }
+    '/_app/delivery/settings': {
+      id: '/_app/delivery/settings'
+      path: '/settings'
+      fullPath: '/delivery/settings'
+      preLoaderRoute: typeof AppDeliverySettingsRouteImport
+      parentRoute: typeof AppDeliveryRouteRoute
+    }
+    '/_app/delivery/channels': {
+      id: '/_app/delivery/channels'
+      path: '/channels'
+      fullPath: '/delivery/channels'
+      preLoaderRoute: typeof AppDeliveryChannelsRouteImport
+      parentRoute: typeof AppDeliveryRouteRoute
+    }
   }
 }
+
+interface AppDeliveryRouteRouteChildren {
+  AppDeliveryChannelsRoute: typeof AppDeliveryChannelsRoute
+  AppDeliverySettingsRoute: typeof AppDeliverySettingsRoute
+  AppDeliveryZonesRoute: typeof AppDeliveryZonesRoute
+}
+
+const AppDeliveryRouteRouteChildren: AppDeliveryRouteRouteChildren = {
+  AppDeliveryChannelsRoute: AppDeliveryChannelsRoute,
+  AppDeliverySettingsRoute: AppDeliverySettingsRoute,
+  AppDeliveryZonesRoute: AppDeliveryZonesRoute,
+}
+
+const AppDeliveryRouteRouteWithChildren =
+  AppDeliveryRouteRoute._addFileChildren(AppDeliveryRouteRouteChildren)
 
 interface AppInventoryRouteRouteChildren {
   AppInventoryCountsRoute: typeof AppInventoryCountsRoute
@@ -708,6 +818,7 @@ interface AppMenuRouteRouteChildren {
   AppMenuBundlesRoute: typeof AppMenuBundlesRoute
   AppMenuEngineeringRoute: typeof AppMenuEngineeringRoute
   AppMenuItemsRoute: typeof AppMenuItemsRoute
+  AppMenuOverridesRoute: typeof AppMenuOverridesRoute
   AppMenuRecipesRoute: typeof AppMenuRecipesRoute
   AppMenuIndexRoute: typeof AppMenuIndexRoute
 }
@@ -717,6 +828,7 @@ const AppMenuRouteRouteChildren: AppMenuRouteRouteChildren = {
   AppMenuBundlesRoute: AppMenuBundlesRoute,
   AppMenuEngineeringRoute: AppMenuEngineeringRoute,
   AppMenuItemsRoute: AppMenuItemsRoute,
+  AppMenuOverridesRoute: AppMenuOverridesRoute,
   AppMenuRecipesRoute: AppMenuRecipesRoute,
   AppMenuIndexRoute: AppMenuIndexRoute,
 }
@@ -739,6 +851,7 @@ const AppSettingsRouteRouteWithChildren =
   AppSettingsRouteRoute._addFileChildren(AppSettingsRouteRouteChildren)
 
 interface AppRouteRouteChildren {
+  AppDeliveryRouteRoute: typeof AppDeliveryRouteRouteWithChildren
   AppInventoryRouteRoute: typeof AppInventoryRouteRouteWithChildren
   AppMenuRouteRoute: typeof AppMenuRouteRouteWithChildren
   AppSettingsRouteRoute: typeof AppSettingsRouteRouteWithChildren
@@ -754,6 +867,7 @@ interface AppRouteRouteChildren {
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppDeliveryRouteRoute: AppDeliveryRouteRouteWithChildren,
   AppInventoryRouteRoute: AppInventoryRouteRouteWithChildren,
   AppMenuRouteRoute: AppMenuRouteRouteWithChildren,
   AppSettingsRouteRoute: AppSettingsRouteRouteWithChildren,
@@ -777,7 +891,7 @@ const rootRouteChildren: RootRouteChildren = {
   LandingRoute: LandingRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
-  MenuOrgIdRoute: MenuOrgIdRoute,
+  OrderOrgIdRoute: OrderOrgIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

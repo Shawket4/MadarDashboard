@@ -60,7 +60,7 @@ export function VoidOrderDialog({ order, open, onOpenChange }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {t("orders.voidTitle", "Void order")} #{order?.order_number}
+            {t("orders.voidTitle", "Void order")} {order?.order_ref ?? (order ? `#${order.order_number}` : "")}
           </DialogTitle>
           <DialogDescription>
             {t("orders.voidDesc", "This reverses the sale. You can optionally restore the deducted inventory.")}

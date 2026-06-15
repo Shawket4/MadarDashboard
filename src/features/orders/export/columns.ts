@@ -3,7 +3,7 @@ import type { ExcelColumn } from "@/lib/excel";
 import type { OrderExport } from "@/data/api/generated/models";
 
 export const orderColumns = (t: TFunction): ExcelColumn<OrderExport>[] => [
-  { key: "order_number", header: t("orders.orderNumber", "#"), accessor: (o) => o.order_number, type: "integer", width: 10 },
+  { key: "order_ref", header: t("orders.orderRef", "Ref"), accessor: (o) => o.order_ref ?? `#${o.order_number}`, type: "text", width: 16 },
   { key: "created_at", header: t("orders.date", "Date"), accessor: (o) => new Date(o.created_at), type: "dateTime", width: 20 },
   { key: "teller", header: t("shifts.teller", "Teller"), accessor: (o) => o.teller_name, type: "text", width: 18 },
   { key: "customer", header: t("orders.customer", "Customer"), accessor: (o) => o.customer_name || "—", type: "text", width: 18 },
@@ -30,7 +30,7 @@ export const orderColumns = (t: TFunction): ExcelColumn<OrderExport>[] => [
 ];
 
 export interface LineItemRow {
-  order_number: number;
+  order_ref: string;
   created_at: string;
   payment_method: string;
   item_name: string;
@@ -45,7 +45,7 @@ export interface LineItemRow {
 }
 
 export const lineItemColumns = (t: TFunction): ExcelColumn<LineItemRow>[] => [
-  { key: "order_number", header: t("orders.orderNumber", "#"), accessor: (r) => r.order_number, type: "integer", width: 10 },
+  { key: "order_ref", header: t("orders.orderRef", "Ref"), accessor: (r) => r.order_ref, type: "text", width: 16 },
   { key: "created_at", header: t("orders.date", "Date"), accessor: (r) => new Date(r.created_at), type: "dateTime", width: 20 },
   {
     key: "payment_method",
@@ -66,7 +66,7 @@ export const lineItemColumns = (t: TFunction): ExcelColumn<LineItemRow>[] => [
 ];
 
 export interface PaymentRow {
-  order_number: number;
+  order_ref: string;
   created_at: string;
   order_total: number;
   split_method: string;
@@ -75,7 +75,7 @@ export interface PaymentRow {
 }
 
 export const paymentColumns = (t: TFunction): ExcelColumn<PaymentRow>[] => [
-  { key: "order_number", header: t("orders.orderNumber", "#"), accessor: (r) => r.order_number, type: "integer", width: 10 },
+  { key: "order_ref", header: t("orders.orderRef", "Ref"), accessor: (r) => r.order_ref, type: "text", width: 16 },
   { key: "created_at", header: t("orders.date", "Date"), accessor: (r) => new Date(r.created_at), type: "dateTime", width: 20 },
   { key: "order_total", header: t("common.total", "Order Total"), accessor: (r) => r.order_total, type: "money", width: 15, total: true },
   {
@@ -90,7 +90,7 @@ export const paymentColumns = (t: TFunction): ExcelColumn<PaymentRow>[] => [
 ];
 
 export interface DeductionRow {
-  order_number: number;
+  order_ref: string;
   created_at: string;
   item_name: string;
   ingredient_name: string;
@@ -101,7 +101,7 @@ export interface DeductionRow {
 }
 
 export const deductionColumns = (t: TFunction): ExcelColumn<DeductionRow>[] => [
-  { key: "order_number", header: t("orders.orderNumber", "#"), accessor: (r) => r.order_number, type: "integer", width: 10 },
+  { key: "order_ref", header: t("orders.orderRef", "Ref"), accessor: (r) => r.order_ref, type: "text", width: 16 },
   { key: "created_at", header: t("orders.date", "Date"), accessor: (r) => new Date(r.created_at), type: "dateTime", width: 20 },
   { key: "item_name", header: t("menu.item", "Item"), accessor: (r) => r.item_name, type: "text", width: 22 },
   { key: "ingredient_name", header: t("inventory.ingredient", "Ingredient"), accessor: (r) => r.ingredient_name, type: "text", width: 22 },

@@ -82,7 +82,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
         <SheetHeader className="sticky top-0 z-10 flex-row items-center justify-between gap-2 border-b bg-background">
           <div className="min-w-0">
             <SheetTitle className="flex items-center gap-2">
-              {order ? `#${order.order_number}` : t("orders.order", "Order")}
+              {order ? (order.order_ref ?? `#${order.order_number}`) : t("orders.order", "Order")}
               {order ? (
                 <Badge
                   variant="secondary"

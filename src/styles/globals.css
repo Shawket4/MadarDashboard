@@ -265,3 +265,85 @@
     font-size: 16px !important;
   }
 }
+
+/* ── Public-ordering map (leaflet) ──────────────────────────────────────────
+ * A clean, themed look for the CARTO Voyager basemap: rounded panes, subtle
+ * unobtrusive attribution, and a custom brand-tinted, animated drop pin. */
+.po-map .leaflet-container {
+  background: var(--muted);
+  font:
+    inherit;
+}
+.po-map .leaflet-control-attribution {
+  background: color-mix(in oklab, var(--card) 80%, transparent);
+  color: var(--muted-foreground);
+  font-size: 9px;
+  padding: 1px 5px;
+  border-start-start-radius: 6px;
+}
+.po-map .leaflet-control-attribution a {
+  color: var(--muted-foreground);
+}
+
+/* Custom pin: a brand-colored teardrop that drops in, sitting over a soft pulse.
+ * Leaflet adds .leaflet-div-icon (white box + border) to divIcons — strip it. */
+.po-map .leaflet-div-icon.po-pin-wrapper,
+.po-pin-wrapper {
+  background: transparent;
+  border: 0;
+}
+.po-pin {
+  position: relative;
+  color: var(--primary);
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.25));
+}
+.po-pin svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  animation: po-pin-drop 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: 50% 100%;
+}
+.po-pin__pulse {
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  width: 14px;
+  height: 6px;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--primary) 45%, transparent);
+  animation: po-pin-pulse 1.8s ease-in-out infinite;
+}
+@keyframes po-pin-drop {
+  0% {
+    transform: translateY(-10px) scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(2px) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes po-pin-pulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(0.9);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.35);
+    opacity: 0.15;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .po-pin svg {
+    animation: none;
+  }
+  .po-pin__pulse {
+    animation: none;
+  }
+}

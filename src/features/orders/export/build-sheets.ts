@@ -43,7 +43,7 @@ export function buildSheets(orders: OrderExport[], grains: Grain[], t: TFunction
   if (grains.includes("line_item")) {
     const rows: LineItemRow[] = orders.flatMap((o) =>
       (o.items ?? []).map((it) => ({
-        order_number: o.order_number,
+        order_ref: o.order_ref ?? `#${o.order_number}`,
         created_at: o.created_at,
         payment_method: o.payment_method,
         item_name: getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, lang),
@@ -78,7 +78,7 @@ export function buildSheets(orders: OrderExport[], grains: Grain[], t: TFunction
   if (grains.includes("payment")) {
     const rows: PaymentRow[] = orders.flatMap((o) =>
       (o.payments || []).map((p) => ({
-        order_number: o.order_number,
+        order_ref: o.order_ref ?? `#${o.order_number}`,
         created_at: o.created_at,
         order_total: o.total_amount,
         split_method: p.method,
@@ -102,7 +102,7 @@ export function buildSheets(orders: OrderExport[], grains: Grain[], t: TFunction
       (o.items ?? []).flatMap((it) => {
         const snaps = (Array.isArray(it.deductions_snapshot) ? it.deductions_snapshot : []) as DeductionSnapshot[];
         return snaps.map((d) => ({
-          order_number: o.order_number,
+          order_ref: o.order_ref ?? `#${o.order_number}`,
           created_at: o.created_at,
           item_name: getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, lang),
           ingredient_name: d.ingredient_name,

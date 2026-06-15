@@ -19,10 +19,12 @@ import {
   Settings,
   Settings2,
   ShieldCheck,
+  SlidersHorizontal,
   ShoppingCart,
   Sparkles,
   Store,
   Trash2,
+  Truck,
   Users,
   UtensilsCrossed,
 } from "lucide-react";
@@ -83,6 +85,17 @@ export const NAV: NavGroup[] = [
         ],
       },
       { to: "/analytics", labelKey: "nav.analytics", fallback: "Analytics", icon: BarChart3 },
+      {
+        labelKey: "nav.delivery",
+        fallback: "Delivery",
+        icon: Truck,
+        basePath: "/delivery",
+        children: [
+          { to: "/delivery/settings", labelKey: "nav.deliverySettings", fallback: "Settings", icon: Settings2 },
+          { to: "/delivery/zones", labelKey: "nav.deliveryZones", fallback: "Zone rings", icon: Layers },
+          { to: "/delivery/channels", labelKey: "nav.deliveryChannels", fallback: "Channel overrides", icon: SlidersHorizontal },
+        ],
+      },
     ],
   },
   {
@@ -96,6 +109,7 @@ export const NAV: NavGroup[] = [
         basePath: "/menu",
         children: [
           { to: "/menu/items", labelKey: "nav.items", fallback: "Items", icon: CupSoda },
+          { to: "/menu/overrides", labelKey: "nav.branchOverrides", fallback: "Branch Overrides", icon: SlidersHorizontal },
           { to: "/menu/recipes", labelKey: "nav.recipes", fallback: "Recipes", icon: ChefHat },
           { to: "/menu/bundles", labelKey: "nav.bundles", fallback: "Bundles", icon: Layers },
           { to: "/menu/engineering", labelKey: "nav.engineering", fallback: "Menu Engineering", icon: BookText },

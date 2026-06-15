@@ -112,9 +112,13 @@ export function OrdersPage() {
   const columns = useMemo<ColumnDef<Order>[]>(
     () => [
       {
-        accessorKey: "order_number",
+        accessorKey: "order_ref",
         header: "#",
-        cell: ({ row }) => <span className="font-medium tabular">#{row.original.order_number}</span>,
+        cell: ({ row }) => (
+          <span className="font-medium tabular">
+            {row.original.order_ref ?? `#${row.original.order_number}`}
+          </span>
+        ),
       },
       {
         accessorKey: "created_at",

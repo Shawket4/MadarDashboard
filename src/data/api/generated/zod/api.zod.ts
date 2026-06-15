@@ -5,7 +5,8 @@ import * as zod from 'zod';
 
 export const ListAddonItemsQueryParams = zod.object({
   "org_id": zod.string().uuid(),
-  "addon_type": zod.string().optional()
+  "addon_type": zod.string().optional(),
+  "branch_id": zod.string().uuid().optional().describe('When set, prices are branch-effective (override replaces default_price) and\naddons disabled at this branch are excluded — the per-branch addon list the\nPOS consumes. Omitted → the plain org list (legacy behaviour).')
 })
 
 export const ListAddonItemsResponseItem = zod.object({
@@ -39,6 +40,45 @@ export const CreateAddonItemBody = zod.object({
 
 }).passthrough().nullish(),
   "org_id": zod.string().uuid()
+})
+
+
+export const ListAddonCatalogQueryParams = zod.object({
+  "org_id": zod.string().uuid(),
+  "addon_type": zod.string().optional(),
+  "search": zod.string().optional().describe('Case-insensitive filter on the addon name.'),
+  "page": zod.number().optional(),
+  "per_page": zod.number().optional(),
+  "branch_id": zod.string().uuid().optional().describe('Enables the per-branch override filter\/sort (LEFT JOINs the branch\'s overrides).'),
+  "overridden": zod.boolean().optional().describe('With `branch_id`: true → only addons overridden at the branch; false → only\nun-overridden; null → all.'),
+  "sort": zod.string().optional().describe('`\"overridden\"` → overridden addons first (needs `branch_id`); otherwise by type\/name.')
+})
+
+export const ListAddonCatalogResponse = zod.object({
+  "data": zod.array(zod.object({
+  "addon_type": zod.string(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "default_price": zod.number(),
+  "id": zod.string().uuid(),
+  "ingredients": zod.array(zod.object({
+  "ingredient_name": zod.string(),
+  "ingredient_unit": zod.string(),
+  "org_ingredient_id": zod.string().uuid().nullish(),
+  "quantity_used": zod.number()
+})).optional(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
+  "org_id": zod.string().uuid(),
+  "primary_ingredient_id": zod.string().uuid().nullish(),
+  "updated_at": zod.string().datetime({"offset":true})
+})),
+  "page": zod.number(),
+  "per_page": zod.number(),
+  "total": zod.number(),
+  "total_pages": zod.number()
 })
 
 
@@ -151,6 +191,90 @@ export const ResolveBranchResponse = zod.object({
   "branch_id": zod.string().uuid(),
   "branch_name": zod.string(),
   "distance_meters": zod.number().describe('Straight-line distance from the supplied coordinates to the branch, in metres.')
+})
+
+
+export const ListBranchAddonOverridesQueryParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const ListBranchAddonOverridesResponseItem = zod.object({
+  "addon_item_id": zod.string().uuid(),
+  "branch_id": zod.string().uuid(),
+  "is_available": zod.boolean().describe('False disables the addon at this branch (excluded from the branch addon list).'),
+  "price_override": zod.number().nullish().describe('Branch price in piastres; null inherits the org default_price.'),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+export const ListBranchAddonOverridesResponse = zod.array(ListBranchAddonOverridesResponseItem)
+
+
+export const UpsertBranchAddonOverrideBody = zod.object({
+  "addon_item_id": zod.string().uuid(),
+  "branch_id": zod.string().uuid(),
+  "is_available": zod.boolean().optional(),
+  "price_override": zod.number().nullish().describe('Branch price in piastres; null inherits the org default_price.')
+})
+
+export const UpsertBranchAddonOverrideResponse = zod.object({
+  "addon_item_id": zod.string().uuid(),
+  "branch_id": zod.string().uuid(),
+  "is_available": zod.boolean().describe('False disables the addon at this branch (excluded from the branch addon list).'),
+  "price_override": zod.number().nullish().describe('Branch price in piastres; null inherits the org default_price.'),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const DeleteBranchAddonOverrideQueryParams = zod.object({
+  "branch_id": zod.string().uuid(),
+  "addon_item_id": zod.string().uuid()
+})
+
+
+export const ListBranchMenuOverridesQueryParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const ListBranchMenuOverridesResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "is_available": zod.boolean().describe('False disables the item at this branch (excluded from the branch menu).'),
+  "menu_item_id": zod.string().uuid(),
+  "price_override": zod.number().nullish().describe('Branch price in piastres; null inherits the org catalog base_price.'),
+  "sizes": zod.array(zod.object({
+  "price_override": zod.number().describe('Branch price for this size in piastres.'),
+  "size_label": zod.string()
+})).optional().describe('Per-size branch prices for this item (empty when none). Availability is item-level.'),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+export const ListBranchMenuOverridesResponse = zod.array(ListBranchMenuOverridesResponseItem)
+
+
+export const UpsertBranchMenuOverrideBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "is_available": zod.boolean().optional(),
+  "menu_item_id": zod.string().uuid(),
+  "price_override": zod.number().nullish().describe('Branch price in piastres; null inherits the org catalog base_price.'),
+  "sizes": zod.array(zod.object({
+  "price_override": zod.number(),
+  "size_label": zod.string()
+})).nullish().describe('Per-size branch prices. `null`\/omitted → leave existing size overrides untouched;\na list → REPLACE the item\'s size overrides with exactly that set (empty clears them).')
+})
+
+export const UpsertBranchMenuOverrideResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "is_available": zod.boolean().describe('False disables the item at this branch (excluded from the branch menu).'),
+  "menu_item_id": zod.string().uuid(),
+  "price_override": zod.number().nullish().describe('Branch price in piastres; null inherits the org catalog base_price.'),
+  "sizes": zod.array(zod.object({
+  "price_override": zod.number().describe('Branch price for this size in piastres.'),
+  "size_label": zod.string()
+})).optional().describe('Per-size branch prices for this item (empty when none). Availability is item-level.'),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const DeleteBranchMenuOverrideQueryParams = zod.object({
+  "branch_id": zod.string().uuid(),
+  "menu_item_id": zod.string().uuid()
 })
 
 
@@ -267,7 +391,8 @@ export const ListBundlesQueryParams = zod.object({
   "branch_id": zod.string().uuid().optional(),
   "search": zod.string().optional(),
   "page": zod.number().optional(),
-  "per_page": zod.number().optional()
+  "per_page": zod.number().optional(),
+  "sort": zod.string().optional().describe('Sort: name_asc | name_desc | price_asc | price_desc | created_asc |\ncreated_desc (default).')
 })
 
 export const ListBundlesResponse = zod.object({
@@ -646,7 +771,10 @@ export const ListMenuCatalogQueryParams = zod.object({
   "category_id": zod.string().uuid().optional(),
   "search": zod.string().optional().describe('Case-insensitive filter on the item name.'),
   "page": zod.number().optional().describe('1-based page number (default 1).'),
-  "per_page": zod.number().optional().describe('Page size (default 50, max 500).')
+  "per_page": zod.number().optional().describe('Page size (default 50, max 500).'),
+  "branch_id": zod.string().uuid().optional().describe('When set, enables the per-branch override filter\/sort (LEFT JOINs the\nbranch\'s overrides). Prices in the response stay org-level.'),
+  "overridden": zod.boolean().optional().describe('With `branch_id`: true → only items overridden at the branch; false →\nonly un-overridden; null → all.'),
+  "sort": zod.string().optional().describe('`\"overridden\"` → overridden items first (needs `branch_id`); otherwise A–Z.')
 })
 
 export const ListMenuCatalogResponse = zod.object({
@@ -705,6 +833,536 @@ export const ListSkuCostsResponseItem = zod.object({
   "size_label": zod.string().describe('`\"one_size\"` when the item has no sizes.')
 }).describe('Computed cost for one sellable SKU (menu item × size).')
 export const ListSkuCostsResponse = zod.array(ListSkuCostsResponseItem)
+
+
+export const ListDeliveryOrdersQueryParams = zod.object({
+  "branch_id": zod.string().uuid(),
+  "status": zod.string().nullish().describe('Comma-separated statuses to include (default: all).'),
+  "limit": zod.number().nullish()
+})
+
+export const ListDeliveryOrdersResponseItem = zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.string().uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancel_restocked": zod.boolean().nullish(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "cart": zod.object({
+
+}).passthrough().describe('The frozen priced line snapshot the POS renders before finalize.'),
+  "channel": zod.string(),
+  "confirmed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "delivered_at": zod.string().datetime({"offset":true}).nullish(),
+  "delivery_fee": zod.number(),
+  "delivery_notes": zod.string().nullish(),
+  "delivery_ref": zod.string().nullish(),
+  "delivery_zone_id": zod.string().uuid().nullish(),
+  "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
+  "floor": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "landmark": zod.string().nullish(),
+  "order_id": zod.string().uuid().nullish(),
+  "org_id": zod.string().uuid(),
+  "otp_verified": zod.boolean(),
+  "out_for_delivery_at": zod.string().datetime({"offset":true}).nullish(),
+  "payment_method_hint": zod.string().nullish(),
+  "place_name": zod.string().nullish(),
+  "preparing_at": zod.string().datetime({"offset":true}).nullish(),
+  "ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "receipt_printed_at": zod.string().datetime({"offset":true}).nullish(),
+  "rejected_at": zod.string().datetime({"offset":true}).nullish(),
+  "road_distance_meters": zod.number().nullish(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "total": zod.number(),
+  "unit_number": zod.string().nullish(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+export const ListDeliveryOrdersResponse = zod.array(ListDeliveryOrdersResponseItem)
+
+
+export const GetDeliveryOrderParams = zod.object({
+  "id": zod.string().uuid()
+})
+
+export const GetDeliveryOrderResponse = zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.string().uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancel_restocked": zod.boolean().nullish(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "cart": zod.object({
+
+}).passthrough().describe('The frozen priced line snapshot the POS renders before finalize.'),
+  "channel": zod.string(),
+  "confirmed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "delivered_at": zod.string().datetime({"offset":true}).nullish(),
+  "delivery_fee": zod.number(),
+  "delivery_notes": zod.string().nullish(),
+  "delivery_ref": zod.string().nullish(),
+  "delivery_zone_id": zod.string().uuid().nullish(),
+  "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
+  "floor": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "landmark": zod.string().nullish(),
+  "order_id": zod.string().uuid().nullish(),
+  "org_id": zod.string().uuid(),
+  "otp_verified": zod.boolean(),
+  "out_for_delivery_at": zod.string().datetime({"offset":true}).nullish(),
+  "payment_method_hint": zod.string().nullish(),
+  "place_name": zod.string().nullish(),
+  "preparing_at": zod.string().datetime({"offset":true}).nullish(),
+  "ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "receipt_printed_at": zod.string().datetime({"offset":true}).nullish(),
+  "rejected_at": zod.string().datetime({"offset":true}).nullish(),
+  "road_distance_meters": zod.number().nullish(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "total": zod.number(),
+  "unit_number": zod.string().nullish(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const CancelDeliveryOrderParams = zod.object({
+  "id": zod.string().uuid()
+})
+
+export const CancelDeliveryOrderBody = zod.object({
+  "reason": zod.string().nullish(),
+  "restore_inventory": zod.boolean().optional().describe('true (default): ingredients stay available. false: the food was made and is\nwasted — the frozen plan is deducted from stock and logged as `waste`.')
+})
+
+export const CancelDeliveryOrderResponse = zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.string().uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancel_restocked": zod.boolean().nullish(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "cart": zod.object({
+
+}).passthrough().describe('The frozen priced line snapshot the POS renders before finalize.'),
+  "channel": zod.string(),
+  "confirmed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "delivered_at": zod.string().datetime({"offset":true}).nullish(),
+  "delivery_fee": zod.number(),
+  "delivery_notes": zod.string().nullish(),
+  "delivery_ref": zod.string().nullish(),
+  "delivery_zone_id": zod.string().uuid().nullish(),
+  "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
+  "floor": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "landmark": zod.string().nullish(),
+  "order_id": zod.string().uuid().nullish(),
+  "org_id": zod.string().uuid(),
+  "otp_verified": zod.boolean(),
+  "out_for_delivery_at": zod.string().datetime({"offset":true}).nullish(),
+  "payment_method_hint": zod.string().nullish(),
+  "place_name": zod.string().nullish(),
+  "preparing_at": zod.string().datetime({"offset":true}).nullish(),
+  "ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "receipt_printed_at": zod.string().datetime({"offset":true}).nullish(),
+  "rejected_at": zod.string().datetime({"offset":true}).nullish(),
+  "road_distance_meters": zod.number().nullish(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "total": zod.number(),
+  "unit_number": zod.string().nullish(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const FinalizeDeliveryOrderParams = zod.object({
+  "id": zod.string().uuid()
+})
+
+export const FinalizeDeliveryOrderBody = zod.object({
+  "payment_method": zod.string().describe('The actual method the customer paid (overrides the hint). Must be an org method.'),
+  "shift_id": zod.string().uuid()
+})
+
+export const FinalizeDeliveryOrderResponse = zod.object({
+  "delivery_order": zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.string().uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancel_restocked": zod.boolean().nullish(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "cart": zod.object({
+
+}).passthrough().describe('The frozen priced line snapshot the POS renders before finalize.'),
+  "channel": zod.string(),
+  "confirmed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "delivered_at": zod.string().datetime({"offset":true}).nullish(),
+  "delivery_fee": zod.number(),
+  "delivery_notes": zod.string().nullish(),
+  "delivery_ref": zod.string().nullish(),
+  "delivery_zone_id": zod.string().uuid().nullish(),
+  "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
+  "floor": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "landmark": zod.string().nullish(),
+  "order_id": zod.string().uuid().nullish(),
+  "org_id": zod.string().uuid(),
+  "otp_verified": zod.boolean(),
+  "out_for_delivery_at": zod.string().datetime({"offset":true}).nullish(),
+  "payment_method_hint": zod.string().nullish(),
+  "place_name": zod.string().nullish(),
+  "preparing_at": zod.string().datetime({"offset":true}).nullish(),
+  "ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "receipt_printed_at": zod.string().datetime({"offset":true}).nullish(),
+  "rejected_at": zod.string().datetime({"offset":true}).nullish(),
+  "road_distance_meters": zod.number().nullish(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "total": zod.number(),
+  "unit_number": zod.string().nullish(),
+  "updated_at": zod.string().datetime({"offset":true})
+}),
+  "order_id": zod.string().uuid(),
+  "order_ref": zod.string().nullish(),
+  "warnings": zod.array(zod.string())
+})
+
+
+export const SetPrepTimeParams = zod.object({
+  "id": zod.string().uuid()
+})
+
+export const SetPrepTimeBody = zod.object({
+  "extra_prep_minutes": zod.number().describe('Minutes the teller adds on top of the branch base prep time. Must be a\nnon-negative multiple of 5.')
+})
+
+export const SetPrepTimeResponse = zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.string().uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancel_restocked": zod.boolean().nullish(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "cart": zod.object({
+
+}).passthrough().describe('The frozen priced line snapshot the POS renders before finalize.'),
+  "channel": zod.string(),
+  "confirmed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "delivered_at": zod.string().datetime({"offset":true}).nullish(),
+  "delivery_fee": zod.number(),
+  "delivery_notes": zod.string().nullish(),
+  "delivery_ref": zod.string().nullish(),
+  "delivery_zone_id": zod.string().uuid().nullish(),
+  "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
+  "floor": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "landmark": zod.string().nullish(),
+  "order_id": zod.string().uuid().nullish(),
+  "org_id": zod.string().uuid(),
+  "otp_verified": zod.boolean(),
+  "out_for_delivery_at": zod.string().datetime({"offset":true}).nullish(),
+  "payment_method_hint": zod.string().nullish(),
+  "place_name": zod.string().nullish(),
+  "preparing_at": zod.string().datetime({"offset":true}).nullish(),
+  "ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "receipt_printed_at": zod.string().datetime({"offset":true}).nullish(),
+  "rejected_at": zod.string().datetime({"offset":true}).nullish(),
+  "road_distance_meters": zod.number().nullish(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "total": zod.number(),
+  "unit_number": zod.string().nullish(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const SetStatusParams = zod.object({
+  "id": zod.string().uuid()
+})
+
+export const SetStatusBody = zod.object({
+  "status": zod.string().describe('\"confirmed\" | \"preparing\" | \"ready\" | \"out_for_delivery\"')
+})
+
+export const SetStatusResponse = zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.string().uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancel_restocked": zod.boolean().nullish(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "cart": zod.object({
+
+}).passthrough().describe('The frozen priced line snapshot the POS renders before finalize.'),
+  "channel": zod.string(),
+  "confirmed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "delivered_at": zod.string().datetime({"offset":true}).nullish(),
+  "delivery_fee": zod.number(),
+  "delivery_notes": zod.string().nullish(),
+  "delivery_ref": zod.string().nullish(),
+  "delivery_zone_id": zod.string().uuid().nullish(),
+  "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
+  "floor": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "landmark": zod.string().nullish(),
+  "order_id": zod.string().uuid().nullish(),
+  "org_id": zod.string().uuid(),
+  "otp_verified": zod.boolean(),
+  "out_for_delivery_at": zod.string().datetime({"offset":true}).nullish(),
+  "payment_method_hint": zod.string().nullish(),
+  "place_name": zod.string().nullish(),
+  "preparing_at": zod.string().datetime({"offset":true}).nullish(),
+  "ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "receipt_printed_at": zod.string().datetime({"offset":true}).nullish(),
+  "rejected_at": zod.string().datetime({"offset":true}).nullish(),
+  "road_distance_meters": zod.number().nullish(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "total": zod.number(),
+  "unit_number": zod.string().nullish(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const SetAcceptingBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string().describe('\"in_mall\" | \"outside\"'),
+  "override": zod.string().describe('\"auto\" | \"open\" | \"closed\"')
+})
+
+export const SetAcceptingResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "in_mall_close_time": zod.string().nullish(),
+  "in_mall_enabled": zod.boolean(),
+  "in_mall_fee": zod.number(),
+  "in_mall_open_time": zod.string().nullish(),
+  "in_mall_override": zod.string(),
+  "max_road_distance_meters": zod.number().nullish(),
+  "outside_close_time": zod.string().nullish(),
+  "outside_enabled": zod.boolean(),
+  "outside_open_time": zod.string().nullish(),
+  "outside_override": zod.string(),
+  "prep_time_minutes": zod.number()
+})
+
+
+export const ListChannelAddonOverridesQueryParams = zod.object({
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string()
+})
+
+export const ListChannelAddonOverridesResponseItem = zod.object({
+  "addon_item_id": zod.string().uuid(),
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string(),
+  "is_available": zod.boolean().nullish(),
+  "price_override": zod.number().nullish()
+})
+export const ListChannelAddonOverridesResponse = zod.array(ListChannelAddonOverridesResponseItem)
+
+
+export const UpsertChannelAddonOverrideBody = zod.object({
+  "addon_item_id": zod.string().uuid(),
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string(),
+  "is_available": zod.boolean().nullish(),
+  "price_override": zod.number().nullish()
+})
+
+export const UpsertChannelAddonOverrideResponse = zod.object({
+  "addon_item_id": zod.string().uuid(),
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string(),
+  "is_available": zod.boolean().nullish(),
+  "price_override": zod.number().nullish()
+})
+
+
+export const DeleteChannelAddonOverrideQueryParams = zod.object({
+  "branch_id": zod.string().uuid(),
+  "addon_item_id": zod.string().uuid(),
+  "channel": zod.string()
+})
+
+
+export const ListChannelOverridesQueryParams = zod.object({
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string()
+})
+
+export const ListChannelOverridesResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string(),
+  "is_available": zod.boolean().nullish(),
+  "menu_item_id": zod.string().uuid(),
+  "price_override": zod.number().nullish()
+})
+export const ListChannelOverridesResponse = zod.array(ListChannelOverridesResponseItem)
+
+
+export const UpsertChannelOverrideBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string(),
+  "is_available": zod.boolean().nullish(),
+  "menu_item_id": zod.string().uuid(),
+  "price_override": zod.number().nullish()
+})
+
+export const UpsertChannelOverrideResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string(),
+  "is_available": zod.boolean().nullish(),
+  "menu_item_id": zod.string().uuid(),
+  "price_override": zod.number().nullish()
+})
+
+
+export const DeleteChannelOverrideQueryParams = zod.object({
+  "branch_id": zod.string().uuid(),
+  "menu_item_id": zod.string().uuid(),
+  "channel": zod.string()
+})
+
+
+export const GetBranchSettingsQueryParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const GetBranchSettingsResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "in_mall_close_time": zod.string().nullish(),
+  "in_mall_enabled": zod.boolean(),
+  "in_mall_fee": zod.number(),
+  "in_mall_open_time": zod.string().nullish(),
+  "in_mall_override": zod.string(),
+  "max_road_distance_meters": zod.number().nullish(),
+  "outside_close_time": zod.string().nullish(),
+  "outside_enabled": zod.boolean(),
+  "outside_open_time": zod.string().nullish(),
+  "outside_override": zod.string(),
+  "prep_time_minutes": zod.number()
+})
+
+
+export const PutBranchSettingsBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "in_mall_close_time": zod.string().nullish(),
+  "in_mall_enabled": zod.boolean(),
+  "in_mall_fee": zod.number(),
+  "in_mall_open_time": zod.string().nullish(),
+  "max_road_distance_meters": zod.number().nullish(),
+  "outside_close_time": zod.string().nullish(),
+  "outside_enabled": zod.boolean(),
+  "outside_open_time": zod.string().nullish(),
+  "prep_time_minutes": zod.number()
+})
+
+export const PutBranchSettingsResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "in_mall_close_time": zod.string().nullish(),
+  "in_mall_enabled": zod.boolean(),
+  "in_mall_fee": zod.number(),
+  "in_mall_open_time": zod.string().nullish(),
+  "in_mall_override": zod.string(),
+  "max_road_distance_meters": zod.number().nullish(),
+  "outside_close_time": zod.string().nullish(),
+  "outside_enabled": zod.boolean(),
+  "outside_open_time": zod.string().nullish(),
+  "outside_override": zod.string(),
+  "prep_time_minutes": zod.number()
+})
+
+
+export const ListZonesQueryParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const ListZonesResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "fee": zod.number(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "max_road_distance_meters": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough()
+})
+export const ListZonesResponse = zod.array(ListZonesResponseItem)
+
+
+export const CreateZoneBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "fee": zod.number(),
+  "is_active": zod.boolean().optional(),
+  "max_road_distance_meters": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough().optional()
+})
+
+
+export const DeleteZoneParams = zod.object({
+  "id": zod.string().uuid()
+})
+
+export const DeleteZoneQueryParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+
+export const UpdateZoneParams = zod.object({
+  "id": zod.string().uuid()
+})
+
+export const UpdateZoneBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "fee": zod.number(),
+  "is_active": zod.boolean().optional(),
+  "max_road_distance_meters": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough().optional()
+})
+
+export const UpdateZoneResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "fee": zod.number(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "max_road_distance_meters": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough()
+})
 
 
 export const ListDiscountsQueryParams = zod.object({
@@ -2040,7 +2698,8 @@ export const ListRemovalScenariosHandlerResponse = zod.array(ListRemovalScenario
 export const ListMenuItemsQueryParams = zod.object({
   "org_id": zod.string().uuid(),
   "category_id": zod.string().uuid().optional(),
-  "full": zod.boolean().optional().describe('When true, embed sizes + addon slots + optionals + recipes per item\n(the shape the POS\/teller consumes). Always returns a plain, unpaginated\narray — the POS depends on this contract.')
+  "full": zod.boolean().optional().describe('When true, embed sizes + addon slots + optionals + recipes per item\n(the shape the POS\/teller consumes). Always returns a plain, unpaginated\narray — the POS depends on this contract.'),
+  "branch_id": zod.string().uuid().optional().describe('When set, prices are branch-effective (branch override replaces base_price)\nand items disabled at this branch are excluded — the per-branch menu the POS\nconsumes. Omitted → the plain org catalog (legacy behaviour).')
 })
 
 export const ListMenuItemsResponseItem = zod.object({
@@ -2446,62 +3105,6 @@ export const DeleteSizeParams = zod.object({
 })
 
 
-export const GetPublicMenuParams = zod.object({
-  "org_id": zod.string().uuid().describe('Organization ID')
-})
-
-export const GetPublicMenuResponse = zod.object({
-  "categories": zod.array(zod.object({
-  "id": zod.string().uuid(),
-  "image_url": zod.string().nullish(),
-  "items": zod.array(zod.object({
-  "addon_slots": zod.array(zod.object({
-  "addon_items": zod.array(zod.object({
-  "default_price": zod.number(),
-  "id": zod.string().uuid(),
-  "name": zod.string(),
-  "name_translations": zod.object({
-
-}).passthrough()
-})),
-  "addon_type": zod.string(),
-  "id": zod.string().uuid(),
-  "is_required": zod.boolean(),
-  "label": zod.string().nullish(),
-  "label_translations": zod.object({
-
-}).passthrough(),
-  "max_selections": zod.number().nullish(),
-  "min_selections": zod.number()
-})),
-  "base_price": zod.number(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.object({
-
-}).passthrough(),
-  "id": zod.string().uuid(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.object({
-
-}).passthrough(),
-  "sizes": zod.array(zod.object({
-  "id": zod.string().uuid(),
-  "label": zod.string(),
-  "price_override": zod.number()
-}))
-})),
-  "name": zod.string(),
-  "name_translations": zod.object({
-
-}).passthrough()
-})),
-  "logo_url": zod.string().nullish(),
-  "org_id": zod.string().uuid(),
-  "org_name": zod.string()
-})
-
-
 export const ListOrdersQueryParams = zod.object({
   "branch_id": zod.string().uuid().optional(),
   "shift_id": zod.string().uuid().optional(),
@@ -2530,6 +3133,7 @@ export const ListOrdersResponse = zod.object({
   "id": zod.string().uuid(),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
+  "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "payment_method": zod.string(),
   "shift_id": zod.string().uuid(),
   "status": zod.string(),
@@ -2562,20 +3166,24 @@ export const ListOrdersResponse = zod.object({
 export const CreateOrderBody = zod.object({
   "amount_tendered": zod.number().nullish(),
   "branch_id": zod.string().uuid(),
+  "change_given": zod.number().nullish(),
   "created_at": zod.string().datetime({"offset":true}).nullish(),
   "customer_name": zod.string().nullish(),
+  "discount_amount": zod.number().nullish(),
   "discount_id": zod.string().uuid().nullish(),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().nullish(),
   "items": zod.array(zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.string().uuid(),
-  "quantity": zod.number().optional()
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
 })),
   "bundle_components": zod.array(zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.string().uuid(),
-  "quantity": zod.number().optional()
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
 })).optional(),
   "item_id": zod.string().uuid(),
   "optional_field_ids": zod.array(zod.string().uuid()).optional(),
@@ -2587,7 +3195,8 @@ export const CreateOrderBody = zod.object({
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.string().uuid()),
   "quantity": zod.number(),
-  "size_label": zod.string().nullish()
+  "size_label": zod.string().nullish(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this item\/bundle line. When\npresent it is RECORDED as the line\'s unit_price; absent → the server\'s expected\n(catalog + branch override) price is used. Recording what the customer was\nactually charged keeps the DB equal to the printed receipt even when the POS\'s\nsynced menu\/override prices are stale or it was offline at sale time.')
 })),
   "notes": zod.string().nullish(),
   "payment_method": zod.string(),
@@ -2597,8 +3206,11 @@ export const CreateOrderBody = zod.object({
   "reference": zod.string().nullish()
 })).nullish(),
   "shift_id": zod.string().uuid(),
+  "subtotal": zod.number().nullish(),
+  "tax_amount": zod.number().nullish(),
   "tip_amount": zod.number().nullish(),
-  "tip_payment_method": zod.string().nullish()
+  "tip_payment_method": zod.string().nullish(),
+  "total_amount": zod.number().nullish()
 })
 
 
@@ -2626,6 +3238,7 @@ export const ExportOrdersResponse = zod.object({
   "id": zod.string().uuid(),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
+  "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "payment_method": zod.string(),
   "shift_id": zod.string().uuid(),
   "status": zod.string(),
@@ -2782,6 +3395,7 @@ export const GetOrderResponse = zod.object({
   "id": zod.string().uuid(),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
+  "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "payment_method": zod.string(),
   "shift_id": zod.string().uuid(),
   "status": zod.string(),
@@ -2907,6 +3521,7 @@ export const VoidOrderResponse = zod.object({
   "id": zod.string().uuid(),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
+  "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "payment_method": zod.string(),
   "shift_id": zod.string().uuid(),
   "status": zod.string(),
@@ -3218,6 +3833,126 @@ export const DeleteUserPermissionParams = zod.object({
 })
 
 
+export const PublicBranchesQueryParams = zod.object({
+  "org_id": zod.string().uuid()
+})
+
+export const PublicBranchesResponseItem = zod.object({
+  "code": zod.string(),
+  "id": zod.string().uuid(),
+  "in_mall_enabled": zod.boolean(),
+  "in_mall_open_now": zod.boolean().describe('Effective-open right now (enabled + open shift + override + window).'),
+  "name": zod.string(),
+  "outside_enabled": zod.boolean(),
+  "outside_open_now": zod.boolean()
+})
+export const PublicBranchesResponse = zod.array(PublicBranchesResponseItem)
+
+
+export const DeliveryQuoteParams = zod.object({
+  "id": zod.string().uuid()
+})
+
+export const DeliveryQuoteQueryParams = zod.object({
+  "lat": zod.number(),
+  "lng": zod.number(),
+  "channel": zod.string()
+})
+
+export const DeliveryQuoteResponse = zod.object({
+  "distance_meters": zod.number().nullish(),
+  "fee": zod.number().nullish(),
+  "status": zod.string().describe('\"ok\" | \"out_of_range\" | \"unavailable\"'),
+  "zone_id": zod.string().uuid().nullish(),
+  "zone_name": zod.string().nullish()
+})
+
+
+export const PublicMenuParams = zod.object({
+  "id": zod.string().uuid()
+})
+
+export const PublicMenuQueryParams = zod.object({
+  "channel": zod.string()
+})
+
+export const PublicMenuResponse = zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.string().uuid(),
+  "is_available": zod.boolean(),
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
+  "price": zod.number().describe('Channel-effective surcharge (piastres). Always present (resolved here).'),
+  "type": zod.string().describe('`milk_type` | `coffee_type` | `extra` — the option\'s category.')
+}).describe('One option in the org-wide addon catalog. The catalog is global (the POS\nmodel): every item can use any addon; swap-vs-additive is decided server-side\nfrom the addon `type` + the item recipe at order time. `price` is the\nchannel-effective surcharge in piastres (branch_channel → branch → catalog\ndefault). Channel-unavailable options are excluded from the catalog entirely.')).describe('Org-wide addon catalog (global, POS model): channel-effective, grouped by\n`type`, applicable to every item. Channel-unavailable options are excluded.'),
+  "categories": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "image_url": zod.string().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough()
+})),
+  "items": zod.array(zod.object({
+  "category_id": zod.string().uuid().nullish(),
+  "default_milk_addon_id": zod.string().uuid().nullish().describe('The item\'s base\/default milk: the `milk_type` addon whose ingredient\nmatches the item recipe\'s milk ingredient. The online customizer\npre-selects it (mirrors the POS default-milk selection). `None` when the\nitem has no milk in its recipe or no matching milk addon exists.'),
+  "description": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "image_url": zod.string().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
+  "optionals": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
+  "price": zod.number(),
+  "size_label": zod.string().nullish()
+}).describe('A per-item optional toggle (e.g. \"Extra hot\", \"No sugar\"). `price` is the\npiastres surcharge; `size_label` is set when the optional only applies to a\nspecific size.')),
+  "price": zod.number(),
+  "sizes": zod.array(zod.object({
+  "label": zod.string(),
+  "price": zod.number()
+}))
+}))
+})
+
+
+export const CreateDeliveryOrderBody = zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string(),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "delivery_notes": zod.string().nullish(),
+  "device_token": zod.string().describe('Device-trust token from OTP verify (proves the phone).'),
+  "floor": zod.string().nullish(),
+  "items": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.string().uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+})).optional(),
+  "menu_item_id": zod.string().uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.string().uuid()).optional(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish()
+}).describe('One line of a public cart. Prices are NOT taken from the client — the server\nresolves them. `addons` reuses [`AddonInput`] but its `unit_price` is ignored.')),
+  "landmark": zod.string().nullish(),
+  "payment_method_hint": zod.string().describe('\"cash\" | \"card\" — a hint the teller can change at finalize.'),
+  "place_name": zod.string().nullish(),
+  "unit_number": zod.string().nullish()
+})
+
+
 export const ListPublicOrgsResponseItem = zod.object({
   "address": zod.string().nullish(),
   "branch_count": zod.number().nullish(),
@@ -3226,6 +3961,26 @@ export const ListPublicOrgsResponseItem = zod.object({
   "name": zod.string()
 })
 export const ListPublicOrgsResponse = zod.array(ListPublicOrgsResponseItem)
+
+
+export const OtpRequestBody = zod.object({
+  "phone": zod.string()
+})
+
+export const OtpRequestResponse = zod.object({
+  "debug_code": zod.string().nullish().describe('Only populated when SUFRIX_OTP_DEBUG=1 (dev\/test). Never set in prod.'),
+  "sent": zod.boolean()
+})
+
+
+export const OtpVerifyBody = zod.object({
+  "code": zod.string(),
+  "phone": zod.string()
+})
+
+export const OtpVerifyResponse = zod.object({
+  "device_token": zod.string()
+})
 
 
 export const ListPurchaseOrdersParams = zod.object({
@@ -4053,10 +4808,16 @@ export const ShiftSummaryResponse = zod.object({
 
 
 export const ListShiftsParams = zod.object({
-  "branch_id": zod.string().uuid().describe('Branch ID')
+  "branch_id": zod.string().uuid().describe('Branch ID (nil UUID = all branches in org)')
 })
 
-export const ListShiftsResponseItem = zod.object({
+export const ListShiftsQueryParams = zod.object({
+  "page": zod.number().optional().describe('1-based page number. Omit (along with `per_page`) to fetch every shift.'),
+  "per_page": zod.number().optional().describe('Page size (clamped to [1, 200]). Omit to fetch every shift in one page.')
+})
+
+export const ListShiftsResponse = zod.object({
+  "data": zod.array(zod.object({
   "branch_id": zod.string().uuid(),
   "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
   "cash_discrepancy": zod.number().nullish(),
@@ -4077,8 +4838,12 @@ export const ListShiftsResponseItem = zod.object({
   "status": zod.string(),
   "teller_id": zod.string().uuid(),
   "teller_name": zod.string()
-})
-export const ListShiftsResponse = zod.array(ListShiftsResponseItem)
+})),
+  "page": zod.number(),
+  "per_page": zod.number(),
+  "total": zod.number(),
+  "total_pages": zod.number()
+}).describe('Paginated envelope for the shifts list. When the request omits `page`\/`per_page`,\n`data` holds every matching shift in one page (back-compat for the dashboard);\nwhen they are present, `data` is one bounded page ordered newest-first.')
 
 
 export const GetCurrentShiftParams = zod.object({
@@ -4122,7 +4887,7 @@ export const OpenShiftBody = zod.object({
   "id": zod.string().uuid().nullish(),
   "opened_at": zod.string().datetime({"offset":true}).nullish(),
   "opening_cash": zod.number(),
-  "opening_cash_edited": zod.boolean().nullish()
+  "opening_cash_edited": zod.boolean().nullish().describe('Ignored by the server — the carryover edit is DERIVED from the previous\nshift\'s declared closing. Kept only for API\/back-compat with clients.')
 })
 
 
@@ -4267,6 +5032,7 @@ export const GetShiftReportResponse = zod.object({
   "cash_movements_in": zod.number(),
   "cash_movements_net": zod.number().describe('Net of all cash movements (in - out) as a signed integer'),
   "cash_movements_out": zod.number(),
+  "expected_cash": zod.number().describe('Authoritative system (expected) cash in the drawer. For a closed shift\nthis is the snapshot taken at close (`closing_cash_system`); for an open\nshift it is computed live via the same formula. Clients should display\nthis directly instead of re-deriving it from the payment breakdown.'),
   "net_payments": zod.number(),
   "payment_summary": zod.array(zod.object({
   "is_cash": zod.boolean(),

@@ -20,6 +20,13 @@ export interface Order {
   /** @nullable */
   notes?: string | null;
   order_number: number;
+  /**
+     * Human-readable, org-unique reference (e.g. "DT-260614-0042"). Additive
+   * alongside the per-shift order_number. Optional only during the rollout
+   * window before the historical backfill runs; never null afterwards.
+     * @nullable
+     */
+  order_ref?: string | null;
   payment_method: string;
   shift_id: string;
   status: string;

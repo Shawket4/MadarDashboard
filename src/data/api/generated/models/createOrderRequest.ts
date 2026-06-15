@@ -8,9 +8,13 @@ export interface CreateOrderRequest {
   amount_tendered?: number | null;
   branch_id: string;
   /** @nullable */
+  change_given?: number | null;
+  /** @nullable */
   created_at?: string | null;
   /** @nullable */
   customer_name?: string | null;
+  /** @nullable */
+  discount_amount?: number | null;
   /** @nullable */
   discount_id?: string | null;
   /** @nullable */
@@ -25,7 +29,13 @@ export interface CreateOrderRequest {
   payment_splits?: PaymentSplitInput[] | null;
   shift_id: string;
   /** @nullable */
+  subtotal?: number | null;
+  /** @nullable */
+  tax_amount?: number | null;
+  /** @nullable */
   tip_amount?: number | null;
   /** @nullable */
   tip_payment_method?: string | null;
+  /** @nullable */
+  total_amount?: number | null;
 }

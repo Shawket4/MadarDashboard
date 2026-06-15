@@ -11,6 +11,9 @@ import {
   getGetInventorySettingsQueryOptions,
   getGetLatestRunHandlerQueryOptions,
   getListAddonItemsQueryOptions,
+  getListAddonCatalogQueryOptions,
+  getListBranchAddonOverridesQueryOptions,
+  getListBranchMenuOverridesQueryOptions,
   getListBranchStockQueryOptions,
   getListBranchesQueryOptions,
   getListBundlesQueryOptions,
@@ -102,6 +105,19 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
         void qc.prefetchQuery(getListAddonItemsQueryOptions({ org_id: orgId }));
       }
       break;
+    case "/menu/overrides":
+      // Mirror the page's initial server params (branch-scoped, overridden-first
+      // sort, page 1). The override lists feed the footers + the count badges.
+      if (branchId) {
+        void qc.prefetchQuery(getListBranchMenuOverridesQueryOptions({ branch_id: branchId }));
+        void qc.prefetchQuery(getListBranchAddonOverridesQueryOptions({ branch_id: branchId }));
+        if (orgId) {
+          void qc.prefetchQuery(getListMenuCatalogQueryOptions({ org_id: orgId, branch_id: branchId, sort: "overridden", page: 1, per_page: MENU_PER_PAGE }));
+          void qc.prefetchQuery(getListAddonCatalogQueryOptions({ org_id: orgId, branch_id: branchId, sort: "overridden", page: 1, per_page: MENU_PER_PAGE }));
+          void qc.prefetchQuery(getListCategoriesQueryOptions({ org_id: orgId }));
+        }
+      }
+      break;
     case "/menu/recipes":
       if (orgId) {
         void qc.prefetchQuery(getListMenuItemsQueryOptions({ org_id: orgId }));
@@ -110,8 +126,8 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
       }
       break;
     case "/menu/bundles":
-      // Mirrors bundles-page params (page 1, large page size).
-      if (orgId) void qc.prefetchQuery(getListBundlesQueryOptions({ org_id: orgId, page: 1, per_page: 500 }));
+      // Mirrors bundles-page's first server page (default sort/filter omitted).
+      if (orgId) void qc.prefetchQuery(getListBundlesQueryOptions({ org_id: orgId, page: 1, per_page: 20 }));
       break;
     case "/menu/engineering":
       if (branchId) void qc.prefetchQuery(getBranchMenuEngineeringQueryOptions(branchId, { from: from ?? undefined, to: to ?? undefined }));

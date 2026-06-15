@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Clock, MoreHorizontal, PlusCircle, Wallet, XCircle, Trash2 } from "lucide-react";
+import { AlertTriangle, Clock, MoreHorizontal, PlusCircle, Wallet, XCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -74,7 +74,9 @@ export function ShiftsPage() {
   // they stay tied to a concrete branch. The list scopes to the selected branch
   // or rolls up across the org ("All branches").
   const current = useGetCurrentShift(branchId ?? "", { query: { enabled: !!branchId } });
-  const shifts = useListShifts(scopeBranchId, { query: { enabled: !!scopeBranchId } });
+  // No page/per_page params → the backend returns every shift in one envelope
+  // (the export below needs the full set, and this page has no pagination UI).
+  const shifts = useListShifts(scopeBranchId, undefined, { query: { enabled: !!scopeBranchId } });
 
   const forceClose = useForceCloseShift({
     mutation: {
@@ -144,7 +146,27 @@ export function ShiftsPage() {
       {
         accessorKey: "opening_cash",
         header: t("shifts.openingCash", "Opening"),
-        cell: ({ row }) => <span className="tabular">{fmtMoney(row.original.opening_cash)}</span>,
+        cell: ({ row }) => {
+          const s = row.original;
+          if (!s.opening_cash_was_edited) {
+            return <span className="tabular">{fmtMoney(s.opening_cash)}</span>;
+          }
+          // Flag a shift that opened with an amount different from the carryover.
+          const tip = [
+            s.opening_cash_original != null
+              ? `${t("shifts.expectedOpening", "Expected (carryover)")}: ${fmtMoney(s.opening_cash_original)}`
+              : null,
+            s.opening_cash_edit_reason,
+          ]
+            .filter(Boolean)
+            .join(" — ");
+          return (
+            <span className="inline-flex items-center gap-1 text-warning" title={tip || undefined}>
+              <AlertTriangle className="size-3.5 shrink-0" />
+              <span className="tabular">{fmtMoney(s.opening_cash)}</span>
+            </span>
+          );
+        },
       },
       {
         accessorKey: "closing_cash_declared",
@@ -202,12 +224,14 @@ export function ShiftsPage() {
   );
 
   const handleExport = () => {
-    const rows = shifts.data ?? [];
+    const rows = shifts.data?.data ?? [];
     const cols: ExcelColumn<Shift>[] = [
       { header: t("shifts.opened", "Opened"), accessor: (s) => s.opened_at, type: "dateTime", width: 20 },
       { header: t("shifts.teller", "Teller"), accessor: (s) => s.teller_name, type: "text", width: 22 },
       { header: t("common.status", "Status"), accessor: (s) => t(`shiftStatus.${s.status}`, s.status.replace("_", " ")), type: "text", width: 14 },
       { header: t("shifts.openingCash", "Opening"), accessor: (s) => s.opening_cash, type: "money", width: 14 },
+      { header: t("shifts.expectedOpening", "Expected (carryover)"), accessor: (s) => s.opening_cash_original ?? null, type: "money", width: 16 },
+      { header: t("shifts.openingEditReason", "Opening edit reason"), accessor: (s) => (s.opening_cash_was_edited ? (s.opening_cash_edit_reason ?? "—") : ""), type: "text", width: 24 },
       { header: t("shifts.closingCash", "Closing"), accessor: (s) => s.closing_cash_declared ?? null, type: "money", width: 14 },
       { header: t("shifts.discrepancy", "Discrepancy"), accessor: (s) => s.cash_discrepancy ?? null, type: "money", width: 14 },
     ];
@@ -225,7 +249,7 @@ export function ShiftsPage() {
         description={t("shifts.subtitle", "Open and close shifts and reconcile the cash drawer")}
         actions={
           <>
-            <ExportButton onExport={handleExport} disabled={!(shifts.data?.length)} />
+            <ExportButton onExport={handleExport} disabled={!(shifts.data?.data?.length)} />
             {branchId && !openShiftData ? (
               <Button onClick={() => setOpenShift(true)}>
                 <PlusCircle className="size-4" />
@@ -268,7 +292,7 @@ export function ShiftsPage() {
 
       <DataTable
         columns={columns}
-        data={shifts.data ?? []}
+        data={shifts.data?.data ?? []}
         loading={shifts.isLoading}
         onRowClick={(s) => setReportId(s.id)}
         onRowPrefetch={(s) => void queryClient.prefetchQuery(getGetShiftReportQueryOptions(s.id))}

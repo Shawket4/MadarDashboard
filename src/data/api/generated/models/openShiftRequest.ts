@@ -9,6 +9,10 @@ export interface OpenShiftRequest {
   /** @nullable */
   opened_at?: string | null;
   opening_cash: number;
-  /** @nullable */
+  /**
+     * Ignored by the server — the carryover edit is DERIVED from the previous
+   * shift's declared closing. Kept only for API/back-compat with clients.
+     * @nullable
+     */
   opening_cash_edited?: boolean | null;
 }

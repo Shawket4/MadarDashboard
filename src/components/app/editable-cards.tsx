@@ -327,7 +327,9 @@ function EditableCardItem<T>({
           {actions ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon-xs" className="-me-1 shrink-0">
+                {/* Hover/focus the three-dots also warms the row's detail query,
+                    so the edit dialog opens from cache. */}
+                <Button variant="ghost" size="icon-xs" className="-me-1 shrink-0" onMouseEnter={prefetch} onFocus={prefetch}>
                   <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>

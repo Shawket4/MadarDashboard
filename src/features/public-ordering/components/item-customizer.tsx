@@ -1,0 +1,575 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Check, Minus, Plus } from "lucide-react";
+
+import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
+import type { DeliveryAddonOption } from "@/data/api/generated/models/deliveryAddonOption";
+import type { DeliveryOptionalField } from "@/data/api/generated/models/deliveryOptionalField";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { fmtMoney } from "@/lib/format";
+import { getTranslatedName, getTranslatedDescription } from "@/lib/translation";
+import i18n from "@/i18n";
+
+import type { CartLine, SelectedAddon, SelectedOptional } from "../types";
+import { itemBasePrice, lineUnitPrice, newUid } from "../utils";
+
+interface ItemCustomizerProps {
+  item: DeliveryMenuItem | null;
+  /** Org-wide global addon catalog (same options on EVERY item, POS model). */
+  addons: DeliveryAddonOption[];
+  /** When editing an existing line, its current configuration. */
+  editing?: CartLine | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: (line: CartLine) => void;
+}
+
+/**
+ * Global addon types, in display order (mirrors the POS sheet). `milk_type` is a
+ * single-select swap (radio chips, optional, re-tap clears); `coffee_type` and
+ * `extra` are multi-select with qty steppers. The SAME catalog shows for every
+ * item — addon availability/price is resolved server-side per channel.
+ */
+const GLOBAL_TYPES = ["milk_type", "coffee_type", "extra"] as const;
+const SINGLE_SELECT_TYPES = new Set<string>(["milk_type"]);
+
+/** Map of addon_item_id → quantity (single-select types hold at most one key). */
+type AddonSelections = Record<string, number>;
+
+export function ItemCustomizer({
+  item,
+  addons,
+  editing,
+  open,
+  onOpenChange,
+  onConfirm,
+}: ItemCustomizerProps) {
+  const { t } = useTranslation();
+  const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+
+  const [size, setSize] = useState<string | null>(null);
+  const [selections, setSelections] = useState<AddonSelections>({});
+  const [optionals, setOptionals] = useState<Set<string>>(new Set());
+  const [qty, setQty] = useState(1);
+  const [notes, setNotes] = useState("");
+
+  // Group the global catalog by type, preserving GLOBAL_TYPES order. Only types
+  // that actually have available options render a section.
+  const groups = useMemo(() => {
+    const byType = new Map<string, DeliveryAddonOption[]>();
+    for (const a of addons) {
+      if (!a.is_available) continue;
+      const list = byType.get(a.type) ?? [];
+      list.push(a);
+      byType.set(a.type, list);
+    }
+    return GLOBAL_TYPES.flatMap((type) => {
+      const options = byType.get(type) ?? [];
+      return options.length > 0 ? [{ type, options }] : [];
+    });
+  }, [addons]);
+
+  // Swap "base" price per swap-type, mirroring the POS sheet (_initBaseMilk /
+  // _adjustedPrice): the recipe's default milk is already included, so picking it
+  // costs nothing; swapping to a pricier milk costs only the delta (floored 0).
+  // coffee_type has no recipe default, so its base is 0 → full price. ESTIMATE
+  // ONLY — the cart still sends {addon_item_id, quantity} and the backend prices
+  // the true swap delta from the recipe at intake.
+  const baseSwapPrices = useMemo<Record<string, number>>(() => {
+    const out: Record<string, number> = {};
+    const dm = item?.default_milk_addon_id;
+    if (dm != null) {
+      const base = addons.find((a) => a.addon_item_id === dm);
+      if (base) out.milk_type = base.price;
+    }
+    return out;
+  }, [item, addons]);
+
+  const swapAdjustedPrice = useCallback(
+    (a: DeliveryAddonOption): number =>
+      a.type === "milk_type" || a.type === "coffee_type"
+        ? Math.max(0, a.price - (baseSwapPrices[a.type] ?? 0))
+        : a.price,
+    [baseSwapPrices],
+  );
+
+  // (Re)initialize whenever a fresh item/edit is opened.
+  useEffect(() => {
+    if (!open || !item) return;
+    if (editing) {
+      setSize(editing.size_label);
+      const sel: AddonSelections = {};
+      for (const a of editing.addons) sel[a.addon_item_id] = a.quantity;
+      setSelections(sel);
+      setOptionals(new Set(editing.optionals.map((o) => o.id)));
+      setQty(editing.quantity);
+      setNotes(editing.notes ?? "");
+    } else {
+      setSize(item.sizes.length > 0 ? item.sizes[0].label : null);
+      // Pre-select the item's base milk (mirrors the POS _initBaseMilk): only for
+      // a NEW line, only when the item declares a default and a single-select
+      // milk_type option with that id actually exists in the global catalog. The
+      // customer can re-tap to change/clear it; the server prices the swap delta.
+      const defaultMilk = item.default_milk_addon_id;
+      const hasMilkOption =
+        defaultMilk != null &&
+        addons.some(
+          (a) =>
+            a.addon_item_id === defaultMilk &&
+            SINGLE_SELECT_TYPES.has(a.type) &&
+            a.is_available,
+        );
+      setSelections(hasMilkOption ? { [defaultMilk!]: 1 } : {});
+      setOptionals(new Set());
+      setQty(1);
+      setNotes("");
+    }
+  }, [open, item, editing, addons]);
+
+  // Optionals visible for the current size (size_label null = always; else match).
+  const visibleOptionals = useMemo<DeliveryOptionalField[]>(
+    () => (item ? item.optionals.filter((o) => !o.size_label || o.size_label === size) : []),
+    [item, size],
+  );
+
+  // Single-select (swap): picking one clears any other option of that type;
+  // re-tapping the active option clears it (optional swap, like the POS).
+  const pickSingle = (addonId: string, typeOptions: DeliveryAddonOption[]) =>
+    setSelections((prev) => {
+      const next = { ...prev };
+      const wasActive = (prev[addonId] ?? 0) > 0;
+      for (const o of typeOptions) delete next[o.addon_item_id];
+      if (!wasActive) next[addonId] = 1;
+      return next;
+    });
+
+  // Multi-select (coffee_type / extra): qty stepper, 0 removes the option.
+  const setMultiQty = (addonId: string, n: number) =>
+    setSelections((prev) => {
+      const next = { ...prev };
+      if (n <= 0) delete next[addonId];
+      else next[addonId] = n;
+      return next;
+    });
+
+  const toggleOptional = (id: string) =>
+    setOptionals((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  // Build the would-be cart line (for live estimate + confirm). The surcharge
+  // shown is an ESTIMATE; the backend computes the true price (incl. the milk /
+  // coffee swap delta) and the confirmation shows authoritative totals.
+  const draft = useMemo<CartLine | null>(() => {
+    if (!item) return null;
+    const optionById = new Map(addons.map((a) => [a.addon_item_id, a]));
+    const selected: SelectedAddon[] = [];
+    for (const [addonId, n] of Object.entries(selections)) {
+      if (n <= 0) continue;
+      const opt = optionById.get(addonId);
+      if (!opt) continue;
+      selected.push({
+        addon_item_id: addonId,
+        quantity: n,
+        name: opt.name,
+        name_translations: opt.name_translations,
+        price: swapAdjustedPrice(opt),
+        type: opt.type,
+      });
+    }
+    const opts: SelectedOptional[] = visibleOptionals
+      .filter((o) => optionals.has(o.id))
+      .map((o) => ({ id: o.id, name: o.name, name_translations: o.name_translations, price: o.price }));
+
+    return {
+      uid: editing?.uid ?? newUid(),
+      item,
+      size_label: size,
+      base_price: itemBasePrice(item, size),
+      quantity: qty,
+      addons: selected,
+      optionals: opts,
+      notes: notes.trim() || null,
+    };
+  }, [item, addons, selections, visibleOptionals, optionals, size, qty, notes, editing, swapAdjustedPrice]);
+
+  if (!item) return null;
+
+  const unitPrice = draft ? lineUnitPrice(draft) : 0;
+  const totalPrice = unitPrice * qty;
+  const description = getTranslatedDescription(item, lang);
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="mx-auto max-h-[92dvh] max-w-[480px]">
+        {/* Header */}
+        <div className="border-b border-border/60 px-4 pb-3 pt-1 text-start">
+          <DrawerTitle className="text-lg">{getTranslatedName(item, lang)}</DrawerTitle>
+          {description ? (
+            <DrawerDescription className="mt-0.5 line-clamp-2">{description}</DrawerDescription>
+          ) : (
+            <DrawerDescription className="sr-only">
+              {t("order.menu.customize")}
+            </DrawerDescription>
+          )}
+        </div>
+
+        {/* Scrollable body */}
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-4">
+          {item.image_url && (
+            <img
+              src={item.image_url}
+              alt=""
+              className="h-40 w-full rounded-xl object-cover"
+              loading="lazy"
+            />
+          )}
+
+          {/* Sizes */}
+          {item.sizes.length > 0 && (
+            <Section title={t("order.customize.size")} required>
+              <div className="flex flex-wrap gap-2">
+                {item.sizes.map((s) => (
+                  <Chip key={s.label} active={size === s.label} onClick={() => setSize(s.label)}>
+                    <span>{s.label}</span>
+                    <span className="text-xs opacity-80">{fmtMoney(s.price)}</span>
+                  </Chip>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {/* Global addon groups (milk = single swap, coffee + extra = multi) */}
+          {groups.map(({ type, options }) => (
+            <AddonGroupSection
+              key={type}
+              type={type}
+              options={options}
+              lang={lang}
+              selections={selections}
+              priceOf={swapAdjustedPrice}
+              onPickSingle={(addonId) => pickSingle(addonId, options)}
+              onSetQty={setMultiQty}
+            />
+          ))}
+
+          {/* Optionals */}
+          {visibleOptionals.length > 0 && (
+            <Section title={t("order.customize.extras")}>
+              <div className="space-y-2">
+                {visibleOptionals.map((o) => {
+                  const active = optionals.has(o.id);
+                  return (
+                    <OptionRow
+                      key={o.id}
+                      active={active}
+                      label={getTranslatedName(o, lang)}
+                      price={o.price}
+                      onClick={() => toggleOptional(o.id)}
+                    />
+                  );
+                })}
+              </div>
+            </Section>
+          )}
+
+          {/* Notes */}
+          <Section title={t("order.customize.notes")}>
+            <Textarea
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={t("order.customize.notesPlaceholder")}
+            />
+          </Section>
+        </div>
+
+        {/* Sticky footer: qty stepper + add/update. No required addon validation —
+            the global catalog is entirely optional, like the POS sheet. */}
+        <div className="flex items-center gap-3 border-t border-border/60 bg-background px-4 py-3">
+          <div className="flex items-center gap-1 rounded-full border border-border/70 p-1">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="rounded-full"
+              disabled={qty <= 1}
+              onClick={() => setQty((q) => Math.max(1, q - 1))}
+              aria-label={t("order.menu.decrease")}
+            >
+              <Minus className="size-4" />
+            </Button>
+            <span className="w-7 text-center text-sm font-bold tabular-nums">{qty}</span>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="rounded-full"
+              onClick={() => setQty((q) => q + 1)}
+              aria-label={t("order.menu.increase")}
+            >
+              <Plus className="size-4" />
+            </Button>
+          </div>
+          <Button
+            className="flex-1"
+            size="lg"
+            disabled={!draft}
+            onClick={() => draft && (onConfirm(draft), onOpenChange(false))}
+          >
+            {editing
+              ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
+              : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
+          </Button>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+/* ── Sub-components ──────────────────────────────────────────────────────── */
+
+function AddonGroupSection({
+  type,
+  options,
+  lang,
+  selections,
+  priceOf,
+  onPickSingle,
+  onSetQty,
+}: {
+  type: string;
+  options: DeliveryAddonOption[];
+  lang: string;
+  selections: AddonSelections;
+  priceOf: (opt: DeliveryAddonOption) => number;
+  onPickSingle: (addonId: string) => void;
+  onSetQty: (addonId: string, n: number) => void;
+}) {
+  const { t } = useTranslation();
+  const single = SINGLE_SELECT_TYPES.has(type);
+  const title = t(`order.customize.addonType.${type}`, addonTypeFallback(type));
+  const rule = single
+    ? t("order.customize.pickOne")
+    : t("order.customize.optional");
+
+  return (
+    <Section title={title} rule={rule}>
+      <div className={cn(single ? "flex flex-wrap gap-2" : "space-y-2")}>
+        {options.map((opt) => {
+          const qn = selections[opt.addon_item_id] ?? 0;
+          const active = qn > 0;
+          const price = priceOf(opt);
+          if (single) {
+            return (
+              <Chip
+                key={opt.addon_item_id}
+                active={active}
+                onClick={() => onPickSingle(opt.addon_item_id)}
+              >
+                <span>{getTranslatedName(opt, lang)}</span>
+                {price > 0 && <span className="text-xs opacity-80">+{fmtMoney(price)}</span>}
+              </Chip>
+            );
+          }
+          return (
+            <AddonQtyRow
+              key={opt.addon_item_id}
+              option={opt}
+              price={price}
+              lang={lang}
+              qty={qn}
+              onIncrease={() => onSetQty(opt.addon_item_id, qn + 1)}
+              onDecrease={() => onSetQty(opt.addon_item_id, qn - 1)}
+              onToggle={() => onSetQty(opt.addon_item_id, qn > 0 ? 0 : 1)}
+            />
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
+function AddonQtyRow({
+  option,
+  price,
+  lang,
+  qty,
+  onIncrease,
+  onDecrease,
+  onToggle,
+}: {
+  option: DeliveryAddonOption;
+  price: number;
+  lang: string;
+  qty: number;
+  onIncrease: () => void;
+  onDecrease: () => void;
+  onToggle: () => void;
+}) {
+  const { t } = useTranslation();
+  const active = qty > 0;
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors",
+        active ? "border-brand/40 bg-brand/5" : "border-border/70",
+      )}
+    >
+      <button
+        type="button"
+        className="flex min-w-0 flex-1 items-center gap-2 text-start"
+        onClick={onToggle}
+      >
+        <span
+          className={cn(
+            "flex size-5 shrink-0 items-center justify-center rounded-md border",
+            active ? "border-brand bg-brand text-brand-foreground" : "border-border",
+          )}
+        >
+          {active && <Check className="size-3.5" />}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium">{getTranslatedName(option, lang)}</span>
+        </span>
+      </button>
+      <span className="shrink-0 text-xs font-medium text-muted-foreground">
+        {price > 0 ? `+${fmtMoney(price)}` : t("order.customize.noCharge")}
+      </span>
+      {active && (
+        <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-border/70">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="rounded-full"
+            onClick={onDecrease}
+            aria-label={t("order.menu.decrease")}
+          >
+            <Minus className="size-3" />
+          </Button>
+          <span className="w-5 text-center text-xs font-bold tabular-nums">{qty}</span>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="rounded-full"
+            onClick={onIncrease}
+            aria-label={t("order.menu.increase")}
+          >
+            <Plus className="size-3" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OptionRow({
+  active,
+  label,
+  price,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  price: number;
+  onClick: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-start transition-colors",
+        active ? "border-brand/40 bg-brand/5" : "border-border/70 hover:border-brand/30",
+      )}
+    >
+      <span
+        className={cn(
+          "flex size-5 shrink-0 items-center justify-center rounded-md border",
+          active ? "border-brand bg-brand text-brand-foreground" : "border-border",
+        )}
+      >
+        {active && <Check className="size-3.5" />}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
+      <span className="shrink-0 text-xs font-medium text-muted-foreground">
+        {price > 0 ? `+${fmtMoney(price)}` : t("order.customize.noCharge")}
+      </span>
+    </button>
+  );
+}
+
+function Section({
+  title,
+  required,
+  rule,
+  children,
+}: {
+  title: string;
+  required?: boolean;
+  rule?: string;
+  children: React.ReactNode;
+}) {
+  const { t } = useTranslation();
+  return (
+    <section>
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <h3 className="text-sm font-bold">{title}</h3>
+        <div className="flex items-center gap-2 text-[11px]">
+          {rule && <span className="text-muted-foreground">{rule}</span>}
+          {required && (
+            <span className="rounded-full bg-brand/10 px-2 py-0.5 font-semibold uppercase tracking-wide text-brand">
+              {t("order.customize.required")}
+            </span>
+          )}
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Chip({
+  active,
+  disabled,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition-all",
+        active
+          ? "border-brand bg-brand text-brand-foreground shadow-sm"
+          : "border-border/70 bg-card hover:border-brand/40",
+        disabled && "cursor-not-allowed opacity-40",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Humanize an unknown addon type when no i18n key exists (e.g. "milk_type" → "Milk"). */
+function addonTypeFallback(type: string): string {
+  const base = type.endsWith("_type") ? type.slice(0, -"_type".length) : type;
+  return base.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}

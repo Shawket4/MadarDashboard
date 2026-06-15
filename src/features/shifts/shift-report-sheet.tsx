@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { X } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
 
 import {
   Sheet,
@@ -97,6 +97,32 @@ export function ShiftReportSheet({ shiftId, open, onOpenChange }: Props) {
                     {t("shifts.cashReconciliation", "Cash reconciliation")}
                   </p>
                   <Row label={t("shifts.openingCash", "Opening cash")} value={fmtMoney(shift.opening_cash)} />
+                  {shift.opening_cash_was_edited ? (
+                    <>
+                      {shift.opening_cash_original != null ? (
+                        <Row
+                          label={t("shifts.expectedOpening", "Expected (carryover)")}
+                          value={fmtMoney(shift.opening_cash_original)}
+                          className="text-muted-foreground"
+                        />
+                      ) : null}
+                      <div className="mt-1 space-y-1 rounded-md border border-warning/30 bg-warning/10 p-2 text-warning">
+                        <div className="flex items-center gap-1.5 font-semibold">
+                          <AlertTriangle className="size-3.5 shrink-0" />
+                          <span>{t("shifts.openingEdited", "Opening cash edited")}</span>
+                          {shift.opening_cash_original != null ? (
+                            <span className="ms-auto tabular">
+                              {shift.opening_cash - shift.opening_cash_original > 0 ? "+" : ""}
+                              {fmtMoney(shift.opening_cash - shift.opening_cash_original)}
+                            </span>
+                          ) : null}
+                        </div>
+                        {shift.opening_cash_edit_reason ? (
+                          <p className="text-xs text-foreground/80">{shift.opening_cash_edit_reason}</p>
+                        ) : null}
+                      </div>
+                    </>
+                  ) : null}
                   <Row label={t("shifts.cashIn", "Cash in")} value={fmtMoney(report.cash_movements_in)} />
                   <Row label={t("shifts.cashOut", "Cash out")} value={fmtMoney(report.cash_movements_out)} />
                   {shift.closing_cash_system != null ? (
