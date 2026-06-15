@@ -2,6 +2,7 @@
 // @ts-nocheck
 import type { DeliveryAddonOption } from './deliveryAddonOption';
 import type { DeliveryMenuCategory } from './deliveryMenuCategory';
+import type { DeliveryMenuDiscount } from './deliveryMenuDiscount';
 import type { DeliveryMenuItem } from './deliveryMenuItem';
 
 export interface DeliveryMenu {
@@ -9,5 +10,6 @@ export interface DeliveryMenu {
    * `type`, applicable to every item. Channel-unavailable options are excluded. */
   addons: DeliveryAddonOption[];
   categories: DeliveryMenuCategory[];
+  discount?: null | DeliveryMenuDiscount;
   items: DeliveryMenuItem[];
 }

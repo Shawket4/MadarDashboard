@@ -18,13 +18,14 @@ import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
 import type { DeliveryOrder } from "@/data/api/generated/models/deliveryOrder";
 import type { DeliveryOrderInput } from "@/data/api/generated/models/deliveryOrderInput";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag } from "lucide-react";
+import { BadgePercent, ShoppingBag } from "lucide-react";
 import { fmtMoney } from "@/lib/format";
 import { fadeIn } from "@/lib/motion";
 
 import type { CartLine, Channel, Step } from "./types";
 import {
   asChannel,
+  calcDiscount,
   cartSubtotal,
   getDeviceToken,
   isValidPhone,
@@ -233,6 +234,8 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
 
   const itemCount = lines.reduce((s, l) => s + l.quantity, 0);
   const subtotal = cartSubtotal(lines);
+  // Estimated channel discount (server reprices authoritatively at intake).
+  const discountAmount = calcDiscount(subtotal, menu?.discount);
 
   // Editing from the cart re-opens the menu customizer through MenuStep is not
   // direct; instead we open the cart's edit which mounts the customizer here.
@@ -264,7 +267,7 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
   const submitOrder = useCallback(
     async (deviceToken: string) => {
       setSubmitError(null);
-      const estimate = subtotal + (deliveryFee ?? 0);
+      const estimate = subtotal - discountAmount + (deliveryFee ?? 0);
       setEstimateAtSubmit(estimate);
       try {
         const order = await createOrder.mutateAsync({ data: buildInput(deviceToken) });
@@ -277,7 +280,7 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [subtotal, deliveryFee, form, lines, point, address, branchId, selectedChannel, needsLocation],
+    [subtotal, discountAmount, deliveryFee, form, lines, point, address, branchId, selectedChannel, needsLocation],
   );
 
   const validateForm = (): string | null => {
@@ -407,6 +410,21 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
               />
             )}
 
+            {step === "menu" && menu?.discount && (
+              <div className="mb-3 flex items-center justify-center gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-2 text-sm font-semibold text-success">
+                <BadgePercent className="size-4" />
+                {menu.discount.dtype === "percentage"
+                  ? t("order.menu.discountPct", {
+                      defaultValue: "{{value}}% off your order",
+                      value: menu.discount.value,
+                    })
+                  : t("order.menu.discountFixed", {
+                      defaultValue: "{{value}} off your order",
+                      value: fmtMoney(menu.discount.value),
+                    })}
+              </div>
+            )}
+
             {step === "menu" && branchId && selectedChannel && (
               <MenuStep
                 branchId={branchId}
@@ -423,6 +441,7 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
                 onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
                 lines={lines}
                 deliveryFee={deliveryFee}
+                discountAmount={discountAmount}
                 submitting={createOrder.isPending || otpRequest.isPending}
                 error={submitError}
                 onSubmit={handlePlace}
@@ -454,6 +473,7 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
         onOpenChange={setCartOpen}
         lines={lines}
         deliveryFee={deliveryFee}
+        discountAmount={discountAmount}
         onEdit={startEdit}
         onRemove={removeLine}
         onSetQty={setLineQty}

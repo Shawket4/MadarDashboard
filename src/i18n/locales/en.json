@@ -2195,7 +2195,9 @@
       "emptyHint": "This branch has no items for delivery right now.",
       "customize": "Customize",
       "search": "Search the menu",
-      "noResults": "Nothing matches “{{query}}”"
+      "noResults": "Nothing matches “{{query}}”",
+      "discountPct": "{{value}}% off your order",
+      "discountFixed": "{{value}} off your order"
     },
     "customize": {
       "size": "Size",
@@ -2241,7 +2243,8 @@
       "items_one": "{{count}} item",
       "items_other": "{{count}} items",
       "qty": "× {{count}}",
-      "estimate": "Final total is confirmed at checkout."
+      "estimate": "Final total is confirmed at checkout.",
+      "discount": "Discount"
     },
     "checkout": {
       "title": "Checkout",
@@ -2367,6 +2370,9 @@
     "zoneUpdated": "Zone updated",
     "zoneWord": "Zone",
     "zonesSubtitle": "Distance-based delivery rings and their pricing for this branch.",
-    "zonesTitle": "Delivery zones"
+    "zonesTitle": "Delivery zones",
+    "channelDiscount": "Discount",
+    "noDiscount": "No discount",
+    "channelDiscountHint": "Applied to the item subtotal at checkout — the delivery fee is always charged in full."
   }
 }

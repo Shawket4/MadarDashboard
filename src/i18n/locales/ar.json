@@ -2195,7 +2195,9 @@
       "emptyHint": "لا يوجد لدى هذا الفرع أصناف للتوصيل حاليًا.",
       "customize": "تخصيص",
       "search": "ابحث في القائمة",
-      "noResults": "لا يوجد ما يطابق «{{query}}»"
+      "noResults": "لا يوجد ما يطابق «{{query}}»",
+      "discountPct": "خصم {{value}}٪ على طلبك",
+      "discountFixed": "خصم {{value}} على طلبك"
     },
     "customize": {
       "size": "الحجم",
@@ -2241,7 +2243,8 @@
       "items_one": "صنف واحد",
       "items_other": "{{count}} أصناف",
       "qty": "× {{count}}",
-      "estimate": "يتم تأكيد الإجمالي النهائي عند الدفع."
+      "estimate": "يتم تأكيد الإجمالي النهائي عند الدفع.",
+      "discount": "خصم"
     },
     "checkout": {
       "title": "إتمام الطلب",
@@ -2367,6 +2370,9 @@
     "zoneUpdated": "تم تحديث المنطقة",
     "zoneWord": "منطقة",
     "zonesSubtitle": "حلقات توصيل حسب المسافة وأسعارها لهذا الفرع.",
-    "zonesTitle": "مناطق التوصيل"
+    "zonesTitle": "مناطق التوصيل",
+    "channelDiscount": "خصم",
+    "noDiscount": "بدون خصم",
+    "channelDiscountHint": "يُطبّق على إجمالي الأصناف عند الدفع — تُحتسب رسوم التوصيل كاملةً دائمًا."
   }
 }

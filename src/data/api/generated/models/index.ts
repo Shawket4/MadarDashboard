@@ -131,6 +131,8 @@ export * from './deliveryEvent';
 export * from './deliveryMenu';
 export * from './deliveryMenuCategory';
 export * from './deliveryMenuCategoryNameTranslations';
+export * from './deliveryMenuDiscount';
+export * from './deliveryMenuDiscountNameTranslations';
 export * from './deliveryMenuItem';
 export * from './deliveryMenuItemNameTranslations';
 export * from './deliveryMenuSize';

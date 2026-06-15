@@ -1,5 +1,6 @@
 import type { CartLineInput } from "@/data/api/generated/models/cartLineInput";
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
+import type { DeliveryMenuDiscount } from "@/data/api/generated/models/deliveryMenuDiscount";
 
 import type { CartLine, Channel } from "./types";
 
@@ -20,6 +21,24 @@ export const lineTotal = (line: CartLine): number => lineUnitPrice(line) * line.
 /** The estimated subtotal of the whole cart, in piastres. */
 export const cartSubtotal = (lines: CartLine[]): number =>
   lines.reduce((s, l) => s + lineTotal(l), 0);
+
+/**
+ * Estimated discount (piastres) the channel discount knocks off the subtotal.
+ * Mirrors the backend `calc_discount`: percentage rounds half-up, fixed is
+ * capped at the subtotal, result clamped to `[0, subtotal]`. The server reprices
+ * authoritatively at intake — this is only the customer-facing estimate.
+ */
+export const calcDiscount = (
+  subtotal: number,
+  discount: DeliveryMenuDiscount | null | undefined,
+): number => {
+  if (!discount) return 0;
+  const d =
+    discount.dtype === "percentage"
+      ? Math.round((subtotal * discount.value) / 100)
+      : Math.min(discount.value, subtotal);
+  return Math.max(0, Math.min(d, subtotal));
+};
 
 /** The base unit price for an item at a given size (size price, or item base). */
 export const itemBasePrice = (item: DeliveryMenuItem, sizeLabel: string | null): number => {

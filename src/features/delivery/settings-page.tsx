@@ -14,11 +14,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { putBranchSettings, useGetBranchSettings } from "@/data/api/generated/api";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { putBranchSettings, useGetBranchSettings, useListDiscounts } from "@/data/api/generated/api";
 import type { BranchSettingsInput } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { egpToPiastres, piastresToEgp } from "@/lib/format";
+import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
+import { getTranslatedName } from "@/lib/translation";
+import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+
+const NO_DISCOUNT = "none";
 
 /** Backend `NaiveTime` is `HH:MM:SS`; the TimePicker uses the same string (or null). */
 const timeOrNull = (v: string | null | undefined): string | null => v || null;
@@ -29,8 +34,10 @@ const numOrNull = (v: number | null | undefined): number | null =>
 // ── Branch settings card ────────────────────────────────────────────────────────
 
 function BranchSettingsCard({ branchId }: { branchId: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const settings = useGetBranchSettings({ branch_id: branchId });
+  const orgId = useOrgId();
+  const discounts = useListDiscounts({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const [busy, setBusy] = useState(false);
 
   const schema = useMemo(
@@ -48,6 +55,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
           .number()
           .gt(0, t("delivery.errDistancePositive", "Distance must be greater than 0"))
           .optional(),
+        in_mall_discount_id: z.string().nullable(),
+        outside_discount_id: z.string().nullable(),
       }),
     [t],
   );
@@ -65,6 +74,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
       in_mall_fee: 0,
       prep_time_minutes: 0,
       max_road_distance_meters: undefined,
+      in_mall_discount_id: null,
+      outside_discount_id: null,
     },
   });
 
@@ -81,6 +92,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
         in_mall_fee: piastresToEgp(s.in_mall_fee),
         prep_time_minutes: s.prep_time_minutes,
         max_road_distance_meters: s.max_road_distance_meters ?? undefined,
+        in_mall_discount_id: s.in_mall_discount_id ?? null,
+        outside_discount_id: s.outside_discount_id ?? null,
       });
     }
   }, [settings.data, form]);
@@ -100,6 +113,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
       in_mall_fee: egpToPiastres(v.in_mall_fee),
       prep_time_minutes: v.prep_time_minutes,
       max_road_distance_meters: numOrNull(v.max_road_distance_meters),
+      in_mall_discount_id: v.in_mall_discount_id,
+      outside_discount_id: v.outside_discount_id,
     };
     setBusy(true);
     try {
@@ -112,6 +127,42 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
       setBusy(false);
     }
   };
+
+  const discountOptions = discounts.data ?? [];
+  const valueLabel = (d: (typeof discountOptions)[number]) =>
+    d.dtype === "percentage" ? `${d.value}%` : fmtMoney(d.value);
+  const discountField = (name: "in_mall_discount_id" | "outside_discount_id") => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t("delivery.channelDiscount", "Discount")}</FormLabel>
+          <Select
+            value={field.value ?? NO_DISCOUNT}
+            onValueChange={(v) => field.onChange(v === NO_DISCOUNT ? null : v)}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder={t("delivery.noDiscount", "No discount")} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              <SelectItem value={NO_DISCOUNT}>{t("delivery.noDiscount", "No discount")}</SelectItem>
+              {discountOptions.map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {getTranslatedName(d, i18n.language)} · {valueLabel(d)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormDescription>
+            {t("delivery.channelDiscountHint", "Applied to the item subtotal at checkout — the delivery fee is always charged in full.")}
+          </FormDescription>
+        </FormItem>
+      )}
+    />
+  );
 
   return (
     <Card>
@@ -151,6 +202,7 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                   <FormField control={form.control} name="in_mall_fee" render={({ field }) => (
                     <FormItem><FormLabel>{t("delivery.inMallFee", "In-mall fee (EGP)")}</FormLabel><FormControl><Input type="number" step="any" min="0" {...field} className="font-mono" /></FormControl><FormMessage /></FormItem>
                   )} />
+                  {discountField("in_mall_discount_id")}
                 </>
               ) : null}
             </div>
@@ -182,6 +234,7 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                   <FormField control={form.control} name="max_road_distance_meters" render={({ field }) => (
                     <FormItem><FormLabel>{t("delivery.maxRoadDistance", "Max road distance (meters)")}</FormLabel><FormControl><Input type="number" step="1" min="0" {...field} value={field.value ?? ""} className="font-mono" /></FormControl><FormMessage /></FormItem>
                   )} />
+                  {discountField("outside_discount_id")}
                 </>
               ) : null}
             </div>

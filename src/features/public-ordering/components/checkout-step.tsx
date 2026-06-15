@@ -41,6 +41,8 @@ interface CheckoutStepProps {
   onChange: (patch: Partial<CheckoutForm>) => void;
   lines: CartLine[];
   deliveryFee: number | null;
+  /** estimated channel discount on the subtotal (piastres); 0 = none. */
+  discountAmount?: number;
   submitting: boolean;
   error: string | null;
   onSubmit: () => void;
@@ -52,13 +54,14 @@ export function CheckoutStep({
   onChange,
   lines,
   deliveryFee,
+  discountAmount = 0,
   submitting,
   error,
   onSubmit,
 }: CheckoutStepProps) {
   const { t } = useTranslation();
   const subtotal = cartSubtotal(lines);
-  const total = subtotal + (deliveryFee ?? 0);
+  const total = subtotal - discountAmount + (deliveryFee ?? 0);
   const isMall = channel === "in_mall";
 
   return (
@@ -214,7 +217,7 @@ export function CheckoutStep({
       {/* Summary */}
       <div className="rounded-2xl border border-border/70 bg-card/50 p-3.5">
         <p className="mb-2 text-sm font-bold">{t("order.checkout.summary")}</p>
-        <Totals subtotal={subtotal} deliveryFee={deliveryFee} total={total} />
+        <Totals subtotal={subtotal} deliveryFee={deliveryFee} total={total} discount={discountAmount} />
         <p className="mt-2 text-xs text-muted-foreground">
           {t("order.cart.estimate")}
         </p>

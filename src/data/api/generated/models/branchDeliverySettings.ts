@@ -5,6 +5,12 @@ export interface BranchDeliverySettings {
   branch_id: string;
   /** @nullable */
   in_mall_close_time?: string | null;
+  /**
+     * Optional discount applied to each channel's item subtotal (reuses the
+   * org `discounts` table). Frozen onto the order at intake. `null` = none.
+     * @nullable
+     */
+  in_mall_discount_id?: string | null;
   in_mall_enabled: boolean;
   in_mall_fee: number;
   /** @nullable */
@@ -14,6 +20,8 @@ export interface BranchDeliverySettings {
   max_road_distance_meters?: number | null;
   /** @nullable */
   outside_close_time?: string | null;
+  /** @nullable */
+  outside_discount_id?: string | null;
   outside_enabled: boolean;
   /** @nullable */
   outside_open_time?: string | null;

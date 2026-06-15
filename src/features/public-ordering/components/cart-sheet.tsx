@@ -24,6 +24,8 @@ interface CartSheetProps {
   lines: CartLine[];
   /** delivery fee estimate (piastres); null when unknown/not yet quoted. */
   deliveryFee: number | null;
+  /** estimated channel discount on the subtotal (piastres); 0/undefined = none. */
+  discountAmount?: number;
   onEdit: (line: CartLine) => void;
   onRemove: (uid: string) => void;
   onSetQty: (uid: string, qty: number) => void;
@@ -50,6 +52,7 @@ export function CartSheet({
   onOpenChange,
   lines,
   deliveryFee,
+  discountAmount = 0,
   onEdit,
   onRemove,
   onSetQty,
@@ -60,7 +63,7 @@ export function CartSheet({
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
 
   const subtotal = cartSubtotal(lines);
-  const total = subtotal + (deliveryFee ?? 0);
+  const total = subtotal - discountAmount + (deliveryFee ?? 0);
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -188,7 +191,7 @@ export function CartSheet({
 
         {lines.length > 0 && (
           <div className="border-t border-border/60 bg-background px-4 py-3">
-            <Totals subtotal={subtotal} deliveryFee={deliveryFee} total={total} />
+            <Totals subtotal={subtotal} deliveryFee={deliveryFee} total={total} discount={discountAmount} />
             <Button className="mt-3 w-full" size="lg" onClick={onCheckout}>
               {t("order.cart.checkout")}
             </Button>
@@ -203,17 +206,26 @@ export function Totals({
   subtotal,
   deliveryFee,
   total,
+  discount,
   emphasizeTotal = true,
 }: {
   subtotal: number;
   deliveryFee: number | null;
   total: number;
+  /** Discount amount in piastres applied to the subtotal; omitted/0 = none. */
+  discount?: number | null;
   emphasizeTotal?: boolean;
 }) {
   const { t } = useTranslation();
   return (
     <dl className="space-y-1.5 text-sm">
       <Row label={t("order.cart.subtotal")} value={fmtMoney(subtotal)} />
+      {discount != null && discount > 0 && (
+        <div className="flex items-center justify-between text-success">
+          <dt>{t("order.cart.discount", "Discount")}</dt>
+          <dd className="tabular-nums">−{fmtMoney(discount)}</dd>
+        </div>
+      )}
       <Row
         label={t("order.cart.deliveryFee")}
         value={

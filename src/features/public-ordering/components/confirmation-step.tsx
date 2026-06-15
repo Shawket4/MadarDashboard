@@ -56,6 +56,7 @@ export function ConfirmationStep({ order, estimatedTotal, onNewOrder }: Confirma
           subtotal={order.subtotal}
           deliveryFee={order.delivery_fee}
           total={order.total}
+          discount={order.discount_amount}
         />
       </div>
 

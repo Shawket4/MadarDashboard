@@ -33,6 +33,16 @@ export interface DeliveryOrder {
   delivery_ref?: string | null;
   /** @nullable */
   delivery_zone_id?: string | null;
+  discount_amount?: number;
+  /**
+     * Frozen channel discount on the item subtotal (`total == subtotal -
+   * discount_amount + delivery_fee`). `discount_amount` is 0 when none.
+     * @nullable
+     */
+  discount_id?: string | null;
+  /** @nullable */
+  discount_type?: string | null;
+  discount_value?: number;
   /** Extra prep minutes the teller added on top of the branch base (multiples of 5). */
   extra_prep_minutes: number;
   /** @nullable */
