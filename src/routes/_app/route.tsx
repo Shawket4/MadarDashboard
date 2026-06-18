@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { requireAuth } from "@/lib/auth-guard";
 import { useAppStore } from "@/data/stores/app.store";
+import { useSyncTimezone } from "@/data/scope/use-timezone";
 
 /**
  * Scope as typed, validated URL search params on the app shell — the single
@@ -30,6 +31,10 @@ function AppLayout() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const restored = useRef(false);
+
+  // Resolve the active branch/org timezone so every formatter renders in the
+  // configured zone, not the device's. See data/scope/use-timezone.ts.
+  useSyncTimezone();
 
   // On a bare entry (no scope in the URL), hydrate it from the persisted
   // last-used scope so every URL is complete and shareable. Runs once.

@@ -1,33 +1,35 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Boxes, MoreHorizontal, PackageCheck, PlusCircle, Truck, Users, XCircle } from "lucide-react";
+import { Boxes, MoreHorizontal, PackageCheck, PlusCircle, SendHorizonal, Truck, TrendingDown, Users, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
+import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { PurchaseOrder, Supplier } from "@/data/api/generated/models";
+import type { PurchaseOrder, ReorderSuggestion, Supplier } from "@/data/api/generated/models";
 import {
-  cancelPurchaseOrder, deleteSupplier, useListCatalog, useListPurchaseOrders, useListSuppliers,
+  cancelPurchaseOrder, deleteSupplier, submitPurchaseOrder,
+  useListCatalog, useListPurchaseOrders, useListSuppliers, useReorderSuggestions,
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { cn } from "@/lib/utils";
 import { PO_STATUS_STYLES, PO_STATUSES, invalidateInventory } from "./lib";
-import { PurchaseOrderDialog } from "./purchase-order-dialog";
+import { PurchaseOrderDialog, type POPrefillLine } from "./purchase-order-dialog";
 import { ReceiveDialog } from "./receive-dialog";
 import { SupplierDialog } from "./supplier-dialog";
 
@@ -42,6 +44,8 @@ export function PurchasingPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [poDialogOpen, setPoDialogOpen] = useState(false);
   const [receivePoId, setReceivePoId] = useState<string | null>(null);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [reorderPrefill, setReorderPrefill] = useState<{ supplierId: string | null; lines: POPrefillLine[] } | null>(null);
 
   // Suppliers state
   const [supplierDialogOpen, setSupplierDialogOpen] = useState(false);
@@ -49,13 +53,33 @@ export function PurchasingPage() {
 
   const suppliers = useListSuppliers(orgId ?? "", { query: { enabled: !!orgId } });
   const catalog = useListCatalog(orgId ?? "", { query: { enabled: !!orgId } });
-  // The list scopes to the selected branch or rolls up across the org ("All
-  // branches"). Creating an order stays tied to a concrete branch (see below).
   const orders = useListPurchaseOrders(
     scopeBranchId,
     { status: statusFilter === "all" ? undefined : statusFilter },
     { query: { enabled: !!scopeBranchId } },
   );
+  const reorder = useReorderSuggestions(branchId ?? "", { query: { enabled: tab === "reorder" && !!branchId } });
+
+  const onSubmitPo = async (po: PurchaseOrder) => {
+    setSubmittingId(po.id);
+    try {
+      await submitPurchaseOrder(po.id);
+      await invalidateInventory();
+      toast.success(t("inventory.purchasing.orderPlaced", "Order placed"));
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
+  const openReorderPo = (suggestion: ReorderSuggestion) => {
+    setReorderPrefill({
+      supplierId: suggestion.supplier_id ?? null,
+      lines: suggestion.lines.map((l) => ({ org_ingredient_id: l.org_ingredient_id, quantity_ordered: l.suggested_qty })),
+    });
+    setPoDialogOpen(true);
+  };
 
   const onCancelPo = async (po: PurchaseOrder) => {
     if (await confirm({
@@ -129,10 +153,22 @@ export function PurchasingPage() {
       enableHiding: false,
       cell: ({ row }) => {
         const po = row.original;
+        const canSubmit = po.status === "draft";
         const canReceive = po.status === "ordered" || po.status === "partially_received" || po.status === "draft";
-        const canCancel = po.status !== "received" && po.status !== "cancelled";
+        // Partially-received POs cannot be cancelled (backend 409) — must reverse first.
+        const canCancel = po.status === "draft" || po.status === "ordered";
         return (
           <div className="flex items-center justify-end gap-1">
+            {canSubmit ? (
+              <Button
+                variant="outline" size="sm"
+                loading={submittingId === po.id}
+                onClick={(e) => { e.stopPropagation(); void onSubmitPo(po); }}
+              >
+                <SendHorizonal className="size-4" />
+                {t("inventory.purchasing.placeOrder", "Place order")}
+              </Button>
+            ) : null}
             {canReceive ? (
               <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setReceivePoId(po.id); }}>
                 <PackageCheck className="size-4" />
@@ -233,7 +269,9 @@ export function PurchasingPage() {
   if (!orgId) {
     return (
       <Page>
-        <PageHeader title={t("inventory.purchasing.title", "Purchasing")} />
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.purchasing.title", "Purchasing")}</h1>
+        </div>
         <EmptyState icon={Boxes} title={t("inventory.pickOrg", "Select an organization to manage inventory")} />
       </Page>
     );
@@ -241,31 +279,32 @@ export function PurchasingPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("inventory.purchasing.title", "Purchasing")}
-        actions={
-          <>
-            <ExportButton onExport={handleExport} disabled={tab === "orders" ? !(orders.data?.length) : !(suppliers.data?.length)} />
-            {tab === "orders" ? (
-              <Button onClick={() => setPoDialogOpen(true)} disabled={!branchId}>
-                <PlusCircle className="size-4" />
-                {t("inventory.purchasing.newOrder", "New purchase order")}
-              </Button>
-            ) : (
-              <Button onClick={() => { setEditSupplier(null); setSupplierDialogOpen(true); }}>
-                <PlusCircle className="size-4" />
-                {t("inventory.purchasing.newSupplier", "New supplier")}
-              </Button>
-            )}
-          </>
-        }
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.purchasing.title", "Purchasing")}</h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ExportButton onExport={handleExport} disabled={tab === "orders" ? !(orders.data?.length) : !(suppliers.data?.length)} />
+          {tab === "orders" ? (
+            <Button onClick={() => setPoDialogOpen(true)} disabled={!branchId}>
+              <PlusCircle className="size-4" />
+              {t("inventory.purchasing.newOrder", "New purchase order")}
+            </Button>
+          ) : (
+            <Button onClick={() => { setEditSupplier(null); setSupplierDialogOpen(true); }}>
+              <PlusCircle className="size-4" />
+              {t("inventory.purchasing.newSupplier", "New supplier")}
+            </Button>
+          )}
+        </div>
+      </div>
 
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <TabsList>
-          <TabsTrigger value="orders"><Truck className="size-4" /> {t("inventory.purchasing.orders", "Purchase orders")}</TabsTrigger>
-          <TabsTrigger value="suppliers"><Users className="size-4" /> {t("inventory.purchasing.suppliers", "Suppliers")}</TabsTrigger>
-        </TabsList>
+        <PageTabsList>
+          <PageTabsTrigger value="orders"><Truck className="size-4" /> {t("inventory.purchasing.orders", "Purchase orders")}</PageTabsTrigger>
+          <PageTabsTrigger value="suppliers"><Users className="size-4" /> {t("inventory.purchasing.suppliers", "Suppliers")}</PageTabsTrigger>
+          <PageTabsTrigger value="reorder" disabled={!branchId}><TrendingDown className="size-4" /> {t("inventory.purchasing.reorder", "Reorder")}</PageTabsTrigger>
+        </PageTabsList>
 
         <TabsContent value="orders">
           <DataTable
@@ -297,15 +336,60 @@ export function PurchasingPage() {
             emptyState={<EmptyState icon={Users} title={t("inventory.purchasing.noSuppliers", "No suppliers yet")} />}
           />
         </TabsContent>
+
+        <TabsContent value="reorder">
+          {reorder.isLoading ? (
+            <p className="text-sm text-muted-foreground">{t("common.loading", "Loading…")}</p>
+          ) : (reorder.data ?? []).length === 0 ? (
+            <EmptyState icon={TrendingDown} title={t("inventory.purchasing.noReorder", "No items to reorder")} description={t("inventory.purchasing.noReorderHint", "All stocked items are above their reorder point.")} />
+          ) : (
+            <div className="space-y-4">
+              {(reorder.data ?? []).map((suggestion) => {
+                const key = suggestion.supplier_id ?? "none";
+                return (
+                  <div key={key} className="rounded-lg border">
+                    <div className="flex items-center justify-between border-b p-3">
+                      <p className="font-medium">{suggestion.supplier_name ?? t("inventory.purchasing.noSupplier", "No supplier")}</p>
+                      <Button size="sm" onClick={() => openReorderPo(suggestion)}>
+                        <PlusCircle className="size-4" />
+                        {t("inventory.purchasing.createDraftPo", "Create draft PO")}
+                      </Button>
+                    </div>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b text-xs text-muted-foreground">
+                          <th className="p-2 text-start font-normal">{t("inventory.catalog.name", "Ingredient")}</th>
+                          <th className="p-2 text-end font-normal">{t("inventory.catalog.onHand", "On hand")}</th>
+                          <th className="p-2 text-end font-normal">{t("inventory.purchasing.suggested", "Suggested qty")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {suggestion.lines.map((l) => (
+                          <tr key={l.org_ingredient_id} className="border-b last:border-0">
+                            <td className="p-2">{l.ingredient_name}</td>
+                            <td className="p-2 text-end tabular text-destructive">{fmtNumber(l.current_stock)} {fmtUnit(l.unit)}</td>
+                            <td className="p-2 text-end tabular font-medium">{fmtNumber(l.suggested_qty)} {fmtUnit(l.unit)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
       {branchId ? (
         <PurchaseOrderDialog
           branchId={branchId}
           open={poDialogOpen}
-          onOpenChange={setPoDialogOpen}
+          onOpenChange={(o) => { setPoDialogOpen(o); if (!o) setReorderPrefill(null); }}
           suppliers={suppliers.data ?? []}
           catalog={catalog.data ?? []}
+          prefillSupplierId={reorderPrefill?.supplierId}
+          prefillLines={reorderPrefill?.lines}
         />
       ) : null}
       <ReceiveDialog poId={receivePoId} open={!!receivePoId} onOpenChange={(o) => !o && setReceivePoId(null)} />

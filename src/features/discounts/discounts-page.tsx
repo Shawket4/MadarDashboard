@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { CheckCircle, DollarSign, Pencil, Percent, Plus, Tag, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { DataTable } from "@/components/app/data-table";
 import { StatCard } from "@/components/app/stat-card";
@@ -102,7 +102,7 @@ export function DiscountsPage() {
     void exportToExcel({ filename: "Sufrix-Discounts", sheets: [{ name: t("discounts.title", "Discounts"), title: t("discounts.title", "Discounts"), rows: discounts as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
-  if (!orgId) return <Page><PageHeader title={t("discounts.title", "Discounts")} /><EmptyState icon={Tag} title={t("discounts.pickOrg", "Select an organization")} /></Page>;
+  if (!orgId) return <Page><div className="space-y-1.5"><h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("discounts.title", "Discounts")}</h1></div><EmptyState icon={Tag} title={t("discounts.pickOrg", "Select an organization")} /></Page>;
 
   const active = discounts.filter((d) => d.is_active).length;
   const pct = discounts.filter((d) => d.dtype === "percentage").length;
@@ -110,11 +110,16 @@ export function DiscountsPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("discounts.title", "Discounts")}
-        description={t("discounts.subtitle", "Percentage and fixed-amount discounts")}
-        actions={<><ExportButton onExport={handleExport} disabled={!discounts.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("discounts.new", "New discount")}</Button></>}
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("discounts.title", "Discounts")}</h1>
+          <p className="text-sm text-muted-foreground">{t("discounts.subtitle", "Percentage and fixed-amount discounts")}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ExportButton onExport={handleExport} disabled={!discounts.length} />
+          <Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("discounts.new", "New discount")}</Button>
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("common.total", "Total")} value={discounts.length} loading={list.isLoading} />
         <StatCard label={t("common.active", "Active")} value={active} accent="success" loading={list.isLoading} />

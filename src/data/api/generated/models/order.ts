@@ -10,10 +10,26 @@ export interface Order {
   created_at: string;
   /** @nullable */
   customer_name?: string | null;
+  /**
+     * Delivery channel ("in_mall" | "outside") of the linked delivery order,
+   * surfaced on the list so clients can flag + segment delivery orders
+   * without a per-order detail fetch. `null` for dine-in orders.
+     * @nullable
+     */
+  delivery_channel?: string | null;
   /** Delivery charge in piastres, shown separately from the item subtotal.
    * Always 0 for dine-in orders; for delivery orders
    * `total_amount == subtotal + tax_amount + delivery_fee` (minus discount). */
   delivery_fee: number;
+  /**
+     * Customer location of the linked delivery order, so clients can link out
+   * to a map (e.g. Google Maps) without a per-order detail fetch. `null` for
+   * dine-in orders or delivery orders without captured coordinates.
+     * @nullable
+     */
+  delivery_lat?: number | null;
+  /** @nullable */
+  delivery_lng?: number | null;
   /**
      * Links a finalized delivery order back to its `delivery_orders` row
    * (customer, address, channel, zone). `null` for dine-in orders.

@@ -3,11 +3,12 @@ import { useTranslation } from "react-i18next";
 import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
 import { CupSoda, SlidersHorizontal, Store, Tag, UtensilsCrossed } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
+import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
 import { EditableCardGrid } from "@/components/app/editable-cards";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { BranchOverrideDialog } from "./branch-override-dialog";
 import { BranchAddonOverrideDialog } from "./branch-addon-override-dialog";
@@ -37,7 +38,7 @@ const ALL = "__all__";
 const PER_PAGE = 24;
 
 function CountBadge({ n }: { n: number }) {
-  return <span className="ms-1.5 rounded-full bg-muted px-1.5 text-xs text-muted-foreground tabular">{n}</span>;
+  return <span className="ms-1 text-xs tabular text-muted-foreground/70">{n}</span>;
 }
 
 /**
@@ -171,7 +172,9 @@ export function BranchOverridesPage() {
   if (!enabled) {
     return (
       <Page>
-        <PageHeader title={t("menu.overrides.tab", "Branch overrides")} />
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("menu.overrides.tab", "Branch overrides")}</h1>
+        </div>
         <EmptyState icon={Store} title={t("menu.pickOrg", "Select an organization to manage its menu")} />
       </Page>
     );
@@ -179,19 +182,19 @@ export function BranchOverridesPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("menu.overrides.tab", "Branch overrides")}
-        description={t("menu.overrides.subtitle", "Per-branch price and availability for items and add-ons")}
-      />
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("menu.overrides.tab", "Branch overrides")}</h1>
+        <p className="text-sm text-muted-foreground">{t("menu.overrides.subtitle", "Per-branch price and availability for items and add-ons")}</p>
+      </div>
 
       {!branchId ? (
         <EmptyState icon={Store} title={t("menu.overrides.pickBranch", "Select a branch in the top bar to manage its overrides")} />
       ) : (
         <Tabs value={tab} onValueChange={setTab} className="gap-4">
-          <TabsList>
-            <TabsTrigger value="menu">{t("menu.overrides.menuItems", "Menu items")} <CountBadge n={ovrByItem.size} /></TabsTrigger>
-            <TabsTrigger value="addons">{t("menu.overrides.addonItems", "Add-on items")} <CountBadge n={ovrByAddon.size} /></TabsTrigger>
-          </TabsList>
+          <PageTabsList>
+            <PageTabsTrigger value="menu">{t("menu.overrides.menuItems", "Menu items")} <CountBadge n={ovrByItem.size} /></PageTabsTrigger>
+            <PageTabsTrigger value="addons">{t("menu.overrides.addonItems", "Add-on items")} <CountBadge n={ovrByAddon.size} /></PageTabsTrigger>
+          </PageTabsList>
 
           <TabsContent value="menu">
             <EditableCardGrid<MenuItemWithCosts>

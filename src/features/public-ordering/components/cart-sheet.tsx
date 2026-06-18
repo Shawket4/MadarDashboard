@@ -1,9 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
-import { Minus, Pencil, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { Minus, Pencil, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerTitle,
@@ -47,6 +48,8 @@ const summarize = (line: CartLine, lang: string): string => {
   return parts.join(" · ");
 };
 
+/* ── Mobile: bottom-sheet drawer ─────────────────────────────────────────── */
+
 export function CartSheet({
   open,
   onOpenChange,
@@ -60,145 +63,229 @@ export function CartSheet({
   onAddMore,
 }: CartSheetProps) {
   const { t } = useTranslation();
-  const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
-
   const subtotal = cartSubtotal(lines);
   const total = subtotal - discountAmount + (deliveryFee ?? 0);
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="mx-auto max-h-[90dvh] max-w-[480px]">
-        <div className="border-b border-border/60 px-4 pb-3 pt-1 text-start">
-          <DrawerTitle className="text-lg">{t("order.cart.title")}</DrawerTitle>
-          <DrawerDescription className="mt-0.5">
-            {t("order.cart.estimate")}
-          </DrawerDescription>
+        <div className="flex items-start justify-between gap-2 border-b border-border/60 px-4 pb-3 pt-1 text-start">
+          <div>
+            <DrawerTitle className="font-serif text-xl">{t("order.cart.title")}</DrawerTitle>
+            <DrawerDescription className="mt-0.5">{t("order.cart.estimate")}</DrawerDescription>
+          </div>
+          <DrawerClose
+            aria-label={t("common.close", "Close")}
+            className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border border-border/70 bg-card text-foreground transition-colors hover:bg-muted"
+          >
+            <X className="size-4" />
+          </DrawerClose>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           {lines.length === 0 ? (
-            <div className="flex flex-col items-center py-12 text-center">
-              <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                <ShoppingBag className="size-6" />
-              </span>
-              <p className="font-semibold">{t("order.cart.empty")}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t("order.cart.emptyHint")}
-              </p>
-            </div>
+            <CartEmpty />
           ) : (
-            <ul className="space-y-2.5">
-              <AnimatePresence initial={false}>
-                {lines.map((line) => {
-                  const summary = summarize(line, lang);
-                  return (
-                    <motion.li
-                      key={line.uid}
-                      layout
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={easeOut}
-                      className="overflow-hidden"
-                    >
-                      <div className="rounded-2xl border border-border/70 bg-card p-3">
-                        <div className="flex items-start gap-2">
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-semibold">{getTranslatedName(line.item, lang)}</p>
-                            {summary && (
-                              <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{summary}</p>
-                            )}
-                            {line.notes && (
-                              <p className="mt-0.5 truncate text-xs italic text-muted-foreground">
-                                “{line.notes}”
-                              </p>
-                            )}
-                          </div>
-                          <span className="shrink-0 text-sm font-bold tabular-nums">
-                            {fmtMoney(lineTotal(line))}
-                          </span>
-                        </div>
-
-                        <div className="mt-2.5 flex items-center justify-between">
-                          <div className="flex items-center gap-0.5 rounded-full border border-border/70">
-                            <Button
-                              variant="ghost"
-                              size="icon-xs"
-                              className="rounded-full"
-                              onClick={() =>
-                                line.quantity <= 1
-                                  ? onRemove(line.uid)
-                                  : onSetQty(line.uid, line.quantity - 1)
-                              }
-                              aria-label={t("order.menu.decrease")}
-                            >
-                              {line.quantity <= 1 ? (
-                                <Trash2 className="size-3" />
-                              ) : (
-                                <Minus className="size-3" />
-                              )}
-                            </Button>
-                            <span className="w-6 text-center text-xs font-bold tabular-nums">
-                              {line.quantity}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon-xs"
-                              className="rounded-full"
-                              onClick={() => onSetQty(line.uid, line.quantity + 1)}
-                              aria-label={t("order.menu.increase")}
-                            >
-                              <Plus className="size-3" />
-                            </Button>
-                          </div>
-
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="xs"
-                              className="text-muted-foreground"
-                              onClick={() => onEdit(line)}
-                            >
-                              <Pencil className="size-3" />
-                              {t("order.cart.edit")}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="xs"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => onRemove(line.uid)}
-                            >
-                              <Trash2 className="size-3" />
-                              {t("order.cart.remove")}
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.li>
-                  );
-                })}
-              </AnimatePresence>
-
-              <li>
+            <CartList
+              lines={lines}
+              onEdit={onEdit}
+              onRemove={onRemove}
+              onSetQty={onSetQty}
+              footerSlot={
                 <Button variant="outline" className="w-full" onClick={onAddMore}>
                   <Plus className="size-4" />
                   {t("order.cart.addMore")}
                 </Button>
-              </li>
-            </ul>
+              }
+            />
           )}
         </div>
 
         {lines.length > 0 && (
           <div className="border-t border-border/60 bg-background px-4 py-3">
             <Totals subtotal={subtotal} deliveryFee={deliveryFee} total={total} discount={discountAmount} />
-            <Button className="mt-3 w-full" size="lg" onClick={onCheckout}>
+            <Button variant="brand" className="mt-3 w-full" size="lg" onClick={onCheckout}>
               {t("order.cart.checkout")}
             </Button>
           </div>
         )}
       </DrawerContent>
     </Drawer>
+  );
+}
+
+/* ── Desktop: persistent cart rail (3-pane menu layout) ──────────────────── */
+
+type CartPanelProps = Omit<CartSheetProps, "open" | "onOpenChange" | "onAddMore">;
+
+export function CartPanel({
+  lines,
+  deliveryFee,
+  discountAmount = 0,
+  onEdit,
+  onRemove,
+  onSetQty,
+  onCheckout,
+}: CartPanelProps) {
+  const { t } = useTranslation();
+  const subtotal = cartSubtotal(lines);
+  const total = subtotal - discountAmount + (deliveryFee ?? 0);
+
+  return (
+    <div className="flex max-h-[calc(100dvh-6rem)] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+      <div className="border-b border-border/60 px-4 py-3">
+        <h2 className="font-serif text-lg leading-tight">{t("order.cart.title")}</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">{t("order.cart.estimate")}</p>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+        {lines.length === 0 ? (
+          <CartEmpty compact />
+        ) : (
+          <CartList lines={lines} onEdit={onEdit} onRemove={onRemove} onSetQty={onSetQty} />
+        )}
+      </div>
+
+      {lines.length > 0 && (
+        <div className="border-t border-border/60 px-4 py-3">
+          <Totals subtotal={subtotal} deliveryFee={deliveryFee} total={total} discount={discountAmount} />
+          <Button variant="brand" className="mt-3 w-full" size="lg" onClick={onCheckout}>
+            {t("order.cart.checkout")}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Shared pieces ───────────────────────────────────────────────────────── */
+
+function CartEmpty({ compact = false }: { compact?: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <div className={cn("flex flex-col items-center text-center", compact ? "py-10" : "py-12")}>
+      <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <ShoppingBag className="size-6" />
+      </span>
+      <p className="font-medium">{t("order.cart.empty")}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{t("order.cart.emptyHint")}</p>
+    </div>
+  );
+}
+
+function CartList({
+  lines,
+  onEdit,
+  onRemove,
+  onSetQty,
+  footerSlot,
+}: {
+  lines: CartLine[];
+  onEdit: (line: CartLine) => void;
+  onRemove: (uid: string) => void;
+  onSetQty: (uid: string, qty: number) => void;
+  footerSlot?: React.ReactNode;
+}) {
+  const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  return (
+    <ul className="space-y-2.5">
+      <AnimatePresence initial={false}>
+        {lines.map((line) => {
+          const summary = summarize(line, lang);
+          return (
+            <motion.li
+              key={line.uid}
+              layout
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={easeOut}
+              className="overflow-hidden"
+            >
+              <CartLineCard line={line} summary={summary} onEdit={onEdit} onRemove={onRemove} onSetQty={onSetQty} />
+            </motion.li>
+          );
+        })}
+      </AnimatePresence>
+      {footerSlot && <li>{footerSlot}</li>}
+    </ul>
+  );
+}
+
+function CartLineCard({
+  line,
+  summary,
+  onEdit,
+  onRemove,
+  onSetQty,
+}: {
+  line: CartLine;
+  summary: string;
+  onEdit: (line: CartLine) => void;
+  onRemove: (uid: string) => void;
+  onSetQty: (uid: string, qty: number) => void;
+}) {
+  const { t } = useTranslation();
+  const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  return (
+    <div className="rounded-2xl border border-border/70 bg-card p-3">
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium">{getTranslatedName(line.item, lang)}</p>
+          {summary && (
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{summary}</p>
+          )}
+          {line.notes && (
+            <p className="mt-0.5 text-xs italic text-muted-foreground">“{line.notes}”</p>
+          )}
+        </div>
+        <span className="shrink-0 text-sm font-semibold tabular-nums text-brand">
+          {fmtMoney(lineTotal(line))}
+        </span>
+      </div>
+
+      <div className="mt-2.5 flex items-center justify-between">
+        <div className="flex items-center gap-0.5 rounded-full border border-border/70">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="rounded-full"
+            onClick={() =>
+              line.quantity <= 1 ? onRemove(line.uid) : onSetQty(line.uid, line.quantity - 1)
+            }
+            aria-label={t("order.menu.decrease")}
+          >
+            {line.quantity <= 1 ? <Trash2 className="size-3" /> : <Minus className="size-3" />}
+          </Button>
+          <span className="w-6 text-center text-xs font-bold tabular-nums">{line.quantity}</span>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="rounded-full"
+            onClick={() => onSetQty(line.uid, line.quantity + 1)}
+            aria-label={t("order.menu.increase")}
+          >
+            <Plus className="size-3" />
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="xs" className="text-muted-foreground" onClick={() => onEdit(line)}>
+            <Pencil className="size-3" />
+            {t("order.cart.edit")}
+          </Button>
+          <Button
+            variant="ghost"
+            size="xs"
+            className="text-destructive hover:text-destructive"
+            onClick={() => onRemove(line.uid)}
+          >
+            <Trash2 className="size-3" />
+            {t("order.cart.remove")}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 

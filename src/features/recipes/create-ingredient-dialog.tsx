@@ -13,6 +13,7 @@ import { createCatalogItem } from "@/data/api/generated/api";
 import type { OrgIngredient } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres } from "@/lib/format";
+import { invalidateRecipes } from "./util";
 
 const UNITS = ["g", "kg", "ml", "l", "pcs"] as const;
 const CATEGORIES = ["general", "milk", "coffee_bean"] as const;
@@ -40,6 +41,7 @@ export function CreateIngredientDialog({ orgId, open, onOpenChange, onCreated }:
     setBusy(true);
     try {
       const created = await createCatalogItem(orgId, { name: name.trim(), category, unit, cost_per_unit });
+      void invalidateRecipes();
       onCreated(created);
       toast.success(t("common.savedChanges", "Changes saved"));
       onOpenChange(false);

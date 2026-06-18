@@ -10,7 +10,7 @@ import type * as ExcelJSNS from "exceljs";
 import { TZDate } from "@date-fns/tz";
 import { toast } from "sonner";
 import i18n from "@/i18n";
-import { APP_TZ } from "@/data/config/constants";
+import { fmtDateTimeFull, getActiveTz } from "@/lib/format";
 
 export type ColumnType = "text" | "money" | "moneyRaw" | "number" | "integer" | "percent" | "date" | "dateTime" | "bool";
 
@@ -73,10 +73,30 @@ const numFmt = (type: ColumnType | undefined): string | undefined => {
     case "date":
       return "dd mmm yyyy";
     case "dateTime":
-      return "dd mmm yyyy hh:mm";
+      return "dd mmm yyyy hh:mm AM/PM";
     default:
       return undefined;
   }
+};
+
+/**
+ * Excel (1900 date system) serial for an instant rendered in `tz`'s wall clock.
+ *
+ * ExcelJS's `dateToExcel` reads ONLY `Date.getTime()` (the UTC epoch), so passing
+ * it a `Date`/`TZDate` encodes the UTC wall clock — exported cells come out offset
+ * by the branch's UTC offset from the local time shown in the UI. We instead build
+ * the serial from the zone-local parts and hand ExcelJS a plain number (the
+ * column's `numFmt` renders it as a date). This matches ExcelJS's own formula
+ * (`25569 + getTime()/86_400_000`, default non-1904 workbook) and is independent
+ * of the host device timezone.
+ */
+export const toExcelDateSerial = (d: Date, tz: string): number => {
+  const z = new TZDate(d.getTime(), tz);
+  const wallUtcMs = Date.UTC(
+    z.getFullYear(), z.getMonth(), z.getDate(),
+    z.getHours(), z.getMinutes(), z.getSeconds(), z.getMilliseconds(),
+  );
+  return 25569 + wallUtcMs / 86_400_000;
 };
 
 const coerce = (raw: unknown, type: ColumnType | undefined): string | number | Date | null => {
@@ -92,7 +112,8 @@ const coerce = (raw: unknown, type: ColumnType | undefined): string | number | D
     case "date":
     case "dateTime": {
       const d = raw instanceof Date ? raw : new Date(String(raw));
-      return new TZDate(d.getTime(), APP_TZ);
+      if (Number.isNaN(d.getTime())) return null;
+      return toExcelDateSerial(d, getActiveTz());
     }
     case "bool":
       return raw ? "✓" : "—";
@@ -196,7 +217,7 @@ function buildSheet(
 
   ws.mergeCells(`A2:${lastPadded}2`);
   const sub = ws.getCell("A2");
-  sub.value = [sheet.subtitle, meta, `${i18n.t("excel.generated", "Generated")}: ${new Date().toLocaleString("en-GB")}`]
+  sub.value = [sheet.subtitle, meta, `${i18n.t("excel.generated", "Generated")}: ${fmtDateTimeFull(new Date())}`]
     .filter(Boolean)
     .join("  ·  ");
   sub.font = { name: "Calibri", size: 9, color: { argb: PALETTE.muted } };
@@ -282,8 +303,17 @@ export async function exportToExcel(config: ExcelConfig): Promise<void> {
 
   const toastId = toast.loading(t("excel.generating", "Generating spreadsheet…"));
   try {
+    // exceljs is CommonJS — across bundlers/interop the Workbook constructor may
+    // sit on the namespace, on `.default`, or on `.default.default`. Resolve
+    // whichever level actually exposes it instead of assuming `.default`.
     const mod = await import("exceljs");
-    const ExcelJS = (mod as { default?: typeof import("exceljs") }).default ?? (mod as unknown as typeof import("exceljs"));
+    type WB = { Workbook: typeof ExcelJSNS.Workbook };
+    const ExcelJS = [
+      mod as unknown as Partial<WB>,
+      (mod as { default?: Partial<WB> }).default,
+      (mod as { default?: { default?: Partial<WB> } }).default?.default,
+    ].find((c): c is WB => typeof c?.Workbook === "function");
+    if (!ExcelJS) throw new Error("ExcelJS Workbook constructor not found");
     const wb = new ExcelJS.Workbook();
     wb.creator = "Sufrix";
 

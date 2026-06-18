@@ -3,4 +3,6 @@
 
 export type ListTransfersParams = {
 direction?: string;
+limit?: number;
+offset?: number;
 };

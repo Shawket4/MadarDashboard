@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -34,7 +33,7 @@ export function SlotsOptionalsTab({ orgId }: { orgId: string }) {
   const tname = (n: { name: string; name_translations?: unknown }) => getTranslatedName(n, i18n.language);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+    <div className="grid gap-4 lg:grid-cols-[300px_1fr] xl:grid-cols-[320px_1fr]">
       <MasterList
         items={list.map((m) => ({ id: m.id, label: tname(m) }))}
         selectedId={selected}
@@ -44,7 +43,13 @@ export function SlotsOptionalsTab({ orgId }: { orgId: string }) {
         emptyText={t("recipes.noItems", "No items")}
       />
       {selected ? <Detail key={selected} itemId={selected} orgId={orgId} /> : (
-        <div className="rounded-xl border"><EmptyState icon={Sliders} title={t("recipes.selectDrink", "Select an item")} description={t("recipes.selectDrinkHint", "Pick an item to edit its slots & optionals")} /></div>
+        <div className="rounded-xl border">
+          <EmptyState
+            icon={Sliders}
+            title={t("recipes.selectDrink", "Select an item")}
+            description={t("recipes.selectDrinkHint", "Pick an item to edit its slots & optionals")}
+          />
+        </div>
       )}
     </div>
   );
@@ -76,63 +81,97 @@ function Detail({ itemId, orgId }: { itemId: string; orgId: string }) {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardContent className="p-0">
-          <div className="flex items-center justify-between border-b p-4">
-            <div>
-              <p className="flex items-center gap-2 font-semibold"><Sliders className="size-4" /> {t("recipes.slots.title", "Add-on slots")}</p>
-              <p className="mt-1 max-w-lg text-xs text-muted-foreground">{t("recipes.slots.info", "Which add-on groups customers can pick for this item, and how many.")}</p>
-            </div>
-            <Button size="sm" onClick={() => setSlotOpen(true)}><Plus className="size-4" /> {t("recipes.slots.addSlot", "Add slot")}</Button>
+      {/* Add-on slots section */}
+      <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+          <div className="min-w-0">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Sliders className="size-4 text-muted-foreground" />
+              {t("recipes.slots.title", "Add-on slots")}
+            </h2>
+            <p className="mt-0.5 max-w-lg text-xs text-muted-foreground">
+              {t("recipes.slots.info", "Which add-on groups customers can pick for this item, and how many.")}
+            </p>
           </div>
-          {(slots.data ?? []).length === 0 ? (
-            <p className="p-6 text-center text-sm text-muted-foreground">{t("recipes.slots.empty", "No add-on slots")}</p>
-          ) : (
-            <div className="space-y-2 p-4">
-              {(slots.data ?? []).map((s) => (
-                <div key={s.id} className="flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">{slotLabel(s)}</p>
-                    <p className="text-xs text-muted-foreground">{t(`menu.addonTypes.${s.addon_type}`, s.addon_type)} · min {s.min_selections}, max {s.max_selections ?? "∞"}</p>
-                  </div>
-                  <Badge variant={s.is_required ? "destructive" : "outline"}>{s.is_required ? t("recipes.slots.required", "Required") : t("recipes.slots.optional", "Optional")}</Badge>
-                  <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => void removeSlot(s)}><Trash2 className="size-4" /></Button>
+          <Button size="sm" className="shrink-0" onClick={() => setSlotOpen(true)}>
+            <Plus className="size-4" /> {t("recipes.slots.addSlot", "Add slot")}
+          </Button>
+        </div>
+        {(Array.isArray(slots.data) ? slots.data : []).length === 0 ? (
+          <EmptyState
+            className="rounded-none border-0 py-8"
+            icon={Sliders}
+            title={t("recipes.slots.empty", "No add-on slots")}
+            description={t("recipes.slots.emptyHint", "Add a slot to let customers pick add-ons.")}
+          />
+        ) : (
+          <div className="divide-y divide-border">
+            {(Array.isArray(slots.data) ? slots.data : []).map((s) => (
+              <div key={s.id} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{slotLabel(s)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t(`menu.addonTypes.${s.addon_type}`, s.addon_type)} · min {s.min_selections}, max {s.max_selections ?? "∞"}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <Badge variant={s.is_required ? "secondary" : "outline"}>
+                  {s.is_required ? t("recipes.slots.required", "Required") : t("recipes.slots.optional", "Optional")}
+                </Badge>
+                <Button variant="ghost" size="icon-sm" className="shrink-0 text-destructive" onClick={() => void removeSlot(s)}>
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <div className="flex items-center justify-between border-b p-4">
-            <div>
-              <p className="flex items-center gap-2 font-semibold"><Settings2 className="size-4" /> {t("recipes.optionals.title", "Optional fields")}</p>
-              <p className="mt-1 max-w-lg text-xs text-muted-foreground">{t("recipes.optionals.info", "Yes/no checkboxes that can deduct an ingredient.")}</p>
-            </div>
-            <Button size="sm" onClick={() => setOptOpen(true)}><Plus className="size-4" /> {t("recipes.optionals.addField", "Add field")}</Button>
+      {/* Optional fields section */}
+      <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+          <div className="min-w-0">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Settings2 className="size-4 text-muted-foreground" />
+              {t("recipes.optionals.title", "Optional fields")}
+            </h2>
+            <p className="mt-0.5 max-w-lg text-xs text-muted-foreground">
+              {t("recipes.optionals.info", "Yes/no checkboxes that can deduct an ingredient.")}
+            </p>
           </div>
-          {(optionals.data ?? []).length === 0 ? (
-            <p className="p-6 text-center text-sm text-muted-foreground">{t("recipes.optionals.empty", "No optional fields")}</p>
-          ) : (
-            <div className="space-y-2 p-4">
-              {(optionals.data ?? []).map((o) => (
-                <div key={o.id} className="flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">{getTranslatedName(o, i18n.language)}</p>
-                    {o.ingredient_name ? (
-                      <p className="text-xs text-muted-foreground">{t("recipes.optionals.deducts", { qty: Number(o.quantity_used ?? 0), unit: t(`units.${o.ingredient_unit}`, o.ingredient_unit ?? ""), name: o.ingredient_name, defaultValue: `Deducts ${o.quantity_used} ${o.ingredient_unit} ${o.ingredient_name}` })}</p>
-                    ) : null}
-                  </div>
-                  <Badge variant={o.is_active ? "secondary" : "outline"}>{o.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")}</Badge>
-                  <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => void removeOpt(o)}><Trash2 className="size-4" /></Button>
+          <Button size="sm" className="shrink-0" onClick={() => setOptOpen(true)}>
+            <Plus className="size-4" /> {t("recipes.optionals.addField", "Add field")}
+          </Button>
+        </div>
+        {(Array.isArray(optionals.data) ? optionals.data : []).length === 0 ? (
+          <EmptyState
+            className="rounded-none border-0 py-8"
+            icon={Settings2}
+            title={t("recipes.optionals.empty", "No optional fields")}
+            description={t("recipes.optionals.emptyHint", "Add a field to give customers yes/no choices.")}
+          />
+        ) : (
+          <div className="divide-y divide-border">
+            {(Array.isArray(optionals.data) ? optionals.data : []).map((o) => (
+              <div key={o.id} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{getTranslatedName(o, i18n.language)}</p>
+                  {o.ingredient_name ? (
+                    <p className="text-xs text-muted-foreground">
+                      {t("recipes.optionals.deducts", { qty: Number(o.quantity_used ?? 0), unit: t(`units.${o.ingredient_unit}`, o.ingredient_unit ?? ""), name: o.ingredient_name, defaultValue: `Deducts ${o.quantity_used} ${o.ingredient_unit} ${o.ingredient_name}` })}
+                    </p>
+                  ) : null}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <Badge variant={o.is_active ? "secondary" : "outline"}>
+                  {o.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")}
+                </Badge>
+                <Button variant="ghost" size="icon-sm" className="shrink-0 text-destructive" onClick={() => void removeOpt(o)}>
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {slotOpen ? <SlotDialog itemId={itemId} open={slotOpen} onOpenChange={setSlotOpen} /> : null}
       {optOpen ? <OptionalDialog itemId={itemId} catalog={catalog.data ?? []} open={optOpen} onOpenChange={setOptOpen} /> : null}

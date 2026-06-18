@@ -6,6 +6,8 @@
   "common": {
     "copyright": "© {{year}} Sufrix. All rights reserved.",
     "source": "Source",
+    "cairoTime": "Cairo time",
+    "timezoneLabel": "{{city}} time",
     "save": "Save",
     "saveChanges": "Save Changes",
     "savedChanges": "Changes saved",
@@ -122,7 +124,8 @@
     "delivery": "Delivery",
     "deliverySettings": "Settings",
     "deliveryZones": "Zone rings",
-    "deliveryChannels": "Channel overrides"
+    "deliveryChannels": "Channel overrides",
+    "qr": "QR Codes"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -220,7 +223,8 @@
     "revenueTrend": "Revenue trend",
     "payments": "Payment mix",
     "pickBranchTrend": "Select a branch to see its revenue trend",
-    "branchPerformance": "Branch performance"
+    "branchPerformance": "Branch performance",
+    "periodTotal": "{{total}} this period"
   },
   "orgs": {
     "title": "Organizations",
@@ -1161,7 +1165,15 @@
     "distance": "Distance",
     "deliveryRef": "Delivery ref",
     "floor": "Floor",
-    "unit": "Unit"
+    "unit": "Unit",
+    "deliveryOrders": "Delivery orders",
+    "deliveryRevenue": "Delivery revenue",
+    "deliveryOutside": "Outside",
+    "allTypes": "All types",
+    "channel": "Channel",
+    "allChannels": "All channels",
+    "location": "Location",
+    "openInMaps": "Open in Maps"
   },
   "ordersExport": {
     "title": "Export Orders",
@@ -1229,10 +1241,16 @@
       "inventory": "Inventory"
     },
     "granularity": {
-      "hourly": "Hourly",
+      "peak_hours": "Peak Hours",
       "daily": "Daily",
       "monthly": "Monthly"
     },
+    "revenueByHour": "Revenue by Hour",
+    "ordersByHour": "Orders by Hour",
+    "discountsByHour": "Discounts by Hour",
+    "avgPerDay": "Avg / Day",
+    "shareOfTotal": "Share",
+    "periodTotal": "Period Total",
     "revenueByPayment": "Revenue by Payment Method",
     "topItems": "Top Items",
     "topItemsRev": "Top Items by Revenue",
@@ -1492,7 +1510,9 @@
       "cashBase": "Cash",
       "nonCash": "Non-cash",
       "systemMethods": "System methods"
-    }
+    },
+    "whatsapp": "WhatsApp",
+    "whatsappHint": "Link the number that sends delivery OTP and order updates."
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -2142,6 +2162,7 @@
     "title": "Order online",
     "language": "Language",
     "branch": {
+      "heading": "Choose a branch",
       "subtitle": "Pick a branch to order from",
       "error": "Couldn't load branches",
       "errorHint": "Please check your connection and try again.",
@@ -2150,16 +2171,22 @@
     },
     "channel": {
       "title": "How would you like it?",
+      "heading": "How would you like it?",
       "subtitle": "Choose your delivery type for {{name}}.",
       "inMall": "In-mall",
       "inMallHint": "Delivered to your shop or office in the mall",
       "outside": "Delivery",
       "outsideHint": "Delivered to your address outside the mall",
       "open": "Open",
-      "closed": "Closed"
+      "closed": "Closed",
+      "closedTitle": "This isn't available right now",
+      "closedBodyInMall": "Sorry — in-mall ordering is closed at the moment. Please try delivery, or check back a little later.",
+      "closedBodyOutside": "Sorry — delivery is closed at the moment. Please try in-mall ordering, or check back a little later.",
+      "choose": "Choose another option"
     },
     "location": {
       "heading": "Delivery location",
+      "short": "Where to?",
       "title": "Pin your location",
       "useMyLocation": "Locate me",
       "locating": "Finding your location…",
@@ -2179,7 +2206,21 @@
       "continue": "Continue to menu",
       "permissionDenied": "Location is off — search your address or tap the map to set your spot.",
       "attribution": "© OpenStreetMap contributors © CARTO",
-      "searchPlaceholder": "Search for your area or address…"
+      "searchPlaceholder": "Search for your area or address…",
+      "inMallTitle": "Confirm you're at the branch",
+      "inMallNote": "Your location is used only to confirm you're at the branch.",
+      "required": "We need your location to confirm you're at the branch before you can order.",
+      "retry": "Enable location",
+      "confirmed": "Location confirmed",
+      "distanceFromBranch": "~{{meters}} m from the branch",
+      "distanceFromBranchKm": "~{{km}} km from the branch",
+      "optional": "Sharing your location helps us serve you faster, but it's optional — you can continue without it.",
+      "inMallTitleOptional": "Share your location (optional)",
+      "skip": "Continue without location",
+      "savedLabel": "Use a saved address",
+      "savedUnknown": "Saved location",
+      "thisBranch": "This branch",
+      "otherBranches": "Other branches"
     },
     "menu": {
       "title": "Menu",
@@ -2197,7 +2238,13 @@
       "search": "Search the menu",
       "noResults": "Nothing matches “{{query}}”",
       "discountPct": "{{value}}% off your order",
-      "discountFixed": "{{value}} off your order"
+      "discountFixed": "{{value}} off your order",
+      "categories": "Categories",
+      "itemCount": "{{count}} items",
+      "greeting": "What are you craving?",
+      "greetMorning": "Good morning",
+      "greetAfternoon": "Good afternoon",
+      "greetEvening": "Good evening"
     },
     "customize": {
       "size": "Size",
@@ -2210,6 +2257,8 @@
       "pickExactly": "Pick {{count}}",
       "swap": "Swap",
       "addOns": "Add-ons",
+      "searchAddons": "Search add-ons",
+      "noAddons": "No add-ons match your search.",
       "extras": "Extras",
       "noCharge": "No charge",
       "selected": "{{count}} selected",
@@ -2244,10 +2293,14 @@
       "items_other": "{{count}} items",
       "qty": "× {{count}}",
       "estimate": "Final total is confirmed at checkout.",
-      "discount": "Discount"
+      "discount": "Discount",
+      "units_one": "item",
+      "units_other": "items"
     },
     "checkout": {
       "title": "Checkout",
+      "contact": "Contact",
+      "deliveryAddress": "Delivery address",
       "name": "Full name",
       "namePlaceholder": "Your name",
       "phone": "Phone number",
@@ -2273,10 +2326,47 @@
       "summary": "Order summary",
       "errName": "Please enter your name.",
       "errPhone": "Please enter a valid phone number.",
+      "errPhoneRequired": "Please enter your phone number.",
+      "errChannelClosed": "Sorry — this branch just stopped accepting orders on this channel.",
       "errAddress": "Please add an address.",
       "errEmpty": "Your cart is empty.",
       "errRange": "This location is outside our delivery range.",
+      "errTooLong": "That entry is too long.",
+      "errTooManyItems": "Your cart has too many items. Please remove some.",
+      "errShop": "Please enter the shop or company name.",
+      "errFloor": "Please enter the floor.",
+      "errUnit": "Please enter the unit or office number.",
+      "errLocation": "Please pin your delivery location.",
       "errSubmit": "Something went wrong placing your order. Please try again."
+    },
+    "phone": {
+      "heading": "Your number",
+      "headingSubtitle": "Ordering from {{name}}",
+      "title": "Your phone number",
+      "subtitle": "We’ll use this to confirm your order and show your past orders.",
+      "continue": "Continue",
+      "savedAs": "Ordering as {{phone}}",
+      "switchNumber": "Switch number"
+    },
+    "history": {
+      "open": "My orders",
+      "title": "Your orders",
+      "empty": "No past orders yet.",
+      "track": "Track",
+      "subtotal": "Subtotal",
+      "fee": "Delivery fee",
+      "items": "Your order",
+      "destination": "Destination"
+    },
+    "status": {
+      "received": "Order received",
+      "confirmed": "Order accepted",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "out_for_delivery": "On the way",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "rejected": "Cancelled"
     },
     "otp": {
       "title": "Verify your phone",
@@ -2304,11 +2394,62 @@
     "footer": {
       "poweredBy": "Online ordering powered by Sufrix",
       "rights": "© {{year}} {{name}}"
+    },
+    "track": {
+      "loading": "Loading your order…",
+      "notFoundTitle": "Order not found",
+      "items": "Your order",
+      "notFoundBody": "We couldn't find this order. The link may be incorrect or the order may have been removed.",
+      "eta": "~{{minutes}} min",
+      "cancelledTitle": "This order was cancelled",
+      "orderAgain": "Order again",
+      "status": {
+        "received": "Order received",
+        "confirmed": "Order accepted",
+        "preparing": "Preparing your order",
+        "ready": "Ready for delivery",
+        "out_for_delivery": "On the way",
+        "delivered": "Delivered",
+        "cancelled": "Order cancelled",
+        "rejected": "Order cancelled"
+      },
+      "step": {
+        "received": "Received",
+        "confirmed": "Accepted",
+        "preparing": "Preparing",
+        "ready": "Ready",
+        "out_for_delivery": "On the way",
+        "delivered": "Delivered"
+      },
+      "channel": {
+        "in_mall": "In-mall",
+        "outside": "Delivery"
+      },
+      "pay": {
+        "cash": "Cash on delivery",
+        "card": "Card on delivery"
+      }
     }
+  },
+  "deliveryTimeline": {
+    "title": "Delivery progress",
+    "hint": "Skipped steps may be cleared; only reached milestones are timestamped.",
+    "received": "Received",
+    "confirmed": "Confirmed",
+    "preparing": "Preparing",
+    "ready": "Ready",
+    "outForDelivery": "Out for delivery",
+    "delivered": "Delivered"
   },
   "delivery": {
     "channelInMall": "In-mall",
     "channelOutside": "Delivery",
+    "kpisTitle": "Delivery",
+    "byChannel": "By channel",
+    "revenue": "Delivery revenue",
+    "deliveredOrders": "Delivered orders",
+    "fees": "Delivery fees",
+    "cancelled": "cancelled",
     "statusOk": "Delivery available",
     "statusOutOfRange": "Outside delivery range",
     "statusUnavailable": "Delivery unavailable",
@@ -2350,6 +2491,8 @@
     "pickOrg": "Select an organization to manage channel overrides",
     "prepTime": "Prep time (minutes)",
     "prepTimeHint": "Added to the delivery ETA quoted to the customer.",
+    "otpRequired": "Require OTP verification",
+    "otpRequiredHint": "Customers verify their phone with a one-time code before ordering. Turn off to let them order without OTP (faster, but unverified).",
     "settingsSubtitle": "Configure per-branch delivery channels, windows, and fees.",
     "settingsTitle": "Delivery settings",
     "tabs": {
@@ -2373,6 +2516,71 @@
     "zonesTitle": "Delivery zones",
     "channelDiscount": "Discount",
     "noDiscount": "No discount",
-    "channelDiscountHint": "Applied to the item subtotal at checkout — the delivery fee is always charged in full."
+    "channelDiscountHint": "Applied to the item subtotal at checkout — the delivery fee is always charged in full.",
+    "inMallRequireLocation": "Require GPS location",
+    "inMallRequireLocationHint": "Customers must share their device location to confirm they're at the branch before ordering. Turn off if indoor GPS is unreliable (shop, floor, and unit are always required)."
+  },
+  "whatsapp": {
+    "title": "WhatsApp",
+    "subtitle": "Link the WhatsApp number that sends delivery OTP codes and order updates.",
+    "connection": "Connection",
+    "session": "Session",
+    "checking": "Checking…",
+    "offline": "Offline",
+    "connected": "Connected",
+    "awaitingScan": "Awaiting scan",
+    "linked": "A number is linked and ready to send.",
+    "notLinked": "No number is linked yet.",
+    "startPairing": "Generate QR to link",
+    "unlink": "Unlink number",
+    "unlinkedToast": "WhatsApp number unlinked.",
+    "qrAlt": "WhatsApp pairing QR code",
+    "step1": "Open WhatsApp on your phone.",
+    "step2": "Tap Settings → Linked devices → Link a device.",
+    "step3": "Scan this QR code. It refreshes automatically.",
+    "notConfigured": "Gateway not configured",
+    "notConfiguredHint": "Set WHATSAPP_SERVICE_URL on the backend to enable WhatsApp sending.",
+    "unreachable": "Gateway unreachable",
+    "unreachableHint": "The WhatsApp service did not respond. Make sure it is running on the private network.",
+    "pauseTitle": "Pause sending",
+    "pauseHint": "Mute all WhatsApp messages (OTP + order updates) without unlinking the number.",
+    "paused": "Paused",
+    "pausedToast": "Sending paused.",
+    "resumedToast": "Sending resumed.",
+    "forbidden": "Only super admins can manage the WhatsApp connection."
+  },
+  "qr": {
+    "title": "QR Codes",
+    "subtitle": "Generate scannable QR codes for your online ordering page",
+    "generate": "Generate QR",
+    "pickBranch": "Select a branch from the scope bar above",
+    "opts": {
+      "brandedCard": "Branded card"
+    },
+    "tabs": {
+      "standard": "Standard menu",
+      "inMall": "In-mall delivery"
+    },
+    "org": {
+      "title": "All-branches QR",
+      "description": "One QR that lets customers browse and pick any of your branches, then place an order."
+    },
+    "standard": {
+      "title": "Branch menu QR",
+      "description": "Customers scan this to open your branch's ordering page. Works for both in-mall and outside delivery."
+    },
+    "inMall": {
+      "title": "In-mall delivery QR",
+      "description": "Place this QR at a specific spot inside the mall. When customers scan it, the delivery type is locked to in-mall and the location is pre-filled.",
+      "placeName": "Shop / company name",
+      "placeNamePlaceholder": "Starbucks Kiosk 3",
+      "floor": "Floor",
+      "floorPlaceholder": "Ground Floor",
+      "unit": "Unit / office",
+      "unitPlaceholder": "Unit 42"
+    },
+    "preview": {
+      "title": "QR Code"
+    }
   }
 }

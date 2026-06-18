@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { Bike, Store } from "lucide-react";
+import { Bike, MapPin, ShieldCheck, Store } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { TimePicker } from "@/components/app/time-picker";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { putBranchSettings, useGetBranchSettings, useListDiscounts } from "@/data/api/generated/api";
 import type { BranchSettingsInput } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { invalidateBranchSettings } from "./util";
 import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -57,6 +58,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
           .optional(),
         in_mall_discount_id: z.string().nullable(),
         outside_discount_id: z.string().nullable(),
+        otp_required: z.boolean(),
+        in_mall_require_location: z.boolean(),
       }),
     [t],
   );
@@ -76,6 +79,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
       max_road_distance_meters: undefined,
       in_mall_discount_id: null,
       outside_discount_id: null,
+      otp_required: true,
+      in_mall_require_location: true,
     },
   });
 
@@ -94,6 +99,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
         max_road_distance_meters: s.max_road_distance_meters ?? undefined,
         in_mall_discount_id: s.in_mall_discount_id ?? null,
         outside_discount_id: s.outside_discount_id ?? null,
+        otp_required: s.otp_required,
+        in_mall_require_location: s.in_mall_require_location,
       });
     }
   }, [settings.data, form]);
@@ -115,12 +122,14 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
       max_road_distance_meters: numOrNull(v.max_road_distance_meters),
       in_mall_discount_id: v.in_mall_discount_id,
       outside_discount_id: v.outside_discount_id,
+      otp_required: v.otp_required,
+      in_mall_require_location: v.in_mall_require_location,
     };
     setBusy(true);
     try {
       await putBranchSettings(payload);
       toast.success(t("delivery.branchSettingsSaved", "Branch delivery settings saved"));
-      void settings.refetch();
+      void invalidateBranchSettings();
     } catch (e) {
       toast.error(getErrorMessage(e));
     } finally {
@@ -203,6 +212,23 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                     <FormItem><FormLabel>{t("delivery.inMallFee", "In-mall fee (EGP)")}</FormLabel><FormControl><Input type="number" step="any" min="0" {...field} className="font-mono" /></FormControl><FormMessage /></FormItem>
                   )} />
                   {discountField("in_mall_discount_id")}
+                  <FormField control={form.control} name="in_mall_require_location" render={({ field }) => (
+                    <FormItem className="flex items-center justify-between gap-2 rounded-md border border-dashed p-3">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="size-4 text-muted-foreground" />
+                        <div>
+                          <FormLabel>{t("delivery.inMallRequireLocation", "Require GPS location")}</FormLabel>
+                          <p className="text-xs text-muted-foreground">
+                            {t(
+                              "delivery.inMallRequireLocationHint",
+                              "Customers must share their device location to confirm they're at the branch before ordering. Turn off if indoor GPS is unreliable (shop, floor, and unit are always required).",
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                    </FormItem>
+                  )} />
                 </>
               ) : null}
             </div>
@@ -239,6 +265,27 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
               ) : null}
             </div>
 
+            {/* Customer verification */}
+            <div className="rounded-lg border p-4">
+              <FormField control={form.control} name="otp_required" render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="size-4 text-muted-foreground" />
+                    <div>
+                      <FormLabel>{t("delivery.otpRequired", "Require OTP verification")}</FormLabel>
+                      <p className="text-xs text-muted-foreground">
+                        {t(
+                          "delivery.otpRequiredHint",
+                          "Customers verify their phone with a one-time code before ordering. Turn off to let them order without OTP (faster, but unverified).",
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                </FormItem>
+              )} />
+            </div>
+
             <FormField control={form.control} name="prep_time_minutes" render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("delivery.prepTime", "Prep time (minutes)")}</FormLabel>
@@ -265,10 +312,10 @@ export function DeliverySettingsPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("delivery.settingsTitle", "Delivery settings")}
-        description={t("delivery.settingsSubtitle", "Configure per-branch delivery channels, windows, and fees.")}
-      />
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("delivery.settingsTitle", "Delivery settings")}</h1>
+        <p className="text-sm text-muted-foreground">{t("delivery.settingsSubtitle", "Configure per-branch delivery channels, windows, and fees.")}</p>
+      </div>
       {branchId ? (
         <BranchSettingsCard key={branchId} branchId={branchId} />
       ) : (

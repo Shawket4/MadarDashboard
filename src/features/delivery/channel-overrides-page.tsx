@@ -4,7 +4,8 @@ import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, CupSoda, Search, Store, Tag, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
+import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   getListAddonCatalogQueryOptions,
   getListMenuCatalogQueryOptions,
@@ -37,6 +38,7 @@ import { getTranslatedName } from "@/lib/translation";
 import { useDebounced } from "@/lib/use-debounced";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { invalidateChannelOverrides } from "./util";
 
 type Channel = "in_mall" | "outside";
 const PER_PAGE = 24;
@@ -307,8 +309,8 @@ export function ChannelOverridesPage() {
     return m;
   }, [addonOverrides.data]);
 
-  const refreshItems = () => { void overrides.refetch(); };
-  const refreshAddons = () => { void addonOverrides.refetch(); };
+  const refreshItems = () => { void invalidateChannelOverrides(); };
+  const refreshAddons = () => { void invalidateChannelOverrides(); };
 
   const prefetchNextItems = () => {
     if (itemsPage + 1 >= itemsPageCount) return;
@@ -322,7 +324,9 @@ export function ChannelOverridesPage() {
   if (!orgId) {
     return (
       <Page>
-        <PageHeader title={t("delivery.channelsTitle", "Channel overrides")} />
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("delivery.channelsTitle", "Channel overrides")}</h1>
+        </div>
         <EmptyState icon={Store} title={t("delivery.pickOrg", "Select an organization to manage channel overrides")} />
       </Page>
     );
@@ -377,21 +381,21 @@ export function ChannelOverridesPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("delivery.channelsTitle", "Channel overrides")}
-        description={t("delivery.channelsSubtitle", "Per-channel price and availability for items and add-ons on this branch.")}
-      />
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("delivery.channelsTitle", "Channel overrides")}</h1>
+        <p className="text-sm text-muted-foreground">{t("delivery.channelsSubtitle", "Per-channel price and availability for items and add-ons on this branch.")}</p>
+      </div>
       {!branchId ? (
         <EmptyState
           icon={Store}
           title={t("delivery.pickBranch", "Select a branch in the top bar to manage channel overrides")}
         />
       ) : (
-        <Tabs value={tab} onValueChange={setTab} className="gap-4">
-          <TabsList>
-            <TabsTrigger value="menu">{t("delivery.menuItems", "Menu items")}</TabsTrigger>
-            <TabsTrigger value="addons">{t("delivery.addonItems", "Add-on items")}</TabsTrigger>
-          </TabsList>
+        <Tabs value={tab} onValueChange={setTab}>
+          <PageTabsList>
+            <PageTabsTrigger value="menu">{t("delivery.menuItems", "Menu items")}</PageTabsTrigger>
+            <PageTabsTrigger value="addons">{t("delivery.addonItems", "Add-on items")}</PageTabsTrigger>
+          </PageTabsList>
 
           <TabsContent value="menu" className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">

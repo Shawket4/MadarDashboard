@@ -44,8 +44,13 @@ export default defineConfig({
       "@tanstack/react-router",
       "recharts",
       "date-fns",
+      // exceljs is CommonJS — it MUST be pre-bundled (esbuild CJS→ESM interop)
+      // so the dynamic `import("exceljs")` exposes a usable Workbook constructor
+      // in dev. Excluding it breaks the dev export with "Workbook is not a
+      // constructor" (prod is fine — Rollup handles CJS). It still lands in its
+      // own lazy "exceljs-vendor" chunk via build.rollupOptions.manualChunks.
+      "exceljs",
     ],
-    exclude: ["exceljs"],
   },
   build: {
     // No prod sourcemaps: smaller dist + faster build (dev server keeps inline maps).

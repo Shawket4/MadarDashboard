@@ -5,7 +5,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { CheckCircle, GitBranch, Pencil, Plus, Shield, Trash2, Users as UsersIcon, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { DataTable } from "@/components/app/data-table";
 import { StatCard } from "@/components/app/stat-card";
@@ -107,15 +107,20 @@ export function UsersPage() {
     void exportToExcel({ filename: "Sufrix-Users", sheets: [{ name: t("users.title", "Users"), title: t("users.title", "Users"), rows: users as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
-  if (!orgId) return <Page><PageHeader title={t("users.title", "Users")} /><EmptyState icon={UsersIcon} title={t("users.pickOrg", "Select an organization")} /></Page>;
+  if (!orgId) return <Page><div className="space-y-1.5"><h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("users.title", "Users")}</h1></div><EmptyState icon={UsersIcon} title={t("users.pickOrg", "Select an organization")} /></Page>;
 
   return (
     <Page>
-      <PageHeader
-        title={t("users.title", "Users")}
-        description={t("users.subtitle", "Manage staff accounts and access")}
-        actions={<><ExportButton onExport={handleExport} disabled={!users.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button></>}
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("users.title", "Users")}</h1>
+          <p className="text-sm text-muted-foreground">{t("users.subtitle", "Manage staff accounts and access")}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ExportButton onExport={handleExport} disabled={!users.length} />
+          <Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button>
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("users.totalUsers", "Total Users")} value={users.length} loading={list.isLoading} />
         <StatCard label={t("users.orgAdmins", "Org Admins")} value={roleCount("org_admin")} accent="info" loading={list.isLoading} />

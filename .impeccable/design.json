@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-16T12:33:47Z",
+  "title": "Design System: Sufrix Dashboard",
+  "extensions": {
+    "colorMeta": {
+      "harbor-navy": {
+        "role": "primary",
+        "displayName": "Harbor Navy",
+        "canonical": "oklch(0.27 0.05 250)",
+        "tonalRamp": ["oklch(0.16 0.04 252)", "oklch(0.22 0.045 251)", "oklch(0.27 0.05 250)", "oklch(0.37 0.045 252)", "oklch(0.50 0.04 252)", "oklch(0.64 0.03 252)", "oklch(0.80 0.02 252)", "oklch(0.93 0.01 252)"]
+      },
+      "terracotta-clay": {
+        "role": "secondary",
+        "displayName": "Terracotta Clay",
+        "canonical": "oklch(0.58 0.132 38)",
+        "tonalRamp": ["oklch(0.30 0.09 38)", "oklch(0.40 0.11 38)", "oklch(0.48 0.125 38)", "oklch(0.58 0.132 38)", "oklch(0.66 0.13 40)", "oklch(0.74 0.11 42)", "oklch(0.84 0.07 45)", "oklch(0.93 0.035 50)"]
+      },
+      "leaf-green": {
+        "role": "tertiary",
+        "displayName": "Leaf Green",
+        "canonical": "oklch(0.45 0.07 165)",
+        "tonalRamp": ["oklch(0.25 0.05 165)", "oklch(0.33 0.06 165)", "oklch(0.45 0.07 165)", "oklch(0.55 0.08 162)", "oklch(0.64 0.08 162)", "oklch(0.74 0.07 160)", "oklch(0.84 0.05 158)", "oklch(0.93 0.025 155)"]
+      },
+      "linen-cream": {
+        "role": "neutral",
+        "displayName": "Linen Cream",
+        "canonical": "oklch(0.985 0.004 85)",
+        "tonalRamp": ["oklch(0.30 0.01 85)", "oklch(0.42 0.01 85)", "oklch(0.55 0.008 85)", "oklch(0.68 0.007 85)", "oklch(0.80 0.006 85)", "oklch(0.90 0.005 85)", "oklch(0.96 0.005 85)", "oklch(0.985 0.004 85)"]
+      },
+      "muted-ink": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "oklch(0.52 0.02 255)",
+        "tonalRamp": ["oklch(0.27 0.05 250)", "oklch(0.37 0.035 255)", "oklch(0.45 0.025 255)", "oklch(0.52 0.02 255)", "oklch(0.62 0.018 255)", "oklch(0.72 0.015 255)", "oklch(0.84 0.01 255)", "oklch(0.93 0.006 255)"]
+      },
+      "border-sand": {
+        "role": "neutral",
+        "displayName": "Border Sand",
+        "canonical": "oklch(0.91 0.008 80)",
+        "tonalRamp": ["oklch(0.60 0.012 80)", "oklch(0.70 0.011 80)", "oklch(0.80 0.01 80)", "oklch(0.86 0.009 80)", "oklch(0.91 0.008 80)", "oklch(0.95 0.006 82)", "oklch(0.97 0.005 84)", "oklch(0.99 0.004 85)"]
+      },
+      "success": { "role": "status", "displayName": "Success Green", "canonical": "oklch(0.55 0.1 160)" },
+      "warning": { "role": "status", "displayName": "Warning Amber", "canonical": "oklch(0.76 0.15 75)" },
+      "destructive": { "role": "status", "displayName": "Destructive Red", "canonical": "oklch(0.585 0.22 27)" },
+      "info": { "role": "status", "displayName": "Info Blue", "canonical": "oklch(0.6 0.13 240)" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (Fraunces)", "purpose": "Editorial brand headlines only — public ordering, landing hero. Forbidden in dashboard UI." },
+      "headline": { "displayName": "Headline (Inter)", "purpose": "Dashboard page titles; fixed rem, never fluid." },
+      "title": { "displayName": "Title (Inter)", "purpose": "Card titles, section and dialog headers." },
+      "body": { "displayName": "Body (Inter)", "purpose": "Default dashboard text at 0.875rem; prose caps 65–75ch." },
+      "label": { "displayName": "Label (Inter)", "purpose": "Buttons, form labels, badges, table headers." },
+      "numeric": { "displayName": "Numeric (Inter tabular)", "purpose": "All money, counts, metrics; tabular-nums, ar-EG numerals in Arabic." }
+    },
+    "shadows": [
+      { "name": "hairline", "value": "0 1px 2px rgb(0 0 0 / 0.05)", "purpose": "Inputs and outline buttons — just enough to seat the control." },
+      { "name": "resting-card", "value": "0 1px 3px rgb(0 0 0 / 0.08)", "purpose": "Cards and StatCards at rest. The maximum the dashboard carries (Flat-Dashboard Rule)." },
+      { "name": "lifted", "value": "0 10px 30px rgb(0 0 0 / 0.12)", "purpose": "Popovers, command palette, dialogs, brand-surface hero imagery." },
+      { "name": "brand-glow", "value": "filter: blur(40px); background: linear-gradient(to top right, oklch(0.27 0.05 250 / 0.15), transparent)", "purpose": "Decorative atmosphere behind marketing/auth/public-ordering heroes only. Never on dashboard data." }
+    ],
+    "motion": [
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Default easing for state transitions and reveals — exponential ease-out, no bounce." },
+      { "name": "duration-state", "value": "150ms", "purpose": "Most product transitions (hover, focus, open). Users are in flow; no choreography." },
+      { "name": "pin-drop", "value": "0.32s cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Public-ordering map pin drop-in (brand surface)." },
+      { "name": "reduced-motion", "value": "MotionConfig reducedMotion=\"user\"", "purpose": "App-wide respect for prefers-reduced-motion; every animation needs a reduced alternative." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "360px" },
+      { "name": "md", "value": "768px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default action across the dashboard — Harbor Navy fill.",
+      "html": "<button class=\"ds-btn-primary\">Save changes</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; height:2.25rem; padding:0 1rem; border:0; border-radius:.625rem; background:var(--primary, oklch(0.27 0.05 250)); color:var(--primary-foreground, oklch(0.985 0.004 85)); font:500 .875rem/1 \"Inter Variable\", system-ui, sans-serif; cursor:pointer; transition:background .15s cubic-bezier(0.25,1,0.5,1), box-shadow .15s; } .ds-btn-primary:hover { background:color-mix(in oklch, var(--primary, oklch(0.27 0.05 250)) 90%, transparent); } .ds-btn-primary:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklch, var(--ring, oklch(0.58 0.132 38)) 50%, transparent); } .ds-btn-primary:disabled { opacity:.5; pointer-events:none; }"
+    },
+    {
+      "name": "Brand Button",
+      "kind": "button",
+      "refersTo": "button-brand",
+      "description": "The single most important CTA on a surface — Terracotta Clay. Use sparingly (One-Voice Accent Rule).",
+      "html": "<button class=\"ds-btn-brand\">Place order</button>",
+      "css": ".ds-btn-brand { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; height:2.25rem; padding:0 1rem; border:0; border-radius:.625rem; background:var(--brand, oklch(0.58 0.132 38)); color:var(--brand-foreground, oklch(0.99 0.004 85)); font:500 .875rem/1 \"Inter Variable\", system-ui, sans-serif; cursor:pointer; transition:background .15s cubic-bezier(0.25,1,0.5,1), box-shadow .15s; } .ds-btn-brand:hover { background:color-mix(in oklch, var(--brand, oklch(0.58 0.132 38)) 90%, transparent); } .ds-btn-brand:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklch, var(--ring, oklch(0.58 0.132 38)) 50%, transparent); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action — Card White on a hairline Border Sand stroke.",
+      "html": "<button class=\"ds-btn-outline\">Cancel</button>",
+      "css": ".ds-btn-outline { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; height:2.25rem; padding:0 1rem; border:1px solid var(--border, oklch(0.91 0.008 80)); border-radius:.625rem; background:var(--card, oklch(1 0 0)); color:var(--foreground, oklch(0.27 0.05 250)); font:500 .875rem/1 \"Inter Variable\", system-ui, sans-serif; box-shadow:0 1px 2px rgb(0 0 0 / 0.05); cursor:pointer; transition:background .15s, box-shadow .15s; } .ds-btn-outline:hover { background:var(--accent, oklch(0.955 0.012 70)); } .ds-btn-outline:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklch, var(--ring, oklch(0.58 0.132 38)) 50%, transparent); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard form field; terracotta focus ring, no layout shift.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search orders…\" />",
+      "css": ".ds-input { display:block; width:100%; height:2.25rem; padding:.25rem .75rem; border:1px solid var(--input, oklch(0.91 0.008 80)); border-radius:.625rem; background:transparent; color:var(--foreground, oklch(0.27 0.05 250)); font:400 .875rem/1.5 \"Inter Variable\", system-ui, sans-serif; box-shadow:0 1px 2px rgb(0 0 0 / 0.05); transition:color .15s, box-shadow .15s, border-color .15s; outline:none; } .ds-input::placeholder { color:var(--muted-foreground, oklch(0.52 0.02 255)); } .ds-input:focus-visible { border-color:var(--ring, oklch(0.58 0.132 38)); box-shadow:0 0 0 3px color-mix(in oklch, var(--ring, oklch(0.58 0.132 38)) 50%, transparent); } .ds-input[aria-invalid=\"true\"] { border-color:var(--destructive, oklch(0.585 0.22 27)); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Resting container — Card White, hairline border, soft shadow, generous padding.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Today’s revenue</div><div class=\"ds-card-desc\">All branches · Cairo time</div></div>",
+      "css": ".ds-card { display:flex; flex-direction:column; gap:.5rem; padding:1.5rem; border:1px solid var(--border, oklch(0.91 0.008 80)); border-radius:1rem; background:var(--card, oklch(1 0 0)); color:var(--card-foreground, oklch(0.27 0.05 250)); box-shadow:0 1px 3px rgb(0 0 0 / 0.08); } .ds-card-title { font:600 1.125rem/1.3 \"Inter Variable\", system-ui, sans-serif; } .ds-card-desc { font:400 .875rem/1.5 \"Inter Variable\", system-ui, sans-serif; color:var(--muted-foreground, oklch(0.52 0.02 255)); }"
+    },
+    {
+      "name": "Stat Card",
+      "kind": "custom",
+      "refersTo": "stat-card",
+      "description": "Signature KPI tile: tinted icon chip, label, large tabular value, signed trend. The 'trust the numbers' surface.",
+      "html": "<div class=\"ds-stat\"><div class=\"ds-stat-chip\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M18.09 10.37A6 6 0 1 1 10.34 18\"/><path d=\"M7 6h1v4\"/><path d=\"m16.71 13.88.7.71-2.82 2.82\"/></svg></div><div class=\"ds-stat-label\">Net revenue</div><div class=\"ds-stat-row\"><span class=\"ds-stat-value\">EGP 48,250</span><span class=\"ds-stat-trend\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 17 17 7\"/><path d=\"M7 7h10v10\"/></svg>12.3%</span></div></div>",
+      "css": ".ds-stat { display:flex; flex-direction:column; gap:.5rem; padding:1.5rem; border:1px solid var(--border, oklch(0.91 0.008 80)); border-radius:1rem; background:var(--card, oklch(1 0 0)); box-shadow:0 1px 3px rgb(0 0 0 / 0.08); min-width:13rem; } .ds-stat-chip { display:inline-flex; align-items:center; justify-content:center; width:2.25rem; height:2.25rem; border-radius:.625rem; background:color-mix(in oklch, var(--brand, oklch(0.58 0.132 38)) 10%, transparent); color:var(--brand, oklch(0.58 0.132 38)); } .ds-stat-label { font:500 .75rem/1.4 \"Inter Variable\", system-ui, sans-serif; color:var(--muted-foreground, oklch(0.52 0.02 255)); } .ds-stat-row { display:flex; align-items:baseline; gap:.5rem; } .ds-stat-value { font:600 1.5rem/1.1 \"Inter Variable\", system-ui, sans-serif; font-variant-numeric:tabular-nums; color:var(--foreground, oklch(0.27 0.05 250)); } .ds-stat-trend { display:inline-flex; align-items:center; gap:.125rem; font:500 .8125rem/1 \"Inter Variable\", system-ui, sans-serif; font-variant-numeric:tabular-nums; color:var(--success, oklch(0.55 0.1 160)); }"
+    },
+    {
+      "name": "Sidebar Nav Item (active)",
+      "kind": "nav",
+      "refersTo": "sidebar",
+      "description": "App rail item; active state marked with Terracotta Clay.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"9\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"5\"/><rect x=\"14\" y=\"12\" width=\"7\" height=\"9\"/><rect x=\"3\" y=\"16\" width=\"7\" height=\"5\"/></svg>Dashboard</a><a class=\"ds-nav-item ds-nav-item--active\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 7h14l-1 13H6z\"/><path d=\"M9 7a3 3 0 0 1 6 0\"/></svg>Orders</a></nav>",
+      "css": ".ds-nav { display:flex; flex-direction:column; gap:.125rem; padding:.5rem; width:14rem; background:var(--sidebar, oklch(0.975 0.005 85)); border-radius:.75rem; } .ds-nav-item { display:flex; align-items:center; gap:.625rem; padding:.5rem .75rem; border-radius:.625rem; color:var(--sidebar-foreground, oklch(0.37 0.035 255)); font:500 .875rem/1 \"Inter Variable\", system-ui, sans-serif; text-decoration:none; transition:background .15s, color .15s; } .ds-nav-item:hover { background:var(--sidebar-accent, oklch(0.93 0.014 65)); color:var(--sidebar-accent-foreground, oklch(0.27 0.05 250)); } .ds-nav-item--active { background:color-mix(in oklch, var(--sidebar-primary, oklch(0.58 0.132 38)) 12%, transparent); color:var(--sidebar-primary, oklch(0.58 0.132 38)); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Warm Ledger",
+    "overview": "Sufrix is an honest accounting book bound in warm materials. Every figure is precise, auditable, and ledger-true — orders, shifts, and inventory are append-only, so the interface never implies a mutation the system can't make. But the surface is hospitable, not clinical: a tool for someone's livelihood in F&B that should feel like the warm front counter of a good coffee shop, not a grey ERP terminal. The system speaks in two volumes by register: quiet, restrained, precise in the authenticated dashboard (product); bold and editorial on the customer surfaces (brand) carried by the Fraunces serif and confident terracotta. Everything is bilingual by symmetry — Arabic is a peer of English, with logical-property layouts, ar-EG numerals, and Cairo-anchored dates.",
+    "keyCharacteristics": [
+      "Ledger-honest — append-only reality reflected in the UI; no fake edit/delete affordances.",
+      "Warm precision — navy/terracotta/cream warmth over tabular-number accuracy.",
+      "Two volumes, one system — restrained product UI, bold editorial brand surfaces.",
+      "Bilingual by symmetry — EN/AR parity, logical properties, ar-EG numerals, Cairo dates.",
+      "Token-driven — semantic OKLCH tokens; class-driven dark mode; no hardcoded color."
+    ],
+    "rules": [
+      { "name": "The One-Voice Accent Rule", "body": "Terracotta Clay is the single brand accent. On any dashboard screen it should touch ≤10% of the surface — a CTA, the active nav marker, a focus ring, the lead chart series. Its rarity is what makes it read as the action.", "section": "colors" },
+      { "name": "The Dark-Mode Inversion Rule", "body": "Navy is the light-mode primary; terracotta is the dark-mode primary. Brand panels must stay deep navy in dark mode and let terracotta live only in blurred accent glows.", "section": "colors" },
+      { "name": "The No-Color-Alone Rule", "body": "Status is never encoded in color alone. Pair every status color with an icon or label so it survives color-blindness and grayscale.", "section": "colors" },
+      { "name": "The Serif-Is-A-Guest Rule", "body": "Fraunces appears only on brand surfaces. It is forbidden in dashboard UI — labels, buttons, table cells, and data are always Inter.", "section": "typography" },
+      { "name": "The Fixed-Scale Rule", "body": "Dashboard type uses a fixed rem scale, never clamp(). Fluid type is a brand-surface privilege.", "section": "typography" },
+      { "name": "The Flat-Dashboard Rule", "body": "A dashboard surface never carries more than shadow-sm at rest. Elevation in the product is a response to state (hover, focus, open), not a resting decoration.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do consume semantic tokens (bg-background, text-foreground, bg-brand, bg-card) — never raw hex in components.",
+      "Do use logical properties everywhere (ps/pe, ms/me, start/end); every layout must flip cleanly for Arabic RTL.",
+      "Do keep Terracotta Clay to ≤10% of any dashboard screen (the One-Voice Accent Rule).",
+      "Do render money with the .tabular numeral utility and fmtMoney; respect piastres→EGP, ar-EG numerals, and Africa/Cairo dates.",
+      "Do reserve Fraunces for brand surfaces; use Inter for all dashboard UI.",
+      "Do pair every status color with an icon or label, and push body contrast toward AAA (≥7:1) on Linen Cream.",
+      "Do reflect the append-only ledger: surface voids, force-closes, and compensating reversals as first-class events.",
+      "Do give every interactive component its full state set and respect prefers-reduced-motion."
+    ],
+    "donts": [
+      "Don't drift Linen Cream into the generic SaaS-cream template: no gradient hero-metric cards, identical icon-card grids, or tiny tracked-uppercase eyebrows above every section.",
+      "Don't make discounts or delivery scream — no loud delivery-app neon, flashing promo banners, or garish discount badges.",
+      "Don't let the dashboard decay into an enterprise-grey snoozefest — density is welcome, deadness is not.",
+      "Don't go consumer toy-like — no bubbly oversized rounded shapes, no emoji-heavy UI.",
+      "Don't put a display serif, fluid clamp() heading, or decorative motion into dashboard data, labels, or buttons.",
+      "Don't float a resting card above shadow-sm, or flood a brand panel with full-saturation terracotta in dark mode.",
+      "Don't invent affordances for standard tasks; reach for inline/progressive patterns before a modal.",
+      "Don't imply a mutation the backend can't make — no fake 'edit' or 'delete' on orders, shifts, or inventory adjustments."
+    ]
+  }
+}

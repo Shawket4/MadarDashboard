@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useVoidOrder } from "@/data/api/generated/api";
+import { getGetOrderQueryKey, useVoidOrder } from "@/data/api/generated/api";
 import type { Order } from "@/data/api/generated/models";
 import { queryClient } from "@/data/api/query";
 import { getErrorMessage } from "@/data/api/errors";
@@ -39,9 +39,10 @@ export function VoidOrderDialog({ order, open, onOpenChange }: Props) {
 
   const { mutate, isPending } = useVoidOrder({
     mutation: {
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
         toast.success(t("orders.voided", "Order voided"));
         void queryClient.invalidateQueries({ queryKey: ["/orders"] });
+        void queryClient.invalidateQueries({ queryKey: getGetOrderQueryKey(variables.orderId) });
         onOpenChange(false);
         setReason("customer_request");
         setNote("");

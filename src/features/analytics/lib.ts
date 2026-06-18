@@ -15,5 +15,5 @@ export const tName = (name: string, translations: unknown, lang: string): string
   return name;
 };
 
-export type Granularity = "hourly" | "daily" | "monthly";
-export const GRANULARITIES: Granularity[] = ["hourly", "daily", "monthly"];
+export type Granularity = "peak_hours" | "daily" | "monthly";
+export const GRANULARITIES: Granularity[] = ["peak_hours", "daily", "monthly"];

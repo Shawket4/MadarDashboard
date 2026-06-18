@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, Boxes, CalendarClock, PackageCheck, ShoppingCart, Trash2, Truck, Wallet } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { StatCard } from "@/components/app/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -99,7 +99,9 @@ export function TodayPage() {
   if (!orgId) {
     return (
       <Page>
-        <PageHeader title={t("inventory.today.title", "Today")} />
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.today.title", "Today")}</h1>
+        </div>
         <EmptyState icon={Boxes} title={t("inventory.pickOrg", "Select an organization to manage inventory")} />
       </Page>
     );
@@ -107,7 +109,10 @@ export function TodayPage() {
 
   return (
     <Page>
-      <PageHeader title={t("inventory.today.title", "Today")} description={t("inventory.today.subtitle", "Your morning briefing: alerts, deliveries and counts due")} />
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.today.title", "Today")}</h1>
+        <p className="text-sm text-muted-foreground">{t("inventory.today.subtitle", "Your morning briefing: alerts, deliveries and counts due")}</p>
+      </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard

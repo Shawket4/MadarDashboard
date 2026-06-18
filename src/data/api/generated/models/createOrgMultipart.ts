@@ -16,4 +16,6 @@ export interface CreateOrgMultipart {
   slug: string;
   /** @nullable */
   tax_rate?: number | null;
+  /** @nullable */
+  timezone?: string | null;
 }

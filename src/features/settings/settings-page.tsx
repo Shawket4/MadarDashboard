@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, CreditCard, Languages, Monitor, Moon, Sun } from "lucide-react";
+import { ChevronRight, CreditCard, Languages, MessageCircle, Monitor, Moon, Sun } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -28,10 +28,13 @@ export function SettingsPage() {
   const language = useAppStore((s) => s.language);
   const setLanguage = useAppStore((s) => s.setLanguage);
   const canManagePayments = role === "org_admin" || role === "super_admin";
+  const isSuperAdmin = role === "super_admin";
 
   return (
     <Page>
-      <PageHeader title={t("nav.settings", "Settings")} />
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("nav.settings", "Settings")}</h1>
+      </div>
       <div className="mx-auto w-full max-w-2xl space-y-4">
         {user ? (
           <Card>
@@ -71,6 +74,20 @@ export function SettingsPage() {
                 <div className="flex items-center gap-4">
                   <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary"><CreditCard className="size-5" /></span>
                   <div><p className="text-sm font-bold">{t("settings.paymentMethods", "Payment Methods")}</p><p className="text-xs text-muted-foreground">{t("settings.paymentMethodsHint", "Manage payment methods available for checkout.")}</p></div>
+                </div>
+                <ChevronRight className="size-5 text-muted-foreground rtl:rotate-180" />
+              </Link>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {isSuperAdmin ? (
+          <Card>
+            <CardContent className="p-0">
+              <Link to="/settings/whatsapp" className="flex items-center justify-between p-5 transition-colors hover:bg-muted/50">
+                <div className="flex items-center gap-4">
+                  <span className="grid size-10 place-items-center rounded-lg bg-success/10 text-success"><MessageCircle className="size-5" /></span>
+                  <div><p className="text-sm font-bold">{t("settings.whatsapp", "WhatsApp")}</p><p className="text-xs text-muted-foreground">{t("settings.whatsappHint", "Link the number that sends delivery OTP and order updates.")}</p></div>
                 </div>
                 <ChevronRight className="size-5 text-muted-foreground rtl:rotate-180" />
               </Link>

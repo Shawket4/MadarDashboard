@@ -19,6 +19,11 @@ import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { invalidateInventory } from "./lib";
 
+// Branch cost (actual WAC) takes precedence over the org standard cost.
+function displayCost(branchItem: BranchInventoryItem | null, orgItem: OrgIngredient | null) {
+  return branchItem?.cost_per_unit ?? orgItem?.cost_per_unit ?? null;
+}
+
 interface Props {
   item: OrgIngredient | null;
   branchId: string | null;
@@ -33,13 +38,18 @@ interface Props {
 export function ItemDrawer({ item, branchId, branchItem, open, onOpenChange, onEdit, onLogWaste }: Props) {
   const { t } = useTranslation();
   const [stock, setStock] = useState("");
-  const [low, setLow] = useState("");
+  const [parMin, setParMin] = useState("");
+  const [parMax, setParMax] = useState("");
   const [savingAdjust, setSavingAdjust] = useState(false);
 
   useEffect(() => {
     if (open) {
       setStock(branchItem ? String(branchItem.current_stock) : "");
-      setLow(branchItem ? String(branchItem.reorder_threshold) : "");
+      // Prefer par_min if set, fall back to legacy reorder_threshold
+      setParMin(branchItem
+        ? branchItem.par_min != null ? String(branchItem.par_min) : String(branchItem.reorder_threshold)
+        : "");
+      setParMax(branchItem?.par_max != null ? String(branchItem.par_max) : "");
     }
   }, [open, branchItem]);
 
@@ -52,13 +62,14 @@ export function ItemDrawer({ item, branchId, branchItem, open, onOpenChange, onE
   const saveAdjust = async () => {
     if (!branchId || !item) return;
     const stockVal = stock.trim() === "" ? null : parseFloat(stock);
-    const lowVal = low.trim() === "" ? null : parseFloat(low);
+    const parMinVal = parMin.trim() === "" ? null : parseFloat(parMin);
+    const parMaxVal = parMax.trim() === "" ? null : parseFloat(parMax);
     setSavingAdjust(true);
     try {
       if (branchItem) {
-        await updateBranchStock(branchId, branchItem.id, { current_stock: stockVal, reorder_threshold: lowVal });
+        await updateBranchStock(branchId, branchItem.id, { current_stock: stockVal, par_min: parMinVal, par_max: parMaxVal });
       } else {
-        await addToBranchStock(branchId, { org_ingredient_id: item.id, current_stock: stockVal, reorder_threshold: lowVal });
+        await addToBranchStock(branchId, { org_ingredient_id: item.id, current_stock: stockVal, par_min: parMinVal, par_max: parMaxVal });
       }
       await invalidateInventory();
       toast.success(t("common.savedChanges", "Changes saved"));
@@ -80,7 +91,11 @@ export function ItemDrawer({ item, branchId, branchItem, open, onOpenChange, onE
           <SheetDescription>
             {item ? (
               <>
-                {t("inventory.catalog.costPerUnit", "Cost / unit")}: <span className="tabular">{fmtMoney(item.cost_per_unit)}</span>
+                {branchItem?.cost_per_unit != null
+                  ? t("inventory.catalog.branchCost", "Branch cost")
+                  : t("inventory.catalog.standardCost", "Standard cost")}
+                {": "}
+                <span className="tabular">{fmtMoney(displayCost(branchItem, item))}</span>
                 {item.supplier_name ? <> · {item.supplier_name}</> : null}
               </>
             ) : null}
@@ -91,15 +106,19 @@ export function ItemDrawer({ item, branchId, branchItem, open, onOpenChange, onE
           {/* Stock at current branch + inline adjust */}
           {branchId ? (
             <div className="space-y-2 rounded-lg border p-3">
-              <p className="text-sm font-medium">{t("inventory.adjust", "Adjust stock")}</p>
+              <p className="text-sm font-medium">{t("inventory.stockSettings", "Stock settings")}</p>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <Label className="text-xs">{t("inventory.catalog.onHand", "On hand")} ({fmtUnit(item?.unit)})</Label>
                   <Input type="number" step="0.0001" value={stock} onChange={(e) => setStock(e.target.value)} className="h-8 tabular" />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">{t("inventory.catalog.lowStockLevel", "Low-stock level")}</Label>
-                  <Input type="number" step="0.0001" value={low} onChange={(e) => setLow(e.target.value)} className="h-8 tabular" />
+                  <Label className="text-xs">{t("inventory.catalog.parMin", "Min par (reorder point)")}</Label>
+                  <Input type="number" step="0.0001" min="0" placeholder="—" value={parMin} onChange={(e) => setParMin(e.target.value)} className="h-8 tabular" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">{t("inventory.catalog.parMax", "Max par (order-up-to)")}</Label>
+                  <Input type="number" step="0.0001" min="0" placeholder="—" value={parMax} onChange={(e) => setParMax(e.target.value)} className="h-8 tabular" />
                 </div>
               </div>
               <Button size="sm" loading={savingAdjust} onClick={() => void saveAdjust()}>{t("common.save", "Save")}</Button>

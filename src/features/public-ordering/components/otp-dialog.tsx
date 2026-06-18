@@ -90,16 +90,16 @@ export function OtpDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[400px]">
         <div className="flex flex-col items-center text-center">
-          <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-brand/10 text-brand">
-            <ShieldCheck className="size-6" />
+          <span className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+            <ShieldCheck className="size-7" />
           </span>
-          <DialogTitle>{t("order.otp.title")}</DialogTitle>
-          <DialogDescription className="mt-1">
+          <DialogTitle className="font-serif text-xl">{t("order.otp.title")}</DialogTitle>
+          <DialogDescription className="mt-1 text-muted-foreground">
             {t("order.otp.sent", { phone })}
           </DialogDescription>
         </div>
 
-        <div dir="ltr" className="my-4 flex justify-center gap-2">
+        <div dir="ltr" className="my-5 flex justify-center gap-2.5">
           {digits.map((d, i) => (
             <input
               key={i}
@@ -114,9 +114,9 @@ export function OtpDialog({
               maxLength={CODE_LEN}
               aria-label={t("order.otp.code")}
               className={cn(
-                "size-12 rounded-xl border bg-background text-center text-xl font-bold tabular-nums outline-none transition-colors",
+                "size-14 rounded-xl border bg-card text-center text-2xl font-bold tabular-nums outline-none transition-colors",
                 "focus:border-brand focus:ring-2 focus:ring-brand/30",
-                error ? "border-destructive" : "border-border",
+                error ? "border-destructive" : "border-border/70",
               )}
             />
           ))}
@@ -125,6 +125,7 @@ export function OtpDialog({
         {error && <p className="text-center text-sm text-destructive">{error}</p>}
 
         <Button
+          variant="brand"
           className="w-full"
           size="lg"
           loading={verifying}
@@ -134,13 +135,24 @@ export function OtpDialog({
           {t("order.otp.verifyAndPlace")}
         </Button>
 
-        <div className="mt-1 flex items-center justify-center gap-4 text-sm">
-          <Button variant="link" size="sm" disabled={sending} onClick={onResend} className="h-auto p-0">
+        <div className="mt-3 flex items-center justify-center gap-4 text-sm">
+          <Button
+            variant="link"
+            size="sm"
+            disabled={sending}
+            onClick={onResend}
+            className="h-auto p-0 text-brand"
+          >
             {sending && <Loader2 className="size-3 animate-spin" />}
             {t("order.otp.resend")}
           </Button>
-          <span className="text-muted-foreground">·</span>
-          <Button variant="link" size="sm" onClick={onChangeNumber} className="h-auto p-0">
+          <span className="text-muted-foreground/60">·</span>
+          <Button
+            variant="link"
+            size="sm"
+            onClick={onChangeNumber}
+            className="h-auto p-0 text-muted-foreground"
+          >
             {t("order.otp.change")}
           </Button>
         </div>

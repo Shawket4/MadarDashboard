@@ -297,7 +297,7 @@ export const ListBranchesResponseItem = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
-  "timezone": zod.string().describe('IANA timezone name. Defaults to `Africa\/Cairo`.'),
+  "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
   "updated_at": zod.string().datetime({"offset":true})
 })
 export const ListBranchesResponse = zod.array(ListBranchesResponseItem)
@@ -314,7 +314,7 @@ export const CreateBranchBody = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish().describe('TCP port for the receipt printer. Defaults to `9100` if absent.'),
-  "timezone": zod.string().nullish().describe('IANA timezone name. Defaults to `Africa\/Cairo` if absent.')
+  "timezone": zod.string().nullish().describe('IANA timezone name. If absent, the branch inherits the org\'s timezone.')
 })
 
 
@@ -337,7 +337,7 @@ export const GetBranchResponse = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
-  "timezone": zod.string().describe('IANA timezone name. Defaults to `Africa\/Cairo`.'),
+  "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
   "updated_at": zod.string().datetime({"offset":true})
 })
 
@@ -375,7 +375,7 @@ export const UpdateBranchResponse = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
-  "timezone": zod.string().describe('IANA timezone name. Defaults to `Africa\/Cairo`.'),
+  "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
   "updated_at": zod.string().datetime({"offset":true})
 })
 
@@ -383,6 +383,100 @@ export const UpdateBranchResponse = zod.object({
 export const DeleteBranchParams = zod.object({
   "id": zod.string().uuid().describe('Branch ID')
 })
+
+
+export const BranchQrParams = zod.object({
+  "id": zod.string().uuid().describe('Branch ID')
+})
+
+export const branchQrQueryDpiMin = 0;
+
+export const branchQrQueryModulePxMin = 0;
+
+
+
+export const BranchQrQueryParams = zod.object({
+  "card": zod.boolean().optional().describe('`true` (default) → branded A6 card PNG; `false` → plain receipt QR PNG.'),
+  "caption": zod.string().optional().describe('Dynamic caption line beneath the tagline (A6 card only).'),
+  "dpi": zod.number().min(branchQrQueryDpiMin).optional().describe('Raster DPI for the A6 card (clamped 72–2400). Default 600.'),
+  "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
+  "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
+  "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
+  "module_px": zod.number().min(branchQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "slug": zod.string().optional(),
+  "place_name": zod.string().optional().describe('Shop or company name inside the mall (e.g. \"Starbucks Kiosk 3\").'),
+  "floor": zod.string().optional().describe('Floor (e.g. \"Ground Floor\").'),
+  "unit_number": zod.string().optional().describe('Unit or office number (e.g. \"Unit 42\").')
+})
+
+export const BranchQrResponse = zod.object({
+  "kind": zod.string(),
+  "long_url": zod.string(),
+  "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
+  "short_code": zod.string(),
+  "short_url": zod.string()
+}).describe('JSON returned from every QR-generation endpoint.')
+
+
+export const ListTablesParams = zod.object({
+  "id": zod.string().uuid().describe('Branch ID')
+})
+
+export const ListTablesResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "org_id": zod.string().uuid(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+export const ListTablesResponse = zod.array(ListTablesResponseItem)
+
+
+export const CreateTableParams = zod.object({
+  "id": zod.string().uuid().describe('Branch ID')
+})
+
+export const CreateTableBody = zod.object({
+  "label": zod.string()
+})
+
+
+export const DeleteTableParams = zod.object({
+  "id": zod.string().uuid().describe('Branch ID'),
+  "tid": zod.string().uuid().describe('Table ID')
+})
+
+
+export const TableQrParams = zod.object({
+  "id": zod.string().uuid().describe('Branch ID'),
+  "tid": zod.string().uuid().describe('Table ID')
+})
+
+export const tableQrQueryDpiMin = 0;
+
+export const tableQrQueryModulePxMin = 0;
+
+
+
+export const TableQrQueryParams = zod.object({
+  "card": zod.boolean().optional().describe('`true` (default) → branded A6 card PNG; `false` → plain receipt QR PNG.'),
+  "caption": zod.string().optional().describe('Dynamic caption line beneath the tagline (A6 card only).'),
+  "dpi": zod.number().min(tableQrQueryDpiMin).optional().describe('Raster DPI for the A6 card (clamped 72–2400). Default 600.'),
+  "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
+  "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
+  "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
+  "module_px": zod.number().min(tableQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+})
+
+export const TableQrResponse = zod.object({
+  "kind": zod.string(),
+  "long_url": zod.string(),
+  "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
+  "short_code": zod.string(),
+  "short_url": zod.string()
+}).describe('JSON returned from every QR-generation endpoint.')
 
 
 export const ListBundlesQueryParams = zod.object({
@@ -751,7 +845,8 @@ export const UpdateCategoryResponse = zod.object({
 
 
 export const ListAddonCostsQueryParams = zod.object({
-  "org_id": zod.string().uuid()
+  "org_id": zod.string().uuid(),
+  "branch_id": zod.string().uuid().nullish().describe('Optional: resolve costs at this branch\'s actual cost (falling back to the\norg default per ingredient). Omit for the org default \/ standard cost.')
 })
 
 export const ListAddonCostsResponseItem = zod.object({
@@ -818,7 +913,8 @@ export const ListMenuCatalogResponse = zod.object({
 
 
 export const ListSkuCostsQueryParams = zod.object({
-  "org_id": zod.string().uuid()
+  "org_id": zod.string().uuid(),
+  "branch_id": zod.string().uuid().nullish().describe('Optional: resolve costs at this branch\'s actual cost (falling back to the\norg default per ingredient). Omit for the org default \/ standard cost.')
 })
 
 export const ListSkuCostsResponseItem = zod.object({
@@ -1129,12 +1225,41 @@ export const SetPrepTimeResponse = zod.object({
 })
 
 
+export const DeliveryOrderQrParams = zod.object({
+  "id": zod.string().uuid().describe('Delivery order ID')
+})
+
+export const deliveryOrderQrQueryDpiMin = 0;
+
+export const deliveryOrderQrQueryModulePxMin = 0;
+
+
+
+export const DeliveryOrderQrQueryParams = zod.object({
+  "card": zod.boolean().optional().describe('`true` (default) → branded A6 card PNG; `false` → plain receipt QR PNG.'),
+  "caption": zod.string().optional().describe('Dynamic caption line beneath the tagline (A6 card only).'),
+  "dpi": zod.number().min(deliveryOrderQrQueryDpiMin).optional().describe('Raster DPI for the A6 card (clamped 72–2400). Default 600.'),
+  "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
+  "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
+  "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
+  "module_px": zod.number().min(deliveryOrderQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+})
+
+export const DeliveryOrderQrResponse = zod.object({
+  "kind": zod.string(),
+  "long_url": zod.string(),
+  "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
+  "short_code": zod.string(),
+  "short_url": zod.string()
+}).describe('JSON returned from every QR-generation endpoint.')
+
+
 export const SetStatusParams = zod.object({
   "id": zod.string().uuid()
 })
 
 export const SetStatusBody = zod.object({
-  "status": zod.string().describe('\"confirmed\" | \"preparing\" | \"ready\" | \"out_for_delivery\"')
+  "status": zod.string().describe('Target line step: \"confirmed\" | \"preparing\" | \"ready\" | \"out_for_delivery\".\nThe teller may jump to ANY of these from any non-terminal state (forward or\nback); the landed step is stamped and all other step stamps are cleared, and\nat most one customer WhatsApp fires (the last newly-crossed step that has one).')
 })
 
 export const SetStatusResponse = zod.object({
@@ -1199,7 +1324,9 @@ export const SetAcceptingResponse = zod.object({
   "in_mall_fee": zod.number(),
   "in_mall_open_time": zod.string().nullish(),
   "in_mall_override": zod.string(),
+  "in_mall_require_location": zod.boolean().describe('When false, in-mall orders may be placed without a device GPS location\n(\"confirm you\'re at the branch\"). Shop\/company + floor + unit are always\nrequired regardless. Default true.'),
   "max_road_distance_meters": zod.number().nullish(),
+  "otp_required": zod.boolean().describe('When false, the public checkout skips OTP phone verification for this\nbranch and accepts orders without a device token. Default true.'),
   "outside_close_time": zod.string().nullish(),
   "outside_discount_id": zod.string().uuid().nullish(),
   "outside_enabled": zod.boolean(),
@@ -1299,7 +1426,9 @@ export const GetBranchSettingsResponse = zod.object({
   "in_mall_fee": zod.number(),
   "in_mall_open_time": zod.string().nullish(),
   "in_mall_override": zod.string(),
+  "in_mall_require_location": zod.boolean().describe('When false, in-mall orders may be placed without a device GPS location\n(\"confirm you\'re at the branch\"). Shop\/company + floor + unit are always\nrequired regardless. Default true.'),
   "max_road_distance_meters": zod.number().nullish(),
+  "otp_required": zod.boolean().describe('When false, the public checkout skips OTP phone verification for this\nbranch and accepts orders without a device token. Default true.'),
   "outside_close_time": zod.string().nullish(),
   "outside_discount_id": zod.string().uuid().nullish(),
   "outside_enabled": zod.boolean(),
@@ -1316,7 +1445,9 @@ export const PutBranchSettingsBody = zod.object({
   "in_mall_enabled": zod.boolean(),
   "in_mall_fee": zod.number(),
   "in_mall_open_time": zod.string().nullish(),
+  "in_mall_require_location": zod.boolean().optional().describe('When false, in-mall orders are accepted without a device GPS location.\nDefaults to true so an omitting client keeps the location check on.'),
   "max_road_distance_meters": zod.number().nullish(),
+  "otp_required": zod.boolean().optional().describe('When false, the public checkout skips OTP for this branch. Defaults to\ntrue so an omitting client keeps verification on.'),
   "outside_close_time": zod.string().nullish(),
   "outside_discount_id": zod.string().uuid().nullish(),
   "outside_enabled": zod.boolean(),
@@ -1332,7 +1463,9 @@ export const PutBranchSettingsResponse = zod.object({
   "in_mall_fee": zod.number(),
   "in_mall_open_time": zod.string().nullish(),
   "in_mall_override": zod.string(),
+  "in_mall_require_location": zod.boolean().describe('When false, in-mall orders may be placed without a device GPS location\n(\"confirm you\'re at the branch\"). Shop\/company + floor + unit are always\nrequired regardless. Default true.'),
   "max_road_distance_meters": zod.number().nullish(),
+  "otp_required": zod.boolean().describe('When false, the public checkout skips OTP phone verification for this\nbranch and accepts orders without a device token. Default true.'),
   "outside_close_time": zod.string().nullish(),
   "outside_discount_id": zod.string().uuid().nullish(),
   "outside_enabled": zod.boolean(),
@@ -1475,39 +1608,6 @@ export const UpdateDiscountResponse = zod.object({
 })
 
 
-export const ListAdjustmentsParams = zod.object({
-  "branch_id": zod.string().uuid().describe('Branch ID')
-})
-
-export const ListAdjustmentsResponseItem = zod.object({
-  "adjusted_by": zod.string().uuid(),
-  "adjusted_by_name": zod.string(),
-  "adjustment_type": zod.string(),
-  "branch_id": zod.string().uuid(),
-  "branch_inventory_id": zod.string().uuid(),
-  "created_at": zod.string().datetime({"offset":true}),
-  "id": zod.string().uuid(),
-  "ingredient_name": zod.string(),
-  "note": zod.string(),
-  "quantity": zod.number(),
-  "transfer_id": zod.string().uuid().nullish(),
-  "unit": zod.string()
-})
-export const ListAdjustmentsResponse = zod.array(ListAdjustmentsResponseItem)
-
-
-export const CreateAdjustmentParams = zod.object({
-  "branch_id": zod.string().uuid().describe('Branch ID')
-})
-
-export const CreateAdjustmentBody = zod.object({
-  "adjustment_type": zod.string(),
-  "branch_inventory_id": zod.string().uuid(),
-  "note": zod.string(),
-  "quantity": zod.number()
-})
-
-
 export const ListMovementsParams = zod.object({
   "branch_id": zod.string().uuid().describe('Branch ID')
 })
@@ -1560,6 +1660,8 @@ export const ListBranchStockResponseItem = zod.object({
   "ingredient_name": zod.string(),
   "last_counted_at": zod.string().datetime({"offset":true}).nullish().describe('When this item was last reconciled by a finalized stock count; `null` =\nnever counted. Drives the \"count due\" signal on the inventory home.'),
   "org_ingredient_id": zod.string().uuid(),
+  "par_max": zod.number().nullish().describe('Order-up-to level (bring stock back up to this when reordering).'),
+  "par_min": zod.number().nullish().describe('Reorder point (order when on-hand ≤ this). Falls back to reorder_threshold.'),
   "reorder_threshold": zod.number(),
   "unit": zod.string(),
   "updated_at": zod.string().datetime({"offset":true})
@@ -1574,6 +1676,8 @@ export const AddToBranchStockParams = zod.object({
 export const AddToBranchStockBody = zod.object({
   "current_stock": zod.number().nullish(),
   "org_ingredient_id": zod.string().uuid(),
+  "par_max": zod.number().nullish(),
+  "par_min": zod.number().nullish(),
   "reorder_threshold": zod.number().nullish()
 })
 
@@ -1591,6 +1695,8 @@ export const UpdateBranchStockParams = zod.object({
 
 export const UpdateBranchStockBody = zod.object({
   "current_stock": zod.number().nullish(),
+  "par_max": zod.number().nullish(),
+  "par_min": zod.number().nullish(),
   "reorder_threshold": zod.number().nullish()
 })
 
@@ -1605,6 +1711,8 @@ export const UpdateBranchStockResponse = zod.object({
   "ingredient_name": zod.string(),
   "last_counted_at": zod.string().datetime({"offset":true}).nullish().describe('When this item was last reconciled by a finalized stock count; `null` =\nnever counted. Drives the \"count due\" signal on the inventory home.'),
   "org_ingredient_id": zod.string().uuid(),
+  "par_max": zod.number().nullish().describe('Order-up-to level (bring stock back up to this when reordering).'),
+  "par_min": zod.number().nullish().describe('Reorder point (order when on-hand ≤ this). Falls back to reorder_threshold.'),
   "reorder_threshold": zod.number(),
   "unit": zod.string(),
   "updated_at": zod.string().datetime({"offset":true})
@@ -1616,7 +1724,9 @@ export const ListTransfersParams = zod.object({
 })
 
 export const ListTransfersQueryParams = zod.object({
-  "direction": zod.string().optional()
+  "direction": zod.string().optional(),
+  "limit": zod.number().optional(),
+  "offset": zod.number().optional()
 })
 
 export const ListTransfersResponseItem = zod.object({
@@ -1674,7 +1784,7 @@ export const CreateWasteBody = zod.object({
   "note": zod.string().nullish(),
   "org_ingredient_id": zod.string().uuid(),
   "quantity": zod.number(),
-  "reason": zod.string().describe('expired | spoiled | damaged | overproduction | theft | other')
+  "reason": zod.string().describe('expired | spoiled | damaged | overproduction | order_cancelled | theft | other\n(`order_cancelled` is normally auto-logged by void\/cancel, not entered here)')
 })
 
 
@@ -1686,15 +1796,19 @@ export const ListCatalogResponseItem = zod.object({
   "category": zod.string(),
   "cost_per_unit": zod.number().nullish().describe('Piastres per unit. `null` ⟺ never entered (unknown, NOT free) —\nrecipes using this ingredient are cost-missing everywhere.'),
   "created_at": zod.string().datetime({"offset":true}),
+  "density_g_per_ml": zod.number().nullish().describe('Grams per millilitre, bridging weight↔volume in recipes; `null` = none.'),
   "description": zod.string().nullish(),
   "id": zod.string().uuid(),
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.string().uuid(),
+  "pack_size": zod.number().nullish().describe('How many BASE STOCK units one `pack_unit` yields; `null` = none.'),
+  "pack_unit": zod.string().nullish().describe('Named purchase pack (e.g. \"case\", \"sack\"); `null` = none.'),
   "supplier_id": zod.string().uuid().nullish().describe('Default supplier for reordering this ingredient; `null` = none set.'),
   "supplier_name": zod.string().nullish(),
   "unit": zod.string(),
-  "updated_at": zod.string().datetime({"offset":true})
+  "updated_at": zod.string().datetime({"offset":true}),
+  "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%. Recipe\nquantities are grossed up by this at save time.')
 })
 export const ListCatalogResponse = zod.array(ListCatalogResponseItem)
 
@@ -1706,10 +1820,14 @@ export const CreateCatalogItemParams = zod.object({
 export const CreateCatalogItemBody = zod.object({
   "category": zod.string(),
   "cost_per_unit": zod.number().nullish(),
+  "density_g_per_ml": zod.number().nullish(),
   "description": zod.string().nullish(),
   "name": zod.string(),
+  "pack_size": zod.number().nullish(),
+  "pack_unit": zod.string().nullish().describe('Optional named purchase pack and its base-unit size.'),
   "supplier_id": zod.string().uuid().nullish().describe('Optional default supplier for reordering.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "yield_pct": zod.number().nullish()
 })
 
 
@@ -1727,26 +1845,34 @@ export const UpdateCatalogItemParams = zod.object({
 export const UpdateCatalogItemBody = zod.object({
   "category": zod.string().nullish(),
   "cost_per_unit": zod.number().nullish(),
+  "density_g_per_ml": zod.number().nullish(),
   "description": zod.string().nullish(),
   "is_active": zod.boolean().nullish(),
   "name": zod.string().nullish(),
+  "pack_size": zod.number().nullish(),
+  "pack_unit": zod.string().nullish(),
   "supplier_id": zod.string().uuid().nullish().describe('Set\/replace the default supplier. (Omitted = unchanged; clearing to\nnone is not supported via this field.)'),
-  "unit": zod.string().nullish()
+  "unit": zod.string().nullish(),
+  "yield_pct": zod.number().nullish()
 })
 
 export const UpdateCatalogItemResponse = zod.object({
   "category": zod.string(),
   "cost_per_unit": zod.number().nullish().describe('Piastres per unit. `null` ⟺ never entered (unknown, NOT free) —\nrecipes using this ingredient are cost-missing everywhere.'),
   "created_at": zod.string().datetime({"offset":true}),
+  "density_g_per_ml": zod.number().nullish().describe('Grams per millilitre, bridging weight↔volume in recipes; `null` = none.'),
   "description": zod.string().nullish(),
   "id": zod.string().uuid(),
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.string().uuid(),
+  "pack_size": zod.number().nullish().describe('How many BASE STOCK units one `pack_unit` yields; `null` = none.'),
+  "pack_unit": zod.string().nullish().describe('Named purchase pack (e.g. \"case\", \"sack\"); `null` = none.'),
   "supplier_id": zod.string().uuid().nullish().describe('Default supplier for reordering this ingredient; `null` = none set.'),
   "supplier_name": zod.string().nullish(),
   "unit": zod.string(),
-  "updated_at": zod.string().datetime({"offset":true})
+  "updated_at": zod.string().datetime({"offset":true}),
+  "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%. Recipe\nquantities are grossed up by this at save time.')
 })
 
 
@@ -2082,73 +2208,73 @@ export const GetActiveRunHandlerParams = zod.object({
   "branch_id": zod.string().uuid().describe('Branch ID')
 })
 
-export const getActiveRunHandlerResponseConfigAnalysisWindowDaysDefault = 30;
-export const getActiveRunHandlerResponseConfigBundleDiscountPctRangeDefault = [0.1, 0.25];
-export const getActiveRunHandlerResponseConfigBundleMaxSizeDefault = 3;
-export const getActiveRunHandlerResponseConfigBundleMaxSizeMin = 0;
+export const getActiveRunHandlerResponseTwoConfigAnalysisWindowDaysDefault = 30;
+export const getActiveRunHandlerResponseTwoConfigBundleDiscountPctRangeDefault = [0.1, 0.25];
+export const getActiveRunHandlerResponseTwoConfigBundleMaxSizeDefault = 3;
+export const getActiveRunHandlerResponseTwoConfigBundleMaxSizeMin = 0;
 
-export const getActiveRunHandlerResponseConfigBundleTopKPartnersDefault = 5;
-export const getActiveRunHandlerResponseConfigBundleTopKPartnersMin = 0;
+export const getActiveRunHandlerResponseTwoConfigBundleTopKPartnersDefault = 5;
+export const getActiveRunHandlerResponseTwoConfigBundleTopKPartnersMin = 0;
 
-export const getActiveRunHandlerResponseConfigBundleTopNPerFocusDefault = 3;
-export const getActiveRunHandlerResponseConfigBundleTopNPerFocusMin = 0;
+export const getActiveRunHandlerResponseTwoConfigBundleTopNPerFocusDefault = 3;
+export const getActiveRunHandlerResponseTwoConfigBundleTopNPerFocusMin = 0;
 
-export const getActiveRunHandlerResponseConfigHaloRepeatRateDefault = 0.15;
-export const getActiveRunHandlerResponseConfigMaxPriceChangePctPerCycleDefault = 0.15;
-export const getActiveRunHandlerResponseConfigMinCooccurrencesForBundleDefault = 8;
-export const getActiveRunHandlerResponseConfigMinGrossMarginPctDefault = 0.55;
-export const getActiveRunHandlerResponseConfigMinLiftForBundleDefault = 1.2;
-export const getActiveRunHandlerResponseConfigMinUnitsForClassificationDefault = 20;
-export const getActiveRunHandlerResponseConfigPriceRoundingRuleDefault = `EgyptianCafe`;
-export const getActiveRunHandlerResponseConfigPromotionLiftPriorDefault = 1.25;
-export const getActiveRunHandlerResponseConfigRecencyHalfLifeDaysDefault = 14;
-export const getActiveRunHandlerResponseConfigRevenueModeMaxRaisePctDefault = 0.05;
-export const getActiveRunHandlerResponseConfigTargetFoodCostPctDefault = 0.3;
-export const getActiveRunHandlerResponseModeSummaryItemsCmTrackedMin = 0;
+export const getActiveRunHandlerResponseTwoConfigHaloRepeatRateDefault = 0.15;
+export const getActiveRunHandlerResponseTwoConfigMaxPriceChangePctPerCycleDefault = 0.15;
+export const getActiveRunHandlerResponseTwoConfigMinCooccurrencesForBundleDefault = 8;
+export const getActiveRunHandlerResponseTwoConfigMinGrossMarginPctDefault = 0.55;
+export const getActiveRunHandlerResponseTwoConfigMinLiftForBundleDefault = 1.2;
+export const getActiveRunHandlerResponseTwoConfigMinUnitsForClassificationDefault = 20;
+export const getActiveRunHandlerResponseTwoConfigPriceRoundingRuleDefault = `EgyptianCafe`;
+export const getActiveRunHandlerResponseTwoConfigPromotionLiftPriorDefault = 1.25;
+export const getActiveRunHandlerResponseTwoConfigRecencyHalfLifeDaysDefault = 14;
+export const getActiveRunHandlerResponseTwoConfigRevenueModeMaxRaisePctDefault = 0.05;
+export const getActiveRunHandlerResponseTwoConfigTargetFoodCostPctDefault = 0.3;
+export const getActiveRunHandlerResponseTwoModeSummaryItemsCmTrackedMin = 0;
 
-export const getActiveRunHandlerResponseModeSummaryItemsInsufficientMin = 0;
+export const getActiveRunHandlerResponseTwoModeSummaryItemsInsufficientMin = 0;
 
-export const getActiveRunHandlerResponseModeSummaryItemsRevenueOnlyMin = 0;
+export const getActiveRunHandlerResponseTwoModeSummaryItemsRevenueOnlyMin = 0;
 
-export const getActiveRunHandlerResponseModeSummaryItemsTotalMin = 0;
+export const getActiveRunHandlerResponseTwoModeSummaryItemsTotalMin = 0;
 
 
 
-export const GetActiveRunHandlerResponse = zod.object({
+export const GetActiveRunHandlerResponse = zod.union([zod.null(),zod.object({
   "branch_id": zod.string().uuid(),
   "completed_at": zod.string().datetime({"offset":true}).nullish(),
   "config": zod.object({
-  "analysis_window_days": zod.number().default(getActiveRunHandlerResponseConfigAnalysisWindowDaysDefault),
+  "analysis_window_days": zod.number().default(getActiveRunHandlerResponseTwoConfigAnalysisWindowDaysDefault),
   "bundle_discount_pct_range": zod.tuple([zod.number(),
-zod.number()]).default(getActiveRunHandlerResponseConfigBundleDiscountPctRangeDefault),
-  "bundle_max_size": zod.number().min(getActiveRunHandlerResponseConfigBundleMaxSizeMin).default(getActiveRunHandlerResponseConfigBundleMaxSizeDefault),
-  "bundle_top_k_partners": zod.number().min(getActiveRunHandlerResponseConfigBundleTopKPartnersMin).default(getActiveRunHandlerResponseConfigBundleTopKPartnersDefault),
-  "bundle_top_n_per_focus": zod.number().min(getActiveRunHandlerResponseConfigBundleTopNPerFocusMin).default(getActiveRunHandlerResponseConfigBundleTopNPerFocusDefault),
-  "halo_repeat_rate": zod.number().default(getActiveRunHandlerResponseConfigHaloRepeatRateDefault),
-  "max_price_change_pct_per_cycle": zod.number().default(getActiveRunHandlerResponseConfigMaxPriceChangePctPerCycleDefault),
-  "min_cooccurrences_for_bundle": zod.number().default(getActiveRunHandlerResponseConfigMinCooccurrencesForBundleDefault),
-  "min_gross_margin_pct": zod.number().default(getActiveRunHandlerResponseConfigMinGrossMarginPctDefault),
-  "min_lift_for_bundle": zod.number().default(getActiveRunHandlerResponseConfigMinLiftForBundleDefault),
-  "min_units_for_classification": zod.number().default(getActiveRunHandlerResponseConfigMinUnitsForClassificationDefault),
-  "price_rounding_rule": zod.enum(['EgyptianCafe', 'NearestUnit']).describe('Serializes as `\"EgyptianCafe\"` \/ `\"NearestUnit\"` — PascalCase on the wire\n(no `rename_all`); existing clients depend on it.').default(getActiveRunHandlerResponseConfigPriceRoundingRuleDefault),
-  "promotion_lift_prior": zod.number().default(getActiveRunHandlerResponseConfigPromotionLiftPriorDefault),
-  "recency_half_life_days": zod.number().default(getActiveRunHandlerResponseConfigRecencyHalfLifeDaysDefault),
-  "revenue_mode_max_raise_pct": zod.number().default(getActiveRunHandlerResponseConfigRevenueModeMaxRaisePctDefault).describe('Conservative max-raise cap for revenue-only items (no margin floor to\nguard against).'),
-  "target_food_cost_pct": zod.number().default(getActiveRunHandlerResponseConfigTargetFoodCostPctDefault)
+zod.number()]).default(getActiveRunHandlerResponseTwoConfigBundleDiscountPctRangeDefault),
+  "bundle_max_size": zod.number().min(getActiveRunHandlerResponseTwoConfigBundleMaxSizeMin).default(getActiveRunHandlerResponseTwoConfigBundleMaxSizeDefault),
+  "bundle_top_k_partners": zod.number().min(getActiveRunHandlerResponseTwoConfigBundleTopKPartnersMin).default(getActiveRunHandlerResponseTwoConfigBundleTopKPartnersDefault),
+  "bundle_top_n_per_focus": zod.number().min(getActiveRunHandlerResponseTwoConfigBundleTopNPerFocusMin).default(getActiveRunHandlerResponseTwoConfigBundleTopNPerFocusDefault),
+  "halo_repeat_rate": zod.number().default(getActiveRunHandlerResponseTwoConfigHaloRepeatRateDefault),
+  "max_price_change_pct_per_cycle": zod.number().default(getActiveRunHandlerResponseTwoConfigMaxPriceChangePctPerCycleDefault),
+  "min_cooccurrences_for_bundle": zod.number().default(getActiveRunHandlerResponseTwoConfigMinCooccurrencesForBundleDefault),
+  "min_gross_margin_pct": zod.number().default(getActiveRunHandlerResponseTwoConfigMinGrossMarginPctDefault),
+  "min_lift_for_bundle": zod.number().default(getActiveRunHandlerResponseTwoConfigMinLiftForBundleDefault),
+  "min_units_for_classification": zod.number().default(getActiveRunHandlerResponseTwoConfigMinUnitsForClassificationDefault),
+  "price_rounding_rule": zod.enum(['EgyptianCafe', 'NearestUnit']).describe('Serializes as `\"EgyptianCafe\"` \/ `\"NearestUnit\"` — PascalCase on the wire\n(no `rename_all`); existing clients depend on it.').default(getActiveRunHandlerResponseTwoConfigPriceRoundingRuleDefault),
+  "promotion_lift_prior": zod.number().default(getActiveRunHandlerResponseTwoConfigPromotionLiftPriorDefault),
+  "recency_half_life_days": zod.number().default(getActiveRunHandlerResponseTwoConfigRecencyHalfLifeDaysDefault),
+  "revenue_mode_max_raise_pct": zod.number().default(getActiveRunHandlerResponseTwoConfigRevenueModeMaxRaisePctDefault).describe('Conservative max-raise cap for revenue-only items (no margin floor to\nguard against).'),
+  "target_food_cost_pct": zod.number().default(getActiveRunHandlerResponseTwoConfigTargetFoodCostPctDefault)
 }).describe('`#[serde(default)]` lets clients send partial configs; missing fields\ntake the values below. Output serialization is unaffected.'),
   "error_message": zod.string().nullish(),
   "id": zod.string().uuid(),
   "mode_summary": zod.object({
-  "items_cm_tracked": zod.number().min(getActiveRunHandlerResponseModeSummaryItemsCmTrackedMin),
-  "items_insufficient": zod.number().min(getActiveRunHandlerResponseModeSummaryItemsInsufficientMin),
-  "items_revenue_only": zod.number().min(getActiveRunHandlerResponseModeSummaryItemsRevenueOnlyMin),
-  "items_total": zod.number().min(getActiveRunHandlerResponseModeSummaryItemsTotalMin)
+  "items_cm_tracked": zod.number().min(getActiveRunHandlerResponseTwoModeSummaryItemsCmTrackedMin),
+  "items_insufficient": zod.number().min(getActiveRunHandlerResponseTwoModeSummaryItemsInsufficientMin),
+  "items_revenue_only": zod.number().min(getActiveRunHandlerResponseTwoModeSummaryItemsRevenueOnlyMin),
+  "items_total": zod.number().min(getActiveRunHandlerResponseTwoModeSummaryItemsTotalMin)
 }),
   "org_id": zod.string().uuid(),
   "started_at": zod.string().datetime({"offset":true}),
   "status": zod.enum(['in_progress', 'completed', 'failed']),
   "window_days": zod.number()
-})
+})])
 
 
 export const GetLatestRunHandlerParams = zod.object({
@@ -2159,73 +2285,73 @@ export const GetLatestRunHandlerQueryParams = zod.object({
   "any_status": zod.boolean().optional().describe('When true, return the latest run regardless of status so the client\ncan show failed runs (error_message) instead of an empty state.')
 })
 
-export const getLatestRunHandlerResponseConfigAnalysisWindowDaysDefault = 30;
-export const getLatestRunHandlerResponseConfigBundleDiscountPctRangeDefault = [0.1, 0.25];
-export const getLatestRunHandlerResponseConfigBundleMaxSizeDefault = 3;
-export const getLatestRunHandlerResponseConfigBundleMaxSizeMin = 0;
+export const getLatestRunHandlerResponseTwoConfigAnalysisWindowDaysDefault = 30;
+export const getLatestRunHandlerResponseTwoConfigBundleDiscountPctRangeDefault = [0.1, 0.25];
+export const getLatestRunHandlerResponseTwoConfigBundleMaxSizeDefault = 3;
+export const getLatestRunHandlerResponseTwoConfigBundleMaxSizeMin = 0;
 
-export const getLatestRunHandlerResponseConfigBundleTopKPartnersDefault = 5;
-export const getLatestRunHandlerResponseConfigBundleTopKPartnersMin = 0;
+export const getLatestRunHandlerResponseTwoConfigBundleTopKPartnersDefault = 5;
+export const getLatestRunHandlerResponseTwoConfigBundleTopKPartnersMin = 0;
 
-export const getLatestRunHandlerResponseConfigBundleTopNPerFocusDefault = 3;
-export const getLatestRunHandlerResponseConfigBundleTopNPerFocusMin = 0;
+export const getLatestRunHandlerResponseTwoConfigBundleTopNPerFocusDefault = 3;
+export const getLatestRunHandlerResponseTwoConfigBundleTopNPerFocusMin = 0;
 
-export const getLatestRunHandlerResponseConfigHaloRepeatRateDefault = 0.15;
-export const getLatestRunHandlerResponseConfigMaxPriceChangePctPerCycleDefault = 0.15;
-export const getLatestRunHandlerResponseConfigMinCooccurrencesForBundleDefault = 8;
-export const getLatestRunHandlerResponseConfigMinGrossMarginPctDefault = 0.55;
-export const getLatestRunHandlerResponseConfigMinLiftForBundleDefault = 1.2;
-export const getLatestRunHandlerResponseConfigMinUnitsForClassificationDefault = 20;
-export const getLatestRunHandlerResponseConfigPriceRoundingRuleDefault = `EgyptianCafe`;
-export const getLatestRunHandlerResponseConfigPromotionLiftPriorDefault = 1.25;
-export const getLatestRunHandlerResponseConfigRecencyHalfLifeDaysDefault = 14;
-export const getLatestRunHandlerResponseConfigRevenueModeMaxRaisePctDefault = 0.05;
-export const getLatestRunHandlerResponseConfigTargetFoodCostPctDefault = 0.3;
-export const getLatestRunHandlerResponseModeSummaryItemsCmTrackedMin = 0;
+export const getLatestRunHandlerResponseTwoConfigHaloRepeatRateDefault = 0.15;
+export const getLatestRunHandlerResponseTwoConfigMaxPriceChangePctPerCycleDefault = 0.15;
+export const getLatestRunHandlerResponseTwoConfigMinCooccurrencesForBundleDefault = 8;
+export const getLatestRunHandlerResponseTwoConfigMinGrossMarginPctDefault = 0.55;
+export const getLatestRunHandlerResponseTwoConfigMinLiftForBundleDefault = 1.2;
+export const getLatestRunHandlerResponseTwoConfigMinUnitsForClassificationDefault = 20;
+export const getLatestRunHandlerResponseTwoConfigPriceRoundingRuleDefault = `EgyptianCafe`;
+export const getLatestRunHandlerResponseTwoConfigPromotionLiftPriorDefault = 1.25;
+export const getLatestRunHandlerResponseTwoConfigRecencyHalfLifeDaysDefault = 14;
+export const getLatestRunHandlerResponseTwoConfigRevenueModeMaxRaisePctDefault = 0.05;
+export const getLatestRunHandlerResponseTwoConfigTargetFoodCostPctDefault = 0.3;
+export const getLatestRunHandlerResponseTwoModeSummaryItemsCmTrackedMin = 0;
 
-export const getLatestRunHandlerResponseModeSummaryItemsInsufficientMin = 0;
+export const getLatestRunHandlerResponseTwoModeSummaryItemsInsufficientMin = 0;
 
-export const getLatestRunHandlerResponseModeSummaryItemsRevenueOnlyMin = 0;
+export const getLatestRunHandlerResponseTwoModeSummaryItemsRevenueOnlyMin = 0;
 
-export const getLatestRunHandlerResponseModeSummaryItemsTotalMin = 0;
+export const getLatestRunHandlerResponseTwoModeSummaryItemsTotalMin = 0;
 
 
 
-export const GetLatestRunHandlerResponse = zod.object({
+export const GetLatestRunHandlerResponse = zod.union([zod.null(),zod.object({
   "branch_id": zod.string().uuid(),
   "completed_at": zod.string().datetime({"offset":true}).nullish(),
   "config": zod.object({
-  "analysis_window_days": zod.number().default(getLatestRunHandlerResponseConfigAnalysisWindowDaysDefault),
+  "analysis_window_days": zod.number().default(getLatestRunHandlerResponseTwoConfigAnalysisWindowDaysDefault),
   "bundle_discount_pct_range": zod.tuple([zod.number(),
-zod.number()]).default(getLatestRunHandlerResponseConfigBundleDiscountPctRangeDefault),
-  "bundle_max_size": zod.number().min(getLatestRunHandlerResponseConfigBundleMaxSizeMin).default(getLatestRunHandlerResponseConfigBundleMaxSizeDefault),
-  "bundle_top_k_partners": zod.number().min(getLatestRunHandlerResponseConfigBundleTopKPartnersMin).default(getLatestRunHandlerResponseConfigBundleTopKPartnersDefault),
-  "bundle_top_n_per_focus": zod.number().min(getLatestRunHandlerResponseConfigBundleTopNPerFocusMin).default(getLatestRunHandlerResponseConfigBundleTopNPerFocusDefault),
-  "halo_repeat_rate": zod.number().default(getLatestRunHandlerResponseConfigHaloRepeatRateDefault),
-  "max_price_change_pct_per_cycle": zod.number().default(getLatestRunHandlerResponseConfigMaxPriceChangePctPerCycleDefault),
-  "min_cooccurrences_for_bundle": zod.number().default(getLatestRunHandlerResponseConfigMinCooccurrencesForBundleDefault),
-  "min_gross_margin_pct": zod.number().default(getLatestRunHandlerResponseConfigMinGrossMarginPctDefault),
-  "min_lift_for_bundle": zod.number().default(getLatestRunHandlerResponseConfigMinLiftForBundleDefault),
-  "min_units_for_classification": zod.number().default(getLatestRunHandlerResponseConfigMinUnitsForClassificationDefault),
-  "price_rounding_rule": zod.enum(['EgyptianCafe', 'NearestUnit']).describe('Serializes as `\"EgyptianCafe\"` \/ `\"NearestUnit\"` — PascalCase on the wire\n(no `rename_all`); existing clients depend on it.').default(getLatestRunHandlerResponseConfigPriceRoundingRuleDefault),
-  "promotion_lift_prior": zod.number().default(getLatestRunHandlerResponseConfigPromotionLiftPriorDefault),
-  "recency_half_life_days": zod.number().default(getLatestRunHandlerResponseConfigRecencyHalfLifeDaysDefault),
-  "revenue_mode_max_raise_pct": zod.number().default(getLatestRunHandlerResponseConfigRevenueModeMaxRaisePctDefault).describe('Conservative max-raise cap for revenue-only items (no margin floor to\nguard against).'),
-  "target_food_cost_pct": zod.number().default(getLatestRunHandlerResponseConfigTargetFoodCostPctDefault)
+zod.number()]).default(getLatestRunHandlerResponseTwoConfigBundleDiscountPctRangeDefault),
+  "bundle_max_size": zod.number().min(getLatestRunHandlerResponseTwoConfigBundleMaxSizeMin).default(getLatestRunHandlerResponseTwoConfigBundleMaxSizeDefault),
+  "bundle_top_k_partners": zod.number().min(getLatestRunHandlerResponseTwoConfigBundleTopKPartnersMin).default(getLatestRunHandlerResponseTwoConfigBundleTopKPartnersDefault),
+  "bundle_top_n_per_focus": zod.number().min(getLatestRunHandlerResponseTwoConfigBundleTopNPerFocusMin).default(getLatestRunHandlerResponseTwoConfigBundleTopNPerFocusDefault),
+  "halo_repeat_rate": zod.number().default(getLatestRunHandlerResponseTwoConfigHaloRepeatRateDefault),
+  "max_price_change_pct_per_cycle": zod.number().default(getLatestRunHandlerResponseTwoConfigMaxPriceChangePctPerCycleDefault),
+  "min_cooccurrences_for_bundle": zod.number().default(getLatestRunHandlerResponseTwoConfigMinCooccurrencesForBundleDefault),
+  "min_gross_margin_pct": zod.number().default(getLatestRunHandlerResponseTwoConfigMinGrossMarginPctDefault),
+  "min_lift_for_bundle": zod.number().default(getLatestRunHandlerResponseTwoConfigMinLiftForBundleDefault),
+  "min_units_for_classification": zod.number().default(getLatestRunHandlerResponseTwoConfigMinUnitsForClassificationDefault),
+  "price_rounding_rule": zod.enum(['EgyptianCafe', 'NearestUnit']).describe('Serializes as `\"EgyptianCafe\"` \/ `\"NearestUnit\"` — PascalCase on the wire\n(no `rename_all`); existing clients depend on it.').default(getLatestRunHandlerResponseTwoConfigPriceRoundingRuleDefault),
+  "promotion_lift_prior": zod.number().default(getLatestRunHandlerResponseTwoConfigPromotionLiftPriorDefault),
+  "recency_half_life_days": zod.number().default(getLatestRunHandlerResponseTwoConfigRecencyHalfLifeDaysDefault),
+  "revenue_mode_max_raise_pct": zod.number().default(getLatestRunHandlerResponseTwoConfigRevenueModeMaxRaisePctDefault).describe('Conservative max-raise cap for revenue-only items (no margin floor to\nguard against).'),
+  "target_food_cost_pct": zod.number().default(getLatestRunHandlerResponseTwoConfigTargetFoodCostPctDefault)
 }).describe('`#[serde(default)]` lets clients send partial configs; missing fields\ntake the values below. Output serialization is unaffected.'),
   "error_message": zod.string().nullish(),
   "id": zod.string().uuid(),
   "mode_summary": zod.object({
-  "items_cm_tracked": zod.number().min(getLatestRunHandlerResponseModeSummaryItemsCmTrackedMin),
-  "items_insufficient": zod.number().min(getLatestRunHandlerResponseModeSummaryItemsInsufficientMin),
-  "items_revenue_only": zod.number().min(getLatestRunHandlerResponseModeSummaryItemsRevenueOnlyMin),
-  "items_total": zod.number().min(getLatestRunHandlerResponseModeSummaryItemsTotalMin)
+  "items_cm_tracked": zod.number().min(getLatestRunHandlerResponseTwoModeSummaryItemsCmTrackedMin),
+  "items_insufficient": zod.number().min(getLatestRunHandlerResponseTwoModeSummaryItemsInsufficientMin),
+  "items_revenue_only": zod.number().min(getLatestRunHandlerResponseTwoModeSummaryItemsRevenueOnlyMin),
+  "items_total": zod.number().min(getLatestRunHandlerResponseTwoModeSummaryItemsTotalMin)
 }),
   "org_id": zod.string().uuid(),
   "started_at": zod.string().datetime({"offset":true}),
   "status": zod.enum(['in_progress', 'completed', 'failed']),
   "window_days": zod.number()
-})
+})])
 
 
 export const GetBundleSuggestionHandlerParams = zod.object({
@@ -2822,6 +2948,7 @@ export const GetMenuItemResponse = zod.object({
   "menu_item_id": zod.string().uuid(),
   "min_selections": zod.number()
 })),
+  "allowed_addon_ids": zod.array(zod.string().uuid()).describe('Explicit per-item addon allowlist. Empty = no restriction (use org catalog).'),
   "optional_fields": zod.array(zod.object({
   "created_at": zod.string().datetime({"offset":true}),
   "id": zod.string().uuid(),
@@ -2973,6 +3100,18 @@ export const UpdateAddonSlotResponse = zod.object({
   "menu_item_id": zod.string().uuid(),
   "min_selections": zod.number()
 })
+
+
+export const PutAllowedAddonsParams = zod.object({
+  "id": zod.string().uuid().describe('Menu item ID')
+})
+
+export const PutAllowedAddonsBody = zod.object({
+  "addon_item_ids": zod.array(zod.string().uuid()).describe('Full replacement set of addon item IDs allowed on this menu item.\nSend an empty array to clear the restriction (falls back to org catalog).')
+})
+
+export const PutAllowedAddonsResponseItem = zod.string()
+export const PutAllowedAddonsResponse = zod.array(PutAllowedAddonsResponseItem)
 
 
 export const ListOptionalFieldsParams = zod.object({
@@ -3160,6 +3299,8 @@ export const ListOrdersQueryParams = zod.object({
   "status": zod.string().optional(),
   "from": zod.string().datetime({"offset":true}).optional(),
   "to": zod.string().datetime({"offset":true}).optional(),
+  "order_type": zod.string().optional().describe('Filter by order origin: \"dine_in\" or \"delivery\".'),
+  "channel": zod.string().optional().describe('Filter delivery orders by channel: \"in_mall\" or \"outside\".'),
   "include_items": zod.boolean().optional().describe('When true, each order in `data` embeds its full line items\n(addons\/optionals\/bundle components) — the response shape becomes\n[PaginatedOrdersFull]. Lets offline-first clients cache complete\norders in one round trip instead of fetching each order separately.')
 })
 
@@ -3170,7 +3311,10 @@ export const ListOrdersResponse = zod.object({
   "change_given": zod.number().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
   "customer_name": zod.string().nullish(),
+  "delivery_channel": zod.string().nullish().describe('Delivery channel (\"in_mall\" | \"outside\") of the linked delivery order,\nsurfaced on the list so clients can flag + segment delivery orders\nwithout a per-order detail fetch. `null` for dine-in orders.'),
   "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
+  "delivery_lat": zod.number().nullish().describe('Customer location of the linked delivery order, so clients can link out\nto a map (e.g. Google Maps) without a per-order detail fetch. `null` for\ndine-in orders or delivery orders without captured coordinates.'),
+  "delivery_lng": zod.number().nullish(),
   "delivery_order_id": zod.string().uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.string().uuid().nullish(),
@@ -3201,7 +3345,15 @@ export const ListOrdersResponse = zod.object({
   "summary": zod.object({
   "completed": zod.number(),
   "delivery_fees": zod.number().optional().describe('Total delivery charges (piastres) across completed orders in scope.\nLets the dashboard surface delivery revenue separately from item sales.'),
+  "delivery_orders": zod.number().optional().describe('Count of completed delivery orders.'),
+  "delivery_revenue": zod.number().optional().describe('Gross revenue (total_amount) of completed delivery orders.'),
   "discounts": zod.number(),
+  "in_mall_fees": zod.number().optional(),
+  "in_mall_orders": zod.number().optional().describe('In-mall channel: order count \/ gross revenue \/ delivery fees.'),
+  "in_mall_revenue": zod.number().optional(),
+  "outside_fees": zod.number().optional(),
+  "outside_orders": zod.number().optional().describe('Outside channel: order count \/ gross revenue \/ delivery fees.'),
+  "outside_revenue": zod.number().optional(),
   "revenue": zod.number(),
   "tips": zod.number(),
   "voided": zod.number()
@@ -3279,7 +3431,10 @@ export const ExportOrdersResponse = zod.object({
   "change_given": zod.number().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
   "customer_name": zod.string().nullish(),
+  "delivery_channel": zod.string().nullish().describe('Delivery channel (\"in_mall\" | \"outside\") of the linked delivery order,\nsurfaced on the list so clients can flag + segment delivery orders\nwithout a per-order detail fetch. `null` for dine-in orders.'),
   "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
+  "delivery_lat": zod.number().nullish().describe('Customer location of the linked delivery order, so clients can link out\nto a map (e.g. Google Maps) without a per-order detail fetch. `null` for\ndine-in orders or delivery orders without captured coordinates.'),
+  "delivery_lng": zod.number().nullish(),
   "delivery_order_id": zod.string().uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.string().uuid().nullish(),
@@ -3400,7 +3555,15 @@ export const ExportOrdersResponse = zod.object({
   "summary": zod.object({
   "completed": zod.number(),
   "delivery_fees": zod.number().optional().describe('Total delivery charges (piastres) across completed orders in scope.\nLets the dashboard surface delivery revenue separately from item sales.'),
+  "delivery_orders": zod.number().optional().describe('Count of completed delivery orders.'),
+  "delivery_revenue": zod.number().optional().describe('Gross revenue (total_amount) of completed delivery orders.'),
   "discounts": zod.number(),
+  "in_mall_fees": zod.number().optional(),
+  "in_mall_orders": zod.number().optional().describe('In-mall channel: order count \/ gross revenue \/ delivery fees.'),
+  "in_mall_revenue": zod.number().optional(),
+  "outside_fees": zod.number().optional(),
+  "outside_orders": zod.number().optional().describe('Outside channel: order count \/ gross revenue \/ delivery fees.'),
+  "outside_revenue": zod.number().optional(),
   "revenue": zod.number(),
   "tips": zod.number(),
   "voided": zod.number()
@@ -3440,7 +3603,10 @@ export const GetOrderResponse = zod.object({
   "change_given": zod.number().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
   "customer_name": zod.string().nullish(),
+  "delivery_channel": zod.string().nullish().describe('Delivery channel (\"in_mall\" | \"outside\") of the linked delivery order,\nsurfaced on the list so clients can flag + segment delivery orders\nwithout a per-order detail fetch. `null` for dine-in orders.'),
   "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
+  "delivery_lat": zod.number().nullish().describe('Customer location of the linked delivery order, so clients can link out\nto a map (e.g. Google Maps) without a per-order detail fetch. `null` for\ndine-in orders or delivery orders without captured coordinates.'),
+  "delivery_lng": zod.number().nullish(),
   "delivery_order_id": zod.string().uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.string().uuid().nullish(),
@@ -3583,7 +3749,10 @@ export const VoidOrderResponse = zod.object({
   "change_given": zod.number().nullish(),
   "created_at": zod.string().datetime({"offset":true}),
   "customer_name": zod.string().nullish(),
+  "delivery_channel": zod.string().nullish().describe('Delivery channel (\"in_mall\" | \"outside\") of the linked delivery order,\nsurfaced on the list so clients can flag + segment delivery orders\nwithout a per-order detail fetch. `null` for dine-in orders.'),
   "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
+  "delivery_lat": zod.number().nullish().describe('Customer location of the linked delivery order, so clients can link out\nto a map (e.g. Google Maps) without a per-order detail fetch. `null` for\ndine-in orders or delivery orders without captured coordinates.'),
+  "delivery_lng": zod.number().nullish(),
   "delivery_order_id": zod.string().uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.string().uuid().nullish(),
@@ -3619,7 +3788,8 @@ export const ListOrgsResponseItem = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
-  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.')
+  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
+  "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
 export const ListOrgsResponse = zod.array(ListOrgsResponseItem)
 
@@ -3630,7 +3800,8 @@ export const CreateOrgBody = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
-  "tax_rate": zod.number().nullish()
+  "tax_rate": zod.number().nullish(),
+  "timezone": zod.string().nullish()
 })
 
 
@@ -3646,7 +3817,8 @@ export const GetOrgResponse = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
-  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.')
+  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
+  "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
 
 
@@ -3666,7 +3838,8 @@ export const UpdateOrgBody = zod.object({
   "name": zod.string().nullish(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string().nullish(),
-  "tax_rate": zod.number().nullish()
+  "tax_rate": zod.number().nullish(),
+  "timezone": zod.string().nullish().describe('IANA timezone name (e.g. `Africa\/Cairo`). Validated against the\nPostgreSQL timezone database. Branches inherit this when their own\ntimezone is unset.')
 })
 
 export const UpdateOrgResponse = zod.object({
@@ -3677,7 +3850,8 @@ export const UpdateOrgResponse = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
-  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.')
+  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
+  "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
 
 
@@ -3697,7 +3871,8 @@ export const UploadOrgLogoResponse = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
-  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.')
+  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
+  "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
 
 
@@ -3737,6 +3912,35 @@ export const CompleteOnboardingResponse = zod.object({
   "required": zod.boolean().describe('Steps that are encouraged but not blocking (`required = false`\nnever gates `can_complete`).')
 }).describe('One derived setup step.'))
 })
+
+
+export const OrgQrParams = zod.object({
+  "id": zod.string().uuid().describe('Organisation ID')
+})
+
+export const orgQrQueryDpiMin = 0;
+
+export const orgQrQueryModulePxMin = 0;
+
+
+
+export const OrgQrQueryParams = zod.object({
+  "card": zod.boolean().optional().describe('`true` (default) → branded A6 card PNG; `false` → plain receipt QR PNG.'),
+  "caption": zod.string().optional().describe('Dynamic caption line beneath the tagline (A6 card only).'),
+  "dpi": zod.number().min(orgQrQueryDpiMin).optional().describe('Raster DPI for the A6 card (clamped 72–2400). Default 600.'),
+  "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
+  "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
+  "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
+  "module_px": zod.number().min(orgQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+})
+
+export const OrgQrResponse = zod.object({
+  "kind": zod.string(),
+  "long_url": zod.string(),
+  "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
+  "short_code": zod.string(),
+  "short_url": zod.string()
+}).describe('JSON returned from every QR-generation endpoint.')
 
 
 export const ListPaymentMethodsResponseItem = zod.object({
@@ -3914,7 +4118,9 @@ export const PublicBranchesResponseItem = zod.object({
   "id": zod.string().uuid(),
   "in_mall_enabled": zod.boolean(),
   "in_mall_open_now": zod.boolean().describe('Effective-open right now (enabled + open shift + override + window).'),
+  "in_mall_require_location": zod.boolean().describe('When false, in-mall ordering does not require a device GPS location.'),
   "name": zod.string(),
+  "otp_required": zod.boolean().describe('When false, the public checkout skips OTP verification for this branch.'),
   "outside_enabled": zod.boolean(),
   "outside_open_now": zod.boolean()
 })
@@ -3977,6 +4183,7 @@ export const PublicMenuResponse = zod.object({
   "value": zod.number().describe('Percentage points (0-100) for `percentage`; piastres for `fixed`.')
 }).describe('The active discount for this channel (customer-facing) or `null`. Applies\nto the item subtotal only — the delivery fee is always charged in full.')]).optional(),
   "items": zod.array(zod.object({
+  "allowed_addon_ids": zod.array(zod.string().uuid()).describe('Explicit per-item addon allowlist (IDs from `menu_item_allowed_addons`).\nWhen non-empty the customizer filters the global catalog to these IDs by\ndefault, with a \"show all\" escape hatch. Empty = no restriction.'),
   "category_id": zod.string().uuid().nullish(),
   "default_milk_addon_id": zod.string().uuid().nullish().describe('The item\'s base\/default milk: the `milk_type` addon whose ingredient\nmatches the item recipe\'s milk ingredient. The online customizer\npre-selects it (mirrors the POS default-milk selection). `None` when the\nitem has no milk in its recipe or no matching milk addon exists.'),
   "description": zod.string().nullish(),
@@ -4032,6 +4239,90 @@ export const CreateDeliveryOrderBody = zod.object({
   "place_name": zod.string().nullish(),
   "unit_number": zod.string().nullish()
 })
+
+
+export const GuestOrderHistoryQueryParams = zod.object({
+  "phone": zod.string(),
+  "org_id": zod.string().uuid(),
+  "device_token": zod.string().nullish()
+})
+
+export const GuestOrderHistoryResponseItem = zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.string().uuid(),
+  "branch_name": zod.string(),
+  "channel": zod.string(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "delivery_fee": zod.number(),
+  "delivery_ref": zod.string().nullish(),
+  "discount_amount": zod.number(),
+  "id": zod.string().uuid(),
+  "items": zod.unknown().describe('Frozen cart snapshot: the items at the time of the order (for display).'),
+  "place_name": zod.string().nullish(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "total": zod.number()
+})
+export const GuestOrderHistoryResponse = zod.array(GuestOrderHistoryResponseItem)
+
+
+export const GuestPastLocationsQueryParams = zod.object({
+  "phone": zod.string(),
+  "org_id": zod.string().uuid(),
+  "branch_id": zod.string().uuid().nullish(),
+  "device_token": zod.string().nullish()
+})
+
+export const GuestPastLocationsResponseItem = zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.string().uuid(),
+  "channel": zod.string(),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "floor": zod.string().nullish(),
+  "landmark": zod.string().nullish(),
+  "last_used_at": zod.string().datetime({"offset":true}),
+  "place_name": zod.string().nullish(),
+  "unit_number": zod.string().nullish()
+})
+export const GuestPastLocationsResponse = zod.array(GuestPastLocationsResponseItem)
+
+
+export const TrackDeliveryOrderParams = zod.object({
+  "id": zod.string().uuid()
+})
+
+export const TrackDeliveryOrderResponse = zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_name": zod.string(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "channel": zod.string(),
+  "confirmed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "customer_name": zod.string(),
+  "delivered_at": zod.string().datetime({"offset":true}).nullish(),
+  "delivery_fee": zod.number(),
+  "delivery_ref": zod.string().nullish(),
+  "discount_amount": zod.number(),
+  "estimated_prep_minutes": zod.number().describe('Branch base prep time + the teller\'s per-order addition (minutes).'),
+  "floor": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "org_id": zod.string().uuid(),
+  "out_for_delivery_at": zod.string().datetime({"offset":true}).nullish(),
+  "payment_method_hint": zod.string().nullish(),
+  "place_name": zod.string().nullish(),
+  "preparing_at": zod.string().datetime({"offset":true}).nullish(),
+  "ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "rejected_at": zod.string().datetime({"offset":true}).nullish(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "total": zod.number(),
+  "unit_number": zod.string().nullish()
+}).describe('Customer-safe tracking view of a delivery order, keyed by its opaque UUID\n(same capability-URL trust model as the device-token flow). No phone number\nis exposed; the destination fields are the customer\'s own inputs. Powers the\npublic `\/track\/{id}` page (polled, since the public surface has no SSE).')
 
 
 export const ListPublicOrgsResponseItem = zod.object({
@@ -4111,6 +4402,51 @@ export const CreatePurchaseOrderBody = zod.object({
 })
 
 
+/**
+ * @summary Ingredients at/below their reorder point (par_min, else reorder_threshold),
+with the quantity to reach the order-up-to level (par_max), grouped by the
+ingredient's default supplier — the basis for one-click "create PO".
+ */
+export const ReorderSuggestionsParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch ID')
+})
+
+export const ReorderSuggestionsResponseItem = zod.object({
+  "lines": zod.array(zod.object({
+  "current_stock": zod.number(),
+  "ingredient_name": zod.string(),
+  "org_ingredient_id": zod.string().uuid(),
+  "suggested_qty": zod.number().describe('Quantity (in base units) to bring stock up to the order-up-to level.'),
+  "unit": zod.string()
+}).describe('One ingredient to reorder, with the quantity needed to reach its order-up-to\nlevel (par_max, else the reorder point).')),
+  "supplier_id": zod.string().uuid().nullish(),
+  "supplier_name": zod.string().nullish()
+}).describe('Reorder suggestions grouped by the ingredient\'s default supplier so the\ndashboard can raise one draft PO per supplier.')
+export const ReorderSuggestionsResponse = zod.array(ReorderSuggestionsResponseItem)
+
+
+/**
+ * @summary Return stock to a supplier: decrements branch stock and posts a
+'purchase_return' movement per line, recorded as a goods receipt with
+is_return = true. Returns remove stock at its current cost (WAC unchanged).
+ */
+export const CreateReturnParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch ID')
+})
+
+export const CreateReturnBody = zod.object({
+  "lines": zod.array(zod.object({
+  "org_ingredient_id": zod.string().uuid(),
+  "quantity": zod.number().describe('Base stock units to return (must be ≤ on hand).'),
+  "unit_cost": zod.number().nullish().describe('Piastres per base stock unit; defaults to the branch\'s actual cost.')
+})),
+  "note": zod.string().nullish(),
+  "purchase_order_id": zod.string().uuid().nullish(),
+  "reference": zod.string().nullish(),
+  "supplier_id": zod.string().uuid().nullish()
+})
+
+
 export const GetPurchaseOrderParams = zod.object({
   "id": zod.string().uuid().describe('Purchase order ID')
 })
@@ -4170,6 +4506,38 @@ export const CancelPurchaseOrderResponse = zod.object({
 })
 
 
+/**
+ * @summary Per-delivery goods-receipt records for a purchase order (multi-shipment audit
+trail, each with the actual received quantity + cost per line).
+ */
+export const ListPoReceiptsParams = zod.object({
+  "id": zod.string().uuid().describe('Purchase order ID')
+})
+
+export const ListPoReceiptsResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "id": zod.string().uuid(),
+  "is_return": zod.boolean().describe('true ⟹ a return to supplier (negative stock effect).'),
+  "lines": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "org_ingredient_id": zod.string().uuid(),
+  "purchase_order_line_id": zod.string().uuid().nullish(),
+  "quantity": zod.number().describe('Base stock units received (+) or returned (−).'),
+  "unit_cost": zod.number().nullish().describe('Piastres per base stock unit (actual).')
+})),
+  "note": zod.string().nullish(),
+  "purchase_order_id": zod.string().uuid().nullish(),
+  "received_at": zod.string().datetime({"offset":true}),
+  "received_by": zod.string().uuid(),
+  "received_by_name": zod.string().nullish(),
+  "reference": zod.string().nullish(),
+  "supplier_id": zod.string().uuid().nullish(),
+  "supplier_name": zod.string().nullish()
+})
+export const ListPoReceiptsResponse = zod.array(ListPoReceiptsResponseItem)
+
+
 export const ReceivePurchaseOrderParams = zod.object({
   "id": zod.string().uuid().describe('Purchase order ID')
 })
@@ -4177,7 +4545,8 @@ export const ReceivePurchaseOrderParams = zod.object({
 export const ReceivePurchaseOrderBody = zod.object({
   "lines": zod.array(zod.object({
   "line_id": zod.string().uuid(),
-  "quantity_received": zod.number()
+  "quantity_received": zod.number(),
+  "unit_cost": zod.number().nullish().describe('Optional ACTUAL invoice cost (piastres per purchase unit) for this\ndelivery, when it differs from the ordered price. Drives weighted-average\ncost + the ledger; omitted ⟹ the PO line\'s ordered cost is used.')
 }))
 })
 
@@ -4211,6 +4580,35 @@ export const ReceivePurchaseOrderResponse = zod.object({
   "units_per_purchase_unit": zod.number()
 }))
 }))
+
+
+/**
+ * @summary Place a draft PO with the supplier: `draft → ordered`. Makes "ordered,
+awaiting goods" a distinct, queryable state (outstanding-orders views) vs a
+draft still being built. Receiving is still allowed directly from draft for
+workflows that don't formally place orders first.
+ */
+export const SubmitPurchaseOrderParams = zod.object({
+  "id": zod.string().uuid().describe('Purchase order ID')
+})
+
+export const SubmitPurchaseOrderResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label — populated by the order lists so the \"All branches\" view\ncan show which branch each PO belongs to; other endpoints leave it null.'),
+  "created_at": zod.string().datetime({"offset":true}),
+  "created_by": zod.string().uuid(),
+  "expected_at": zod.string().datetime({"offset":true}).nullish(),
+  "id": zod.string().uuid(),
+  "note": zod.string().nullish(),
+  "org_id": zod.string().uuid(),
+  "received_at": zod.string().datetime({"offset":true}).nullish(),
+  "received_by": zod.string().uuid().nullish(),
+  "reference": zod.string().nullish(),
+  "status": zod.string(),
+  "supplier_id": zod.string().uuid().nullish(),
+  "supplier_name": zod.string().nullish(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
 
 
 export const ListOrgPurchaseOrdersParams = zod.object({
@@ -4299,6 +4697,26 @@ export const UpdateSupplierResponse = zod.object({
   "org_id": zod.string().uuid(),
   "phone": zod.string().nullish(),
   "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const ListMarketingLinksResponseItem = zod.object({
+  "created_at": zod.string().datetime({"offset":true}),
+  "id": zod.string().uuid(),
+  "kind": zod.string(),
+  "label": zod.string().nullish(),
+  "long_url": zod.string(),
+  "short_code": zod.string(),
+  "short_url": zod.string(),
+  "target_ref": zod.string()
+})
+export const ListMarketingLinksResponse = zod.array(ListMarketingLinksResponseItem)
+
+
+export const CreateMarketingLinkBody = zod.object({
+  "custom_slug": zod.string().nullish(),
+  "label": zod.string(),
+  "path": zod.string()
 })
 
 
@@ -4458,6 +4876,35 @@ export const BranchConsumptionResponseItem = zod.object({
 export const BranchConsumptionResponse = zod.array(BranchConsumptionResponseItem)
 
 
+export const BranchDeliverySalesParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const BranchDeliverySalesQueryParams = zod.object({
+  "from": zod.string().datetime({"offset":true}).optional(),
+  "to": zod.string().datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const BranchDeliverySalesResponse = zod.object({
+  "avg_order_value": zod.number(),
+  "cancelled_orders": zod.number(),
+  "channels": zod.array(zod.object({
+  "avg_order_value": zod.number(),
+  "cancelled_orders": zod.number(),
+  "channel": zod.string().describe('Delivery channel: `in_mall` or `outside`.'),
+  "delivery_fees": zod.number().describe('Sum of `delivery_fee` (piastres) over delivered orders.'),
+  "orders": zod.number(),
+  "revenue": zod.number().describe('Sum of `total` (piastres) over delivered orders on this channel.')
+}).describe('Delivery sales for one delivery channel (`in_mall` \/ `outside`). Revenue and\norder counts are over \*\*delivered\*\* orders only; `cancelled_orders` is shown\nseparately so the UI can surface drop-off without inflating revenue.')),
+  "from": zod.string().datetime({"offset":true}).nullish(),
+  "to": zod.string().datetime({"offset":true}).nullish(),
+  "total_delivery_fees": zod.number(),
+  "total_orders": zod.number(),
+  "total_revenue": zod.number()
+}).describe('Delivery sales rolled up across channels, plus a per-channel breakdown.\nAlways returns both `in_mall` and `outside` channels (zero-filled) so the\ndashboard renders a stable shape.')
+
+
 export const BranchInventoryValuationParams = zod.object({
   "branch_id": zod.string().uuid().describe('Branch ID')
 })
@@ -4610,6 +5057,31 @@ export const BranchSalesResponse = zod.object({
   "total_tax": zod.number(),
   "voided_orders": zod.number()
 })
+
+
+export const BranchSalesPeakHoursParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const BranchSalesPeakHoursQueryParams = zod.object({
+  "from": zod.string().datetime({"offset":true}).optional(),
+  "to": zod.string().datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const BranchSalesPeakHoursResponseItem = zod.object({
+  "avg_orders_per_day": zod.number().describe('Orders averaged over the number of calendar days (may be fractional).'),
+  "avg_revenue_per_day": zod.number().describe('Revenue in piastres averaged over the number of calendar days in the queried range.'),
+  "discount": zod.number(),
+  "hour": zod.number(),
+  "orders": zod.number(),
+  "orders_pct": zod.number().describe('This hour\'s orders as a percentage of the period total (0–100, 1 dp).'),
+  "revenue": zod.number(),
+  "revenue_pct": zod.number().describe('This hour\'s revenue as a percentage of the period total (0–100, 1 dp).'),
+  "tax": zod.number(),
+  "voided": zod.number()
+})
+export const BranchSalesPeakHoursResponse = zod.array(BranchSalesPeakHoursResponseItem)
 
 
 export const BranchSalesTimeseriesParams = zod.object({
@@ -5026,6 +5498,7 @@ export const AddCashMovementParams = zod.object({
 
 export const AddCashMovementBody = zod.object({
   "amount": zod.number(),
+  "created_at": zod.string().datetime({"offset":true}).nullish().describe('When the movement actually happened. Omit for live (online) movements —\nthe server stamps `now()`. The POS sends this for movements made OFFLINE\nso they keep their real time after syncing. Future values are rejected.'),
   "note": zod.string()
 })
 
@@ -5174,7 +5647,9 @@ export const CreateStocktakeParams = zod.object({
 })
 
 export const CreateStocktakeBody = zod.object({
-  "note": zod.string().nullish()
+  "category": zod.string().nullish().describe('Cycle-count scope: snapshot only ingredients in this catalog category.\nOmit (with org_ingredient_ids) for a full-branch count.'),
+  "note": zod.string().nullish(),
+  "org_ingredient_ids": zod.array(zod.string().uuid()).nullish().describe('Cycle-count scope: snapshot only these specific ingredients.')
 })
 
 
@@ -5347,6 +5822,16 @@ export const VarianceReportResponse = zod.object({
 })
 
 
+/**
+ * @summary The full set of selectable IANA timezones — the labels of the `timezone_name`
+DB enum. The dashboard's timezone `<select>` is populated from this, so the
+frontend can never offer a value the backend/DB would reject (single source
+of truth: DB enum → this endpoint → select options).
+ */
+export const ListTimezonesResponseItem = zod.string()
+export const ListTimezonesResponse = zod.array(ListTimezonesResponseItem)
+
+
 export const UploadMenuItemImageParams = zod.object({
   "menu_item_id": zod.string().uuid().describe('Menu item ID')
 })
@@ -5474,5 +5959,78 @@ export const UnassignBranchParams = zod.object({
   "id": zod.string().uuid().describe('User ID'),
   "branch_id": zod.string().uuid().describe('Branch ID')
 })
+
+
+/**
+ * @summary Unlink the current number. Idempotent — logging out an already-unlinked
+session still returns the (now logged-out) status.
+ */
+export const WhatsappLogoutResponse = zod.object({
+  "configured": zod.boolean().describe('`WHATSAPP_SERVICE_URL` is set on the backend.'),
+  "connected": zod.boolean().describe('Underlying socket is connected to WhatsApp.'),
+  "has_qr": zod.boolean().describe('A pairing QR is currently available to scan.'),
+  "logged_in": zod.boolean().describe('A number is linked and ready to send.'),
+  "paused": zod.boolean().describe('Sending is paused by an admin — the number stays linked but every\noutbound message (OTP + status) is suppressed until resumed.'),
+  "paused_at": zod.string().datetime({"offset":true}).nullish().describe('When sending was last paused (audit).'),
+  "qr_image": zod.string().nullish().describe('Current pairing QR as a `data:image\/png;base64,…` URL (only when `has_qr`).'),
+  "reachable": zod.boolean().describe('The gateway answered over HTTP (false = not configured or unreachable).'),
+  "session": zod.string().describe('Session name the relay pairs\/sends under.')
+}).describe('Snapshot returned to the dashboard. Combines the gateway\'s live link state\nwith the backend\'s persisted pause switch.')
+
+
+/**
+ * @summary Start (or restart) pairing on the gateway. The QR becomes available a moment
+later — the dashboard polls `GET /whatsapp/status` until `has_qr`, shows it,
+then keeps polling until `logged_in`.
+ */
+export const WhatsappPairResponse = zod.object({
+  "configured": zod.boolean().describe('`WHATSAPP_SERVICE_URL` is set on the backend.'),
+  "connected": zod.boolean().describe('Underlying socket is connected to WhatsApp.'),
+  "has_qr": zod.boolean().describe('A pairing QR is currently available to scan.'),
+  "logged_in": zod.boolean().describe('A number is linked and ready to send.'),
+  "paused": zod.boolean().describe('Sending is paused by an admin — the number stays linked but every\noutbound message (OTP + status) is suppressed until resumed.'),
+  "paused_at": zod.string().datetime({"offset":true}).nullish().describe('When sending was last paused (audit).'),
+  "qr_image": zod.string().nullish().describe('Current pairing QR as a `data:image\/png;base64,…` URL (only when `has_qr`).'),
+  "reachable": zod.boolean().describe('The gateway answered over HTTP (false = not configured or unreachable).'),
+  "session": zod.string().describe('Session name the relay pairs\/sends under.')
+}).describe('Snapshot returned to the dashboard. Combines the gateway\'s live link state\nwith the backend\'s persisted pause switch.')
+
+
+/**
+ * @summary Pause or resume all outbound WhatsApp sends. Persisted; survives restarts
+and does not touch the linked session.
+ */
+export const WhatsappPauseBody = zod.object({
+  "paused": zod.boolean().describe('`true` = mute all sends; `false` = resume.')
+}).describe('Body for `POST \/whatsapp\/pause`.')
+
+export const WhatsappPauseResponse = zod.object({
+  "configured": zod.boolean().describe('`WHATSAPP_SERVICE_URL` is set on the backend.'),
+  "connected": zod.boolean().describe('Underlying socket is connected to WhatsApp.'),
+  "has_qr": zod.boolean().describe('A pairing QR is currently available to scan.'),
+  "logged_in": zod.boolean().describe('A number is linked and ready to send.'),
+  "paused": zod.boolean().describe('Sending is paused by an admin — the number stays linked but every\noutbound message (OTP + status) is suppressed until resumed.'),
+  "paused_at": zod.string().datetime({"offset":true}).nullish().describe('When sending was last paused (audit).'),
+  "qr_image": zod.string().nullish().describe('Current pairing QR as a `data:image\/png;base64,…` URL (only when `has_qr`).'),
+  "reachable": zod.boolean().describe('The gateway answered over HTTP (false = not configured or unreachable).'),
+  "session": zod.string().describe('Session name the relay pairs\/sends under.')
+}).describe('Snapshot returned to the dashboard. Combines the gateway\'s live link state\nwith the backend\'s persisted pause switch.')
+
+
+/**
+ * @summary Current WhatsApp link + pause status, with the pairing QR inlined when one
+is waiting to be scanned. Safe to poll from the dashboard.
+ */
+export const WhatsappStatusResponse = zod.object({
+  "configured": zod.boolean().describe('`WHATSAPP_SERVICE_URL` is set on the backend.'),
+  "connected": zod.boolean().describe('Underlying socket is connected to WhatsApp.'),
+  "has_qr": zod.boolean().describe('A pairing QR is currently available to scan.'),
+  "logged_in": zod.boolean().describe('A number is linked and ready to send.'),
+  "paused": zod.boolean().describe('Sending is paused by an admin — the number stays linked but every\noutbound message (OTP + status) is suppressed until resumed.'),
+  "paused_at": zod.string().datetime({"offset":true}).nullish().describe('When sending was last paused (audit).'),
+  "qr_image": zod.string().nullish().describe('Current pairing QR as a `data:image\/png;base64,…` URL (only when `has_qr`).'),
+  "reachable": zod.boolean().describe('The gateway answered over HTTP (false = not configured or unreachable).'),
+  "session": zod.string().describe('Session name the relay pairs\/sends under.')
+}).describe('Snapshot returned to the dashboard. Combines the gateway\'s live link state\nwith the backend\'s persisted pause switch.')
 
 

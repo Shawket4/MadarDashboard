@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, Minus, Plus } from "lucide-react";
+import { Check, Minus, Plus, Search, UtensilsCrossed, X } from "lucide-react";
 
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
 import type { DeliveryAddonOption } from "@/data/api/generated/models/deliveryAddonOption";
 import type { DeliveryOptionalField } from "@/data/api/generated/models/deliveryOptionalField";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { fmtMoney } from "@/lib/format";
@@ -20,6 +22,7 @@ import i18n from "@/i18n";
 
 import type { CartLine, SelectedAddon, SelectedOptional } from "../types";
 import { itemBasePrice, lineUnitPrice, newUid } from "../utils";
+import { FIELD_LIMITS } from "../limits";
 
 interface ItemCustomizerProps {
   item: DeliveryMenuItem | null;
@@ -60,13 +63,22 @@ export function ItemCustomizer({
   const [optionals, setOptionals] = useState<Set<string>>(new Set());
   const [qty, setQty] = useState(1);
   const [notes, setNotes] = useState("");
+  const [addonQuery, setAddonQuery] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
-  // Group the global catalog by type, preserving GLOBAL_TYPES order. Only types
-  // that actually have available options render a section.
+  // Per-item allowlist set. Empty = item has no configuration.
+  const allowedSet = useMemo(
+    () => new Set(item?.allowed_addon_ids ?? []),
+    [item],
+  );
+
+  // Default view: only the item's configured addons (nothing when allowedSet is empty).
+  // "Show all" bypasses the filter and shows the full available catalog.
   const groups = useMemo(() => {
     const byType = new Map<string, DeliveryAddonOption[]>();
     for (const a of addons) {
       if (!a.is_available) continue;
+      if (!showAll && !allowedSet.has(a.addon_item_id)) continue;
       const list = byType.get(a.type) ?? [];
       list.push(a);
       byType.set(a.type, list);
@@ -75,7 +87,24 @@ export function ItemCustomizer({
       const options = byType.get(type) ?? [];
       return options.length > 0 ? [{ type, options }] : [];
     });
-  }, [addons]);
+  }, [addons, allowedSet, showAll]);
+
+  // Milk/coffee are swap selections (never searched). The generic "extra" add-ons
+  // are the searchable list — the search filters ONLY those.
+  const swapGroups = useMemo(() => groups.filter((g) => g.type !== "extra"), [groups]);
+  const extraGroup = useMemo(() => groups.find((g) => g.type === "extra") ?? null, [groups]);
+  const showAddonSearch = (extraGroup?.options.length ?? 0) > 5;
+
+  const filteredExtraOptions = useMemo(() => {
+    if (!extraGroup) return [];
+    const q = addonQuery.trim().toLowerCase();
+    if (!q) return extraGroup.options;
+    return extraGroup.options.filter(
+      (o) =>
+        getTranslatedName(o, lang).toLowerCase().includes(q) ||
+        o.name.toLowerCase().includes(q),
+    );
+  }, [extraGroup, addonQuery, lang]);
 
   // Swap "base" price per swap-type, mirroring the POS sheet (_initBaseMilk /
   // _adjustedPrice): the recipe's default milk is already included, so picking it
@@ -104,6 +133,8 @@ export function ItemCustomizer({
   // (Re)initialize whenever a fresh item/edit is opened.
   useEffect(() => {
     if (!open || !item) return;
+    setAddonQuery("");
+    setShowAll(false);
     if (editing) {
       setSize(editing.size_label);
       const sel: AddonSelections = {};
@@ -140,13 +171,14 @@ export function ItemCustomizer({
     [item, size],
   );
 
-  // Single-select (swap): picking one clears any other option of that type;
-  // re-tapping the active option clears it (optional swap, like the POS).
-  const pickSingle = (addonId: string, typeOptions: DeliveryAddonOption[]) =>
+  // Single-select (swap): picking one clears every option of that type across the
+  // FULL catalog (not just the filtered subset), so a hidden, previously-picked
+  // option can't linger; re-tapping the active option clears it (optional swap).
+  const pickSingle = (addonId: string, type: string) =>
     setSelections((prev) => {
       const next = { ...prev };
       const wasActive = (prev[addonId] ?? 0) > 0;
-      for (const o of typeOptions) delete next[o.addon_item_id];
+      for (const a of addons) if (a.type === type) delete next[a.addon_item_id];
       if (!wasActive) next[addonId] = 1;
       return next;
     });
@@ -156,7 +188,7 @@ export function ItemCustomizer({
     setSelections((prev) => {
       const next = { ...prev };
       if (n <= 0) delete next[addonId];
-      else next[addonId] = n;
+      else next[addonId] = Math.min(FIELD_LIMITS.addonQty, n);
       return next;
     });
 
@@ -209,90 +241,168 @@ export function ItemCustomizer({
   const unitPrice = draft ? lineUnitPrice(draft) : 0;
   const totalPrice = unitPrice * qty;
   const description = getTranslatedDescription(item, lang);
+  const hasSizes = item.sizes.length > 0;
+  const fromPrice = hasSizes ? Math.min(...item.sizes.map((s) => s.price)) : item.price;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="mx-auto max-h-[92dvh] max-w-[480px]">
-        {/* Header */}
-        <div className="border-b border-border/60 px-4 pb-3 pt-1 text-start">
-          <DrawerTitle className="text-lg">{getTranslatedName(item, lang)}</DrawerTitle>
-          {description ? (
-            <DrawerDescription className="mt-0.5 line-clamp-2">{description}</DrawerDescription>
-          ) : (
-            <DrawerDescription className="sr-only">
-              {t("order.menu.customize")}
-            </DrawerDescription>
-          )}
-        </div>
-
-        {/* Scrollable body */}
-        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-4">
-          {item.image_url && (
-            <img
-              src={item.image_url}
-              alt=""
-              className="h-40 w-full rounded-xl object-cover"
-              loading="lazy"
+      <DrawerContent showHandle={false} className="mx-auto max-h-[92dvh] max-w-[480px]">
+        {/* Scrollable body — full-bleed hero, then configuration. no-scrollbar so the
+            hero image reaches both edges (the scrollbar gutter was insetting it). */}
+        <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
+          <div className="relative">
+            {/* Drag handle floats over the image (no separate background strip). */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-2.5 z-10 h-1.5 w-10 -translate-x-1/2 rounded-full bg-white/70"
             />
-          )}
-
-          {/* Sizes */}
-          {item.sizes.length > 0 && (
-            <Section title={t("order.customize.size")} required>
-              <div className="flex flex-wrap gap-2">
-                {item.sizes.map((s) => (
-                  <Chip key={s.label} active={size === s.label} onClick={() => setSize(s.label)}>
-                    <span>{s.label}</span>
-                    <span className="text-xs opacity-80">{fmtMoney(s.price)}</span>
-                  </Chip>
-                ))}
+            {item.image_url ? (
+              <img
+                src={item.image_url}
+                alt=""
+                className="h-52 w-full rounded-t-lg object-cover sm:h-56"
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex h-40 w-full items-center justify-center rounded-t-lg bg-muted text-muted-foreground">
+                <UtensilsCrossed className="size-10" />
               </div>
-            </Section>
-          )}
+            )}
+            <DrawerClose
+              aria-label={t("common.close", "Close")}
+              className="absolute end-3 top-3 flex size-8 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm backdrop-blur transition-colors hover:bg-background"
+            >
+              <X className="size-4" />
+            </DrawerClose>
+          </div>
 
-          {/* Global addon groups (milk = single swap, coffee + extra = multi) */}
-          {groups.map(({ type, options }) => (
-            <AddonGroupSection
-              key={type}
-              type={type}
-              options={options}
-              lang={lang}
-              selections={selections}
-              priceOf={swapAdjustedPrice}
-              onPickSingle={(addonId) => pickSingle(addonId, options)}
-              onSetQty={setMultiQty}
-            />
-          ))}
+          <div className="space-y-6 px-4 pb-5 pt-4">
+            {/* Title + base price */}
+            <div className="text-start">
+              <div className="flex items-baseline justify-between gap-3">
+                <DrawerTitle className="font-serif text-xl leading-tight">
+                  {getTranslatedName(item, lang)}
+                </DrawerTitle>
+                <span className="shrink-0 text-sm font-medium text-muted-foreground">
+                  {hasSizes
+                    ? t("order.menu.from", { price: fmtMoney(fromPrice) })
+                    : fmtMoney(fromPrice)}
+                </span>
+              </div>
+              {description ? (
+                <DrawerDescription className="mt-1 leading-relaxed">{description}</DrawerDescription>
+              ) : (
+                <DrawerDescription className="sr-only">
+                  {t("order.menu.customize")}
+                </DrawerDescription>
+              )}
+            </div>
 
-          {/* Optionals */}
-          {visibleOptionals.length > 0 && (
-            <Section title={t("order.customize.extras")}>
-              <div className="space-y-2">
-                {visibleOptionals.map((o) => {
-                  const active = optionals.has(o.id);
-                  return (
-                    <OptionRow
-                      key={o.id}
-                      active={active}
-                      label={getTranslatedName(o, lang)}
-                      price={o.price}
-                      onClick={() => toggleOptional(o.id)}
+            {/* Sizes */}
+            {item.sizes.length > 0 && (
+              <Section title={t("order.customize.size")} required>
+                <div className="flex flex-wrap gap-2">
+                  {item.sizes.map((s) => (
+                    <Chip key={s.label} active={size === s.label} onClick={() => setSize(s.label)}>
+                      <span>{s.label}</span>
+                      <span className="text-xs opacity-80">{fmtMoney(s.price)}</span>
+                    </Chip>
+                  ))}
+                </div>
+              </Section>
+            )}
+
+            {/* "Show all add-ons" — always present; default view is the item's configured set (or nothing) */}
+            <div className="flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setShowAll((v) => !v)}
+                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                {showAll
+                  ? t("order.customize.showConfigured", "Show customized options")
+                  : t("order.customize.showAllAddons", "Show all add-ons")}
+              </button>
+            </div>
+
+            {/* Milk / coffee — swap selections (never searched) */}
+            {swapGroups.map(({ type, options }) => (
+              <AddonGroupSection
+                key={type}
+                type={type}
+                options={options}
+                lang={lang}
+                selections={selections}
+                priceOf={swapAdjustedPrice}
+                onPickSingle={(addonId) => pickSingle(addonId, type)}
+                onSetQty={setMultiQty}
+              />
+            ))}
+
+            {/* Extra add-ons — searchable */}
+            {extraGroup && (
+              <div className="space-y-3">
+                {showAddonSearch && (
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={addonQuery}
+                      onChange={(e) => setAddonQuery(e.target.value)}
+                      placeholder={t("order.customize.searchAddons", "Search add-ons")}
+                      className="ps-9"
+                      inputMode="search"
                     />
-                  );
-                })}
+                  </div>
+                )}
+                {filteredExtraOptions.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-border/70 px-3 py-6 text-center text-sm text-muted-foreground">
+                    {t("order.customize.noAddons", "No add-ons match your search.")}
+                  </p>
+                ) : (
+                  <AddonGroupSection
+                    type="extra"
+                    options={filteredExtraOptions}
+                    lang={lang}
+                    selections={selections}
+                    priceOf={swapAdjustedPrice}
+                    onPickSingle={(addonId) => pickSingle(addonId, "extra")}
+                    onSetQty={setMultiQty}
+                  />
+                )}
               </div>
-            </Section>
-          )}
+            )}
 
-          {/* Notes */}
-          <Section title={t("order.customize.notes")}>
-            <Textarea
-              rows={2}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder={t("order.customize.notesPlaceholder")}
-            />
-          </Section>
+            {/* Optionals */}
+            {visibleOptionals.length > 0 && (
+              <Section title={t("order.customize.extras")}>
+                <div className="space-y-2">
+                  {visibleOptionals.map((o) => {
+                    const active = optionals.has(o.id);
+                    return (
+                      <OptionRow
+                        key={o.id}
+                        active={active}
+                        label={getTranslatedName(o, lang)}
+                        price={o.price}
+                        onClick={() => toggleOptional(o.id)}
+                      />
+                    );
+                  })}
+                </div>
+              </Section>
+            )}
+
+            {/* Notes */}
+            <Section title={t("order.customize.notes")}>
+              <Textarea
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder={t("order.customize.notesPlaceholder")}
+                maxLength={FIELD_LIMITS.lineNotes}
+              />
+            </Section>
+          </div>
         </div>
 
         {/* Sticky footer: qty stepper + add/update. No required addon validation —
@@ -314,7 +424,8 @@ export function ItemCustomizer({
               variant="ghost"
               size="icon-sm"
               className="rounded-full"
-              onClick={() => setQty((q) => q + 1)}
+              disabled={qty >= FIELD_LIMITS.lineQty}
+              onClick={() => setQty((q) => Math.min(FIELD_LIMITS.lineQty, q + 1))}
               aria-label={t("order.menu.increase")}
             >
               <Plus className="size-4" />

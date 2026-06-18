@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Check, ChevronRight, Shield, X } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,8 +12,8 @@ import { cn } from "@/lib/utils";
 import {
   deleteUserPermission, upsertUserPermission,
   useGetPermissionMatrix, useListUsers,
+  getGetPermissionMatrixQueryKey, getGetUserPermissionsQueryKey,
 } from "@/data/api/generated/api";
-import { getGetPermissionMatrixQueryKey } from "@/data/api/generated/api";
 import type { PermissionMatrix } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { queryClient } from "@/data/api/query";
@@ -55,7 +55,10 @@ export function PermissionsPage() {
   const cellOf = (r: string, a: string) => matrix.find((m) => m.resource === r && m.action === a);
   const selected = usersQ.data?.find((u) => u.id === selUser);
 
-  const refetchMatrix = () => selUser && queryClient.invalidateQueries({ queryKey: getGetPermissionMatrixQueryKey(selUser) });
+  const refetchMatrix = () => selUser && Promise.all([
+    queryClient.invalidateQueries({ queryKey: getGetPermissionMatrixQueryKey(selUser) }),
+    queryClient.invalidateQueries({ queryKey: getGetUserPermissionsQueryKey(selUser) }),
+  ]);
 
   const toggle = async (resource: string, action: string, cell: PermissionMatrix | undefined) => {
     if (!cell || !selUser) return;
@@ -73,7 +76,10 @@ export function PermissionsPage() {
 
   return (
     <Page>
-      <PageHeader title={t("permissions.title", "Permissions")} description={t("permissions.subtitle", "Manage per-user access overrides")} />
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("permissions.title", "Permissions")}</h1>
+        <p className="text-sm text-muted-foreground">{t("permissions.subtitle", "Manage per-user access overrides")}</p>
+      </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
         {/* User picker */}
         <div className="overflow-hidden rounded-xl border bg-card">

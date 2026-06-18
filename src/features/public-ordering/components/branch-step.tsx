@@ -8,8 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { listItem, staggerContainer } from "@/lib/motion";
 
-import { ChannelDot } from "./channel-step";
-
 interface BranchStepProps {
   orgId: string;
   onSelect: (branch: PublicBranch) => void;
@@ -26,7 +24,20 @@ export function BranchStep({ orgId, onSelect }: BranchStepProps) {
     return (
       <div className="space-y-3">
         {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+          <div
+            key={i}
+            className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
+          >
+            <Skeleton className="size-11 shrink-0 rounded-xl" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-4 w-1/2 rounded-full" />
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </div>
+            </div>
+            <Skeleton className="size-5 shrink-0 rounded-full" />
+          </div>
         ))}
       </div>
     );
@@ -64,35 +75,69 @@ export function BranchStep({ orgId, onSelect }: BranchStepProps) {
               type="button"
               onClick={() => onSelect(b)}
               className={cn(
-                "group flex w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-4 text-start shadow-sm transition-all",
-                "hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0",
+                "group flex w-full items-center gap-3 rounded-2xl p-4 text-start transition-all",
+                anyOpen
+                  ? "border border-border/70 bg-card shadow-sm hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0"
+                  : "border border-dashed border-border/70 bg-muted/30",
               )}
             >
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+              <span
+                className={cn(
+                  "flex size-11 shrink-0 items-center justify-center rounded-xl",
+                  anyOpen ? "bg-brand/10 text-brand" : "bg-muted text-muted-foreground",
+                )}
+              >
                 <MapPin className="size-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-semibold">{b.name}</span>
-                <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  {b.in_mall_enabled && (
-                    <ChannelDot open={b.in_mall_open_now} label={t("order.channel.inMall")} />
+                <span
+                  className={cn(
+                    "block truncate font-serif font-medium",
+                    !anyOpen && "text-muted-foreground",
                   )}
-                  {b.outside_enabled && (
-                    <ChannelDot open={b.outside_open_now} label={t("order.channel.outside")} />
-                  )}
-                  {!anyOpen && (
-                    <span className="font-medium text-muted-foreground">
+                >
+                  {b.name}
+                </span>
+                <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  {anyOpen ? (
+                    <>
+                      {b.in_mall_enabled && (
+                        <ChannelPill open={b.in_mall_open_now} label={t("order.channel.inMall")} />
+                      )}
+                      {b.outside_enabled && (
+                        <ChannelPill open={b.outside_open_now} label={t("order.channel.outside")} />
+                      )}
+                    </>
+                  ) : (
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                       {t("order.channel.closed")}
                     </span>
                   )}
                 </span>
               </span>
-              <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+              {anyOpen && (
+                <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+              )}
             </button>
           </motion.li>
         );
       })}
     </motion.ul>
+  );
+}
+
+/** A compact status pill for a single ordering channel: green when open, muted when not. */
+function ChannelPill({ open, label }: { open: boolean; label: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+        open ? "bg-success/10 text-success" : "bg-muted text-muted-foreground",
+      )}
+    >
+      {open && <span className="size-1.5 rounded-full bg-success" />}
+      {label}
+    </span>
   );
 }
 

@@ -12,7 +12,8 @@ export const invalidateCatalog = () =>
           k.startsWith("/addon-items") ||
           k.startsWith("/branch-menu-overrides") ||
           k.startsWith("/branch-addon-overrides") ||
-          k.startsWith("/catalog"))
+          k.startsWith("/catalog") ||
+          k.startsWith("/costing"))
       );
     },
   });

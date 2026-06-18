@@ -15,6 +15,7 @@ import {
   Layers,
   LayoutDashboard,
   Package,
+  QrCode,
   Receipt,
   Settings,
   Settings2,
@@ -85,6 +86,7 @@ export const NAV: NavGroup[] = [
         ],
       },
       { to: "/analytics", labelKey: "nav.analytics", fallback: "Analytics", icon: BarChart3 },
+      { to: "/qr", labelKey: "nav.qr", fallback: "QR Codes", icon: QrCode },
       {
         labelKey: "nav.delivery",
         fallback: "Delivery",

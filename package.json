@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mock": "VITE_MOCK=1 vite --port 5180 --strictPort",
     "build": "tsc --noEmit --incremental && vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -18,6 +19,7 @@
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
+    "@fontsource-variable/fraunces": "^5.2.9",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource/ibm-plex-sans-arabic": "^5.2.9",
     "@hookform/resolvers": "^3.10.0",
@@ -93,11 +95,17 @@
     "jsdom": "^27.0.1",
     "msw": "^2.14.6",
     "orval": "^8.14.0",
+    "playwright": "^1.61.0",
     "prettier": "^3.4.2",
     "tailwindcss": "^4.3.1",
     "typescript": "^5.6.3",
     "vite": "^6.0.5",
     "vite-plugin-compression": "^0.5.1",
     "vitest": "^4.1.7"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

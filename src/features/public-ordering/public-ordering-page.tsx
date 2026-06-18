@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { useNavigate } from "@tanstack/react-router";
@@ -8,17 +8,18 @@ import {
   usePublicBranches,
   usePublicMenu,
   useCreateDeliveryOrder,
-  useDeliveryQuote,
   useOtpRequest,
   useOtpVerify,
+  useGuestOrderHistory,
+  useGuestPastLocations,
   createDeliveryOrder,
 } from "@/data/api/generated/api";
 import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
 import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
-import type { DeliveryOrder } from "@/data/api/generated/models/deliveryOrder";
 import type { DeliveryOrderInput } from "@/data/api/generated/models/deliveryOrderInput";
-import { Button } from "@/components/ui/button";
-import { BadgePercent, ShoppingBag } from "lucide-react";
+import { ArrowRight, Search, ShoppingBag } from "lucide-react";
+import type { GuestSavedLocation } from "@/data/api/generated/models/guestSavedLocation";
+import { Input } from "@/components/ui/input";
 import { fmtMoney } from "@/lib/format";
 import { fadeIn } from "@/lib/motion";
 
@@ -34,26 +35,40 @@ import {
   setDeviceToken,
   toCartLineInput,
 } from "./utils";
+import { FIELD_LIMITS } from "./limits";
 import { useOrderTheme } from "./use-order-theme";
 import { StepShell } from "./components/step-shell";
 import { BranchStep } from "./components/branch-step";
+import { BranchSelector } from "./components/branch-selector";
 import { ChannelStep } from "./components/channel-step";
+import { ChannelClosed } from "./components/channel-closed";
+import { PhoneStep } from "./components/phone-step";
 import { LocationStep } from "./components/location-step";
 import { MenuStep } from "./components/menu-step";
 import { ItemCustomizer } from "./components/item-customizer";
-import { CartSheet } from "./components/cart-sheet";
+import { CartSheet, CartPanel } from "./components/cart-sheet";
 import { CheckoutStep, emptyForm, type CheckoutForm } from "./components/checkout-step";
 import { OtpDialog } from "./components/otp-dialog";
-import { ConfirmationStep } from "./components/confirmation-step";
+import { OrderHistoryDrawer } from "./components/order-history-drawer";
 import type { LatLng } from "./components/delivery-map";
 
 interface PublicOrderingPageProps {
   orgId: string;
   branch?: string;
   channel?: string;
+  prefillPlaceName?: string;
+  prefillFloor?: string;
+  prefillUnitNumber?: string;
 }
 
-export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPageProps) {
+export function PublicOrderingPage({
+  orgId,
+  branch,
+  channel,
+  prefillPlaceName,
+  prefillFloor,
+  prefillUnitNumber,
+}: PublicOrderingPageProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -86,20 +101,48 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
   );
 
   // ── Local flow state (beyond what the URL carries) ────────────────────────
+  // Credentials resolved by the phone step — does NOT wait for profile queries.
+  const [resolvedPhone, setResolvedPhone] = useState<{ phone: string; deviceToken: string } | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  // Profile data loads in the background after phone is resolved (non-blocking).
+  const { data: orders = [] } = useGuestOrderHistory(
+    {
+      phone: resolvedPhone ? normalizePhone(resolvedPhone.phone) : "",
+      org_id: orgId,
+      device_token: resolvedPhone?.deviceToken || null,
+    },
+    { query: { enabled: !!resolvedPhone, staleTime: 60_000, retry: false } },
+  );
+  const { data: locations = [] } = useGuestPastLocations(
+    {
+      phone: resolvedPhone ? normalizePhone(resolvedPhone.phone) : "",
+      org_id: orgId,
+      device_token: resolvedPhone?.deviceToken || null,
+    },
+    { query: { enabled: !!resolvedPhone, staleTime: 60_000, retry: false } },
+  );
+
+  // Derive customer name from the most recent order (for checkout pre-fill).
+  const customerName: string | null = (orders[0] as { customer_name?: string } | undefined)?.customer_name ?? null;
+
   const [locationDone, setLocationDone] = useState(false);
   const [enteredCheckout, setEnteredCheckout] = useState(false);
-  const [placedOrder, setPlacedOrder] = useState<DeliveryOrder | null>(null);
-  const [estimateAtSubmit, setEstimateAtSubmit] = useState<number | null>(null);
 
   const [point, setPoint] = useState<LatLng | null>(null);
-  const [address, setAddress] = useState("");
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
 
   const [lines, setLines] = useState<CartLine[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [editing, setEditing] = useState<CartLine | null>(null);
+  const [menuQuery, setMenuQuery] = useState("");
 
-  const [form, setForm] = useState<CheckoutForm>(emptyForm);
+  const [form, setForm] = useState<CheckoutForm>(() => ({
+    ...emptyForm(),
+    place_name: prefillPlaceName ?? "",
+    floor: prefillFloor ?? "",
+    unit_number: prefillUnitNumber ?? "",
+  }));
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // OTP
@@ -114,46 +157,51 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
     [branches, branchId],
   );
 
+  const deliverableBranches = useMemo(
+    () => (branches ?? []).filter((b) => b.in_mall_enabled || b.outside_enabled),
+    [branches],
+  );
+
+  // A selected channel that isn't open right now (direct link to a closed channel,
+  // or one that closed mid-session). Drives the apologetic ChannelClosed state.
+  const channelClosed =
+    !!branchObj &&
+    !!selectedChannel &&
+    !(selectedChannel === "in_mall" ? branchObj.in_mall_open_now : branchObj.outside_open_now);
+
+  // No auto-selection: when no branch is in the URL (e.g. org-level QR) the
+  // customer reaches the branch picker and chooses explicitly.
+
   // The global addon catalog (POS model) lives at the top level of the menu.
   // MenuStep fetches the same query for "add"; this dedupes via React Query and
   // supplies the catalog to the cart "edit" customizer mounted below.
   const { data: menu } = usePublicMenu(
     branchId ?? "",
     { channel: selectedChannel ?? "in_mall" },
-    { query: { enabled: !!branchId && !!selectedChannel } },
+    { query: { enabled: !!branchId && !!selectedChannel && !channelClosed } },
   );
   const addons = menu?.addons ?? [];
 
   // ── Derive the active step ────────────────────────────────────────────────
-  const needsLocation = selectedChannel === "outside";
+  // Both channels now capture a location: outside = delivery address pin (zones);
+  // in-mall = device-GPS confirm you're at the branch (anti-spam).
+  const needsLocation = selectedChannel != null;
+  const isOutside = selectedChannel === "outside";
+  // Outside always needs a delivery pin. In-mall needs the "confirm you're at the
+  // branch" GPS only when the branch requires it (a per-branch manager toggle).
+  const locationRequired = isOutside || (branchObj?.in_mall_require_location ?? true);
   const step: Step = (() => {
-    if (placedOrder) return "done";
     if (!branchId) return "branch";
     if (!selectedChannel) return "channel";
+    if (!resolvedPhone) return "phone";
     if (needsLocation && !locationDone) return "location";
     if (enteredCheckout) return "checkout";
     return "menu";
   })();
 
-  // In-mall: a flat fee (distance ignored by the server). Fetch it so the cart and
-  // checkout can show the estimate. Outside fee comes from the location-step quote.
-  const { data: inMallQuote } = useDeliveryQuote(
-    branchId ?? "",
-    { lat: 0, lng: 0, channel: "in_mall" },
-    {
-      query: {
-        enabled: !!branchId && selectedChannel === "in_mall",
-        staleTime: 60_000,
-        retry: false,
-      },
-    },
-  );
-
-  // Effective delivery-fee estimate (piastres); null when unknown / not deliverable.
-  const deliveryFee: number | null = (() => {
-    if (needsLocation) return quote?.status === "ok" ? (quote.fee ?? 0) : null;
-    return inMallQuote?.status === "ok" ? (inMallQuote.fee ?? 0) : null;
-  })();
+  // Both channels capture a location, so the fee + distance come from that quote
+  // (outside: zone fee; in-mall: flat fee + haversine distance for the teller).
+  const deliveryFee: number | null = quote?.status === "ok" ? (quote.fee ?? 0) : null;
 
   // ── Mutations ─────────────────────────────────────────────────────────────
   const otpRequest = useOtpRequest();
@@ -180,6 +228,28 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
     setLocationDone(false);
   };
 
+  // Switch branch inline (from the header / channel selector). A different branch
+  // means a different menu, so the cart starts fresh; the channel is kept when the
+  // new branch supports it, otherwise the customer re-picks it.
+  const handleSwitchBranch = (b: PublicBranch) => {
+    if (b.id === branchId) return;
+    const supports =
+      selectedChannel === "in_mall"
+        ? b.in_mall_enabled
+        : selectedChannel === "outside"
+          ? b.outside_enabled
+          : true;
+    setLines([]);
+    setEditing(null);
+    setCartOpen(false);
+    if (!supports) {
+      setLocationDone(false);
+      setPoint(null);
+      setQuote(null);
+    }
+    setUrl({ branch: b.id, channel: supports ? (selectedChannel ?? undefined) : undefined });
+  };
+
   const resetCheckoutNav = () => {
     setEnteredCheckout(false);
     setSubmitError(null);
@@ -191,12 +261,18 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
       return;
     }
     if (step === "menu") {
-      // back from menu → channel (or location for outside)
       if (needsLocation) setLocationDone(false);
       else setUrl({ branch: branchId ?? undefined, channel: undefined });
       return;
     }
     if (step === "location") {
+      // Back from location → back to channel selection (credentials stay valid)
+      setUrl({ branch: branchId ?? undefined, channel: undefined });
+      return;
+    }
+    if (step === "phone") {
+      // Clear credentials and return to channel selection
+      setResolvedPhone(null);
       setUrl({ branch: branchId ?? undefined, channel: undefined });
       return;
     }
@@ -221,7 +297,11 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
   };
 
   const setLineQty = (uid: string, qty: number) =>
-    setLines((prev) => prev.map((l) => (l.uid === uid ? { ...l, quantity: Math.max(1, qty) } : l)));
+    setLines((prev) =>
+      prev.map((l) =>
+        l.uid === uid ? { ...l, quantity: Math.min(FIELD_LIMITS.lineQty, Math.max(1, qty)) } : l,
+      ),
+    );
 
   const removeLine = (uid: string) =>
     setLines((prev) => prev.filter((l) => l.uid !== uid));
@@ -245,6 +325,32 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
     setCartOpen(false);
   };
 
+  // ── Phone step resolved ───────────────────────────────────────────────────
+  const handlePhoneContinue = useCallback((phone: string, deviceToken: string) => {
+    setResolvedPhone({ phone, deviceToken });
+    // Pre-fill phone in checkout form immediately; name will be filled when
+    // the background profile query resolves (via the effect below).
+    setForm((f) => ({ ...f, phone }));
+  }, []);
+
+  // When the background order history loads, pre-fill customer name if not yet set.
+  useEffect(() => {
+    if (!customerName) return;
+    setForm((f) => (f.name ? f : { ...f, name: customerName }));
+  }, [customerName]);
+
+  // ── Apply a saved address to checkout form (all fields, not just lat/lng) ──
+  const handleApplySavedAddress = useCallback((loc: GuestSavedLocation) => {
+    setForm((f) => ({
+      ...f,
+      address_line: loc.address_line ?? f.address_line,
+      place_name: loc.place_name ?? f.place_name,
+      floor: loc.floor ?? f.floor,
+      unit_number: loc.unit_number ?? f.unit_number,
+      landmark: loc.landmark ?? f.landmark,
+    }));
+  }, []);
+
   // ── Place order (with device-bound OTP) ───────────────────────────────────
   const buildInput = (deviceToken: string): DeliveryOrderInput => ({
     branch_id: branchId!,
@@ -255,10 +361,12 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
     floor: form.floor.trim() || null,
     unit_number: form.unit_number.trim() || null,
     landmark: form.landmark.trim() || null,
-    address_line: needsLocation ? address.trim() || form.address_line.trim() || null : null,
+    address_line: isOutside ? form.address_line.trim() || null : null,
     delivery_notes: form.delivery_notes.trim() || null,
-    customer_lat: needsLocation ? (point?.lat ?? null) : null,
-    customer_lng: needsLocation ? (point?.lng ?? null) : null,
+    // Both channels send the captured coordinates (in-mall: device GPS for the
+    // anti-spam distance; outside: the delivery pin).
+    customer_lat: point?.lat ?? null,
+    customer_lng: point?.lng ?? null,
     payment_method_hint: form.payment,
     device_token: deviceToken,
     items: lines.map(toCartLineInput),
@@ -268,39 +376,102 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
     async (deviceToken: string) => {
       setSubmitError(null);
       const estimate = subtotal - discountAmount + (deliveryFee ?? 0);
-      setEstimateAtSubmit(estimate);
       try {
         const order = await createOrder.mutateAsync({ data: buildInput(deviceToken) });
         setOtpOpen(false);
-        setPlacedOrder(order);
-      } catch {
-        setSubmitError(t("order.checkout.errSubmit"));
+        // Route to the live tracking page (dynamic link with the order UUID). The
+        // estimate is carried so the tracking page can flag a backend reprice.
+        void navigate({ to: "/track/$id", params: { id: order.id }, search: { est: estimate } });
+      } catch (e) {
+        const status = (e as { response?: { status?: number } })?.response?.status;
+        setSubmitError(
+          status === 409
+            ? t("order.checkout.errChannelClosed", {
+                defaultValue: "Sorry — this branch just stopped accepting orders on this channel.",
+              })
+            : t("order.checkout.errSubmit"),
+        );
+        setOtpOpen(false);
         // Fresh idempotency key for the retry (this attempt failed).
         idempotencyKey.current = newUid();
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [subtotal, discountAmount, deliveryFee, form, lines, point, address, branchId, selectedChannel, needsLocation],
+    [subtotal, discountAmount, deliveryFee, form, lines, point, branchId, selectedChannel, needsLocation],
   );
 
   const validateForm = (): string | null => {
     if (!form.name.trim()) return t("order.checkout.errName");
+    // Length guards mirror the backend caps (the inputs also enforce maxLength —
+    // this is the authoritative client gate against paste/programmatic edits).
+    if (form.name.trim().length > FIELD_LIMITS.name)
+      return t("order.checkout.errTooLong", { defaultValue: "That entry is too long." });
+    if (
+      form.address_line.trim().length > FIELD_LIMITS.address ||
+      form.delivery_notes.trim().length > FIELD_LIMITS.notes ||
+      form.place_name.trim().length > FIELD_LIMITS.shortText ||
+      form.floor.trim().length > FIELD_LIMITS.shortText ||
+      form.unit_number.trim().length > FIELD_LIMITS.shortText ||
+      form.landmark.trim().length > FIELD_LIMITS.shortText
+    )
+      return t("order.checkout.errTooLong", { defaultValue: "That entry is too long." });
     if (!isValidPhone(form.phone)) return t("order.checkout.errPhone");
     if (lines.length === 0) return t("order.checkout.errEmpty");
-    if (needsLocation && quote?.status === "out_of_range")
-      return t("order.checkout.errRange");
-    if (needsLocation && !address.trim() && !form.address_line.trim())
-      return t("order.checkout.errAddress");
+    if (lines.length > FIELD_LIMITS.cartLines)
+      return t("order.checkout.errTooManyItems", {
+        defaultValue: "Your cart has too many items. Please remove some.",
+      });
+    // A confirmed location is required for outside (delivery pin) and for in-mall
+    // unless the branch relaxed the GPS check. Then channel-specific fields.
+    if (locationRequired && !point)
+      return t("order.checkout.errLocation", {
+        defaultValue: "Please confirm your location.",
+      });
+    if (isOutside) {
+      if (quote?.status === "out_of_range") return t("order.checkout.errRange");
+      if (!form.address_line.trim()) return t("order.checkout.errAddress");
+    } else {
+      if (!form.place_name.trim())
+        return t("order.checkout.errShop", {
+          defaultValue: "Please enter the shop or company name.",
+        });
+      if (!form.floor.trim())
+        return t("order.checkout.errFloor", { defaultValue: "Please enter the floor." });
+      if (!form.unit_number.trim())
+        return t("order.checkout.errUnit", {
+          defaultValue: "Please enter the unit or office number.",
+        });
+    }
     return null;
   };
 
   const handlePlace = async () => {
+    if (channelClosed) {
+      setSubmitError(
+        t("order.checkout.errChannelClosed", {
+          defaultValue: "Sorry — this branch just stopped accepting orders on this channel.",
+        }),
+      );
+      return;
+    }
     const err = validateForm();
     if (err) {
       setSubmitError(err);
       return;
     }
     idempotencyKey.current = newUid();
+    // OTP is optional per branch — when the branch has it off, place the order
+    // directly with no verification (no request, no dialog).
+    if (branchObj && branchObj.otp_required === false) {
+      await submitOrder("");
+      return;
+    }
+    // If OTP was already done in the phone step (or was cached from a previous visit),
+    // the resolved token is used directly without re-challenging.
+    if (resolvedPhone?.deviceToken) {
+      await submitOrder(resolvedPhone.deviceToken);
+      return;
+    }
     const existing = getDeviceToken(form.phone);
     if (existing) {
       await submitOrder(existing);
@@ -346,39 +517,49 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
     setOtpOpen(false);
   };
 
-  const startNewOrder = () => {
-    setPlacedOrder(null);
-    setEstimateAtSubmit(null);
-    setLines([]);
-    setForm(emptyForm());
-    setEnteredCheckout(false);
-    setLocationDone(false);
-    setPoint(null);
-    setAddress("");
-    setQuote(null);
-    setSubmitError(null);
-    idempotencyKey.current = newUid();
-    setUrl({ branch: undefined, channel: undefined });
-  };
-
   // ── Per-step header copy ──────────────────────────────────────────────────
-  const headers = stepHeaders(step, branchObj?.name ?? "", t);
+  const headers = channelClosed
+    ? { title: t("order.channel.heading", "How would you like it?"), subtitle: undefined }
+    : stepHeaders(step, branchObj?.name ?? "", t);
 
   // ── Sticky footer (view-cart bar on menu) ─────────────────────────────────
   const footer =
-    step === "menu" && itemCount > 0 ? (
-      <Button className="w-full justify-between" size="lg" onClick={() => setCartOpen(true)}>
-        <span className="inline-flex items-center gap-2">
-          <span className="inline-flex size-6 items-center justify-center rounded-full bg-brand-foreground/20 text-xs font-bold tabular-nums">
+    step === "menu" && itemCount > 0 && !channelClosed ? (
+      <button
+        type="button"
+        onClick={() => setCartOpen(true)}
+        className="flex w-full items-center justify-between rounded-full bg-foreground px-5 py-3.5 text-background shadow-lg transition-transform active:scale-[0.99]"
+      >
+        <span className="inline-flex items-center gap-2.5">
+          <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-brand px-2 py-0.5 text-xs font-bold tabular-nums text-brand-foreground">
             {itemCount}
           </span>
-          {t("order.cart.view")}
+          <span className="text-sm">{t("order.cart.units", { count: itemCount, defaultValue: "items" })}</span>
         </span>
-        <span className="font-bold tabular-nums">{fmtMoney(subtotal)}</span>
-      </Button>
+        <span className="inline-flex items-center gap-2 text-sm font-semibold tabular-nums">
+          {fmtMoney(subtotal)}
+          <ArrowRight className="size-4 rtl:rotate-180" />
+        </span>
+      </button>
     ) : undefined;
 
-  const hasBack = step !== "branch" && step !== "done";
+  // Desktop menu search lives in the header (mobile renders its own inside MenuStep).
+  const headerSearch =
+    step === "menu" && !channelClosed ? (
+      <div className="relative w-full">
+        <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={menuQuery}
+          onChange={(e) => setMenuQuery(e.target.value)}
+          placeholder={t("order.menu.search")}
+          className="ps-9 rounded-full"
+          inputMode="search"
+        />
+      </div>
+    ) : undefined;
+
+  // Phone step now has a back button (returns to channel selection).
+  const hasBack = step !== "branch" && step !== "channel";
 
   return (
     <>
@@ -387,54 +568,98 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
         showLocationDot={needsLocation}
         title={headers.title}
         subtitle={headers.subtitle}
-        onBack={hasBack ? handleBack : undefined}
+        onBack={
+          channelClosed
+            ? () => setUrl({ branch: branchId ?? undefined, channel: undefined })
+            : hasBack
+              ? handleBack
+              : undefined
+        }
+        branchSelector={
+          <BranchSelector
+            branches={deliverableBranches}
+            currentId={branchId ?? ""}
+            onSelect={handleSwitchBranch}
+          />
+        }
+        headerSearch={headerSearch}
+        wide={step === "menu" && !channelClosed}
         footer={footer}
+        onOpenHistory={orders.length > 0 ? () => setHistoryOpen(true) : undefined}
+        historyCount={orders.length}
       >
         <AnimatePresence mode="wait">
           <motion.div key={step} variants={fadeIn} initial="hidden" animate="show" exit="hidden">
             {step === "branch" && <BranchStep orgId={orgId} onSelect={handleSelectBranch} />}
 
             {step === "channel" && branchObj && (
-              <ChannelStep branch={branchObj} onSelect={handleSelectChannel} />
+              <div className="space-y-4">
+                {deliverableBranches.length > 1 && (
+                  <div className="flex justify-center">
+                    <BranchSelector
+                      branches={deliverableBranches}
+                      currentId={branchId ?? ""}
+                      onSelect={handleSwitchBranch}
+                      align="center"
+                    />
+                  </div>
+                )}
+                <ChannelStep branch={branchObj} onSelect={handleSelectChannel} />
+              </div>
             )}
 
-            {step === "location" && branchId && (
+            {channelClosed && selectedChannel && (
+              <ChannelClosed
+                channel={selectedChannel}
+                onChoose={() => setUrl({ branch: branchId ?? undefined, channel: undefined })}
+              />
+            )}
+
+            {step === "phone" && branchObj && selectedChannel && !channelClosed && (
+              <PhoneStep
+                orgId={orgId}
+                otpRequired={branchObj.otp_required}
+                onContinue={handlePhoneContinue}
+              />
+            )}
+
+            {step === "location" && branchId && selectedChannel && !channelClosed && (
               <LocationStep
                 branchId={branchId}
+                channel={selectedChannel}
                 point={point}
-                address={address}
+                required={locationRequired}
+                savedLocations={locations as GuestSavedLocation[]}
                 onPointChange={setPoint}
-                onAddressChange={setAddress}
                 onQuoteChange={setQuote}
+                onApplySavedAddress={handleApplySavedAddress}
                 onContinue={() => setLocationDone(true)}
               />
             )}
 
-            {step === "menu" && menu?.discount && (
-              <div className="mb-3 flex items-center justify-center gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-2 text-sm font-semibold text-success">
-                <BadgePercent className="size-4" />
-                {menu.discount.dtype === "percentage"
-                  ? t("order.menu.discountPct", {
-                      defaultValue: "{{value}}% off your order",
-                      value: menu.discount.value,
-                    })
-                  : t("order.menu.discountFixed", {
-                      defaultValue: "{{value}} off your order",
-                      value: fmtMoney(menu.discount.value),
-                    })}
-              </div>
-            )}
-
-            {step === "menu" && branchId && selectedChannel && (
+            {step === "menu" && branchId && selectedChannel && !channelClosed && (
               <MenuStep
                 branchId={branchId}
                 channel={selectedChannel}
                 countByItem={countByItem}
                 onAdd={addOrUpdateLine}
+                query={menuQuery}
+                onQueryChange={setMenuQuery}
+                cartSlot={
+                  <CartPanel
+                    lines={lines}
+                    deliveryFee={deliveryFee}
+                    discountAmount={discountAmount}
+                    onEdit={startEdit}
+                    onRemove={removeLine}
+                    onSetQty={setLineQty}
+                    onCheckout={() => setEnteredCheckout(true)}
+                  />
+                }
               />
             )}
 
-            {step === "checkout" && selectedChannel && (
+            {step === "checkout" && selectedChannel && !channelClosed && (
               <CheckoutStep
                 channel={selectedChannel}
                 form={form}
@@ -445,22 +670,16 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
                 submitting={createOrder.isPending || otpRequest.isPending}
                 error={submitError}
                 onSubmit={handlePlace}
+                phoneReadOnly={!!resolvedPhone}
               />
             )}
 
-            {step === "done" && placedOrder && (
-              <ConfirmationStep
-                order={placedOrder}
-                estimatedTotal={estimateAtSubmit}
-                onNewOrder={startNewOrder}
-              />
-            )}
           </motion.div>
         </AnimatePresence>
 
-        {/* Empty-cart hint on the menu footer area */}
+        {/* Empty-cart hint on the menu footer area (mobile / tablet only) */}
         {step === "menu" && itemCount === 0 && (
-          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-[480px] items-center justify-center gap-2 px-4 py-4 text-xs text-muted-foreground">
+          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-[480px] items-center justify-center gap-2 px-4 py-4 text-xs text-muted-foreground xl:hidden">
             <ShoppingBag className="size-3.5" />
             {t("order.cart.emptyHint")}
           </div>
@@ -479,10 +698,6 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
         onSetQty={setLineQty}
         onCheckout={() => {
           setCartOpen(false);
-          // Seed the checkout address from the location-step pin address (outside only).
-          if (needsLocation && address.trim() && !form.address_line.trim()) {
-            setForm((f) => ({ ...f, address_line: address.trim() }));
-          }
           setEnteredCheckout(true);
         }}
         onAddMore={() => setCartOpen(false)}
@@ -510,6 +725,13 @@ export function PublicOrderingPage({ orgId, branch, channel }: PublicOrderingPag
         onResend={handleResend}
         onChangeNumber={handleChangeNumber}
       />
+
+      {/* Order history drawer */}
+      <OrderHistoryDrawer
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        orders={orders}
+      />
     </>
   );
 }
@@ -521,16 +743,18 @@ function stepHeaders(
 ): { title: string; subtitle?: string } {
   switch (step) {
     case "branch":
-      return { title: t("order.title"), subtitle: t("order.branch.subtitle") };
+      return { title: t("order.branch.heading", "Choose a branch"), subtitle: t("order.branch.subtitle") };
     case "channel":
       return {
-        title: t("order.channel.title"),
+        title: t("order.channel.heading", "How would you like it?"),
         subtitle: t("order.channel.subtitle", { name: branchName }),
       };
+    case "phone":
+      return { title: t("order.phone.heading", "Your number"), subtitle: t("order.phone.headingSubtitle", { name: branchName }) };
     case "location":
-      return { title: t("order.location.title"), subtitle: t("order.location.heading") };
+      return { title: t("order.location.short", "Where to?") };
     case "menu":
-      return { title: t("order.menu.title"), subtitle: branchName || undefined };
+      return { title: t("order.menu.title") };
     case "checkout":
       return { title: t("order.checkout.title") };
     case "done":

@@ -6,6 +6,8 @@
   "common": {
     "copyright": "© {{year}} سفريكس. جميع الحقوق محفوظة.",
     "source": "المصدر",
+    "cairoTime": "بتوقيت القاهرة",
+    "timezoneLabel": "بتوقيت {{city}}",
     "save": "حفظ",
     "saveChanges": "حفظ التغييرات",
     "savedChanges": "تم حفظ التغييرات",
@@ -122,7 +124,8 @@
     "delivery": "التوصيل",
     "deliverySettings": "الإعدادات",
     "deliveryZones": "حلقات المناطق",
-    "deliveryChannels": "تجاوزات القنوات"
+    "deliveryChannels": "تجاوزات القنوات",
+    "qr": "رموز QR"
   },
   "auth": {
     "welcome": "مرحباً بعودتك",
@@ -220,7 +223,8 @@
     "revenueTrend": "اتجاه الإيرادات",
     "payments": "توزيع المدفوعات",
     "pickBranchTrend": "اختر فرعًا لعرض اتجاه الإيرادات الخاص به",
-    "branchPerformance": "أداء الفروع"
+    "branchPerformance": "أداء الفروع",
+    "periodTotal": "{{total}} لهذه الفترة"
   },
   "orgs": {
     "title": "المؤسسات",
@@ -1161,7 +1165,15 @@
     "distance": "المسافة",
     "deliveryRef": "مرجع التوصيل",
     "floor": "الطابق",
-    "unit": "وحدة"
+    "unit": "وحدة",
+    "deliveryOrders": "طلبات التوصيل",
+    "deliveryRevenue": "إيراد التوصيل",
+    "deliveryOutside": "خارجي",
+    "allTypes": "كل الأنواع",
+    "channel": "القناة",
+    "allChannels": "كل القنوات",
+    "location": "الموقع",
+    "openInMaps": "فتح في الخرائط"
   },
   "ordersExport": {
     "title": "تصدير الطلبات",
@@ -1229,10 +1241,16 @@
       "inventory": "المخزون"
     },
     "granularity": {
-      "hourly": "كل ساعة",
+      "peak_hours": "ساعات الذروة",
       "daily": "يومي",
       "monthly": "شهري"
     },
+    "revenueByHour": "الإيراد حسب الساعة",
+    "ordersByHour": "الطلبات حسب الساعة",
+    "discountsByHour": "الخصومات حسب الساعة",
+    "avgPerDay": "متوسط / يوم",
+    "shareOfTotal": "النسبة",
+    "periodTotal": "إجمالي الفترة",
     "revenueByPayment": "الإيراد حسب طريقة الدفع",
     "topItems": "أكثر الأصناف مبيعاً",
     "topItemsRev": "أكثر الأصناف إيراداً",
@@ -1492,7 +1510,9 @@
       "cashBase": "نقدي",
       "nonCash": "غير نقدي",
       "systemMethods": "طرق نظامية"
-    }
+    },
+    "whatsapp": "واتساب",
+    "whatsappHint": "اربط الرقم الذي يرسل رموز التحقق وتحديثات الطلبات."
   },
   "meta": {
     "publication": "دليل القدرات",
@@ -2142,6 +2162,7 @@
     "title": "اطلب أونلاين",
     "language": "اللغة",
     "branch": {
+      "heading": "اختر فرعًا",
       "subtitle": "اختر الفرع الذي تريد الطلب منه",
       "error": "تعذّر تحميل الفروع",
       "errorHint": "يرجى التحقق من اتصالك والمحاولة مرة أخرى.",
@@ -2150,16 +2171,22 @@
     },
     "channel": {
       "title": "كيف تريد طلبك؟",
+      "heading": "كيف تريد طلبك؟",
       "subtitle": "اختر نوع التوصيل لفرع {{name}}.",
       "inMall": "داخل المول",
       "inMallHint": "يُسلَّم إلى محلك أو مكتبك داخل المول",
       "outside": "توصيل",
       "outsideHint": "يُسلَّم إلى عنوانك خارج المول",
       "open": "مفتوح",
-      "closed": "مغلق"
+      "closed": "مغلق",
+      "closedTitle": "هذا الخيار غير متاح حاليًا",
+      "closedBodyInMall": "عذرًا — الطلب داخل المول مغلق حاليًا. جرّب التوصيل، أو عُد لاحقًا.",
+      "closedBodyOutside": "عذرًا — التوصيل مغلق حاليًا. جرّب الطلب داخل المول، أو عُد لاحقًا.",
+      "choose": "اختر خيارًا آخر"
     },
     "location": {
       "heading": "موقع التوصيل",
+      "short": "إلى أين؟",
       "title": "حدّد موقعك",
       "useMyLocation": "موقعي الحالي",
       "locating": "جارٍ تحديد موقعك…",
@@ -2179,7 +2206,21 @@
       "continue": "المتابعة إلى القائمة",
       "permissionDenied": "الموقع غير مُفعّل — ابحث عن عنوانك أو اضغط على الخريطة لتحديد مكانك.",
       "attribution": "© مساهمو OpenStreetMap © CARTO",
-      "searchPlaceholder": "ابحث عن منطقتك أو عنوانك…"
+      "searchPlaceholder": "ابحث عن منطقتك أو عنوانك…",
+      "inMallTitle": "أكّد وجودك في الفرع",
+      "inMallNote": "نستخدم موقعك فقط للتأكد من وجودك في الفرع.",
+      "required": "نحتاج إلى موقعك للتأكد من وجودك في الفرع قبل الطلب.",
+      "retry": "تفعيل الموقع",
+      "confirmed": "تم تأكيد الموقع",
+      "distanceFromBranch": "~{{meters}} م من الفرع",
+      "distanceFromBranchKm": "~{{km}} كم من الفرع",
+      "optional": "مشاركة موقعك تساعدنا على خدمتك بشكل أسرع، لكنها اختيارية — يمكنك المتابعة بدونها.",
+      "inMallTitleOptional": "شارك موقعك (اختياري)",
+      "skip": "المتابعة بدون موقع",
+      "savedLabel": "استخدام عنوان محفوظ",
+      "savedUnknown": "موقع محفوظ",
+      "thisBranch": "هذا الفرع",
+      "otherBranches": "فروع أخرى"
     },
     "menu": {
       "title": "القائمة",
@@ -2197,7 +2238,13 @@
       "search": "ابحث في القائمة",
       "noResults": "لا يوجد ما يطابق «{{query}}»",
       "discountPct": "خصم {{value}}٪ على طلبك",
-      "discountFixed": "خصم {{value}} على طلبك"
+      "discountFixed": "خصم {{value}} على طلبك",
+      "categories": "الفئات",
+      "itemCount": "{{count}} صنف",
+      "greeting": "ماذا تشتهي؟",
+      "greetMorning": "صباح الخير",
+      "greetAfternoon": "نهارك سعيد",
+      "greetEvening": "مساء الخير"
     },
     "customize": {
       "size": "الحجم",
@@ -2210,6 +2257,8 @@
       "pickExactly": "اختر {{count}}",
       "swap": "استبدال",
       "addOns": "إضافات",
+      "searchAddons": "ابحث عن الإضافات",
+      "noAddons": "لا توجد إضافات مطابقة لبحثك.",
       "extras": "إضافات",
       "noCharge": "بدون رسوم",
       "selected": "تم اختيار {{count}}",
@@ -2244,10 +2293,14 @@
       "items_other": "{{count}} أصناف",
       "qty": "× {{count}}",
       "estimate": "يتم تأكيد الإجمالي النهائي عند الدفع.",
-      "discount": "خصم"
+      "discount": "خصم",
+      "units_one": "صنف",
+      "units_other": "أصناف"
     },
     "checkout": {
       "title": "إتمام الطلب",
+      "contact": "بيانات التواصل",
+      "deliveryAddress": "عنوان التوصيل",
       "name": "الاسم الكامل",
       "namePlaceholder": "اسمك",
       "phone": "رقم الهاتف",
@@ -2273,10 +2326,47 @@
       "summary": "ملخص الطلب",
       "errName": "يرجى إدخال اسمك.",
       "errPhone": "يرجى إدخال رقم هاتف صحيح.",
+      "errPhoneRequired": "يرجى إدخال رقم هاتفك.",
+      "errChannelClosed": "عذرًا — توقّف هذا الفرع عن استقبال الطلبات على هذه القناة للتو.",
       "errAddress": "يرجى إضافة عنوان.",
       "errEmpty": "سلتك فارغة.",
       "errRange": "هذا الموقع خارج نطاق التوصيل لدينا.",
+      "errTooLong": "هذا الإدخال طويل جدًا.",
+      "errTooManyItems": "سلتك تحتوي على عناصر كثيرة جدًا. يرجى إزالة بعضها.",
+      "errShop": "يرجى إدخال اسم المحل أو الشركة.",
+      "errFloor": "يرجى إدخال الطابق.",
+      "errUnit": "يرجى إدخال رقم الوحدة أو المكتب.",
+      "errLocation": "يرجى تحديد موقع التوصيل على الخريطة.",
       "errSubmit": "حدث خطأ أثناء تأكيد طلبك. حاول مرة أخرى."
+    },
+    "phone": {
+      "heading": "رقمك",
+      "headingSubtitle": "الطلب من {{name}}",
+      "title": "رقم هاتفك",
+      "subtitle": "سنستخدمه لتأكيد طلبك وعرض طلباتك السابقة.",
+      "continue": "متابعة",
+      "savedAs": "تطلب بالرقم {{phone}}",
+      "switchNumber": "تغيير الرقم"
+    },
+    "history": {
+      "open": "طلباتي",
+      "title": "طلباتك",
+      "empty": "لا توجد طلبات سابقة بعد.",
+      "track": "تتبع",
+      "subtotal": "الإجمالي الجزئي",
+      "fee": "رسوم التوصيل",
+      "items": "طلبك",
+      "destination": "الوجهة"
+    },
+    "status": {
+      "received": "تم استلام الطلب",
+      "confirmed": "تم قبول الطلب",
+      "preparing": "جارٍ التحضير",
+      "ready": "جاهز للتوصيل",
+      "out_for_delivery": "في الطريق",
+      "delivered": "تم التوصيل",
+      "cancelled": "ملغي",
+      "rejected": "ملغي"
     },
     "otp": {
       "title": "تأكيد رقم هاتفك",
@@ -2304,11 +2394,62 @@
     "footer": {
       "poweredBy": "خدمة الطلب أونلاين مقدّمة من سفريكس",
       "rights": "© {{year}} {{name}}"
+    },
+    "track": {
+      "loading": "جارٍ تحميل طلبك…",
+      "notFoundTitle": "لم يتم العثور على الطلب",
+      "items": "طلبك",
+      "notFoundBody": "تعذّر العثور على هذا الطلب. قد يكون الرابط غير صحيح أو تمت إزالة الطلب.",
+      "eta": "~{{minutes}} دقيقة",
+      "cancelledTitle": "تم إلغاء هذا الطلب",
+      "orderAgain": "اطلب مرة أخرى",
+      "status": {
+        "received": "تم استلام الطلب",
+        "confirmed": "تم قبول الطلب",
+        "preparing": "جارٍ تحضير طلبك",
+        "ready": "جاهز للتوصيل",
+        "out_for_delivery": "في الطريق إليك",
+        "delivered": "تم التوصيل",
+        "cancelled": "تم إلغاء الطلب",
+        "rejected": "تم إلغاء الطلب"
+      },
+      "step": {
+        "received": "تم الاستلام",
+        "confirmed": "تم القبول",
+        "preparing": "قيد التحضير",
+        "ready": "جاهز",
+        "out_for_delivery": "في الطريق",
+        "delivered": "تم التوصيل"
+      },
+      "channel": {
+        "in_mall": "داخل المول",
+        "outside": "توصيل"
+      },
+      "pay": {
+        "cash": "الدفع نقدًا عند الاستلام",
+        "card": "الدفع بالبطاقة عند الاستلام"
+      }
     }
+  },
+  "deliveryTimeline": {
+    "title": "مراحل التوصيل",
+    "hint": "قد تُمسح الخطوات المتخطّاة؛ تُسجَّل أوقات المراحل التي تم الوصول إليها فقط.",
+    "received": "تم الاستلام",
+    "confirmed": "مؤكد",
+    "preparing": "قيد التحضير",
+    "ready": "جاهز",
+    "outForDelivery": "خرج للتوصيل",
+    "delivered": "تم التوصيل"
   },
   "delivery": {
     "channelInMall": "داخل المول",
     "channelOutside": "توصيل",
+    "kpisTitle": "التوصيل",
+    "byChannel": "حسب القناة",
+    "revenue": "إيرادات التوصيل",
+    "deliveredOrders": "الطلبات المسلَّمة",
+    "fees": "رسوم التوصيل",
+    "cancelled": "ملغاة",
     "statusOk": "التوصيل متاح",
     "statusOutOfRange": "خارج نطاق التوصيل",
     "statusUnavailable": "التوصيل غير متاح",
@@ -2350,6 +2491,8 @@
     "pickOrg": "اختر مؤسسة لإدارة تجاوزات القنوات",
     "prepTime": "وقت التحضير (دقائق)",
     "prepTimeHint": "يُضاف إلى وقت التوصيل المتوقع المعروض للعميل.",
+    "otpRequired": "طلب التحقق برمز OTP",
+    "otpRequiredHint": "يؤكد العملاء هواتفهم برمز لمرة واحدة قبل الطلب. أوقفه للسماح بالطلب دون OTP (أسرع لكن غير مُوثَّق).",
     "settingsSubtitle": "اضبط قنوات التوصيل والمواعيد والرسوم لكل فرع.",
     "settingsTitle": "إعدادات التوصيل",
     "tabs": {
@@ -2373,6 +2516,71 @@
     "zonesTitle": "مناطق التوصيل",
     "channelDiscount": "خصم",
     "noDiscount": "بدون خصم",
-    "channelDiscountHint": "يُطبّق على إجمالي الأصناف عند الدفع — تُحتسب رسوم التوصيل كاملةً دائمًا."
+    "channelDiscountHint": "يُطبّق على إجمالي الأصناف عند الدفع — تُحتسب رسوم التوصيل كاملةً دائمًا.",
+    "inMallRequireLocation": "طلب موقع GPS",
+    "inMallRequireLocationHint": "يجب على العملاء مشاركة موقع أجهزتهم لتأكيد وجودهم في الفرع قبل الطلب. أوقفه إذا كان GPS الداخلي غير موثوق (المتجر والطابق والوحدة مطلوبة دائمًا)."
+  },
+  "whatsapp": {
+    "title": "واتساب",
+    "subtitle": "اربط رقم واتساب الذي يرسل رموز التحقق وتحديثات طلبات التوصيل.",
+    "connection": "الاتصال",
+    "session": "الجلسة",
+    "checking": "جارٍ التحقق…",
+    "offline": "غير متصل",
+    "connected": "متصل",
+    "awaitingScan": "في انتظار المسح",
+    "linked": "تم ربط رقم وهو جاهز للإرسال.",
+    "notLinked": "لم يتم ربط أي رقم بعد.",
+    "startPairing": "إنشاء رمز QR للربط",
+    "unlink": "إلغاء ربط الرقم",
+    "unlinkedToast": "تم إلغاء ربط رقم واتساب.",
+    "qrAlt": "رمز QR لربط واتساب",
+    "step1": "افتح واتساب على هاتفك.",
+    "step2": "اضغط على الإعدادات ← الأجهزة المرتبطة ← ربط جهاز.",
+    "step3": "امسح رمز QR هذا. يتم تحديثه تلقائيًا.",
+    "notConfigured": "البوابة غير مُهيأة",
+    "notConfiguredHint": "اضبط WHATSAPP_SERVICE_URL على الخادم لتفعيل الإرسال عبر واتساب.",
+    "unreachable": "تعذّر الوصول إلى البوابة",
+    "unreachableHint": "لم تستجب خدمة واتساب. تأكد من تشغيلها على الشبكة الخاصة.",
+    "pauseTitle": "إيقاف الإرسال مؤقتًا",
+    "pauseHint": "كتم جميع رسائل واتساب (رموز التحقق + تحديثات الطلبات) دون إلغاء ربط الرقم.",
+    "paused": "متوقف مؤقتًا",
+    "pausedToast": "تم إيقاف الإرسال مؤقتًا.",
+    "resumedToast": "تم استئناف الإرسال.",
+    "forbidden": "يمكن لمسؤولي النظام فقط إدارة اتصال واتساب."
+  },
+  "qr": {
+    "title": "رموز QR",
+    "subtitle": "أنشئ رموز QR للمسح لصفحة طلبات العملاء",
+    "generate": "إنشاء رمز QR",
+    "pickBranch": "اختر فرعًا من شريط النطاق أعلاه",
+    "opts": {
+      "brandedCard": "بطاقة بالعلامة التجارية"
+    },
+    "tabs": {
+      "standard": "قائمة الفرع",
+      "inMall": "توصيل داخل المول"
+    },
+    "org": {
+      "title": "رمز QR لجميع الفروع",
+      "description": "رمز QR واحد يتيح للعملاء تصفح واختيار أي من فروعك وتقديم طلب."
+    },
+    "standard": {
+      "title": "رمز QR لقائمة الفرع",
+      "description": "يفتح صفحة الطلب الخاصة بفرعك عند المسح. يعمل مع التوصيل داخل المول والخارجي."
+    },
+    "inMall": {
+      "title": "رمز QR للتوصيل داخل المول",
+      "description": "ضع هذا الرمز في موقع محدد داخل المول. عند مسحه، يتم تحديد التوصيل داخل المول ومعالجة الموقع مسبقًا.",
+      "placeName": "اسم المحل / الشركة",
+      "placeNamePlaceholder": "ستاربكس كيوسك 3",
+      "floor": "الطابق",
+      "floorPlaceholder": "الدور الأرضي",
+      "unit": "الوحدة / المكتب",
+      "unitPlaceholder": "وحدة 42"
+    },
+    "preview": {
+      "title": "رمز QR"
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Ban, X } from "lucide-react";
+import { Ban, Check, Info, MapPin, X } from "lucide-react";
 
 import {
   Sheet,
@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetOrder, useListCatalog } from "@/data/api/generated/api";
-import type { OrderFull } from "@/data/api/generated/models";
+import { useGetDeliveryOrder, useGetOrder, useListCatalog } from "@/data/api/generated/api";
+import type { DeliveryOrder, OrderFull } from "@/data/api/generated/models";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { fmtDateTimeFull, fmtMoney, fmtUnit } from "@/lib/format";
@@ -51,6 +51,11 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
   const { data: catalog } = useListCatalog(orgId ?? "", {
     query: { enabled: open && !!orgId, staleTime: 5 * 60_000 },
   });
+  // The step timestamps live on the delivery order, not the materialized sale —
+  // fetch it to render the read-only progress timeline.
+  const { data: deliveryOrder } = useGetDeliveryOrder(order?.delivery_order_id ?? "", {
+    query: { enabled: open && order?.order_type === "delivery" && !!order?.delivery_order_id },
+  });
 
   // ingredient id → cost per unit (piastres), to price the deduction snapshot.
   const costPerUnit = useMemo(() => {
@@ -72,7 +77,11 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
   const isDelivery = order?.order_type === "delivery";
   const delivery = order?.delivery ?? null;
   const channelLabel = (channel: string) =>
-    channel === "in_mall" ? t("delivery.channelInMall", "In-mall") : t("delivery.channelOutside", "Delivery");
+    channel === "in_mall" ? t("delivery.channelInMall", "In-mall") : t("orders.deliveryOutside", "Outside");
+  const mapsUrl =
+    order?.delivery_lat != null && order?.delivery_lng != null
+      ? `https://www.google.com/maps/search/?api=1&query=${order.delivery_lat},${order.delivery_lng}`
+      : null;
   const addressParts = delivery
     ? [
         delivery.place_name,
@@ -191,9 +200,25 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                     {delivery.delivery_ref ? (
                       <Row label={t("orders.deliveryRef", "Delivery ref")} value={delivery.delivery_ref} />
                     ) : null}
+                    {mapsUrl ? (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">{t("orders.location", "Location")}</span>
+                        <a
+                          href={mapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-medium text-primary underline-offset-2 hover:underline"
+                        >
+                          <MapPin className="size-3.5" />
+                          {t("orders.openInMaps", "Open in Maps")}
+                        </a>
+                      </div>
+                    ) : null}
                   </CardContent>
                 </Card>
               ) : null}
+
+              {deliveryOrder ? <DeliveryTimeline order={deliveryOrder} /> : null}
 
               {items.length > 0 ? (
                 <Card className="py-0">
@@ -354,5 +379,69 @@ function Row({ label, value, className }: { label: string; value: string; classN
       <span className="text-muted-foreground">{label}</span>
       <span className="tabular">{value}</span>
     </div>
+  );
+}
+
+const DELIVERY_STEP_KEYS = ["received", "confirmed", "preparing", "ready", "out_for_delivery", "delivered"] as const;
+
+const DELIVERY_STEPS: { key: string; tsKey: keyof DeliveryOrder; labelKey: string; fallback: string }[] = [
+  { key: "received", tsKey: "created_at", labelKey: "deliveryTimeline.received", fallback: "Received" },
+  { key: "confirmed", tsKey: "confirmed_at", labelKey: "deliveryTimeline.confirmed", fallback: "Confirmed" },
+  { key: "preparing", tsKey: "preparing_at", labelKey: "deliveryTimeline.preparing", fallback: "Preparing" },
+  { key: "ready", tsKey: "ready_at", labelKey: "deliveryTimeline.ready", fallback: "Ready" },
+  { key: "out_for_delivery", tsKey: "out_for_delivery_at", labelKey: "deliveryTimeline.outForDelivery", fallback: "Out for delivery" },
+  { key: "delivered", tsKey: "delivered_at", labelKey: "deliveryTimeline.delivered", fallback: "Delivered" },
+];
+
+/**
+ * Read-only delivery progress. Renders filled up to the order's current status;
+ * step timestamps are shown where present. Because the POS clears non-landed
+ * step stamps on a jump, intermediate timestamps may be absent even though the
+ * line shows them as passed — the hint explains this.
+ */
+function DeliveryTimeline({ order }: { order: DeliveryOrder }) {
+  const { t } = useTranslation();
+  const currentIdx = DELIVERY_STEP_KEYS.indexOf(order.status as (typeof DELIVERY_STEP_KEYS)[number]);
+  const terminalOff = order.status === "cancelled" || order.status === "rejected";
+
+  return (
+    <Card className="py-0">
+      <CardContent className="p-4">
+        <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {t("deliveryTimeline.title", "Delivery progress")}
+          <span title={t("deliveryTimeline.hint", "Skipped steps may be cleared; only reached milestones are timestamped.")} className="inline-flex">
+            <Info className="size-3.5" />
+          </span>
+        </p>
+        {terminalOff ? (
+          <p className="text-sm text-destructive">{t(`orderStatus.${order.status}`, order.status)}</p>
+        ) : (
+          DELIVERY_STEPS.map((step, i) => {
+            const reached = currentIdx >= 0 && i <= currentIdx;
+            const ts = order[step.tsKey] as string | null | undefined;
+            const isLast = i === DELIVERY_STEPS.length - 1;
+            return (
+              <div key={step.key} className="flex gap-3">
+                <div className="flex flex-col items-center">
+                  <span
+                    className={cn(
+                      "flex size-5 shrink-0 items-center justify-center rounded-full border-2",
+                      reached ? "border-primary bg-primary text-primary-foreground" : "border-muted bg-background",
+                    )}
+                  >
+                    {reached ? <Check className="size-3" /> : null}
+                  </span>
+                  {!isLast ? <span className={cn("min-h-4 w-0.5 flex-1", i < currentIdx ? "bg-primary" : "bg-muted")} /> : null}
+                </div>
+                <div className={cn("pb-3", isLast && "pb-0")}>
+                  <p className={cn("text-sm", reached ? "font-medium" : "text-muted-foreground")}>{t(step.labelKey, step.fallback)}</p>
+                  {ts ? <p className="text-xs text-muted-foreground tabular">{fmtDateTimeFull(ts)}</p> : null}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </CardContent>
+    </Card>
   );
 }

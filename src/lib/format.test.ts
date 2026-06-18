@@ -1,5 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { egpToPiastres, piastresToEgp } from "@/lib/format";
+import { egpToPiastres, fmtHour, piastresToEgp } from "@/lib/format";
+
+describe("fmtHour", () => {
+  it("formats midnight and noon as 12am/12pm", () => {
+    expect(fmtHour(0)).toBe("12am");
+    expect(fmtHour(12)).toBe("12pm");
+  });
+
+  it("formats AM hours without leading zero", () => {
+    expect(fmtHour(1)).toBe("1am");
+    expect(fmtHour(6)).toBe("6am");
+    expect(fmtHour(11)).toBe("11am");
+  });
+
+  it("formats PM hours in 12-hour notation", () => {
+    expect(fmtHour(13)).toBe("1pm");
+    expect(fmtHour(18)).toBe("6pm");
+    expect(fmtHour(23)).toBe("11pm");
+  });
+});
 
 describe("egpToPiastres", () => {
   it("rounds float-imprecise products instead of truncating (no lost piastre)", () => {

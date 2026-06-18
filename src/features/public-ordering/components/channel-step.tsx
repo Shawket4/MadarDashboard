@@ -16,11 +16,11 @@ export function ChannelDot({ open, label }: { open: boolean; label: string }) {
       <span
         className={cn(
           "size-1.5 rounded-full",
-          open ? "bg-emerald-500" : "bg-muted-foreground/50",
+          open ? "bg-success" : "bg-muted-foreground/50",
         )}
       />
       <span>{label}</span>
-      <span className={cn("font-medium", open ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>
+      <span className={cn("font-medium", open ? "text-success" : "text-muted-foreground")}>
         · {open ? t("order.channel.open") : t("order.channel.closed")}
       </span>
     </span>
@@ -75,7 +75,7 @@ export function ChannelStep({ branch, onSelect }: ChannelStepProps) {
               onClick={() => o.open && onSelect(o.channel)}
               disabled={!o.open}
               className={cn(
-                "group flex w-full items-center gap-3 rounded-2xl border p-4 text-start shadow-sm transition-all",
+                "group flex w-full items-center gap-4 rounded-2xl border p-5 text-start shadow-sm transition-all",
                 o.open
                   ? "border-border/70 bg-card hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0"
                   : "cursor-not-allowed border-dashed border-border/60 bg-muted/40 opacity-70",
@@ -83,30 +83,31 @@ export function ChannelStep({ branch, onSelect }: ChannelStepProps) {
             >
               <span
                 className={cn(
-                  "flex size-12 shrink-0 items-center justify-center rounded-xl",
+                  "flex size-14 shrink-0 items-center justify-center rounded-xl",
                   o.open ? "bg-brand/10 text-brand" : "bg-muted text-muted-foreground",
                 )}
               >
-                <Icon className="size-6" />
+                <Icon className="size-7" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2">
-                  <span className="font-semibold">{o.title}</span>
+                  <span className="font-serif text-lg font-semibold leading-tight">{o.title}</span>
                   <span
                     className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
                       o.open
-                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                        ? "bg-success/10 text-success"
                         : "bg-muted text-muted-foreground",
                     )}
                   >
+                    {o.open && <span className="size-1.5 rounded-full bg-success" />}
                     {o.open ? t("order.channel.open") : t("order.channel.closed")}
                   </span>
                 </span>
-                <span className="mt-0.5 block text-sm text-muted-foreground">{o.hint}</span>
+                <span className="mt-1 block text-sm text-muted-foreground">{o.hint}</span>
               </span>
               {o.open && (
-                <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+                <ChevronRight className="size-5 shrink-0 text-brand transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
               )}
             </button>
           </motion.li>

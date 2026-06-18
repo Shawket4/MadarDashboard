@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Settings2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,9 @@ export function SettingsPage() {
   if (!orgId) {
     return (
       <Page>
-        <PageHeader title={t("inventory.settings.title", "Inventory settings")} />
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.settings.title", "Inventory settings")}</h1>
+        </div>
         <EmptyState icon={Settings2} title={t("inventory.pickOrg", "Select an organization to manage inventory")} />
       </Page>
     );
@@ -52,10 +54,10 @@ export function SettingsPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("inventory.settings.title", "Inventory settings")}
-        description={t("inventory.settings.subtitle", "Organization-wide inventory rules")}
-      />
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.settings.title", "Inventory settings")}</h1>
+        <p className="text-sm text-muted-foreground">{t("inventory.settings.subtitle", "Organization-wide inventory rules")}</p>
+      </div>
       <Card className="max-w-xl">
         <CardHeader>
           <CardTitle>{t("inventory.settings.varianceThreshold", "Stock-count variance tolerance")}</CardTitle>

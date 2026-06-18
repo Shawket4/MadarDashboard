@@ -8,6 +8,8 @@ import type { OptionalField } from './optionalField';
 
 export type MenuItemFull = MenuItem & {
   addon_slots: AddonSlot[];
+  /** Explicit per-item addon allowlist. Empty = no restriction (use org catalog). */
+  allowed_addon_ids: string[];
   optional_fields: OptionalField[];
   recipes: MenuItemRecipe[];
   sizes: ItemSize[];

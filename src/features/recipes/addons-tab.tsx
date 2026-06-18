@@ -14,6 +14,7 @@ import {
 import type { AddonItem } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { getTranslatedName } from "@/lib/translation";
+import { fmtMoney } from "@/lib/format";
 
 export function AddonsTab({ orgId, initialSelectedId }: { orgId: string; initialSelectedId?: string }) {
   const { t, i18n } = useTranslation();
@@ -27,7 +28,7 @@ export function AddonsTab({ orgId, initialSelectedId }: { orgId: string; initial
   const selectedAddon = list.find((a) => a.id === selected);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+    <div className="grid gap-4 lg:grid-cols-[300px_1fr]">
       <MasterList
         items={list.map((a) => ({ id: a.id, label: tname(a) }))}
         selectedId={selected}
@@ -69,9 +70,17 @@ function AddonDetail({ addon, orgId, catalog, copySources }: { addon: AddonItem;
   if (ingredients.isLoading) return <div className="grid place-items-center rounded-xl border p-10"><Spinner /></div>;
 
   return (
-    <div className="rounded-xl border">
-      <div className="border-b bg-muted/30 p-4"><p className="font-semibold">{addon.name}</p></div>
-      <div className="p-4">
+    <div className="rounded-xl border overflow-hidden">
+      <div className="border-b px-5 py-4 flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="font-semibold text-base leading-tight">{addon.name}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("common.addon", addon.addon_type)}</p>
+        </div>
+        {addon.default_price != null ? (
+          <span className="shrink-0 text-sm font-medium tabular text-muted-foreground">{fmtMoney(addon.default_price)}</span>
+        ) : null}
+      </div>
+      <div className="p-5">
         <RecipeBuilder
           orgId={orgId}
           sizes={["one_size"]}

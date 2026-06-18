@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Boxes, PackagePlus } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
@@ -69,7 +69,7 @@ export function ItemsPage() {
       },
       {
         accessorKey: "cost_per_unit",
-        header: t("inventory.catalog.costPerUnit", "Cost / unit"),
+        header: t("inventory.catalog.standardCost", "Standard cost"),
         cell: ({ row }) => <span className="tabular">{fmtMoney(row.original.cost_per_unit)}</span>,
       },
       {
@@ -137,7 +137,9 @@ export function ItemsPage() {
   if (!orgId) {
     return (
       <Page>
-        <PageHeader title={t("inventory.catalog.title", "Ingredient catalog")} />
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.catalog.title", "Ingredient catalog")}</h1>
+        </div>
         <EmptyState icon={Boxes} title={t("inventory.pickOrg", "Select an organization to manage inventory")} />
       </Page>
     );
@@ -145,18 +147,18 @@ export function ItemsPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("inventory.catalog.title", "Ingredient catalog")}
-        actions={
-          <>
-            <ExportButton onExport={handleExport} disabled={!rows.length} />
-            <Button onClick={openCreate}>
-              <PackagePlus className="size-4" />
-              {t("inventory.catalog.newItem", "New ingredient")}
-            </Button>
-          </>
-        }
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.catalog.title", "Ingredient catalog")}</h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ExportButton onExport={handleExport} disabled={!rows.length} />
+          <Button onClick={openCreate}>
+            <PackagePlus className="size-4" />
+            {t("inventory.catalog.newItem", "New ingredient")}
+          </Button>
+        </div>
+      </div>
 
       <DataTable
         columns={columns}

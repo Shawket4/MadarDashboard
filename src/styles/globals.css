@@ -61,15 +61,17 @@
   --chart-5: oklch(0.56 0.13 300);
   --chart-6: oklch(0.65 0.12 200);
 
-  /* Sidebar — light rail that follows the app surface (dark navy only in dark mode) */
-  --sidebar: oklch(0.975 0.005 85);
-  --sidebar-foreground: oklch(0.37 0.035 255);
-  --sidebar-primary: oklch(0.58 0.132 38);
+  /* Sidebar — a permanent deep-navy rail (both light & dark) that frames the
+     linen content, echoing the auth/brand panel. Terracotta marks the active
+     item; hover is a quiet lighter-navy wash. */
+  --sidebar: oklch(0.24 0.038 256);
+  --sidebar-foreground: oklch(0.82 0.018 255);
+  --sidebar-primary: oklch(0.64 0.14 40);
   --sidebar-primary-foreground: oklch(0.99 0.004 85);
-  --sidebar-accent: oklch(0.93 0.014 65);
-  --sidebar-accent-foreground: oklch(0.27 0.05 250);
-  --sidebar-border: oklch(0.9 0.008 80);
-  --sidebar-ring: oklch(0.58 0.132 38);
+  --sidebar-accent: oklch(0.31 0.045 256);
+  --sidebar-accent-foreground: oklch(0.98 0.005 85);
+  --sidebar-border: oklch(1 0 0 / 9%);
+  --sidebar-ring: oklch(0.64 0.14 40);
 }
 
 .dark {
@@ -177,6 +179,9 @@
 
   --font-sans: "Inter Variable", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   --font-arabic: "IBM Plex Sans Arabic", "Inter Variable", ui-sans-serif, sans-serif;
+  /* Editorial display serif (headings, brand moments). Arabic has no serif face,
+     so it falls back to the dedicated Arabic sans in RTL. */
+  --font-serif: "Fraunces Variable", "IBM Plex Sans Arabic", ui-serif, Georgia, serif;
 }
 
 @layer base {

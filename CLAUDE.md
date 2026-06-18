@@ -40,3 +40,10 @@ When working on API integrations, data fetching, or checkout flows, you may need
 - **Sufrix Backend**: `/Users/shawket/Desktop/SufrixRust` (Actix-Web Rust backend)
 - **Sufrix POS**: `/Users/shawket/Desktop/sufrix_pos` (Flutter Point of Sale)
 You can use file read commands or `cd` into these directories to analyze backend endpoints, OpenAPI schemas, or POS behavior.
+
+## Design Context
+Strategic design intent lives in [`PRODUCT.md`](PRODUCT.md); the visual system lives in [`DESIGN.md`](DESIGN.md) (tokens) and `src/styles/globals.css` (source of truth). Key facts for any UI work:
+- **Register is split.** The authenticated dashboard is **product** (design serves the task — quiet, precise, restrained). The customer surfaces (`landing`, `/order/:orgId`, `/track/:id`) are **brand** (design is the product — bold, editorial, hospitable). Match the register to the surface.
+- **Personality:** trustworthy, hospitable, precise. Navy = trust, terracotta = warmth/CTA, cream = hospitality. Bilingual EN/AR with first-class RTL.
+- **Accessibility bar:** WCAG 2.1 AAA where feasible (AA floor). RTL parity and `prefers-reduced-motion` are correctness requirements, not extras.
+- **Anti-references (never):** generic SaaS-cream template, loud delivery-app neon, enterprise-grey snoozefest, consumer toy-like.

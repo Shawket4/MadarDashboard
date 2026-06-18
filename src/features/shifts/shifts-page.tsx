@@ -5,7 +5,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { AlertTriangle, Clock, MoreHorizontal, PlusCircle, Wallet, XCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
@@ -244,21 +244,21 @@ export function ShiftsPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("nav.shifts", "Shifts")}
-        description={t("shifts.subtitle", "Open and close shifts and reconcile the cash drawer")}
-        actions={
-          <>
-            <ExportButton onExport={handleExport} disabled={!(shifts.data?.data?.length)} />
-            {branchId && !openShiftData ? (
-              <Button onClick={() => setOpenShift(true)}>
-                <PlusCircle className="size-4" />
-                {t("shifts.openShift", "Open shift")}
-              </Button>
-            ) : null}
-          </>
-        }
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("nav.shifts", "Shifts")}</h1>
+          <p className="text-sm text-muted-foreground">{t("shifts.subtitle", "Open and close shifts and reconcile the cash drawer")}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButton onExport={handleExport} disabled={!(shifts.data?.data?.length)} />
+          {branchId && !openShiftData ? (
+            <Button onClick={() => setOpenShift(true)}>
+              <PlusCircle className="size-4" />
+              {t("shifts.openShift", "Open shift")}
+            </Button>
+          ) : null}
+        </div>
+      </div>
 
       {/* Current shift banner */}
       {openShiftData ? (

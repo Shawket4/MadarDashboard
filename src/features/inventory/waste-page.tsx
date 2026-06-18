@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Trash2 } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
@@ -103,20 +103,20 @@ export function WastePage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("inventory.waste.title", "Waste log")}
-        actions={
-          <>
-            <ExportButton onExport={handleExport} disabled={!(waste.data?.length)} />
-            {branchId ? (
-              <Button onClick={() => setLogOpen(true)}>
-                <Trash2 className="size-4" />
-                {t("inventory.waste.record", "Record waste")}
-              </Button>
-            ) : null}
-          </>
-        }
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.waste.title", "Waste log")}</h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ExportButton onExport={handleExport} disabled={!(waste.data?.length)} />
+          {branchId ? (
+            <Button onClick={() => setLogOpen(true)}>
+              <Trash2 className="size-4" />
+              {t("inventory.waste.record", "Record waste")}
+            </Button>
+          ) : null}
+        </div>
+      </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <DataTable

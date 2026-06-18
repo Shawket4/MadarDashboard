@@ -265,7 +265,7 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
         </div>
         <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-          {t("inventory.stocktakes.salesWarning", "Sales keep deducting while you count — finalizing sets stock to your counts.")}
+          {t("inventory.stocktakes.salesWarning", "Sales keep deducting while you count — finalizing applies your counts as a delta against live stock, so sales during the count are excluded from variance.")}
         </p>
 
         <div className="flex flex-wrap justify-end gap-2">

@@ -4,7 +4,8 @@ import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
 import { Copy, CupSoda, Pencil, Percent, Store, Tag, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
+import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { EditableCardGrid, type EditableField } from "@/components/app/editable-cards";
@@ -12,7 +13,7 @@ import { AddonCostCell, ItemCostCell } from "@/components/app/cost-cells";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CategoryDialog } from "./category-dialog";
@@ -297,7 +298,9 @@ export function MenuItemsPage() {
   if (!enabled) {
     return (
       <Page>
-        <PageHeader title={t("nav.menu", "Menu")} />
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("nav.menu", "Menu")}</h1>
+        </div>
         <EmptyState icon={Store} title={t("menu.pickOrg", "Select an organization to manage its menu")} />
       </Page>
     );
@@ -311,14 +314,17 @@ export function MenuItemsPage() {
 
   return (
     <Page>
-      <PageHeader title={t("nav.menu", "Menu")} description={t("menu.subtitle", "Manage items, add-ons and categories")} />
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("nav.menu", "Menu")}</h1>
+        <p className="text-sm text-muted-foreground">{t("menu.subtitle", "Manage items, add-ons and categories")}</p>
+      </div>
 
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <TabsList>
-          <TabsTrigger value="items">{t("nav.items", "Items")} <CountBadge n={itemsTotal} /></TabsTrigger>
-          <TabsTrigger value="addons" onMouseEnter={prefetchAddons} onFocus={prefetchAddons}>{t("menu.addons", "Add-ons")} <CountBadge n={addonList.length} /></TabsTrigger>
-          <TabsTrigger value="categories">{t("menu.categories", "Categories")} <CountBadge n={catList.length} /></TabsTrigger>
-        </TabsList>
+        <PageTabsList>
+          <PageTabsTrigger value="items">{t("nav.items", "Items")} <CountBadge n={itemsTotal} /></PageTabsTrigger>
+          <PageTabsTrigger value="addons" onMouseEnter={prefetchAddons} onFocus={prefetchAddons}>{t("menu.addons", "Add-ons")} <CountBadge n={addonList.length} /></PageTabsTrigger>
+          <PageTabsTrigger value="categories">{t("menu.categories", "Categories")} <CountBadge n={catList.length} /></PageTabsTrigger>
+        </PageTabsList>
 
         {!scopedBranchId && (tab === "items" || tab === "addons") ? (
           <div className="flex items-center gap-2 rounded-lg border border-dashed bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
@@ -481,7 +487,7 @@ export function MenuItemsPage() {
 }
 
 function CountBadge({ n }: { n: number }) {
-  return <span className="ms-1.5 rounded-full bg-muted px-1.5 text-xs text-muted-foreground tabular">{n}</span>;
+  return <span className="ms-1 text-xs tabular text-muted-foreground/70">{n}</span>;
 }
 
 function BulkPriceDialog({ open, rows, onClose, onDone }: { open: boolean; rows: MenuItem[]; onClose: () => void; onDone: () => void }) {

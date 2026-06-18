@@ -22,6 +22,16 @@ export interface BranchInventoryItem {
      */
   last_counted_at?: string | null;
   org_ingredient_id: string;
+  /**
+     * Order-up-to level (bring stock back up to this when reordering).
+     * @nullable
+     */
+  par_max?: number | null;
+  /**
+     * Reorder point (order when on-hand ≤ this). Falls back to reorder_threshold.
+     * @nullable
+     */
+  par_min?: number | null;
   reorder_threshold: number;
   unit: string;
   updated_at: string;

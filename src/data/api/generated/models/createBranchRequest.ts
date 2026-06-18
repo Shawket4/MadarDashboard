@@ -27,7 +27,7 @@ export interface CreateBranchRequest {
      */
   printer_port?: number | null;
   /**
-     * IANA timezone name. Defaults to `Africa/Cairo` if absent.
+     * IANA timezone name. If absent, the branch inherits the org's timezone.
      * @nullable
      */
   timezone?: string | null;

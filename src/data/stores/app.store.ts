@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { apiContext } from "@/data/api/client";
-import { LS_KEYS } from "@/data/config/constants";
+import { APP_TZ, LS_KEYS } from "@/data/config/constants";
 import i18n from "@/i18n";
 
 type Language = "en" | "ar";
@@ -14,10 +14,19 @@ interface AppState {
   scopePreset: string;
   language: Language;
   sidebarCollapsed: boolean;
+  /**
+   * Effective IANA timezone for the current scope, resolved as
+   * branch.timezone → org.timezone → APP_TZ by `useSyncTimezone`. Every date
+   * formatter reads this (never the device timezone), so times are shown in the
+   * branch/org's configured zone regardless of where the dashboard runs.
+   * Persisted so a reload formats in the right zone before data re-loads.
+   */
+  activeTimezone: string;
   setSelectedOrg: (id: string | null, logoUrl?: string | null) => void;
   setSelectedBranch: (id: string | null) => void;
   setScopePreset: (preset: string) => void;
   setLanguage: (lang: Language) => void;
+  setActiveTimezone: (tz: string) => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
 }
@@ -31,6 +40,7 @@ export const useAppStore = create<AppState>()(
       scopePreset: "30d",
       language: "en",
       sidebarCollapsed: false,
+      activeTimezone: APP_TZ,
       setSelectedOrg: (id, logoUrl) => {
         apiContext.setOrg(id);
         set({ selectedOrgId: id, selectedOrgLogo: logoUrl ?? null });
@@ -40,6 +50,7 @@ export const useAppStore = create<AppState>()(
         set({ selectedBranchId: id });
       },
       setScopePreset: (preset) => set({ scopePreset: preset }),
+      setActiveTimezone: (tz) => set({ activeTimezone: tz }),
       setLanguage: (lang) => {
         void i18n.changeLanguage(lang);
         set({ language: lang });
@@ -57,6 +68,7 @@ export const useAppStore = create<AppState>()(
         scopePreset: s.scopePreset,
         language: s.language,
         sidebarCollapsed: s.sidebarCollapsed,
+        activeTimezone: s.activeTimezone,
       }),
       onRehydrateStorage: () => (state) => {
         if (state?.selectedOrgId) apiContext.setOrg(state.selectedOrgId);

@@ -14,9 +14,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as TrackIdRouteImport } from './routes/track.$id'
 import { Route as OrderOrgIdRouteImport } from './routes/order.$orgId'
 import { Route as AppUsersRouteImport } from './routes/_app/users'
 import { Route as AppShiftsRouteImport } from './routes/_app/shifts'
+import { Route as AppQrRouteImport } from './routes/_app/qr'
 import { Route as AppPermissionsRouteImport } from './routes/_app/permissions'
 import { Route as AppOrgsRouteImport } from './routes/_app/orgs'
 import { Route as AppOrdersRouteImport } from './routes/_app/orders'
@@ -30,6 +32,7 @@ import { Route as AppDeliveryRouteRouteImport } from './routes/_app/delivery/rou
 import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
 import { Route as AppMenuIndexRouteImport } from './routes/_app/menu/index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app/inventory/index'
+import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
 import { Route as AppMenuOverridesRouteImport } from './routes/_app/menu/overrides'
@@ -73,6 +76,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const TrackIdRoute = TrackIdRouteImport.update({
+  id: '/track/$id',
+  path: '/track/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrderOrgIdRoute = OrderOrgIdRouteImport.update({
   id: '/order/$orgId',
   path: '/order/$orgId',
@@ -86,6 +94,11 @@ const AppUsersRoute = AppUsersRouteImport.update({
 const AppShiftsRoute = AppShiftsRouteImport.update({
   id: '/shifts',
   path: '/shifts',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppQrRoute = AppQrRouteImport.update({
+  id: '/qr',
+  path: '/qr',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppPermissionsRoute = AppPermissionsRouteImport.update({
@@ -152,6 +165,11 @@ const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppInventoryRouteRoute,
+} as any)
+const AppSettingsWhatsappRoute = AppSettingsWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
+  getParentRoute: () => AppSettingsRouteRoute,
 } as any)
 const AppSettingsPaymentMethodsRoute =
   AppSettingsPaymentMethodsRouteImport.update({
@@ -260,9 +278,11 @@ export interface FileRoutesByFullPath {
   '/orders': typeof AppOrdersRoute
   '/orgs': typeof AppOrgsRoute
   '/permissions': typeof AppPermissionsRoute
+  '/qr': typeof AppQrRoute
   '/shifts': typeof AppShiftsRoute
   '/users': typeof AppUsersRoute
   '/order/$orgId': typeof OrderOrgIdRoute
+  '/track/$id': typeof TrackIdRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
   '/delivery/settings': typeof AppDeliverySettingsRoute
   '/delivery/zones': typeof AppDeliveryZonesRoute
@@ -281,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/inventory/': typeof AppInventoryIndexRoute
   '/menu/': typeof AppMenuIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
@@ -296,9 +317,11 @@ export interface FileRoutesByTo {
   '/orders': typeof AppOrdersRoute
   '/orgs': typeof AppOrgsRoute
   '/permissions': typeof AppPermissionsRoute
+  '/qr': typeof AppQrRoute
   '/shifts': typeof AppShiftsRoute
   '/users': typeof AppUsersRoute
   '/order/$orgId': typeof OrderOrgIdRoute
+  '/track/$id': typeof TrackIdRoute
   '/': typeof AppIndexRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
   '/delivery/settings': typeof AppDeliverySettingsRoute
@@ -318,6 +341,7 @@ export interface FileRoutesByTo {
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/inventory': typeof AppInventoryIndexRoute
   '/menu': typeof AppMenuIndexRoute
   '/settings': typeof AppSettingsIndexRoute
@@ -338,9 +362,11 @@ export interface FileRoutesById {
   '/_app/orders': typeof AppOrdersRoute
   '/_app/orgs': typeof AppOrgsRoute
   '/_app/permissions': typeof AppPermissionsRoute
+  '/_app/qr': typeof AppQrRoute
   '/_app/shifts': typeof AppShiftsRoute
   '/_app/users': typeof AppUsersRoute
   '/order/$orgId': typeof OrderOrgIdRoute
+  '/track/$id': typeof TrackIdRoute
   '/_app/': typeof AppIndexRoute
   '/_app/delivery/channels': typeof AppDeliveryChannelsRoute
   '/_app/delivery/settings': typeof AppDeliverySettingsRoute
@@ -360,6 +386,7 @@ export interface FileRoutesById {
   '/_app/menu/overrides': typeof AppMenuOverridesRoute
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
   '/_app/menu/': typeof AppMenuIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
@@ -381,9 +408,11 @@ export interface FileRouteTypes {
     | '/orders'
     | '/orgs'
     | '/permissions'
+    | '/qr'
     | '/shifts'
     | '/users'
     | '/order/$orgId'
+    | '/track/$id'
     | '/delivery/channels'
     | '/delivery/settings'
     | '/delivery/zones'
@@ -402,6 +431,7 @@ export interface FileRouteTypes {
     | '/menu/overrides'
     | '/menu/recipes'
     | '/settings/payment-methods'
+    | '/settings/whatsapp'
     | '/inventory/'
     | '/menu/'
     | '/settings/'
@@ -417,9 +447,11 @@ export interface FileRouteTypes {
     | '/orders'
     | '/orgs'
     | '/permissions'
+    | '/qr'
     | '/shifts'
     | '/users'
     | '/order/$orgId'
+    | '/track/$id'
     | '/'
     | '/delivery/channels'
     | '/delivery/settings'
@@ -439,6 +471,7 @@ export interface FileRouteTypes {
     | '/menu/overrides'
     | '/menu/recipes'
     | '/settings/payment-methods'
+    | '/settings/whatsapp'
     | '/inventory'
     | '/menu'
     | '/settings'
@@ -458,9 +491,11 @@ export interface FileRouteTypes {
     | '/_app/orders'
     | '/_app/orgs'
     | '/_app/permissions'
+    | '/_app/qr'
     | '/_app/shifts'
     | '/_app/users'
     | '/order/$orgId'
+    | '/track/$id'
     | '/_app/'
     | '/_app/delivery/channels'
     | '/_app/delivery/settings'
@@ -480,6 +515,7 @@ export interface FileRouteTypes {
     | '/_app/menu/overrides'
     | '/_app/menu/recipes'
     | '/_app/settings/payment-methods'
+    | '/_app/settings/whatsapp'
     | '/_app/inventory/'
     | '/_app/menu/'
     | '/_app/settings/'
@@ -491,6 +527,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   OrderOrgIdRoute: typeof OrderOrgIdRoute
+  TrackIdRoute: typeof TrackIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -530,6 +567,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/track/$id': {
+      id: '/track/$id'
+      path: '/track/$id'
+      fullPath: '/track/$id'
+      preLoaderRoute: typeof TrackIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/order/$orgId': {
       id: '/order/$orgId'
       path: '/order/$orgId'
@@ -549,6 +593,13 @@ declare module '@tanstack/react-router' {
       path: '/shifts'
       fullPath: '/shifts'
       preLoaderRoute: typeof AppShiftsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/qr': {
+      id: '/_app/qr'
+      path: '/qr'
+      fullPath: '/qr'
+      preLoaderRoute: typeof AppQrRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/permissions': {
@@ -641,6 +692,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/inventory/'
       preLoaderRoute: typeof AppInventoryIndexRouteImport
       parentRoute: typeof AppInventoryRouteRoute
+    }
+    '/_app/settings/whatsapp': {
+      id: '/_app/settings/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/settings/whatsapp'
+      preLoaderRoute: typeof AppSettingsWhatsappRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
     }
     '/_app/settings/payment-methods': {
       id: '/_app/settings/payment-methods'
@@ -839,11 +897,13 @@ const AppMenuRouteRouteWithChildren = AppMenuRouteRoute._addFileChildren(
 
 interface AppSettingsRouteRouteChildren {
   AppSettingsPaymentMethodsRoute: typeof AppSettingsPaymentMethodsRoute
+  AppSettingsWhatsappRoute: typeof AppSettingsWhatsappRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
 
 const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
   AppSettingsPaymentMethodsRoute: AppSettingsPaymentMethodsRoute,
+  AppSettingsWhatsappRoute: AppSettingsWhatsappRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
 }
 
@@ -861,6 +921,7 @@ interface AppRouteRouteChildren {
   AppOrdersRoute: typeof AppOrdersRoute
   AppOrgsRoute: typeof AppOrgsRoute
   AppPermissionsRoute: typeof AppPermissionsRoute
+  AppQrRoute: typeof AppQrRoute
   AppShiftsRoute: typeof AppShiftsRoute
   AppUsersRoute: typeof AppUsersRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -877,6 +938,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppOrdersRoute: AppOrdersRoute,
   AppOrgsRoute: AppOrgsRoute,
   AppPermissionsRoute: AppPermissionsRoute,
+  AppQrRoute: AppQrRoute,
   AppShiftsRoute: AppShiftsRoute,
   AppUsersRoute: AppUsersRoute,
   AppIndexRoute: AppIndexRoute,
@@ -892,6 +954,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   OrderOrgIdRoute: OrderOrgIdRoute,
+  TrackIdRoute: TrackIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -4,13 +4,14 @@ import { useTranslation } from "react-i18next";
 import { Plus, Save, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Combobox } from "@/components/app/combobox";
 import { CreateIngredientDialog } from "./create-ingredient-dialog";
 import type { OrgIngredient } from "@/data/api/generated/models";
 import { fmtMoney, fmtPercent } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 export interface RecipeRowInit {
   size_label: string;
@@ -170,42 +171,69 @@ export function RecipeBuilder({
     <div className="space-y-5">
       {/* toolbar */}
       <div className="flex flex-wrap items-center gap-3">
-        {copySources.length > 0 && fetchCopyRows ? (
-          <div className="w-48">
-            <Combobox
-              options={copySources.map((s) => ({ value: s.id, label: s.label }))}
-              value={null}
-              onChange={(v) => void copyFrom(v)}
-              placeholder={t("recipes.builder.copyFrom", "Copy from…")}
-              disabled={copying}
-            />
+        {/* leading cluster: copy-from + new ingredient */}
+        {(copySources.length > 0 && fetchCopyRows) || allowCreateIngredient ? (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/50 px-2 py-1.5">
+            {copySources.length > 0 && fetchCopyRows ? (
+              <div className="w-48">
+                <Combobox
+                  options={copySources.map((s) => ({ value: s.id, label: s.label }))}
+                  value={null}
+                  onChange={(v) => void copyFrom(v)}
+                  placeholder={t("recipes.builder.copyFrom", "Copy from…")}
+                  disabled={copying}
+                />
+              </div>
+            ) : null}
+            {allowCreateIngredient ? (
+              <Button type="button" size="sm" variant="outline" onClick={() => setNewIngredient(true)}>
+                <Plus className="size-4" /> {t("recipes.newIngredient", "New ingredient")}
+              </Button>
+            ) : null}
           </div>
         ) : null}
-        {allowCreateIngredient ? (
-          <Button type="button" size="sm" variant="outline" onClick={() => setNewIngredient(true)}>
-            <Plus className="size-4" /> {t("recipes.newIngredient", "New ingredient")}
-          </Button>
-        ) : null}
+
+        {/* trailing cluster: scale toggle in its own muted pill */}
         {sizes.length > 1 ? (
-          <label className="ms-auto flex items-center gap-2 text-xs text-muted-foreground">
+          <label className="ms-auto flex cursor-pointer items-center gap-2 rounded-md border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
             <Switch checked={scaling} onCheckedChange={setScaling} />
             {t("recipes.builder.scaleFromBase", { base: sizes[0], defaultValue: `Scale from ${sizes[0]}` })}
           </label>
         ) : null}
       </div>
 
+      {/* scaling panel */}
       {scaling && sizes.length > 1 ? (
-        <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-muted/30 p-3">
-          {sizes.slice(1).map((size) => (
-            <div key={size} className="space-y-1">
-              <p className="text-xs text-muted-foreground">{size} ×</p>
-              <Input type="number" step="0.05" min="0" className="h-8 w-24" value={factors[size] ?? ""} placeholder="1.5" onChange={(e) => setFactors((f) => ({ ...f, [size]: e.target.value }))} />
-            </div>
-          ))}
-          <Button type="button" size="sm" variant="outline" onClick={applyScaling}>{t("recipes.builder.applyScaling", "Apply scaling")}</Button>
+        <div className="rounded-lg border bg-muted/30 p-3">
+          <p className="mb-2.5 text-xs text-muted-foreground">
+            {t("recipes.builder.scaleHint", { base: sizes[0], defaultValue: `Multiply ${sizes[0]} quantities by:` })}
+          </p>
+          <div className="flex flex-wrap items-end gap-3">
+            {sizes.slice(1).map((size) => (
+              <div key={size} className="space-y-1">
+                <Label className="text-xs text-muted-foreground">{size}</Label>
+                <div className="flex items-center rounded-md border bg-background">
+                  <span className="ps-2.5 text-xs text-muted-foreground">×</span>
+                  <Input
+                    type="number"
+                    step="0.05"
+                    min="0"
+                    value={factors[size] ?? ""}
+                    placeholder="1.5"
+                    onChange={(e) => setFactors((f) => ({ ...f, [size]: e.target.value }))}
+                    className="h-8 w-20 border-0 bg-transparent tabular shadow-none focus-visible:ring-0"
+                  />
+                </div>
+              </div>
+            ))}
+            <Button type="button" size="sm" variant="outline" className="ms-auto" onClick={applyScaling}>
+              {t("recipes.builder.applyScaling", "Apply scaling")}
+            </Button>
+          </div>
         </div>
       ) : null}
 
+      {/* size sections */}
       {sizes.map((size) => {
         const rows = rowsForSize(size);
         let estimate: number | null = rows.length > 0 ? 0 : null;
@@ -217,58 +245,126 @@ export function RecipeBuilder({
         }
         const price = priceForSize?.(size) ?? null;
         const marginPct = estimate !== null && price && price > 0 ? (price - estimate) / price : null;
+        const sizeDisplayLabel = size === "one_size" ? t("recipes.oneSize", "One size") : size;
 
         return (
-          <div key={size}>
-            <div className="mb-2 flex items-center gap-2">
-              <Badge variant="secondary">{size === "one_size" ? t("recipes.oneSize", "One size") : size}</Badge>
-              <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground tabular">
-                {t("recipes.builder.estimate", "Cost")}: <span className="font-semibold">{estimate != null ? fmtMoney(estimate) : "—"}</span>
-                {marginPct !== null ? <> · {t("recipes.builder.margin", "margin")} {fmtPercent(marginPct)}</> : null}
+          <div key={size} className="rounded-lg border bg-card">
+            {/* size section header */}
+            <div className="flex items-center justify-between gap-3 border-b bg-muted/30 px-4 py-2.5">
+              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                {sizeDisplayLabel}
               </span>
+
+              {/* cost + margin summary cluster */}
+              <div className="flex items-center gap-4 text-end">
+                <div className="leading-tight">
+                  <p className="text-[0.6875rem] uppercase tracking-wide text-muted-foreground">
+                    {t("recipes.builder.estimate", "Cost")}
+                  </p>
+                  <p className="text-sm font-semibold tabular text-foreground">
+                    {estimate != null ? fmtMoney(estimate) : "—"}
+                  </p>
+                </div>
+                {marginPct !== null ? (
+                  <div className="leading-tight">
+                    <p className="text-[0.6875rem] uppercase tracking-wide text-muted-foreground">
+                      {t("recipes.builder.margin", "Margin")}
+                    </p>
+                    <p className={cn(
+                      "text-sm font-semibold tabular",
+                      marginPct >= 0.6 ? "text-success" : marginPct >= 0.3 ? "text-foreground" : "text-warning",
+                    )}>
+                      {fmtPercent(marginPct)}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
             </div>
 
-            <div className="space-y-2">
+            {/* ingredient rows */}
+            <div className="space-y-1 p-2">
               {rows.map((row) => {
                 const c = costOf(row.org_ingredient_id);
                 const qty = parseFloat(row.quantity_used);
                 const lineCost = c != null && Number.isFinite(qty) ? fmtMoney(c * qty) : "—";
                 return (
-                  <div key={fields[row._index]?.id ?? row._index} className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <Combobox
-                        options={catalogOptions}
-                        value={row.org_ingredient_id}
-                        onChange={(v) => {
-                          const ing = byId.get(v);
-                          form.setValue(`rows.${row._index}.org_ingredient_id`, v, { shouldDirty: true });
-                          if (ing) {
-                            form.setValue(`rows.${row._index}.ingredient_name`, ing.name, { shouldDirty: true });
-                            form.setValue(`rows.${row._index}.ingredient_unit`, ing.unit, { shouldDirty: true });
-                          }
-                        }}
-                        placeholder={row.ingredient_name || t("recipes.ingredient", "Ingredient")}
+                  <div
+                    key={fields[row._index]?.id ?? row._index}
+                    className="grid grid-cols-[1fr_auto_5rem_auto] items-center gap-3 rounded-md px-1 py-1"
+                  >
+                    {/* 1. Ingredient combobox — primary control */}
+                    <Combobox
+                      options={catalogOptions}
+                      value={row.org_ingredient_id}
+                      onChange={(v) => {
+                        const ing = byId.get(v);
+                        form.setValue(`rows.${row._index}.org_ingredient_id`, v, { shouldDirty: true });
+                        if (ing) {
+                          form.setValue(`rows.${row._index}.ingredient_name`, ing.name, { shouldDirty: true });
+                          form.setValue(`rows.${row._index}.ingredient_unit`, ing.unit, { shouldDirty: true });
+                        }
+                      }}
+                      placeholder={row.ingredient_name || t("recipes.ingredient", "Ingredient")}
+                    />
+
+                    {/* 2. Qty + unit grouped in one bordered cluster */}
+                    <div className="flex items-center rounded-md border bg-background focus-within:ring-2 focus-within:ring-ring/50">
+                      <Input
+                        type="number"
+                        step="0.001"
+                        min="0"
+                        value={row.quantity_used}
+                        placeholder="0.000"
+                        onChange={(e) => form.setValue(`rows.${row._index}.quantity_used`, e.target.value, { shouldDirty: true })}
+                        className="h-9 w-20 border-0 bg-transparent text-end tabular shadow-none focus-visible:ring-0"
                       />
+                      <span className="min-w-12 pe-3 ps-1 text-xs text-muted-foreground">
+                        {t(`units.${row.ingredient_unit}`, row.ingredient_unit)}
+                      </span>
                     </div>
-                    <Input type="number" step="0.001" min="0" className="h-9 w-24" value={row.quantity_used} placeholder="0.000" onChange={(e) => form.setValue(`rows.${row._index}.quantity_used`, e.target.value, { shouldDirty: true })} />
-                    <span className="w-8 text-xs text-muted-foreground">{t(`units.${row.ingredient_unit}`, row.ingredient_unit)}</span>
-                    <span className="w-20 text-end text-xs text-muted-foreground tabular">{lineCost}</span>
-                    <Button type="button" variant="ghost" size="icon-sm" className="text-destructive" onClick={() => remove(row._index)}><Trash2 className="size-4" /></Button>
+
+                    {/* 3. Line cost — fixed end-aligned slot */}
+                    <span className={cn(
+                      "text-end text-sm tabular",
+                      lineCost === "—" ? "text-muted-foreground" : "text-foreground font-medium",
+                    )}>
+                      {lineCost}
+                    </span>
+
+                    {/* 4. Delete */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-destructive"
+                      onClick={() => remove(row._index)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
                   </div>
                 );
               })}
-              <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={() => addRow(size)}>
-                <Plus className="size-4" /> {t("recipes.addIngredient", "Add ingredient")}
-              </Button>
+
+              {/* dashed append-row target */}
+              <button
+                type="button"
+                onClick={() => addRow(size)}
+                className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-brand hover:text-brand"
+              >
+                <Plus className="size-4" />
+                {t("recipes.addIngredient", "Add ingredient")}
+              </button>
             </div>
           </div>
         );
       })}
 
+      {/* save footer */}
       {!deferred ? (
-        <div className="flex items-center justify-end gap-2 border-t pt-2">
-          {dirty ? <span className="text-xs text-warning">{t("recipes.builder.unsaved", "Unsaved changes")}</span> : null}
+        <div className="flex items-center justify-end gap-2 border-t pt-3">
+          {dirty ? (
+            <span className="text-xs text-warning">{t("recipes.builder.unsaved", "Unsaved changes")}</span>
+          ) : null}
           <Button type="button" onClick={() => void save()} loading={saving} disabled={!dirty}>
             <Save className="size-4" /> {t("recipes.builder.saveAll", "Save recipe")}
           </Button>

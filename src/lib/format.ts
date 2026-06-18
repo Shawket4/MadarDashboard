@@ -1,4 +1,5 @@
 import { APP_TZ, DEFAULT_CURRENCY, DEFAULT_LOCALE_AR, DEFAULT_LOCALE_EN } from "@/data/config/constants";
+import { useAppStore } from "@/data/stores/app.store";
 import i18n from "@/i18n";
 import { TZDate } from "@date-fns/tz";
 
@@ -9,9 +10,19 @@ const getLocale = (): string => {
   return lang === "ar" ? DEFAULT_LOCALE_AR : DEFAULT_LOCALE_EN;
 };
 
+/**
+ * The timezone every formatter renders in. This is the branch/org's configured
+ * zone (resolved by `useSyncTimezone` into the app store) — NEVER the device's
+ * browser timezone. Falls back to APP_TZ before the scope's tz is known.
+ */
+export const getActiveTz = (): string => useAppStore.getState().activeTimezone || APP_TZ;
+
 const withTZ = (opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions => ({
+  // Render all times in 12-hour (AM/PM) form; ignored by date-only formats.
+  // Callers may still override by passing their own `hour12`.
+  hour12: true,
   ...opts,
-  timeZone: APP_TZ,
+  timeZone: getActiveTz(),
 });
 
 // ── Money ────────────────────────────────────────────────────────────────────
@@ -60,6 +71,12 @@ export const fmtMoneyCompact = (piastres: number | null | undefined): string => 
 /** Plain number in locale */
 export const fmtNumber = (n: number | null | undefined, opts?: Intl.NumberFormatOptions): string =>
   new Intl.NumberFormat(getLocale(), opts).format(n ?? 0);
+
+/** Concise plain number — "2.2K" (en) / "٢٫٢ ألف" (ar). Locale-aware compact
+ * notation (matches fmtMoneyCompact) so KPI cards stay readable in narrow cells
+ * without mixing Latin "K" into Arabic. */
+export const fmtNumberCompact = (n: number | null | undefined): string =>
+  new Intl.NumberFormat(getLocale(), { notation: "compact", maximumFractionDigits: 1 }).format(n ?? 0);
 
 /** Percent with 1 decimal place */
 export const fmtPercent = (ratio: number): string =>
@@ -120,10 +137,14 @@ export const fmtDuration = (start: string | null | undefined, end?: string | nul
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 };
 
-/** Return Cairo "today" and "now" helpers — useful for date range logic */
-export const cairoNow = (): TZDate => new TZDate(Date.now(), APP_TZ);
+// NOTE: these `cairo*` helpers are named for the historical default but resolve
+// the *active* branch/org timezone (getActiveTz()), so report day-boundaries
+// follow the configured zone rather than the device's. Names kept to avoid churn.
 
-/** ISO for Cairo calendar day (start or end) in UTC */
+/** "now" in the active branch/org timezone — useful for date range logic */
+export const cairoNow = (): TZDate => new TZDate(Date.now(), getActiveTz());
+
+/** ISO instant for a calendar day (start or end) in the active timezone */
 export const cairoDateISO = (year: number, month: number, day: number, endOfDay = false): string => {
   const d = new TZDate(
     year,
@@ -133,27 +154,34 @@ export const cairoDateISO = (year: number, month: number, day: number, endOfDay 
     endOfDay ? 59 : 0,
     endOfDay ? 59 : 0,
     endOfDay ? 999 : 0,
-    APP_TZ,
+    getActiveTz(),
   );
   return d.toISOString();
 };
 
-/** Extract Cairo calendar parts {y,m,d} from an ISO string */
+/** Extract calendar parts {y,m,d} from an ISO string in the active timezone */
 export const cairoParts = (iso: string): { y: number; m: number; d: number } => {
-  const d = new TZDate(iso, APP_TZ);
+  const d = new TZDate(iso, getActiveTz());
   return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
 };
 
 /** Format a period timestamp for charts based on granularity */
-export const fmtPeriod = (iso: string, granularity: "hourly" | "daily" | "monthly"): string => {
+export const fmtPeriod = (iso: string, granularity: "hourly" | "daily" | "monthly" | "peak_hours"): string => {
   const d = new Date(iso);
   const opts: Intl.DateTimeFormatOptions =
     granularity === "hourly"
-      ? { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }
+      ? { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }
       : granularity === "monthly"
         ? { month: "short", year: "numeric" }
         : { month: "short", day: "numeric" };
   return new Intl.DateTimeFormat(getLocale(), withTZ(opts)).format(d);
+};
+
+/** Format a 0-23 hour integer as 12-hour clock label: 0→"12am", 13→"1pm", etc. */
+export const fmtHour = (h: number): string => {
+  if (h === 0) return "12am";
+  if (h === 12) return "12pm";
+  return h < 12 ? `${h}am` : `${h - 12}pm`;
 };
 
 // ── Miscellaneous ────────────────────────────────────────────────────────────

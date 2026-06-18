@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Ban, Coins, Eye, MoreHorizontal, Receipt, Truck, Ban as VoidIcon } from "lucide-react";
+import { Ban, Coins, Eye, MoreHorizontal, Percent, Receipt, Truck, Ban as VoidIcon } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
-import { StatCard } from "@/components/app/stat-card";
+import { Page } from "@/components/app/page";
+import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { DataTable } from "@/components/app/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,14 +23,14 @@ import { ExportButton } from "@/components/app/export-button";
 import { OrderDetailSheet } from "./order-detail-sheet";
 import { VoidOrderDialog } from "./void-order-dialog";
 import { OrderExportDialog } from "./order-export-dialog";
-import { getGetOrderQueryOptions, getListOrdersQueryOptions, useListOrders } from "@/data/api/generated/api";
+import { getGetOrderQueryOptions, getListOrdersQueryOptions, useBranchDeliverySales, useListOrders } from "@/data/api/generated/api";
 import { queryClient } from "@/data/api/query";
 import type { Order } from "@/data/api/generated/models";
 import { ORDER_STATUSES, PAYMENT_METHODS } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useScope } from "@/data/scope/use-scope";
-import { fmtDateTime, fmtMoney } from "@/lib/format";
+import { fmtDateTime, fmtMoney, fmtMoneyCompact, fmtNumber, fmtNumberCompact } from "@/lib/format";
 import { useDebounced } from "@/lib/use-debounced";
 import { cn } from "@/lib/utils";
 
@@ -57,10 +58,12 @@ export function OrdersPage() {
   const selectedOrgId = useAppStore((s) => s.selectedOrgId);
   const orgId = role === "super_admin" ? selectedOrgId : (userOrgId ?? null);
 
-  const { branchId, from, to } = useScope();
+  const { branchId, scopeBranchId, from, to } = useScope();
 
   const [status, setStatus] = useState<string>(ALL);
   const [payment, setPayment] = useState<string>(ALL);
+  const [orderType, setOrderType] = useState<string>(ALL);
+  const [channel, setChannel] = useState<string>(ALL);
   const [tellerInput, setTellerInput] = useState("");
   const teller = useDebounced(tellerInput, 350);
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
@@ -77,7 +80,7 @@ export function OrdersPage() {
   // Reset to first page whenever the scope or filters change.
   useEffect(() => {
     setPagination((p) => ({ ...p, pageIndex: 0 }));
-  }, [branchId, from, to, status, payment, teller]);
+  }, [branchId, from, to, status, payment, teller, orderType, channel]);
 
   const baseParams = {
     branch_id: branchId ?? undefined,
@@ -86,6 +89,9 @@ export function OrdersPage() {
     status: status === ALL ? undefined : status,
     payment_method: payment === ALL ? undefined : payment,
     teller_name: teller || undefined,
+    order_type: orderType === ALL ? undefined : orderType,
+    // Channel only narrows delivery orders; ignored unless Delivery is picked.
+    channel: orderType === "delivery" && channel !== ALL ? channel : undefined,
   };
 
   const enabled = Boolean(branchId || orgId);
@@ -95,6 +101,20 @@ export function OrdersPage() {
   );
 
   const summary = data?.summary;
+  // Delivery + per-channel KPIs come from the SAME source the dashboard uses
+  // (the delivery_orders aggregate), so the counts always agree across screens.
+  const deliverySales = useBranchDeliverySales(
+    scopeBranchId,
+    { from: from ?? undefined, to: to ?? undefined },
+    { query: { enabled } },
+  );
+
+  const primaryKpis: LedgerItem[] = [
+    { key: "revenue", label: t("dashboard.revenue", "Revenue"), value: fmtMoney(summary?.revenue ?? 0), compactValue: fmtMoneyCompact(summary?.revenue ?? 0), icon: Coins, accent: "brand", loading: isLoading },
+    { key: "completed", label: t("orders.completed", "Completed"), value: fmtNumber(summary?.completed ?? 0), compactValue: fmtNumberCompact(summary?.completed ?? 0), icon: Receipt, accent: "success", loading: isLoading },
+    { key: "voided", label: t("dashboard.voided", "Voided"), value: fmtNumber(summary?.voided ?? 0), compactValue: fmtNumberCompact(summary?.voided ?? 0), icon: Ban, accent: "destructive", loading: isLoading },
+    { key: "discounts", label: t("orders.discounts", "Discounts"), value: fmtMoney(summary?.discounts ?? 0), compactValue: fmtMoneyCompact(summary?.discounts ?? 0), icon: Percent, accent: "warning", loading: isLoading },
+  ];
 
   // Predictive prefetch: the next page loads before the user clicks Next.
   const prefetchNext = () => {
@@ -120,7 +140,9 @@ export function OrdersPage() {
             {row.original.order_type === "delivery" ? (
               <Badge variant="secondary" className="gap-1 bg-primary/10 px-1.5 py-0 text-[10px] text-primary">
                 <Truck className="size-3" />
-                {t("orders.delivery", "Delivery")}
+                {row.original.delivery_channel === "in_mall"
+                  ? t("delivery.channelInMall", "In-mall")
+                  : t("orders.deliveryOutside", "Outside")}
               </Badge>
             ) : null}
           </span>
@@ -191,26 +213,27 @@ export function OrdersPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("nav.orders", "Orders")}
-        description={t("orders.subtitle", "Sales history, voids and exports")}
-        actions={<ExportButton onExport={() => setExportOpen(true)} disabled={!enabled} />}
-      />
-
-      <div
-        className={cn(
-          "grid grid-cols-2 gap-2.5 lg:gap-4",
-          (summary?.delivery_fees ?? 0) > 0 ? "lg:grid-cols-5" : "lg:grid-cols-4",
-        )}
-      >
-        <StatCard label={t("dashboard.revenue", "Revenue")} icon={Coins} accent="brand" value={summary?.revenue ?? 0} formatType="money" loading={isLoading} dense />
-        <StatCard label={t("orders.completed", "Completed")} icon={Receipt} accent="success" value={summary?.completed ?? 0} formatType="number" loading={isLoading} dense />
-        <StatCard label={t("dashboard.voided", "Voided")} icon={Ban} accent="destructive" value={summary?.voided ?? 0} formatType="number" loading={isLoading} dense />
-        <StatCard label={t("orders.discounts", "Discounts")} icon={Coins} accent="warning" value={summary?.discounts ?? 0} formatType="money" loading={isLoading} dense />
-        {(summary?.delivery_fees ?? 0) > 0 ? (
-          <StatCard label={t("orders.deliveryCharges", "Delivery charges")} icon={Truck} accent="brand" value={summary?.delivery_fees ?? 0} formatType="money" loading={isLoading} dense />
-        ) : null}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("nav.orders", "Orders")}</h1>
+          <p className="text-sm text-muted-foreground">{t("orders.subtitle", "Sales history, voids and exports")}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ExportButton onExport={() => setExportOpen(true)} disabled={!enabled} />
+        </div>
       </div>
+
+      <LedgerStrip items={primaryKpis} />
+
+      {(deliverySales.data?.total_orders ?? 0) > 0 ? (
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+            <h2 className="text-lg font-semibold tracking-tight">{t("delivery.kpisTitle", "Delivery")}</h2>
+            <span className="text-sm text-muted-foreground">{t("delivery.byChannel", "By channel")}</span>
+          </div>
+          <DeliveryKpis data={deliverySales.data} loading={deliverySales.isLoading} />
+        </section>
+      ) : null}
 
       <DataTable
         columns={columns}
@@ -258,6 +281,34 @@ export function OrdersPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select
+              value={orderType}
+              onValueChange={(v) => {
+                setOrderType(v);
+                if (v !== "delivery") setChannel(ALL);
+              }}
+            >
+              <SelectTrigger className="h-9 w-auto min-w-28">
+                <SelectValue placeholder={t("orders.type", "Type")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>{t("orders.allTypes", "All types")}</SelectItem>
+                <SelectItem value="dine_in">{t("orders.dineIn", "Dine-in")}</SelectItem>
+                <SelectItem value="delivery">{t("orders.delivery", "Delivery")}</SelectItem>
+              </SelectContent>
+            </Select>
+            {orderType === "delivery" ? (
+              <Select value={channel} onValueChange={setChannel}>
+                <SelectTrigger className="h-9 w-auto min-w-28">
+                  <SelectValue placeholder={t("orders.channel", "Channel")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>{t("orders.allChannels", "All channels")}</SelectItem>
+                  <SelectItem value="in_mall">{t("delivery.channelInMall", "In-mall")}</SelectItem>
+                  <SelectItem value="outside">{t("orders.deliveryOutside", "Outside")}</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : null}
           </>
         }
       />

@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { BookOpen, Plus, Ruler, Trash2 } from "lucide-react";
+import { BookOpen, CupSoda, Plus, Ruler, Search, Trash2, X } from "lucide-react";
 import { z } from "zod";
 
 import {
@@ -27,14 +27,16 @@ import {
   createMenuItem,
   deleteDrinkRecipe,
   deleteSize,
+  putAllowedAddons,
   updateMenuItem,
   uploadMenuItemImage,
   upsertDrinkRecipe,
   upsertSize,
   useGetMenuItem,
+  useListAddonItems,
   useListCatalog,
 } from "@/data/api/generated/api";
-import type { Category, MenuItem, UploadResponse } from "@/data/api/generated/models";
+import type { AddonItem, Category, MenuItem, UploadResponse } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
@@ -56,6 +58,11 @@ const imageUrlOf = (res: UploadResponse): string => {
   return r.image_url ?? r.url ?? "";
 };
 
+const humanizeAddonType = (type: string) => {
+  const base = type.endsWith("_type") ? type.slice(0, -"_type".length) : type;
+  return base.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
 export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, open, onOpenChange }: Props) {
   const { t, i18n } = useTranslation();
   const editing = !!item;
@@ -63,10 +70,14 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const [recipeRows, setRecipeRows] = useState<CleanRow[]>([]);
+  // Per-item allowed addons state.
+  const [allowedIds, setAllowedIds] = useState<Set<string>>(new Set());
+  const [addonSearch, setAddonSearch] = useState("");
 
-  // Full item (sizes + recipes) for edit mode.
+  // Full item (sizes + recipes + allowed_addon_ids) for edit mode.
   const { data: liveItem } = useGetMenuItem(item?.id ?? "", { query: { enabled: open && !!item?.id } });
   const catalog = useListCatalog(orgId, { query: { enabled: open && !!orgId } });
+  const { data: allAddons } = useListAddonItems({ org_id: orgId }, { query: { enabled: open && !!orgId } });
 
   const schema = useMemo(
     () =>
@@ -116,6 +127,7 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
     if (open) {
       setPendingImage(null);
       setPendingPreview(null);
+      setAddonSearch("");
       form.reset({
         name: item?.name ?? "",
         name_ar: arOf(item?.name_translations),
@@ -129,13 +141,14 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
     }
   }, [open, item, defaultCategoryId, form]);
 
-  // Load sizes once the full item arrives (edit).
+  // Load sizes + allowed addon IDs once the full item arrives (edit).
   useEffect(() => {
     if (liveItem) {
       form.setValue(
         "sizes",
         liveItem.sizes.map((s) => ({ id: s.id, label: s.label, price_override: piastresToEgp(s.price_override) })),
       );
+      setAllowedIds(new Set(liveItem.allowed_addon_ids));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveItem]);
@@ -174,6 +187,10 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
       if (!item && pendingImage) {
         await uploadMenuItemImage(itemId, { image: pendingImage });
       }
+
+      // Allowed addons — always PUT (creates or replaces the set).
+      await putAllowedAddons(itemId, { addon_item_ids: Array.from(allowedIds) });
+
       return res;
     },
     onSuccess: () => {
@@ -184,6 +201,34 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   });
+
+  // Addon picker: group by type, filtered by search query.
+  const addonGroups = useMemo(() => {
+    const q = addonSearch.trim().toLowerCase();
+    const list = (allAddons ?? []).filter((a) => !q || a.name.toLowerCase().includes(q));
+    const byType = new Map<string, AddonItem[]>();
+    for (const a of list) {
+      const arr = byType.get(a.addon_type) ?? [];
+      arr.push(a);
+      byType.set(a.addon_type, arr);
+    }
+    return Array.from(byType.entries()).map(([type, items]) => ({ type, items }));
+  }, [allAddons, addonSearch]);
+
+  const selectedAddons = useMemo<AddonItem[]>(
+    () => (allAddons ?? []).filter((a) => allowedIds.has(a.id)),
+    [allAddons, allowedIds],
+  );
+
+  const toggleGroup = (items: AddonItem[]) => {
+    const allSelected = items.every((a) => allowedIds.has(a.id));
+    setAllowedIds((prev) => {
+      const next = new Set(prev);
+      if (allSelected) items.forEach((a) => next.delete(a.id));
+      else items.forEach((a) => next.add(a.id));
+      return next;
+    });
+  };
 
   return (
     <>
@@ -373,6 +418,119 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                   onRowsChange={setRecipeRows}
                   allowCreateIngredient={false}
                 />
+              </div>
+
+              {/* Allowed addons */}
+              <div className="border-t pt-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <CupSoda className="size-4 text-primary" />
+                  <p className="text-sm font-semibold">{t("menu.addons", "Addons")}</p>
+                  <span className="text-xs text-muted-foreground">{t("menu.addonsHint", "Which addons customers can pick for this item")}</span>
+                </div>
+
+                {/* Selected addons as removable chips */}
+                {selectedAddons.length > 0 ? (
+                  <div className="mb-3 flex flex-wrap gap-1.5">
+                    {selectedAddons.map((a) => (
+                      <span
+                        key={a.id}
+                        className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-muted/40 px-2.5 py-0.5 text-xs font-medium"
+                      >
+                        {a.name}
+                        <button
+                          type="button"
+                          onClick={() => setAllowedIds((prev) => { const next = new Set(prev); next.delete(a.id); return next; })}
+                          className="ml-0.5 text-muted-foreground hover:text-foreground"
+                          aria-label={t("common.remove", "Remove")}
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    {t("menu.addonsEmpty", "No addons selected — the full org catalog applies.")}
+                  </p>
+                )}
+
+                {/* Search + grouped picker */}
+                <div className="rounded-lg border">
+                  <div className="border-b p-2">
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="search"
+                        value={addonSearch}
+                        onChange={(e) => setAddonSearch(e.target.value)}
+                        placeholder={t("menu.searchAddons", "Search addons…")}
+                        className="w-full rounded-md border border-input bg-background py-1.5 ps-8 pe-3 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="max-h-52 overflow-y-auto divide-y">
+                    {addonGroups.length === 0 ? (
+                      <p className="py-4 text-center text-xs text-muted-foreground">
+                        {t("menu.noAddonsMatch", "No addons match")}
+                      </p>
+                    ) : (
+                      addonGroups.map(({ type, items }) => {
+                        const allGroupSelected = items.every((a) => allowedIds.has(a.id));
+                        const someGroupSelected = !allGroupSelected && items.some((a) => allowedIds.has(a.id));
+                        return (
+                          <div key={type}>
+                            {/* Group header */}
+                            <div className="flex items-center justify-between bg-muted/30 px-3 py-1.5">
+                              <span className="text-xs font-semibold text-foreground">
+                                {humanizeAddonType(type)}
+                                <span className="ml-1.5 font-normal text-muted-foreground">({items.length})</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => toggleGroup(items)}
+                                className="text-xs text-primary hover:underline"
+                              >
+                                {allGroupSelected
+                                  ? t("common.deselectAll", "Deselect all")
+                                  : someGroupSelected
+                                  ? t("common.selectAll", "Select all")
+                                  : t("common.selectAll", "Select all")}
+                              </button>
+                            </div>
+                            {/* Group items */}
+                            <div className="flex flex-wrap gap-1.5 p-2.5">
+                              {items.map((a) => {
+                                const active = allowedIds.has(a.id);
+                                return (
+                                  <button
+                                    key={a.id}
+                                    type="button"
+                                    onClick={() =>
+                                      setAllowedIds((prev) => {
+                                        const next = new Set(prev);
+                                        if (active) next.delete(a.id);
+                                        else next.add(a.id);
+                                        return next;
+                                      })
+                                    }
+                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                                      active
+                                        ? "border-primary bg-primary/10 text-primary"
+                                        : "border-border/70 hover:border-primary/40"
+                                    }`}
+                                  >
+                                    {a.name}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
               </div>
 
               <DialogFooter>

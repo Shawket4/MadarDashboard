@@ -4,10 +4,11 @@ import { useSearch } from "@tanstack/react-router";
 import { Boxes, BookOpen, Package, Sliders } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
+import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useOrgId } from "@/hooks/use-org-id";
 import { getMenuItem, listAddonIngredients, useListAddonItems, useListMenuItems } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
@@ -78,20 +79,26 @@ export function RecipesPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("recipes.title", "Recipes")}
-        description={t("recipes.subtitle", "Define what each item and add-on consumes")}
-        actions={orgId ? <ExportButton onExport={handleExport} disabled={!itemList.length && !addonList.length} /> : undefined}
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("recipes.title", "Recipes")}</h1>
+          <p className="text-sm text-muted-foreground">{t("recipes.subtitle", "Define what each item and add-on consumes")}</p>
+        </div>
+        {orgId ? (
+          <div className="flex shrink-0 items-center gap-2">
+            <ExportButton onExport={handleExport} disabled={!itemList.length && !addonList.length} />
+          </div>
+        ) : null}
+      </div>
       {!orgId ? (
         <EmptyState icon={Boxes} title={t("recipes.pickOrg", "Select an organization")} />
       ) : (
         <Tabs value={tab} onValueChange={setTab} className="gap-4">
-          <TabsList>
-            <TabsTrigger value="drinks"><BookOpen className="size-4" /> {t("recipes.tabs.drinks", "Drinks")}</TabsTrigger>
-            <TabsTrigger value="addons"><Package className="size-4" /> {t("recipes.tabs.addons", "Add-ons")}</TabsTrigger>
-            <TabsTrigger value="slots"><Sliders className="size-4" /> {t("recipes.tabs.slotsOptionals", "Slots & Optionals")}</TabsTrigger>
-          </TabsList>
+          <PageTabsList>
+            <PageTabsTrigger value="drinks"><BookOpen className="size-4" /> {t("recipes.tabs.drinks", "Drinks")}</PageTabsTrigger>
+            <PageTabsTrigger value="addons"><Package className="size-4" /> {t("recipes.tabs.addons", "Add-ons")}</PageTabsTrigger>
+            <PageTabsTrigger value="slots"><Sliders className="size-4" /> {t("recipes.tabs.slotsOptionals", "Slots & Optionals")}</PageTabsTrigger>
+          </PageTabsList>
           <TabsContent value="drinks"><DrinksTab orgId={orgId} initialSelectedId={item} /></TabsContent>
           <TabsContent value="addons"><AddonsTab orgId={orgId} initialSelectedId={addon} /></TabsContent>
           <TabsContent value="slots"><SlotsOptionalsTab orgId={orgId} /></TabsContent>

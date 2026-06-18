@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { fmtMoney, fmtNumber } from "@/lib/format";
+import { fmtDateTimeFull, fmtMoney, fmtNumber } from "@/lib/format";
 import { useScope } from "@/data/scope/use-scope";
 import { getErrorMessage } from "@/data/api/errors";
 import {
@@ -161,7 +161,24 @@ export function MenuAdvisorPage() {
   const bundle = useListBundleSuggestionsHandler(runId ?? "", undefined, { query: { enabled: !!runId } });
   const removal = useListRemovalScenariosHandler(runId ?? "", undefined, { query: { enabled: !!runId } });
 
-  const invalidateAdvisor = () => qc.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === "string" && (q.queryKey[0] as string).startsWith("/menu-advisor") });
+  // Invalidate all menu-advisor queries (run metadata + suggestion lists).
+  // Used after createRun so the new active run is picked up immediately.
+  const invalidateAdvisor = () =>
+    qc.invalidateQueries({
+      predicate: (q) =>
+        typeof q.queryKey[0] === "string" &&
+        (q.queryKey[0] as string).startsWith("/menu-advisor"),
+    });
+
+  // Invalidate only the per-run suggestion lists (price / bundle / removal).
+  // Used after recordDecision: the run metadata is unaffected by a decision,
+  // so there is no need to re-fetch activeRun or latestRun.
+  const invalidateSuggestions = () =>
+    qc.invalidateQueries({
+      predicate: (q) =>
+        typeof q.queryKey[0] === "string" &&
+        (q.queryKey[0] as string).startsWith("/menu-advisor/runs/"),
+    });
 
   // When the active run finishes (present → null), refresh the latest run.
   const prevActive = useRef<unknown>(null);
@@ -181,7 +198,7 @@ export function MenuAdvisorPage() {
       },
     },
   });
-  const decide = useRecordDecisionHandler({ mutation: { onSuccess: invalidateAdvisor, onError: (e) => toast.error(getErrorMessage(e)) } });
+  const decide = useRecordDecisionHandler({ mutation: { onSuccess: invalidateSuggestions, onError: (e) => toast.error(getErrorMessage(e)) } });
   const pendingId = decide.isPending ? (decide.variables?.data.suggestion_id ?? null) : null;
 
   const startRun = () => { if (branchId) createRun.mutate({ branchId: branch, data: {} }); };
@@ -220,7 +237,7 @@ export function MenuAdvisorPage() {
       <div className="max-w-5xl space-y-10 pb-12">
         <div className="flex items-center justify-between rounded-xl border bg-muted/30 p-4">
           <div>
-            <p className="text-sm font-medium">{t("menuAdvisor.latestRun", "Latest run")} · {new Date(run.started_at).toLocaleString()}</p>
+            <p className="text-sm font-medium">{t("menuAdvisor.latestRun", "Latest run")} · {fmtDateTimeFull(run.started_at)}</p>
             <p className="text-xs text-muted-foreground">{t("menuAdvisor.status", "Status")}: {run.status}</p>
           </div>
           <Button onClick={startRun} loading={createRun.isPending} variant="outline" size="sm"><RefreshCw className="size-4" /> {t("menuAdvisor.refreshAnalysis", "Refresh")}</Button>

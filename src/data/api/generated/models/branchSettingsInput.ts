@@ -15,8 +15,14 @@ export interface BranchSettingsInput {
   in_mall_fee: number;
   /** @nullable */
   in_mall_open_time?: string | null;
+  /** When false, in-mall orders are accepted without a device GPS location.
+   * Defaults to true so an omitting client keeps the location check on. */
+  in_mall_require_location?: boolean;
   /** @nullable */
   max_road_distance_meters?: number | null;
+  /** When false, the public checkout skips OTP for this branch. Defaults to
+   * true so an omitting client keeps verification on. */
+  otp_required?: boolean;
   /** @nullable */
   outside_close_time?: string | null;
   /** @nullable */

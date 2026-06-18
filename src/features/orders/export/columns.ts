@@ -27,6 +27,16 @@ export const orderColumns = (t: TFunction): ExcelColumn<OrderExport>[] => [
     type: "text",
     width: 14,
   },
+  {
+    key: "location",
+    header: t("orders.location", "Location"),
+    accessor: (o) =>
+      o.delivery_lat != null && o.delivery_lng != null
+        ? `https://www.google.com/maps/search/?api=1&query=${o.delivery_lat},${o.delivery_lng}`
+        : "—",
+    type: "text",
+    width: 34,
+  },
   { key: "status", header: t("common.status", "Status"), accessor: (o) => t(`orderStatus.${o.status}`, o.status), type: "text", width: 15 },
   {
     key: "void_reason",

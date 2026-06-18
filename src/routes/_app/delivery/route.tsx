@@ -22,24 +22,29 @@ function DeliveryLayout() {
 
   return (
     <div className="flex flex-col">
-      <nav className="mx-auto flex w-full max-w-[1400px] gap-1 overflow-x-auto px-4 pt-4 sm:px-6 lg:px-8">
-        {tabs.map((tab) => {
-          const active = pathname === tab.to || pathname.startsWith(`${tab.to}/`);
-          return (
-            <Link
-              key={tab.to}
-              to={tab.to}
-              search={keepScope}
-              className={cn(
-                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground",
-                active ? "bg-muted text-foreground" : "text-muted-foreground",
-              )}
-            >
-              {tab.label}
-            </Link>
-          );
-        })}
-      </nav>
+      <div className="w-full overflow-x-auto no-scrollbar">
+        <nav className="mx-auto flex w-full max-w-[1400px] min-w-full border-b border-border px-4 sm:px-6 lg:px-8">
+          {tabs.map((tab) => {
+            const active = pathname === tab.to || pathname.startsWith(`${tab.to}/`);
+            return (
+              <Link
+                key={tab.to}
+                to={tab.to}
+                search={keepScope}
+                className={cn(
+                  "-mb-px inline-flex h-10 items-center px-4 text-sm font-medium whitespace-nowrap transition-colors duration-150",
+                  "border-b-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:rounded-sm",
+                  active
+                    ? "border-brand text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
       <Outlet />
     </div>
   );

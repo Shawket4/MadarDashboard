@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { MapPin, Pencil, Plus, Store, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { DataTable } from "@/components/app/data-table";
 import { useConfirm } from "@/components/app/confirm-dialog";
@@ -16,6 +16,7 @@ import type { DeliveryZone } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 import { useScope } from "@/data/scope/use-scope";
+import { invalidateZones } from "./util";
 
 /** A zone with its display-only ring number, derived from distance sort order. */
 type NumberedZone = DeliveryZone & { zoneNumber: number };
@@ -57,7 +58,7 @@ export function ZonesPage() {
       try {
         await deleteZone(z.id, { branch_id: branchId });
         toast.success(t("delivery.zoneDeleted", "Zone deleted"));
-        void list.refetch();
+        void invalidateZones();
       } catch (e) {
         toast.error(getErrorMessage(e));
       }
@@ -133,17 +134,17 @@ export function ZonesPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("delivery.zonesTitle", "Delivery zones")}
-        description={t("delivery.zonesSubtitle", "Distance-based delivery rings and their pricing for this branch.")}
-        actions={
-          branchId ? (
-            <Button onClick={openNew}>
-              <Plus className="size-4" /> {t("delivery.newZone", "New zone")}
-            </Button>
-          ) : undefined
-        }
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("delivery.zonesTitle", "Delivery zones")}</h1>
+          <p className="text-sm text-muted-foreground">{t("delivery.zonesSubtitle", "Distance-based delivery rings and their pricing for this branch.")}</p>
+        </div>
+        {branchId ? (
+          <div className="flex shrink-0 items-center gap-2">
+            <Button onClick={openNew}><Plus className="size-4" /> {t("delivery.newZone", "New zone")}</Button>
+          </div>
+        ) : null}
+      </div>
       {!branchId ? (
         <EmptyState
           icon={Store}
@@ -177,7 +178,7 @@ export function ZonesPage() {
             zones={zones}
             open={dlgOpen}
             onOpenChange={setDlgOpen}
-            onSaved={() => void list.refetch()}
+            onSaved={() => void invalidateZones()}
           />
         </>
       )}

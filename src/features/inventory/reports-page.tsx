@@ -2,13 +2,14 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Boxes, Store } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
+import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { StatCard } from "@/components/app/stat-card";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -161,7 +162,9 @@ export function ReportsPage() {
   if (!orgId) {
     return (
       <Page>
-        <PageHeader title={t("inventory.reports.title", "Inventory reports")} />
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.reports.title", "Inventory reports")}</h1>
+        </div>
         <EmptyState icon={Boxes} title={t("inventory.pickOrg", "Select an organization to manage inventory")} />
       </Page>
     );
@@ -171,31 +174,31 @@ export function ReportsPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("inventory.reports.title", "Inventory reports")}
-        actions={
-          <>
-            <ExportButton onExport={handleExport} disabled={branchGate || !currentCount} />
-            <SegmentedControl<ReportScope>
-              value={scope}
-              onChange={setScope}
-              options={[
-                { value: "branch", label: t("inventory.reports.branch", "This branch") },
-                { value: "org", label: t("inventory.reports.org", "Whole organization") },
-              ]}
-            />
-          </>
-        }
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.reports.title", "Inventory reports")}</h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ExportButton onExport={handleExport} disabled={branchGate || !currentCount} />
+          <SegmentedControl<ReportScope>
+            value={scope}
+            onChange={setScope}
+            options={[
+              { value: "branch", label: t("inventory.reports.branch", "This branch") },
+              { value: "org", label: t("inventory.reports.org", "Whole organization") },
+            ]}
+          />
+        </div>
+      </div>
 
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <TabsList>
-          <TabsTrigger value="valuation">{t("inventory.reports.valuation", "Valuation")}</TabsTrigger>
-          <TabsTrigger value="cogs">{t("inventory.reports.cogs", "COGS & margins")}</TabsTrigger>
-          <TabsTrigger value="consumption">{t("inventory.reports.consumption", "Consumption")}</TabsTrigger>
-          <TabsTrigger value="shrinkage">{t("inventory.reports.shrinkage", "Shrinkage")}</TabsTrigger>
-          <TabsTrigger value="waste">{t("inventory.reports.wasteReport", "Waste")}</TabsTrigger>
-        </TabsList>
+        <PageTabsList>
+          <PageTabsTrigger value="valuation">{t("inventory.reports.valuation", "Valuation")}</PageTabsTrigger>
+          <PageTabsTrigger value="cogs">{t("inventory.reports.cogs", "COGS & margins")}</PageTabsTrigger>
+          <PageTabsTrigger value="consumption">{t("inventory.reports.consumption", "Consumption")}</PageTabsTrigger>
+          <PageTabsTrigger value="shrinkage">{t("inventory.reports.shrinkage", "Shrinkage")}</PageTabsTrigger>
+          <PageTabsTrigger value="waste">{t("inventory.reports.wasteReport", "Waste")}</PageTabsTrigger>
+        </PageTabsList>
 
         {branchGate ? (
           <EmptyState icon={Store} title={t("inventory.pickBranch", "Select a branch to manage its stock")} />

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TimezoneSelect } from "@/components/app/timezone-select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { createBranch, updateBranch } from "@/data/api/generated/api";
 import type { Branch } from "@/data/api/generated/models";
@@ -129,7 +130,7 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
                 <FormItem><FormLabel>{t("branches.phone", "Phone")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="timezone" render={({ field }) => (
-                <FormItem><FormLabel>{t("branches.timezone", "Timezone")}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>{t("branches.timezone", "Timezone")}</FormLabel><FormControl><TimezoneSelect value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
             <FormField control={form.control} name="address" render={({ field }) => (

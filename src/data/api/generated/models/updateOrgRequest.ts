@@ -21,4 +21,11 @@ export interface UpdateOrgRequest {
   slug?: string | null;
   /** @nullable */
   tax_rate?: number | null;
+  /**
+     * IANA timezone name (e.g. `Africa/Cairo`). Validated against the
+   * PostgreSQL timezone database. Branches inherit this when their own
+   * timezone is unset.
+     * @nullable
+     */
+  timezone?: string | null;
 }

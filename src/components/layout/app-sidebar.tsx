@@ -57,7 +57,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg" className="gap-3">
               <Link to="/" search={keepScope} onClick={close}>
-                <img src="/Icon.svg" alt="" className="size-8 rounded-lg" draggable={false} />
+                <img src="/Icon.svg" alt="" className="size-8 rounded-lg ring-1 ring-white/10" draggable={false} />
                 <span className="grid flex-1 text-start leading-tight">
                   <span className="truncate text-base font-semibold">{t("app.name", "Sufrix")}</span>
                   <span className="truncate text-xs text-sidebar-foreground/60">
@@ -76,7 +76,7 @@ export function AppSidebar() {
           if (entries.length === 0) return null;
           return (
             <SidebarGroup key={group.labelKey}>
-              <SidebarGroupLabel>{t(group.labelKey, group.fallback)}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-sidebar-foreground/45">{t(group.labelKey, group.fallback)}</SidebarGroupLabel>
               <SidebarMenu>
                 {entries.map((entry) => {
                   if (isParent(entry)) {

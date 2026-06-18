@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { CheckCircle, GitBranch, MapPin, Pencil, Phone, Plus, Printer, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { DataTable } from "@/components/app/data-table";
 import { StatCard } from "@/components/app/stat-card";
@@ -99,15 +99,20 @@ export function BranchesPage() {
     void exportToExcel({ filename: "Sufrix-Branches", sheets: [{ name: t("branches.title", "Branches"), title: t("branches.title", "Branches"), rows: branches as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
-  if (!orgId) return <Page><PageHeader title={t("branches.title", "Branches")} /><EmptyState icon={GitBranch} title={t("branches.pickOrg", "Select an organization")} /></Page>;
+  if (!orgId) return <Page><div className="space-y-1.5"><h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("branches.title", "Branches")}</h1></div><EmptyState icon={GitBranch} title={t("branches.pickOrg", "Select an organization")} /></Page>;
 
   return (
     <Page>
-      <PageHeader
-        title={t("branches.title", "Branches")}
-        description={t("branches.subtitle", "Manage your branch locations and printer config")}
-        actions={<><ExportButton onExport={handleExport} disabled={!branches.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button></>}
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("branches.title", "Branches")}</h1>
+          <p className="text-sm text-muted-foreground">{t("branches.subtitle", "Manage your branch locations and printer config")}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ExportButton onExport={handleExport} disabled={!branches.length} />
+          <Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button>
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("common.total", "Total")} value={branches.length} loading={list.isLoading} />
         <StatCard label={t("common.active", "Active")} value={branches.filter((b) => b.is_active).length} accent="success" loading={list.isLoading} />

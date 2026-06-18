@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ImageUploader } from "@/components/app/image-uploader";
+import { TimezoneSelect } from "@/components/app/timezone-select";
 import { createOrg, updateOrg, uploadOrgLogo } from "@/data/api/generated/api";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -48,6 +49,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         currency_code: z.string().min(1, t("common.requiredField", "This field is required")),
         tax_rate: z.coerce.number().min(0),
         receipt_footer: z.string().optional(),
+        timezone: z.string().min(1, t("common.requiredField", "This field is required")),
         is_active: z.boolean(),
       }),
     [t],
@@ -56,7 +58,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", is_active: true },
+    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true },
   });
 
   useEffect(() => {
@@ -70,6 +72,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         currency_code: org?.currency_code ?? "EGP",
         tax_rate: org?.tax_rate ?? 0,
         receipt_footer: org?.receipt_footer ?? "",
+        timezone: org?.timezone ?? "Africa/Cairo",
         is_active: org?.is_active ?? true,
       });
     }
@@ -84,12 +87,12 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
       if (org) {
         await updateOrg(org.id, {
           name: v.name, slug: v.slug, currency_code: v.currency_code,
-          tax_rate: v.tax_rate, receipt_footer: v.receipt_footer || null, is_active: v.is_active,
+          tax_rate: v.tax_rate, receipt_footer: v.receipt_footer || null, timezone: v.timezone, is_active: v.is_active,
         });
       } else {
         await createOrg({
           name: v.name, slug: v.slug, currency_code: v.currency_code,
-          tax_rate: v.tax_rate, receipt_footer: v.receipt_footer || null, logo: pendingLogo ?? undefined,
+          tax_rate: v.tax_rate, receipt_footer: v.receipt_footer || null, timezone: v.timezone, logo: pendingLogo ?? undefined,
         });
       }
       void invalidateOrgs();
@@ -165,6 +168,14 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
                 <FormItem><FormLabel>{t("orgs.taxRate", "Tax Rate (%)")}</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
+            <FormField control={form.control} name="timezone" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("orgs.timezone", "Timezone")}</FormLabel>
+                <FormControl><TimezoneSelect value={field.value} onChange={field.onChange} /></FormControl>
+                <p className="text-xs text-muted-foreground">{t("orgs.timezoneHint", "Default for all branches. A branch can override its own.")}</p>
+                <FormMessage />
+              </FormItem>
+            )} />
             <FormField control={form.control} name="receipt_footer" render={({ field }) => (
               <FormItem><FormLabel>{t("orgs.receiptFooter", "Receipt Footer")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
             )} />

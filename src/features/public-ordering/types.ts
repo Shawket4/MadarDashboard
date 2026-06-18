@@ -4,7 +4,22 @@ import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuI
 export type Channel = "in_mall" | "outside";
 
 /** The ordered steps of the public flow. */
-export type Step = "branch" | "channel" | "location" | "menu" | "checkout" | "done";
+export type Step = "branch" | "channel" | "phone" | "location" | "menu" | "checkout" | "done";
+
+/** Compact item snapshot stored in the order history cart JSONB. */
+export interface OrderHistoryItemEntry {
+  name: string;
+  quantity: number;
+}
+
+/** Guest profile fetched from the backend after phone + optional OTP. */
+export interface GuestProfile {
+  phone: string;
+  deviceToken: string;
+  customerName: string | null;
+  orders: import("@/data/api/generated/models/orderHistorySummary").OrderHistorySummary[];
+  locations: import("@/data/api/generated/models/guestSavedLocation").GuestSavedLocation[];
+}
 
 /** A selected addon option inside a configured cart line. */
 export interface SelectedAddon {

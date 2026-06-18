@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowLeftRight, ArrowRight, MoreHorizontal, PlusCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
@@ -166,22 +166,22 @@ export function TransfersPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t("inventory.transfers.title", "Transfers")}
-        actions={
-          <>
-            <ExportButton onExport={handleExport} disabled={!(transfers.data?.length)} />
-            {/* Creating a transfer needs a concrete source branch, so the action
-                is gated to a selected branch — hidden in the all-branches roll-up. */}
-            {branchId ? (
-              <Button onClick={() => setNewOpen(true)} disabled={activeBranches.length < 2}>
-                <PlusCircle className="size-4" />
-                {t("inventory.transfers.create", "New transfer")}
-              </Button>
-            ) : null}
-          </>
-        }
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.transfers.title", "Transfers")}</h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ExportButton onExport={handleExport} disabled={!(transfers.data?.length)} />
+          {/* Creating a transfer needs a concrete source branch, so the action
+              is gated to a selected branch — hidden in the all-branches roll-up. */}
+          {branchId ? (
+            <Button onClick={() => setNewOpen(true)} disabled={activeBranches.length < 2}>
+              <PlusCircle className="size-4" />
+              {t("inventory.transfers.create", "New transfer")}
+            </Button>
+          ) : null}
+        </div>
+      </div>
 
       <DataTable
         columns={columns}

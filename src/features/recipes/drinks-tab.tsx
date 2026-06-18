@@ -25,7 +25,7 @@ export function DrinksTab({ orgId, initialSelectedId }: { orgId: string; initial
   const tname = (n: { name: string; name_translations?: unknown }) => getTranslatedName(n, i18n.language);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+    <div className="grid gap-4 lg:grid-cols-[300px_1fr]">
       <MasterList
         items={list.map((m) => ({ id: m.id, label: tname(m) }))}
         selectedId={selected}
@@ -80,12 +80,21 @@ function DrinkDetail({ itemId, orgId, catalog, copySources }: { itemId: string; 
   if (item.isLoading || !full) return <div className="grid place-items-center rounded-xl border p-10"><Spinner /></div>;
 
   return (
-    <div className="rounded-xl border">
-      <div className="border-b bg-muted/30 p-4">
-        <p className="font-semibold">{full.name}</p>
-        <p className="text-xs text-muted-foreground">{sizes.length} {t("recipes.perSize", "Per size")}</p>
+    <div className="rounded-xl border overflow-hidden">
+      <div className="border-b px-5 py-4 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="font-semibold text-base leading-tight">{full.name}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("recipes.perSize", "{{count}} size", { count: sizes.length })}</p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-1.5">
+          {sizes.map((size) => (
+            <span key={size} className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              {size === "one_size" ? t("recipes.oneSize", "One size") : size}
+            </span>
+          ))}
+        </div>
       </div>
-      <div className="p-4">
+      <div className="p-5">
         <RecipeBuilder
           orgId={orgId}
           sizes={sizes}
