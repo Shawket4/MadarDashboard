@@ -5,6 +5,8 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -33,23 +35,16 @@ export function VarianceReportDialog({ stocktakeId, open, onOpenChange }: Props)
           </DialogDescription>
         </DialogHeader>
 
+        <LedgerStrip
+          items={[
+            { key: "shrink", label: t("inventory.stocktakes.shrinkage", "Shrinkage"), value: data?.total_shrinkage_value ?? 0, formatType: "money", icon: ArrowDownCircle, accent: "destructive", loading: !data },
+            { key: "over", label: t("inventory.stocktakes.overage", "Overage"), value: data?.total_overage_value ?? 0, formatType: "money", icon: ArrowUpCircle, accent: "success", loading: !data },
+            { key: "net", label: t("inventory.stocktakes.net", "Net variance"), value: data?.net_variance_value ?? 0, formatType: "money", icon: Scale, accent: (data?.net_variance_value ?? 0) < 0 ? "destructive" : "success", loading: !data },
+          ] satisfies LedgerItem[]}
+        />
+
         {data ? (
           <>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg border p-3">
-                <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><ArrowDownCircle className="size-3.5 text-destructive" /> {t("inventory.stocktakes.shrinkage", "Shrinkage")}</p>
-                <p className="mt-1 text-lg font-semibold tabular text-destructive">{fmtMoney(data.total_shrinkage_value)}</p>
-              </div>
-              <div className="rounded-lg border p-3">
-                <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><ArrowUpCircle className="size-3.5 text-success" /> {t("inventory.stocktakes.overage", "Overage")}</p>
-                <p className="mt-1 text-lg font-semibold tabular text-success">{fmtMoney(data.total_overage_value)}</p>
-              </div>
-              <div className="rounded-lg border p-3">
-                <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Scale className="size-3.5" /> {t("inventory.stocktakes.net", "Net variance")}</p>
-                <p className={cn("mt-1 text-lg font-semibold tabular", data.net_variance_value < 0 ? "text-destructive" : "text-success")}>{fmtMoney(data.net_variance_value)}</p>
-              </div>
-            </div>
-
             <div className="overflow-x-auto rounded-lg border">
               <Table>
                 <TableHeader>
@@ -83,7 +78,11 @@ export function VarianceReportDialog({ stocktakeId, open, onOpenChange }: Props)
             </div>
           </>
         ) : (
-          <p className="text-sm text-muted-foreground">{t("common.loading", "Loading")}</p>
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-9 w-full" />
+            ))}
+          </div>
         )}
       </DialogContent>
     </Dialog>

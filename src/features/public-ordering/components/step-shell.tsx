@@ -120,9 +120,9 @@ export function StepShell({
             )}
 
             {variant === "flow" ? (
-              <h1 className="flex-1 truncate px-1 text-center font-serif text-base font-semibold">
-                {title}
-              </h1>
+              // Title moves into the content as a bold display heading; the bar
+              // stays minimal (back · toggles · progress).
+              <span aria-hidden className="flex-1" />
             ) : variant === "menu" ? (
               <div className="flex flex-1 justify-center px-2">
                 {headerSearch && <div className="hidden w-full max-w-md xl:block">{headerSearch}</div>}
@@ -184,8 +184,13 @@ export function StepShell({
             <p className="mt-1 text-sm text-muted-foreground">{t(greet.key, greet.fallback)}</p>
           </div>
         )}
-        {variant === "flow" && subtitle && (
-          <p className="mb-4 text-sm text-muted-foreground">{subtitle}</p>
+        {variant === "flow" && (
+          <div className="mb-5">
+            <h1 className="font-serif text-2xl font-semibold leading-tight tracking-tight text-balance sm:text-[1.75rem]">
+              {title}
+            </h1>
+            {subtitle && <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>}
+          </div>
         )}
 
         <div className="flex-1">{children}</div>

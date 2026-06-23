@@ -12,6 +12,7 @@ import { ExportButton } from "@/components/app/export-button";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -339,7 +340,7 @@ export function PurchasingPage() {
 
         <TabsContent value="reorder">
           {reorder.isLoading ? (
-            <p className="text-sm text-muted-foreground">{t("common.loading", "Loading…")}</p>
+            <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
           ) : (reorder.data ?? []).length === 0 ? (
             <EmptyState icon={TrendingDown} title={t("inventory.purchasing.noReorder", "No items to reorder")} description={t("inventory.purchasing.noReorderHint", "All stocked items are above their reorder point.")} />
           ) : (

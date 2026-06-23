@@ -17,7 +17,7 @@ import {
 import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
 import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
 import type { DeliveryOrderInput } from "@/data/api/generated/models/deliveryOrderInput";
-import { ArrowRight, Search, ShoppingBag } from "lucide-react";
+import { ArrowRight, Loader2, Search, ShoppingBag } from "lucide-react";
 import type { GuestSavedLocation } from "@/data/api/generated/models/guestSavedLocation";
 import { Input } from "@/components/ui/input";
 import { fmtMoney } from "@/lib/format";
@@ -151,11 +151,25 @@ export function PublicOrderingPage({
   const idempotencyKey = useRef<string>(newUid());
 
   // ── Resolve the selected branch object (needed by channel step) ───────────
-  const { data: branches } = usePublicBranches({ org_id: orgId });
+  const { data: branches, isLoading: branchesLoading } = usePublicBranches({ org_id: orgId });
   const branchObj = useMemo<PublicBranch | null>(
     () => branches?.find((b) => b.id === branchId) ?? null,
     [branches, branchId],
   );
+
+  // Recover from a stale/invalid ?branch= id: once branches have loaded, if the
+  // id isn't one of them, drop it and fall back to the branch picker. Without
+  // this the channel/phone steps (which need branchObj) render a blank, back-less
+  // screen — a dead end.
+  useEffect(() => {
+    if (!branchesLoading && branchId && branches && !branches.some((b) => b.id === branchId)) {
+      setUrl({ branch: undefined, channel: undefined });
+    }
+  }, [branchesLoading, branchId, branches, setUrl]);
+
+  // True while we have a branch id from the URL but the branch list is still
+  // loading — used to show a loader instead of a blank step.
+  const branchPending = !!branchId && branchesLoading && !branchObj;
 
   const deliverableBranches = useMemo(
     () => (branches ?? []).filter((b) => b.in_mall_enabled || b.outside_enabled),
@@ -239,14 +253,18 @@ export function PublicOrderingPage({
         : selectedChannel === "outside"
           ? b.outside_enabled
           : true;
+    // A different branch means a different menu AND different delivery zones — so
+    // the cart starts fresh and the location/quote must be re-confirmed at the new
+    // branch (otherwise a stale quote/pin from the old branch leaks into checkout).
     setLines([]);
     setEditing(null);
     setCartOpen(false);
-    if (!supports) {
-      setLocationDone(false);
-      setPoint(null);
-      setQuote(null);
-    }
+    setEnteredCheckout(false);
+    setLocationDone(false);
+    setPoint(null);
+    setQuote(null);
+    // Drop branch/location-specific address fields; keep the customer's identity.
+    setForm((f) => ({ ...f, place_name: "", floor: "", unit_number: "", landmark: "", address_line: "" }));
     setUrl({ branch: b.id, channel: supports ? (selectedChannel ?? undefined) : undefined });
   };
 
@@ -446,6 +464,9 @@ export function PublicOrderingPage({
   };
 
   const handlePlace = async () => {
+    // Guard against a double-tap firing a second OTP request / order before the
+    // button's disabled state catches up.
+    if (createOrder.isPending || otpRequest.isPending) return;
     if (channelClosed) {
       setSubmitError(
         t("order.checkout.errChannelClosed", {
@@ -558,8 +579,10 @@ export function PublicOrderingPage({
       </div>
     ) : undefined;
 
-  // Phone step now has a back button (returns to channel selection).
-  const hasBack = step !== "branch" && step !== "channel";
+  // Every step except the first (branch picker) has a back button. The channel
+  // step returns to the branch picker — important so it's never a dead end when
+  // there's only one deliverable branch (no inline branch selector to escape via).
+  const hasBack = step !== "branch";
 
   return (
     <>
@@ -590,6 +613,15 @@ export function PublicOrderingPage({
       >
         <AnimatePresence mode="wait">
           <motion.div key={step} variants={fadeIn} initial="hidden" animate="show" exit="hidden">
+            {/* Branch list still loading for a pre-selected ?branch= id — show a
+                loader rather than the blank channel/phone step. */}
+            {branchPending && (
+              <div className="flex flex-col items-center gap-3 py-20 text-muted-foreground">
+                <Loader2 className="size-6 animate-spin" />
+                <p className="text-sm">{t("common.loading", "Loading…")}</p>
+              </div>
+            )}
+
             {step === "branch" && <BranchStep orgId={orgId} onSelect={handleSelectBranch} />}
 
             {step === "channel" && branchObj && (

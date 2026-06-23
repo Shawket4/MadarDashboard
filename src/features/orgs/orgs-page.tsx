@@ -84,7 +84,9 @@ export function OrgsPage() {
     void exportToExcel({ filename: "Sufrix-Organizations", sheets: [{ name: t("orgs.title", "Organizations"), title: t("orgs.title", "Organizations"), rows: orgs as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
-  const avgTax = orgs.length ? `${(orgs.reduce((a, o) => a + o.tax_rate, 0) / orgs.length).toFixed(1)}%` : "—";
+  // tax_rate is stored as a percent number (e.g. 14). StatCard's percent format
+  // expects a 0..1 ratio, so divide by 100 and let it format + count up.
+  const avgTaxRatio = orgs.length ? orgs.reduce((a, o) => a + o.tax_rate, 0) / orgs.length / 100 : null;
 
   return (
     <Page>
@@ -97,7 +99,7 @@ export function OrgsPage() {
         <StatCard label={t("common.total", "Total")} value={orgs.length} loading={list.isLoading} />
         <StatCard label={t("common.active", "Active")} value={orgs.filter((o) => o.is_active).length} accent="success" loading={list.isLoading} />
         <StatCard label={t("common.inactive", "Inactive")} value={orgs.filter((o) => !o.is_active).length} accent="warning" loading={list.isLoading} />
-        <StatCard label={t("orgs.avgTax", "Avg Tax")} value={avgTax} accent="info" loading={list.isLoading} />
+        <StatCard label={t("orgs.avgTax", "Avg Tax")} value={avgTaxRatio ?? "—"} formatType="percent" accent="info" loading={list.isLoading} />
       </div>
       <DataTable
         columns={columns}

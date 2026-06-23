@@ -77,7 +77,7 @@ export function PermissionsPage() {
   return (
     <Page>
       <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("permissions.title", "Permissions")}</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("permissions.title", "Permissions")}</h1>
         <p className="text-sm text-muted-foreground">{t("permissions.subtitle", "Manage per-user access overrides")}</p>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">

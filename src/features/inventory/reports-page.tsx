@@ -6,7 +6,8 @@ import { Page } from "@/components/app/page";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
-import { StatCard } from "@/components/app/stat-card";
+import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -206,10 +207,13 @@ export function ReportsPage() {
           <>
             {/* Valuation */}
             <TabsContent value="valuation" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 sm:max-w-md">
-                <StatCard label={t("inventory.reports.totalValue", "Total value")} value={valuation.data?.total_value ?? 0} formatType="money" accent="brand" loading={valuation.isLoading} />
-                <StatCard label={t("inventory.reports.unknownCost", { count: valuation.data?.unknown_cost_count ?? 0, defaultValue: "unknown cost" })} value={valuation.data?.unknown_cost_count ?? 0} loading={valuation.isLoading} />
-              </div>
+              <LedgerStrip
+                className="sm:max-w-md"
+                items={[
+                  { key: "value", label: t("inventory.reports.totalValue", "Total value"), value: valuation.data?.total_value ?? 0, formatType: "money", accent: "brand", loading: valuation.isLoading },
+                  { key: "unknown", label: t("inventory.reports.unknownCost", { count: valuation.data?.unknown_cost_count ?? 0, defaultValue: "unknown cost" }), value: valuation.data?.unknown_cost_count ?? 0, loading: valuation.isLoading },
+                ] satisfies LedgerItem[]}
+              />
               <Card>
                 <CardHeader><CardTitle className="text-base">{t("inventory.reports.byCategory", "By category")}</CardTitle></CardHeader>
                 <CardContent className="space-y-2">
@@ -338,14 +342,21 @@ function ReportTable({ head, rows, loading, empty }: {
           <TableRow>{head.map((h, i) => <TableHead key={i} className={i === 0 ? "" : "text-end"}>{h}</TableHead>)}</TableRow>
         </TableHeader>
         <TableBody>
-          {rows.map((r) => (
-            <TableRow key={r.key}>
-              {r.cells.map((c, i) => <TableCell key={i} className={i === 0 ? "" : "text-end tabular"}>{c}</TableCell>)}
-            </TableRow>
-          ))}
-          {rows.length === 0 && !loading ? (
+          {loading ? (
+            Array.from({ length: 5 }).map((_, ri) => (
+              <TableRow key={`sk-${ri}`}>
+                {head.map((_, ci) => <TableCell key={ci}><Skeleton className="h-4 w-full" /></TableCell>)}
+              </TableRow>
+            ))
+          ) : rows.length === 0 ? (
             <TableRow><TableCell colSpan={head.length} className="text-center text-muted-foreground">{empty}</TableCell></TableRow>
-          ) : null}
+          ) : (
+            rows.map((r) => (
+              <TableRow key={r.key}>
+                {r.cells.map((c, i) => <TableCell key={i} className={i === 0 ? "" : "text-end tabular"}>{c}</TableCell>)}
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

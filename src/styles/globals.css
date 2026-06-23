@@ -61,17 +61,18 @@
   --chart-5: oklch(0.56 0.13 300);
   --chart-6: oklch(0.65 0.12 200);
 
-  /* Sidebar — a permanent deep-navy rail (both light & dark) that frames the
-     linen content, echoing the auth/brand panel. Terracotta marks the active
-     item; hover is a quiet lighter-navy wash. */
-  --sidebar: oklch(0.24 0.038 256);
-  --sidebar-foreground: oklch(0.82 0.018 255);
-  --sidebar-primary: oklch(0.64 0.14 40);
-  --sidebar-primary-foreground: oklch(0.99 0.004 85);
-  --sidebar-accent: oklch(0.31 0.045 256);
-  --sidebar-accent-foreground: oklch(0.98 0.005 85);
-  --sidebar-border: oklch(1 0 0 / 9%);
-  --sidebar-ring: oklch(0.64 0.14 40);
+  /* Sidebar — a light, warm-neutral rail in light mode (one tonal step
+     recessed from the linen content), flipping to a deep-navy rail in dark
+     mode. Terracotta marks the active item; hover is a quiet warm wash. */
+  --sidebar: oklch(0.972 0.006 80);
+  --sidebar-foreground: oklch(0.32 0.04 255);
+  /* Active item marked in navy on the light rail (terracotta is the dark-mode marker). */
+  --sidebar-primary: oklch(0.27 0.05 250);
+  --sidebar-primary-foreground: oklch(0.985 0.004 85);
+  --sidebar-accent: oklch(0.95 0.012 70);
+  --sidebar-accent-foreground: oklch(0.27 0.05 250);
+  --sidebar-border: oklch(0.91 0.008 80);
+  --sidebar-ring: oklch(0.58 0.132 38);
 }
 
 .dark {
@@ -216,6 +217,22 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background-color: color-mix(in oklch, var(--muted-foreground) 50%, transparent);
+  }
+}
+
+/* ── View Transitions (route navigation) ────────────────────────────────────
+ * A quick, quiet cross-fade between routes. Kept short so the operator never
+ * waits on choreography. Fully disabled (snapshot swaps instantly) for users
+ * who prefer reduced motion. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.2s;
+  animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
   }
 }
 

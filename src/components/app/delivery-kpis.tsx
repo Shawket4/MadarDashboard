@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConciseValue, LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { cn } from "@/lib/utils";
-import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtNumberCompact } from "@/lib/format";
+import { fmtMoney, fmtMoneyCompact, fmtNumber } from "@/lib/format";
 import type { DeliverySalesReport } from "@/data/api/generated/models/deliverySalesReport";
 
 const accentChip: Record<string, string> = {
@@ -37,10 +37,10 @@ export function DeliveryKpis({
   // Totals reuse the shared ledger strip — which renders concise numbers on
   // narrow/mobile cells and full numbers on wider ones.
   const totals: LedgerItem[] = [
-    { key: "rev", label: t("delivery.revenue", "Delivery revenue"), icon: Coins, accent: "brand", value: fmtMoney(data?.total_revenue ?? 0), compactValue: fmtMoneyCompact(data?.total_revenue ?? 0), loading },
-    { key: "orders", label: t("delivery.deliveredOrders", "Delivered orders"), icon: Receipt, accent: "primary", value: fmtNumber(data?.total_orders ?? 0), compactValue: fmtNumberCompact(data?.total_orders ?? 0), loading },
-    { key: "avg", label: t("dashboard.avgTicket", "Avg ticket"), icon: TrendingUp, accent: "info", value: fmtMoney(data?.avg_order_value ?? 0), compactValue: fmtMoneyCompact(data?.avg_order_value ?? 0), loading },
-    { key: "fees", label: t("delivery.fees", "Delivery fees"), icon: Truck, accent: "success", value: fmtMoney(data?.total_delivery_fees ?? 0), compactValue: fmtMoneyCompact(data?.total_delivery_fees ?? 0), loading },
+    { key: "rev", label: t("delivery.revenue", "Delivery revenue"), icon: Coins, accent: "brand", value: data?.total_revenue ?? 0, formatType: "money", loading },
+    { key: "orders", label: t("delivery.deliveredOrders", "Delivered orders"), icon: Receipt, accent: "primary", value: data?.total_orders ?? 0, formatType: "number", loading },
+    { key: "avg", label: t("dashboard.avgTicket", "Avg ticket"), icon: TrendingUp, accent: "info", value: data?.avg_order_value ?? 0, formatType: "money", loading },
+    { key: "fees", label: t("delivery.fees", "Delivery fees"), icon: Truck, accent: "success", value: data?.total_delivery_fees ?? 0, formatType: "money", loading },
   ];
 
   const channels = data?.channels ?? [];

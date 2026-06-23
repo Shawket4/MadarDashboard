@@ -6,6 +6,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -150,7 +151,7 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
 
           <TabsContent value="history">
             {loadingReceipts ? (
-              <p className="py-4 text-center text-sm text-muted-foreground">{t("common.loading", "Loading…")}</p>
+              <div className="space-y-2 py-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
             ) : receipts.length === 0 ? (
               <p className="py-4 text-center text-sm text-muted-foreground">{t("inventory.purchasing.noDeliveries", "No deliveries recorded yet.")}</p>
             ) : (

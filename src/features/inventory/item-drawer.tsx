@@ -8,6 +8,7 @@ import {
   Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -134,7 +135,7 @@ export function ItemDrawer({ item, branchId, branchItem, open, onOpenChange, onE
             <div className="mt-4">
               <p className="mb-2 text-sm font-medium">{t("inventory.stockHistory", "Stock history")}</p>
               {movements.isLoading ? (
-                <p className="text-sm text-muted-foreground">{t("common.loading", "Loading")}</p>
+                <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
               ) : (movements.data ?? []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t("inventory.movements.noMovements", "No movements yet")}</p>
               ) : (

@@ -32,6 +32,7 @@ import { Route as AppDeliveryRouteRouteImport } from './routes/_app/delivery/rou
 import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
 import { Route as AppMenuIndexRouteImport } from './routes/_app/menu/index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app/inventory/index'
+import { Route as AppDeliveryIndexRouteImport } from './routes/_app/delivery/index'
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
@@ -165,6 +166,11 @@ const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppInventoryRouteRoute,
+} as any)
+const AppDeliveryIndexRoute = AppDeliveryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppDeliveryRouteRoute,
 } as any)
 const AppSettingsWhatsappRoute = AppSettingsWhatsappRouteImport.update({
   id: '/whatsapp',
@@ -302,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/delivery/': typeof AppDeliveryIndexRoute
   '/inventory/': typeof AppInventoryIndexRoute
   '/menu/': typeof AppMenuIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
@@ -310,7 +317,6 @@ export interface FileRoutesByTo {
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
-  '/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/analytics': typeof AppAnalyticsRoute
   '/branches': typeof AppBranchesRoute
   '/discounts': typeof AppDiscountsRoute
@@ -342,6 +348,7 @@ export interface FileRoutesByTo {
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/delivery': typeof AppDeliveryIndexRoute
   '/inventory': typeof AppInventoryIndexRoute
   '/menu': typeof AppMenuIndexRoute
   '/settings': typeof AppSettingsIndexRoute
@@ -387,6 +394,7 @@ export interface FileRoutesById {
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/_app/delivery/': typeof AppDeliveryIndexRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
   '/_app/menu/': typeof AppMenuIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
@@ -432,6 +440,7 @@ export interface FileRouteTypes {
     | '/menu/recipes'
     | '/settings/payment-methods'
     | '/settings/whatsapp'
+    | '/delivery/'
     | '/inventory/'
     | '/menu/'
     | '/settings/'
@@ -440,7 +449,6 @@ export interface FileRouteTypes {
     | '/landing'
     | '/login'
     | '/onboarding'
-    | '/delivery'
     | '/analytics'
     | '/branches'
     | '/discounts'
@@ -472,6 +480,7 @@ export interface FileRouteTypes {
     | '/menu/recipes'
     | '/settings/payment-methods'
     | '/settings/whatsapp'
+    | '/delivery'
     | '/inventory'
     | '/menu'
     | '/settings'
@@ -516,6 +525,7 @@ export interface FileRouteTypes {
     | '/_app/menu/recipes'
     | '/_app/settings/payment-methods'
     | '/_app/settings/whatsapp'
+    | '/_app/delivery/'
     | '/_app/inventory/'
     | '/_app/menu/'
     | '/_app/settings/'
@@ -693,6 +703,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInventoryIndexRouteImport
       parentRoute: typeof AppInventoryRouteRoute
     }
+    '/_app/delivery/': {
+      id: '/_app/delivery/'
+      path: '/'
+      fullPath: '/delivery/'
+      preLoaderRoute: typeof AppDeliveryIndexRouteImport
+      parentRoute: typeof AppDeliveryRouteRoute
+    }
     '/_app/settings/whatsapp': {
       id: '/_app/settings/whatsapp'
       path: '/whatsapp'
@@ -833,12 +850,14 @@ interface AppDeliveryRouteRouteChildren {
   AppDeliveryChannelsRoute: typeof AppDeliveryChannelsRoute
   AppDeliverySettingsRoute: typeof AppDeliverySettingsRoute
   AppDeliveryZonesRoute: typeof AppDeliveryZonesRoute
+  AppDeliveryIndexRoute: typeof AppDeliveryIndexRoute
 }
 
 const AppDeliveryRouteRouteChildren: AppDeliveryRouteRouteChildren = {
   AppDeliveryChannelsRoute: AppDeliveryChannelsRoute,
   AppDeliverySettingsRoute: AppDeliverySettingsRoute,
   AppDeliveryZonesRoute: AppDeliveryZonesRoute,
+  AppDeliveryIndexRoute: AppDeliveryIndexRoute,
 }
 
 const AppDeliveryRouteRouteWithChildren =

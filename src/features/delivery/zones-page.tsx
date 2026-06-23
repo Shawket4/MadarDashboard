@@ -136,7 +136,7 @@ export function ZonesPage() {
     <Page>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("delivery.zonesTitle", "Delivery zones")}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("delivery.zonesTitle", "Delivery zones")}</h1>
           <p className="text-sm text-muted-foreground">{t("delivery.zonesSubtitle", "Distance-based delivery rings and their pricing for this branch.")}</p>
         </div>
         {branchId ? (

@@ -6,7 +6,7 @@ import { z } from "zod";
 import { Building2, Download, Link2, QrCode, RefreshCw, Store } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page } from "@/components/app/page";
+import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import {
   Form,
@@ -79,7 +79,7 @@ function RenderOptions({ opts, onChange }: { opts: RenderOpts; onChange: (o: Ren
 
 // ── QR result display ─────────────────────────────────────────────────────────
 
-function QrResult({ qr, title }: { qr: QrResponse; title: string }) {
+function QrResult({ qr, title, onPreview }: { qr: QrResponse; title: string; onPreview?: () => void }) {
   const { t } = useTranslation();
   const isSvg = qr.qr_data_url.startsWith("data:image/svg");
 
@@ -93,7 +93,14 @@ function QrResult({ qr, title }: { qr: QrResponse; title: string }) {
 
   return (
     <div className="flex flex-col items-center gap-3 rounded-xl border bg-white p-4">
-      <img src={qr.qr_data_url} alt="QR code" className="size-52 object-contain" />
+      <button
+        type="button"
+        onClick={onPreview}
+        className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label={t("qr.preview", "Enlarge QR code")}
+      >
+        <img src={qr.qr_data_url} alt="QR code" className="size-52 cursor-zoom-in object-contain" />
+      </button>
       <div className="flex w-full items-center gap-2 rounded-lg bg-muted px-2 py-1.5">
         <Link2 className="size-3 shrink-0 text-muted-foreground" />
         <a
@@ -197,9 +204,7 @@ export function QrPage() {
   if (!orgId) {
     return (
       <Page>
-        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-          {t("qr.title", "QR Codes")}
-        </h1>
+        <PageHeader title={t("qr.title", "QR Codes")} />
         <EmptyState icon={QrCode} title={t("branches.pickOrg", "Select an organization")} />
       </Page>
     );
@@ -207,14 +212,10 @@ export function QrPage() {
 
   return (
     <Page>
-      <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-          {t("qr.title", "QR Codes")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t("qr.subtitle", "Generate scannable QR codes for your online ordering page")}
-        </p>
-      </div>
+      <PageHeader
+        title={t("qr.title", "QR Codes")}
+        description={t("qr.subtitle", "Generate scannable QR codes for your online ordering page")}
+      />
 
       {/* Org-level all-branches QR */}
       {isAllBranches ? (
@@ -245,7 +246,7 @@ export function QrPage() {
             </div>
             {orgQrResult && (
               <div className="w-full sm:w-64">
-                <QrResult qr={orgQrResult} title={t("qr.org.title", "All-branches QR")} />
+                <QrResult qr={orgQrResult} title={t("qr.org.title", "All-branches QR")} onPreview={() => setPreview({ qr: orgQrResult, title: t("qr.org.title", "All-branches QR") })} />
               </div>
             )}
           </CardContent>
@@ -295,6 +296,7 @@ export function QrPage() {
                     <QrResult
                       qr={branchQrResult}
                       title={t("qr.standard.title", "Branch menu QR")}
+                      onPreview={() => setPreview({ qr: branchQrResult, title: t("qr.standard.title", "Branch menu QR") })}
                     />
                   </div>
                 )}
@@ -380,6 +382,7 @@ export function QrPage() {
                         <QrResult
                           qr={inMallResult}
                           title={t("qr.inMall.title", "In-mall delivery QR")}
+                          onPreview={() => setPreview({ qr: inMallResult, title: t("qr.inMall.title", "In-mall delivery QR") })}
                         />
                       </div>
                     )}

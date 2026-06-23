@@ -246,7 +246,7 @@ export function ShiftsPage() {
     <Page>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("nav.shifts", "Shifts")}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("nav.shifts", "Shifts")}</h1>
           <p className="text-sm text-muted-foreground">{t("shifts.subtitle", "Open and close shifts and reconcile the cash drawer")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

@@ -3,7 +3,7 @@ import { AlertTriangle, BarChart2, Calculator, History, LayoutGrid, Receipt, Tab
 
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
-import { StatCard } from "@/components/app/stat-card";
+import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { fmtMoney } from "@/lib/format";
@@ -56,18 +56,22 @@ export function MenuEngineeringPage() {
         <EmptyState icon={BarChart2} title={t("menuEngineering.empty", "No sales in this period")} description={t("menuEngineering.emptyHint", "Pick a different period or branch from the scope bar.")} />
       ) : (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <StatCard label={t("menuEngineering.totalSales", "Total Sales")} value={fmtMoney(report.total_sales)} icon={Receipt} accent="success" />
-            <StatCard label={t("menuEngineering.totalCogs", "Total COGS")} value={fmtMoney(report.total_cost)} icon={Wallet} accent="info" />
-            <StatCard label={t("menuEngineering.grossProfit", "Gross Profit")} value={fmtMoney(report.total_profit)} icon={TrendingUp} accent="primary" />
-            <StatCard
-              label={t("menuEngineering.missingCosts", "Items missing costs")}
-              value={report.rows_cost_missing}
-              icon={AlertTriangle}
-              accent="warning"
-              hint={report.excluded_sales > 0 ? t("menuEngineering.excludedRevenue", { amount: fmtMoney(report.excluded_sales), defaultValue: `${fmtMoney(report.excluded_sales)} in sales excluded` }) : undefined}
-            />
-          </div>
+          <LedgerStrip
+            items={[
+              { key: "sales", label: t("menuEngineering.totalSales", "Total Sales"), value: report.total_sales, formatType: "money", icon: Receipt, accent: "success" },
+              { key: "cogs", label: t("menuEngineering.totalCogs", "Total COGS"), value: report.total_cost, formatType: "money", icon: Wallet, accent: "info" },
+              { key: "profit", label: t("menuEngineering.grossProfit", "Gross Profit"), value: report.total_profit, formatType: "money", icon: TrendingUp, accent: "primary" },
+              {
+                key: "missing",
+                label: t("menuEngineering.missingCosts", "Items missing costs"),
+                value: report.rows_cost_missing,
+                formatType: "number",
+                icon: AlertTriangle,
+                accent: "warning",
+                hint: report.excluded_sales > 0 ? t("menuEngineering.excludedRevenue", { amount: fmtMoney(report.excluded_sales), defaultValue: `${fmtMoney(report.excluded_sales)} in sales excluded` }) : undefined,
+              } satisfies LedgerItem,
+            ]}
+          />
 
           <div className="flex flex-wrap items-center gap-2">
             <Toggle<View> value={view} onChange={(v) => update({ view: v })} options={[

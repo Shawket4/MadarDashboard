@@ -33,7 +33,7 @@ export function SettingsPage() {
   return (
     <Page>
       <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("nav.settings", "Settings")}</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("nav.settings", "Settings")}</h1>
       </div>
       <div className="mx-auto w-full max-w-2xl space-y-4">
         {user ? (

@@ -5,16 +5,14 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPercent } from "@/lib/format";
+import { fmtPercent } from "@/lib/format";
 import { listItem } from "@/lib/motion";
+import { StatValue, type StatFormat } from "@/components/app/stat-value";
 
-type Accent = "brand" | "primary" | "success" | "warning" | "info" | "destructive";
+export type StatAccent = "brand" | "primary" | "success" | "warning" | "info" | "destructive";
 
-const accentClasses: Record<Accent, string> = {
+const accentClasses: Record<StatAccent, string> = {
   brand: "bg-brand/10 text-brand",
   primary: "bg-primary/10 text-primary",
   success: "bg-success/10 text-success",
@@ -23,62 +21,27 @@ const accentClasses: Record<Accent, string> = {
   destructive: "bg-destructive/10 text-destructive",
 };
 
+// Font-size ladders (px) the value fits itself into — largest that fits wins,
+// shrinking before the figure is ever compacted.
+const SIZES = [26, 24, 22, 20, 18, 16];
+const SIZES_DENSE = [20, 18, 16, 15, 14];
+
 interface StatCardProps {
   label: string;
-  /** A number (formatted + compacted per `formatType`), a ready string, or a node (e.g. skeleton). */
+  /** A number (smart-formatted + fitted), a ready string, or a node (e.g. skeleton). */
   value: number | string | ReactNode;
-  formatType?: "money" | "number" | "percent";
+  formatType?: StatFormat;
   icon?: LucideIcon;
-  accent?: Accent;
+  accent?: StatAccent;
   /** Signed ratio, e.g. 0.123 → +12.3%. */
   trend?: number | null;
   hint?: ReactNode;
   loading?: boolean;
-  /** Override the tooltip shown on a compacted value. */
-  tooltip?: ReactNode;
-  /** Tighter padding + smaller value text — for crowded grids (e.g. 2×2 on mobile). */
+  /** Tighter padding + smaller value text — for crowded grids (e.g. 4-up KPI rows). */
   dense?: boolean;
   onClick?: () => void;
   className?: string;
 }
-
-function formatValue(value: number, formatType: StatCardProps["formatType"]) {
-  if (formatType === "money") {
-    const full = fmtMoney(value);
-    if (value >= 1_000_000) {
-      const compact = fmtMoneyCompact(value);
-      return { full, compact, compacted: compact !== full };
-    }
-    return { full, compact: full, compacted: false };
-  }
-  if (formatType === "percent") {
-    const full = fmtPercent(value);
-    return { full, compact: full, compacted: false };
-  }
-  const full = fmtNumber(value);
-  if (value >= 1_000_000) {
-    return { full, compact: `${fmtNumber(value / 1_000_000, { maximumFractionDigits: 1 })}M`, compacted: true };
-  }
-  if (value >= 1_000) {
-    return { full, compact: `${fmtNumber(value / 1_000, { maximumFractionDigits: 1 })}K`, compacted: true };
-  }
-  return { full, compact: full, compacted: false };
-}
-
-const sizeForLength = (len: number, dense: boolean) =>
-  dense
-    ? len > 14
-      ? "text-sm"
-      : len > 10
-        ? "text-base"
-        : "text-lg sm:text-xl"
-    : len > 16
-      ? "text-base sm:text-lg"
-      : len > 12
-        ? "text-lg sm:text-xl"
-        : len > 9
-          ? "text-xl sm:text-2xl"
-          : "text-2xl";
 
 export function StatCard({
   label,
@@ -89,12 +52,10 @@ export function StatCard({
   trend,
   hint,
   loading,
-  tooltip,
   dense = false,
   onClick,
   className,
 }: StatCardProps) {
-  const isMobile = useIsMobile();
   const pad = dense ? "gap-2 p-4" : "gap-3 p-5";
   const tileSize = dense ? "size-9" : "size-10";
   const iconSize = dense ? "size-4" : "size-5";
@@ -103,52 +64,27 @@ export function StatCard({
     return (
       <motion.div variants={listItem}>
         <Card className={pad}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="w-full space-y-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-6 w-24" />
-            </div>
+          <div className="flex items-center justify-between gap-3">
+            <Skeleton className="h-4 w-20" />
             {Icon ? <Skeleton className={cn(tileSize, "rounded-lg")} /> : null}
           </div>
+          <Skeleton className="h-7 w-24" />
         </Card>
       </motion.div>
     );
   }
 
   const isNumeric = typeof value === "number";
-  const formatted = isNumeric ? formatValue(value, formatType) : null;
   const isNode = !isNumeric && typeof value !== "string";
-  const display = formatted ? formatted.compact : typeof value === "string" ? value : "";
 
-  const valueEl = isNode ? (
-    <div className="text-2xl font-semibold tracking-tight tabular">{value as ReactNode}</div>
+  const valueNode = isNumeric ? (
+    <StatValue value={value} formatType={formatType} label={label} sizes={dense ? SIZES_DENSE : SIZES} />
+  ) : isNode ? (
+    <div className="truncate text-2xl font-semibold leading-none tracking-tight tabular">{value as ReactNode}</div>
   ) : (
-    <div className={cn("font-semibold tracking-tight tabular", sizeForLength(display.length, dense))}>{display}</div>
-  );
-
-  const showFull = !isNode && (formatted?.compacted || tooltip != null);
-  const fullContent = tooltip ?? formatted?.full;
-  // Radix Tooltip auto-dismisses on touch (flash), so use a tap-to-toggle Popover on mobile.
-  const valueNode = !showFull ? (
-    valueEl
-  ) : isMobile ? (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button type="button" className="cursor-pointer text-start">
-          {valueEl}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto px-3 py-1.5 text-sm font-semibold tabular">{fullContent}</PopoverContent>
-    </Popover>
-  ) : (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button type="button" className="cursor-help text-start">
-          {valueEl}
-        </button>
-      </TooltipTrigger>
-      <TooltipContent className="font-semibold tabular">{fullContent}</TooltipContent>
-    </Tooltip>
+    <div className={cn("truncate font-semibold leading-none tracking-tight tabular", dense ? "text-lg" : "text-2xl")}>
+      {value as string}
+    </div>
   );
 
   const hasTrend = trend !== undefined && trend !== null;
@@ -158,19 +94,22 @@ export function StatCard({
     <motion.div variants={listItem}>
       <Card
         onClick={onClick}
-        className={cn(pad, onClick && "cursor-pointer transition-shadow hover:shadow-md", className)}
+        className={cn(
+          "transition-all duration-200",
+          onClick && "cursor-pointer hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0",
+          pad,
+          className,
+        )}
       >
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 space-y-1">
-            <p className="truncate text-xs text-muted-foreground sm:text-sm">{label}</p>
-            {valueNode}
-          </div>
+        <div className="flex items-center justify-between gap-2">
+          <p className="min-w-0 truncate text-xs font-medium text-muted-foreground sm:text-sm">{label}</p>
           {Icon ? (
             <span className={cn("grid shrink-0 place-items-center rounded-lg", tileSize, accentClasses[accent])}>
               <Icon className={iconSize} />
             </span>
           ) : null}
         </div>
+        {valueNode}
         {hasTrend || hint ? (
           <div className="flex items-center gap-2 text-xs">
             {hasTrend ? (

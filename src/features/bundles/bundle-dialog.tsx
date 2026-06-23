@@ -99,11 +99,15 @@ export function BundleDialog({ orgId, bundle, open, onOpenChange }: Props) {
   const itemById = useMemo(() => new Map(menuItems.map((m: MenuItem) => [m.id, m])), [menuItems]);
   const retailValue = watched.reduce((sum, c) => sum + (itemById.get(c.item_id)?.base_price ?? 0) * (Number(c.quantity) || 1), 0);
   const priceP = egpToPiastres(Number(form.watch("price")) || 0);
+  // Per-unit cost of each saved component, looked up while iterating the LIVE
+  // watched rows — so edited quantities and removed items reflect immediately.
+  // Items added this session have no saved cost yet (counted 0 until re-fetch).
+  const costByItem = useMemo(
+    () => new Map((bundle?.components ?? []).map((c) => [c.item_id, c.item_cost])),
+    [bundle],
+  );
   const recipeCost = isEdit
-    ? bundle.components.reduce((sum, c) => {
-        const wc = watched.find((w) => w.item_id === c.item_id);
-        return wc ? sum + c.item_cost * (Number(wc.quantity) || 1) : sum;
-      }, 0)
+    ? watched.reduce((sum, w) => sum + (costByItem.get(w.item_id) ?? 0) * (Number(w.quantity) || 1), 0)
     : 0;
   const savings = retailValue > priceP ? retailValue - priceP : 0;
   const profit = isEdit && priceP > recipeCost ? priceP - recipeCost : 0;

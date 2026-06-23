@@ -30,7 +30,7 @@ import { ORDER_STATUSES, PAYMENT_METHODS } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useScope } from "@/data/scope/use-scope";
-import { fmtDateTime, fmtMoney, fmtMoneyCompact, fmtNumber, fmtNumberCompact } from "@/lib/format";
+import { fmtDateTime, fmtMoney } from "@/lib/format";
 import { useDebounced } from "@/lib/use-debounced";
 import { cn } from "@/lib/utils";
 
@@ -110,10 +110,10 @@ export function OrdersPage() {
   );
 
   const primaryKpis: LedgerItem[] = [
-    { key: "revenue", label: t("dashboard.revenue", "Revenue"), value: fmtMoney(summary?.revenue ?? 0), compactValue: fmtMoneyCompact(summary?.revenue ?? 0), icon: Coins, accent: "brand", loading: isLoading },
-    { key: "completed", label: t("orders.completed", "Completed"), value: fmtNumber(summary?.completed ?? 0), compactValue: fmtNumberCompact(summary?.completed ?? 0), icon: Receipt, accent: "success", loading: isLoading },
-    { key: "voided", label: t("dashboard.voided", "Voided"), value: fmtNumber(summary?.voided ?? 0), compactValue: fmtNumberCompact(summary?.voided ?? 0), icon: Ban, accent: "destructive", loading: isLoading },
-    { key: "discounts", label: t("orders.discounts", "Discounts"), value: fmtMoney(summary?.discounts ?? 0), compactValue: fmtMoneyCompact(summary?.discounts ?? 0), icon: Percent, accent: "warning", loading: isLoading },
+    { key: "revenue", label: t("dashboard.revenue", "Revenue"), value: summary?.revenue ?? 0, formatType: "money", icon: Coins, accent: "brand", loading: isLoading },
+    { key: "completed", label: t("orders.completed", "Completed"), value: summary?.completed ?? 0, formatType: "number", icon: Receipt, accent: "success", loading: isLoading },
+    { key: "voided", label: t("dashboard.voided", "Voided"), value: summary?.voided ?? 0, formatType: "number", icon: Ban, accent: "destructive", loading: isLoading },
+    { key: "discounts", label: t("orders.discounts", "Discounts"), value: summary?.discounts ?? 0, formatType: "money", icon: Percent, accent: "warning", loading: isLoading },
   ];
 
   // Predictive prefetch: the next page loads before the user clicks Next.
@@ -215,7 +215,7 @@ export function OrdersPage() {
     <Page>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("nav.orders", "Orders")}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("nav.orders", "Orders")}</h1>
           <p className="text-sm text-muted-foreground">{t("orders.subtitle", "Sales history, voids and exports")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { SlidersHorizontal, Store } from "lucide-react";
 
@@ -44,6 +44,12 @@ function ScopeControls({ className }: { className?: string }) {
     { query: { enabled: Boolean(canPickBranch && orgId) } },
   );
   const activeBranches = useMemo(() => (branches ?? []).filter((b) => b.is_active), [branches]);
+  // An org with a single branch has nothing to pick: pin scope to it and drop
+  // the "All branches" multi-select for a static label.
+  const singleBranch = activeBranches.length === 1 ? activeBranches[0] : null;
+  useEffect(() => {
+    if (singleBranch && branchId !== singleBranch.id) setBranch(singleBranch.id);
+  }, [singleBranch, branchId, setBranch]);
 
   const presetOptions = useMemo(
     () => SCOPE_PRESETS.map((p) => ({ value: p, label: t(`scope.preset.${p}`, presetFallback[p]) })),
@@ -52,7 +58,12 @@ function ScopeControls({ className }: { className?: string }) {
 
   return (
     <div className={className}>
-      {canPickBranch ? (
+      {canPickBranch && singleBranch ? (
+        <div className="flex h-8 items-center gap-2 rounded-md border bg-card px-3 text-sm font-medium" title={singleBranch.name}>
+          <Store className="size-4 text-muted-foreground" />
+          <span className="max-w-40 truncate">{singleBranch.name}</span>
+        </div>
+      ) : canPickBranch ? (
         <Select value={branchId ?? ALL_BRANCHES} onValueChange={(v) => setBranch(v === ALL_BRANCHES ? null : v)}>
           <SelectTrigger className="h-8 w-auto min-w-32 gap-2">
             <Store className="size-4 text-muted-foreground" />

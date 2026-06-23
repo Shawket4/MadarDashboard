@@ -8,6 +8,7 @@ import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { BranchInventoryMovement } from "@/data/api/generated/models";
@@ -134,7 +135,7 @@ export function WastePage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {report.isLoading ? (
-              <p className="text-sm text-muted-foreground">{t("common.loading", "Loading")}</p>
+              <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}</div>
             ) : byReason.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t("inventory.reports.noData", "No data")}</p>
             ) : (

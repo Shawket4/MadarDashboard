@@ -32,6 +32,10 @@ const router = createRouter({
   routeTree,
   defaultPreload: "intent",
   scrollRestoration: true,
+  // Native View Transitions on navigation — a quiet cross-fade between routes.
+  // No-ops where unsupported; the reduced-motion guard in globals.css disables
+  // the animation (but keeps the snapshot swap) for users who opt out.
+  defaultViewTransition: true,
 });
 
 function render() {

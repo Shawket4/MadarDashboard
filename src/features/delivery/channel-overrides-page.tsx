@@ -325,7 +325,7 @@ export function ChannelOverridesPage() {
     return (
       <Page>
         <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("delivery.channelsTitle", "Channel overrides")}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("delivery.channelsTitle", "Channel overrides")}</h1>
         </div>
         <EmptyState icon={Store} title={t("delivery.pickOrg", "Select an organization to manage channel overrides")} />
       </Page>
@@ -382,7 +382,7 @@ export function ChannelOverridesPage() {
   return (
     <Page>
       <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("delivery.channelsTitle", "Channel overrides")}</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("delivery.channelsTitle", "Channel overrides")}</h1>
         <p className="text-sm text-muted-foreground">{t("delivery.channelsSubtitle", "Per-channel price and availability for items and add-ons on this branch.")}</p>
       </div>
       {!branchId ? (

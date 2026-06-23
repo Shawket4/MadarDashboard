@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { DataTable } from "@/components/app/data-table";
-import { StatCard } from "@/components/app/stat-card";
+import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ExportButton } from "@/components/app/export-button";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
@@ -183,12 +183,14 @@ export function BundlesPage() {
         actions={<><ExportButton onExport={handleExport} disabled={totalCount === 0} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("bundles.new", "New bundle")}</Button></>}
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("common.total", "Total")} value={totalCount} loading={activeCount.isLoading} />
-        <StatCard label={t("bundles.status.active", "Active")} value={counts.active} accent="success" loading={activeCount.isLoading} />
-        <StatCard label={t("bundles.status.draft", "Draft")} value={counts.draft} accent="info" loading={draftCount.isLoading} />
-        <StatCard label={t("bundles.status.archived", "Archived")} value={counts.archived} loading={archivedCount.isLoading} />
-      </div>
+      <LedgerStrip
+        items={[
+          { key: "total", label: t("common.total", "Total"), value: totalCount, loading: activeCount.isLoading },
+          { key: "active", label: t("bundles.status.active", "Active"), value: counts.active, accent: "success", loading: activeCount.isLoading },
+          { key: "draft", label: t("bundles.status.draft", "Draft"), value: counts.draft, accent: "info", loading: draftCount.isLoading },
+          { key: "archived", label: t("bundles.status.archived", "Archived"), value: counts.archived, loading: archivedCount.isLoading },
+        ] satisfies LedgerItem[]}
+      />
 
       <DataTable
         columns={columns}

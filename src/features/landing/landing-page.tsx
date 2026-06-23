@@ -37,7 +37,7 @@ export function LandingPage() {
             <a href="#contact" className="transition-colors hover:text-foreground">{t("landing.nav.contact", "Contact")}</a>
           </nav>
           <div className="ms-auto flex items-center gap-1">
-            <Button variant="ghost" size="icon-sm" onClick={() => setLanguage(lang === "ar" ? "en" : "ar")} aria-label="Language"><Languages className="size-4" /></Button>
+            <Button variant="ghost" size="icon-sm" onClick={() => setLanguage(lang === "ar" ? "en" : "ar")} aria-label={t("common.language", "Language")}><Languages className="size-4" /></Button>
             <ThemeToggle />
             <Button asChild size="sm" className="ms-1"><Link to={authed ? "/" : "/login"}>{authed ? t("landing.openDashboard", "Open dashboard") : t("auth.signIn", "Sign in")}</Link></Button>
           </div>
@@ -94,7 +94,7 @@ export function LandingPage() {
       <footer className="border-t py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 text-sm text-muted-foreground sm:flex-row">
           <img src="/sufrix.svg" alt="" className="h-5 opacity-70 dark:invert" />
-          <p>© 2026 {t("app.name", "Sufrix")}</p>
+          <p>{t("common.copyright", { year: new Date().getFullYear(), defaultValue: `© ${new Date().getFullYear()} Sufrix` })}</p>
         </div>
       </footer>
     </div>

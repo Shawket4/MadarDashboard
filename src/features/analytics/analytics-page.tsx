@@ -16,7 +16,7 @@ import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fadeInUp, staggerContainer } from "@/lib/motion";
-import { fmtHour, fmtMoney, fmtMoneyCompact, fmtNumber, fmtNumberCompact, fmtPeriod } from "@/lib/format";
+import { fmtHour, fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod } from "@/lib/format";
 import { PAYMENT_COLORS, type PaymentMethod } from "@/data/config/constants";
 import { useScope } from "@/data/scope/use-scope";
 import { usePageSearch } from "@/data/scope/use-page-search";
@@ -71,11 +71,11 @@ function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
   );
 
   const kpis: LedgerItem[] = [
-    { key: "revenue", label: t("dashboard.revenue", "Revenue"), icon: Coins, accent: "brand", value: fmtMoney(d?.total_revenue ?? 0), compactValue: fmtMoneyCompact(d?.total_revenue ?? 0), loading: q.isLoading },
-    { key: "tax", label: t("orders.tax", "Tax"), icon: Percent, accent: "info", value: fmtMoney(d?.total_tax ?? 0), compactValue: fmtMoneyCompact(d?.total_tax ?? 0), loading: q.isLoading },
-    { key: "orders", label: t("dashboard.orders", "Orders"), icon: Receipt, accent: "primary", value: fmtNumber(d?.total_orders ?? 0), compactValue: fmtNumberCompact(d?.total_orders ?? 0), loading: q.isLoading },
-    { key: "aov", label: t("analytics.avgOrder", "Avg Order"), icon: TrendingUp, accent: "info", value: fmtMoney(aov), compactValue: fmtMoneyCompact(aov), loading: q.isLoading },
-    { key: "voided", label: t("orders.voided", "Voided"), icon: Ban, accent: "warning", value: fmtNumber(d?.voided_orders ?? 0), compactValue: fmtNumberCompact(d?.voided_orders ?? 0), loading: q.isLoading },
+    { key: "revenue", label: t("dashboard.revenue", "Revenue"), icon: Coins, accent: "brand", value: d?.total_revenue ?? 0, formatType: "money", loading: q.isLoading },
+    { key: "tax", label: t("orders.tax", "Tax"), icon: Percent, accent: "info", value: d?.total_tax ?? 0, formatType: "money", loading: q.isLoading },
+    { key: "orders", label: t("dashboard.orders", "Orders"), icon: Receipt, accent: "primary", value: d?.total_orders ?? 0, formatType: "number", loading: q.isLoading },
+    { key: "aov", label: t("analytics.avgOrder", "Avg Order"), icon: TrendingUp, accent: "info", value: aov, formatType: "money", loading: q.isLoading },
+    { key: "voided", label: t("orders.voided", "Voided"), icon: Ban, accent: "warning", value: d?.voided_orders ?? 0, formatType: "number", loading: q.isLoading },
   ];
 
   return (
@@ -562,7 +562,7 @@ export function AnalyticsPage() {
     <Page>
       {/* Editorial masthead */}
       <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("analytics.title", "Analytics")}</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("analytics.title", "Analytics")}</h1>
         <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <CalendarRange className="size-3.5" />
           {periodLabel}

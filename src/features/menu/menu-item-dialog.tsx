@@ -440,7 +440,7 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                         <button
                           type="button"
                           onClick={() => setAllowedIds((prev) => { const next = new Set(prev); next.delete(a.id); return next; })}
-                          className="ml-0.5 text-muted-foreground hover:text-foreground"
+                          className="ms-0.5 text-muted-foreground hover:text-foreground"
                           aria-label={t("common.remove", "Remove")}
                         >
                           <X className="size-3" />
@@ -484,7 +484,7 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                             <div className="flex items-center justify-between bg-muted/30 px-3 py-1.5">
                               <span className="text-xs font-semibold text-foreground">
                                 {humanizeAddonType(type)}
-                                <span className="ml-1.5 font-normal text-muted-foreground">({items.length})</span>
+                                <span className="ms-1.5 font-normal text-muted-foreground">({items.length})</span>
                               </span>
                               <button
                                 type="button"

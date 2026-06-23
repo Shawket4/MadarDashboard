@@ -75,7 +75,7 @@ export function CashMovementDialog({ shiftId, open, onOpenChange }: Props) {
             <Button
               type="button"
               variant={direction === "out" ? "default" : "outline"}
-              className={cn(direction === "out" && "bg-destructive text-white hover:bg-destructive/90")}
+              className={cn(direction === "out" && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
               onClick={() => setDirection("out")}
             >
               <ArrowUpRight className="size-4" />

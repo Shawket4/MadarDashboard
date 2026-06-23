@@ -3,11 +3,12 @@ import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, Boxes, CalendarClock, PackageCheck, ShoppingCart, Trash2, Truck, Wallet } from "lucide-react";
 
-import { Page } from "@/components/app/page";
-import { StatCard } from "@/components/app/stat-card";
+import { Page, PageHeader } from "@/components/app/page";
+import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/empty-state";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -109,46 +110,52 @@ export function TodayPage() {
 
   return (
     <Page>
-      <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.today.title", "Today")}</h1>
-        <p className="text-sm text-muted-foreground">{t("inventory.today.subtitle", "Your morning briefing: alerts, deliveries and counts due")}</p>
-      </div>
+      <PageHeader
+        title={t("inventory.today.title", "Today")}
+        description={t("inventory.today.subtitle", "Your morning briefing: alerts, deliveries and counts due")}
+      />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard
-          label={t("inventory.today.stockValue", "Stock value")}
-          value={valuation.data?.total_value ?? 0}
-          formatType="money"
-          icon={Wallet}
-          accent="brand"
-          loading={valuation.isLoading}
-          hint={valuation.data ? t("inventory.today.unknownCost", { count: valuation.data.unknown_cost_count, defaultValue: `${valuation.data.unknown_cost_count} unknown cost` }) : undefined}
-        />
-        <StatCard
-          label={t("inventory.today.lowStock", "Low stock")}
-          value={lowRows.length}
-          icon={AlertTriangle}
-          accent="warning"
-          loading={lowStock.isLoading}
-          hint={t("inventory.today.critical", { count: criticalCount, defaultValue: `${criticalCount} critical` })}
-        />
-        <StatCard
-          label={t("inventory.today.deliveries", "Deliveries")}
-          value={arriving.length}
-          icon={Truck}
-          accent="info"
-          loading={pos.isLoading}
-          hint={t("inventory.today.arrivingToday", "arriving today")}
-        />
-        <StatCard
-          label={t("inventory.today.countsDue", "Counts due")}
-          value={countsDue == null ? "—" : countsDue}
-          icon={CalendarClock}
-          accent="primary"
-          loading={!!branchId && branchStock.isLoading}
-          hint={t("inventory.today.countsOverdue", ">14 days or never")}
-        />
-      </div>
+      <LedgerStrip
+        items={[
+          {
+            key: "value",
+            label: t("inventory.today.stockValue", "Stock value"),
+            value: valuation.data?.total_value ?? 0,
+            formatType: "money",
+            icon: Wallet,
+            accent: "brand",
+            loading: valuation.isLoading,
+            hint: valuation.data ? t("inventory.today.unknownCost", { count: valuation.data.unknown_cost_count, defaultValue: `${valuation.data.unknown_cost_count} unknown cost` }) : undefined,
+          },
+          {
+            key: "low",
+            label: t("inventory.today.lowStock", "Low stock"),
+            value: lowRows.length,
+            icon: AlertTriangle,
+            accent: "warning",
+            loading: lowStock.isLoading,
+            hint: t("inventory.today.critical", { count: criticalCount, defaultValue: `${criticalCount} critical` }),
+          },
+          {
+            key: "deliveries",
+            label: t("inventory.today.deliveries", "Deliveries"),
+            value: arriving.length,
+            icon: Truck,
+            accent: "info",
+            loading: pos.isLoading,
+            hint: t("inventory.today.arrivingToday", "arriving today"),
+          },
+          {
+            key: "counts",
+            label: t("inventory.today.countsDue", "Counts due"),
+            value: countsDue == null ? "—" : countsDue,
+            icon: CalendarClock,
+            accent: "primary",
+            loading: !!branchId && branchStock.isLoading,
+            hint: t("inventory.today.countsOverdue", ">14 days or never"),
+          },
+        ] satisfies LedgerItem[]}
+      />
 
       {/* Low stock */}
       <Card>
@@ -160,7 +167,7 @@ export function TodayPage() {
         </CardHeader>
         <CardContent>
           {lowStock.isLoading ? (
-            <p className="text-sm text-muted-foreground">{t("common.loading", "Loading")}</p>
+            <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
           ) : lowRows.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">{t("inventory.today.allGood", "All good — nothing below its low-stock level 🎉")}</p>
           ) : (
@@ -211,7 +218,7 @@ export function TodayPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {pos.isLoading ? (
-              <p className="text-sm text-muted-foreground">{t("common.loading", "Loading")}</p>
+              <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
             ) : arriving.length === 0 ? (
               <p className="py-2 text-sm text-muted-foreground">{t("inventory.today.noDeliveries", "No deliveries scheduled today")}</p>
             ) : (
@@ -242,7 +249,7 @@ export function TodayPage() {
             {!branchId ? (
               <p className="py-2 text-sm text-muted-foreground">{t("inventory.pickBranch", "Select a branch to manage its stock")}</p>
             ) : waste.isLoading ? (
-              <p className="text-sm text-muted-foreground">{t("common.loading", "Loading")}</p>
+              <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
             ) : todaysWaste.length === 0 ? (
               <p className="py-2 text-sm text-muted-foreground">{t("inventory.today.noWasteToday", "No waste logged today")}</p>
             ) : (

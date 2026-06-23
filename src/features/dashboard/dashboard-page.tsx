@@ -20,10 +20,10 @@ import { ChartCard, chartColor } from "@/components/app/chart-card";
 import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { EmptyState } from "@/components/app/empty-state";
-import { LedgerStrip, ConciseValue } from "@/components/app/ledger-strip";
+import { ConciseValue, LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fadeInUp, listItem, staggerContainer } from "@/lib/motion";
-import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtNumberCompact, fmtPeriod } from "@/lib/format";
+import { COUNT_ANIM_MS, fadeInUp, listItem, staggerContainer } from "@/lib/motion";
+import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod } from "@/lib/format";
 import { APP_TZ, PAYMENT_COLORS, type PaymentMethod } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
@@ -117,7 +117,6 @@ export function DashboardPage() {
     () => (timeseries.data ?? []).map((p) => ({ period: p.period, revenue: p.revenue, orders: p.orders })),
     [timeseries.data],
   );
-  const trendTotal = useMemo(() => trendData.reduce((s, d) => s + d.revenue, 0), [trendData]);
 
   const rankedBranches = useMemo(() => {
     const max = Math.max(1, ...branches.map((b) => b.total_revenue));
@@ -144,19 +143,23 @@ export function DashboardPage() {
       ? t("common.cairoTime", "Cairo time")
       : t("common.timezoneLabel", { city: tzCity, defaultValue: `${tzCity} time` });
 
-  const ledger = [
-    { key: "revenue", label: t("dashboard.revenue", "Revenue"), icon: Coins, accent: "brand" as const, value: fmtMoney(kpis.revenue), compactValue: fmtMoneyCompact(kpis.revenue) },
-    { key: "orders", label: t("nav.orders", "Orders"), icon: Receipt, accent: "primary" as const, value: fmtNumber(kpis.orders), compactValue: fmtNumberCompact(kpis.orders) },
-    { key: "avg", label: t("dashboard.avgTicket", "Avg ticket"), icon: TrendingUp, accent: "info" as const, value: fmtMoney(avgTicket), compactValue: fmtMoneyCompact(avgTicket) },
-    { key: "voided", label: t("dashboard.voided", "Voided"), icon: Ban, accent: "warning" as const, value: fmtNumber(kpis.voided), compactValue: fmtNumberCompact(kpis.voided) },
+  // All four headline KPIs as the canonical StatCard (via LedgerStrip) — the
+  // same card, scale, and compact/expand behavior used across the app.
+  const kpiCards: LedgerItem[] = [
+    { key: "revenue", label: t("dashboard.revenue", "Revenue"), icon: Coins, accent: "brand", value: kpis.revenue, formatType: "money", loading: kpiLoading },
+    { key: "orders", label: t("nav.orders", "Orders"), icon: Receipt, accent: "info", value: kpis.orders, formatType: "number", loading: kpiLoading },
+    { key: "avg", label: t("dashboard.avgTicket", "Avg ticket"), icon: TrendingUp, accent: "success", value: avgTicket, formatType: "money", loading: kpiLoading },
+    { key: "voided", label: t("dashboard.voided", "Voided"), icon: Ban, accent: "warning", value: kpis.voided, formatType: "number", loading: kpiLoading },
   ];
 
   return (
     <Page>
-      {/* Masthead — the ledger header line */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      {/* Masthead — greeting + the headline KPIs. All four are the canonical
+          StatCard (via LedgerStrip): one scale, one card, fully responsive. The
+          revenue trend lives in its own chart below, so no oversized hero. */}
+      <motion.section variants={fadeInUp} initial="hidden" animate="show" className="space-y-4">
         <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{title}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{title}</h1>
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <Store className="size-3.5" /> {branchLabel}
@@ -169,10 +172,9 @@ export function DashboardPage() {
             <span>{tzLabel}</span>
           </div>
         </div>
-      </div>
 
-      {/* Ledger line — one ruled panel of KPIs, not four floating cards */}
-      <LedgerStrip items={ledger.map((i) => ({ ...i, loading: kpiLoading }))} />
+        <LedgerStrip items={kpiCards} dense />
+      </motion.section>
 
       <motion.div
         initial="hidden"
@@ -181,15 +183,8 @@ export function DashboardPage() {
         className="grid grid-cols-1 gap-4 lg:grid-cols-3"
       >
         {/* Revenue trend */}
-        <motion.div variants={fadeInUp} className="lg:col-span-2">
-          <ChartCard
-            title={t("dashboard.revenueTrend", "Revenue trend")}
-            description={
-              trendData.length
-                ? t("dashboard.periodTotal", { total: fmtMoney(trendTotal), defaultValue: `${fmtMoney(trendTotal)} this period` })
-                : undefined
-            }
-          >
+        <motion.div variants={fadeInUp} className="h-full lg:col-span-2">
+          <ChartCard className="h-full" title={t("dashboard.revenueTrend", "Revenue trend")}>
             {timeseries.isLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : trendData.length === 0 ? (
@@ -198,12 +193,6 @@ export function DashboardPage() {
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={chartColor(0)} stopOpacity={0.35} />
-                        <stop offset="100%" stopColor={chartColor(0)} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
                     <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
                     <XAxis
                       dataKey="period"
@@ -234,7 +223,10 @@ export function DashboardPage() {
                       name={t("dashboard.revenue", "Revenue")}
                       stroke={chartColor(0)}
                       strokeWidth={2}
-                      fill="url(#revFill)"
+                      fill={chartColor(0)}
+                      fillOpacity={0.12}
+                      animationDuration={COUNT_ANIM_MS}
+                      animationEasing="ease-out"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -244,8 +236,8 @@ export function DashboardPage() {
         </motion.div>
 
         {/* Payment mix — donut + ledger-style legend */}
-        <motion.div variants={fadeInUp}>
-          <ChartCard title={t("dashboard.payments", "Payment mix")}>
+        <motion.div variants={fadeInUp} className="h-full">
+          <ChartCard className="h-full" title={t("dashboard.payments", "Payment mix")}>
             {kpiLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : paymentData.length === 0 ? (

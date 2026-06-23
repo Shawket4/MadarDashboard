@@ -52,18 +52,19 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" side={side} className="border-sidebar-border">
-      <SidebarHeader>
+      <SidebarHeader className="group-data-[collapsible=icon]:hidden">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild size="lg" className="gap-3">
-              <Link to="/" search={keepScope} onClick={close}>
-                <img src="/Icon.svg" alt="" className="size-8 rounded-lg ring-1 ring-white/10" draggable={false} />
-                <span className="grid flex-1 text-start leading-tight">
-                  <span className="truncate text-base font-semibold">{t("app.name", "Sufrix")}</span>
-                  <span className="truncate text-xs text-sidebar-foreground/60">
-                    {t("app.tagline", "Coffee Shop Management")}
-                  </span>
-                </span>
+            <SidebarMenuButton asChild size="lg" className="px-2 hover:bg-transparent active:bg-transparent">
+              <Link to="/" search={keepScope} onClick={close} aria-label={t("app.name", "Sufrix")}>
+                {/* The real wordmark (navy + terracotta dot). Goes monochrome
+                    white on the navy rail in dark mode. */}
+                <img
+                  src={i18n.dir() === "rtl" ? "/sufrix_ar.svg" : "/sufrix.svg"}
+                  alt={t("app.name", "Sufrix")}
+                  className="h-7 w-auto dark:brightness-0 dark:invert"
+                  draggable={false}
+                />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
