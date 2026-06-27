@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Boxes, Store } from "lucide-react";
+import { ProgressBar } from "@/components/app/progress-bar";
 
 import { Page } from "@/components/app/page";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
@@ -150,7 +151,7 @@ export function ReportsPage() {
       }));
     }
     const scopeLabel = isBranch ? t("inventory.reports.branch", "This branch") : t("inventory.reports.org", "Whole organization");
-    void exportToExcel({ filename: `Sufrix-${title}`, sheets: [{ name: title, title, subtitle: scopeLabel, rows: rows as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    void exportToExcel({ filename: `Madar-${title}`, sheets: [{ name: title, title, subtitle: scopeLabel, rows: rows as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
   const currentCount =
@@ -225,9 +226,13 @@ export function ReportsPage() {
                         <span>{t(`inventory.catalog.cat_${cat}`, cat)}</span>
                         <span className="tabular">{fmtMoney(val)}</span>
                       </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-muted">
-                        <div className="h-full rounded-full bg-brand" style={{ width: `${byCategory.max ? (val / byCategory.max) * 100 : 0}%` }} />
-                      </div>
+                      <ProgressBar
+                        value={val}
+                        max={byCategory.max}
+                        accent="brand"
+                        ariaLabel={t(`inventory.catalog.cat_${cat}`, cat)}
+                        className="h-2"
+                      />
                     </div>
                   ))}
                 </CardContent>

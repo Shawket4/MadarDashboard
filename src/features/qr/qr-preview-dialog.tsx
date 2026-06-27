@@ -61,12 +61,15 @@ export function QrPreviewDialog({ qr, title, open, onOpenChange }: Props) {
         </DialogHeader>
 
         {/* QR image */}
-        <div className="flex justify-center rounded-xl border bg-white p-4">
-          <img
-            src={qr.qr_data_url}
-            alt="QR code"
-            className="size-56 object-contain"
-          />
+        <div className="flex justify-center rounded-xl border bg-card p-4">
+          {/* White quiet-zone wrapper so the raster is legible on any theme */}
+          <span className="block rounded bg-white p-1">
+            <img
+              src={qr.qr_data_url}
+              alt={t("qr.imageAlt", "QR code for {{title}}", { title: title ?? t("qr.preview.title", "QR Code") })}
+              className="size-56 object-contain"
+            />
+          </span>
         </div>
 
         {/* Short URL */}
@@ -75,7 +78,7 @@ export function QrPreviewDialog({ qr, title, open, onOpenChange }: Props) {
             href={qr.short_url}
             target="_blank"
             rel="noreferrer"
-            className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-medium hover:underline"
+            className="flex min-w-0 flex-1 items-center gap-1.5 rounded text-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
           >
             <ExternalLink className="size-3 shrink-0" />
             <span className="truncate">{qr.short_url}</span>

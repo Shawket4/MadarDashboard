@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { SlidersHorizontal, Store } from "lucide-react";
+import { Loader2, SlidersHorizontal, Store } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -39,7 +39,7 @@ function ScopeControls({ className }: { className?: string }) {
 
   const { branchId, preset, from, to, setBranch, setPreset, setCustomRange } = useScope();
 
-  const { data: branches } = useListBranches(
+  const { data: branches, isLoading: branchesLoading } = useListBranches(
     { org_id: orgId ?? "" },
     { query: { enabled: Boolean(canPickBranch && orgId) } },
   );
@@ -58,7 +58,15 @@ function ScopeControls({ className }: { className?: string }) {
 
   return (
     <div className={className}>
-      {canPickBranch && singleBranch ? (
+      {canPickBranch && branchesLoading && !singleBranch ? (
+        <div
+          className="flex h-8 w-auto min-w-32 items-center gap-2 rounded-md border bg-card px-3 text-sm text-muted-foreground"
+          aria-busy="true"
+        >
+          <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+          <span>{t("common.loading", "Loading…")}</span>
+        </div>
+      ) : canPickBranch && singleBranch ? (
         <div className="flex h-8 items-center gap-2 rounded-md border bg-card px-3 text-sm font-medium" title={singleBranch.name}>
           <Store className="size-4 text-muted-foreground" />
           <span className="max-w-40 truncate">{singleBranch.name}</span>

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { fmtDateTimeFull, fmtMoney, fmtNumber } from "@/lib/format";
+import { fmtDateTimeFull, fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { useScope } from "@/data/scope/use-scope";
 import { getErrorMessage } from "@/data/api/errors";
 import {
@@ -81,7 +81,7 @@ function PriceItem({ record, onDecide, pendingId }: { record: PriceSuggestionRec
             {record.margin_pct != null ? (
               <div className="ms-auto text-end">
                 <p className="mb-1 text-xs text-muted-foreground">{t("menuAdvisor.currentMargin", "Margin")}</p>
-                <p className="text-sm font-semibold tabular">{(record.margin_pct * 100).toFixed(1)}%</p>
+                <p className="text-sm font-semibold tabular">{fmtPercent(record.margin_pct)}</p>
               </div>
             ) : null}
           </div>
@@ -111,7 +111,7 @@ function BundleItem({ record, onDecide, pendingId }: { record: BundleSuggestionR
           <div className="grid grid-cols-2 gap-4 pt-1 sm:grid-cols-4">
             <div><p className="text-xs text-muted-foreground">{t("menuAdvisor.listPrice", "List price")}</p><p className="font-semibold tabular">{fmtMoney(record.bundle_list_price)}</p></div>
             <div><p className="text-xs text-muted-foreground">{t("menuAdvisor.bundlePrice", "Bundle price")}</p><p className="font-semibold tabular text-primary">{fmtMoney(record.bundle_suggested_price)}</p></div>
-            <div><p className="text-xs text-muted-foreground">{t("menuAdvisor.discount", "Discount")}</p><p className="font-semibold tabular text-success">{(record.bundle_discount_pct * 100).toFixed(0)}%</p></div>
+            <div><p className="text-xs text-muted-foreground">{t("menuAdvisor.discount", "Discount")}</p><p className="font-semibold tabular text-success">{fmtPercent(record.bundle_discount_pct)}</p></div>
             <div><p className="text-xs text-muted-foreground">{t("menuAdvisor.estUplift", "Est. uplift")}</p><p className="font-semibold tabular" dir="ltr">+{fmtNumber(record.forecast.total_units_uplift_x)}×</p></div>
           </div>
         </div>
@@ -210,8 +210,8 @@ export function MenuAdvisorPage() {
   const body = () => {
     if (!branchId) return <EmptyState icon={Sparkles} title={t("menuAdvisor.selectBranch", "Select a branch")} description={t("menuAdvisor.selectBranchDesc", "Pick a branch from the scope bar to see its insights.")} />;
     if (analyzing) return (
-      <Card className="border-primary/20 bg-primary/5"><CardContent className="space-y-4 p-12 text-center">
-        <Loader2 className="mx-auto size-12 animate-spin text-primary" />
+      <Card className="border-muted bg-muted/20"><CardContent className="space-y-4 p-12 text-center">
+        <Loader2 className="mx-auto size-12 animate-spin text-muted-foreground" />
         <h3 className="text-xl font-bold">{t("menuAdvisor.analyzing", "Analyzing your menu…")}</h3>
         <p className="mx-auto max-w-md text-muted-foreground">{t("menuAdvisor.analyzingDesc", "Crunching sales, costs and baskets. This takes a moment.")}</p>
       </CardContent></Card>

@@ -99,7 +99,7 @@ export function ConciseValue({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="max-w-full cursor-pointer truncate text-start underline decoration-dotted decoration-muted-foreground/40 underline-offset-[6px] outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="max-w-full cursor-pointer truncate text-start underline decoration-dotted decoration-muted-foreground/40 underline-offset-[6px] outline-none focus-visible:rounded-sm focus-visible:ring-[3px] focus-visible:ring-ring"
         >
           {compact}
         </button>

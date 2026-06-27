@@ -1,19 +1,21 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmtMoney, fmtPercent } from "@/lib/format";
 import type { AddonCost, SkuCost } from "@/data/api/generated/models";
 
 /** food_cost_pct traffic light: green <30%, amber 30–40%, red >40%. */
 export function FoodCostChip({ pct }: { pct: number }) {
+  const Icon = pct < 0.3 ? CheckCircle2 : pct <= 0.4 ? AlertTriangle : AlertCircle;
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-semibold tabular",
+        "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold tabular",
         pct < 0.3 ? "bg-success/10 text-success" : pct <= 0.4 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive",
       )}
     >
+      <Icon className="size-3 shrink-0" />
       {fmtPercent(pct)}
     </span>
   );

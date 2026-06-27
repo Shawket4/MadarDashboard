@@ -110,7 +110,11 @@ export function LocationStep({
   // Channel-aware label: in_mall highlights the indoor address; outside shows street address.
   const locationLabel = (loc: GuestSavedLocation): string => {
     if (loc.channel === "in_mall") {
-      const parts = [loc.place_name, loc.floor ? `Fl. ${loc.floor}` : null, loc.unit_number].filter(Boolean);
+      const parts = [
+        loc.place_name,
+        loc.floor ? `${t("order.location.floorAbbrev", "Fl.")} ${loc.floor}` : null,
+        loc.unit_number,
+      ].filter(Boolean);
       if (parts.length) return parts.join(" · ");
     }
     if (loc.address_line) return loc.address_line;
@@ -339,7 +343,12 @@ function SavedLocationRow({
   date: string;
   onSelect: () => void;
 }) {
-  const ago = new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const { i18n } = useTranslation();
+  const ago = new Date(date).toLocaleDateString(i18n.language, {
+    month: "short",
+    day: "numeric",
+    timeZone: "Africa/Cairo",
+  });
   return (
     <button
       type="button"

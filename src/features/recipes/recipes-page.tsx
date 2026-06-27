@@ -65,7 +65,7 @@ export function RecipesPage() {
         { header: t("recipes.ingredients", "Ingredients"), accessor: (r) => r.ingredients, type: "text", width: 70 },
       ];
       await exportToExcel({
-        filename: "Sufrix-Recipes",
+        filename: "Madar-Recipes",
         sheets: [
           { name: t("recipes.tabs.drinks", "Drinks"), title: t("recipes.tabs.drinks", "Drinks"), rows: drinkRows as unknown as Record<string, unknown>[], columns: cols(t("recipes.size", "Size")) as unknown as ExcelColumn<Record<string, unknown>>[] },
           { name: t("recipes.tabs.addons", "Add-ons"), title: t("recipes.tabs.addons", "Add-ons"), rows: addonRows as unknown as Record<string, unknown>[], columns: cols(t("common.type", "Type")) as unknown as ExcelColumn<Record<string, unknown>>[] },

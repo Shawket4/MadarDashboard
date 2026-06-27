@@ -115,7 +115,7 @@ export function OtpDialog({
               aria-label={t("order.otp.code")}
               className={cn(
                 "size-14 rounded-xl border bg-card text-center text-2xl font-bold tabular-nums outline-none transition-colors",
-                "focus:border-brand focus:ring-2 focus:ring-brand/30",
+                "focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-ring/50",
                 error ? "border-destructive" : "border-border/70",
               )}
             />

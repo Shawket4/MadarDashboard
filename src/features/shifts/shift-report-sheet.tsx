@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertCircle, AlertTriangle, ArrowDownLeft, ArrowUpRight, X } from "lucide-react";
 
 import {
   Sheet,
@@ -25,7 +25,7 @@ interface Props {
 export function ShiftReportSheet({ shiftId, open, onOpenChange }: Props) {
   const { t, i18n } = useTranslation();
   const side = i18n.dir() === "rtl" ? "left" : "right";
-  const { data: report, isLoading } = useGetShiftReport(shiftId ?? "", {
+  const { data: report, isLoading, isError } = useGetShiftReport(shiftId ?? "", {
     query: { enabled: !!shiftId && open },
   });
   const shift = report?.shift;
@@ -46,7 +46,12 @@ export function ShiftReportSheet({ shiftId, open, onOpenChange }: Props) {
         </SheetHeader>
 
         <div className="space-y-4 p-4">
-          {isLoading || !report || !shift ? (
+          {isError ? (
+            <div className="flex flex-col items-center gap-3 py-10 text-center">
+              <AlertCircle className="size-8 text-destructive" />
+              <p className="text-sm text-muted-foreground">{t("shifts.report.loadError", "Could not load the shift report. Please try again.")}</p>
+            </div>
+          ) : isLoading || !report || !shift ? (
             <div className="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} className="h-24 w-full rounded-xl" />
@@ -64,7 +69,7 @@ export function ShiftReportSheet({ shiftId, open, onOpenChange }: Props) {
               {/* Payment summary */}
               <Card className="py-0">
                 <CardContent className="space-y-2 p-4 text-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t("shifts.paymentSummary", "Payment summary")}
                   </p>
                   {report.payment_summary.length === 0 ? (
@@ -93,7 +98,7 @@ export function ShiftReportSheet({ shiftId, open, onOpenChange }: Props) {
               {/* Cash reconciliation */}
               <Card className="py-0">
                 <CardContent className="space-y-2 p-4 text-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t("shifts.cashReconciliation", "Cash reconciliation")}
                   </p>
                   <Row label={t("shifts.openingCash", "Opening cash")} value={fmtMoney(shift.opening_cash)} />
@@ -149,7 +154,7 @@ export function ShiftReportSheet({ shiftId, open, onOpenChange }: Props) {
               {report.cash_movements.length > 0 ? (
                 <Card className="py-0">
                   <CardContent className="space-y-2 p-4 text-sm">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="text-xs font-medium text-muted-foreground">
                       {t("shifts.cashMovements", "Cash movements")}
                     </p>
                     {report.cash_movements.map((m, i) => (
@@ -160,7 +165,10 @@ export function ShiftReportSheet({ shiftId, open, onOpenChange }: Props) {
                             {m.moved_by_name} · {fmtDateTime(m.created_at)}
                           </p>
                         </div>
-                        <span className={cn("shrink-0 tabular", m.amount < 0 ? "text-destructive" : "text-success")}>
+                        <span className={cn("inline-flex shrink-0 items-center gap-0.5 tabular", m.amount < 0 ? "text-destructive" : "text-success")}>
+                          {m.amount < 0
+                            ? <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                            : <ArrowDownLeft className="size-3.5" aria-hidden="true" />}
                           {fmtMoney(m.amount)}
                         </span>
                       </div>

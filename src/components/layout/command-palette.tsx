@@ -48,11 +48,11 @@ export function CommandPalette() {
         variant="outline"
         onClick={() => setOpen(true)}
         aria-label={t("common.search", "Search…")}
-        className="h-8 w-9 justify-center gap-2 px-0 text-muted-foreground sm:w-64 sm:justify-start sm:px-3"
+        className="h-8 w-9 justify-center gap-2 px-0 text-foreground sm:w-64 sm:justify-start sm:px-3"
       >
         <Search className="size-4" />
         <span className="hidden truncate sm:inline">{t("common.search", "Search…")}</span>
-        <kbd className="ms-auto hidden items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] sm:inline-flex">
+        <kbd className="ms-auto hidden items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-xs sm:inline-flex">
           ⌘K
         </kbd>
       </Button>

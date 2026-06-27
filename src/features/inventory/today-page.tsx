@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, Boxes, CalendarClock, PackageCheck, ShoppingCart, Trash2, Truck, Wallet } from "lucide-react";
+import { AlertTriangle, Boxes, CalendarClock, OctagonX, PackageCheck, ShoppingCart, Trash2, Truck, Wallet } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
@@ -169,7 +169,7 @@ export function TodayPage() {
           {lowStock.isLoading ? (
             <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
           ) : lowRows.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">{t("inventory.today.allGood", "All good — nothing below its low-stock level 🎉")}</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">{t("inventory.today.allGood", "All good — nothing below its low-stock level")}</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -188,8 +188,10 @@ export function TodayPage() {
                     <TableRow key={`${r.branch_id}-${r.org_ingredient_id}`}>
                       <TableCell className="flex items-center gap-2 font-medium">
                         {r.ingredient_name}
-                        <Badge variant="secondary" className={cn(r.current_stock <= 0 ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning")}>
-                          {r.current_stock <= 0 ? t("inventory.today.statusCritical", "Critical") : t("inventory.today.statusLow", "Low")}
+                        <Badge variant="secondary" className={cn("flex items-center gap-1", r.current_stock <= 0 ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning")}>
+                          {r.current_stock <= 0
+                            ? <><OctagonX className="size-3" />{t("inventory.today.statusCritical", "Critical")}</>
+                            : <><AlertTriangle className="size-3" />{t("inventory.today.statusLow", "Low")}</>}
                         </Badge>
                       </TableCell>
                       <TableCell>{r.branch_name}</TableCell>

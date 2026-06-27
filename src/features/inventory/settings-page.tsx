@@ -69,7 +69,7 @@ export function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="max-w-[200px] space-y-1.5">
+          <div className="max-w-48 space-y-1.5">
             <Label>{t("inventory.settings.percent", "Percent")}</Label>
             <div className="relative">
               <Input

@@ -22,6 +22,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { branchQr, orgQr } from "@/data/api/generated/api";
 import type { QrResponse } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -31,12 +38,12 @@ import { QrPreviewDialog } from "./qr-preview-dialog";
 
 // ── In-mall form schema ───────────────────────────────────────────────────────
 
-const inMallSchema = z.object({
-  place_name: z.string().min(1, "Required").max(80),
-  floor: z.string().min(1, "Required").max(40),
-  unit_number: z.string().min(1, "Required").max(40),
-});
-type InMallValues = z.infer<typeof inMallSchema>;
+// Schema is built inside the component so messages can use t().
+type InMallValues = {
+  place_name: string;
+  floor: string;
+  unit_number: string;
+};
 
 // ── Render options state ──────────────────────────────────────────────────────
 
@@ -61,16 +68,22 @@ function RenderOptions({ opts, onChange }: { opts: RenderOpts; onChange: (o: Ren
       </div>
       {opts.card && (
         <div className="flex items-center gap-2">
-          <Label className="text-xs text-muted-foreground">DPI</Label>
-          <select
-            className="rounded border bg-background px-2 py-0.5 text-xs"
-            value={opts.dpi}
-            onChange={(e) => onChange({ ...opts, dpi: Number(e.target.value) })}
+          <Label className="text-xs text-muted-foreground">
+            {t("qr.opts.dpiLabel", "DPI")}
+          </Label>
+          <Select
+            value={String(opts.dpi)}
+            onValueChange={(v) => onChange({ ...opts, dpi: Number(v) })}
           >
-            <option value={150}>150</option>
-            <option value={300}>300</option>
-            <option value={600}>600</option>
-          </select>
+            <SelectTrigger size="sm" className="w-20 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="150">150</SelectItem>
+              <SelectItem value="300">300</SelectItem>
+              <SelectItem value="600">600</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       )}
     </div>
@@ -92,14 +105,21 @@ function QrResult({ qr, title, onPreview }: { qr: QrResponse; title: string; onP
   };
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border bg-white p-4">
+    <div className="flex flex-col items-center gap-3 rounded-xl border bg-card p-4">
       <button
         type="button"
         onClick={onPreview}
-        className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label={t("qr.preview", "Enlarge QR code")}
+        className="rounded-lg outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
+        aria-label={t("qr.enlarge", "Enlarge QR code")}
       >
-        <img src={qr.qr_data_url} alt="QR code" className="size-52 cursor-zoom-in object-contain" />
+        {/* White quiet-zone wrapper so the raster reads cleanly on any theme */}
+        <span className="block rounded bg-white p-1">
+          <img
+            src={qr.qr_data_url}
+            alt={t("qr.imageAlt", "QR code for {{title}}", { title })}
+            className="size-52 cursor-zoom-in object-contain"
+          />
+        </span>
       </button>
       <div className="flex w-full items-center gap-2 rounded-lg bg-muted px-2 py-1.5">
         <Link2 className="size-3 shrink-0 text-muted-foreground" />
@@ -126,6 +146,13 @@ export function QrPage() {
   const { t } = useTranslation();
   const orgId = useOrgId();
   const { branchId, isAllBranches } = useScope();
+
+  // Build schema inside component so validation messages can use t()
+  const inMallSchema = z.object({
+    place_name: z.string().min(1, t("common.requiredField")).max(80),
+    floor: z.string().min(1, t("common.requiredField")).max(40),
+    unit_number: z.string().min(1, t("common.requiredField")).max(40),
+  });
 
   const [renderOpts, setRenderOpts] = useState<RenderOpts>({ card: true, dpi: 600 });
 
@@ -237,7 +264,7 @@ export function QrPage() {
               <RenderOptions opts={renderOpts} onChange={setRenderOpts} />
               <Button onClick={() => void generateOrgQr()} disabled={orgBusy} className="self-start">
                 {orgBusy ? (
-                  <RefreshCw className="size-4 animate-spin" />
+                  <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
                 ) : (
                   <QrCode className="size-4" />
                 )}
@@ -284,7 +311,7 @@ export function QrPage() {
                     className="self-start"
                   >
                     {branchBusy ? (
-                      <RefreshCw className="size-4 animate-spin" />
+                      <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
                     ) : (
                       <QrCode className="size-4" />
                     )}
@@ -370,7 +397,7 @@ export function QrPage() {
                       <RenderOptions opts={renderOpts} onChange={setRenderOpts} />
                       <Button type="submit" disabled={inMallBusy} className="self-start">
                         {inMallBusy ? (
-                          <RefreshCw className="size-4 animate-spin" />
+                          <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
                         ) : (
                           <QrCode className="size-4" />
                         )}

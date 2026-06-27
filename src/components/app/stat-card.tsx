@@ -10,9 +10,10 @@ import { fmtPercent } from "@/lib/format";
 import { listItem } from "@/lib/motion";
 import { StatValue, type StatFormat } from "@/components/app/stat-value";
 
-export type StatAccent = "brand" | "primary" | "success" | "warning" | "info" | "destructive";
+export type StatAccent = "neutral" | "brand" | "primary" | "success" | "warning" | "info" | "destructive";
 
 const accentClasses: Record<StatAccent, string> = {
+  neutral: "bg-secondary text-foreground",
   brand: "bg-brand/10 text-brand",
   primary: "bg-primary/10 text-primary",
   success: "bg-success/10 text-success",
@@ -48,7 +49,7 @@ export function StatCard({
   value,
   formatType,
   icon: Icon,
-  accent = "brand",
+  accent = "neutral",
   trend,
   hint,
   loading,
@@ -94,9 +95,22 @@ export function StatCard({
     <motion.div variants={listItem}>
       <Card
         onClick={onClick}
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        onKeyDown={
+          onClick
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onClick();
+                }
+              }
+            : undefined
+        }
         className={cn(
-          "transition-all duration-200",
-          onClick && "cursor-pointer hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0",
+          "transition-all duration-200 motion-reduce:transition-none",
+          onClick &&
+            "cursor-pointer hover:bg-accent/30 hover:shadow-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring",
           pad,
           className,
         )}

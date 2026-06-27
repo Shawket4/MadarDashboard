@@ -17,6 +17,7 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as TrackIdRouteImport } from './routes/track.$id'
 import { Route as OrderOrgIdRouteImport } from './routes/order.$orgId'
 import { Route as AppUsersRouteImport } from './routes/_app/users'
+import { Route as AppTillsRouteImport } from './routes/_app/tills'
 import { Route as AppShiftsRouteImport } from './routes/_app/shifts'
 import { Route as AppQrRouteImport } from './routes/_app/qr'
 import { Route as AppPermissionsRouteImport } from './routes/_app/permissions'
@@ -41,6 +42,8 @@ import { Route as AppMenuItemsRouteImport } from './routes/_app/menu/items'
 import { Route as AppMenuEngineeringRouteImport } from './routes/_app/menu/engineering'
 import { Route as AppMenuBundlesRouteImport } from './routes/_app/menu/bundles'
 import { Route as AppMenuAdvisorRouteImport } from './routes/_app/menu/advisor'
+import { Route as AppKitchenStationsRouteImport } from './routes/_app/kitchen/stations'
+import { Route as AppKitchenRoutingRouteImport } from './routes/_app/kitchen/routing'
 import { Route as AppInventoryWasteRouteImport } from './routes/_app/inventory/waste'
 import { Route as AppInventoryTransfersRouteImport } from './routes/_app/inventory/transfers'
 import { Route as AppInventoryTodayRouteImport } from './routes/_app/inventory/today'
@@ -90,6 +93,11 @@ const OrderOrgIdRoute = OrderOrgIdRouteImport.update({
 const AppUsersRoute = AppUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppTillsRoute = AppTillsRouteImport.update({
+  id: '/tills',
+  path: '/tills',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppShiftsRoute = AppShiftsRouteImport.update({
@@ -213,6 +221,16 @@ const AppMenuAdvisorRoute = AppMenuAdvisorRouteImport.update({
   path: '/advisor',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
+const AppKitchenStationsRoute = AppKitchenStationsRouteImport.update({
+  id: '/kitchen/stations',
+  path: '/kitchen/stations',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppKitchenRoutingRoute = AppKitchenRoutingRouteImport.update({
+  id: '/kitchen/routing',
+  path: '/kitchen/routing',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppInventoryWasteRoute = AppInventoryWasteRouteImport.update({
   id: '/waste',
   path: '/waste',
@@ -286,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/permissions': typeof AppPermissionsRoute
   '/qr': typeof AppQrRoute
   '/shifts': typeof AppShiftsRoute
+  '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
   '/order/$orgId': typeof OrderOrgIdRoute
   '/track/$id': typeof TrackIdRoute
@@ -300,6 +319,8 @@ export interface FileRoutesByFullPath {
   '/inventory/today': typeof AppInventoryTodayRoute
   '/inventory/transfers': typeof AppInventoryTransfersRoute
   '/inventory/waste': typeof AppInventoryWasteRoute
+  '/kitchen/routing': typeof AppKitchenRoutingRoute
+  '/kitchen/stations': typeof AppKitchenStationsRoute
   '/menu/advisor': typeof AppMenuAdvisorRoute
   '/menu/bundles': typeof AppMenuBundlesRoute
   '/menu/engineering': typeof AppMenuEngineeringRoute
@@ -325,6 +346,7 @@ export interface FileRoutesByTo {
   '/permissions': typeof AppPermissionsRoute
   '/qr': typeof AppQrRoute
   '/shifts': typeof AppShiftsRoute
+  '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
   '/order/$orgId': typeof OrderOrgIdRoute
   '/track/$id': typeof TrackIdRoute
@@ -340,6 +362,8 @@ export interface FileRoutesByTo {
   '/inventory/today': typeof AppInventoryTodayRoute
   '/inventory/transfers': typeof AppInventoryTransfersRoute
   '/inventory/waste': typeof AppInventoryWasteRoute
+  '/kitchen/routing': typeof AppKitchenRoutingRoute
+  '/kitchen/stations': typeof AppKitchenStationsRoute
   '/menu/advisor': typeof AppMenuAdvisorRoute
   '/menu/bundles': typeof AppMenuBundlesRoute
   '/menu/engineering': typeof AppMenuEngineeringRoute
@@ -371,6 +395,7 @@ export interface FileRoutesById {
   '/_app/permissions': typeof AppPermissionsRoute
   '/_app/qr': typeof AppQrRoute
   '/_app/shifts': typeof AppShiftsRoute
+  '/_app/tills': typeof AppTillsRoute
   '/_app/users': typeof AppUsersRoute
   '/order/$orgId': typeof OrderOrgIdRoute
   '/track/$id': typeof TrackIdRoute
@@ -386,6 +411,8 @@ export interface FileRoutesById {
   '/_app/inventory/today': typeof AppInventoryTodayRoute
   '/_app/inventory/transfers': typeof AppInventoryTransfersRoute
   '/_app/inventory/waste': typeof AppInventoryWasteRoute
+  '/_app/kitchen/routing': typeof AppKitchenRoutingRoute
+  '/_app/kitchen/stations': typeof AppKitchenStationsRoute
   '/_app/menu/advisor': typeof AppMenuAdvisorRoute
   '/_app/menu/bundles': typeof AppMenuBundlesRoute
   '/_app/menu/engineering': typeof AppMenuEngineeringRoute
@@ -418,6 +445,7 @@ export interface FileRouteTypes {
     | '/permissions'
     | '/qr'
     | '/shifts'
+    | '/tills'
     | '/users'
     | '/order/$orgId'
     | '/track/$id'
@@ -432,6 +460,8 @@ export interface FileRouteTypes {
     | '/inventory/today'
     | '/inventory/transfers'
     | '/inventory/waste'
+    | '/kitchen/routing'
+    | '/kitchen/stations'
     | '/menu/advisor'
     | '/menu/bundles'
     | '/menu/engineering'
@@ -457,6 +487,7 @@ export interface FileRouteTypes {
     | '/permissions'
     | '/qr'
     | '/shifts'
+    | '/tills'
     | '/users'
     | '/order/$orgId'
     | '/track/$id'
@@ -472,6 +503,8 @@ export interface FileRouteTypes {
     | '/inventory/today'
     | '/inventory/transfers'
     | '/inventory/waste'
+    | '/kitchen/routing'
+    | '/kitchen/stations'
     | '/menu/advisor'
     | '/menu/bundles'
     | '/menu/engineering'
@@ -502,6 +535,7 @@ export interface FileRouteTypes {
     | '/_app/permissions'
     | '/_app/qr'
     | '/_app/shifts'
+    | '/_app/tills'
     | '/_app/users'
     | '/order/$orgId'
     | '/track/$id'
@@ -517,6 +551,8 @@ export interface FileRouteTypes {
     | '/_app/inventory/today'
     | '/_app/inventory/transfers'
     | '/_app/inventory/waste'
+    | '/_app/kitchen/routing'
+    | '/_app/kitchen/stations'
     | '/_app/menu/advisor'
     | '/_app/menu/bundles'
     | '/_app/menu/engineering'
@@ -596,6 +632,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof AppUsersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/tills': {
+      id: '/_app/tills'
+      path: '/tills'
+      fullPath: '/tills'
+      preLoaderRoute: typeof AppTillsRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/shifts': {
@@ -765,6 +808,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/menu/advisor'
       preLoaderRoute: typeof AppMenuAdvisorRouteImport
       parentRoute: typeof AppMenuRouteRoute
+    }
+    '/_app/kitchen/stations': {
+      id: '/_app/kitchen/stations'
+      path: '/kitchen/stations'
+      fullPath: '/kitchen/stations'
+      preLoaderRoute: typeof AppKitchenStationsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/kitchen/routing': {
+      id: '/_app/kitchen/routing'
+      path: '/kitchen/routing'
+      fullPath: '/kitchen/routing'
+      preLoaderRoute: typeof AppKitchenRoutingRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/inventory/waste': {
       id: '/_app/inventory/waste'
@@ -942,8 +999,11 @@ interface AppRouteRouteChildren {
   AppPermissionsRoute: typeof AppPermissionsRoute
   AppQrRoute: typeof AppQrRoute
   AppShiftsRoute: typeof AppShiftsRoute
+  AppTillsRoute: typeof AppTillsRoute
   AppUsersRoute: typeof AppUsersRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppKitchenRoutingRoute: typeof AppKitchenRoutingRoute
+  AppKitchenStationsRoute: typeof AppKitchenStationsRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -959,8 +1019,11 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppPermissionsRoute: AppPermissionsRoute,
   AppQrRoute: AppQrRoute,
   AppShiftsRoute: AppShiftsRoute,
+  AppTillsRoute: AppTillsRoute,
   AppUsersRoute: AppUsersRoute,
   AppIndexRoute: AppIndexRoute,
+  AppKitchenRoutingRoute: AppKitchenRoutingRoute,
+  AppKitchenStationsRoute: AppKitchenStationsRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

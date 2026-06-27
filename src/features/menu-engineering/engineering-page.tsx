@@ -20,8 +20,8 @@ function Toggle<T extends string>({ value, onChange, options }: { value: T; onCh
   return (
     <div className="flex rounded-lg border bg-muted p-0.5">
       {options.map(({ key, icon: Icon, label, title }) => (
-        <button key={key} type="button" title={title} onClick={() => onChange(key)}
-          className={cn("flex items-center gap-1.5 rounded px-3 py-1 text-xs transition-colors", value === key ? "bg-background font-semibold shadow-sm" : "text-muted-foreground")}>
+        <button key={key} type="button" title={title} onClick={() => onChange(key)} aria-pressed={value === key}
+          className={cn("flex items-center gap-1.5 rounded px-3 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring", value === key ? "bg-background font-semibold shadow-sm" : "text-muted-foreground")}>
           <Icon className="size-3.5" /> {label}
         </button>
       ))}

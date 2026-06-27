@@ -98,7 +98,7 @@ export function SettingsPage() {
         <Card>
           <CardContent className="flex items-center gap-3 p-5">
             <span className="grid size-10 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">S</span>
-            <div className="flex-1"><p className="text-sm font-bold">{t("app.name", "Sufrix")}</p><p className={cn("text-xs text-muted-foreground")}>© 2026 Sufrix</p></div>
+            <div className="flex-1"><p className="text-sm font-bold">{t("app.name", "Madar")}</p><p className={cn("text-xs text-muted-foreground")}>© 2026 Madar</p></div>
             <Badge variant="outline">v1.0.0</Badge>
           </CardContent>
         </Card>

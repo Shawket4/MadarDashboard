@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Boxes, MoreHorizontal, PackageCheck, PlusCircle, SendHorizonal, Truck, TrendingDown, Users, XCircle } from "lucide-react";
+import { Boxes, CheckCircle2, MoreHorizontal, MinusCircle, PackageCheck, PlusCircle, SendHorizonal, Truck, TrendingDown, Users, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page } from "@/components/app/page";
@@ -14,6 +14,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -220,8 +223,10 @@ export function PurchasingPage() {
       accessorKey: "is_active",
       header: t("common.status", "Status"),
       cell: ({ row }) => (
-        <Badge variant="secondary" className={cn(row.original.is_active ? "bg-success/10 text-success" : "bg-muted text-muted-foreground")}>
-          {row.original.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")}
+        <Badge variant="secondary" className={cn("flex items-center gap-1", row.original.is_active ? "bg-success/10 text-success" : "bg-muted text-muted-foreground")}>
+          {row.original.is_active
+            ? <><CheckCircle2 className="size-3" />{t("common.active", "Active")}</>
+            : <><MinusCircle className="size-3" />{t("common.inactive", "Inactive")}</>}
         </Badge>
       ),
     },
@@ -254,7 +259,7 @@ export function PurchasingPage() {
         { header: t("inventory.purchasing.expectedAt", "Expected"), accessor: (po) => po.expected_at ?? "", type: "date", width: 16 },
         { header: t("inventory.purchasing.createdAt", "Created"), accessor: (po) => po.created_at, type: "date", width: 16 },
       ];
-      void exportToExcel({ filename: "Sufrix-PurchaseOrders", sheets: [{ name: t("inventory.purchasing.orders", "Purchase orders"), title: t("inventory.purchasing.orders", "Purchase orders"), rows: (orders.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      void exportToExcel({ filename: "Madar-PurchaseOrders", sheets: [{ name: t("inventory.purchasing.orders", "Purchase orders"), title: t("inventory.purchasing.orders", "Purchase orders"), rows: (orders.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } else {
       const cols: ExcelColumn<Supplier>[] = [
         { header: t("inventory.purchasing.supplier", "Supplier"), accessor: (s) => s.name, type: "text", width: 26 },
@@ -263,7 +268,7 @@ export function PurchasingPage() {
         { header: t("inventory.purchasing.phone", "Phone"), accessor: (s) => s.phone ?? "—", type: "text", width: 18 },
         { header: t("common.status", "Status"), accessor: (s) => (s.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
       ];
-      void exportToExcel({ filename: "Sufrix-Suppliers", sheets: [{ name: t("inventory.purchasing.suppliers", "Suppliers"), title: t("inventory.purchasing.suppliers", "Suppliers"), rows: (suppliers.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      void exportToExcel({ filename: "Madar-Suppliers", sheets: [{ name: t("inventory.purchasing.suppliers", "Suppliers"), title: t("inventory.purchasing.suppliers", "Suppliers"), rows: (suppliers.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     }
   };
 
@@ -356,24 +361,24 @@ export function PurchasingPage() {
                         {t("inventory.purchasing.createDraftPo", "Create draft PO")}
                       </Button>
                     </div>
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b text-xs text-muted-foreground">
-                          <th className="p-2 text-start font-normal">{t("inventory.catalog.name", "Ingredient")}</th>
-                          <th className="p-2 text-end font-normal">{t("inventory.catalog.onHand", "On hand")}</th>
-                          <th className="p-2 text-end font-normal">{t("inventory.purchasing.suggested", "Suggested qty")}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t("inventory.catalog.name", "Ingredient")}</TableHead>
+                          <TableHead className="text-end">{t("inventory.catalog.onHand", "On hand")}</TableHead>
+                          <TableHead className="text-end">{t("inventory.purchasing.suggested", "Suggested qty")}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {suggestion.lines.map((l) => (
-                          <tr key={l.org_ingredient_id} className="border-b last:border-0">
-                            <td className="p-2">{l.ingredient_name}</td>
-                            <td className="p-2 text-end tabular text-destructive">{fmtNumber(l.current_stock)} {fmtUnit(l.unit)}</td>
-                            <td className="p-2 text-end tabular font-medium">{fmtNumber(l.suggested_qty)} {fmtUnit(l.unit)}</td>
-                          </tr>
+                          <TableRow key={l.org_ingredient_id}>
+                            <TableCell>{l.ingredient_name}</TableCell>
+                            <TableCell className="text-end tabular text-destructive">{fmtNumber(l.current_stock)} {fmtUnit(l.unit)}</TableCell>
+                            <TableCell className="text-end tabular font-medium">{fmtNumber(l.suggested_qty)} {fmtUnit(l.unit)}</TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 );
               })}

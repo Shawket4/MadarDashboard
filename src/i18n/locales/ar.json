@@ -1,10 +1,10 @@
 {
   "app": {
-    "name": "سفريكس",
+    "name": "مدار",
     "tagline": "إدارة المقاهي"
   },
   "common": {
-    "copyright": "© {{year}} سفريكس. جميع الحقوق محفوظة.",
+    "copyright": "© {{year}} مدار. جميع الحقوق محفوظة.",
     "source": "المصدر",
     "cairoTime": "بتوقيت القاهرة",
     "timezoneLabel": "بتوقيت {{city}}",
@@ -74,20 +74,32 @@
     "undo": "تراجع",
     "autoTranslated": "يُترجم تلقائياً إذا تُرك فارغاً",
     "account": "الحساب",
-    "comingSoonDesc": "تتم إعادة بناء هذه الشاشة كجزء من تجربة Sufrix الجديدة.",
+    "comingSoonDesc": "تتم إعادة بناء هذه الشاشة كجزء من تجربة Madar الجديدة.",
     "accept": "قبول",
     "reject": "رفض",
     "ignore": "تجاهل",
     "invalidEmail": "بريد إلكتروني غير صالح",
     "saved": "تم الحفظ",
     "clear": "مسح",
-    "select": "اختر…"
+    "select": "اختر…",
+    "selectAll": "تحديد الكل",
+    "deselectAll": "إلغاء تحديد الكل",
+    "retry": "إعادة المحاولة",
+    "tryRefresh": "حاول تحديث الصفحة.",
+    "download": "تنزيل",
+    "copyFailed": "فشل النسخ",
+    "copied": "تم النسخ!",
+    "copyLink": "نسخ الرابط"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
     "orgs": "المؤسسات",
     "users": "المستخدمون",
     "branches": "الفروع",
+    "tills": "الخزائن",
+    "kitchen": "المطبخ",
+    "kitchenStations": "المحطات",
+    "kitchenRouting": "توجيه الطلبات",
     "menu": "القائمة",
     "inventory": "المخزون",
     "recipes": "الوصفات",
@@ -150,13 +162,16 @@
       "invalid": "بيانات الدخول غير صحيحة",
       "required": "البريد الإلكتروني وكلمة المرور مطلوبان",
       "invalidEmail": "أدخل بريدًا إلكترونيًا صالحًا"
-    }
+    },
+    "emailPlaceholder": "you@madar.com"
   },
   "roles": {
     "super_admin": "مسؤول عام",
     "org_admin": "مسؤول المؤسسة",
     "branch_manager": "مدير فرع",
-    "teller": "كاشير"
+    "teller": "كاشير",
+    "waiter": "نادل",
+    "kitchen": "المطبخ"
   },
   "payments": {
     "cash": "نقدي",
@@ -224,7 +239,8 @@
     "payments": "توزيع المدفوعات",
     "pickBranchTrend": "اختر فرعًا لعرض اتجاه الإيرادات الخاص به",
     "branchPerformance": "أداء الفروع",
-    "periodTotal": "{{total}} لهذه الفترة"
+    "periodTotal": "{{total}} لهذه الفترة",
+    "branchRevenueBar": "حصة الإيرادات لـ {{name}}"
   },
   "orgs": {
     "title": "المؤسسات",
@@ -242,7 +258,10 @@
     "deletedToast": "تم حذف المؤسسة",
     "logo": "الشعار",
     "logoHint": "يُنصح بصورة مربعة PNG أو SVG، بحجم لا يقل عن 128×128 بكسل",
-    "logoRemoved": "تم حذف الشعار"
+    "logoRemoved": "تم حذف الشعار",
+    "loadError": "تعذّر تحميل المؤسسات",
+    "editDescription": "عدّل تفاصيل هذه المؤسسة.",
+    "newDescription": "أدخل التفاصيل لإنشاء مؤسسة جديدة."
   },
   "branches": {
     "title": "الفروع",
@@ -274,7 +293,9 @@
     "longitude": "خط الطول",
     "geoRadius": "نطاق (متر)",
     "activeHint": "الفروع غير النشطة مخفية من نقطة البيع.",
-    "pickOrg": "اختر مؤسسة"
+    "pickOrg": "اختر مؤسسة",
+    "loadError": "تعذّر تحميل الفروع",
+    "pickOrgDescription": "اختر مؤسسة من الشريط الجانبي لعرض فروعها وإدارتها."
   },
   "users": {
     "title": "المستخدمون",
@@ -559,7 +580,8 @@
     "imageAfterSave": "تُرفع بعد حفظ الصنف",
     "recipeOnRecipesPage": "تُدار وصفات المكونات لكل حجم من تبويب الوصفات.",
     "recipe": "الوصفة",
-    "recipeHint": "ما يستهلكه هذا الصنف حسب الحجم"
+    "recipeHint": "ما يستهلكه هذا الصنف حسب الحجم",
+    "removeSize": "حذف الحجم"
   },
   "recipes": {
     "title": "الوصفات",
@@ -602,7 +624,8 @@
       "margin": "هامش",
       "unsaved": "تغييرات غير محفوظة",
       "saveAll": "حفظ الوصفة",
-      "saved": "تم حفظ الوصفة"
+      "saved": "تم حفظ الوصفة",
+      "removeIngredient": "حذف المكوّن"
     },
     "slots": {
       "title": "خانات الإضافات",
@@ -619,7 +642,11 @@
       "maxHint": "اتركه فارغاً = غير محدود",
       "requiredHint": "يجب على العميل اختيار الحد الأدنى على الأقل",
       "saved": "تم حفظ الخانة",
-      "removed": "تم حذف الخانة"
+      "removed": "تم حذف الخانة",
+      "minMaxSummary": "الحد الأدنى {{min}}، الحد الأقصى {{max}}",
+      "displayLabelEn": "التسمية الظاهرة (EN)",
+      "displayLabelAr": "التسمية الظاهرة (AR)",
+      "removeSlot": "حذف الخانة"
     },
     "optionals": {
       "title": "حقول اختيارية",
@@ -630,7 +657,10 @@
       "checkboxLabel": "تسمية الخانة",
       "labelPh": "مثال: ساخن إضافي",
       "inventoryItem": "خصم عنصر من المخزون (اختياري)",
-      "saveField": "حفظ الحقل"
+      "saveField": "حفظ الحقل",
+      "checkboxLabelEn": "تسمية الخانة (EN)",
+      "checkboxLabelAr": "تسمية الخانة (AR)",
+      "removeField": "حذف الحقل"
     }
   },
   "inventory": {
@@ -931,7 +961,9 @@
       "onHandHint": "{{branch}} المتوفر: {{qty}} {{unit}}",
       "recent": "أحدث التحويلات",
       "from": "من",
-      "to": "إلى"
+      "to": "إلى",
+      "reverseTitle": "عكس التحويل",
+      "reverseConfirm": "عكس هذا التحويل بقيد معاكس؟"
     },
     "today": {
       "title": "اليوم",
@@ -1042,7 +1074,8 @@
       "voided": "ملغى",
       "netPayments": "صافي المدفوعات",
       "printedAt": "تم إنشاء التقرير {{date}}",
-      "print": "طباعة"
+      "print": "طباعة",
+      "loadError": "تعذّر تحميل تقرير الوردية. يرجى المحاولة مرة أخرى."
     },
     "toasts": {
       "opened": "تم فتح الوردية",
@@ -1273,7 +1306,9 @@
     "inBundles": "ضمن باقات",
     "totalSold": "إجمالي المبيعات",
     "pickBranch": "اختر فرعًا",
-    "pickBranchHint": "اختر فرعًا من شريط النطاق لعرض هذا التقرير."
+    "pickBranchHint": "اختر فرعًا من شريط النطاق لعرض هذا التقرير.",
+    "tellerDetails": "تفاصيل الكاشيرات",
+    "branchDetails": "تفاصيل الفروع"
   },
   "discounts": {
     "title": "الخصومات",
@@ -1300,7 +1335,9 @@
     "deletedToast": "تم حذف الخصم",
     "pickOrg": "اختر مؤسسة",
     "pctOff": "خصم {{value}}٪",
-    "amountOff": "خصم {{value}}"
+    "amountOff": "خصم {{value}}",
+    "activate": "تفعيل الخصم",
+    "deactivate": "تعطيل الخصم"
   },
   "bundles": {
     "title": "الباقات",
@@ -1370,7 +1407,8 @@
       "revenue": "الإيراد",
       "profit": "الربح",
       "popularity": "رواج المكوّنات",
-      "sold": "بيع {{qty}}"
+      "sold": "بيع {{qty}}",
+      "loadError": "تعذّر تحميل بيانات الأداء"
     }
   },
   "menuAdvisor": {
@@ -1509,7 +1547,22 @@
       "system": "نظامي",
       "cashBase": "نقدي",
       "nonCash": "غير نقدي",
-      "systemMethods": "طرق نظامية"
+      "systemMethods": "طرق نظامية",
+      "iconLabel": {
+        "money": "نقد / مال",
+        "credit_card": "بطاقة ائتمان",
+        "wallet": "محفظة رقمية",
+        "pie_chart": "مدفوعات مختلطة",
+        "delivery": "توصيل",
+        "qr_code": "رمز QR",
+        "bank": "تحويل بنكي",
+        "gift_card": "بطاقة هدية",
+        "smartphone": "دفع عبر الجوال",
+        "receipt": "قسيمة",
+        "store": "رصيد المتجر",
+        "star": "نقاط الولاء",
+        "link": "رابط الدفع"
+      }
     },
     "whatsapp": "واتساب",
     "whatsappHint": "اربط الرقم الذي يرسل رموز التحقق وتحديثات الطلبات."
@@ -1897,7 +1950,7 @@
   "landing": {
     "cta": {
       "title": "هل أنت مستعد لترقية عملياتك؟",
-      "subtitle": "تم تصميم Sufrix ليتناسب مع أعمالك. تواصل مع المطور اليوم للبدء.",
+      "subtitle": "تم تصميم Madar ليتناسب مع أعمالك. تواصل مع المطور اليوم للبدء.",
       "creator": "المطور",
       "email": "البريد الإلكتروني",
       "dropEmail": "أرسل بريداً إلكترونياً"
@@ -2043,7 +2096,9 @@
     "finishedToast": "اكتمل الإعداد — أهلاً بك!",
     "skipToDashboard": "تخطٍّ إلى لوحة التحكم",
     "optionalTag": "اختياري",
-    "countAdded": "{{count}} مضاف"
+    "countAdded": "{{count}} مضاف",
+    "loadError": "تعذّر تحميل قائمة الإعداد",
+    "loadErrorHint": "تحقّق من اتصالك وحاول مجدداً."
   },
   "scope": {
     "selectBranch": "اختر الفرع",
@@ -2220,7 +2275,8 @@
       "savedLabel": "استخدام عنوان محفوظ",
       "savedUnknown": "موقع محفوظ",
       "thisBranch": "هذا الفرع",
-      "otherBranches": "فروع أخرى"
+      "otherBranches": "فروع أخرى",
+      "floorAbbrev": "ط."
     },
     "menu": {
       "title": "القائمة",
@@ -2392,7 +2448,7 @@
     },
     "theme": "تبديل المظهر",
     "footer": {
-      "poweredBy": "خدمة الطلب أونلاين مقدّمة من سفريكس",
+      "poweredBy": "خدمة الطلب أونلاين مقدّمة من مدار",
       "rights": "© {{year}} {{name}}"
     },
     "track": {
@@ -2428,7 +2484,8 @@
       "pay": {
         "cash": "الدفع نقدًا عند الاستلام",
         "card": "الدفع بالبطاقة عند الاستلام"
-      }
+      },
+      "floor": "الطابق {{floor}}"
     }
   },
   "deliveryTimeline": {
@@ -2518,7 +2575,10 @@
     "noDiscount": "بدون خصم",
     "channelDiscountHint": "يُطبّق على إجمالي الأصناف عند الدفع — تُحتسب رسوم التوصيل كاملةً دائمًا.",
     "inMallRequireLocation": "طلب موقع GPS",
-    "inMallRequireLocationHint": "يجب على العملاء مشاركة موقع أجهزتهم لتأكيد وجودهم في الفرع قبل الطلب. أوقفه إذا كان GPS الداخلي غير موثوق (المتجر والطابق والوحدة مطلوبة دائمًا)."
+    "inMallRequireLocationHint": "يجب على العملاء مشاركة موقع أجهزتهم لتأكيد وجودهم في الفرع قبل الطلب. أوقفه إذا كان GPS الداخلي غير موثوق (المتجر والطابق والوحدة مطلوبة دائمًا).",
+    "revenueShare": "حصة الإيرادات",
+    "loadError": "تعذّر تحميل العناصر",
+    "loadErrorHint": "تحقق من اتصالك وأعد تحميل الصفحة."
   },
   "whatsapp": {
     "title": "واتساب",
@@ -2555,7 +2615,8 @@
     "generate": "إنشاء رمز QR",
     "pickBranch": "اختر فرعًا من شريط النطاق أعلاه",
     "opts": {
-      "brandedCard": "بطاقة بالعلامة التجارية"
+      "brandedCard": "بطاقة بالعلامة التجارية",
+      "dpiLabel": "دقة الطباعة"
     },
     "tabs": {
       "standard": "قائمة الفرع",
@@ -2581,6 +2642,82 @@
     },
     "preview": {
       "title": "رمز QR"
-    }
+    },
+    "enlarge": "تكبير رمز QR",
+    "imageAlt": "رمز QR لـ {{title}}"
+  },
+  "ui": {
+    "sidebar": {
+      "title": "الشريط الجانبي",
+      "description": "يعرض الشريط الجانبي للجوال.",
+      "toggle": "تبديل الشريط الجانبي"
+    },
+    "commandPalette": {
+      "title": "لوحة الأوامر",
+      "description": "ابحث عن أمر لتشغيله..."
+    },
+    "more": "المزيد"
+  },
+  "bilingualField": {
+    "arabicLabel": "{{label}} (إنجليزي)"
+  },
+  "kitchen": {
+    "byCategory": "حسب الفئة",
+    "byItem": "لكل صنف",
+    "byItemHint": "تجاوز محطة صنف واحد. إذا تُرك على «وراثة»، يتبع فئته.",
+    "default": "افتراضي",
+    "defaultStation": "المحطة الافتراضية",
+    "defaultStationHint": "تستقبل الأصناف غير الموجَّهة إلى أي مكان آخر.",
+    "editStation": "تعديل المحطة",
+    "effective": "الآن",
+    "inheritCategory": "وراثة (الفئة)",
+    "inheritsStation": "يرث {{station}}",
+    "mode": {
+      "auto": "تلقائي",
+      "both": "كلاهما",
+      "kds": "شاشات المطبخ",
+      "off": "إيقاف (بدون مطبخ)",
+      "till": "طابور الكاشير"
+    },
+    "modeUpdated": "تم تحديث وضع التوجيه",
+    "newStation": "محطة جديدة",
+    "noCategories": "لا توجد فئات للتوجيه بعد.",
+    "noInheritedStation": "لا توجد محطة للفئة",
+    "noItems": "لا توجد أصناف مطابقة",
+    "noStations": "لا توجد محطات بعد",
+    "noStationsForRouting": "أنشئ محطة أولاً",
+    "noStationsForRoutingHint": "أضف محطات المطبخ من تبويب المحطات، ثم وجّه الفئات إليها.",
+    "noStationsHint": "أضف محطات مثل الشواية أو البار، ثم وجّه الأصناف إليها.",
+    "overridden": "مُتجاوَز",
+    "pickBranch": "اختر فرعاً من الشريط العلوي لإدارة مطبخه",
+    "routingMode": "أين تظهر التذاكر",
+    "routingModeHint": "تلقائي = شاشات المطبخ إن وُجدت محطات، وإلا الكاشير.",
+    "routingSubtitle": "وجّه كل فئة من القائمة إلى محطة مطبخ. ترث الأصناف فئتها ما لم يتم تجاوزها.",
+    "routingTitle": "توجيه الطلبات",
+    "stationCreated": "تم إنشاء المحطة",
+    "stationDeleted": "تم حذف المحطة",
+    "stationName": "الاسم",
+    "stationSubtitle": "منطقة مطبخ (شواية، بار…) تعرض وتطبع الأصناف الموجَّهة إليها.",
+    "stationUpdated": "تم تحديث المحطة",
+    "stationsSubtitle": "مناطق المطبخ المزوّدة بطابعات؛ وجّه أصناف القائمة إليها من تبويب توجيه الطلبات.",
+    "stationsTitle": "محطات المطبخ",
+    "unassigned": "افتراضي / غير معيّن"
+  },
+  "tills": {
+    "created": "تم إنشاء الدرج",
+    "default": "افتراضي",
+    "deleted": "تم حذف الدرج",
+    "editTill": "تعديل الدرج",
+    "empty": "لا توجد أدراج بعد",
+    "emptyHint": "لكل فرع درج افتراضي؛ أضف المزيد لتعدد نقاط البيع.",
+    "isDefault": "الدرج الافتراضي",
+    "isDefaultHint": "يُستخدم عند فتح وردية دون تحديد درج.",
+    "name": "الاسم",
+    "newTill": "درج جديد",
+    "pageSubtitle": "أدراج النقد / نقاط البيع لهذا الفرع. تعمل كل وردية مفتوحة على درج واحد.",
+    "pickBranch": "اختر فرعاً من الشريط العلوي لإدارة أدراجه",
+    "subtitle": "أدراج النقد المادية / نقاط البيع لهذا الفرع.",
+    "title": "الأدراج",
+    "updated": "تم تحديث الدرج"
   }
 }

@@ -56,12 +56,12 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg" className="px-2 hover:bg-transparent active:bg-transparent">
-              <Link to="/" search={keepScope} onClick={close} aria-label={t("app.name", "Sufrix")}>
+              <Link to="/" search={keepScope} onClick={close} aria-label={t("app.name", "Madar")}>
                 {/* The real wordmark (navy + terracotta dot). Goes monochrome
                     white on the navy rail in dark mode. */}
                 <img
-                  src={i18n.dir() === "rtl" ? "/sufrix_ar.svg" : "/sufrix.svg"}
-                  alt={t("app.name", "Sufrix")}
+                  src={i18n.dir() === "rtl" ? "/madar_ar.svg" : "/madar.svg"}
+                  alt={t("app.name", "Madar")}
                   className="h-7 w-auto dark:brightness-0 dark:invert"
                   draggable={false}
                 />
@@ -77,7 +77,7 @@ export function AppSidebar() {
           if (entries.length === 0) return null;
           return (
             <SidebarGroup key={group.labelKey}>
-              <SidebarGroupLabel className="text-sidebar-foreground/45">{t(group.labelKey, group.fallback)}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-sidebar-foreground/70">{t(group.labelKey, group.fallback)}</SidebarGroupLabel>
               <SidebarMenu>
                 {entries.map((entry) => {
                   if (isParent(entry)) {
@@ -99,7 +99,7 @@ export function AppSidebar() {
                             >
                               <entry.icon />
                               <span>{t(entry.labelKey, entry.fallback)}</span>
-                              <ChevronRight className="ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180 rtl:group-data-[state=open]/collapsible:-rotate-90" />
+                              <ChevronRight className="ms-auto transition-transform duration-200 motion-reduce:transition-none group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180 rtl:group-data-[state=open]/collapsible:-rotate-90" />
                             </SidebarMenuButton>
                           </CollapsibleTrigger>
                           <CollapsibleContent>

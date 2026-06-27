@@ -97,7 +97,7 @@ export function ImageUploader({
           <>
             <img src={value} alt="" className="size-full object-cover" draggable={false} />
             {!disabled ? (
-              <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/0 opacity-0 transition-colors hover:bg-black/40 hover:opacity-100">
+              <div className="absolute inset-0 flex items-center justify-center gap-1 bg-foreground/0 opacity-0 transition-colors hover:bg-foreground/40 hover:opacity-100">
                 <Button
                   type="button"
                   size="icon-sm"

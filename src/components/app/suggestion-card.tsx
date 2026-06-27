@@ -40,7 +40,7 @@ export function SuggestionCard({ title, subtitle, tags = [], content, onAccept, 
             <CardTitle className="flex flex-wrap items-center gap-2 text-base">
               {title}
               {tags.map((tg, i) => (
-                <Badge key={i} variant="outline" className={cn("px-1.5 py-0 text-[10px] uppercase tracking-wider", tg.className)}>{tg.label}</Badge>
+                <Badge key={i} variant="outline" className={cn("px-1.5 py-0 text-xs font-medium", tg.className)}>{tg.label}</Badge>
               ))}
             </CardTitle>
             {subtitle ? <CardDescription>{subtitle}</CardDescription> : null}

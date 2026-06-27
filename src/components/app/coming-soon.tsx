@@ -14,7 +14,7 @@ export function ComingSoon({ title, description }: { title: string; description?
         title={t("common.comingSoon", "Coming soon")}
         description={t(
           "common.comingSoonDesc",
-          "This screen is being rebuilt as part of the new Sufrix experience.",
+          "This screen is being rebuilt as part of the new Madar experience.",
         )}
       />
     </Page>

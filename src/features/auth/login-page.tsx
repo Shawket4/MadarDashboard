@@ -23,7 +23,7 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useLogin } from "@/data/api/generated/api";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { getErrorMessage } from "@/data/api/errors";
-import { fadeInUp, staggerContainer } from "@/lib/motion";
+import { fadeInUp, riseIn, staggerContainer } from "@/lib/motion";
 
 type LoginValues = { email: string; password: string };
 
@@ -78,19 +78,19 @@ export function LoginPage() {
         <motion.div
           initial="hidden"
           animate="show"
-          variants={staggerContainer(0.08)}
+          variants={staggerContainer(0.14, 0.05)}
           className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16"
         >
-          <motion.div variants={fadeInUp} className="flex items-center gap-3">
+          <motion.div variants={riseIn} className="flex items-center gap-3">
             <img src="/Icon.svg" alt="" className="size-11 rounded-xl" draggable={false} />
             <div className="leading-tight">
-              <p className="text-xl font-semibold">{t("app.name", "Sufrix")}</p>
+              <p className="text-xl font-semibold">{t("app.name", "Madar")}</p>
               <p className="text-sm text-primary-foreground/60">{t("app.tagline", "Coffee Shop Management")}</p>
             </div>
           </motion.div>
 
-          <motion.div variants={fadeInUp} className="max-w-md space-y-4">
-            <h1 className="text-4xl font-bold leading-tight tracking-tight xl:text-5xl">
+          <motion.div variants={riseIn} className="max-w-md space-y-4">
+            <h1 className="font-serif text-4xl font-bold leading-tight tracking-tight xl:text-5xl">
               {t("auth.welcome", "Welcome back")}
             </h1>
             <p className="text-base text-primary-foreground/70">
@@ -99,7 +99,7 @@ export function LoginPage() {
             <ul className="space-y-3 pt-4">
               {FEATURES.map(({ icon: Icon, key, descKey }) => (
                 <li key={key} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
+                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10">
                     <Icon className="size-4" />
                   </span>
                   <div>
@@ -111,8 +111,8 @@ export function LoginPage() {
             </ul>
           </motion.div>
 
-          <motion.p variants={fadeInUp} className="text-xs text-primary-foreground/50">
-            {t("common.copyright", { year, defaultValue: `© ${year} Sufrix` })}
+          <motion.p variants={riseIn} className="text-xs text-primary-foreground/50">
+            {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
           </motion.p>
         </motion.div>
       </aside>
@@ -132,8 +132,8 @@ export function LoginPage() {
         >
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-start">
             <img
-              src={isAr ? "/sufrix_ar.svg" : "/sufrix.svg"}
-              alt={t("app.name", "Sufrix")}
+              src={isAr ? "/madar_ar.svg" : "/madar.svg"}
+              alt={t("app.name", "Madar")}
               className="mb-6 h-9 w-auto select-none dark:brightness-0 dark:invert"
               draggable={false}
             />
@@ -152,7 +152,7 @@ export function LoginPage() {
                   <FormItem>
                     <FormLabel>{t("auth.email", "Email address")}</FormLabel>
                     <FormControl>
-                      <Input type="email" autoComplete="email" placeholder="you@sufrix.com" {...field} />
+                      <Input type="email" autoComplete="email" placeholder={t("auth.emailPlaceholder", "you@madar.com")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -176,7 +176,7 @@ export function LoginPage() {
                         <button
                           type="button"
                           onClick={() => setShowPw((s) => !s)}
-                          className="absolute end-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+                          className="absolute end-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
                           aria-label={showPw ? t("auth.hidePassword", "Hide password") : t("auth.showPassword", "Show password")}
                         >
                           {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -188,14 +188,14 @@ export function LoginPage() {
                 )}
               />
               <Button type="submit" loading={isPending} className="h-11 w-full text-base">
-                <LogIn className="size-4" />
+                <LogIn className="size-4 rtl:-scale-x-100" />
                 {t("auth.signIn", "Sign in")}
               </Button>
             </form>
           </Form>
 
           <p className="mt-8 text-center text-xs text-muted-foreground">
-            {t("common.copyright", { year, defaultValue: `© ${year} Sufrix` })}
+            {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
           </p>
         </motion.div>
       </main>

@@ -30,7 +30,7 @@ export function ConfirmationStep({ order, estimatedTotal, onNewOrder }: Confirma
         initial={{ scale: 0, rotate: -20 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={spring}
-        className="mb-4 flex size-20 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+        className="mb-4 flex size-20 items-center justify-center rounded-full bg-success/15 text-success"
       >
         <CheckCircle2 className="size-10" />
       </motion.span>
@@ -64,7 +64,7 @@ export function ConfirmationStep({ order, estimatedTotal, onNewOrder }: Confirma
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-3 flex w-full items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2.5 text-start text-sm text-amber-700 dark:text-amber-400"
+          className="mt-3 flex w-full items-start gap-2.5 rounded-xl border border-warning/30 bg-warning/10 px-3.5 py-2.5 text-start text-sm text-warning-foreground"
         >
           <Info className="mt-0.5 size-4 shrink-0" />
           <div>

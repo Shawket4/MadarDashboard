@@ -393,7 +393,7 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                           </FormItem>
                         )}
                       />
-                      <Button type="button" variant="ghost" size="icon-sm" className="mt-6 text-destructive" onClick={() => remove(idx)}>
+                      <Button type="button" variant="ghost" size="icon-sm" className="mt-6 text-destructive" aria-label={t("menu.removeSize", "Remove size")} onClick={() => remove(idx)}>
                         <Trash2 className="size-4" />
                       </Button>
                     </div>
@@ -459,12 +459,12 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                   <div className="border-b p-2">
                     <div className="relative">
                       <Search className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                      <input
+                      <Input
                         type="search"
                         value={addonSearch}
                         onChange={(e) => setAddonSearch(e.target.value)}
                         placeholder={t("menu.searchAddons", "Search addons…")}
-                        className="w-full rounded-md border border-input bg-background py-1.5 ps-8 pe-3 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                        className="h-auto py-1.5 ps-8 pe-3 text-xs"
                       />
                     </div>
                   </div>
@@ -477,7 +477,6 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                     ) : (
                       addonGroups.map(({ type, items }) => {
                         const allGroupSelected = items.every((a) => allowedIds.has(a.id));
-                        const someGroupSelected = !allGroupSelected && items.some((a) => allowedIds.has(a.id));
                         return (
                           <div key={type}>
                             {/* Group header */}
@@ -489,12 +488,10 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                               <button
                                 type="button"
                                 onClick={() => toggleGroup(items)}
-                                className="text-xs text-primary hover:underline"
+                                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 rounded"
                               >
                                 {allGroupSelected
                                   ? t("common.deselectAll", "Deselect all")
-                                  : someGroupSelected
-                                  ? t("common.selectAll", "Select all")
                                   : t("common.selectAll", "Select all")}
                               </button>
                             </div>
@@ -514,10 +511,10 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                                         return next;
                                       })
                                     }
-                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 ${
                                       active
-                                        ? "border-primary bg-primary/10 text-primary"
-                                        : "border-border/70 hover:border-primary/40"
+                                        ? "border-border bg-accent text-foreground"
+                                        : "border-border/70 text-muted-foreground hover:border-border hover:text-foreground"
                                     }`}
                                   >
                                     {a.name}

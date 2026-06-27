@@ -258,7 +258,7 @@ export function RecipeBuilder({
               {/* cost + margin summary cluster */}
               <div className="flex items-center gap-4 text-end">
                 <div className="leading-tight">
-                  <p className="text-[0.6875rem] uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     {t("recipes.builder.estimate", "Cost")}
                   </p>
                   <p className="text-sm font-semibold tabular text-foreground">
@@ -267,7 +267,7 @@ export function RecipeBuilder({
                 </div>
                 {marginPct !== null ? (
                   <div className="leading-tight">
-                    <p className="text-[0.6875rem] uppercase tracking-wide text-muted-foreground">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       {t("recipes.builder.margin", "Margin")}
                     </p>
                     <p className={cn(
@@ -337,6 +337,7 @@ export function RecipeBuilder({
                       variant="ghost"
                       size="icon-sm"
                       className="text-destructive"
+                      aria-label={t("recipes.builder.removeIngredient", "Remove ingredient")}
                       onClick={() => remove(row._index)}
                     >
                       <Trash2 className="size-4" />
@@ -349,7 +350,7 @@ export function RecipeBuilder({
               <button
                 type="button"
                 onClick={() => addRow(size)}
-                className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-brand hover:text-brand"
+                className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-brand hover:text-brand focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
                 <Plus className="size-4" />
                 {t("recipes.addIngredient", "Add ingredient")}

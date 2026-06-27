@@ -44,13 +44,13 @@ export function PaymentMethodsPage() {
         accessorKey: "name", header: t("common.name", "Name"),
         cell: ({ row }) => {
           const Icon = iconFor(row.original.icon);
-          const color = row.original.color?.startsWith("#") ? row.original.color : "#3B82F6";
+          const color = row.original.color?.startsWith("#") ? row.original.color : "var(--chart-3)";
           return (
             <div className="flex items-center gap-3">
               <span className="grid size-8 shrink-0 place-items-center rounded-full text-white" style={{ backgroundColor: color }}><Icon className="size-3.5" /></span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{label(row.original)}</p>
-                {isSystemMethod(row.original) ? <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("settings.pm.system", "System")}</p> : null}
+                {isSystemMethod(row.original) ? <p className="text-xs text-muted-foreground">{t("settings.pm.system", "System")}</p> : null}
               </div>
             </div>
           );
@@ -59,7 +59,21 @@ export function PaymentMethodsPage() {
       { accessorKey: "is_cash", header: t("common.type", "Type"), cell: ({ row }) => <Badge variant={row.original.is_cash ? "outline" : "secondary"} className={row.original.is_cash ? "border-transparent bg-success/15 text-success" : ""}>{row.original.is_cash ? t("settings.pm.cashBase", "Cash") : t("settings.pm.nonCash", "Non-cash")}</Badge> },
       {
         accessorKey: "is_active", header: t("common.status", "Status"),
-        cell: ({ row }) => <div onClick={(e) => e.stopPropagation()}><Switch checked={row.original.is_active} onCheckedChange={() => void toggle(row.original)} /></div>,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            <Switch checked={row.original.is_active} onCheckedChange={() => void toggle(row.original)} />
+            <Badge
+              variant="outline"
+              className={row.original.is_active
+                ? "border-transparent bg-success/15 text-success"
+                : "border-transparent bg-muted text-muted-foreground"}
+            >
+              {row.original.is_active
+                ? t("common.active", "Active")
+                : t("common.inactive", "Inactive")}
+            </Badge>
+          </div>
+        ),
       },
       {
         id: "actions", header: "",
@@ -81,7 +95,7 @@ export function PaymentMethodsPage() {
       { header: t("common.type", "Type"), accessor: (m) => (m.is_cash ? t("settings.pm.cashBase", "Cash") : t("settings.pm.nonCash", "Non-cash")), type: "text", width: 14 },
       { header: t("common.status", "Status"), accessor: (m) => (m.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
-    void exportToExcel({ filename: "Sufrix-PaymentMethods", sheets: [{ name: t("settings.paymentMethods", "Payment Methods"), title: t("settings.paymentMethods", "Payment Methods"), rows: methods as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    void exportToExcel({ filename: "Madar-PaymentMethods", sheets: [{ name: t("settings.paymentMethods", "Payment Methods"), title: t("settings.paymentMethods", "Payment Methods"), rows: methods as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
   if (!orgId) return <Page><PageHeader title={t("settings.paymentMethods", "Payment Methods")} /><EmptyState icon={CreditCard} title={t("users.pickOrg", "Select an organization")} /></Page>;

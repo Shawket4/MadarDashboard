@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowLeftRight, ArrowRight, MoreHorizontal, PlusCircle, Trash2 } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, MoreHorizontal, PlusCircle, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page } from "@/components/app/page";
@@ -58,10 +58,10 @@ export function TransfersPage() {
 
   const onReverse = async (tr: BranchInventoryTransfer) => {
     if (await confirm({
-      title: t("common.delete", "Delete"),
-      description: t("inventory.transfers.deleteConfirm", "Reverse and delete this transfer?"),
+      title: t("inventory.transfers.reverseTitle", "Reverse transfer"),
+      description: t("inventory.transfers.reverseConfirm", "Reverse this transfer with a compensating entry?"),
       destructive: true,
-      confirmLabel: t("common.delete", "Delete"),
+      confirmLabel: t("inventory.transfers.reverseTitle", "Reverse transfer"),
     })) {
       try {
         await deleteTransfer(tr.id);
@@ -136,8 +136,8 @@ export function TransfersPage() {
                   className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                   onClick={() => void onReverse(row.original)}
                 >
-                  <Trash2 className="size-4" />
-                  {t("common.delete", "Delete")}
+                  <RotateCcw className="size-4" />
+                  {t("inventory.transfers.reverseTitle", "Reverse transfer")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -161,7 +161,7 @@ export function TransfersPage() {
       { header: t("inventory.transfers.by", "By"), accessor: (tr) => tr.initiated_by_name ?? "—", type: "text", width: 18 },
       { header: t("inventory.transfers.note", "Note"), accessor: (tr) => tr.note ?? "", type: "text", width: 30 },
     ];
-    void exportToExcel({ filename: "Sufrix-Transfers", sheets: [{ name: t("inventory.transfers.title", "Transfers"), title: t("inventory.transfers.title", "Transfers"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    void exportToExcel({ filename: "Madar-Transfers", sheets: [{ name: t("inventory.transfers.title", "Transfers"), title: t("inventory.transfers.title", "Transfers"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
   return (

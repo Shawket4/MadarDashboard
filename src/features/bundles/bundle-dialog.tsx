@@ -188,8 +188,8 @@ export function BundleDialog({ orgId, bundle, open, onOpenChange }: Props) {
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("bundles.availability", "Availability")}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {MODES.map(({ key, label, icon: Icon }) => (
-                    <button key={key} type="button" onClick={() => setAvailMode(key)}
-                      className={cn("flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors", availMode === key ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background text-muted-foreground hover:text-foreground")}>
+                    <button key={key} type="button" onClick={() => setAvailMode(key)} aria-pressed={availMode === key}
+                      className={cn("flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring", availMode === key ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background text-muted-foreground hover:text-foreground")}>
                       <Icon className="size-3" /> {label}
                     </button>
                   ))}

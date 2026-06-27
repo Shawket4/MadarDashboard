@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { MapPin, Pencil, Plus, Store, Trash2 } from "lucide-react";
+import { CheckCircle, MapPin, Pencil, Plus, Store, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page } from "@/components/app/page";
@@ -107,10 +107,14 @@ export function ZonesPage() {
         cell: ({ row }) =>
           row.original.is_active ? (
             <Badge variant="outline" className="border-transparent bg-success/15 text-success">
+              <CheckCircle className="size-3" />
               {t("common.active", "Active")}
             </Badge>
           ) : (
-            <Badge variant="outline">{t("common.inactive", "Inactive")}</Badge>
+            <Badge variant="outline">
+              <XCircle className="size-3" />
+              {t("common.inactive", "Inactive")}
+            </Badge>
           ),
       },
       {

@@ -73,6 +73,7 @@ function OrderCard({ order }: { order: OrderHistorySummary }) {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "Africa/Cairo",
   });
 
   const destination = (() => {
@@ -80,7 +81,7 @@ function OrderCard({ order }: { order: OrderHistorySummary }) {
     const parts = [
       order.place_name,
       (order as unknown as Record<string, string | null>).floor
-        ? `Fl. ${(order as unknown as Record<string, string | null>).floor}`
+        ? `${t("order.location.floorAbbrev", "Fl.")} ${(order as unknown as Record<string, string | null>).floor}`
         : null,
       (order as unknown as Record<string, string | null>).unit_number,
     ].filter(Boolean);
@@ -105,7 +106,7 @@ function OrderCard({ order }: { order: OrderHistorySummary }) {
         <span
           className={cn(
             "mt-0.5 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium",
-            tone === "ok" && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+            tone === "ok" && "bg-success/10 text-success",
             tone === "warn" && "bg-destructive/10 text-destructive",
             tone === "neutral" && "bg-muted text-muted-foreground",
           )}
@@ -136,7 +137,7 @@ function OrderCard({ order }: { order: OrderHistorySummary }) {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex w-full items-center justify-between px-4 py-3 text-left"
+          className="flex w-full items-center justify-between px-4 py-3 text-start focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
           aria-expanded={expanded}
         >
           <span className="font-serif text-base font-semibold tabular-nums text-foreground">
@@ -165,7 +166,7 @@ function OrderCard({ order }: { order: OrderHistorySummary }) {
                 </div>
               )}
               {hasDiscount && (
-                <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+                <div className="flex justify-between text-success">
                   <span>{t("cart.discount", "Discount")}</span>
                   <span className="tabular-nums">−{fmtMoney(order.discount_amount)}</span>
                 </div>
@@ -194,7 +195,7 @@ function OrderCard({ order }: { order: OrderHistorySummary }) {
               href={`/track/${order.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-brand/30 px-3 py-2 text-sm font-medium text-brand hover:bg-brand/5 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-brand/30 px-3 py-2 text-sm font-medium text-brand transition-colors hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
               {t("order.history.track", "Track this order")}
               <ExternalLink className="size-3.5" />

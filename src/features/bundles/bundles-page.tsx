@@ -165,7 +165,7 @@ export function BundlesPage() {
         { header: t("bundles.components", "Items"), accessor: (b) => b.components.map((c) => `${c.item_name} (x${c.quantity})`).join(", "), type: "text", width: 40 },
         { header: t("common.status", "Status"), accessor: (b) => t(`bundles.status.${b.status}`, b.status), type: "text", width: 12 },
       ];
-      await exportToExcel({ filename: "Sufrix-Bundles", sheets: [{ name: t("bundles.title", "Bundles"), title: t("bundles.title", "Bundles"), rows: all.data as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      await exportToExcel({ filename: "Madar-Bundles", sheets: [{ name: t("bundles.title", "Bundles"), title: t("bundles.title", "Bundles"), rows: all.data as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       onErr(e);
     }
@@ -185,10 +185,10 @@ export function BundlesPage() {
 
       <LedgerStrip
         items={[
-          { key: "total", label: t("common.total", "Total"), value: totalCount, loading: activeCount.isLoading },
+          { key: "total", label: t("common.total", "Total"), value: totalCount, accent: "primary", loading: activeCount.isLoading },
           { key: "active", label: t("bundles.status.active", "Active"), value: counts.active, accent: "success", loading: activeCount.isLoading },
           { key: "draft", label: t("bundles.status.draft", "Draft"), value: counts.draft, accent: "info", loading: draftCount.isLoading },
-          { key: "archived", label: t("bundles.status.archived", "Archived"), value: counts.archived, loading: archivedCount.isLoading },
+          { key: "archived", label: t("bundles.status.archived", "Archived"), value: counts.archived, accent: "neutral", loading: archivedCount.isLoading },
         ] satisfies LedgerItem[]}
       />
 

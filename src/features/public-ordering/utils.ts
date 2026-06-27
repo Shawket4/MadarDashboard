@@ -82,7 +82,7 @@ export const normalizePhone = (raw: string): string => {
 export const isValidPhone = (raw: string): boolean =>
   /^201\d{9}$/.test(normalizePhone(raw));
 
-const DEVICE_KEY_PREFIX = "sufrix_delivery_device:";
+const DEVICE_KEY_PREFIX = "madar_delivery_device:";
 
 /** Read the stored device token for a phone (skips OTP when present). */
 export const getDeviceToken = (phone: string): string | null => {
@@ -102,7 +102,7 @@ export const setDeviceToken = (phone: string, token: string): void => {
   }
 };
 
-const GUEST_PHONE_KEY_PREFIX = "sufrix_guest_phone:";
+const GUEST_PHONE_KEY_PREFIX = "madar_guest_phone:";
 
 /** Recall the last phone used for this org (pre-fills the phone step). */
 export const getGuestPhone = (orgId: string): string | null => {

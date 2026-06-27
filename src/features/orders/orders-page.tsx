@@ -138,7 +138,7 @@ export function OrdersPage() {
           <span className="flex items-center gap-1.5 font-medium tabular">
             {row.original.order_ref ?? `#${row.original.order_number}`}
             {row.original.order_type === "delivery" ? (
-              <Badge variant="secondary" className="gap-1 bg-primary/10 px-1.5 py-0 text-[10px] text-primary">
+              <Badge variant="secondary" className="gap-1 bg-primary/10 px-1.5 py-0 text-xs text-primary">
                 <Truck className="size-3" />
                 {row.original.delivery_channel === "in_mall"
                   ? t("delivery.channelInMall", "In-mall")

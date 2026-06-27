@@ -1,5 +1,6 @@
 import { useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import {
@@ -7,10 +8,13 @@ import {
   Check,
   ChefHat,
   Clock,
+  Languages,
   Loader2,
   MapPin,
+  Moon,
   PackageCheck,
   ShoppingBag,
+  Sun,
   Truck,
   Wallet,
   XCircle,
@@ -20,7 +24,8 @@ import { useTrackDeliveryOrder } from "@/data/api/generated/api";
 import type { DeliveryTracking } from "@/data/api/generated/models/deliveryTracking";
 import { Button } from "@/components/ui/button";
 import { fmtMoney } from "@/lib/format";
-import { fadeInUp, spring } from "@/lib/motion";
+import { listItem, riseIn, spring, staggerContainer } from "@/lib/motion";
+import i18n from "@/i18n";
 
 import { Totals } from "../public-ordering/components/cart-sheet";
 import { useOrderTheme } from "../public-ordering/use-order-theme";
@@ -72,8 +77,8 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
   if (isLoading) {
     return (
       <Shell>
-        <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-          <Loader2 className="size-6 animate-spin" />
+        <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground" role="status">
+          <Loader2 className="size-6 animate-spin motion-reduce:animate-none" />
           <p className="text-sm">{t("order.track.loading", "Loading your order…")}</p>
         </div>
       </Shell>
@@ -84,8 +89,10 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
     return (
       <Shell>
         <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <XCircle className="size-10 text-muted-foreground" />
-          <h1 className="font-serif text-xl">{t("order.track.notFoundTitle", "Order not found")}</h1>
+          <XCircle className="size-12 text-destructive" />
+          <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
+            {t("order.track.notFoundTitle", "Order not found")}
+          </h1>
           <p className="max-w-sm text-sm text-muted-foreground">
             {t("order.track.notFoundBody", "We couldn't find this order. The link may be incorrect or the order may have been removed.")}
           </p>
@@ -102,9 +109,9 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
 
   return (
     <Shell>
-      <motion.div variants={fadeInUp} initial="hidden" animate="show" className="space-y-5">
+      <motion.div variants={staggerContainer(0.06)} initial="hidden" animate="show" className="space-y-5">
         {/* Headline + ref */}
-        <div className="text-center">
+        <motion.div variants={riseIn} className="text-center">
           <motion.span
             initial={{ scale: 0, rotate: -20 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -135,16 +142,16 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
               {order.delivery_ref}
             </p>
           )}
-        </div>
+        </motion.div>
 
         {/* Cancelled / rejected banner, or the live timeline */}
         {cancelled ? (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-5 text-center text-destructive">
+          <motion.div variants={listItem} className="rounded-2xl border border-destructive/30 bg-destructive/10 p-5 text-center text-destructive">
             <p className="font-semibold">{t("order.track.cancelledTitle", "This order was cancelled")}</p>
             {order.cancel_reason && <p className="mt-1 text-sm opacity-90">{order.cancel_reason}</p>}
-          </div>
+          </motion.div>
         ) : (
-          <ol className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
+          <motion.ol variants={listItem} className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
             {STEPS.map((stepDef, idx) => {
               const done = currentIdx >= 0 && idx <= currentIdx;
               const active = idx === currentIdx;
@@ -172,13 +179,13 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
                 </li>
               );
             })}
-          </ol>
+          </motion.ol>
         )}
 
         {/* Items */}
         {(order as DeliveryTracking & { items?: { name: string; quantity: number }[] }).items && (
-          <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
-            <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <motion.div variants={listItem} className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
+            <p className="mb-3 text-sm font-semibold text-foreground">
               {t("order.track.items", "Your order")}
             </p>
             <ul className="space-y-1.5">
@@ -191,65 +198,134 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
                 ),
               )}
             </ul>
-          </div>
+          </motion.div>
         )}
 
         {/* Totals */}
-        <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
+        <motion.div variants={listItem} className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
           <Totals
             subtotal={order.subtotal}
             deliveryFee={order.delivery_fee}
             total={order.total}
             discount={order.discount_amount}
           />
-        </div>
+        </motion.div>
 
         {priceChanged && estimate != null && (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+          <motion.div variants={listItem} className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
             <p className="font-semibold">{t("order.done.priceUpdatedTitle", "Final price updated")}</p>
             <p className="text-xs opacity-90">
               {t("order.done.wasNow", { old: fmtMoney(estimate), new: fmtMoney(order.total), defaultValue: "Was {{old}}, now {{new}}" })}
             </p>
-          </div>
+          </motion.div>
         )}
 
         {/* Destination + payment */}
-        <div className="rounded-2xl border border-border/70 bg-card p-5 text-start shadow-sm">
+        <motion.div variants={listItem} className="rounded-2xl border border-border/70 bg-card p-5 text-start shadow-sm">
           <p className="flex items-center gap-2 text-sm font-medium text-foreground">
             <MapPin className="size-4 text-brand" />
             {t(`order.track.channel.${order.channel}`, order.channel === "outside" ? "Delivery" : "In-mall")}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">{destination(order)}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{destination(order, t)}</p>
           {order.payment_method_hint && (
             <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
               <Wallet className="size-4" />
               {t(`order.track.pay.${order.payment_method_hint}`, order.payment_method_hint === "card" ? "Card on delivery" : "Cash on delivery")}
             </p>
           )}
-        </div>
+        </motion.div>
 
-        <Button asChild variant="outline" size="lg" className="w-full">
-          <Link to="/order/$orgId" params={{ orgId: order.org_id }}>
-            {t("order.track.orderAgain", "Order again")}
-          </Link>
-        </Button>
+        <motion.div variants={listItem}>
+          <Button asChild variant="outline" size="lg" className="w-full">
+            <Link to="/order/$orgId" params={{ orgId: order.org_id }}>
+              {t("order.track.orderAgain", "Order again")}
+            </Link>
+          </Button>
+        </motion.div>
       </motion.div>
     </Shell>
   );
 }
 
-/** Centered, storefront-styled page frame matching the ordering flow's width. */
-function Shell({ children }: { children: React.ReactNode }) {
+/** A circular, bordered header icon button — matches the ordering flow's chrome. */
+function HeaderIcon({
+  onClick,
+  label,
+  children,
+}: {
+  onClick?: () => void;
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="min-h-dvh bg-background px-4 py-8">
-      <div className="mx-auto w-full max-w-[480px]">{children}</div>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-card text-foreground transition-colors hover:bg-muted motion-reduce:transition-none"
+    >
+      {children}
+    </button>
+  );
+}
+
+/**
+ * Storefront-styled brand chrome matching the ordering flow's StepShell: a
+ * sticky header carrying the theme/language toggles and a footer with the
+ * Madar mark, wrapping a focused mobile-width column.
+ */
+function Shell({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
+  const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  const toggleLang = () => void i18n.changeLanguage(lang.startsWith("ar") ? "en" : "ar");
+  const mode = useOrderTheme((s) => s.mode);
+  const toggleTheme = useOrderTheme((s) => s.toggle);
+
+  return (
+    <div className="relative flex min-h-[100dvh] flex-col bg-background text-foreground">
+      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-[480px] items-center gap-2 px-4 py-3">
+          <span aria-hidden className="size-9 shrink-0" />
+          <span aria-hidden className="flex-1" />
+          <HeaderIcon onClick={toggleTheme} label={t("order.theme")}>
+            {mode === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </HeaderIcon>
+          <HeaderIcon onClick={toggleLang} label={t("order.language")}>
+            <Languages className="size-4" />
+          </HeaderIcon>
+        </div>
+      </header>
+
+      <main className="relative z-10 mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-10 pt-5">
+        <div className="flex-1">{children}</div>
+
+        <footer className="mt-12 flex flex-col items-center gap-2 border-t border-border/60 pt-6 text-center">
+          <img
+            src={lang.startsWith("ar") ? "/madar_ar.svg" : "/madar.svg"}
+            alt={t("app.name")}
+            className="h-6 opacity-80 dark:brightness-0 dark:invert"
+          />
+          <p className="text-xs text-muted-foreground">{t("order.footer.poweredBy")}</p>
+          <p className="text-[11px] text-muted-foreground/70">
+            {t("order.footer.rights", {
+              year: new Date().getFullYear(),
+              name: t("app.name"),
+              defaultValue: "© {{year}} {{name}}. All rights reserved.",
+            })}
+          </p>
+        </footer>
+      </main>
     </div>
   );
 }
 
-function destination(o: DeliveryTracking): string {
+function destination(o: DeliveryTracking, t: TFunction): string {
   if (o.channel === "outside") return o.address_line || "—";
-  return [o.place_name, o.floor && `Floor ${o.floor}`, o.unit_number]
+  return [
+    o.place_name,
+    o.floor && t("order.track.floor", { floor: o.floor, defaultValue: "Floor {{floor}}" }),
+    o.unit_number,
+  ]
     .filter(Boolean)
     .join(" · ");
 }

@@ -41,6 +41,7 @@ interface Props {
 export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  const side = i18n.dir() === "rtl" ? "left" : "right";
 
   const role = useAuthStore((s) => s.user?.role);
   const userOrgId = useAuthStore((s) => s.user?.org_id);
@@ -100,7 +101,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent showCloseButton={false} className="w-full gap-0 overflow-y-auto p-0 sm:max-w-md">
+      <SheetContent side={side} showCloseButton={false} className="w-full gap-0 overflow-y-auto p-0 sm:max-w-md">
         <SheetHeader className="sticky top-0 z-10 flex-row items-center justify-between gap-2 border-b bg-background">
           <div className="min-w-0">
             <SheetTitle className="flex items-center gap-2">
@@ -177,9 +178,9 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
               {delivery ? (
                 <Card className="border-primary/20 bg-primary/[0.03] py-0">
                   <CardContent className="space-y-2 p-4 text-sm">
-                    <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                    <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       {t("orders.deliveryInfo", "Delivery")}
-                      <Badge variant="secondary" className="bg-primary/10 text-primary">
+                      <Badge variant="secondary" className="bg-muted text-muted-foreground">
                         {channelLabel(delivery.channel)}
                       </Badge>
                     </p>
@@ -236,7 +237,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                                 {getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, lang)}
                                 {it.size_label ? <span className="text-muted-foreground">({it.size_label})</span> : null}
                                 {it.bundle_id ? (
-                                  <Badge className="px-1 py-0 text-[10px] uppercase">{t("orders.combo", "Combo")}</Badge>
+                                  <Badge className="px-1 py-0 text-xs uppercase">{t("orders.combo", "Combo")}</Badge>
                                 ) : null}
                               </p>
                               <p className="text-xs text-muted-foreground tabular">
@@ -310,7 +311,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
 
                           {deductions.length > 0 ? (
                             <details className="mt-2 border-t pt-1 text-xs text-muted-foreground">
-                              <summary className="cursor-pointer py-0.5 font-medium hover:text-foreground">
+                              <summary className="cursor-pointer rounded py-0.5 font-medium hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1">
                                 {t("orders.ingredientsUsed", "Ingredients used")} ({deductions.length})
                               </summary>
                               <div className="mt-2 space-y-0.5 ps-3">
@@ -321,7 +322,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                                       <span>
                                         {d.ingredient_name}: {Number(d.quantity).toFixed(3)} {fmtUnit(d.unit)}
                                       </span>
-                                      {dcost != null ? <span className="text-foreground/70">{fmtMoney(dcost)}</span> : null}
+                                      {dcost != null ? <span className="text-muted-foreground">{fmtMoney(dcost)}</span> : null}
                                     </p>
                                   );
                                 })}

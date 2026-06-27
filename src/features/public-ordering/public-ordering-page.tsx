@@ -549,7 +549,7 @@ export function PublicOrderingPage({
       <button
         type="button"
         onClick={() => setCartOpen(true)}
-        className="flex w-full items-center justify-between rounded-full bg-foreground px-5 py-3.5 text-background shadow-lg transition-transform active:scale-[0.99]"
+        className="flex w-full items-center justify-between rounded-full bg-foreground px-5 py-3.5 text-background shadow-lg transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
         <span className="inline-flex items-center gap-2.5">
           <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-brand px-2 py-0.5 text-xs font-bold tabular-nums text-brand-foreground">

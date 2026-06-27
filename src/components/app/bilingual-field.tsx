@@ -1,4 +1,5 @@
 import type { Control, FieldValues, Path } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +14,7 @@ interface Props<T extends FieldValues> {
 
 /** Paired English + Arabic inputs for a translatable field. */
 export function BilingualField<T extends FieldValues>({ control, enName, arName, label, textarea }: Props<T>) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <FormField
@@ -37,7 +39,7 @@ export function BilingualField<T extends FieldValues>({ control, enName, arName,
         name={arName}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{label} (ع)</FormLabel>
+            <FormLabel>{t("bilingualField.arabicLabel", { label, defaultValue: "{{label}} (ع)" })}</FormLabel>
             <FormControl>
               {textarea ? (
                 <Textarea dir="rtl" {...field} value={field.value ?? ""} />

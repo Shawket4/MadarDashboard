@@ -6,36 +6,36 @@
 
 /*
  * ─────────────────────────────────────────────────────────────────────────
- * Sufrix design tokens
- * Brand source hues (kept): navy #0A2540 · terracotta #C25B3F ·
- * cream #F4F1EC · leaf #2A4D3E — re-expressed as a full OKLCH semantic system.
+ * Madar design tokens
+ * Brand palette: teal deep #0D6273 (primary) · teal light #2E94A6 · ink #14181E
+ * (text) · paper #EFF3F4 (bg) · slate #76828B (muted) — an OKLCH semantic system.
  * ─────────────────────────────────────────────────────────────────────────
  */
 :root {
   --radius: 0.75rem;
 
   /* Surfaces */
-  --background: oklch(0.985 0.004 85);
-  --foreground: oklch(0.27 0.05 250);
+  --background: oklch(0.961 0.004 214.3);
+  --foreground: oklch(0.208 0.013 258.4);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.27 0.05 250);
+  --card-foreground: oklch(0.208 0.013 258.4);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.27 0.05 250);
+  --popover-foreground: oklch(0.208 0.013 258.4);
 
   /* Brand navy = primary action */
-  --primary: oklch(0.27 0.05 250);
+  --primary: oklch(0.458 0.078 215.8);
   --primary-foreground: oklch(0.985 0.004 85);
 
   /* Subtle neutrals (shadcn semantics) */
-  --secondary: oklch(0.965 0.006 85);
-  --secondary-foreground: oklch(0.27 0.05 250);
-  --muted: oklch(0.965 0.006 85);
-  --muted-foreground: oklch(0.52 0.02 255);
-  --accent: oklch(0.955 0.012 70);
-  --accent-foreground: oklch(0.27 0.05 250);
+  --secondary: oklch(0.944 0.008 207.1);
+  --secondary-foreground: oklch(0.208 0.013 258.4);
+  --muted: oklch(0.944 0.008 207.1);
+  --muted-foreground: oklch(0.490 0.022 231.1);
+  --accent: oklch(0.925 0.014 207.9);
+  --accent-foreground: oklch(0.208 0.013 258.4);
 
   /* Brand terracotta = highlight / CTA accent + focus ring */
-  --brand: oklch(0.58 0.132 38);
+  --brand: oklch(0.617 0.094 211.9);
   --brand-foreground: oklch(0.99 0.004 85);
 
   /* Status */
@@ -44,57 +44,67 @@
   --success: oklch(0.55 0.1 160);
   --success-foreground: oklch(0.99 0.004 85);
   --warning: oklch(0.76 0.15 75);
-  --warning-foreground: oklch(0.27 0.05 250);
+  --warning-foreground: oklch(0.208 0.013 258.4);
   --info: oklch(0.6 0.13 240);
   --info-foreground: oklch(0.99 0.004 85);
 
   /* Lines */
-  --border: oklch(0.91 0.008 80);
-  --input: oklch(0.91 0.008 80);
-  --ring: oklch(0.58 0.132 38);
+  --border: oklch(0.900 0.010 204.9);
+  --input: oklch(0.900 0.010 204.9);
+  --ring: oklch(0.617 0.094 211.9);
 
   /* Charts — brand-led categorical ramp (theme-aware) */
-  --chart-1: oklch(0.58 0.132 38);
+  --chart-1: oklch(0.617 0.094 211.9);
   --chart-2: oklch(0.45 0.07 165);
   --chart-3: oklch(0.5 0.1 250);
   --chart-4: oklch(0.74 0.15 75);
   --chart-5: oklch(0.56 0.13 300);
   --chart-6: oklch(0.65 0.12 200);
 
+  /* Payment-method swatches — semantic, theme-aware categorical hues
+     (cash=green, card=blue, wallet=violet, mixed=amber, talabat=orange pair).
+     Kept distinct from the chart ramp so the two talabat oranges read apart. */
+  --payment-cash: oklch(0.7 0.16 152);
+  --payment-card: oklch(0.55 0.16 258);
+  --payment-digital-wallet: oklch(0.55 0.16 290);
+  --payment-mixed: oklch(0.74 0.14 75);
+  --payment-talabat-online: oklch(0.66 0.17 48);
+  --payment-talabat-cash: oklch(0.5 0.11 48);
+
   /* Sidebar — a light, warm-neutral rail in light mode (one tonal step
      recessed from the linen content), flipping to a deep-navy rail in dark
      mode. Terracotta marks the active item; hover is a quiet warm wash. */
-  --sidebar: oklch(0.972 0.006 80);
-  --sidebar-foreground: oklch(0.32 0.04 255);
+  --sidebar: oklch(0.962 0.005 210);
+  --sidebar-foreground: oklch(0.300 0.015 250);
   /* Active item marked in navy on the light rail (terracotta is the dark-mode marker). */
-  --sidebar-primary: oklch(0.27 0.05 250);
+  --sidebar-primary: oklch(0.458 0.078 215.8);
   --sidebar-primary-foreground: oklch(0.985 0.004 85);
-  --sidebar-accent: oklch(0.95 0.012 70);
-  --sidebar-accent-foreground: oklch(0.27 0.05 250);
-  --sidebar-border: oklch(0.91 0.008 80);
-  --sidebar-ring: oklch(0.58 0.132 38);
+  --sidebar-accent: oklch(0.925 0.014 207.9);
+  --sidebar-accent-foreground: oklch(0.208 0.013 258.4);
+  --sidebar-border: oklch(0.900 0.010 204.9);
+  --sidebar-ring: oklch(0.617 0.094 211.9);
 }
 
 .dark {
-  --background: oklch(0.2 0.03 252);
-  --foreground: oklch(0.95 0.006 85);
-  --card: oklch(0.24 0.035 252);
-  --card-foreground: oklch(0.95 0.006 85);
-  --popover: oklch(0.24 0.035 252);
-  --popover-foreground: oklch(0.95 0.006 85);
+  --background: oklch(0.208 0.013 258.4);
+  --foreground: oklch(0.961 0.004 214.3);
+  --card: oklch(0.245 0.016 252.4);
+  --card-foreground: oklch(0.961 0.004 214.3);
+  --popover: oklch(0.245 0.016 252.4);
+  --popover-foreground: oklch(0.961 0.004 214.3);
 
   /* Terracotta becomes the primary pop in dark mode */
-  --primary: oklch(0.64 0.14 40);
+  --primary: oklch(0.660 0.100 212);
   --primary-foreground: oklch(0.99 0.004 85);
 
-  --secondary: oklch(0.3 0.04 252);
-  --secondary-foreground: oklch(0.95 0.006 85);
-  --muted: oklch(0.3 0.04 252);
-  --muted-foreground: oklch(0.72 0.02 255);
-  --accent: oklch(0.33 0.045 252);
+  --secondary: oklch(0.281 0.019 248.5);
+  --secondary-foreground: oklch(0.961 0.004 214.3);
+  --muted: oklch(0.281 0.019 248.5);
+  --muted-foreground: oklch(0.700 0.020 235);
+  --accent: oklch(0.320 0.025 230);
   --accent-foreground: oklch(0.97 0.005 85);
 
-  --brand: oklch(0.64 0.14 40);
+  --brand: oklch(0.660 0.100 212);
   --brand-foreground: oklch(0.99 0.004 85);
 
   --destructive: oklch(0.62 0.2 27);
@@ -102,29 +112,37 @@
   --success: oklch(0.62 0.11 162);
   --success-foreground: oklch(0.99 0.004 85);
   --warning: oklch(0.78 0.15 78);
-  --warning-foreground: oklch(0.2 0.03 252);
+  --warning-foreground: oklch(0.208 0.013 258.4);
   --info: oklch(0.66 0.13 240);
   --info-foreground: oklch(0.99 0.004 85);
 
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.64 0.14 40);
+  --ring: oklch(0.660 0.100 212);
 
-  --chart-1: oklch(0.66 0.14 40);
+  --chart-1: oklch(0.700 0.100 212);
   --chart-2: oklch(0.6 0.09 165);
   --chart-3: oklch(0.62 0.11 250);
   --chart-4: oklch(0.78 0.15 78);
   --chart-5: oklch(0.66 0.13 300);
   --chart-6: oklch(0.7 0.12 200);
 
-  --sidebar: oklch(0.18 0.028 252);
+  /* Payment-method swatches (dark) — lifted for contrast on dark surfaces. */
+  --payment-cash: oklch(0.74 0.16 152);
+  --payment-card: oklch(0.66 0.15 258);
+  --payment-digital-wallet: oklch(0.66 0.15 290);
+  --payment-mixed: oklch(0.78 0.14 78);
+  --payment-talabat-online: oklch(0.72 0.16 48);
+  --payment-talabat-cash: oklch(0.58 0.12 48);
+
+  --sidebar: oklch(0.175 0.012 255);
   --sidebar-foreground: oklch(0.92 0.01 85);
-  --sidebar-primary: oklch(0.64 0.14 40);
+  --sidebar-primary: oklch(0.660 0.100 212);
   --sidebar-primary-foreground: oklch(0.99 0.004 85);
-  --sidebar-accent: oklch(0.26 0.04 252);
+  --sidebar-accent: oklch(0.270 0.020 245);
   --sidebar-accent-foreground: oklch(0.97 0.005 85);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.64 0.14 40);
+  --sidebar-ring: oklch(0.660 0.100 212);
 }
 
 /* Map semantic tokens into Tailwind's theme so `bg-*`, `text-*`, etc. resolve. */
@@ -187,7 +205,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
   }
 
   html {

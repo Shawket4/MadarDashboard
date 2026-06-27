@@ -4,10 +4,10 @@ export const DEFAULT_LOCALE_EN = "en-GB";
 export const DEFAULT_LOCALE_AR = "ar-EG";
 
 export const LS_KEYS = {
-  token: "sufrix.token",
-  auth: "sufrix.auth",
-  app: "sufrix.app",
-  theme: "sufrix.theme",
+  token: "madar.token",
+  auth: "madar.auth",
+  app: "madar.app",
+  theme: "madar.theme",
 } as const;
 
 export const ROLES = ["super_admin", "org_admin", "branch_manager", "teller"] as const;
@@ -23,13 +23,16 @@ export const PAYMENT_METHODS = [
 ] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
+// Theme-aware payment swatches. Values reference --payment-* tokens defined in
+// src/styles/globals.css (both :root and .dark), so they recolor in dark mode.
+// Consumed directly as `fill` / `background`, so CSS var strings are sufficient.
 export const PAYMENT_COLORS: Record<PaymentMethod, string> = {
-  cash: "hsl(142 71% 45%)",
-  card: "hsl(221 78% 47%)",
-  digital_wallet: "hsl(258 58% 52%)",
-  mixed: "hsl(38 80% 50%)",
-  talabat_online: "hsl(22 88% 52%)",
-  talabat_cash: "hsl(22 60% 38%)",
+  cash: "var(--payment-cash)",
+  card: "var(--payment-card)",
+  digital_wallet: "var(--payment-digital-wallet)",
+  mixed: "var(--payment-mixed)",
+  talabat_online: "var(--payment-talabat-online)",
+  talabat_cash: "var(--payment-talabat-cash)",
 };
 
 export const SHIFT_STATUSES = ["open", "closed", "force_closed"] as const;

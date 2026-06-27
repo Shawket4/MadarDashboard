@@ -116,8 +116,8 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
                   <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                   <SelectContent>
                     <ScrollArea className="h-64">
-                      {PM_ICONS.map(({ id, label, icon: Icon }) => (
-                        <SelectItem key={id} value={id}><span className="flex items-center gap-2"><Icon className="size-4 text-muted-foreground" /> {label}</span></SelectItem>
+                      {PM_ICONS.map(({ id, labelKey, labelFallback, icon: Icon }) => (
+                        <SelectItem key={id} value={id}><span className="flex items-center gap-2"><Icon className="size-4 text-muted-foreground" /> {t(labelKey, labelFallback)}</span></SelectItem>
                       ))}
                     </ScrollArea>
                   </SelectContent>
@@ -131,8 +131,9 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
                 <FormControl>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {PM_COLORS.map((c) => (
-                      <button key={c} type="button" onClick={() => field.onChange(c)} aria-label={c}
-                        className="grid size-8 place-items-center rounded-full transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1" style={{ backgroundColor: c }}>
+                      <button key={c} type="button" onClick={() => field.onChange(c)} aria-label={c} aria-pressed={field.value === c}
+                        style={{ backgroundColor: c }}
+                        className="grid size-10 place-items-center rounded-full transition-transform motion-safe:hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1">
                         {field.value === c ? <Check className="size-4 text-white drop-shadow-sm" /> : null}
                       </button>
                     ))}

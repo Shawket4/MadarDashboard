@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -53,6 +53,7 @@ function ChartSkeleton() {
 // ── Overview ────────────────────────────────────────────────────────────────
 function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t, i18n } = useTranslation();
+  const reduced = useReducedMotion();
   const q = useBranchSales(branchId, range, { query: { enabled: !!branchId } });
   const d = q.data;
   const aov = d && d.total_orders ? Math.round(d.total_revenue / d.total_orders) : 0;
@@ -90,26 +91,42 @@ function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
       >
         <motion.div variants={fadeInUp}>
           <ChartCard title={t("analytics.revenueByPayment", "Revenue by Payment Method")}>
-            {q.isLoading ? <ChartSkeleton /> : payment.length === 0
+            {q.isLoading ? <ChartSkeleton /> : q.isError ? <EmptyState className="h-72" title={t("common.somethingWrong", "Something went wrong")} /> : payment.length === 0
               ? <EmptyState className="h-72" title={t("analytics.noData", "No data for this period")} />
               : (
-                <ChartFrame>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={payment} dataKey="value" nameKey="method" innerRadius="55%" outerRadius="80%" paddingAngle={2}>
-                        {payment.map((p, i) => <Cell key={p.method} fill={PAYMENT_COLORS[p.method as PaymentMethod] ?? chartColor(i)} />)}
-                      </Pie>
-                      <Tooltip content={<ChartTooltipContent formatter={(v, n) => `${t(`payments.${n}`, String(n))}: ${fmtMoney(v)}`} />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </ChartFrame>
+                <div className="space-y-3">
+                  <ChartFrame>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={payment} dataKey="value" nameKey="method" innerRadius="55%" outerRadius="80%" paddingAngle={2} isAnimationActive={!reduced}>
+                          {payment.map((p, i) => <Cell key={p.method} fill={PAYMENT_COLORS[p.method as PaymentMethod] ?? chartColor(i)} />)}
+                        </Pie>
+                        <Tooltip content={<ChartTooltipContent formatter={(v, n) => `${t(`payments.${n}`, String(n))}: ${fmtMoney(v)}`} />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartFrame>
+                  {/* Persistent legend — swatch + label + value so color is never the only signal */}
+                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 pb-1">
+                    {payment.map((p, i) => (
+                      <div key={p.method} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span
+                          className="size-2.5 shrink-0 rounded-sm"
+                          style={{ background: PAYMENT_COLORS[p.method as PaymentMethod] ?? chartColor(i) }}
+                          aria-hidden="true"
+                        />
+                        <span>{t(`payments.${p.method}`, p.method)}</span>
+                        <span className="font-medium tabular text-foreground">{fmtMoney(p.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
           </ChartCard>
         </motion.div>
 
         <motion.div variants={fadeInUp}>
           <ChartCard title={t("analytics.byCategory", "By Category")}>
-            {q.isLoading ? <ChartSkeleton /> : byCategory.length === 0
+            {q.isLoading ? <ChartSkeleton /> : q.isError ? <EmptyState className="h-72" title={t("common.somethingWrong", "Something went wrong")} /> : byCategory.length === 0
               ? <EmptyState className="h-72" title={t("analytics.noData", "No data for this period")} />
               : (
                 <ChartFrame>
@@ -119,7 +136,7 @@ function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
                       <XAxis dataKey="name" tick={AXIS} tickLine={false} axisLine={false} interval={0} angle={-20} textAnchor="end" height={50} />
                       <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={48} />
                       <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => fmtMoney(v)} />} />
-                      <Bar dataKey="revenue" fill={chartColor(0)} radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="revenue" fill={chartColor(0)} radius={[4, 4, 0, 0]} isAnimationActive={!reduced} />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartFrame>
@@ -132,6 +149,8 @@ function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
         <ChartCard title={t("analytics.topItemsRev", "Top Items by Revenue")}>
           {q.isLoading
             ? <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9" />)}</div>
+            : q.isError
+              ? <EmptyState title={t("common.somethingWrong", "Something went wrong")} />
             : (d?.top_items ?? []).length === 0
               ? <EmptyState title={t("analytics.noData", "No data for this period")} />
               : (
@@ -174,7 +193,7 @@ function PeakHoursTooltip({ active, payload, type }: {
       </div>
       <div className="flex items-center justify-between gap-4">
         <span className="text-muted-foreground">{t("analytics.shareOfTotal", "Share")}</span>
-        <span className="tabular text-foreground">{pct.toFixed(1)}%</span>
+        <span className="tabular text-foreground">{fmtNumber(pct, { maximumFractionDigits: 1 })}%</span>
       </div>
       <div className="mt-1.5 border-t pt-1.5 flex items-center justify-between gap-4">
         <span className="text-muted-foreground">{t("analytics.periodTotal", "Period Total")}</span>
@@ -218,6 +237,7 @@ function RevenueSplitTooltip({ active, payload }: { active?: boolean; payload?: 
 // ── Revenue (timeseries + peak hours) ───────────────────────────────────────
 function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; range: Range; gran: Granularity; setGran: (g: Granularity) => void }) {
   const { t } = useTranslation();
+  const reduced = useReducedMotion();
   const isPeak = gran === "peak_hours";
 
   const tsQ = useBranchSalesTimeseries(branchId, { ...range, granularity: gran }, { query: { enabled: !!branchId && !isPeak } });
@@ -227,6 +247,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
   const phData = useMemo(() => (phQ.data ?? []).map((p) => ({ ...p, label: fmtHour(p.hour) })), [phQ.data]);
 
   const isLoading = isPeak ? phQ.isLoading : tsQ.isLoading;
+  const isError = isPeak ? phQ.isError : tsQ.isError;
 
   return (
     <div className="space-y-4">
@@ -237,7 +258,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
       </Tabs>
 
       <ChartCard title={isPeak ? t("analytics.revenueByHour", "Revenue by Hour") : t("analytics.revenueOverTime", "Revenue Over Time")}>
-        {isLoading ? <ChartSkeleton /> : (isPeak ? phData : tsData).length === 0
+        {isLoading ? <ChartSkeleton /> : isError ? <EmptyState className="h-72" title={t("common.somethingWrong", "Something went wrong")} /> : (isPeak ? phData : tsData).length === 0
           ? <EmptyState className="h-72" title={t("analytics.noData", "No data for this period")} />
           : (
             <ChartFrame>
@@ -248,7 +269,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
                     <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={2} />
                     <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={48} />
                     <Tooltip cursor={{ fill: "var(--muted)" }} content={<PeakHoursTooltip type="revenue" />} />
-                    <Bar dataKey="avg_revenue_per_day" name={t("dashboard.revenue", "Revenue")} fill={chartColor(0)} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="avg_revenue_per_day" name={t("dashboard.revenue", "Revenue")} fill={chartColor(0)} radius={[4, 4, 0, 0]} isAnimationActive={!reduced} />
                   </BarChart>
                 ) : (
                   <AreaChart data={tsData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
@@ -262,7 +283,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
                     <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} />
                     <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={48} />
                     <Tooltip content={<RevenueSplitTooltip />} />
-                    <Area type="monotone" dataKey="revenue" name={t("dashboard.revenue", "Revenue")} stroke={chartColor(0)} fill="url(#rev)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="revenue" name={t("dashboard.revenue", "Revenue")} stroke={chartColor(0)} fill="url(#rev)" strokeWidth={2} isAnimationActive={!reduced} />
                   </AreaChart>
                 )}
               </ResponsiveContainer>
@@ -278,7 +299,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
       >
         <motion.div variants={fadeInUp}>
           <ChartCard title={isPeak ? t("analytics.ordersByHour", "Orders by Hour") : t("analytics.ordersOverTime", "Orders Over Time")}>
-            {isLoading ? <ChartSkeleton /> : (isPeak ? phData : tsData).length === 0
+            {isLoading ? <ChartSkeleton /> : isError ? <EmptyState className="h-72" title={t("common.somethingWrong", "Something went wrong")} /> : (isPeak ? phData : tsData).length === 0
               ? <EmptyState className="h-72" title={t("analytics.noData", "No data for this period")} />
               : (
                 <ChartFrame>
@@ -288,7 +309,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
                       <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={isPeak ? 2 : 0} />
                       <YAxis tick={AXIS} tickLine={false} axisLine={false} allowDecimals={isPeak} width={36} tickFormatter={isPeak ? (v) => fmtNumber(Number(v), { maximumFractionDigits: 1 }) : undefined} />
                       <Tooltip cursor={{ fill: "var(--muted)" }} content={isPeak ? <PeakHoursTooltip type="orders" /> : <ChartTooltipContent formatter={(v) => fmtNumber(v)} />} />
-                      <Bar dataKey={isPeak ? "avg_orders_per_day" : "orders"} name={t("dashboard.orders", "Orders")} fill={chartColor(1)} radius={[4, 4, 0, 0]} />
+                      <Bar dataKey={isPeak ? "avg_orders_per_day" : "orders"} name={t("dashboard.orders", "Orders")} fill={chartColor(1)} radius={[4, 4, 0, 0]} isAnimationActive={!reduced} />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartFrame>
@@ -298,7 +319,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
 
         <motion.div variants={fadeInUp}>
           <ChartCard title={isPeak ? t("analytics.discountsByHour", "Discounts by Hour") : t("analytics.discountsOverTime", "Discounts Over Time")}>
-            {isLoading ? <ChartSkeleton /> : (isPeak ? phData : tsData).length === 0
+            {isLoading ? <ChartSkeleton /> : isError ? <EmptyState className="h-72" title={t("common.somethingWrong", "Something went wrong")} /> : (isPeak ? phData : tsData).length === 0
               ? <EmptyState className="h-72" title={t("analytics.noData", "No data for this period")} />
               : (
                 <ChartFrame>
@@ -309,7 +330,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
                         <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={2} />
                         <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={48} />
                         <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => fmtMoney(v)} />} />
-                        <Bar dataKey="discount" name={t("nav.discounts", "Discounts")} fill={chartColor(3)} radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="discount" name={t("nav.discounts", "Discounts")} fill={chartColor(3)} radius={[4, 4, 0, 0]} isAnimationActive={!reduced} />
                       </BarChart>
                     ) : (
                       <AreaChart data={tsData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
@@ -323,7 +344,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
                         <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} />
                         <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={48} />
                         <Tooltip content={<ChartTooltipContent formatter={(v) => fmtMoney(v)} />} />
-                        <Area type="monotone" dataKey="discount" name={t("nav.discounts", "Discounts")} stroke={chartColor(3)} fill="url(#disc)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="discount" name={t("nav.discounts", "Discounts")} stroke={chartColor(3)} fill="url(#disc)" strokeWidth={2} isAnimationActive={!reduced} />
                       </AreaChart>
                     )}
                   </ResponsiveContainer>
@@ -348,6 +369,8 @@ function ItemsTab({ branchId, range }: { branchId: string; range: Range }) {
       <ChartCard title={t("analytics.tabs.items", "Items")} contentClassName="px-0 sm:px-0">
         {items.isLoading
           ? <div className="space-y-2 p-4">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-9" />)}</div>
+          : items.isError
+            ? <EmptyState title={t("common.somethingWrong", "Something went wrong")} />
           : rows.length === 0
             ? <EmptyState title={t("analytics.noData", "No data for this period")} />
             : (
@@ -379,6 +402,8 @@ function ItemsTab({ branchId, range }: { branchId: string; range: Range }) {
       <ChartCard title={t("analytics.addonSales", "Addon Sales")} contentClassName="px-0 sm:px-0">
         {addons.isLoading
           ? <div className="space-y-2 p-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-9" />)}</div>
+          : addons.isError
+            ? <EmptyState title={t("common.somethingWrong", "Something went wrong")} />
           : (addons.data ?? []).length === 0
             ? <EmptyState title={t("analytics.noData", "No data for this period")} />
             : (
@@ -410,7 +435,9 @@ function ItemsTab({ branchId, range }: { branchId: string; range: Range }) {
 
 // ── Tellers ──────────────────────────────────────────────────────────────────
 function TellersTab({ branchId, range }: { branchId: string; range: Range }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const reduced = useReducedMotion();
+  const isRtl = i18n.dir() === "rtl";
   const q = useBranchTellerStats(branchId, { ...range, limit: 50 }, { query: { enabled: !!branchId } });
   const rows = useMemo(() => q.data ?? [], [q.data]);
   const chart = useMemo(
@@ -421,7 +448,7 @@ function TellersTab({ branchId, range }: { branchId: string; range: Range }) {
   return (
     <div className="space-y-4">
       <ChartCard title={t("analytics.revenueByTeller", "Revenue by Teller")}>
-        {q.isLoading ? <ChartSkeleton /> : chart.length === 0
+        {q.isLoading ? <ChartSkeleton /> : q.isError ? <EmptyState className="h-72" title={t("common.somethingWrong", "Something went wrong")} /> : chart.length === 0
           ? <EmptyState className="h-72" title={t("analytics.noData", "No data for this period")} />
           : (
             <ChartFrame>
@@ -431,16 +458,19 @@ function TellersTab({ branchId, range }: { branchId: string; range: Range }) {
                   <XAxis type="number" tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} />
                   <YAxis type="category" dataKey="name" tick={AXIS} tickLine={false} axisLine={false} width={110} />
                   <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => fmtMoney(v)} />} />
-                  <Bar dataKey="revenue" fill={chartColor(2)} radius={[0, 4, 4, 0]} />
+                  {/* RTL: leading edge is the end of the bar (right in LTR, left in RTL), so flip radius accordingly */}
+                  <Bar dataKey="revenue" fill={chartColor(2)} radius={isRtl ? [4, 0, 0, 4] : [0, 4, 4, 0]} isAnimationActive={!reduced} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartFrame>
           )}
       </ChartCard>
 
-      <ChartCard contentClassName="px-0 sm:px-0">
+      <ChartCard title={t("analytics.tellerDetails", "Teller Details")} contentClassName="px-0 sm:px-0">
         {q.isLoading
           ? <div className="space-y-2 p-4">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9" />)}</div>
+          : q.isError
+            ? <EmptyState title={t("common.somethingWrong", "Something went wrong")} />
           : rows.length === 0
             ? <EmptyState title={t("analytics.noData", "No data for this period")} />
             : (
@@ -479,6 +509,7 @@ function TellersTab({ branchId, range }: { branchId: string; range: Range }) {
 // ── Branches (org comparison) ────────────────────────────────────────────────
 function BranchesTab({ orgId, range }: { orgId: string; range: Range }) {
   const { t } = useTranslation();
+  const reduced = useReducedMotion();
   const q = useOrgBranchComparison(orgId, range, { query: { enabled: !!orgId } });
   const rows = useMemo(() => q.data?.branches ?? [], [q.data]);
   const chart = useMemo(
@@ -489,7 +520,7 @@ function BranchesTab({ orgId, range }: { orgId: string; range: Range }) {
   return (
     <div className="space-y-4">
       <ChartCard title={t("analytics.revenueByBranch", "Revenue by Branch")}>
-        {q.isLoading ? <ChartSkeleton /> : chart.length === 0
+        {q.isLoading ? <ChartSkeleton /> : q.isError ? <EmptyState className="h-72" title={t("common.somethingWrong", "Something went wrong")} /> : chart.length === 0
           ? <EmptyState className="h-72" title={t("analytics.noData", "No data for this period")} />
           : (
             <ChartFrame>
@@ -499,16 +530,18 @@ function BranchesTab({ orgId, range }: { orgId: string; range: Range }) {
                   <XAxis dataKey="name" tick={AXIS} tickLine={false} axisLine={false} interval={0} angle={-20} textAnchor="end" height={50} />
                   <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={48} />
                   <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => fmtMoney(v)} />} />
-                  <Bar dataKey="revenue" fill={chartColor(0)} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill={chartColor(0)} radius={[4, 4, 0, 0]} isAnimationActive={!reduced} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartFrame>
           )}
       </ChartCard>
 
-      <ChartCard contentClassName="px-0 sm:px-0">
+      <ChartCard title={t("analytics.branchDetails", "Branch Details")} contentClassName="px-0 sm:px-0">
         {q.isLoading
           ? <div className="space-y-2 p-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-9" />)}</div>
+          : q.isError
+            ? <EmptyState title={t("common.somethingWrong", "Something went wrong")} />
           : rows.length === 0
             ? <EmptyState title={t("analytics.noData", "No data for this period")} />
             : (
@@ -530,7 +563,7 @@ function BranchesTab({ orgId, range }: { orgId: string; range: Range }) {
                         <td className="px-3 py-2.5 text-end tabular">{fmtNumber(b.total_orders)}</td>
                         <td className="px-3 py-2.5 text-end font-semibold tabular">{fmtMoney(b.total_revenue)}</td>
                         <td className="px-3 py-2.5 text-end tabular text-muted-foreground">{fmtMoney(b.avg_order_value)}</td>
-                        <td className="px-4 py-2.5 text-end tabular text-muted-foreground">{b.void_rate_pct.toFixed(1)}%</td>
+                        <td className="px-4 py-2.5 text-end tabular text-muted-foreground">{fmtNumber(b.void_rate_pct, { maximumFractionDigits: 1 })}%</td>
                       </tr>
                     ))}
                   </tbody>

@@ -283,7 +283,7 @@ export function MenuItemsPage() {
         { header: t("common.status", "Status"), accessor: (a) => (a.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
       ];
       await exportToExcel({
-        filename: "Sufrix-Menu",
+        filename: "Madar-Menu",
         sheets: [
           { name: t("nav.items", "Items"), title: t("nav.items", "Items"), rows: allItems as unknown as Record<string, unknown>[], columns: itemCols as unknown as ExcelColumn<Record<string, unknown>>[], totals: true },
           { name: t("menu.categories", "Categories"), title: t("menu.categories", "Categories"), rows: catList as unknown as Record<string, unknown>[], columns: catCols as unknown as ExcelColumn<Record<string, unknown>>[] },

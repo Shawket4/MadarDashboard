@@ -16,13 +16,13 @@ import type { PaginatedOrders } from "@/data/api/generated/models/paginatedOrder
 import type { PeakHourPoint } from "@/data/api/generated/models/peakHourPoint";
 import type { UserPublic } from "@/data/types";
 
-export const MOCK_ORG_ID = "org_sufrix_demo";
+export const MOCK_ORG_ID = "org_madar_demo";
 export const MOCK_TOKEN = "mock.session.token";
 
 export const MOCK_USER: UserPublic = {
   id: "usr_demo_admin",
   name: "Shawket Ibrahim",
-  email: "shawket@sufrix.app",
+  email: "shawket@madar.app",
   phone: "+20 100 000 0000",
   role: "org_admin",
   org_id: MOCK_ORG_ID,
@@ -60,8 +60,8 @@ const BRANCH_SEEDS: BranchSeed[] = [
 
 export const MOCK_ORG: Org = {
   id: MOCK_ORG_ID,
-  name: "Sufrix Coffee Co.",
-  slug: "sufrix-coffee",
+  name: "Madar Coffee Co.",
+  slug: "madar-coffee",
   currency_code: "EGP",
   tax_rate: 0.14,
   timezone: "Africa/Cairo",

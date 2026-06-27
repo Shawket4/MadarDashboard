@@ -39,4 +39,13 @@ export interface Shift {
   status: string;
   teller_id: string;
   teller_name: string;
+  /**
+     * The till (drawer) this shift is on. Populated by the read/list/open
+   * endpoints; mutation responses that build the row via RETURNING may leave
+   * `till_name` null (same convention as `branch_name`).
+     * @nullable
+     */
+  till_id?: string | null;
+  /** @nullable */
+  till_name?: string | null;
 }

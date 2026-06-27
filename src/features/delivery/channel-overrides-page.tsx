@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, CupSoda, Search, Store, Tag, UtensilsCrossed } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, CupSoda, Search, Store, Tag, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page } from "@/components/app/page";
@@ -108,8 +108,13 @@ function OverrideCard({
             </p>
           </div>
           <div className="flex flex-col items-end gap-1">
-            <Switch checked={available} onCheckedChange={setAvailable} disabled={busy} />
-            <span className="text-xs text-muted-foreground">
+            <Switch
+              checked={available}
+              onCheckedChange={setAvailable}
+              disabled={busy}
+              aria-label={available ? t("delivery.available", "Available") : t("delivery.hidden", "Hidden")}
+            />
+            <span className="text-xs text-muted-foreground" aria-hidden="true">
               {available ? t("delivery.available", "Available") : t("delivery.hidden", "Hidden")}
             </span>
           </div>
@@ -369,11 +374,12 @@ export function ChannelOverridesPage() {
 
   const searchInput = (value: string, onChange: (v: string) => void) => (
     <div className="relative w-full sm:w-64">
-      <Search className="absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Search className="absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={t("common.search", "Search…")}
+        aria-label={t("common.search", "Search…")}
         className="h-9 ps-8"
       />
     </div>
@@ -409,6 +415,12 @@ export function ChannelOverridesPage() {
                   <Skeleton key={i} className="h-32 w-full rounded-xl" />
                 ))}
               </div>
+            ) : catalog.isError || overrides.isError ? (
+              <EmptyState
+                icon={AlertTriangle}
+                title={t("delivery.loadError", "Couldn't load items")}
+                description={t("delivery.loadErrorHint", "Check your connection and try refreshing.")}
+              />
             ) : items.length === 0 ? (
               <EmptyState icon={UtensilsCrossed} title={t("delivery.noItems", "No menu items")} />
             ) : (
@@ -442,6 +454,12 @@ export function ChannelOverridesPage() {
                   <Skeleton key={i} className="h-32 w-full rounded-xl" />
                 ))}
               </div>
+            ) : addons.isError || addonOverrides.isError ? (
+              <EmptyState
+                icon={AlertTriangle}
+                title={t("delivery.loadError", "Couldn't load items")}
+                description={t("delivery.loadErrorHint", "Check your connection and try refreshing.")}
+              />
             ) : addonList.length === 0 ? (
               <EmptyState icon={Tag} title={t("delivery.noAddons", "No add-ons")} />
             ) : (

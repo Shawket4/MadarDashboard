@@ -80,7 +80,7 @@ export function TableView({ rows }: { rows: MenuEngineeringRow[] }) {
       { header: t("menuEngineering.popularity", "Popularity"), accessor: (r) => r.popularity_pct, type: "percent", width: 12 },
       { header: t("menuEngineering.class", "Class"), accessor: (r) => t(`menuEngineering.classes.${r.class}`, r.class), type: "text", width: 14 },
     ];
-    void exportToExcel({ filename: "Sufrix-Menu-Engineering", sheets: [{ name: t("menuEngineering.title", "Menu Engineering"), title: t("menuEngineering.title", "Menu Engineering"), rows: filtered as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[], totals: true }] });
+    void exportToExcel({ filename: "Madar-Menu-Engineering", sheets: [{ name: t("menuEngineering.title", "Menu Engineering"), title: t("menuEngineering.title", "Menu Engineering"), rows: filtered as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[], totals: true }] });
   };
 
   return (

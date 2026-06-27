@@ -205,7 +205,7 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
 
           <Collapsible open={advanced} onOpenChange={setAdvanced}>
             <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground">
-              <ChevronDown className={`size-4 transition-transform ${advanced ? "rotate-180" : ""}`} />
+              <ChevronDown className={`size-4 transition-transform motion-reduce:transition-none ${advanced ? "rotate-180" : ""}`} />
               {t("inventory.catalog.advanced", "Advanced")}
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-3 pt-3">

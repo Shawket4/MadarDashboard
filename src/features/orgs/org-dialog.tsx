@@ -110,7 +110,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editing ? t("orgs.editTitle", "Edit Organization") : t("orgs.newTitle", "New Organization")}</DialogTitle>
-          <DialogDescription>{t("orgs.subtitle", "Manage all coffee brands and franchises")}</DialogDescription>
+          <DialogDescription>{editing ? t("orgs.editDescription", "Update the details for this organization.") : t("orgs.newDescription", "Fill in the details to create a new organization.")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(submit)} className="space-y-4">
@@ -189,8 +189,8 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
             ) : null}
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-              <Button type="submit" loading={busy}>{editing ? t("common.saveChanges", "Save Changes") : t("common.create", "Create")}</Button>
+              <Button type="button" variant="outline" disabled={busy} onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
+              <Button type="submit" loading={busy}>{editing ? t("common.save", "Save") : t("common.create", "Create")}</Button>
             </DialogFooter>
           </form>
         </Form>

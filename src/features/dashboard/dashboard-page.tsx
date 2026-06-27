@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "motion/react";
-import { Ban, CalendarRange, Coins, Receipt, Store, TrendingUp } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
+import { AlertCircle, Ban, CalendarRange, Coins, Receipt, Store, TrendingUp } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -21,6 +21,7 @@ import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { EmptyState } from "@/components/app/empty-state";
 import { ConciseValue, LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { ProgressBar } from "@/components/app/progress-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COUNT_ANIM_MS, fadeInUp, listItem, staggerContainer } from "@/lib/motion";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod } from "@/lib/format";
@@ -55,7 +56,9 @@ const PRESET_FALLBACK: Record<string, string> = {
 };
 
 export function DashboardPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.dir() === "rtl";
+  const reduced = useReducedMotion();
   const name = useAuthStore((s) => s.user?.name);
   const role = useAuthStore((s) => s.user?.role);
   const userOrgId = useAuthStore((s) => s.user?.org_id);
@@ -187,12 +190,17 @@ export function DashboardPage() {
           <ChartCard className="h-full" title={t("dashboard.revenueTrend", "Revenue trend")}>
             {timeseries.isLoading ? (
               <Skeleton className="h-64 w-full" />
+            ) : timeseries.isError ? (
+              <EmptyState icon={AlertCircle} title={t("common.somethingWrong", "Something went wrong")} className="h-64 border-0" />
             ) : trendData.length === 0 ? (
               <EmptyState title={t("common.noResults", "No results found")} className="h-64 border-0" />
             ) : (
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+                  <AreaChart
+                    data={trendData}
+                    margin={isRtl ? { top: 8, right: 68, left: 8, bottom: 0 } : { top: 8, right: 8, left: 4, bottom: 0 }}
+                  >
                     <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
                     <XAxis
                       dataKey="period"
@@ -203,6 +211,7 @@ export function DashboardPage() {
                       minTickGap={24}
                     />
                     <YAxis
+                      orientation={isRtl ? "right" : "left"}
                       tickFormatter={(v) => fmtMoneyCompact(Number(v))}
                       tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                       tickLine={false}
@@ -225,6 +234,7 @@ export function DashboardPage() {
                       strokeWidth={2}
                       fill={chartColor(0)}
                       fillOpacity={0.12}
+                      isAnimationActive={!reduced}
                       animationDuration={COUNT_ANIM_MS}
                       animationEasing="ease-out"
                     />
@@ -240,6 +250,8 @@ export function DashboardPage() {
           <ChartCard className="h-full" title={t("dashboard.payments", "Payment mix")}>
             {kpiLoading ? (
               <Skeleton className="h-64 w-full" />
+            ) : (branchId ? branchSales.isError : comparison.isError) ? (
+              <EmptyState icon={AlertCircle} title={t("common.somethingWrong", "Something went wrong")} className="h-64 border-0" />
             ) : paymentData.length === 0 ? (
               <EmptyState title={t("common.noResults", "No results found")} className="h-64 border-0" />
             ) : (
@@ -255,6 +267,7 @@ export function DashboardPage() {
                         outerRadius={72}
                         paddingAngle={2}
                         strokeWidth={0}
+                        isAnimationActive={!reduced}
                       >
                         {paymentData.map((d, i) => (
                           <Cell key={d.method} fill={PAYMENT_COLORS[d.method as PaymentMethod] ?? chartColor(i)} />
@@ -296,6 +309,8 @@ export function DashboardPage() {
       <ChartCard title={t("dashboard.branchPerformance", "Branch performance")}>
         {comparison.isLoading ? (
           <Skeleton className="h-40 w-full" />
+        ) : comparison.isError ? (
+          <EmptyState icon={AlertCircle} title={t("common.somethingWrong", "Something went wrong")} className="border-0" />
         ) : rankedBranches.length === 0 ? (
           <EmptyState title={t("common.noResults", "No results found")} className="border-0" />
         ) : (
@@ -321,9 +336,12 @@ export function DashboardPage() {
                       {fmtNumber(b.total_orders)} {t("nav.orders", "Orders").toLowerCase()}
                     </span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(2, b.pct * 100)}%` }} />
-                  </div>
+                  <ProgressBar
+                    value={Math.max(2, b.pct * 100)}
+                    max={100}
+                    ariaLabel={t("dashboard.branchRevenueBar", { name: b.branch_name, defaultValue: `Revenue share for ${b.branch_name}` })}
+                    accent="brand"
+                  />
                 </div>
                 <span className="shrink-0 text-end tabular text-sm font-semibold">
                   <ConciseValue full={fmtMoney(b.total_revenue)} compact={fmtMoneyCompact(b.total_revenue)} />
@@ -340,7 +358,11 @@ export function DashboardPage() {
           <h2 className="text-lg font-semibold tracking-tight">{t("delivery.kpisTitle", "Delivery")}</h2>
           <span className="text-sm text-muted-foreground">{t("delivery.byChannel", "By channel")}</span>
         </div>
-        <DeliveryKpis data={deliverySales.data} loading={deliverySales.isLoading} />
+        {deliverySales.isError ? (
+          <EmptyState icon={AlertCircle} title={t("common.somethingWrong", "Something went wrong")} className="border-0" />
+        ) : (
+          <DeliveryKpis data={deliverySales.data} loading={deliverySales.isLoading} />
+        )}
       </section>
     </Page>
   );

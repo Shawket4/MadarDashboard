@@ -177,7 +177,7 @@ export function WhatsappPage() {
                   alt={t("whatsapp.qrAlt", "WhatsApp pairing QR code")}
                   className="size-60 rounded-lg border bg-white p-2"
                 />
-                <ol className="max-w-xs list-decimal space-y-1 pl-5 text-xs text-muted-foreground">
+                <ol className="max-w-xs list-decimal space-y-1 ps-5 text-xs text-muted-foreground">
                   <li>{t("whatsapp.step1", "Open WhatsApp on your phone.")}</li>
                   <li>{t("whatsapp.step2", "Tap Settings → Linked devices → Link a device.")}</li>
                   <li>{t("whatsapp.step3", "Scan this QR code. It refreshes automatically.")}</li>
@@ -283,7 +283,7 @@ function Notice({ title, body }: { tone: "warning"; title: string; body: string 
       <AlertTriangle className="mt-0.5 size-5 shrink-0" />
       <div>
         <p className="text-sm font-semibold">{title}</p>
-        <p className="text-xs opacity-90">{body}</p>
+        <p className="text-xs text-warning-foreground">{body}</p>
       </div>
     </div>
   );

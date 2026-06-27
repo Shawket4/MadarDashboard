@@ -111,13 +111,13 @@ function Detail({ itemId, orgId }: { itemId: string; orgId: string }) {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">{slotLabel(s)}</p>
                   <p className="text-xs text-muted-foreground">
-                    {t(`menu.addonTypes.${s.addon_type}`, s.addon_type)} · min {s.min_selections}, max {s.max_selections ?? "∞"}
+                    {t(`menu.addonTypes.${s.addon_type}`, s.addon_type)} · {t("recipes.slots.minMaxSummary", { min: s.min_selections, max: s.max_selections ?? "∞", defaultValue: `min {{min}}, max {{max}}` })}
                   </p>
                 </div>
                 <Badge variant={s.is_required ? "secondary" : "outline"}>
                   {s.is_required ? t("recipes.slots.required", "Required") : t("recipes.slots.optional", "Optional")}
                 </Badge>
-                <Button variant="ghost" size="icon-sm" className="shrink-0 text-destructive" onClick={() => void removeSlot(s)}>
+                <Button variant="ghost" size="icon-sm" className="shrink-0 text-destructive" aria-label={t("recipes.slots.removeSlot", "Remove slot")} onClick={() => void removeSlot(s)}>
                   <Trash2 className="size-4" />
                 </Button>
               </div>
@@ -164,7 +164,7 @@ function Detail({ itemId, orgId }: { itemId: string; orgId: string }) {
                 <Badge variant={o.is_active ? "secondary" : "outline"}>
                   {o.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")}
                 </Badge>
-                <Button variant="ghost" size="icon-sm" className="shrink-0 text-destructive" onClick={() => void removeOpt(o)}>
+                <Button variant="ghost" size="icon-sm" className="shrink-0 text-destructive" aria-label={t("recipes.optionals.removeField", "Remove field")} onClick={() => void removeOpt(o)}>
                   <Trash2 className="size-4" />
                 </Button>
               </div>
@@ -221,8 +221,8 @@ function SlotDialog({ itemId, open, onOpenChange }: { itemId: string; open: bool
         <div className="space-y-3">
           <div className="space-y-1.5"><Label>{t("recipes.slots.addonType", "Add-on type")}</Label><Input placeholder="coffee_type / milk_type / extra" value={addonType} onChange={(e) => setAddonType(e.target.value)} /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>{t("recipes.slots.displayLabel", "Display label")} (EN)</Label><Input placeholder={t("recipes.slots.labelPh", "e.g. Choose your milk")} value={labelEn} onChange={(e) => setLabelEn(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label>{t("recipes.slots.displayLabel", "Display label")} (AR)</Label><Input dir="rtl" value={labelAr} onChange={(e) => setLabelAr(e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>{t("recipes.slots.displayLabelEn", "Display label (EN)")}</Label><Input placeholder={t("recipes.slots.labelPh", "e.g. Choose your milk")} value={labelEn} onChange={(e) => setLabelEn(e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>{t("recipes.slots.displayLabelAr", "Display label (AR)")}</Label><Input dir="rtl" value={labelAr} onChange={(e) => setLabelAr(e.target.value)} /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>{t("recipes.slots.minSelections", "Min selections")}</Label><Input type="number" min="0" value={min} onChange={(e) => setMin(e.target.value)} /></div>
@@ -285,8 +285,8 @@ function OptionalDialog({ itemId, catalog, open, onOpenChange }: { itemId: strin
         </DialogHeader>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>{t("recipes.optionals.checkboxLabel", "Checkbox label")} (EN)</Label><Input placeholder={t("recipes.optionals.labelPh", "e.g. Extra hot")} value={nameEn} onChange={(e) => setNameEn(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label>{t("recipes.optionals.checkboxLabel", "Checkbox label")} (AR)</Label><Input dir="rtl" value={nameAr} onChange={(e) => setNameAr(e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>{t("recipes.optionals.checkboxLabelEn", "Checkbox label (EN)")}</Label><Input placeholder={t("recipes.optionals.labelPh", "e.g. Extra hot")} value={nameEn} onChange={(e) => setNameEn(e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>{t("recipes.optionals.checkboxLabelAr", "Checkbox label (AR)")}</Label><Input dir="rtl" value={nameAr} onChange={(e) => setNameAr(e.target.value)} /></div>
           </div>
           <div className="space-y-3 rounded-lg bg-muted/40 p-3">
             <p className="text-xs text-muted-foreground">{t("recipes.optionals.inventoryItem", "Deduct an inventory item (optional)")}</p>

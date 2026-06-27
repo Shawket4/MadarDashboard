@@ -24,7 +24,7 @@ export function PageTabsList({
 }
 
 /**
- * Page tab trigger — terracotta underline indicator, muted-to-foreground color
+ * Page tab trigger — teal underline indicator, muted-to-foreground color
  * transition, generous touch target (h-10). Use inside PageTabsList.
  */
 export function PageTabsTrigger({

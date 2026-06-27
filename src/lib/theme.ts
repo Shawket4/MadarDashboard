@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 export type Theme = "light" | "dark" | "system";
 
-const STORAGE_KEY = "sufrix.theme";
+const STORAGE_KEY = "madar.theme";
 
 const getStored = (): Theme => {
   try {
@@ -35,7 +35,7 @@ const initial = getStored();
 
 /**
  * Minimal global theme controller (replaces next-themes). Toggles the `.dark`
- * class on <html> and persists the raw choice under "sufrix.theme".
+ * class on <html> and persists the raw choice under "madar.theme".
  */
 export const useTheme = create<ThemeStore>((set) => ({
   theme: initial,

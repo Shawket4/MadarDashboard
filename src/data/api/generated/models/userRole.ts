@@ -9,4 +9,6 @@ export const UserRole = {
   org_admin: 'org_admin',
   branch_manager: 'branch_manager',
   teller: 'teller',
+  waiter: 'waiter',
+  kitchen: 'kitchen',
 } as const;

@@ -14,7 +14,7 @@ import { useTheme } from "@/lib/theme";
  */
 export type OrderMode = "light" | "dark";
 
-const STORAGE_KEY = "sufrix.order.theme";
+const STORAGE_KEY = "madar.order.theme";
 
 const getStored = (): OrderMode => {
   try {

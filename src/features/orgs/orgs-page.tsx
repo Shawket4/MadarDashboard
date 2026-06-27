@@ -56,15 +56,15 @@ export function OrgsPage() {
       {
         accessorKey: "is_active", header: t("common.status", "Status"),
         cell: ({ row }) => row.original.is_active
-          ? <Badge variant="outline" className="border-transparent bg-success/15 text-success"><CheckCircle className="size-3" /> {t("common.active", "Active")}</Badge>
+          ? <Badge variant="outline" className="border-transparent bg-success/10 text-success"><CheckCircle className="size-3" /> {t("common.active", "Active")}</Badge>
           : <Badge variant="outline"><XCircle className="size-3" /> {t("common.inactive", "Inactive")}</Badge>,
       },
       {
         id: "actions", header: "",
         cell: ({ row }) => (
           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon-sm" onClick={() => update({ edit: row.original.id })}><Pencil className="size-4" /></Button>
-            <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => void remove(row.original)}><Trash2 className="size-4" /></Button>
+            <Button variant="ghost" size="icon-sm" aria-label={t("common.edit", "Edit")} onClick={() => update({ edit: row.original.id })}><Pencil className="size-4" /></Button>
+            <Button variant="ghost" size="icon-sm" className="text-destructive" aria-label={t("common.delete", "Delete")} onClick={() => void remove(row.original)}><Trash2 className="size-4" /></Button>
           </div>
         ),
       },
@@ -81,7 +81,7 @@ export function OrgsPage() {
       { header: t("orgs.taxRate", "Tax Rate (%)"), accessor: (o) => o.tax_rate, type: "number", width: 12 },
       { header: t("common.status", "Status"), accessor: (o) => (o.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
-    void exportToExcel({ filename: "Sufrix-Organizations", sheets: [{ name: t("orgs.title", "Organizations"), title: t("orgs.title", "Organizations"), rows: orgs as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    void exportToExcel({ filename: "Madar-Organizations", sheets: [{ name: t("orgs.title", "Organizations"), title: t("orgs.title", "Organizations"), rows: orgs as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
   // tax_rate is stored as a percent number (e.g. 14). StatCard's percent format
@@ -101,15 +101,19 @@ export function OrgsPage() {
         <StatCard label={t("common.inactive", "Inactive")} value={orgs.filter((o) => !o.is_active).length} accent="warning" loading={list.isLoading} />
         <StatCard label={t("orgs.avgTax", "Avg Tax")} value={avgTaxRatio ?? "—"} formatType="percent" accent="info" loading={list.isLoading} />
       </div>
-      <DataTable
-        columns={columns}
-        data={orgs}
-        loading={list.isLoading}
-        getRowId={(o) => o.id}
-        onRowClick={(o) => update({ edit: o.id })}
-        searchPlaceholder={t("common.search", "Search…")}
-        emptyState={<EmptyState icon={Building2} title={t("common.noResults", "No results")} />}
-      />
+      {list.isError ? (
+        <EmptyState icon={Building2} title={t("orgs.loadError", "Couldn't load organizations")} description={t("common.tryRefresh", "Try refreshing the page.")} />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={orgs}
+          loading={list.isLoading}
+          getRowId={(o) => o.id}
+          onRowClick={(o) => update({ edit: o.id })}
+          searchPlaceholder={t("common.search", "Search…")}
+          emptyState={<EmptyState icon={Building2} title={t("common.noResults", "No results")} />}
+        />
+      )}
       {dlgOpen ? <OrgDialog org={editing} open={dlgOpen} onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}
     </Page>
   );

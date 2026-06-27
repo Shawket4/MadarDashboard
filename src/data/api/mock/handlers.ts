@@ -114,7 +114,7 @@ const MOCK_PAST_LOCATIONS = [
     branch_id: "br_zamalek",
     channel: "in_mall",
     address_line: null,
-    place_name: "Sufrix Coffee",
+    place_name: "Madar Coffee",
     floor: "2",
     unit_number: "Unit 14",
     landmark: "Near the main entrance",
@@ -126,7 +126,7 @@ const MOCK_PAST_LOCATIONS = [
 
 const MOCK_TRACKING = {
   id: "ord_001",
-  org_id: "org_sufrix_demo",
+  org_id: "org_madar_demo",
   delivery_ref: "ZAM-1042",
   branch_name: "Zamalek",
   status: "out_for_delivery",
@@ -214,7 +214,7 @@ export const handlers = [
   http.get("*/menu-items/mi_espresso", () =>
     HttpResponse.json({
       id: "mi_espresso",
-      org_id: "org_sufrix_demo",
+      org_id: "org_madar_demo",
       name: "Espresso",
       name_translations: { ar: "إسبريسو" },
       description: null,
@@ -231,7 +231,7 @@ export const handlers = [
   http.get("*/menu-items/mi_latte", () =>
     HttpResponse.json({
       id: "mi_latte",
-      org_id: "org_sufrix_demo",
+      org_id: "org_madar_demo",
       name: "Latte",
       name_translations: { ar: "لاتيه" },
       description: null,
@@ -250,7 +250,7 @@ export const handlers = [
   http.get("*/menu-items/:id", () =>
     HttpResponse.json({
       id: "mi_generic",
-      org_id: "org_sufrix_demo",
+      org_id: "org_madar_demo",
       name: "Menu Item",
       name_translations: {},
       description: null,

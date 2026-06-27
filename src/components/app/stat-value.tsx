@@ -140,13 +140,13 @@ export function StatValue({ value, formatType, label, sizes }: StatValueProps) {
             <button
               type="button"
               onClick={(e) => e.stopPropagation()}
-              className="block w-full max-w-full text-start underline decoration-dotted decoration-muted-foreground/40 underline-offset-[5px] outline-none transition-colors hover:decoration-muted-foreground/70 focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring/50"
+              className="block w-full max-w-full text-start underline decoration-dotted decoration-muted-foreground/40 underline-offset-[5px] outline-none transition-colors hover:decoration-muted-foreground/70 focus-visible:rounded-sm focus-visible:ring-[3px] focus-visible:ring-ring"
             >
               {valueSpan}
             </button>
           </PopoverTrigger>
           <PopoverContent align="start" sideOffset={8} className="w-auto px-3 py-2">
-            <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
             <p className="mt-0.5 text-base font-semibold tabular">{exact}</p>
           </PopoverContent>
         </Popover>

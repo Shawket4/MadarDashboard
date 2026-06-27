@@ -165,17 +165,17 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                       </div>
                       <span className="text-muted-foreground">{r.received_by_name ?? r.received_by}</span>
                     </div>
-                    <table className="w-full text-sm">
-                      <tbody>
+                    <Table>
+                      <TableBody>
                         {r.lines.map((l) => (
-                          <tr key={l.id} className="border-b last:border-0">
-                            <td className="p-2">{l.ingredient_name}</td>
-                            <td className="p-2 text-end tabular">{l.quantity > 0 ? "+" : ""}{fmtNumber(l.quantity)}</td>
-                            <td className="p-2 text-end tabular text-muted-foreground">{fmtMoney(l.unit_cost)}</td>
-                          </tr>
+                          <TableRow key={l.id}>
+                            <TableCell>{l.ingredient_name}</TableCell>
+                            <TableCell className="text-end tabular">{l.quantity > 0 ? "+" : ""}{fmtNumber(l.quantity)}</TableCell>
+                            <TableCell className="text-end tabular text-muted-foreground">{fmtMoney(l.unit_cost)}</TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 ))}
               </div>

@@ -1,6 +1,6 @@
 /**
  * Field limits for the public ordering form. These MIRROR the backend caps in
- * SufrixRust `src/delivery/mod.rs` (`MAX_NAME_LEN`, `MAX_LINE_QTY`, …). The server
+ * MadarRust `src/delivery/mod.rs` (`MAX_NAME_LEN`, `MAX_LINE_QTY`, …). The server
  * is authoritative and re-validates every field — these are the UX guard so a
  * customer can never type/submit a payload the backend will reject.
  */

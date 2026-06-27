@@ -12,9 +12,10 @@ export function CoverageRing({ ratio, size = 96, strokeWidth = 8, label, classNa
   return (
     <div className={cn("relative grid place-items-center", className)} style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--muted)" strokeWidth={strokeWidth} />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--primary)" strokeWidth={strokeWidth}
-          strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - clamped)} className="transition-[stroke-dashoffset] duration-700" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={strokeWidth} className="text-muted stroke-current" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={strokeWidth}
+          strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - clamped)}
+          className="text-primary stroke-current transition-[stroke-dashoffset] duration-200 motion-reduce:transition-none" />
       </svg>
       <div className="absolute text-center">
         <p className="text-lg font-bold tabular">{fmtPercent(clamped)}</p>

@@ -125,7 +125,7 @@ function InlineCell<T>({ row, col, onCommit }: { row: T; col: EditableField<T>; 
         e.stopPropagation();
         startEdit();
       }}
-      className={cn("-mx-1 w-full rounded px-1 py-0.5 text-start text-sm", col.editable !== false && "cursor-text hover:bg-muted")}
+      className={cn("-mx-1 w-full rounded-sm px-1 py-0.5 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", col.editable !== false && "cursor-text hover:bg-muted")}
     >
       {display}
     </button>

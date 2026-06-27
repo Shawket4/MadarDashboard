@@ -22,6 +22,5 @@ export async function enableMocks(): Promise<void> {
   if (MOCK_USER.org_id) useAppStore.getState().setSelectedOrg(MOCK_USER.org_id);
   useAppStore.getState().setActiveTimezone(APP_TZ);
 
-  // eslint-disable-next-line no-console
   console.info(`[mock] MSW service worker active — ${MOCK_USER.name}`);
 }

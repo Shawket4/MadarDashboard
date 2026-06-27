@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ClipboardList, PlusCircle } from "lucide-react";
+import { ClipboardList, PlusCircle, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page } from "@/components/app/page";
@@ -121,7 +121,7 @@ export function CountsPage() {
       { header: t("inventory.stocktakes.finalized", "Finalized"), accessor: (s) => s.finalized_at ?? "", type: "dateTime", width: 20 },
       { header: t("inventory.transfers.note", "Note"), accessor: (s) => s.note ?? "", type: "text", width: 30 },
     ];
-    void exportToExcel({ filename: "Sufrix-Stocktakes", sheets: [{ name: t("inventory.stocktakes.title", "Stocktakes"), title: t("inventory.stocktakes.title", "Stocktakes"), rows: history as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    void exportToExcel({ filename: "Madar-Stocktakes", sheets: [{ name: t("inventory.stocktakes.title", "Stocktakes"), title: t("inventory.stocktakes.title", "Stocktakes"), rows: history as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
   return (
@@ -198,7 +198,7 @@ export function CountsPage() {
                   return (
                     <li key={id} className="flex items-center justify-between rounded border px-2 py-1 text-sm">
                       <span>{name}</span>
-                      <Button variant="ghost" size="icon-sm" onClick={() => setScopeItems((prev) => prev.filter((x) => x !== id))}>×</Button>
+                      <Button variant="ghost" size="icon-sm" aria-label={t("common.remove", "Remove")} onClick={() => setScopeItems((prev) => prev.filter((x) => x !== id))}><X className="size-3.5" /></Button>
                     </li>
                   );
                 })}

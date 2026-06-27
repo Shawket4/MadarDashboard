@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, ChevronRight, Shield, X } from "lucide-react";
+import { Check, CheckCircle, ChevronRight, MinusCircle, Shield, X, XCircle } from "lucide-react";
 
 import { Page } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
@@ -83,8 +83,8 @@ export function PermissionsPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
         {/* User picker */}
         <div className="overflow-hidden rounded-xl border bg-card">
-          <div className="border-b bg-muted/30 p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("permissions.selectUser", "Select a user")}</p></div>
-          <ScrollArea className="h-[600px]">
+          <div className="border-b bg-muted/30 p-3"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("permissions.selectUser", "Select a user")}</p></div>
+          <ScrollArea className="max-h-[min(600px,calc(100vh-14rem))] overflow-y-auto">
             {usersQ.isLoading ? (
               <div className="space-y-2 p-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
             ) : users.length === 0 ? (
@@ -92,7 +92,7 @@ export function PermissionsPage() {
             ) : (
               users.map((u) => (
                 <button key={u.id} onClick={() => update({ user: u.id })}
-                  className={cn("flex w-full items-center gap-3 border-b px-4 py-3 text-start transition-colors last:border-0 hover:bg-muted/40", selUser === u.id && "bg-accent")}>
+                  className={cn("flex w-full items-center gap-3 border-b px-4 py-3 text-start transition-colors last:border-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1", selUser === u.id && "bg-accent")}>
                   <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{u.name}</p><p className="mt-0.5 text-xs text-muted-foreground">{t(`roles.${u.role}`, u.role)}</p></div>
                   {selUser === u.id ? <ChevronRight className="size-3.5 shrink-0 text-primary rtl:rotate-180" /> : null}
                 </button>
@@ -104,14 +104,14 @@ export function PermissionsPage() {
         {/* Matrix */}
         <div className="overflow-hidden rounded-xl border bg-card">
           {!selUser ? (
-            <EmptyState icon={Shield} title={t("permissions.selectUser", "Select a user")} description={t("permissions.selectUserHint", "Choose a user to view and manage their permissions")} className="h-[600px]" />
+            <EmptyState icon={Shield} title={t("permissions.selectUser", "Select a user")} description={t("permissions.selectUserHint", "Choose a user to view and manage their permissions")} className="min-h-[min(600px,calc(100vh-14rem))]" />
           ) : (
             <>
               <div className="flex items-center justify-between border-b bg-muted/30 p-4">
                 <div><p className="font-bold">{selected?.name ?? "—"}</p><p className="text-xs text-muted-foreground">{t("permissions.overridesApplied", "Overrides applied on top of role defaults")}</p></div>
                 {selected ? <Badge variant="outline" className="border-transparent bg-info/15 text-info">{t(`roles.${selected.role}`, selected.role)}</Badge> : null}
               </div>
-              <ScrollArea className="h-[520px]">
+              <ScrollArea className="max-h-[min(520px,calc(100vh-18rem))] overflow-y-auto">
                 {matrixQ.isLoading ? (
                   <div className="space-y-2 p-4">{Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-10" />)}</div>
                 ) : (
@@ -136,13 +136,13 @@ export function PermissionsPage() {
                                 <div className="flex flex-col items-center gap-1">
                                   <button onClick={() => void toggle(resource, action, cell)}
                                     title={hasOverride ? t("permissions.override", "Override") : t("permissions.roleDefault", "Role default")}
-                                    className={cn("grid size-7 place-items-center rounded border transition-colors",
+                                    className={cn("grid size-7 place-items-center rounded border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                                       hasOverride
                                         ? eff ? "border-primary bg-primary text-primary-foreground" : "border-destructive/30 bg-destructive/10 text-destructive"
                                         : eff ? "border-border bg-muted text-muted-foreground" : "border-border bg-muted text-muted-foreground/40")}>
                                     {eff ? <Check className="size-3" /> : <X className="size-3" />}
                                   </button>
-                                  {hasOverride ? <span className="text-[9px] font-bold uppercase text-primary">{t("permissions.override", "Override")}</span> : null}
+                                  {hasOverride ? <span className="text-xs font-bold uppercase text-primary">{t("permissions.override", "Override")}</span> : null}
                                 </div>
                               </td>
                             );
@@ -154,9 +154,9 @@ export function PermissionsPage() {
                 )}
               </ScrollArea>
               <div className="flex flex-wrap items-center gap-4 border-t bg-muted/20 p-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5"><span className="size-4 rounded border border-primary/30 bg-primary/20" /> {t("permissions.overrideGranted", "Override granted")}</span>
-                <span className="flex items-center gap-1.5"><span className="size-4 rounded border border-destructive/30 bg-destructive/10" /> {t("permissions.overrideDenied", "Override denied")}</span>
-                <span className="flex items-center gap-1.5"><span className="size-4 rounded border border-border bg-muted" /> {t("permissions.roleDefault", "Role default")}</span>
+                <span className="flex items-center gap-1.5"><CheckCircle className="size-3.5 text-primary" /><span className="size-3.5 rounded border border-primary/30 bg-primary/20" /> {t("permissions.overrideGranted", "Override granted")}</span>
+                <span className="flex items-center gap-1.5"><XCircle className="size-3.5 text-destructive" /><span className="size-3.5 rounded border border-destructive/30 bg-destructive/10" /> {t("permissions.overrideDenied", "Override denied")}</span>
+                <span className="flex items-center gap-1.5"><MinusCircle className="size-3.5 text-muted-foreground" /><span className="size-3.5 rounded border border-border bg-muted" /> {t("permissions.roleDefault", "Role default")}</span>
               </div>
             </>
           )}

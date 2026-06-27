@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { DollarSign, Percent } from "lucide-react";
+import { Banknote, Percent } from "lucide-react";
 import { z } from "zod";
 
 import {
@@ -104,7 +104,7 @@ export function DiscountDialog({ orgId, discount, open, onOpenChange }: Props) {
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="percentage"><span className="flex items-center gap-2"><Percent className="size-3.5" /> {t("discounts.percentage", "Percentage")}</span></SelectItem>
-                      <SelectItem value="fixed"><span className="flex items-center gap-2"><DollarSign className="size-3.5" /> {t("discounts.fixed", "Fixed amount")}</span></SelectItem>
+                      <SelectItem value="fixed"><span className="flex items-center gap-2"><Banknote className="size-3.5" /> {t("discounts.fixed", "Fixed amount")}</span></SelectItem>
                     </SelectContent>
                   </Select>
                 </FormItem>

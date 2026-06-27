@@ -49,7 +49,7 @@ function HeaderIcon({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-card text-foreground transition-colors hover:bg-muted"
+      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
     >
       {children}
     </button>
@@ -137,7 +137,7 @@ export function StepShell({
                   <ReceiptText className="size-4" />
                 </HeaderIcon>
                 {historyCount > 0 && (
-                  <span className="pointer-events-none absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-brand-foreground tabular-nums">
+                  <span className="pointer-events-none absolute -end-1 -top-1 flex size-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-brand-foreground tabular-nums">
                     {historyCount > 9 ? "9+" : historyCount}
                   </span>
                 )}
@@ -198,7 +198,7 @@ export function StepShell({
         {variant !== "bare" && (
           <footer className="mt-12 flex flex-col items-center gap-2 border-t border-border/60 pt-6 text-center">
             <img
-              src={lang.startsWith("ar") ? "/sufrix_ar.svg" : "/sufrix.svg"}
+              src={lang.startsWith("ar") ? "/madar_ar.svg" : "/madar.svg"}
               alt={t("app.name")}
               className="h-6 opacity-80 dark:brightness-0 dark:invert"
             />

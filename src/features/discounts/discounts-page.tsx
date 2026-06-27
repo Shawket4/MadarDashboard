@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CheckCircle, DollarSign, Pencil, Percent, Plus, Tag, Trash2, XCircle } from "lucide-react";
+import { Banknote, CheckCircle, Pencil, Percent, Plus, Tag, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page } from "@/components/app/page";
@@ -38,11 +38,15 @@ export function DiscountsPage() {
   const editing = editId && editId !== "new" ? (discounts.find((d) => d.id === editId) ?? null) : null;
   const dlgOpen = editId === "new" || !!editing;
 
+  const [toggling, setToggling] = useState<Set<string>>(new Set());
   const onErr = (e: unknown) => toast.error(getErrorMessage(e));
   const valueLabel = (d: Discount) => (d.dtype === "percentage" ? `${d.value}%` : fmtMoney(d.value));
 
   const toggleActive = async (d: Discount) => {
-    try { await updateDiscount(d.id, { is_active: !d.is_active }); void invalidateDiscounts(); } catch (e) { onErr(e); }
+    setToggling((prev) => new Set(prev).add(d.id));
+    try { await updateDiscount(d.id, { is_active: !d.is_active }); void invalidateDiscounts(); } catch (e) { onErr(e); } finally {
+      setToggling((prev) => { const next = new Set(prev); next.delete(d.id); return next; });
+    }
   };
   const remove = async (d: Discount) => {
     if (await confirm({ title: t("common.confirmDelete", { name: d.name, defaultValue: `Delete "${d.name}"?` }), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
@@ -59,7 +63,7 @@ export function DiscountsPage() {
           return (
             <div className="flex items-center gap-3">
               <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg", pct ? "bg-info/10 text-info" : "bg-success/10 text-success")}>
-                {pct ? <Percent className="size-3.5" /> : <DollarSign className="size-3.5" />}
+                {pct ? <Percent className="size-3.5" /> : <Banknote className="size-3.5" />}
               </span>
               <span className="text-sm font-semibold">{tname(row.original)}</span>
             </div>
@@ -70,26 +74,37 @@ export function DiscountsPage() {
       { accessorKey: "value", header: t("discounts.value", "Value"), cell: ({ row }) => <span className="font-semibold tabular">{valueLabel(row.original)}</span> },
       {
         accessorKey: "is_active", header: t("common.status", "Status"),
-        cell: ({ row }) => (
-          <button type="button" onClick={(e) => { e.stopPropagation(); void toggleActive(row.original); }}>
-            {row.original.is_active
-              ? <Badge variant="outline" className="border-transparent bg-success/15 text-success"><CheckCircle className="size-3" /> {t("common.active", "Active")}</Badge>
-              : <Badge variant="outline"><XCircle className="size-3" /> {t("common.inactive", "Inactive")}</Badge>}
-          </button>
-        ),
+        cell: ({ row }) => {
+          const isPending = toggling.has(row.original.id);
+          return (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto p-0 hover:bg-transparent focus-visible:ring-2 focus-visible:ring-ring"
+              disabled={isPending}
+              aria-label={row.original.is_active ? t("discounts.deactivate", "Deactivate discount") : t("discounts.activate", "Activate discount")}
+              onClick={(e) => { e.stopPropagation(); void toggleActive(row.original); }}
+            >
+              {row.original.is_active
+                ? <Badge variant="outline" className="border-transparent bg-success/15 text-success"><CheckCircle className="size-3" /> {t("common.active", "Active")}</Badge>
+                : <Badge variant="outline"><XCircle className="size-3" /> {t("common.inactive", "Inactive")}</Badge>}
+            </Button>
+          );
+        },
       },
       {
         id: "actions", header: "",
         cell: ({ row }) => (
           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon-sm" onClick={() => update({ edit: row.original.id })}><Pencil className="size-4" /></Button>
-            <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => void remove(row.original)}><Trash2 className="size-4" /></Button>
+            <Button variant="ghost" size="icon-sm" onClick={() => update({ edit: row.original.id })} aria-label={t("common.edit", "Edit")}><Pencil className="size-4" /></Button>
+            <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => void remove(row.original)} aria-label={t("common.delete", "Delete")}><Trash2 className="size-4" /></Button>
           </div>
         ),
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, i18n.language, update],
+    [t, i18n.language, update, toggling],
   );
 
   const handleExport = () => {
@@ -99,10 +114,10 @@ export function DiscountsPage() {
       { header: t("discounts.value", "Value"), accessor: (d) => (d.dtype === "percentage" ? d.value : piastresToEgp(d.value)), type: "number", width: 14 },
       { header: t("common.status", "Status"), accessor: (d) => (d.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
-    void exportToExcel({ filename: "Sufrix-Discounts", sheets: [{ name: t("discounts.title", "Discounts"), title: t("discounts.title", "Discounts"), rows: discounts as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    void exportToExcel({ filename: "Madar-Discounts", sheets: [{ name: t("discounts.title", "Discounts"), title: t("discounts.title", "Discounts"), rows: discounts as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
-  if (!orgId) return <Page><div className="space-y-1.5"><h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("discounts.title", "Discounts")}</h1></div><EmptyState icon={Tag} title={t("discounts.pickOrg", "Select an organization")} /></Page>;
+  if (!orgId) return <Page><div className="space-y-1.5"><h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("discounts.title", "Discounts")}</h1></div><EmptyState icon={Tag} title={t("discounts.pickOrg", "Select an organization")} /></Page>;
 
   const active = discounts.filter((d) => d.is_active).length;
   const pct = discounts.filter((d) => d.dtype === "percentage").length;
@@ -112,7 +127,7 @@ export function DiscountsPage() {
     <Page>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("discounts.title", "Discounts")}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("discounts.title", "Discounts")}</h1>
           <p className="text-sm text-muted-foreground">{t("discounts.subtitle", "Percentage and fixed-amount discounts")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">

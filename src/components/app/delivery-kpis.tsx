@@ -4,6 +4,7 @@ import { Bike, Coins, PackageX, Receipt, Store, Truck, TrendingUp } from "lucide
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConciseValue, LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { ProgressBar } from "@/components/app/progress-bar";
 import { cn } from "@/lib/utils";
 import { fmtMoney, fmtMoneyCompact, fmtNumber } from "@/lib/format";
 import type { DeliverySalesReport } from "@/data/api/generated/models/deliverySalesReport";
@@ -60,7 +61,7 @@ export function DeliveryKpis({
             <Card key={c.channel} className="gap-3 p-4 sm:p-5">
               <div className="flex items-center gap-2.5">
                 <span className={cn("grid size-9 shrink-0 place-items-center rounded-lg", accentChip[meta.accent] ?? accentChip.brand)}>
-                  <meta.icon className="size-4.5" />
+                  <meta.icon className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{t(meta.labelKey, meta.fallback)}</p>
@@ -79,11 +80,16 @@ export function DeliveryKpis({
                 )}
               </div>
 
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                {!loading && full ? (
-                  <div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(2, (full.revenue / maxRev) * 100)}%` }} />
-                ) : null}
-              </div>
+              {!loading && full ? (
+                <ProgressBar
+                  value={Math.max(maxRev * 0.02, full.revenue)}
+                  max={maxRev}
+                  accent="brand"
+                  ariaLabel={t("delivery.revenueShare", "Revenue share")}
+                />
+              ) : (
+                <div className="h-1.5 overflow-hidden rounded-full bg-muted" />
+              )}
 
               {!loading && full ? (
                 <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
@@ -91,7 +97,7 @@ export function DeliveryKpis({
                     <Truck className="size-3.5" /> {t("delivery.fees", "Delivery fees")}: <span className="tabular text-foreground">{fmtMoney(full.delivery_fees)}</span>
                   </span>
                   {full.cancelled_orders > 0 ? (
-                    <span className="inline-flex items-center gap-1.5 text-warning">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-1.5 py-0.5 text-warning-foreground">
                       <PackageX className="size-3.5" /> {fmtNumber(full.cancelled_orders)} {t("delivery.cancelled", "cancelled")}
                     </span>
                   ) : null}

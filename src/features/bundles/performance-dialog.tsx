@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { Award, DollarSign, Layers, ShoppingBag } from "lucide-react";
+import { AlertCircle, Award, DollarSign, Layers, ShoppingBag } from "lucide-react";
+import { useReducedMotion } from "motion/react";
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip as ReTooltip, XAxis, YAxis } from "recharts";
 
 import { Button } from "@/components/ui/button";
@@ -14,15 +15,19 @@ import type { BundleWithComponents } from "@/data/api/generated/models";
 export function PerformanceDialog({ bundle, onClose }: { bundle: BundleWithComponents; onClose: () => void }) {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language.startsWith("ar");
-  const { data: perf, isLoading } = useBundlePerformance(bundle.id, undefined, { query: { enabled: !!bundle.id } });
+  const reducedMotion = useReducedMotion();
+  const { data: perf, isLoading, isError, refetch } = useBundlePerformance(bundle.id, undefined, { query: { enabled: !!bundle.id } });
 
   const data = (perf?.component_popularity ?? []).map((c) => ({ name: c.item_name, sales: c.quantity_sold }));
 
   const metrics: LedgerItem[] = [
-    { key: "sales", label: t("bundles.performance.sales", "Sales"), value: perf?.sales_volume ?? 0, formatType: "number", icon: ShoppingBag, accent: "brand", loading: isLoading },
+    { key: "sales", label: t("bundles.performance.sales", "Sales"), value: perf?.sales_volume ?? 0, formatType: "number", icon: ShoppingBag, accent: "info", loading: isLoading },
     { key: "revenue", label: t("bundles.performance.revenue", "Revenue"), value: perf?.gross_revenue ?? 0, formatType: "money", icon: DollarSign, accent: "primary", loading: isLoading },
     { key: "profit", label: t("bundles.performance.profit", "Profit"), value: perf?.net_profit ?? 0, formatType: "money", icon: Award, accent: "success", loading: isLoading },
   ];
+
+  // RTL: filled end is on the left, so radius flips to [4,0,0,4] in Arabic.
+  const barRadius: [number, number, number, number] = isAr ? [4, 0, 0, 4] : [0, 4, 4, 0];
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -35,6 +40,12 @@ export function PerformanceDialog({ bundle, onClose }: { bundle: BundleWithCompo
           <LedgerStrip items={metrics} />
           {isLoading ? (
             <Skeleton className="h-64 w-full rounded-xl" />
+          ) : isError ? (
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 py-10 text-center">
+              <AlertCircle className="size-8 text-destructive" />
+              <p className="text-sm font-medium">{t("bundles.performance.loadError", "Could not load performance data")}</p>
+              <Button variant="outline" size="sm" onClick={() => void refetch()}>{t("common.retry", "Retry")}</Button>
+            </div>
           ) : (
             <div className="space-y-3">
               <h4 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -59,7 +70,7 @@ export function PerformanceDialog({ bundle, onClose }: { bundle: BundleWithCompo
                           ) : null
                         }
                       />
-                      <Bar dataKey="sales" radius={[0, 4, 4, 0]}>
+                      <Bar dataKey="sales" radius={barRadius} isAnimationActive={!reducedMotion}>
                         {data.map((_, i) => (
                           <Cell key={i} fill={`var(--chart-${(i % 6) + 1})`} />
                         ))}

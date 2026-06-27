@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { AlertTriangle, Clock, MoreHorizontal, PlusCircle, Wallet, XCircle, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowDownLeft, ArrowUpRight, CheckCircle2, Clock, MoreHorizontal, PlusCircle, Wallet, XCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page } from "@/components/app/page";
@@ -73,7 +73,7 @@ export function ShiftsPage() {
   // The current-shift banner + opening a shift are branch-specific actions, so
   // they stay tied to a concrete branch. The list scopes to the selected branch
   // or rolls up across the org ("All branches").
-  const current = useGetCurrentShift(branchId ?? "", { query: { enabled: !!branchId } });
+  const current = useGetCurrentShift(branchId ?? "", undefined, { query: { enabled: !!branchId } });
   // No page/per_page params → the backend returns every shift in one envelope
   // (the export below needs the full set, and this page has no pagination UI).
   const shifts = useListShifts(scopeBranchId, undefined, { query: { enabled: !!scopeBranchId } });
@@ -179,7 +179,22 @@ export function ShiftsPage() {
         cell: ({ row }) => {
           const d = row.original.cash_discrepancy;
           if (d == null) return <span className="text-muted-foreground">—</span>;
-          return <span className={cn("tabular", d === 0 ? "text-success" : "text-destructive")}>{fmtMoney(d)}</span>;
+          if (d === 0) {
+            return (
+              <span className="inline-flex items-center gap-1 tabular text-success">
+                <CheckCircle2 className="size-3.5 shrink-0" aria-hidden="true" />
+                {fmtMoney(d)}
+              </span>
+            );
+          }
+          return (
+            <span className="inline-flex items-center gap-1 tabular text-destructive">
+              {d > 0
+                ? <ArrowUpRight className="size-3.5 shrink-0" aria-hidden="true" />
+                : <ArrowDownLeft className="size-3.5 shrink-0" aria-hidden="true" />}
+              {fmtMoney(d)}
+            </span>
+          );
         },
       },
       {
@@ -191,14 +206,14 @@ export function ShiftsPage() {
             <div className="text-end">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" onClick={(e) => e.stopPropagation()}>
-                    <MoreHorizontal className="size-4" />
+                  <Button variant="ghost" size="icon-sm" aria-label={t("common.actions", "Actions")} onClick={(e) => e.stopPropagation()}>
+                    <MoreHorizontal className="size-4" aria-hidden="true" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenuItem onClick={() => setReportId(s.id)}>{t("shifts.viewReport", "View report")}</DropdownMenuItem>
                   {canManage && s.status === "open" ? (
-                    <DropdownMenuItem onClick={() => onForceClose(s)}>
+                    <DropdownMenuItem variant="destructive" onClick={() => onForceClose(s)}>
                       <XCircle className="size-4" />
                       {t("shifts.forceClose", "Force close")}
                     </DropdownMenuItem>
@@ -235,7 +250,7 @@ export function ShiftsPage() {
       { header: t("shifts.closingCash", "Closing"), accessor: (s) => s.closing_cash_declared ?? null, type: "money", width: 14 },
       { header: t("shifts.discrepancy", "Discrepancy"), accessor: (s) => s.cash_discrepancy ?? null, type: "money", width: 14 },
     ];
-    void exportToExcel({ filename: "Sufrix-Shifts", sheets: [{ name: t("nav.shifts", "Shifts"), title: t("nav.shifts", "Shifts"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    void exportToExcel({ filename: "Madar-Shifts", sheets: [{ name: t("nav.shifts", "Shifts"), title: t("nav.shifts", "Shifts"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
   // No current-shift banner / "Open shift" action in the all-branches roll-up —

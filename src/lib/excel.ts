@@ -50,13 +50,13 @@ export interface ExcelConfig {
 }
 
 const PALETTE = {
-  brand: "FF0A2540", // navy
-  accent: "FFC25B3F", // terracotta
+  brand: "FF0D6273", // teal deep
+  accent: "FF2E94A6", // teal light
   white: "FFFFFFFF",
-  zebra: "FFF6F4F0", // warm off-white
-  border: "FFE5E7EB",
-  text: "FF111827",
-  muted: "FF6B7280",
+  zebra: "FFEDF2F3", // cool off-white (paper tint)
+  border: "FFD7E0E1",
+  text: "FF14181E", // ink
+  muted: "FF76828B", // slate
 } as const;
 
 const numFmt = (type: ColumnType | undefined): string | undefined => {
@@ -315,11 +315,11 @@ export async function exportToExcel(config: ExcelConfig): Promise<void> {
     ].find((c): c is WB => typeof c?.Workbook === "function");
     if (!ExcelJS) throw new Error("ExcelJS Workbook constructor not found");
     const wb = new ExcelJS.Workbook();
-    wb.creator = "Sufrix";
+    wb.creator = "Madar";
 
     let logoId: number | undefined;
     let logoExt = { width: 140, height: 48 };
-    const logo = await loadLogo(config.logoUrl ?? "/sufrix.svg");
+    const logo = await loadLogo(config.logoUrl ?? "/madar.svg");
     if (logo) {
       logoId = wb.addImage({ buffer: logo.buffer, extension: "png" });
       logoExt = { width: logo.width, height: logo.height };

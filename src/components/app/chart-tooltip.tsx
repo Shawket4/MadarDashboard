@@ -25,7 +25,7 @@ export function ChartTooltipContent({
 }: ChartTooltipContentProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border bg-popover px-3 py-2 text-xs shadow-md">
+    <div className="rounded-lg border bg-popover px-3 py-2 text-xs shadow-sm">
       {label != null && label !== "" ? (
         <div className="mb-1.5 font-medium text-foreground">
           {labelFormatter ? labelFormatter(label) : label}

@@ -160,8 +160,8 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
                     type="button"
                     onClick={() => handlePreset(p.id)}
                     className={cn(
-                      "flex items-start gap-3 rounded-xl border p-3 text-start transition-all",
-                      selected ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-accent/50",
+                      "flex items-start gap-3 rounded-xl border p-3 text-start transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                      selected ? "border-primary bg-primary/5 ring-1 ring-ring" : "hover:bg-accent/50",
                     )}
                   >
                     <span
@@ -187,7 +187,7 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
             <button
               type="button"
               onClick={() => setCustomizeExpanded((v) => !v)}
-              className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+              className="flex items-center gap-1.5 rounded text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
             >
               {t("ordersExport.customizeBtn", "Customize export sheets")}
               {customizeExpanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
@@ -200,7 +200,7 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
                       <label
                         key={g}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg border bg-background p-3",
+                          "flex items-center gap-3 rounded-lg border bg-background p-3 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2",
                           preset === "custom" ? "cursor-pointer hover:bg-accent/50" : "opacity-70",
                         )}
                       >

@@ -19,14 +19,16 @@ export function SegmentedControl<V extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("flex w-fit rounded-lg border bg-muted p-0.5", className)}>
+    <div role="radiogroup" className={cn("flex w-fit rounded-lg border bg-muted p-0.5", className)}>
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
+          role="radio"
+          aria-checked={value === opt.value}
           onClick={() => onChange(opt.value)}
           className={cn(
-            "whitespace-nowrap rounded px-3 py-1 text-xs transition-colors",
+            "whitespace-nowrap rounded px-3 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
             value === opt.value ? "bg-background font-semibold shadow-sm" : "text-muted-foreground hover:text-foreground",
           )}
         >

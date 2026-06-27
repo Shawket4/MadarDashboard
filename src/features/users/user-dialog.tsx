@@ -19,7 +19,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { invalidateUsers } from "./util";
 
-const ALL_ROLES: UserRole[] = ["super_admin", "org_admin", "branch_manager", "teller"];
+const ALL_ROLES: UserRole[] = ["super_admin", "org_admin", "branch_manager", "teller", "waiter", "kitchen"];
 
 interface Props {
   orgId: string;
@@ -38,7 +38,7 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
   const { data: orgs = [] } = useListOrgs({ query: { enabled: isSuperAdmin && !editing } });
 
   const availableRoles = useMemo<UserRole[]>(
-    () => isSuperAdmin ? ALL_ROLES : currentRole === "branch_manager" ? ["teller"] : ALL_ROLES.filter((r) => r !== "super_admin"),
+    () => isSuperAdmin ? ALL_ROLES : currentRole === "branch_manager" ? ["teller", "waiter", "kitchen"] : ALL_ROLES.filter((r) => r !== "super_admin"),
     [isSuperAdmin, currentRole],
   );
 
@@ -48,7 +48,7 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
         name: z.string().min(1, t("common.requiredField", "This field is required")),
         email: z.string().email(t("common.invalidEmail", "Invalid email")).optional().or(z.literal("")),
         phone: z.string().optional(),
-        role: z.enum(["super_admin", "org_admin", "branch_manager", "teller"]),
+        role: z.enum(["super_admin", "org_admin", "branch_manager", "teller", "waiter", "kitchen"]),
         org_id: z.string().optional(),
         pin: z.string().regex(/^\d{4,6}$/, t("users.pinError", "PIN must be 4-6 digits")).optional().or(z.literal("")),
         password: z.string().optional(),
@@ -116,7 +116,7 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem><FormLabel>{t("users.fullName", "Full Name")}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField control={form.control} name="email" render={({ field }) => (
                 <FormItem><FormLabel>{t("auth.email", "Email")}</FormLabel><FormControl><Input type="email" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
@@ -124,7 +124,7 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
                 <FormItem><FormLabel>{t("users.phone", "Phone")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField control={form.control} name="pin" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("users.pin", "PIN (4-6 digits)")}</FormLabel>
@@ -136,7 +136,7 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
                 <FormItem><FormLabel>{t("auth.password", "Password")}</FormLabel><FormControl><Input type="password" {...field} value={field.value ?? ""} placeholder={editing ? t("users.leaveBlank", "Leave blank to keep") : t("common.optional", "Optional")} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField control={form.control} name="role" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("users.role", "Role")}</FormLabel>

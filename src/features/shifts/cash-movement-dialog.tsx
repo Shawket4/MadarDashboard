@@ -62,23 +62,25 @@ export function CashMovementDialog({ shiftId, open, onOpenChange }: Props) {
           <DialogDescription>{t("shifts.cashMovementDesc", "Record cash paid into or taken out of the drawer.")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
+          <div role="group" aria-label={t("shifts.cashDialog.direction", "Direction")} className="grid grid-cols-2 gap-2">
             <Button
               type="button"
               variant={direction === "in" ? "default" : "outline"}
+              aria-pressed={direction === "in"}
               className={cn(direction === "in" && "bg-success text-success-foreground hover:bg-success/90")}
               onClick={() => setDirection("in")}
             >
-              <ArrowDownLeft className="size-4" />
+              <ArrowDownLeft className="size-4" aria-hidden="true" />
               {t("shifts.cashIn", "Cash in")}
             </Button>
             <Button
               type="button"
               variant={direction === "out" ? "default" : "outline"}
+              aria-pressed={direction === "out"}
               className={cn(direction === "out" && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
               onClick={() => setDirection("out")}
             >
-              <ArrowUpRight className="size-4" />
+              <ArrowUpRight className="size-4" aria-hidden="true" />
               {t("shifts.cashOut", "Cash out")}
             </Button>
           </div>

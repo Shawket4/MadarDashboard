@@ -1,10 +1,10 @@
 {
   "app": {
-    "name": "Sufrix",
+    "name": "Madar",
     "tagline": "Coffee Shop Management"
   },
   "common": {
-    "copyright": "© {{year}} Sufrix. All rights reserved.",
+    "copyright": "© {{year}} Madar. All rights reserved.",
     "source": "Source",
     "cairoTime": "Cairo time",
     "timezoneLabel": "{{city}} time",
@@ -74,20 +74,32 @@
     "undo": "Undo",
     "autoTranslated": "auto-translates if empty",
     "account": "Account",
-    "comingSoonDesc": "This screen is being rebuilt as part of the new Sufrix experience.",
+    "comingSoonDesc": "This screen is being rebuilt as part of the new Madar experience.",
     "accept": "Accept",
     "reject": "Reject",
     "ignore": "Ignore",
     "invalidEmail": "Invalid email",
     "saved": "Saved",
     "clear": "Clear",
-    "select": "Select…"
+    "select": "Select…",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "retry": "Retry",
+    "tryRefresh": "Try refreshing the page.",
+    "download": "Download",
+    "copyFailed": "Copy failed",
+    "copied": "Copied!",
+    "copyLink": "Copy link"
   },
   "nav": {
     "dashboard": "Dashboard",
     "orgs": "Organizations",
     "users": "Users",
     "branches": "Branches",
+    "tills": "Tills",
+    "kitchen": "Kitchen",
+    "kitchenStations": "Stations",
+    "kitchenRouting": "Order routing",
     "menu": "Menu",
     "inventory": "Inventory",
     "recipes": "Recipes",
@@ -150,13 +162,16 @@
       "invalid": "Invalid credentials",
       "required": "Email and password are required",
       "invalidEmail": "Enter a valid email"
-    }
+    },
+    "emailPlaceholder": "you@madar.com"
   },
   "roles": {
     "super_admin": "Super Admin",
     "org_admin": "Organization Admin",
     "branch_manager": "Branch Manager",
-    "teller": "Teller"
+    "teller": "Teller",
+    "waiter": "Waiter",
+    "kitchen": "Kitchen"
   },
   "payments": {
     "cash": "Cash",
@@ -224,7 +239,8 @@
     "payments": "Payment mix",
     "pickBranchTrend": "Select a branch to see its revenue trend",
     "branchPerformance": "Branch performance",
-    "periodTotal": "{{total}} this period"
+    "periodTotal": "{{total}} this period",
+    "branchRevenueBar": "Revenue share for {{name}}"
   },
   "orgs": {
     "title": "Organizations",
@@ -242,7 +258,10 @@
     "deletedToast": "Organization deleted",
     "logo": "Logo",
     "logoHint": "Recommended: square PNG or SVG, at least 128×128 px",
-    "logoRemoved": "Logo removed"
+    "logoRemoved": "Logo removed",
+    "loadError": "Couldn't load organizations",
+    "editDescription": "Update the details for this organization.",
+    "newDescription": "Fill in the details to create a new organization."
   },
   "branches": {
     "title": "Branches",
@@ -274,7 +293,9 @@
     "longitude": "Longitude",
     "geoRadius": "Radius (m)",
     "activeHint": "Inactive branches are hidden from the POS.",
-    "pickOrg": "Select an organization"
+    "pickOrg": "Select an organization",
+    "loadError": "Couldn't load branches",
+    "pickOrgDescription": "Choose an organization from the sidebar to view and manage its branches."
   },
   "users": {
     "title": "Users",
@@ -559,7 +580,8 @@
     "imageAfterSave": "Uploads after the item is saved",
     "recipeOnRecipesPage": "Per-size ingredient recipes are managed on the Recipes tab.",
     "recipe": "Recipe",
-    "recipeHint": "What this item consumes, per size"
+    "recipeHint": "What this item consumes, per size",
+    "removeSize": "Remove size"
   },
   "recipes": {
     "title": "Recipes",
@@ -602,7 +624,8 @@
       "margin": "margin",
       "unsaved": "Unsaved changes",
       "saveAll": "Save recipe",
-      "saved": "Recipe saved"
+      "saved": "Recipe saved",
+      "removeIngredient": "Remove ingredient"
     },
     "slots": {
       "title": "Add-on slots",
@@ -619,7 +642,11 @@
       "maxHint": "blank = unlimited",
       "requiredHint": "Customer must choose at least the minimum",
       "saved": "Slot saved",
-      "removed": "Slot removed"
+      "removed": "Slot removed",
+      "minMaxSummary": "min {{min}}, max {{max}}",
+      "displayLabelEn": "Display label (EN)",
+      "displayLabelAr": "Display label (AR)",
+      "removeSlot": "Remove slot"
     },
     "optionals": {
       "title": "Optional fields",
@@ -630,7 +657,10 @@
       "checkboxLabel": "Checkbox label",
       "labelPh": "e.g. Extra hot",
       "inventoryItem": "Deduct an inventory item (optional)",
-      "saveField": "Save field"
+      "saveField": "Save field",
+      "checkboxLabelEn": "Checkbox label (EN)",
+      "checkboxLabelAr": "Checkbox label (AR)",
+      "removeField": "Remove field"
     }
   },
   "inventory": {
@@ -931,7 +961,9 @@
       "onHandHint": "{{branch}} on hand: {{qty}} {{unit}}",
       "recent": "Recent transfers",
       "from": "From",
-      "to": "To"
+      "to": "To",
+      "reverseTitle": "Reverse transfer",
+      "reverseConfirm": "Reverse this transfer with a compensating entry?"
     },
     "today": {
       "title": "Today",
@@ -1042,7 +1074,8 @@
       "voided": "Voided",
       "netPayments": "Net Payments",
       "printedAt": "Report generated {{date}}",
-      "print": "Print"
+      "print": "Print",
+      "loadError": "Could not load the shift report. Please try again."
     },
     "toasts": {
       "opened": "Shift opened",
@@ -1273,7 +1306,9 @@
     "inBundles": "In bundles",
     "totalSold": "Total sold",
     "pickBranch": "Select a branch",
-    "pickBranchHint": "Choose a branch in the scope bar to view this report."
+    "pickBranchHint": "Choose a branch in the scope bar to view this report.",
+    "tellerDetails": "Teller Details",
+    "branchDetails": "Branch Details"
   },
   "discounts": {
     "title": "Discounts",
@@ -1300,7 +1335,9 @@
     "deletedToast": "Discount deleted",
     "pickOrg": "Select an organization",
     "pctOff": "{{value}}% off",
-    "amountOff": "{{value}} off"
+    "amountOff": "{{value}} off",
+    "activate": "Activate discount",
+    "deactivate": "Deactivate discount"
   },
   "bundles": {
     "title": "Bundles",
@@ -1370,7 +1407,8 @@
       "revenue": "Revenue",
       "profit": "Profit",
       "popularity": "Component popularity",
-      "sold": "{{qty}} sold"
+      "sold": "{{qty}} sold",
+      "loadError": "Could not load performance data"
     }
   },
   "menuAdvisor": {
@@ -1509,7 +1547,22 @@
       "system": "System",
       "cashBase": "Cash",
       "nonCash": "Non-cash",
-      "systemMethods": "System methods"
+      "systemMethods": "System methods",
+      "iconLabel": {
+        "money": "Cash / Money",
+        "credit_card": "Credit Card",
+        "wallet": "Digital Wallet",
+        "pie_chart": "Mixed / Split",
+        "delivery": "Delivery",
+        "qr_code": "QR Code",
+        "bank": "Bank Transfer",
+        "gift_card": "Gift Card",
+        "smartphone": "Mobile Pay",
+        "receipt": "Voucher",
+        "store": "Store Credit",
+        "star": "Loyalty Points",
+        "link": "Payment Link"
+      }
     },
     "whatsapp": "WhatsApp",
     "whatsappHint": "Link the number that sends delivery OTP and order updates."
@@ -1526,7 +1579,7 @@
   },
   "pillars": {
     "eyebrow": "Chapter 1 · Four pillars",
-    "title": "What sets Sufrix apart.",
+    "title": "What sets Madar apart.",
     "items": {
       "01": {
         "n": "1",
@@ -1583,7 +1636,7 @@
   "tellerHero": {
     "eyebrow": "Chapter 3 · The teller",
     "title": "Where the operation\nmeets the customer.",
-    "caption": "The Sufrix teller — iPad, offline-first."
+    "caption": "The Madar teller — iPad, offline-first."
   },
   "tellerDetail": {
     "eyebrow": "Chapter 3 · The Teller, continued",
@@ -1607,7 +1660,7 @@
   "featureMixedCheckout": {
     "eyebrow": "Chapter 3 · The Teller, continued",
     "title": "Flexible checkout\nin one screen.",
-    "body": "Customers don't always pay with exact change or a single card. Sufrix handles split payments natively—letting you seamlessly split a single order across cash, card, and credit without jumping through menus.",
+    "body": "Customers don't always pay with exact change or a single card. Madar handles split payments natively—letting you seamlessly split a single order across cash, card, and credit without jumping through menus.",
     "details": {
       "01": {
         "title": "Split Payments",
@@ -1645,7 +1698,7 @@
   "featureOffline": {
     "eyebrow": "Chapter 4 · Resilience",
     "title": "True Offline\nResilience.",
-    "body": "When the internet goes down, Sufrix doesn't just cache basic sales and hope for the best. It uses a persistent write-ahead queue to store every transaction, shift open, and cash movement locally.",
+    "body": "When the internet goes down, Madar doesn't just cache basic sales and hope for the best. It uses a persistent write-ahead queue to store every transaction, shift open, and cash movement locally.",
     "details": {
       "01": {
         "title": "Write-Ahead Queue",
@@ -1664,7 +1717,7 @@
   "featureRecipe": {
     "eyebrow": "Chapter 5 · Barista workflow",
     "title": "Built-in\nBarista Training.",
-    "body": "Sufrix recipes don't just calculate costs—they dictate the workflow. The system shows exact measurements and steps, cutting down training time drastically and ensuring your signature drinks taste the same no matter who is on shift.",
+    "body": "Madar recipes don't just calculate costs—they dictate the workflow. The system shows exact measurements and steps, cutting down training time drastically and ensuring your signature drinks taste the same no matter who is on shift.",
     "details": {
       "01": {
         "title": "Smart Swaps",
@@ -1679,7 +1732,7 @@
   "managementHero": {
     "eyebrow": "Chapter 6 · Management",
     "title": "The whole operation,\non one screen.",
-    "caption": "The Sufrix dashboard — available on Desktop and Web."
+    "caption": "The Madar dashboard — available on Desktop and Web."
   },
   "managementDetail": {
     "eyebrow": "Chapter 6 · Management, continued",
@@ -1703,7 +1756,7 @@
   "operations": {
     "eyebrow": "Chapter 7 · Deep Operations",
     "title": "An unshakeable ledger.",
-    "lede": "Sufrix isn't just a way to ring sales. It's the operational backbone, built on a strict, append-only architecture that behaves like an accountant.",
+    "lede": "Madar isn't just a way to ring sales. It's the operational backbone, built on a strict, append-only architecture that behaves like an accountant.",
     "sections": {
       "01": {
         "title": "Append-Only History",
@@ -1722,7 +1775,7 @@
   "featureExport": {
     "eyebrow": "Chapter 8 · Accountant ready",
     "title": "Exports you can\nactually use.",
-    "body": "We abandoned messy CSV dumps. Sufrix uses a custom generation engine to export beautifully formatted Excel sheets directly from the dashboard, saving your accountant hours of formatting.",
+    "body": "We abandoned messy CSV dumps. Madar uses a custom generation engine to export beautifully formatted Excel sheets directly from the dashboard, saving your accountant hours of formatting.",
     "details": {
       "01": {
         "title": "SUM Formulas Included",
@@ -1741,7 +1794,7 @@
   "smartPricing": {
     "eyebrow": "Chapter 9 · The Advisor",
     "title": "The Menu\nEngineer.",
-    "lede": "Sufrix watches your sales velocity and item margins simultaneously, utilizing proven menu engineering methodologies to surface exact pricing adjustments.",
+    "lede": "Madar watches your sales velocity and item margins simultaneously, utilizing proven menu engineering methodologies to surface exact pricing adjustments.",
     "sections": {
       "01": {
         "n": "1",
@@ -1860,7 +1913,7 @@
   "roadmap": {
     "eyebrow": "Chapter 13 · The Future",
     "title": "On the roadmap.",
-    "body": "Sufrix is constantly evolving. Here is what is currently in active development or coming next to enhance your operations.",
+    "body": "Madar is constantly evolving. Here is what is currently in active development or coming next to enhance your operations.",
     "items": {
       "01": {
         "title": "Egyptian eInvoicing",
@@ -1875,7 +1928,7 @@
       "03": {
         "title": "Native Talabat Sink",
         "badge": "Roadmap",
-        "body": "A direct API pipeline to Talabat, bringing third-party delivery orders directly into the Sufrix write-ahead queue without needing a secondary tablet."
+        "body": "A direct API pipeline to Talabat, bringing third-party delivery orders directly into the Madar write-ahead queue without needing a secondary tablet."
       },
       "04": {
         "title": "Centralized Music Control",
@@ -1887,17 +1940,17 @@
   "backCover": {
     "eyebrow": "Chapter 14 · Partnership",
     "title": "Looking forward to\nbuilding together.",
-    "body": "Sufrix isn't just software looking for a customer; it's an operational partnership. We're ready to deploy our system into your branches, customize the logic to your exact needs, and help you scale securely. Standard installs ship with everything here, but we build new screens, fields, and integrations on request.",
+    "body": "Madar isn't just software looking for a customer; it's an operational partnership. We're ready to deploy our system into your branches, customize the logic to your exact needs, and help you scale securely. Standard installs ship with everything here, but we build new screens, fields, and integrations on request.",
     "contact": "Get in touch",
     "edition": "Capability Portfolio · Vol. 1 · 2026"
   },
   "footer": {
-    "strapline": "Sufrix · Capability Portfolio"
+    "strapline": "Madar · Capability Portfolio"
   },
   "landing": {
     "cta": {
       "title": "Ready to upgrade your operations?",
-      "subtitle": "Sufrix is built to flex with your business. Contact our creator today to get started.",
+      "subtitle": "Madar is built to flex with your business. Contact our creator today to get started.",
       "creator": "Creator",
       "email": "Email",
       "dropEmail": "Drop an email"
@@ -1977,7 +2030,7 @@
       "first_order": "Ring up your first order"
     },
     "welcome": {
-      "title": "Welcome to Sufrix",
+      "title": "Welcome to Madar",
       "description": "Let's get your restaurant set up. A few quick steps and you're ready to take orders.",
       "pickingUp": "Picking up where you left off — some steps are already done.",
       "jumpToNext": "Jump to next step",
@@ -2009,7 +2062,7 @@
     },
     "costs": {
       "title": "Ingredient costs (recommended)",
-      "description": "Add ingredient costs and Sufrix computes profit per item — margins, food cost % and your menu's stars.",
+      "description": "Add ingredient costs and Madar computes profit per item — margins, food cost % and your menu's stars.",
       "coverageLabel": "Recipe coverage",
       "openRecipes": "Open recipe editor",
       "emptyHint": "Add your first ingredient with its cost per unit to start tracking profit."
@@ -2043,7 +2096,9 @@
     "finishedToast": "Setup complete — welcome aboard!",
     "skipToDashboard": "Skip to dashboard",
     "optionalTag": "Optional",
-    "countAdded": "{{count}} added"
+    "countAdded": "{{count}} added",
+    "loadError": "Couldn't load your setup checklist",
+    "loadErrorHint": "Check your connection and try again."
   },
   "scope": {
     "selectBranch": "Select branch",
@@ -2220,7 +2275,8 @@
       "savedLabel": "Use a saved address",
       "savedUnknown": "Saved location",
       "thisBranch": "This branch",
-      "otherBranches": "Other branches"
+      "otherBranches": "Other branches",
+      "floorAbbrev": "Fl."
     },
     "menu": {
       "title": "Menu",
@@ -2392,7 +2448,7 @@
     },
     "theme": "Toggle theme",
     "footer": {
-      "poweredBy": "Online ordering powered by Sufrix",
+      "poweredBy": "Online ordering powered by Madar",
       "rights": "© {{year}} {{name}}"
     },
     "track": {
@@ -2428,7 +2484,8 @@
       "pay": {
         "cash": "Cash on delivery",
         "card": "Card on delivery"
-      }
+      },
+      "floor": "Floor {{floor}}"
     }
   },
   "deliveryTimeline": {
@@ -2518,7 +2575,10 @@
     "noDiscount": "No discount",
     "channelDiscountHint": "Applied to the item subtotal at checkout — the delivery fee is always charged in full.",
     "inMallRequireLocation": "Require GPS location",
-    "inMallRequireLocationHint": "Customers must share their device location to confirm they're at the branch before ordering. Turn off if indoor GPS is unreliable (shop, floor, and unit are always required)."
+    "inMallRequireLocationHint": "Customers must share their device location to confirm they're at the branch before ordering. Turn off if indoor GPS is unreliable (shop, floor, and unit are always required).",
+    "revenueShare": "Revenue share",
+    "loadError": "Couldn't load items",
+    "loadErrorHint": "Check your connection and try refreshing."
   },
   "whatsapp": {
     "title": "WhatsApp",
@@ -2555,7 +2615,8 @@
     "generate": "Generate QR",
     "pickBranch": "Select a branch from the scope bar above",
     "opts": {
-      "brandedCard": "Branded card"
+      "brandedCard": "Branded card",
+      "dpiLabel": "DPI"
     },
     "tabs": {
       "standard": "Standard menu",
@@ -2581,6 +2642,82 @@
     },
     "preview": {
       "title": "QR Code"
-    }
+    },
+    "enlarge": "Enlarge QR code",
+    "imageAlt": "QR code for {{title}}"
+  },
+  "ui": {
+    "sidebar": {
+      "title": "Sidebar",
+      "description": "Displays the mobile sidebar.",
+      "toggle": "Toggle Sidebar"
+    },
+    "commandPalette": {
+      "title": "Command Palette",
+      "description": "Search for a command to run..."
+    },
+    "more": "More"
+  },
+  "bilingualField": {
+    "arabicLabel": "{{label}} (ع)"
+  },
+  "kitchen": {
+    "byCategory": "By category",
+    "byItem": "Per item",
+    "byItemHint": "Override a single item's station. Left on “Inherit”, it follows its category.",
+    "default": "Default",
+    "defaultStation": "Default station",
+    "defaultStationHint": "Catches items that aren't routed anywhere else.",
+    "editStation": "Edit station",
+    "effective": "Now",
+    "inheritCategory": "Inherit (category)",
+    "inheritsStation": "Inherits {{station}}",
+    "mode": {
+      "auto": "Auto",
+      "both": "Both",
+      "kds": "KDS screens",
+      "off": "Off (no kitchen)",
+      "till": "Till queue"
+    },
+    "modeUpdated": "Routing mode updated",
+    "newStation": "New station",
+    "noCategories": "No categories to route yet.",
+    "noInheritedStation": "No category station",
+    "noItems": "No items match",
+    "noStations": "No stations yet",
+    "noStationsForRouting": "Create a station first",
+    "noStationsForRoutingHint": "Add kitchen stations on the Stations tab, then route categories to them.",
+    "noStationsHint": "Add stations like Grill or Bar, then route items to them.",
+    "overridden": "Overridden",
+    "pickBranch": "Select a branch in the top bar to manage its kitchen",
+    "routingMode": "Where tickets show",
+    "routingModeHint": "Auto = KDS if stations exist, else the till.",
+    "routingSubtitle": "Send each menu category to a kitchen station. Items inherit their category unless overridden.",
+    "routingTitle": "Order routing",
+    "stationCreated": "Station created",
+    "stationDeleted": "Station deleted",
+    "stationName": "Name",
+    "stationSubtitle": "A kitchen area (Grill, Bar…) that shows and prints its routed items.",
+    "stationUpdated": "Station updated",
+    "stationsSubtitle": "Kitchen areas with printers; route menu items to them on the Order routing tab.",
+    "stationsTitle": "Kitchen stations",
+    "unassigned": "Default / unassigned"
+  },
+  "tills": {
+    "created": "Till created",
+    "default": "Default",
+    "deleted": "Till deleted",
+    "editTill": "Edit till",
+    "empty": "No tills yet",
+    "emptyHint": "Every branch gets a default till; add more for multiple registers.",
+    "isDefault": "Default till",
+    "isDefaultHint": "Used when a shift opens without specifying a till.",
+    "name": "Name",
+    "newTill": "New till",
+    "pageSubtitle": "Cash drawers / registers for this branch. Each open shift runs on one till.",
+    "pickBranch": "Select a branch in the top bar to manage its tills",
+    "subtitle": "Physical cash drawers / registers for this branch.",
+    "title": "Tills",
+    "updated": "Till updated"
   }
 }

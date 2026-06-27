@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
-  ArrowRight, Check, CreditCard, GitBranch, NotebookPen, PlusCircle, Receipt,
+  AlertCircle, ArrowRight, Check, CreditCard, GitBranch, NotebookPen, PlusCircle, Receipt,
   Sparkles, Sprout, Tags, UtensilsCrossed, Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -61,12 +61,12 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/40 to-background">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-10">
         <header className="flex items-center gap-4">
-          {orgLogo ? <img src={orgLogo} alt="" className="size-14 shrink-0 rounded-2xl object-cover" /> : <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground"><Sparkles className="size-6" /></span>}
+          {orgLogo ? <img src={orgLogo} alt={t("onboarding.welcome.logo")} className="size-14 shrink-0 rounded-2xl object-cover" /> : <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground"><Sparkles className="size-6" /></span>}
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold">{t("onboarding.welcome.title", "Welcome to Sufrix")}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{t("onboarding.welcome.title", "Welcome to Madar")}</h1>
             <p className="text-sm text-muted-foreground">{t("onboarding.welcome.description", "Let's get your restaurant set up. A few quick steps and you're ready to take orders.")}</p>
           </div>
         </header>
@@ -83,7 +83,14 @@ export function OnboardingPage() {
         </Card>
 
         <div className="space-y-2">
-          {q.isLoading ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
+          {q.isError ? (
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center">
+              <AlertCircle className="size-8 text-destructive" aria-hidden="true" />
+              <p className="text-sm font-semibold text-destructive">{t("onboarding.loadError", "Couldn't load your setup checklist")}</p>
+              <p className="text-xs text-muted-foreground">{t("onboarding.loadErrorHint", "Check your connection and try again.")}</p>
+              <Button variant="outline" size="sm" onClick={() => q.refetch()}>{t("common.refresh")}</Button>
+            </div>
+          ) : q.isLoading ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
             : steps.map((step) => {
               const meta = STEP_META[step.key] ?? { icon: Check, to: "/" };
               const Icon = meta.icon;
@@ -96,7 +103,7 @@ export function OnboardingPage() {
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-2 text-sm font-semibold">
                         {t(`onboarding.stepKeys.${step.key}`, step.key)}
-                        {!step.required ? <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">{t("onboarding.optionalTag", "Optional")}</span> : null}
+                        {!step.required ? <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">{t("onboarding.optionalTag", "Optional")}</span> : null}
                       </p>
                       {step.count > 0 ? <p className="text-xs text-muted-foreground">{t("onboarding.countAdded", { count: step.count, defaultValue: `${step.count} added` })}</p> : null}
                     </div>
@@ -114,7 +121,7 @@ export function OnboardingPage() {
             {t("onboarding.finish", "Finish setup")}
           </Button>
           {!status?.can_complete ? <p className="text-center text-xs text-muted-foreground">{t("onboarding.finishHint", "Complete the required steps above to finish.")}</p> : null}
-          <Button asChild variant="ghost" size="sm"><Link to="/">{t("onboarding.skipToDashboard", "Skip to dashboard")}</Link></Button>
+          <Button asChild variant="ghost"><Link to="/">{t("onboarding.skipToDashboard", "Skip to dashboard")}</Link></Button>
         </div>
       </div>
     </div>

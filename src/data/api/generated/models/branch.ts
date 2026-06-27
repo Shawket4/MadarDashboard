@@ -5,6 +5,13 @@ import type { PrinterBrand } from './printerBrand';
 export interface Branch {
   /** @nullable */
   address?: string | null;
+  /**
+     * Short org-unique branch prefix (A-Z0-9) embedded in every order_ref
+   * (`<CODE>-YYMMDD-…`). Exposed so an offline device can mint the same ref the
+   * server would, from first boot, without waiting for a synced order.
+     * @nullable
+     */
+  code?: string | null;
   created_at: string;
   /**
      * Radius in meters within which this branch is considered a match. Defaults to 200.

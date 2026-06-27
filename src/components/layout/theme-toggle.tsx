@@ -19,14 +19,18 @@ const OPTIONS: { value: Theme; icon: typeof Sun; labelKey: string; fallback: str
 export function ThemeToggle() {
   const { t } = useTranslation();
   const theme = useTheme((s) => s.theme);
+  const resolvedTheme = useTheme((s) => s.resolvedTheme);
   const setTheme = useTheme((s) => s.setTheme);
+
+  // Reflect the active choice: Monitor when following the system, otherwise the
+  // resolved light/dark icon.
+  const TriggerIcon = theme === "system" ? Monitor : resolvedTheme === "dark" ? Moon : Sun;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon-sm" aria-label={t("theme.toggle", "Toggle theme")}>
-          <Sun className="size-4 dark:hidden" />
-          <Moon className="hidden size-4 dark:block" />
+          <TriggerIcon className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

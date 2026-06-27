@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeftRight,
+  Wallet,
   BadgePercent,
   BarChart3,
   BookText,
@@ -98,6 +99,16 @@ export const NAV: NavGroup[] = [
           { to: "/delivery/channels", labelKey: "nav.deliveryChannels", fallback: "Channel overrides", icon: SlidersHorizontal },
         ],
       },
+      {
+        labelKey: "nav.kitchen",
+        fallback: "Kitchen",
+        icon: ChefHat,
+        basePath: "/kitchen",
+        children: [
+          { to: "/kitchen/stations", labelKey: "nav.kitchenStations", fallback: "Stations", icon: ChefHat },
+          { to: "/kitchen/routing", labelKey: "nav.kitchenRouting", fallback: "Order routing", icon: SlidersHorizontal },
+        ],
+      },
     ],
   },
   {
@@ -127,6 +138,7 @@ export const NAV: NavGroup[] = [
     entries: [
       { to: "/orgs", labelKey: "nav.orgs", fallback: "Organizations", icon: Building2, superAdminOnly: true },
       { to: "/branches", labelKey: "nav.branches", fallback: "Branches", icon: Store },
+      { to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
       { to: "/users", labelKey: "nav.users", fallback: "Users", icon: Users },
       { to: "/permissions", labelKey: "nav.permissions", fallback: "Permissions", icon: ShieldCheck },
       { to: "/settings", labelKey: "nav.settings", fallback: "Settings", icon: Settings },

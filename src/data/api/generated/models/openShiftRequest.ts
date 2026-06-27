@@ -15,4 +15,11 @@ export interface OpenShiftRequest {
      * @nullable
      */
   opening_cash_edited?: boolean | null;
+  /**
+     * The till (drawer) this shift opens on. Optional for back-compat: when
+   * omitted the server falls back to the branch's default till. Newer
+   * device-bound clients send their configured till explicitly.
+     * @nullable
+     */
+  till_id?: string | null;
 }

@@ -131,6 +131,7 @@ export function DataTable<TData, TValue>({
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
                 placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
                 className="h-9 ps-8"
               />
             </div>
@@ -152,7 +153,7 @@ export function DataTable<TData, TValue>({
                     onCheckedChange={(v) => column.toggleVisibility(!!v)}
                     className="capitalize"
                   >
-                    {column.id}
+                    {(column.columnDef.meta as { label?: string } | undefined)?.label ?? column.id}
                   </DropdownMenuCheckboxItem>
                 ))}
               </DropdownMenuContent>
@@ -172,15 +173,24 @@ export function DataTable<TData, TValue>({
         emptyState ?? <EmptyState title={t("common.noResults", "No results found")} />
       ) : isMobile && renderMobileCard ? (
         <div className="space-y-3">
-          {rows.map((row) => (
-            <div
-              key={row.id}
-              onClick={() => onRowClick?.(row.original)}
-              onMouseEnter={() => onRowPrefetch?.(row.original)}
-            >
-              {renderMobileCard(row.original)}
-            </div>
-          ))}
+          {rows.map((row) =>
+            onRowClick ? (
+              <button
+                key={row.id}
+                type="button"
+                onClick={() => onRowClick(row.original)}
+                onMouseEnter={() => onRowPrefetch?.(row.original)}
+                onFocus={() => onRowPrefetch?.(row.original)}
+                className="block w-full text-start focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:rounded-xl"
+              >
+                {renderMobileCard(row.original)}
+              </button>
+            ) : (
+              <div key={row.id} onMouseEnter={() => onRowPrefetch?.(row.original)}>
+                {renderMobileCard(row.original)}
+              </div>
+            ),
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border">

@@ -29,8 +29,10 @@ import { usePageSearch } from "@/data/scope/use-page-search";
 const ROLE_CLASS: Record<UserRole, string> = {
   super_admin: "bg-warning/15 text-warning",
   org_admin: "bg-info/15 text-info",
-  branch_manager: "bg-primary/15 text-primary",
+  branch_manager: "bg-secondary text-secondary-foreground",
   teller: "bg-success/15 text-success",
+  waiter: "bg-primary/15 text-primary",
+  kitchen: "bg-accent/15 text-accent-foreground",
 };
 
 export function UsersPage() {
@@ -78,9 +80,9 @@ export function UsersPage() {
         id: "actions", header: "",
         cell: ({ row }) => {
           const u = row.original;
-          const assignable = u.role === "branch_manager" || u.role === "teller";
+          const assignable = u.role === "branch_manager" || u.role === "teller" || u.role === "waiter" || u.role === "kitchen";
           return (
-            <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-end gap-1 rtl:flex-row-reverse" onClick={(e) => e.stopPropagation()}>
               <Button asChild variant="ghost" size="icon-sm" title={t("users.permissions", "Manage permissions")}>
                 <Link to="/permissions" search={{ user: u.id } as never}><Shield className="size-4" /></Link>
               </Button>
@@ -104,7 +106,7 @@ export function UsersPage() {
       { header: t("users.role", "Role"), accessor: (u) => t(`roles.${u.role}`, u.role), type: "text", width: 18 },
       { header: t("common.status", "Status"), accessor: (u) => (u.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
-    void exportToExcel({ filename: "Sufrix-Users", sheets: [{ name: t("users.title", "Users"), title: t("users.title", "Users"), rows: users as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    void exportToExcel({ filename: "Madar-Users", sheets: [{ name: t("users.title", "Users"), title: t("users.title", "Users"), rows: users as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
   if (!orgId) return <Page><div className="space-y-1.5"><h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("users.title", "Users")}</h1></div><EmptyState icon={UsersIcon} title={t("users.pickOrg", "Select an organization")} /></Page>;

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Boxes, PackagePlus } from "lucide-react";
+import { AlertTriangle, Boxes, CheckCircle2, PackagePlus } from "lucide-react";
 
 import { Page } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
@@ -105,8 +105,10 @@ export function ItemsPage() {
             const s = stockByIngredient.get(row.original.id);
             if (!s) return null;
             return (
-              <Badge variant="secondary" className={cn(s.below_reorder ? "bg-warning/10 text-warning" : "bg-success/10 text-success")}>
-                {s.below_reorder ? t("inventory.stock.low", "Low") : t("inventory.stock.ok", "OK")}
+              <Badge variant="secondary" className={cn("flex items-center gap-1", s.below_reorder ? "bg-warning/10 text-warning" : "bg-success/10 text-success")}>
+                {s.below_reorder
+                  ? <><AlertTriangle className="size-3" />{t("inventory.stock.low", "Low")}</>
+                  : <><CheckCircle2 className="size-3" />{t("inventory.stock.ok", "OK")}</>}
               </Badge>
             );
           },
@@ -131,7 +133,7 @@ export function ItemsPage() {
         { header: t("inventory.stock.status", "Status"), accessor: (it) => { const s = stockByIngredient.get(it.id); return s ? (s.below_reorder ? t("inventory.stock.low", "Low") : t("inventory.stock.ok", "OK")) : "—"; }, type: "text", width: 10 },
       );
     }
-    void exportToExcel({ filename: "Sufrix-Ingredients", sheets: [{ name: t("inventory.catalog.title", "Ingredient catalog"), title: t("inventory.catalog.title", "Ingredient catalog"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    void exportToExcel({ filename: "Madar-Ingredients", sheets: [{ name: t("inventory.catalog.title", "Ingredient catalog"), title: t("inventory.catalog.title", "Ingredient catalog"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
   };
 
   if (!orgId) {
