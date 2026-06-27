@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Page } from "@/components/app/page";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
+import { ExportButton } from "@/components/app/export-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ import {
   useDeleteChannelAddonOverride,
   useDeleteChannelOverride,
   useListAddonCatalog,
+  useListBranches,
   useListChannelAddonOverrides,
   useListChannelOverrides,
   useListMenuCatalog,
@@ -39,6 +41,7 @@ import { useDebounced } from "@/lib/use-debounced";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { invalidateChannelOverrides } from "./util";
+import { exportChannelOverrides } from "./channel-overrides-export";
 
 type Channel = "in_mall" | "outside";
 const PER_PAGE = 24;
@@ -254,6 +257,7 @@ export function ChannelOverridesPage() {
 
   const [tab, setTab] = useState("menu");
   const [channel, setChannel] = useState<Channel>("in_mall");
+  const [exporting, setExporting] = useState(false);
 
   const [itemsPage, setItemsPage] = useState(0);
   const [itemsSearch, setItemsSearch] = useState("");
@@ -286,6 +290,7 @@ export function ChannelOverridesPage() {
     [orgId, addonsSearchQ, addonsPage],
   );
 
+  const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const catalog = useListMenuCatalog(catalogParams, { query: { enabled: on, placeholderData: keepPreviousData } });
   const addons = useListAddonCatalog(addonParams, { query: { enabled: on, placeholderData: keepPreviousData } });
   const overrides = useListChannelOverrides(
@@ -316,6 +321,27 @@ export function ChannelOverridesPage() {
 
   const refreshItems = () => { void invalidateChannelOverrides(); };
   const refreshAddons = () => { void invalidateChannelOverrides(); };
+
+  const branchName = branches.data?.find((b) => b.id === branchId)?.name ?? "";
+  const overrideCount = (overrides.data?.length ?? 0) + (addonOverrides.data?.length ?? 0);
+  const handleExport = async () => {
+    if (!orgId || !branchId) return;
+    setExporting(true);
+    try {
+      await exportChannelOverrides({
+        qc: queryClient,
+        orgId,
+        branchName: branchName || branchId,
+        channel,
+        lang,
+        t,
+        itemOverrides: overrides.data ?? [],
+        addonOverrides: addonOverrides.data ?? [],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const prefetchNextItems = () => {
     if (itemsPage + 1 >= itemsPageCount) return;
@@ -387,9 +413,19 @@ export function ChannelOverridesPage() {
 
   return (
     <Page>
-      <div className="space-y-1.5">
-        <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("delivery.channelsTitle", "Channel overrides")}</h1>
-        <p className="text-sm text-muted-foreground">{t("delivery.channelsSubtitle", "Per-channel price and availability for items and add-ons on this branch.")}</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("delivery.channelsTitle", "Channel overrides")}</h1>
+          <p className="text-sm text-muted-foreground">{t("delivery.channelsSubtitle", "Per-channel price and availability for items and add-ons on this branch.")}</p>
+        </div>
+        {branchId ? (
+          <ExportButton
+            onExport={handleExport}
+            loading={exporting}
+            disabled={overrideCount === 0}
+            className="shrink-0"
+          />
+        ) : null}
       </div>
       {!branchId ? (
         <EmptyState
