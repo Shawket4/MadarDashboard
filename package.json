@@ -7,6 +7,7 @@
     "dev": "vite",
     "dev:mock": "VITE_MOCK=1 vite --port 5180 --strictPort",
     "build": "tsc --noEmit --incremental && vite build",
+    "build:order": "vite build --config vite.order.config.ts",
     "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",

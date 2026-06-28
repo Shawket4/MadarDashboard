@@ -40,3 +40,4 @@ src-tauri/gen/android/key.properties
 brag-output-*/
 src-tauri/gen/
 screenshots/*.png
+dist-order
