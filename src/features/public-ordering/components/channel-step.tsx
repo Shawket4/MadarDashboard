@@ -1,8 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { Bike, ChevronRight, Store } from "lucide-react";
+import { Bike, ChevronRight, Clock, Store } from "lucide-react";
 
 import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { listItem, staggerContainer } from "@/lib/motion";
 
@@ -30,6 +31,8 @@ export function ChannelDot({ open, label }: { open: boolean; label: string }) {
 interface ChannelStepProps {
   branch: PublicBranch;
   onSelect: (channel: Channel) => void;
+  /** Offered when every enabled channel is closed — enter read-only browse. */
+  onBrowse?: () => void;
 }
 
 interface ChannelOption {
@@ -41,7 +44,7 @@ interface ChannelOption {
   hint: string;
 }
 
-export function ChannelStep({ branch, onSelect }: ChannelStepProps) {
+export function ChannelStep({ branch, onSelect, onBrowse }: ChannelStepProps) {
   const { t } = useTranslation();
 
   const all: ChannelOption[] = [
@@ -63,8 +66,11 @@ export function ChannelStep({ branch, onSelect }: ChannelStepProps) {
     },
   ];
   const options = all.filter((o) => o.enabled);
+  // Every channel this branch offers is shut right now — offer a browse escape.
+  const allClosed = options.length > 0 && options.every((o) => !o.open);
 
   return (
+    <div className="space-y-4">
     <motion.ul variants={staggerContainer(0.06)} initial="hidden" animate="show" className="space-y-3">
       {options.map((o) => {
         const Icon = o.icon;
@@ -114,5 +120,23 @@ export function ChannelStep({ branch, onSelect }: ChannelStepProps) {
         );
       })}
     </motion.ul>
+
+      {allClosed && onBrowse && (
+        <div className="rounded-2xl border border-brand/30 bg-brand/5 p-5 text-center">
+          <span className="mx-auto mb-3 flex size-11 items-center justify-center rounded-full bg-brand/10 text-brand">
+            <Clock className="size-5" />
+          </span>
+          <p className="font-serif text-base font-semibold leading-tight">
+            {t("order.browse.allClosedTitle", "Everything's closed right now")}
+          </p>
+          <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">
+            {t("order.browse.allClosedBody", "No channels are taking orders at the moment.")}
+          </p>
+          <Button variant="brand" className="mt-4" onClick={onBrowse}>
+            {t("order.browse.cta", "Browse the menu")}
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

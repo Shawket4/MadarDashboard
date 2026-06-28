@@ -56,6 +56,8 @@ interface PublicOrderingPageProps {
   orgId: string;
   branch?: string;
   channel?: string;
+  /** Browse-only menu preview (read-only): show the menu even when closed. */
+  preview?: boolean;
   prefillPlaceName?: string;
   prefillFloor?: string;
   prefillUnitNumber?: string;
@@ -65,6 +67,7 @@ export function PublicOrderingPage({
   orgId,
   branch,
   channel,
+  preview,
   prefillPlaceName,
   prefillFloor,
   prefillUnitNumber,
@@ -86,7 +89,7 @@ export function PublicOrderingPage({
   const selectedChannel: Channel | null = channel ? asChannel(channel) : null;
 
   const setUrl = useCallback(
-    (next: { branch?: string; channel?: string }) => {
+    (next: { branch?: string; channel?: string; preview?: boolean }) => {
       void navigate({
         to: ".",
         replace: true,
@@ -94,6 +97,8 @@ export function PublicOrderingPage({
           ...prev,
           branch: next.branch,
           channel: next.channel,
+          // Keep the URL clean: only carry `preview` when actually browsing.
+          preview: next.preview ? true : undefined,
         }),
       });
     },
@@ -176,9 +181,29 @@ export function PublicOrderingPage({
     [branches],
   );
 
+  // ── Browse-only mode ──────────────────────────────────────────────────────
+  // A deliberate read-only menu preview (e.g. when every channel is closed). It
+  // short-circuits the flow straight to the menu — no phone, no location, no open
+  // channel — and the menu is fetched with `preview` so the backend returns it
+  // even while closed. Display prices come from the first enabled channel
+  // (preferring in-mall); a closed channel is still "enabled", so this is valid.
+  const browseOnly = preview === true && !!branchObj;
+  const browseChannel: Channel | null = branchObj
+    ? branchObj.in_mall_enabled
+      ? "in_mall"
+      : branchObj.outside_enabled
+        ? "outside"
+        : null
+    : null;
+  // The channel whose menu/prices we actually request.
+  const menuChannel: Channel = selectedChannel ?? browseChannel ?? "in_mall";
+  const enterBrowse = () => setUrl({ branch: branchId ?? undefined, channel: undefined, preview: true });
+
   // A selected channel that isn't open right now (direct link to a closed channel,
   // or one that closed mid-session). Drives the apologetic ChannelClosed state.
+  // Suppressed in browse mode — there we intentionally ignore open-now.
   const channelClosed =
+    !browseOnly &&
     !!branchObj &&
     !!selectedChannel &&
     !(selectedChannel === "in_mall" ? branchObj.in_mall_open_now : branchObj.outside_open_now);
@@ -191,8 +216,8 @@ export function PublicOrderingPage({
   // supplies the catalog to the cart "edit" customizer mounted below.
   const { data: menu } = usePublicMenu(
     branchId ?? "",
-    { channel: selectedChannel ?? "in_mall" },
-    { query: { enabled: !!branchId && !!selectedChannel && !channelClosed } },
+    { channel: menuChannel, preview: browseOnly || undefined },
+    { query: { enabled: !!branchId && ((!!selectedChannel && !channelClosed) || browseOnly) } },
   );
   const addons = menu?.addons ?? [];
 
@@ -206,6 +231,8 @@ export function PublicOrderingPage({
   const locationRequired = isOutside || (branchObj?.in_mall_require_location ?? true);
   const step: Step = (() => {
     if (!branchId) return "branch";
+    // Browse-only jumps straight to the menu — no channel/phone/location gates.
+    if (browseOnly) return "menu";
     if (!selectedChannel) return "channel";
     if (!resolvedPhone) return "phone";
     if (needsLocation && !locationDone) return "location";
@@ -265,7 +292,13 @@ export function PublicOrderingPage({
     setQuote(null);
     // Drop branch/location-specific address fields; keep the customer's identity.
     setForm((f) => ({ ...f, place_name: "", floor: "", unit_number: "", landmark: "", address_line: "" }));
-    setUrl({ branch: b.id, channel: supports ? (selectedChannel ?? undefined) : undefined });
+    // Browsing carries over to the new branch (browse its menu too); otherwise
+    // keep the channel only when the new branch still supports it.
+    setUrl({
+      branch: b.id,
+      channel: supports ? (selectedChannel ?? undefined) : undefined,
+      preview: browseOnly || undefined,
+    });
   };
 
   const resetCheckoutNav = () => {
@@ -279,6 +312,11 @@ export function PublicOrderingPage({
       return;
     }
     if (step === "menu") {
+      // Browse-only: back exits the preview to the channel step (clears preview).
+      if (browseOnly) {
+        setUrl({ branch: branchId ?? undefined, channel: undefined, preview: undefined });
+        return;
+      }
       if (needsLocation) setLocationDone(false);
       else setUrl({ branch: branchId ?? undefined, channel: undefined });
       return;
@@ -545,7 +583,7 @@ export function PublicOrderingPage({
 
   // ── Sticky footer (view-cart bar on menu) ─────────────────────────────────
   const footer =
-    step === "menu" && itemCount > 0 && !channelClosed ? (
+    step === "menu" && itemCount > 0 && !channelClosed && !browseOnly ? (
       <button
         type="button"
         onClick={() => setCartOpen(true)}
@@ -622,7 +660,13 @@ export function PublicOrderingPage({
               </div>
             )}
 
-            {step === "branch" && <BranchStep orgId={orgId} onSelect={handleSelectBranch} />}
+            {step === "branch" && (
+              <BranchStep
+                orgId={orgId}
+                onSelect={handleSelectBranch}
+                onPreview={(b) => setUrl({ branch: b.id, channel: undefined, preview: true })}
+              />
+            )}
 
             {step === "channel" && branchObj && (
               <div className="space-y-4">
@@ -636,7 +680,7 @@ export function PublicOrderingPage({
                     />
                   </div>
                 )}
-                <ChannelStep branch={branchObj} onSelect={handleSelectChannel} />
+                <ChannelStep branch={branchObj} onSelect={handleSelectChannel} onBrowse={enterBrowse} />
               </div>
             )}
 
@@ -644,6 +688,7 @@ export function PublicOrderingPage({
               <ChannelClosed
                 channel={selectedChannel}
                 onChoose={() => setUrl({ branch: branchId ?? undefined, channel: undefined })}
+                onBrowse={enterBrowse}
               />
             )}
 
@@ -669,24 +714,28 @@ export function PublicOrderingPage({
               />
             )}
 
-            {step === "menu" && branchId && selectedChannel && !channelClosed && (
+            {step === "menu" && branchId && (selectedChannel ?? browseChannel) && (!channelClosed || browseOnly) && (
               <MenuStep
                 branchId={branchId}
-                channel={selectedChannel}
+                channel={menuChannel}
+                browseOnly={browseOnly}
+                onExitBrowse={() => setUrl({ branch: branchId ?? undefined, channel: undefined, preview: undefined })}
                 countByItem={countByItem}
                 onAdd={addOrUpdateLine}
                 query={menuQuery}
                 onQueryChange={setMenuQuery}
                 cartSlot={
-                  <CartPanel
-                    lines={lines}
-                    deliveryFee={deliveryFee}
-                    discountAmount={discountAmount}
-                    onEdit={startEdit}
-                    onRemove={removeLine}
-                    onSetQty={setLineQty}
-                    onCheckout={() => setEnteredCheckout(true)}
-                  />
+                  browseOnly ? undefined : (
+                    <CartPanel
+                      lines={lines}
+                      deliveryFee={deliveryFee}
+                      discountAmount={discountAmount}
+                      onEdit={startEdit}
+                      onRemove={removeLine}
+                      onSetQty={setLineQty}
+                      onCheckout={() => setEnteredCheckout(true)}
+                    />
+                  )
                 }
               />
             )}
@@ -710,7 +759,7 @@ export function PublicOrderingPage({
         </AnimatePresence>
 
         {/* Empty-cart hint on the menu footer area (mobile / tablet only) */}
-        {step === "menu" && itemCount === 0 && (
+        {step === "menu" && itemCount === 0 && !browseOnly && (
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-[480px] items-center justify-center gap-2 px-4 py-4 text-xs text-muted-foreground xl:hidden">
             <ShoppingBag className="size-3.5" />
             {t("order.cart.emptyHint")}

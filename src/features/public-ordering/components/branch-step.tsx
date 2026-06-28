@@ -11,12 +11,14 @@ import { listItem, staggerContainer } from "@/lib/motion";
 interface BranchStepProps {
   orgId: string;
   onSelect: (branch: PublicBranch) => void;
+  /** Tapping a fully-closed (but deliverable) branch enters read-only browse. */
+  onPreview?: (branch: PublicBranch) => void;
 }
 
 /** A branch is offerable if at least one delivery channel is enabled. */
 const isDeliverable = (b: PublicBranch) => b.in_mall_enabled || b.outside_enabled;
 
-export function BranchStep({ orgId, onSelect }: BranchStepProps) {
+export function BranchStep({ orgId, onSelect, onPreview }: BranchStepProps) {
   const { t } = useTranslation();
   const { data, isLoading, isError } = usePublicBranches({ org_id: orgId });
 
@@ -69,16 +71,20 @@ export function BranchStep({ orgId, onSelect }: BranchStepProps) {
     <motion.ul variants={staggerContainer(0.05)} initial="hidden" animate="show" className="space-y-3">
       {branches.map((b) => {
         const anyOpen = b.in_mall_open_now || b.outside_open_now;
+        // A closed-but-deliverable branch is tappable into read-only browse, so it
+        // is never a dead end. Falls back to onSelect when no preview handler.
+        const canPreview = !anyOpen && !!onPreview;
+        const tappable = anyOpen || canPreview;
         return (
           <motion.li key={b.id} variants={listItem}>
             <button
               type="button"
-              onClick={() => onSelect(b)}
+              onClick={() => (anyOpen || !onPreview ? onSelect(b) : onPreview(b))}
               className={cn(
                 "group flex w-full items-center gap-3 rounded-2xl p-4 text-start transition-all",
                 anyOpen
                   ? "border border-border/70 bg-card shadow-sm hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0"
-                  : "border border-dashed border-border/70 bg-muted/30",
+                  : "border border-dashed border-border/70 bg-muted/30 hover:border-brand/40 hover:bg-muted/50",
               )}
             >
               <span
@@ -109,13 +115,20 @@ export function BranchStep({ orgId, onSelect }: BranchStepProps) {
                       )}
                     </>
                   ) : (
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                      {t("order.channel.closed")}
-                    </span>
+                    <>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                        {t("order.channel.closed")}
+                      </span>
+                      {canPreview && (
+                        <span className="text-[11px] font-medium text-brand">
+                          {t("order.branch.previewMenu", "Preview menu")}
+                        </span>
+                      )}
+                    </>
                   )}
                 </span>
               </span>
-              {anyOpen && (
+              {tappable && (
                 <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
               )}
             </button>

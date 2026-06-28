@@ -41,10 +41,20 @@ export const useAppStore = create<AppState>()(
       language: "en",
       sidebarCollapsed: false,
       activeTimezone: APP_TZ,
-      setSelectedOrg: (id, logoUrl) => {
-        apiContext.setOrg(id);
-        set({ selectedOrgId: id, selectedOrgLogo: logoUrl ?? null });
-      },
+      setSelectedOrg: (id, logoUrl) =>
+        set((s) => {
+          apiContext.setOrg(id);
+          // A different org means the persisted branch no longer belongs here.
+          // Drop it (-> "all branches") so scoped queries don't fire against a
+          // foreign branch id and 403/404 into a stuck, data-less state.
+          const orgChanged = s.selectedOrgId !== id;
+          if (orgChanged) apiContext.setBranch(null);
+          return {
+            selectedOrgId: id,
+            selectedOrgLogo: logoUrl ?? null,
+            ...(orgChanged ? { selectedBranchId: null } : {}),
+          };
+        }),
       setSelectedBranch: (id) => {
         apiContext.setBranch(id);
         set({ selectedBranchId: id });

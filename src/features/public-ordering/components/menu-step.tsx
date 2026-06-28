@@ -2,11 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { BadgePercent, Plus, Search, UtensilsCrossed } from "lucide-react";
+import { BadgePercent, Clock, Plus, Search, UtensilsCrossed } from "lucide-react";
 
 import { usePublicMenu } from "@/data/api/generated/api";
 import type { DeliveryMenu } from "@/data/api/generated/models/deliveryMenu";
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,10 @@ interface MenuStepProps {
   onQueryChange: (q: string) => void;
   /** Desktop 3rd pane: the persistent cart panel (xl+). */
   cartSlot?: ReactNode;
+  /** Read-only browse: show the menu (prices) but no add-to-cart / customizer. */
+  browseOnly?: boolean;
+  /** Browse CTA — leave the preview to choose how to order. */
+  onExitBrowse?: () => void;
 }
 
 interface Group {
@@ -37,10 +42,11 @@ interface Group {
   items: DeliveryMenuItem[];
 }
 
-export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQueryChange, cartSlot }: MenuStepProps) {
+export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQueryChange, cartSlot, browseOnly, onExitBrowse }: MenuStepProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
-  const { data, isLoading, isError } = usePublicMenu(branchId, { channel });
+  const { data, isLoading, isError } = usePublicMenu(branchId, { channel, preview: browseOnly || undefined });
+  const channelLabel = channel === "in_mall" ? t("order.channel.inMall", "In-mall") : t("order.channel.outside", "Delivery");
 
   const [active, setActive] = useState<DeliveryMenuItem | null>(null);
   const [customizerOpen, setCustomizerOpen] = useState(false);
@@ -102,6 +108,7 @@ export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQuery
   }
 
   const openItem = (item: DeliveryMenuItem) => {
+    if (browseOnly) return; // read-only: no customizer / add-to-cart
     setActive(item);
     setCustomizerOpen(true);
   };
@@ -109,14 +116,19 @@ export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQuery
   const noResults = query.trim() && groups.every((g) => g.items.length === 0);
 
   // One fluid 3-pane grid: [rail | menu | cart]. The rail only takes a column
-  // when there are multiple categories; the cart column only at xl. A single
-  // consistent gutter (gap-8) replaces the old split-gutter nested layout.
+  // when there are multiple categories; the cart column only at xl, and only
+  // when a cart slot exists (browse mode has none — don't reserve dead space).
   const showRail = !noResults && groups.length > 1;
+  const hasCart = !!cartSlot;
   const gridClass = cn(
     "lg:grid lg:items-start lg:gap-8",
     showRail
-      ? "lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_24rem]"
-      : "xl:grid-cols-[minmax(0,1fr)_24rem]",
+      ? hasCart
+        ? "lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_24rem]"
+        : "lg:grid-cols-[15rem_minmax(0,1fr)]"
+      : hasCart
+        ? "xl:grid-cols-[minmax(0,1fr)_24rem]"
+        : "",
   );
 
   return (
@@ -153,6 +165,33 @@ export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQuery
 
         {/* Center column */}
         <div className="min-w-0 space-y-4 lg:space-y-6">
+          {/* Browse-only banner: we're closed, this is a read-only preview. */}
+          {browseOnly && (
+            <div className="flex flex-col gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+                  <Clock className="size-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-serif text-base font-semibold leading-tight">
+                    {t("order.browse.bannerTitle", "We're closed right now")}
+                  </p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {t("order.browse.bannerBody", "You're previewing the menu — ordering reopens when we're back.")}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground/80">
+                    {t("order.browse.priceNote", { channel: channelLabel, defaultValue: "Prices shown for {{channel}}" })}
+                  </p>
+                </div>
+              </div>
+              {onExitBrowse && (
+                <Button variant="brand" size="sm" className="shrink-0 self-start sm:self-center" onClick={onExitBrowse}>
+                  {t("order.browse.exit", "See how to order")}
+                </Button>
+              )}
+            </div>
+          )}
+
           {/* Search — mobile + tablet (xl puts it in the header) */}
           <div className="relative xl:hidden">
             <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -240,6 +279,7 @@ export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQuery
                           lang={lang}
                           count={countByItem[item.id] ?? 0}
                           onOpen={() => openItem(item)}
+                          browseOnly={browseOnly}
                         />
                       </motion.li>
                     ))}
@@ -272,11 +312,13 @@ function MenuCard({
   lang,
   count,
   onOpen,
+  browseOnly,
 }: {
   item: DeliveryMenuItem;
   lang: string;
   count: number;
   onOpen: () => void;
+  browseOnly?: boolean;
 }) {
   const { t } = useTranslation();
   const hasSizes = item.sizes.length > 0;
@@ -285,15 +327,8 @@ function MenuCard({
     : item.price;
   const description = getTranslatedDescription(item, lang);
 
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className={cn(
-        "group flex h-full w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 text-start shadow-sm transition-all",
-        "hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0",
-      )}
-    >
+  const inner = (
+    <>
       {item.image_url ? (
         <img
           src={item.image_url}
@@ -316,6 +351,28 @@ function MenuCard({
           {hasSizes ? t("order.menu.from", { price: fmtMoney(minSize) }) : fmtMoney(item.price)}
         </span>
       </div>
+    </>
+  );
+
+  // Browse-only: a non-interactive, price-only card (no add button, no customizer).
+  if (browseOnly) {
+    return (
+      <div className="flex h-full w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 text-start shadow-sm">
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={cn(
+        "group flex h-full w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 text-start shadow-sm transition-all",
+        "hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0",
+      )}
+    >
+      {inner}
 
       <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm transition-transform group-hover:scale-105">
         {count > 0 ? (

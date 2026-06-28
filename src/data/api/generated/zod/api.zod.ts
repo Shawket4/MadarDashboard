@@ -4600,7 +4600,8 @@ export const PublicMenuParams = zod.object({
 })
 
 export const PublicMenuQueryParams = zod.object({
-  "channel": zod.string()
+  "channel": zod.string(),
+  "preview": zod.boolean().nullish().describe('Read-only browse preview. When `true`, the menu is returned even if the\nchannel is closed right now, so customers can browse while a branch is\nclosed. This NEVER relaxes the channel-\*enabled\* check, and the\ndelivery-quote \/ order-intake endpoints stay gated on open-now — so a\npreview can never become a real order against a closed channel.')
 })
 
 export const PublicMenuResponse = zod.object({

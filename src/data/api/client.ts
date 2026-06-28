@@ -68,9 +68,21 @@ apiClient.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err?.response?.status === 401) {
-      // Delegate: the auth store wires itself as the handler, so it can purge
-      // its own state, reset the token ambient, and redirect.
-      ctx.onUnauthorized?.();
+      // Only treat a 401 as DASHBOARD session-expiry when this request actually
+      // carried our Bearer token AND targeted an authenticated endpoint. Without
+      // this guard, a 401 from the public customer flow — e.g. a bad/absent guest
+      // `device_token` on /order's history/locations calls, or any tokenless
+      // request — would purge a valid session, clear the cache, and bounce the
+      // user to the dashboard /login. Legitimately expired tokens are still sent
+      // WITH the header on authenticated endpoints, so they still sign out.
+      const h = err.config?.headers as { has?: (k: string) => boolean; Authorization?: unknown } | undefined;
+      const sentAuth = !!(h && (typeof h.has === "function" ? h.has("Authorization") : h.Authorization));
+      const isPublic = String(err.config?.url ?? "").includes("/public/");
+      if (sentAuth && !isPublic) {
+        // Delegate: the auth store wires itself as the handler, so it can purge
+        // its own state, reset the token ambient, and redirect.
+        ctx.onUnauthorized?.();
+      }
     }
     return Promise.reject(err);
   },

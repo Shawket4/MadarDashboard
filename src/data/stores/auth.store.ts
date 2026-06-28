@@ -59,7 +59,15 @@ export const useAuthStore = create<AuthState>()(
 );
 
 // Wire the 401 handler so the axios interceptor can purge auth cleanly.
+// Idempotent within a teardown: when several in-flight requests 401 at once we
+// must signOut + redirect exactly once. Re-running queryClient.clear() and
+// re-assigning window.location.href per request can cancel an already-initiated
+// navigation (notably in the Tauri webview), stranding the user on a cleared,
+// data-less shell. The flag resets naturally on the next full page load.
+let tearingDown = false;
 apiContext.setOnUnauthorized(() => {
+  if (tearingDown) return;
+  tearingDown = true;
   useAuthStore.getState().signOut();
   // Bounce to login (preserving where we were) unless we're already there.
   if (!window.location.pathname.startsWith("/login")) {

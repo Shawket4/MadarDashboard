@@ -12,9 +12,12 @@ import type { Channel } from "../types";
 export function ChannelClosed({
   channel,
   onChoose,
+  onBrowse,
 }: {
   channel: Channel;
   onChoose: () => void;
+  /** Optional read-only menu browse, so a closed channel isn't a dead end. */
+  onBrowse?: () => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -36,9 +39,16 @@ export function ChannelClosed({
               "Sorry — delivery is closed at the moment. Please try in-mall ordering, or check back a little later.",
             )}
       </p>
-      <Button variant="brand" className="mt-5" onClick={onChoose}>
-        {t("order.channel.choose", "Choose another option")}
-      </Button>
+      <div className="mt-5 flex flex-col items-center gap-2 sm:flex-row">
+        <Button variant="brand" onClick={onChoose}>
+          {t("order.channel.choose", "Choose another option")}
+        </Button>
+        {onBrowse && (
+          <Button variant="outline" onClick={onBrowse}>
+            {t("order.browse.cta", "Browse the menu")}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

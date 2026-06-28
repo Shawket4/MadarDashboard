@@ -44,6 +44,17 @@ function ScopeControls({ className }: { className?: string }) {
     { query: { enabled: Boolean(canPickBranch && orgId) } },
   );
   const activeBranches = useMemo(() => (branches ?? []).filter((b) => b.is_active), [branches]);
+
+  // Self-heal a stale/invalid scoped branch: a branchId persisted from a prior
+  // session/org (login doesn't reset it) or one since deactivated isn't in this
+  // org's list, yet every scoped query still fires against it and 403/404s — a
+  // silent, data-less state that today only a logout clears. If the scoped
+  // branch isn't a valid active branch here, fall back to "all branches".
+  useEffect(() => {
+    if (!canPickBranch || !orgId || branchesLoading || !branches) return;
+    if (branchId && !activeBranches.some((b) => b.id === branchId)) setBranch(null);
+  }, [canPickBranch, orgId, branchesLoading, branches, activeBranches, branchId, setBranch]);
+
   // An org with a single branch has nothing to pick: pin scope to it and drop
   // the "All branches" multi-select for a static label.
   const singleBranch = activeBranches.length === 1 ? activeBranches[0] : null;

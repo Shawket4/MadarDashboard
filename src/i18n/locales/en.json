@@ -2230,7 +2230,18 @@
       "error": "Couldn't load branches",
       "errorHint": "Please check your connection and try again.",
       "none": "No delivery branches",
-      "noneHint": "This restaurant isn't offering delivery right now."
+      "noneHint": "This restaurant isn't offering delivery right now.",
+      "previewMenu": "Preview menu"
+    },
+    "browse": {
+      "title": "Browse the menu",
+      "cta": "Browse the menu",
+      "bannerTitle": "We're closed right now",
+      "bannerBody": "You're previewing the menu — ordering reopens when we're back.",
+      "priceNote": "Prices shown for {{channel}}",
+      "exit": "See how to order",
+      "allClosedTitle": "Everything's closed right now",
+      "allClosedBody": "No channels are taking orders at the moment."
     },
     "channel": {
       "title": "How would you like it?",
