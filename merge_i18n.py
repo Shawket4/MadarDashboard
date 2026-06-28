@@ -13,5 +13,5 @@ def merge(src_path, dst_path):
     with open(dst_path, 'w', encoding='utf-8') as f:
         json.dump(dst, f, indent=2, ensure_ascii=False)
 
-merge('/Users/shawket/Downloads/sufrix-portfolio/src/locales/en.json', 'src/shared/i18n/locales/en.json')
-merge('/Users/shawket/Downloads/sufrix-portfolio/src/locales/ar.json', 'src/shared/i18n/locales/ar.json')
+merge('/Users/shawket/Downloads/madar-portfolio/src/locales/en.json', 'src/shared/i18n/locales/en.json')
+merge('/Users/shawket/Downloads/madar-portfolio/src/locales/ar.json', 'src/shared/i18n/locales/ar.json')

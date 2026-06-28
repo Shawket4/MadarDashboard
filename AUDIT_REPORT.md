@@ -1,4 +1,4 @@
-# Sufrix Dashboard — Overnight Audit Report
+# Madar Dashboard — Overnight Audit Report
 
 **Branch:** `audit/overnight`. **Checks:** `tsc --noEmit` clean, `eslint` clean, `npm run test` (Vitest) → **3 passed** (was **broken — 0 could run**).
 

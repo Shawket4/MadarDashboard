@@ -1,4 +1,4 @@
-# Sufrix — Portfolio context for `SufrixDashboard`
+# Madar — Portfolio context for `MadarDashboard`
 
 > **Audit date:** 2026-06-04  
 > **Methodology:** directory listing, file reads, git log, shell commands (file counts, LOC, bundle sizes, dep lockfile reads). All facts are cited to source files or command output.
@@ -9,8 +9,8 @@
 
 | Field | Value |
 |---|---|
-| **Repo name** | `sufrix-dashboard` (`package.json` line 2) |
-| **Role in system** | Internal management dashboard for the Sufrix F&B platform. Consumes a Rust/Axum REST API (`SufrixRust`). Not a public-facing product. |
+| **Repo name** | `madar-dashboard` (`package.json` line 2) |
+| **Role in system** | Internal management dashboard for the Madar F&B platform. Consumes a Rust/Axum REST API (`MadarRust`). Not a public-facing product. |
 | **Primary language(s)** | TypeScript — 260 `.ts` files · 79 `.tsx` files · 2 `.css` files (from `find src/`) |
 | **LOC (excl. deps, build)** | **38,155 total** across `src/**/*.{ts,tsx,css}` — from `xargs wc -l` run 2026-06-04 |
 | **Source file count by extension** | `.ts` 260 · `.tsx` 79 · `.css` 2 — totals from `find src/` commands |
@@ -159,7 +159,7 @@ Not applicable — frontend only (no direct DB access). All data shapes are defi
 
 ## 6. API surface
 
-Not applicable — frontend consumer, not provider. The dashboard calls a Rust/Axum backend at `VITE_API_URL` (configured to `https://sufrix.duckdns.org/api` in `.env` and hardcoded in `deploy.yml` line 23). All client-side API calls are made through the Orval-generated TanStack Query hooks in `src/shared/api/generated/api.ts` (344 KB), with `apiClient` (`src/shared/api/client.ts`) injecting `Authorization: Bearer <token>`, `X-Org-Id`, and `X-Branch-Id` headers via Axios interceptors.
+Not applicable — frontend consumer, not provider. The dashboard calls a Rust/Axum backend at `VITE_API_URL` (configured to `https://madar-pos.cloud/api` in `.env` and hardcoded in `deploy.yml` line 23). All client-side API calls are made through the Orval-generated TanStack Query hooks in `src/shared/api/generated/api.ts` (344 KB), with `apiClient` (`src/shared/api/client.ts`) injecting `Authorization: Bearer <token>`, `X-Org-Id`, and `X-Branch-Id` headers via Axios interceptors.
 
 ---
 
@@ -178,7 +178,7 @@ Not applicable — frontend consumer, not provider. The dashboard calls a Rust/A
 
 ## 8. Offline / sync
 
-No service worker, no IndexedDB, no PWA manifest found in `public/` (only `sufrix.svg`, `Icon.svg`, `sufrix_ar.svg`, `ShowTellerCup.lottie`, and `fonts/`). The app is fully online-dependent. TanStack Query's staleTime defaults apply (e.g., `usePermissions` uses `staleTime: 5 * 60_000`). No offline strategy implemented or configured.
+No service worker, no IndexedDB, no PWA manifest found in `public/` (only `madar.svg`, `Icon.svg`, `madar_ar.svg`, `ShowTellerCup.lottie`, and `fonts/`). The app is fully online-dependent. TanStack Query's staleTime defaults apply (e.g., `usePermissions` uses `staleTime: 5 * 60_000`). No offline strategy implemented or configured.
 
 ---
 
@@ -192,15 +192,15 @@ None detected. No USB HID, receipt printer, barcode scanner, or POS peripheral l
 
 | Integration | Status | Entry point |
 |---|---|---|
-| **Sufrix REST API** (`https://sufrix.duckdns.org/api`) | Active, all data | `src/shared/api/client.ts` — Axios base URL from `VITE_API_URL` env var |
-| **Orval** (API code generation from OpenAPI) | Active dev-time tool | `orval.config.ts` — reads `../SufrixRust/openapi.json`, generates `src/shared/api/generated/api.ts` |
+| **Madar REST API** (`https://madar-pos.cloud/api`) | Active, all data | `src/shared/api/client.ts` — Axios base URL from `VITE_API_URL` env var |
+| **Orval** (API code generation from OpenAPI) | Active dev-time tool | `orval.config.ts` — reads `../MadarRust/openapi.json`, generates `src/shared/api/generated/api.ts` |
 | **Lottie** (`@lottiefiles/dotlottie-react`) | Active (animation in `public/ShowTellerCup.lottie`) | Import in at least one component |
 | **ExcelJS** | Active, lazy-imported | `src/shared/lib/excel.ts` line 204: `await import("exceljs")` |
 | **Recharts** | Active | `src/pages/analytics/analytics.tsx` — Area, Bar, Pie charts |
 | **Cairo font** | Active (bundled) | `public/fonts/Cairo-SemiBold.ttf`, `Cairo-Regular.ttf`; referenced in `src/app/index.css` |
 | **Tauri v2** | Active desktop wrapper | `src-tauri/tauri.conf.json`, `src-tauri/src/lib.rs` |
 | **Google Maps API** | Configured in Tauri CSP | `tauri.conf.json` line 25 (CSP allows `maps.googleapis.com`) — no Maps library in `package.json`; possibly planned or used by the Rust backend |
-| **DuckDNS** | Production hostname | `https://sufrix.duckdns.org/api` in `.env`, `deploy.yml`, `tauri.conf.json` |
+| **DuckDNS** | Production hostname | `https://madar-pos.cloud/api` in `.env`, `deploy.yml`, `tauri.conf.json` |
 
 ---
 
@@ -210,8 +210,8 @@ None detected. No USB HID, receipt printer, barcode scanner, or POS peripheral l
 - **Trigger:** push to `main` branch
 - **Runner:** `ubuntu-latest`
 - **Node:** 20
-- **Steps:** `npm ci` → `npm run build` (with `VITE_API_URL=https://sufrix.duckdns.org/api` injected) → SCP `dist/*` to VPS via `appleboy/scp-action@v0.1.7` → SSH reload Nginx via `appleboy/ssh-action@v1.0.3`
-- **Target:** `/var/www/sufrix-dashboard` on VPS, served by Nginx
+- **Steps:** `npm ci` → `npm run build` (with `VITE_API_URL=https://madar-pos.cloud/api` injected) → SCP `dist/*` to VPS via `appleboy/scp-action@v0.1.7` → SSH reload Nginx via `appleboy/ssh-action@v1.0.3`
+- **Target:** `/var/www/madar-dashboard` on VPS, served by Nginx
 - **Secrets required:** `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`
 
 ### Desktop + Android release (`.github/workflows/release.yml`)
@@ -221,7 +221,7 @@ None detected. No USB HID, receipt printer, barcode scanner, or POS peripheral l
 - **Artifacts:** `.dmg`, `.app`, `.exe`, `.msi`, `.AppImage`, `.deb`, `.apk` — attached to GitHub Release
 - **macOS signing:** currently ad-hoc (`APPLE_SIGNING_IDENTITY: "-"`); comments in the file note this is for "Open Anyway" approval and list the secrets needed for proper notarization
 - **Secrets required (Android):** `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS`
-- **Environments:** single environment detected (`https://sufrix.duckdns.org`); no staging env in config
+- **Environments:** single environment detected (`https://madar-pos.cloud`); no staging env in config
 
 ---
 
@@ -379,12 +379,12 @@ This means every test file can use realistic, typed mock data with zero manual m
 
 | Target | URL / path | Mechanism |
 |---|---|---|
-| **Web SPA** | `https://sufrix.duckdns.org` (inferred from API URL) | GitHub Actions push-to-`main` → SCP `dist/*` → `/var/www/sufrix-dashboard` on VPS → Nginx reload (`deploy.yml`) |
+| **Web SPA** | `https://madar-pos.cloud` (inferred from API URL) | GitHub Actions push-to-`main` → SCP `dist/*` → `/var/www/madar-dashboard` on VPS → Nginx reload (`deploy.yml`) |
 | **Desktop app** | GitHub Releases (macOS `.dmg`/`.app`, Linux `.AppImage`/`.deb`, Windows `.msi`/`.exe`) | GitHub Actions on `v*.*.*` tags (`release.yml`) via `tauri-apps/tauri-action@v0` |
 | **Android APK** | GitHub Releases (`.apk`) | GitHub Actions on `v*.*.*` tags (`release.yml`), signed with keystore from `KEYSTORE_BASE64` secret |
-| **API backend** | `https://sufrix.duckdns.org/api` | Separate repo (`SufrixRust`); deployment not in this repo |
+| **API backend** | `https://madar-pos.cloud/api` | Separate repo (`MadarRust`); deployment not in this repo |
 
-No staging or preview environment is configured in either workflow. The Tauri app `identifier` is `com.sufrix.dashboard` (`tauri.conf.json` line 5).
+No staging or preview environment is configured in either workflow. The Tauri app `identifier` is `com.madar.dashboard` (`tauri.conf.json` line 5).
 
 ---
 
@@ -394,7 +394,7 @@ No staging or preview environment is configured in either workflow. The Tauri ap
 - **Currency in piastres:** All monetary values from the API are integers in Egyptian piastres (1 EGP = 100 piastres). The entire UI converts on output via `piastresToEgp()` and `fmtMoney()` in `src/shared/lib/format.ts`. ExcelJS columns of type `"money"` divide by 100 automatically.
 - **All dates are Cairo-anchored:** `APP_TZ = "Africa/Cairo"` (`src/shared/config/constants.ts`, inferred from `format.ts` usage). Every `Intl.DateTimeFormat` call passes `timeZone: APP_TZ`. `@date-fns/tz`'s `TZDate` is used for date arithmetic to prevent off-by-one day bugs at UTC midnight.
 - **Talabat payment method display rule:** Analytics and Excel exports show `talabat_online`, `talabat_cash`, AND an aggregate `Talabat (Total)` column (`talabatTotal()` helper in `excel.ts` line 459). Recharts charts keep them strictly split to prevent visual double-counting — documented as an immutable business rule in `README.md` lines 68–69.
-- **Orval reads from sibling repo:** `orval.config.ts` reads `input: '../SufrixRust/openapi.json'`, meaning the two repos must be siblings on disk for `npm run generate:api` to work. The generated output is committed to the repo so CI does not require the sibling to be present.
+- **Orval reads from sibling repo:** `orval.config.ts` reads `input: '../MadarRust/openapi.json'`, meaning the two repos must be siblings on disk for `npm run generate:api` to work. The generated output is committed to the repo so CI does not require the sibling to be present.
 - **Cairo font bundled:** `public/fonts/Cairo-SemiBold.ttf` and `Cairo-Regular.ttf` are self-hosted, used in both the browser UI (via CSS) and ExcelJS Excel cells (font name `"Cairo"` in the spreadsheet palette).
 - **Console silencer in production:** `src/app/console-silencer.ts` suppresses console output in non-dev environments (`initConsoleSilencer()` called in `main.tsx` line 12).
 - **Menu advisor page exists** (`src/pages/menu-advisor/`); the entity layer (`src/entities/menu-advisor/`) also exists. The feature appears to be an AI-assisted menu recommendation tool, but its implementation depth was not fully audited.

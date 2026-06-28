@@ -1,4 +1,4 @@
-package com.sufrix.dashboard
+package com.madar.dashboard
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

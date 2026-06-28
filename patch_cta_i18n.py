@@ -18,7 +18,7 @@ def update_json(filepath, updates):
 
 en_updates = {
     "title": "Ready to upgrade your operations?",
-    "subtitle": "Sufrix is built to flex with your business. Contact our creator today to get started.",
+    "subtitle": "Madar is built to flex with your business. Contact our creator today to get started.",
     "creator": "Creator",
     "email": "Email",
     "dropEmail": "Drop an email"
@@ -26,7 +26,7 @@ en_updates = {
 
 ar_updates = {
     "title": "هل أنت مستعد لترقية عملياتك؟",
-    "subtitle": "تم تصميم Sufrix ليتناسب مع أعمالك. تواصل مع المطور اليوم للبدء.",
+    "subtitle": "تم تصميم Madar ليتناسب مع أعمالك. تواصل مع المطور اليوم للبدء.",
     "creator": "المطور",
     "email": "البريد الإلكتروني",
     "dropEmail": "أرسل بريداً إلكترونياً"

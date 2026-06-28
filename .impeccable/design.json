@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-06-16T12:33:47Z",
-  "title": "Design System: Sufrix Dashboard",
+  "title": "Design System: Madar Dashboard",
   "extensions": {
     "colorMeta": {
       "harbor-navy": {
@@ -131,7 +131,7 @@
   ],
   "narrative": {
     "northStar": "The Warm Ledger",
-    "overview": "Sufrix is an honest accounting book bound in warm materials. Every figure is precise, auditable, and ledger-true — orders, shifts, and inventory are append-only, so the interface never implies a mutation the system can't make. But the surface is hospitable, not clinical: a tool for someone's livelihood in F&B that should feel like the warm front counter of a good coffee shop, not a grey ERP terminal. The system speaks in two volumes by register: quiet, restrained, precise in the authenticated dashboard (product); bold and editorial on the customer surfaces (brand) carried by the Fraunces serif and confident terracotta. Everything is bilingual by symmetry — Arabic is a peer of English, with logical-property layouts, ar-EG numerals, and Cairo-anchored dates.",
+    "overview": "Madar is an honest accounting book bound in warm materials. Every figure is precise, auditable, and ledger-true — orders, shifts, and inventory are append-only, so the interface never implies a mutation the system can't make. But the surface is hospitable, not clinical: a tool for someone's livelihood in F&B that should feel like the warm front counter of a good coffee shop, not a grey ERP terminal. The system speaks in two volumes by register: quiet, restrained, precise in the authenticated dashboard (product); bold and editorial on the customer surfaces (brand) carried by the Fraunces serif and confident terracotta. Everything is bilingual by symmetry — Arabic is a peer of English, with logical-property layouts, ar-EG numerals, and Cairo-anchored dates.",
     "keyCharacteristics": [
       "Ledger-honest — append-only reality reflected in the UI; no fake edit/delete affordances.",
       "Warm precision — navy/terracotta/cream warmth over tabular-number accuracy.",

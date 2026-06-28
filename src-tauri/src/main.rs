@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    sufrix_dashboard_lib::run();
+    madar_dashboard_lib::run();
 }

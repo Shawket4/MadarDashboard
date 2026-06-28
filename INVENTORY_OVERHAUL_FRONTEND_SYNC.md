@@ -1,7 +1,7 @@
 # Inventory Overhaul — Frontend Dashboard Sync Note
 
-Backend changes from the 2026-06-16 inventory overhaul that the **SufrixDashboard**
-(React/Vite/Orval) and, where noted, the **Sufrix POS** must adopt. Start by
+Backend changes from the 2026-06-16 inventory overhaul that the **MadarDashboard**
+(React/Vite/Orval) and, where noted, the **Madar POS** must adopt. Start by
 running `npm run generate:api` (Orval) in the dashboard — `openapi.json` was
 regenerated and carries all new fields/endpoints/params. Items below explain the
 *semantics* Orval can't convey.
@@ -146,7 +146,7 @@ unit**:
 
 ---
 
-## 6. POS impact (Sufrix POS)
+## 6. POS impact (Madar POS)
 
 - Order creation/cost snapshot is now per-branch (uses the order's branch cost) — no
   request change, but COGS figures will differ per branch.

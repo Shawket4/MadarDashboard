@@ -22,18 +22,18 @@ async function shot(page, name) {
 
 async function setLang(page, lang) {
   await page.evaluate((l) => {
-    const raw = localStorage.getItem("sufrix.app");
+    const raw = localStorage.getItem("madar-pos.cloud");
     const store = raw ? JSON.parse(raw) : {};
     store.state = store.state ?? {};
     store.state.language = l;
-    localStorage.setItem("sufrix.app", JSON.stringify(store));
+    localStorage.setItem("madar-pos.cloud", JSON.stringify(store));
   }, lang);
 }
 
 async function clearGuest(page) {
   await page.evaluate(() => {
     Object.keys(localStorage)
-      .filter((k) => k.startsWith("sufrix_guest_phone") || k.startsWith("sufrix_delivery_device"))
+      .filter((k) => k.startsWith("madar_guest_phone") || k.startsWith("madar_delivery_device"))
       .forEach((k) => localStorage.removeItem(k));
   });
 }
@@ -67,14 +67,14 @@ async function clickButton(page, pattern) {
   // rue-pos.ddns.net/api/uploads/... → localhost:8081/uploads/...
   await page.route("**/*.{jpg,jpeg,png,webp,gif,svg}", async (route) => {
     const orig = route.request().url();
-    if (!orig.includes("rue-pos.ddns.net") && !orig.includes("sufrix.duckdns.org") && !orig.includes("sufrix.ddns")) {
+    if (!orig.includes("rue-pos.ddns.net") && !orig.includes("madar-pos.cloud") && !orig.includes("madar.ddns")) {
       return route.continue();
     }
     const local = orig
       .replace(/https?:\/\/rue-pos\.ddns\.net\/api/, "http://localhost:8081")
-      .replace(/https?:\/\/sufrix\.(duckdns\.org|ddns\.(org|net))\/api/, "http://localhost:8081")
+      .replace(/https?:\/\/madar\.(duckdns\.org|ddns\.(org|net))\/api/, "http://localhost:8081")
       .replace(/https?:\/\/rue-pos\.ddns\.net/, "http://localhost:8081")
-      .replace(/https?:\/\/sufrix\.(duckdns\.org|ddns\.(org|net))/, "http://localhost:8081");
+      .replace(/https?:\/\/madar\.(duckdns\.org|ddns\.(org|net))/, "http://localhost:8081");
     try {
       const res = await route.fetch({ url: local });
       await route.fulfill({ response: res });

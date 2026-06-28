@@ -2,7 +2,7 @@ import { defineConfig } from 'orval';
 
 export default defineConfig({
   api: {
-    input: '../SufrixRust/openapi.json',
+    input: '../MadarRust/openapi.json',
     output: {
       mode: 'split',
       target: 'src/data/api/generated/api.ts',
@@ -20,7 +20,7 @@ export default defineConfig({
     },
   },
   zod: {
-    input: '../SufrixRust/openapi.json',
+    input: '../MadarRust/openapi.json',
     output: {
       mode: 'split',
       target: 'src/data/api/generated/zod/api.zod.ts',

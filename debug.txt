@@ -1,9 +1,9 @@
 
-> sufrix-dashboard@1.0.0 test
+> madar-dashboard@1.0.0 test
 > vitest run orders.test.tsx
 
 
-[1m[30m[46m RUN [49m[39m[22m [36mv4.1.7 [39m[90m/Users/shawket/Desktop/SufrixDashboard[39m
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.7 [39m[90m/Users/shawket/Desktop/MadarDashboard[39m
 
 [90mstderr[2m | src/pages/orders/__tests__/orders.test.tsx[2m > [22m[2mOrders Page[2m > [22m[2mopens order detail and voids an order
 [22m[39m`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.

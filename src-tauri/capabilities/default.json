@@ -14,7 +14,7 @@
       "identifier": "http:default",
       "allow": [
         {
-          "url": "https://sufrix.duckdns.org/**"
+          "url": "https://madar-pos.cloud/**"
         }
       ]
     }

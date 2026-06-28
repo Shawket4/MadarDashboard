@@ -25,9 +25,9 @@
 		19C5488C85D927C38553052E /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		434271B6EC8E68E2E46A89CE /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		4692390BCFEE551C282D69C0 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		505679798442D8AF25EFACBB /* sufrix-dashboard_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "sufrix-dashboard_iOS.entitlements"; sourceTree = "<group>"; };
+		505679798442D8AF25EFACBB /* madar-dashboard_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "madar-dashboard_iOS.entitlements"; sourceTree = "<group>"; };
 		54C9A472A9ACD8F8DAC22FD9 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
-		5FF516082ED6D57BB785C559 /* Sufrix Dashboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sufrix Dashboard.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5FF516082ED6D57BB785C559 /* Madar Dashboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Madar Dashboard.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		78A50468ED704D70328EA1BF /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		8ED6DD78A54861841B6B6126 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		92FFA2D3FE01DF5BE88C3CEF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -87,19 +87,19 @@
 				1FEB98BB9C57024BE2D4C5F3 /* Externals */,
 				9E478068785E0B188D77513D /* Sources */,
 				50DEA84D8613D6E75121DC99 /* src */,
-				FA342670D2481B5BE6FB66F2 /* sufrix-dashboard_iOS */,
+				FA342670D2481B5BE6FB66F2 /* madar-dashboard_iOS */,
 				86B39CFFACA8D86C5B19C276 /* Frameworks */,
 				A6736B9B817BA3E698697717 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		85B5C637DC89C3E147CD05A9 /* sufrix-dashboard */ = {
+		85B5C637DC89C3E147CD05A9 /* madar-dashboard */ = {
 			isa = PBXGroup;
 			children = (
 				434271B6EC8E68E2E46A89CE /* main.mm */,
 				CB683DFB3C3C3CDD76A0AC05 /* bindings */,
 			);
-			path = "sufrix-dashboard";
+			path = "madar-dashboard";
 			sourceTree = "<group>";
 		};
 		86B39CFFACA8D86C5B19C276 /* Frameworks */ = {
@@ -120,7 +120,7 @@
 		9E478068785E0B188D77513D /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				85B5C637DC89C3E147CD05A9 /* sufrix-dashboard */,
+				85B5C637DC89C3E147CD05A9 /* madar-dashboard */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -128,7 +128,7 @@
 		A6736B9B817BA3E698697717 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5FF516082ED6D57BB785C559 /* Sufrix Dashboard.app */,
+				5FF516082ED6D57BB785C559 /* Madar Dashboard.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -141,21 +141,21 @@
 			path = bindings;
 			sourceTree = "<group>";
 		};
-		FA342670D2481B5BE6FB66F2 /* sufrix-dashboard_iOS */ = {
+		FA342670D2481B5BE6FB66F2 /* madar-dashboard_iOS */ = {
 			isa = PBXGroup;
 			children = (
 				92FFA2D3FE01DF5BE88C3CEF /* Info.plist */,
-				505679798442D8AF25EFACBB /* sufrix-dashboard_iOS.entitlements */,
+				505679798442D8AF25EFACBB /* madar-dashboard_iOS.entitlements */,
 			);
-			path = "sufrix-dashboard_iOS";
+			path = "madar-dashboard_iOS";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		0579DE8FE554B83452015BC8 /* sufrix-dashboard_iOS */ = {
+		0579DE8FE554B83452015BC8 /* madar-dashboard_iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0DC6B38923D4816C78B756C4 /* Build configuration list for PBXNativeTarget "sufrix-dashboard_iOS" */;
+			buildConfigurationList = 0DC6B38923D4816C78B756C4 /* Build configuration list for PBXNativeTarget "madar-dashboard_iOS" */;
 			buildPhases = (
 				27527D9DA0E676675860BEF9 /* Build Rust Code */,
 				B3F2D36BBB0ABAD0760726B6 /* Sources */,
@@ -166,11 +166,11 @@
 			);
 			dependencies = (
 			);
-			name = "sufrix-dashboard_iOS";
+			name = "madar-dashboard_iOS";
 			packageProductDependencies = (
 			);
-			productName = "sufrix-dashboard_iOS";
-			productReference = 5FF516082ED6D57BB785C559 /* Sufrix Dashboard.app */;
+			productName = "madar-dashboard_iOS";
+			productReference = 5FF516082ED6D57BB785C559 /* Madar Dashboard.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -182,7 +182,7 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 			};
-			buildConfigurationList = 388386185A35589102E722D9 /* Build configuration list for PBXProject "sufrix-dashboard" */;
+			buildConfigurationList = 388386185A35589102E722D9 /* Build configuration list for PBXProject "madar-dashboard" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -196,7 +196,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				0579DE8FE554B83452015BC8 /* sufrix-dashboard_iOS */,
+				0579DE8FE554B83452015BC8 /* madar-dashboard_iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -312,7 +312,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "sufrix-dashboard_iOS/sufrix-dashboard_iOS.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "madar-dashboard_iOS/madar-dashboard_iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = NT5TZBZ3BZ;
 				ENABLE_BITCODE = NO;
@@ -321,7 +321,7 @@
 					"$(inherited)",
 					"\".\"",
 				);
-				INFOPLIST_FILE = "sufrix-dashboard_iOS/Info.plist";
+				INFOPLIST_FILE = "madar-dashboard_iOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -340,8 +340,8 @@
 					"$(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME)",
 					"$(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.sufrix.dashboard;
-				PRODUCT_NAME = "Sufrix Dashboard";
+				PRODUCT_BUNDLE_IDENTIFIER = com.madar.dashboard;
+				PRODUCT_NAME = "Madar Dashboard";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;
@@ -417,7 +417,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "sufrix-dashboard_iOS/sufrix-dashboard_iOS.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "madar-dashboard_iOS/madar-dashboard_iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = NT5TZBZ3BZ;
 				ENABLE_BITCODE = NO;
@@ -426,7 +426,7 @@
 					"$(inherited)",
 					"\".\"",
 				);
-				INFOPLIST_FILE = "sufrix-dashboard_iOS/Info.plist";
+				INFOPLIST_FILE = "madar-dashboard_iOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -445,8 +445,8 @@
 					"$(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME)",
 					"$(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.sufrix.dashboard;
-				PRODUCT_NAME = "Sufrix Dashboard";
+				PRODUCT_BUNDLE_IDENTIFIER = com.madar.dashboard;
+				PRODUCT_NAME = "Madar Dashboard";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;
@@ -456,7 +456,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		0DC6B38923D4816C78B756C4 /* Build configuration list for PBXNativeTarget "sufrix-dashboard_iOS" */ = {
+		0DC6B38923D4816C78B756C4 /* Build configuration list for PBXNativeTarget "madar-dashboard_iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DADFD37B59EABBDB3338A5D4 /* debug */,
@@ -465,7 +465,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = debug;
 		};
-		388386185A35589102E722D9 /* Build configuration list for PBXProject "sufrix-dashboard" */ = {
+		388386185A35589102E722D9 /* Build configuration list for PBXProject "madar-dashboard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BE636B6A1271266C7F4F67B1 /* debug */,

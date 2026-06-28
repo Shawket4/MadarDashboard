@@ -2,8 +2,8 @@ import os
 import re
 import shutil
 
-src_components = '/Users/shawket/Downloads/sufrix-portfolio/src/components'
-src_sections = '/Users/shawket/Downloads/sufrix-portfolio/src/pages'
+src_components = '/Users/shawket/Downloads/madar-portfolio/src/components'
+src_sections = '/Users/shawket/Downloads/madar-portfolio/src/pages'
 
 dst_components = 'src/pages/landing/components'
 dst_sections = 'src/pages/landing/sections'

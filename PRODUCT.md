@@ -16,7 +16,7 @@ Two first-class authenticated audiences for the dashboard, weighted equally:
 - **Org admin / multi-branch owner** — oversees several branches. Needs cross-branch rollups, comparisons, costing/margin visibility, and confidence that the numbers are trustworthy enough to act on.
 - **Single-branch manager** — runs one location day to day: orders, shifts, inventory counts, menu upkeep. Wants routine work to be fast and unambiguous.
 
-Tellers are **not** a primary audience here — they live in the Flutter POS (`sufrix_pos`); this dashboard is the management layer above it.
+Tellers are **not** a primary audience here — they live in the Flutter POS (`madar_pos`); this dashboard is the management layer above it.
 
 A third audience belongs to the brand surfaces: **end customers / diners** browsing a public menu, placing an order, and tracking it. They arrive with no training, often on a phone, possibly in Arabic, possibly on a poor connection.
 
@@ -24,7 +24,7 @@ Context of use: real F&B operations in Egypt — bilingual (English + Arabic, RT
 
 ## Product Purpose
 
-Sufrix is a bilingual platform for running a coffee shop end to end. The dashboard is the management brain: point-of-sale records, menu and recipe **costing**, inventory (append-only adjustments, transfers, stocktakes), shift lifecycle, order history and voids, delivery configuration, multi-branch analytics, and per-user permissions. The customer-facing surfaces let a diner discover the menu, order, and track fulfilment.
+Madar is a bilingual platform for running a coffee shop end to end. The dashboard is the management brain: point-of-sale records, menu and recipe **costing**, inventory (append-only adjustments, transfers, stocktakes), shift lifecycle, order history and voids, delivery configuration, multi-branch analytics, and per-user permissions. The customer-facing surfaces let a diner discover the menu, order, and track fulfilment.
 
 It exists because operators were running on spreadsheets and a register: this replaces that with one trustworthy, bilingual, offline-tolerant system that ties what's sold to what it costs. Success is three things at once, not one:
 
@@ -37,7 +37,7 @@ It exists because operators were running on spreadsheets and a register: this re
 **Quiet in the tool, bold on the brand.** Two complementary modes, not a contradiction:
 
 - In the **dashboard**, the voice is calm, professional, and precise. Restraint is the feature. It should read as a serious tool for someone's livelihood — never flashy, never decorative for its own sake.
-- On the **customer surfaces**, the voice is bold and characterful: an editorial, hospitable warmth carried by the Fraunces display serif, terracotta, and confident type. This is where Sufrix has personality.
+- On the **customer surfaces**, the voice is bold and characterful: an editorial, hospitable warmth carried by the Fraunces display serif, terracotta, and confident type. This is where Madar has personality.
 
 Across both: **warm precision**. Navy carries trust, terracotta carries warmth, cream carries hospitality. The throughline is honesty — money is real, the ledger is real, Arabic is a peer language. Three-word feel: **trustworthy, hospitable, precise.**
 

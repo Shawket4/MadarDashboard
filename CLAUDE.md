@@ -1,7 +1,7 @@
-# Claude Code Conventions: Sufrix Dashboard
+# Claude Code Conventions: Madar Dashboard
 
 ## Project Overview
-This is the SufrixDashboard frontend project. It is a React 19 web application built with Vite and packaged as a desktop application using Tauri. It provides the management interface for the Sufrix ecosystem.
+This is the MadarDashboard frontend project. It is a React 19 web application built with Vite and packaged as a desktop application using Tauri. It provides the management interface for the Madar ecosystem.
 
 ## Core Technology Stack
 - **Framework**: React 19, Vite
@@ -37,8 +37,8 @@ This is the SufrixDashboard frontend project. It is a React 19 web application b
 
 ## Related Projects (Ecosystem)
 When working on API integrations, data fetching, or checkout flows, you may need to reference the backend or POS system. You can find them at:
-- **Sufrix Backend**: `/Users/shawket/Desktop/SufrixRust` (Actix-Web Rust backend)
-- **Sufrix POS**: `/Users/shawket/Desktop/sufrix_pos` (Flutter Point of Sale)
+- **Madar Backend**: `/Users/shawket/Desktop/MadarRust` (Actix-Web Rust backend)
+- **Madar POS**: `/Users/shawket/Desktop/madar_pos` (Flutter Point of Sale)
 You can use file read commands or `cd` into these directories to analyze backend endpoints, OpenAPI schemas, or POS behavior.
 
 ## Design Context

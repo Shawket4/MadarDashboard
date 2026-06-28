@@ -2,7 +2,7 @@
   Claude Code agent:
 
   ---
-  You are working on the SufrixDashboard React application at the current
+  You are working on the MadarDashboard React application at the current
   working directory. 
   
   ## Stack
@@ -29,7 +29,7 @@
 
   ### Step 0: Regenerate the API client
   Run `cargo run --bin export-openapi` from the backend repo at
-  `/Users/shawket/Desktop/SufrixRust` and copy the resulting `openapi.json`
+  `/Users/shawket/Desktop/MadarRust` and copy the resulting `openapi.json`
   to this project, then run `pnpm orval` (or whatever the codegen script is)
   to regenerate `src/shared/api/generated/`. Every new endpoint below is
   already implemented in the backend and will appear in the spec. Do this
@@ -223,7 +223,7 @@
   - Menu (3): two-pane — categories left, items right (reuse existing
   components). Gate "Continue" on ≥1 category AND ≥1 active item, but the
   authoritative check is the refetched steps.done values.
-  - Costs (4): sell the cost engine — "Add ingredient costs and Sufrix
+  - Costs (4): sell the cost engine — "Add ingredient costs and Madar
   computes profit per item." Show recipe_coverage as a live progress ring.
   Fully skippable, never guilt-block.
   - Addons (5) / Team (6): thin wrappers over existing managers, both skippable.

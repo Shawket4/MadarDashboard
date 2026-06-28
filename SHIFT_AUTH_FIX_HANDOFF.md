@@ -40,7 +40,7 @@ their device/session is stuck. Build (or confirm) a **Shifts** management view:
 
 Surface, per branch, "open shifts" and a **Force-close** action with a reason. This is also the
 **deploy pre-step**: before the `20260613011000` migration runs, an admin must close any teller who
-somehow has more than one open shift (see `SufrixRust/DEPLOY_INSTRUCTIONS.md` §2). A small "tellers
+somehow has more than one open shift (see `MadarRust/DEPLOY_INSTRUCTIONS.md` §2). A small "tellers
 with an open shift" list on the Shifts screen makes that a one-click cleanup.
 
 ### B. Handle the new error responses gracefully
@@ -59,6 +59,6 @@ reports no longer mix branches. No dashboard change required — just be aware t
 
 ## Cross-references
 - Inventory module build: `INVENTORY_FRONTEND_HANDOFF.md`
-- Deploy + migration order + pre-step: `SufrixRust/DEPLOY_INSTRUCTIONS.md`,
-  `SufrixRust/INVENTORY_PROD_MIGRATION_RUNBOOK.md`
+- Deploy + migration order + pre-step: `MadarRust/DEPLOY_INSTRUCTIONS.md`,
+  `MadarRust/INVENTORY_PROD_MIGRATION_RUNBOOK.md`
 - POS app is being updated in the same release (login error state + fetched branch name).

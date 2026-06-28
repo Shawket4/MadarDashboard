@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "0579DE8FE554B83452015BC8"
-               BuildableName = "Sufrix Dashboard.app"
-               BlueprintName = "sufrix-dashboard_iOS"
-               ReferencedContainer = "container:sufrix-dashboard.xcodeproj">
+               BuildableName = "Madar Dashboard.app"
+               BlueprintName = "madar-dashboard_iOS"
+               ReferencedContainer = "container:madar-dashboard.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -31,9 +31,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0579DE8FE554B83452015BC8"
-            BuildableName = "Sufrix Dashboard.app"
-            BlueprintName = "sufrix-dashboard_iOS"
-            ReferencedContainer = "container:sufrix-dashboard.xcodeproj">
+            BuildableName = "Madar Dashboard.app"
+            BlueprintName = "madar-dashboard_iOS"
+            ReferencedContainer = "container:madar-dashboard.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <EnvironmentVariables>
@@ -66,9 +66,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0579DE8FE554B83452015BC8"
-            BuildableName = "Sufrix Dashboard.app"
-            BlueprintName = "sufrix-dashboard_iOS"
-            ReferencedContainer = "container:sufrix-dashboard.xcodeproj">
+            BuildableName = "Madar Dashboard.app"
+            BlueprintName = "madar-dashboard_iOS"
+            ReferencedContainer = "container:madar-dashboard.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <EnvironmentVariables>
@@ -95,9 +95,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0579DE8FE554B83452015BC8"
-            BuildableName = "Sufrix Dashboard.app"
-            BlueprintName = "sufrix-dashboard_iOS"
-            ReferencedContainer = "container:sufrix-dashboard.xcodeproj">
+            BuildableName = "Madar Dashboard.app"
+            BlueprintName = "madar-dashboard_iOS"
+            ReferencedContainer = "container:madar-dashboard.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <EnvironmentVariables>

@@ -5,7 +5,7 @@
 > `/inventory` route is still a "coming soon" placeholder and there is no
 > `src/features/inventory/` directory yet.
 >
-> **Design spec (read first):** `/Users/shawket/Desktop/SufrixRust/INVENTORY_AUDIT_AND_WIREFRAMES.md`
+> **Design spec (read first):** `/Users/shawket/Desktop/MadarRust/INVENTORY_AUDIT_AND_WIREFRAMES.md`
 > — the 8 manager journeys as ASCII wireframes + click-paths + information architecture.
 > This handoff is the API contract that backs those wireframes.
 
@@ -15,7 +15,7 @@
 
 1. **Regenerate the Orval client** — the backend spec changed (new endpoints + fields).
    ```
-   npm run generate:api      # orval.config.ts reads ../SufrixRust/openapi.json (702 KB, current)
+   npm run generate:api      # orval.config.ts reads ../MadarRust/openapi.json (702 KB, current)
    ```
    New hooks/models you'll get: `useGetInventorySettings`, `useUpdateInventorySettings`,
    `useListOrgOrders`, `useBranchShrinkage`, `useOrgShrinkage`, `useOrgConsumption`,
@@ -126,7 +126,7 @@ report reads those movements — do **not** create separate waste entries for sh
 
 ## 3. Screen → endpoint map
 
-Exact request/response shapes are in `../SufrixRust/openapi.json` (the Orval source). Money is
+Exact request/response shapes are in `../MadarRust/openapi.json` (the Orval source). Money is
 **piastres** everywhere — divide by 100 for EGP display, multiply on save (the catalog form already
 does this). **`cost*: null` = unknown — render "—", never 0.**
 
@@ -165,6 +165,6 @@ does this). **`cost*: null` = unknown — render "—", never 0.**
 ---
 
 ## 5. Reference
-- Wireframes + IA + click-paths: `../SufrixRust/INVENTORY_AUDIT_AND_WIREFRAMES.md`
-- API spec (Orval source): `../SufrixRust/openapi.json`
+- Wireframes + IA + click-paths: `../MadarRust/INVENTORY_AUDIT_AND_WIREFRAMES.md`
+- API spec (Orval source): `../MadarRust/openapi.json`
 - Prior overhaul changelog: `BACKEND_HANDOFF_inventory_overhaul.md` (this doc supersedes its "build new screens" section)

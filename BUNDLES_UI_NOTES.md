@@ -1,4 +1,4 @@
-# Sufrix POS React Dashboard — Bundles Management UI Blueprint
+# Madar POS React Dashboard — Bundles Management UI Blueprint
 
 This document records the findings and designs compiled during the **Investigation Phase (§1)** of the Bundles management feature implementation. It acts as the definitive design system and API contract mapping for frontend development, ensuring seamless alignment with the recently audited Rust backend.
 

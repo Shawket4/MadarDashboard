@@ -1,4 +1,4 @@
-# Sufrix Design System (rebuild v2)
+# Madar Design System (rebuild v2)
 
 A token-driven system defined entirely in `src/styles/globals.css` via Tailwind v4
 `@theme`. Brand hues are kept; everything else was reimagined.
@@ -16,7 +16,7 @@ Use the Tailwind classes, never raw hex:
 - Charts: `var(--chart-1..6)` via `CHART_COLORS` / `chartColor(i)` (theme-aware → fixes dark charts)
 - Sidebar: `bg-sidebar`, `text-sidebar-foreground`, `bg-sidebar-primary`, … (deep navy rail, terracotta active)
 
-Dark mode = `.dark` class on `<html>`, driven by `lib/theme.ts` (`useTheme`), persisted at `sufrix.theme`.
+Dark mode = `.dark` class on `<html>`, driven by `lib/theme.ts` (`useTheme`), persisted at `madar.theme`.
 
 ## Typography
 - Latin: **Inter Variable**; Arabic: **IBM Plex Sans Arabic** (self-hosted via fontsource, offline-ready).

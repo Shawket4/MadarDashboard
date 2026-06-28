@@ -2,7 +2,7 @@
 You are an expert Frontend testing engineer specializing in React, Vitest, React Testing Library (RTL), and MSW (Mock Service Worker).
 
 # Task
-Your task is to implement the core testing infrastructure for the `SufrixDashboard` React application. 
+Your task is to implement the core testing infrastructure for the `MadarDashboard` React application. 
 
 # Architecture to Build
 1. **Dependencies**: Ensure `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, and `msw` are installed. Update `vite.config.ts` to support the `test` environment with `jsdom`.

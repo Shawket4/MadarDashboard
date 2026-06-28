@@ -1,13 +1,13 @@
 # Uncomment the next line to define a global platform for your project
 
-target 'sufrix-dashboard_iOS' do
+target 'madar-dashboard_iOS' do
 platform :ios, '14.0'
-  # Pods for sufrix-dashboard_iOS
+  # Pods for madar-dashboard_iOS
 end
 
-target 'sufrix-dashboard_macOS' do
+target 'madar-dashboard_macOS' do
 platform :osx, '11.0'
-  # Pods for sufrix-dashboard_macOS
+  # Pods for madar-dashboard_macOS
 end
 
 # Delete the deployment target for iOS and macOS, causing it to be inherited from the Podfile

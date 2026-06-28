@@ -1,15 +1,15 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Sufrix API",
-    "description": "Sufrix POS — multi-tenant cafe and restaurant management. The Rust backend is the source of truth for this spec; the Flutter teller app and React management dashboard consume the generated openapi.json.",
+    "title": "Madar API",
+    "description": "Madar POS — multi-tenant cafe and restaurant management. The Rust backend is the source of truth for this spec; the Flutter teller app and React management dashboard consume the generated openapi.json.",
     "contact": {
-      "name": "Sufrix",
-      "url": "https://sufrix.app"
+      "name": "Madar",
+      "url": "https://madar-pos.cloud"
     },
     "license": {
       "name": "Proprietary",
-      "identifier": "LicenseRef-Sufrix-Proprietary"
+      "identifier": "LicenseRef-Madar-Proprietary"
     },
     "version": "0.1.0"
   },
@@ -19,7 +19,7 @@
       "description": "Local development"
     },
     {
-      "url": "https://api.sufrix.app",
+      "url": "https://api.madar-pos.cloud",
       "description": "Production"
     }
   ],
@@ -32629,7 +32629,7 @@
               "string",
               "null"
             ],
-            "example": "https://sufrix-pos.ddns.net/api/uploads/logos/123.png"
+            "example": "https://madar-pos.ddns.net/api/uploads/logos/123.png"
           },
           "name": {
             "type": "string",
@@ -35103,7 +35103,7 @@
               "string",
               "null"
             ],
-            "example": "ahmad@sufrix.com"
+            "example": "ahmad@madar.com"
           },
           "id": {
             "type": "string",
@@ -35561,7 +35561,7 @@
     },
     {
       "name": "qr",
-      "description": "Branded A6 QR card generator (PNG/SVG) and plain receipt QR. Renders a Shlink short URL into a print-perfect, Sufrix-styled image."
+      "description": "Branded A6 QR card generator (PNG/SVG) and plain receipt QR. Renders a Shlink short URL into a print-perfect, Madar-styled image."
     }
   ]
 }

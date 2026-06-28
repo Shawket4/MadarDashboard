@@ -1,4 +1,4 @@
-# Sufrix Dashboard — Architecture (rebuild v2)
+# Madar Dashboard — Architecture (rebuild v2)
 
 The frontend was rebuilt from scratch on a modern stack while **preserving the data
 contract**. This doc explains the structure and conventions.
@@ -40,14 +40,14 @@ src/
 ```
 
 ## Data layer (do not rewrite without reason)
-- **Orval** generates hooks + zod from `../SufrixRust/openapi.json` into `src/data/api/generated`.
+- **Orval** generates hooks + zod from `../MadarRust/openapi.json` into `src/data/api/generated`.
   Regenerate with `npm run generate:api`. Consume generated hooks **directly**
   (e.g. `useLogin`, `useListBranches`) and invalidate with the generated
   `getXxxQueryKey()` helpers — no manual key map.
 - **Axios** (`data/api/client.ts`) injects `Authorization` + `X-Org-Id` + `X-Branch-Id`
   from an ambient context the stores write to. A 401 triggers sign-out.
-- **Stores**: `auth` (token/user, persisted `sufrix.auth`), `app` (org/branch/lang/sidebar,
-  `sufrix.app`), `scope` (branch + Cairo date range, `sufrix-scope`). They self-wire on import
+- **Stores**: `auth` (token/user, persisted `madar.auth`), `app` (org/branch/lang/sidebar,
+  `madar-pos.cloud`), `scope` (branch + Cairo date range, `madar-scope`). They self-wire on import
   (see `main.tsx` side-effect imports).
 
 ## Routing

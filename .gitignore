@@ -37,3 +37,6 @@ src-tauri/gen/android/key.properties
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+brag-output-*/
+src-tauri/gen/
+screenshots/*.png

@@ -1,5 +1,5 @@
 ---
-name: Sufrix Dashboard
+name: Madar Dashboard
 description: A bilingual, ledger-honest management system for F&B operators — warm precision in the tool, editorial warmth on the brand.
 colors:
   harbor-navy: "oklch(0.27 0.05 250)"
@@ -101,13 +101,13 @@ components:
     padding: "1.5rem"
 ---
 
-# Design System: Sufrix Dashboard
+# Design System: Madar Dashboard
 
 ## 1. Overview
 
 **Creative North Star: "The Warm Ledger"**
 
-Sufrix is an honest accounting book bound in warm materials. Every figure is precise, auditable, and ledger-true — orders, shifts, and inventory are append-only, so the interface never implies a mutation the system can't make. But the surface is hospitable, not clinical: this is a tool for someone's livelihood in F&B, and it should feel like the warm front counter of a good coffee shop, not a grey ERP terminal. Harbor Navy carries trust, Terracotta Clay carries warmth, and Linen Cream carries hospitality.
+Madar is an honest accounting book bound in warm materials. Every figure is precise, auditable, and ledger-true — orders, shifts, and inventory are append-only, so the interface never implies a mutation the system can't make. But the surface is hospitable, not clinical: this is a tool for someone's livelihood in F&B, and it should feel like the warm front counter of a good coffee shop, not a grey ERP terminal. Harbor Navy carries trust, Terracotta Clay carries warmth, and Linen Cream carries hospitality.
 
 The system speaks in two complementary volumes, dictated by register. In the **authenticated dashboard** (product) the voice is quiet, professional, and precise — restraint is the feature, density is welcome where operators need it, and the tool disappears into the task. On the **customer surfaces** (brand) — the marketing landing, public ordering at `/order/:orgId`, order tracking at `/track/:id` — the voice turns bold and editorial, carried by the Fraunces display serif and confident terracotta. Never borrow dashboard flatness for the landing page, or landing-page flourish for a data table.
 

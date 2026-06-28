@@ -1,6 +1,6 @@
-# Sufrix Dashboard
+# Madar Dashboard
 
-Internal management dashboard for Sufrix. React + TypeScript + Vite, built around a Rust backend.
+Internal management dashboard for Madar. React + TypeScript + Vite, built around a Rust backend.
 
 ## Stack (locked versions in `package.json`)
 
@@ -16,7 +16,7 @@ npm run dev
 
 `.env`:
 ```
-VITE_API_URL=https://sufrix.duckdns.org/api
+VITE_API_URL=https://madar-pos.cloud/api
 ```
 
 ## Scripts
@@ -76,4 +76,4 @@ npx vite build      # → clean, 45s, 35 chunks
 
 ---
 
-© 2026 Sufrix
+© 2026 Madar
