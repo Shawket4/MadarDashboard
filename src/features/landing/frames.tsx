@@ -15,23 +15,27 @@ import { staggerContainer } from "@/lib/motion";
  * reduced-motion correct: every reveal collapses to its final, visible state.
  * ────────────────────────────────────────────────────────────────────────── */
 
-const EXPO = [0.16, 1, 0.3, 1] as const;
+// A gentle, unhurried ease — content settles in softly (ease-out-quint), never snaps.
+const EASE = [0.22, 1, 0.36, 1] as const;
+const FRAME_DURATION = 0.95;
 
 /** A reveal vocabulary — each entrance fits what it reveals, not a single reflex. */
 export type RevealVariant = "rise" | "fade" | "left" | "right" | "scale";
 
 const VARIANTS: Record<RevealVariant, Variants> = {
-  rise: { hidden: { opacity: 0, y: 32 }, show: { opacity: 1, y: 0 } },
-  fade: { hidden: { opacity: 0 }, show: { opacity: 1 } },
-  left: { hidden: { opacity: 0, x: -48 }, show: { opacity: 1, x: 0 } },
-  right: { hidden: { opacity: 0, x: 48 }, show: { opacity: 1, x: 0 } },
-  scale: { hidden: { opacity: 0, y: 28, scale: 0.965 }, show: { opacity: 1, y: 0, scale: 1 } },
+  rise: { hidden: { opacity: 0, y: 40, filter: "blur(8px)" }, show: { opacity: 1, y: 0, filter: "blur(0px)" } },
+  fade: { hidden: { opacity: 0, filter: "blur(6px)" }, show: { opacity: 1, filter: "blur(0px)" } },
+  left: { hidden: { opacity: 0, x: -56 }, show: { opacity: 1, x: 0 } },
+  right: { hidden: { opacity: 0, x: 56 }, show: { opacity: 1, x: 0 } },
+  scale: { hidden: { opacity: 0, y: 36, scale: 0.955 }, show: { opacity: 1, y: 0, scale: 1 } },
 };
 
-const REVEAL_VIEWPORT = { once: true, amount: 0.2 as const, margin: "0px 0px -10% 0px" };
+// Fire a touch before the element is fully in view so content is mid-reveal as it
+// slides up — more of the page is always animating in as you scroll.
+const REVEAL_VIEWPORT = { once: true, amount: 0.15 as const, margin: "0px 0px -12% 0px" };
 
 /**
- * Scroll-reveal wrapper: animates in once as it enters the viewport. Under
+ * Scroll-reveal wrapper: eases in once as it enters the viewport. Under
  * reduced-motion it renders statically (no opacity gate), so content is never
  * trapped invisible.
  */
@@ -39,7 +43,7 @@ export function Reveal({
   children,
   className,
   delay = 0,
-  duration = 0.7,
+  duration = FRAME_DURATION,
   variant = "rise",
   as = "div",
 }: {
@@ -63,7 +67,7 @@ export function Reveal({
       initial="hidden"
       whileInView="show"
       viewport={REVEAL_VIEWPORT}
-      transition={{ duration, delay, ease: EXPO }}
+      transition={{ duration, delay, ease: EASE }}
     >
       {children}
     </Comp>
@@ -74,7 +78,7 @@ export function Reveal({
 export function RevealGroup({
   children,
   className,
-  stagger = 0.09,
+  stagger = 0.1,
 }: {
   children: ReactNode;
   className?: string;
@@ -96,11 +100,11 @@ export function RevealGroup({
 }
 
 const ITEM_VARIANT: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EXPO } },
+  hidden: { opacity: 0, y: 28, filter: "blur(6px)" },
+  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.8, ease: EASE } },
 };
 
-/** A single reveal item to drop inside <RevealGroup>. */
+/** A single reveal item to drop inside <RevealGroup>. Eases up with a soft focus-in. */
 export function RevealItem({ children, className }: { children: ReactNode; className?: string }) {
   const reduced = useReducedMotion();
   if (reduced) return <div className={className}>{children}</div>;

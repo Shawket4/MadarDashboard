@@ -44,6 +44,14 @@ import { useLenis } from "./use-lenis";
 const dashShot = (name: string, lang: string) =>
   `/screenshots/dash-${name}-${lang === "ar" ? "ar" : "en"}.png`;
 
+// Hero load choreography — the eyebrow, headline, subhead and CTAs ease up in turn.
+const HERO_EASE = [0.22, 1, 0.36, 1] as const;
+const heroContainer = { hidden: {}, show: { transition: { staggerChildren: 0.13, delayChildren: 0.06 } } };
+const heroItem = {
+  hidden: { opacity: 0, y: 26, filter: "blur(6px)" },
+  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.9, ease: HERO_EASE } },
+};
+
 interface Pillar {
   key: string;
   icon: LucideIcon;
@@ -141,9 +149,8 @@ function Hero({ lang, reduced }: { lang: string; reduced: boolean | null }) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const frameY = useTransform(scrollYProgress, [0, 1], ["0px", "-64px"]);
-  const enter = reduced
-    ? {}
-    : ({ initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } } as const);
+  const container = reduced ? {} : { variants: heroContainer, initial: "hidden" as const, animate: "show" as const };
+  const item = reduced ? {} : { variants: heroItem };
 
   return (
     <section ref={ref} className="relative overflow-hidden">
@@ -152,25 +159,21 @@ function Hero({ lang, reduced }: { lang: string; reduced: boolean | null }) {
         className="pointer-events-none absolute inset-x-0 -top-40 -z-10 mx-auto h-[40rem] max-w-5xl rounded-[50%] bg-gradient-to-br from-brand/20 via-primary/10 to-transparent blur-3xl"
       />
       <div className="mx-auto max-w-6xl px-4 pt-16 pb-12 text-center sm:px-6 lg:px-8 lg:pt-24">
-        <motion.div
-          {...enter}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto max-w-3xl"
-        >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-xs">
+        <motion.div {...container} className="mx-auto max-w-3xl">
+          <motion.span {...item} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-xs">
             <span className="size-1.5 rounded-full bg-brand" />
             {t("landing.hero.eyebrow", "Coffee-shop operations, end to end")}
-          </span>
-          <h1 className="mt-6 font-serif text-[2.6rem] leading-[1.04] tracking-tight text-balance sm:text-6xl">
+          </motion.span>
+          <motion.h1 {...item} className="mt-6 font-serif text-[2.6rem] leading-[1.04] tracking-tight text-balance sm:text-6xl">
             {t("landing.hero.title", "Run the whole shop from one warm ledger.")}
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-foreground/80 text-pretty">
+          </motion.h1>
+          <motion.p {...item} className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-foreground/80 text-pretty">
             {t(
               "landing.hero.subtitle",
               "Point of sale, recipe costing, inventory, shifts, delivery and analytics — one bilingual platform that ties what you sell to what it costs. Online or off, in Arabic or English.",
             )}
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          </motion.p>
+          <motion.div {...item} className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" variant="brand" className="shadow-sm">
               <a href="#dashboard">
                 {t("landing.hero.ctaSecondary", "See it in action")}
@@ -180,7 +183,7 @@ function Hero({ lang, reduced }: { lang: string; reduced: boolean | null }) {
             <ContactDialog>
               <Button size="lg" variant="outline">{t("landing.hero.ctaContact", "Talk to us")}</Button>
             </ContactDialog>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Hero visual — the live dashboard, with a touch of scroll parallax. */}
@@ -217,14 +220,17 @@ function StatStrip() {
   ];
   return (
     <section className="border-y border-border bg-muted/40">
-      <div className="mx-auto grid max-w-6xl grid-cols-2 divide-x divide-border/70 px-0 sm:px-6 lg:grid-cols-4 lg:px-8 rtl:divide-x-reverse">
+      <RevealGroup
+        className="mx-auto grid max-w-6xl grid-cols-2 divide-x divide-border/70 px-0 sm:px-6 lg:grid-cols-4 lg:px-8 rtl:divide-x-reverse"
+        stagger={0.1}
+      >
         {stats.map((s) => (
-          <div key={s.value} className="px-5 py-8 text-center sm:py-9">
+          <RevealItem key={s.value} className="px-5 py-8 text-center sm:py-9">
             <div className="font-serif text-2xl leading-none text-foreground sm:text-[1.75rem]">{s.value}</div>
             <div className="mt-2 text-sm leading-snug text-muted-foreground text-pretty">{s.label}</div>
-          </div>
+          </RevealItem>
         ))}
-      </div>
+      </RevealGroup>
     </section>
   );
 }
@@ -240,18 +246,25 @@ function SectionHead({
   title: string;
   subtitle?: string;
 }) {
+  // The three lines ease up in sequence as the head slides into view.
   return (
-    <Reveal className="mx-auto max-w-2xl text-center">
-      <p className="text-sm font-semibold tracking-wide text-brand">{eyebrow}</p>
-      <h2 className="mt-3 font-serif text-3xl leading-[1.1] tracking-tight text-balance sm:text-[2.5rem]">
-        {title}
-      </h2>
+    <RevealGroup className="mx-auto max-w-2xl text-center" stagger={0.12}>
+      <RevealItem>
+        <p className="text-sm font-semibold tracking-wide text-brand">{eyebrow}</p>
+      </RevealItem>
+      <RevealItem>
+        <h2 className="mt-3 font-serif text-3xl leading-[1.1] tracking-tight text-balance sm:text-[2.5rem]">
+          {title}
+        </h2>
+      </RevealItem>
       {subtitle ? (
-        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty">
-          {subtitle}
-        </p>
+        <RevealItem>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty">
+            {subtitle}
+          </p>
+        </RevealItem>
       ) : null}
-    </Reveal>
+    </RevealGroup>
   );
 }
 
@@ -562,32 +575,38 @@ function CtaBand({ loginUrl }: { loginUrl: string }) {
             aria-hidden
             className="pointer-events-none absolute -inset-x-24 -top-28 -z-0 h-80 bg-gradient-to-br from-brand/30 to-transparent blur-3xl"
           />
-          <div className="relative">
-            <h2 className="mx-auto max-w-2xl font-serif text-3xl leading-[1.1] tracking-tight text-balance text-white sm:text-[2.5rem]">
-              {t("landing.cta.title", "Ready to run your shop on Madar?")}
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-pretty leading-relaxed text-white/70">
-              {t(
-                "landing.cta.subtitle",
-                "Bring point of sale, costing, inventory and analytics into one bilingual system. Talk to us and we'll set you up.",
-              )}
-            </p>
-            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <ContactDialog>
-                <Button size="lg" variant="brand" className="shadow-sm">
-                  {t("landing.cta.contact", "Contact us")} <ArrowRight className="size-4 rtl:rotate-180" />
+          <RevealGroup className="relative" stagger={0.12}>
+            <RevealItem>
+              <h2 className="mx-auto max-w-2xl font-serif text-3xl leading-[1.1] tracking-tight text-balance text-white sm:text-[2.5rem]">
+                {t("landing.cta.title", "Ready to run your shop on Madar?")}
+              </h2>
+            </RevealItem>
+            <RevealItem>
+              <p className="mx-auto mt-4 max-w-xl text-pretty leading-relaxed text-white/70">
+                {t(
+                  "landing.cta.subtitle",
+                  "Bring point of sale, costing, inventory and analytics into one bilingual system. Talk to us and we'll set you up.",
+                )}
+              </p>
+            </RevealItem>
+            <RevealItem>
+              <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+                <ContactDialog>
+                  <Button size="lg" variant="brand" className="shadow-sm">
+                    {t("landing.cta.contact", "Contact us")} <ArrowRight className="size-4 rtl:rotate-180" />
+                  </Button>
+                </ContactDialog>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-white/25 bg-transparent text-white hover:bg-white/10 hover:text-white dark:border-white/25 dark:bg-transparent"
+                >
+                  <a href={loginUrl}>{t("auth.signIn", "Sign in")}</a>
                 </Button>
-              </ContactDialog>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-white/25 bg-transparent text-white hover:bg-white/10 hover:text-white dark:border-white/25 dark:bg-transparent"
-              >
-                <a href={loginUrl}>{t("auth.signIn", "Sign in")}</a>
-              </Button>
-            </div>
-          </div>
+              </div>
+            </RevealItem>
+          </RevealGroup>
         </div>
       </Reveal>
     </section>
