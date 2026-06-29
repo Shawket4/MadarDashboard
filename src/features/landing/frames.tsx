@@ -155,11 +155,14 @@ export function Screenshot({
   alt,
   label,
   className,
+  priority = false,
 }: {
   src?: string;
   alt: string;
   label: string;
   className?: string;
+  /** Above-the-fold (hero) shot: load eagerly with high fetch priority for LCP. */
+  priority?: boolean;
 }) {
   const [errored, setErrored] = useState(false);
   // Reset when the source changes (e.g. EN ⇄ AR language swap).
@@ -187,7 +190,8 @@ export function Screenshot({
     <img
       src={src}
       alt={alt}
-      loading="lazy"
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
       decoding="async"
       onError={() => setErrored(true)}
       className={cn("size-full object-cover object-top", className)}

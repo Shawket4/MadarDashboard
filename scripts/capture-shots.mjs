@@ -3,6 +3,7 @@
 // Then:  node scripts/capture-shots.mjs [routeKey]
 // Saves PNGs into public/screenshots/. Deterministic mock data → stable shots.
 import { chromium } from "playwright";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -91,4 +92,6 @@ const browser = await chromium.launch();
 await capture(browser, "en");
 if (!only || targets.some((t) => t.hero)) await capture(browser, "ar");
 await browser.close();
+// Compress the freshly-captured PNGs to WebP (the served assets stay small).
+execFileSync("node", [path.resolve(__dirname, "optimize-images.mjs")], { stdio: "inherit" });
 console.log("done");

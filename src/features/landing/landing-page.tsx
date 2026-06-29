@@ -1,6 +1,6 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 import {
   ArrowRight,
   BarChart3,
@@ -42,7 +42,52 @@ import { useLenis } from "./use-lenis";
  * ────────────────────────────────────────────────────────────────────────── */
 
 const dashShot = (name: string, lang: string) =>
-  `/screenshots/dash-${name}-${lang === "ar" ? "ar" : "en"}.png`;
+  `/screenshots/dash-${name}-${lang === "ar" ? "ar" : "en"}.webp`;
+
+/** Below-the-fold shots to warm into cache after first paint, so they're already
+ *  decoded by the time the reader scrolls to them (no pop-in). Hero shot loads
+ *  eagerly on its own, so it's intentionally excluded here. */
+const preloadShots = (lang: string): string[] => [
+  dashShot("orders", lang),
+  dashShot("analytics", lang),
+  "/screenshots/dash-recipes.webp",
+  "/screenshots/dash-overview-en.webp",
+  "/screenshots/dash-overview-ar.webp",
+  ...["order-menu", "order-customize", "order-cart", "order-track"].map(
+    (f) => `/screenshots/${f}-${lang}.webp`,
+  ),
+];
+
+/** Warm the browser cache for the given image URLs during idle time after mount. */
+function usePreloadImages(urls: string[]) {
+  const key = urls.join("|");
+  useEffect(() => {
+    let cancelled = false;
+    const warm = () => {
+      if (cancelled) return;
+      for (const url of urls) {
+        const img = new Image();
+        img.decoding = "async";
+        img.src = url;
+      }
+    };
+    const ric = (window as unknown as { requestIdleCallback?: typeof window.requestIdleCallback })
+      .requestIdleCallback;
+    if (ric) {
+      const id = ric(warm, { timeout: 2500 });
+      return () => {
+        cancelled = true;
+        window.cancelIdleCallback?.(id);
+      };
+    }
+    const t = window.setTimeout(warm, 900);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+}
 
 // Hero load choreography — the eyebrow, headline, subhead and CTAs spring up in
 // turn. Transform + opacity only (60fps); a touch of overshoot for life.
@@ -74,6 +119,7 @@ export function LandingPage() {
   const lang = i18n.language === "ar" ? "ar" : "en";
   const reduced = useReducedMotion();
   useLenis();
+  usePreloadImages(preloadShots(lang));
 
   const loginUrl = `${env.VITE_DASHBOARD_URL}/login`;
 
@@ -82,6 +128,7 @@ export function LandingPage() {
     // horizontal overflow so the page never scrolls sideways (clip keeps the sticky
     // header + vertical scroll working, unlike overflow-hidden).
     <div className="min-h-screen overflow-x-clip bg-background text-foreground">
+      <ScrollProgress reduced={reduced} />
       <Header loginUrl={loginUrl} />
       <main>
         <Hero lang={lang} reduced={reduced} />
@@ -95,6 +142,36 @@ export function LandingPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+/** A slim reading-progress bar pinned to the very top — orients the reader on a
+ *  long page. Driven by scroll position (a spring smooths the scaleX), so it sits
+ *  out under reduced-motion. */
+function ScrollProgress({ reduced }: { reduced: boolean | null }) {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 140, damping: 26, mass: 0.3 });
+  if (reduced) return null;
+  return (
+    <motion.div
+      aria-hidden
+      style={{ scaleX }}
+      className="fixed inset-x-0 top-0 z-40 h-0.5 origin-left bg-brand rtl:origin-right"
+    />
+  );
+}
+
+/** The Madar wordmark — Arabic logotype in AR, and pure-white (not accent-tinted)
+ *  in dark mode, matching the dashboard. */
+function Wordmark({ className }: { className?: string }) {
+  const { t, i18n } = useTranslation();
+  const src = i18n.language === "ar" ? "/madar_ar.svg" : "/madar.svg";
+  return (
+    <img
+      src={src}
+      alt={t("app.name", "Madar")}
+      className={cn("dark:brightness-0 dark:invert", className)}
+    />
   );
 }
 
@@ -124,7 +201,7 @@ function Header({ loginUrl }: { loginUrl: string }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:px-8">
-        <img src="/madar.svg" alt={t("app.name", "Madar")} className="h-7 dark:invert" />
+        <Wordmark className="h-7" />
         <nav className="ms-9 hidden items-center gap-8 md:flex">
           <a className={navLink} href="#dashboard">{t("landing.nav.dashboard", "Dashboard")}</a>
           <a className={navLink} href="#pos">{t("landing.nav.pos", "Point of sale")}</a>
@@ -157,10 +234,22 @@ function Hero({ lang, reduced }: { lang: string; reduced: boolean | null }) {
 
   return (
     <section ref={ref} className="relative overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-40 -z-10 mx-auto h-[40rem] max-w-5xl rounded-[50%] bg-gradient-to-br from-brand/20 via-primary/10 to-transparent blur-3xl"
-      />
+      {/* Ambient glow behind the hero — breathes slowly to keep the signature
+          moment alive (scale + opacity only; cached blur layer, so it stays smooth). */}
+      {reduced ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -top-40 -z-10 mx-auto h-[40rem] max-w-5xl rounded-[50%] bg-gradient-to-br from-brand/20 via-primary/10 to-transparent blur-3xl"
+        />
+      ) : (
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0.7, scale: 1 }}
+          animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.06, 1] }}
+          transition={{ duration: 8, ease: "easeInOut", repeat: Infinity }}
+          className="pointer-events-none absolute inset-x-0 -top-40 -z-10 mx-auto h-[40rem] max-w-5xl rounded-[50%] bg-gradient-to-br from-brand/20 via-primary/10 to-transparent blur-3xl"
+        />
+      )}
       <div className="mx-auto max-w-6xl px-4 pt-16 pb-12 text-center sm:px-6 lg:px-8 lg:pt-24">
         <motion.div {...container} className="mx-auto max-w-3xl">
           <motion.span {...item} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-xs">
@@ -177,14 +266,21 @@ function Hero({ lang, reduced }: { lang: string; reduced: boolean | null }) {
             )}
           </motion.p>
           <motion.div {...item} className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg" variant="brand" className="shadow-sm">
+            <Button
+              asChild
+              size="lg"
+              variant="brand"
+              className="group shadow-sm transition-transform active:scale-[0.97]"
+            >
               <a href="#dashboard">
                 {t("landing.hero.ctaSecondary", "See it in action")}
-                <ArrowRight className="size-4 rotate-90" />
+                <ArrowRight className="size-4 rotate-90 transition-transform duration-300 group-hover:translate-y-0.5" />
               </a>
             </Button>
             <ContactDialog>
-              <Button size="lg" variant="outline">{t("landing.hero.ctaContact", "Talk to us")}</Button>
+              <Button size="lg" variant="outline" className="transition-transform active:scale-[0.97]">
+                {t("landing.hero.ctaContact", "Talk to us")}
+              </Button>
             </ContactDialog>
           </motion.div>
         </motion.div>
@@ -204,6 +300,7 @@ function Hero({ lang, reduced }: { lang: string; reduced: boolean | null }) {
               src={dashShot("overview", lang)}
               alt={t("landing.hero.caption", "The Madar dashboard")}
               label={t("landing.hero.caption", "The Madar dashboard")}
+              priority
             />
           </BrowserFrame>
         </motion.div>
@@ -320,7 +417,7 @@ function DashboardShowcase({ lang }: { lang: string }) {
           <Reveal variant="right">
             <BrowserFrame url="madar-pos.cloud/menu/recipes">
               <Screenshot
-                src="/screenshots/dash-recipes.png"
+                src="/screenshots/dash-recipes.webp"
                 alt={t("landing.dashboard.recipes.title", "Recipe costing")}
                 label={t("landing.dashboard.recipes.title", "Recipe costing")}
               />
@@ -361,7 +458,7 @@ function BilingualSection() {
           <Reveal variant="left">
             <div className="overflow-hidden rounded-xl border border-border shadow-lg" dir="ltr">
               <Screenshot
-                src="/screenshots/dash-overview-en.png"
+                src="/screenshots/dash-overview-en.webp"
                 alt="Madar dashboard in English"
                 label="Dashboard — English"
                 className="aspect-[16/10]"
@@ -374,7 +471,7 @@ function BilingualSection() {
           <Reveal variant="right">
             <div className="overflow-hidden rounded-xl border border-border shadow-lg" dir="rtl">
               <Screenshot
-                src="/screenshots/dash-overview-ar.png"
+                src="/screenshots/dash-overview-ar.webp"
                 alt="Madar dashboard in Arabic"
                 label="لوحة التحكم — العربية"
                 className="aspect-[16/10]"
@@ -422,7 +519,7 @@ function PosShowcase() {
           <Reveal variant="scale" lift>
             <IpadFrame>
               <Screenshot
-                src="/screenshots/pos-order.png"
+                src="/screenshots/pos-order.webp"
                 alt={t("landing.pos.shots.order.title", "Order screen")}
                 label={t("landing.pos.shots.order.title", "Order screen")}
                 className="object-contain"
@@ -453,7 +550,7 @@ function PosShowcase() {
             <RevealItem key={s.key} lift>
               <IpadFrame>
                 <Screenshot
-                  src={`/screenshots/${s.file}.png`}
+                  src={`/screenshots/${s.file}.webp`}
                   alt={t(`landing.pos.shots.${s.key}.title`, s.key)}
                   label={t(`landing.pos.shots.${s.key}.title`, s.key)}
                   className="object-contain"
@@ -499,7 +596,7 @@ function CustomerJourney({ lang }: { lang: string }) {
               <div className={cn("flex w-full flex-col items-center", i % 2 === 1 && "sm:translate-y-12")}>
                 <PhoneFrame className="w-full max-w-[200px]">
                   <Screenshot
-                    src={`/screenshots/${s.file}-${lang}.png`}
+                    src={`/screenshots/${s.file}-${lang}.webp`}
                     alt={t(`landing.customer.steps.${s.key}`, s.key)}
                     label={t(`landing.customer.steps.${s.key}`, s.key)}
                   />
@@ -597,8 +694,13 @@ function CtaBand({ loginUrl }: { loginUrl: string }) {
             <RevealItem>
               <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
                 <ContactDialog>
-                  <Button size="lg" variant="brand" className="shadow-sm">
-                    {t("landing.cta.contact", "Contact us")} <ArrowRight className="size-4 rtl:rotate-180" />
+                  <Button
+                    size="lg"
+                    variant="brand"
+                    className="group shadow-sm transition-transform active:scale-[0.97]"
+                  >
+                    {t("landing.cta.contact", "Contact us")}{" "}
+                    <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
                   </Button>
                 </ContactDialog>
                 <Button
@@ -626,7 +728,7 @@ function Footer() {
   return (
     <footer className="border-t border-border py-10">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 px-4 sm:flex-row sm:px-6 lg:px-8">
-        <img src="/madar.svg" alt={t("app.name", "Madar")} className="h-6 opacity-80 dark:invert" />
+        <Wordmark className="h-6 opacity-80" />
         <SocialLinks />
         <p className="text-sm text-muted-foreground">
           {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
