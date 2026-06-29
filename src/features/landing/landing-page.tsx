@@ -78,7 +78,10 @@ export function LandingPage() {
   const loginUrl = `${env.VITE_DASHBOARD_URL}/login`;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    // overflow-x-clip: the slide-in reveals start translated off-screen; clip the
+    // horizontal overflow so the page never scrolls sideways (clip keeps the sticky
+    // header + vertical scroll working, unlike overflow-hidden).
+    <div className="min-h-screen overflow-x-clip bg-background text-foreground">
       <Header loginUrl={loginUrl} />
       <main>
         <Hero lang={lang} reduced={reduced} />
