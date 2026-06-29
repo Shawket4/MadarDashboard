@@ -173,16 +173,21 @@ function ScrollProgress({ reduced }: { reduced: boolean | null }) {
 }
 
 /** The Madar wordmark — Arabic logotype in AR, and pure-white (not accent-tinted)
- *  in dark mode, matching the dashboard. */
+ *  in dark mode, matching the dashboard.
+ *
+ *  Both logotypes are rendered and toggled with CSS (`hidden`), so switching
+ *  language is an instant class flip — no `src` swap, no network fetch, no
+ *  width-collapse jitter. They're also preloaded in get.html, so both are cached
+ *  from first paint. */
 function Wordmark({ className }: { className?: string }) {
   const { t, i18n } = useTranslation();
-  const src = i18n.language === "ar" ? "/madar_ar.svg" : "/madar.svg";
+  const ar = i18n.language === "ar";
+  const base = cn("dark:brightness-0 dark:invert", className);
   return (
-    <img
-      src={src}
-      alt={t("app.name", "Madar")}
-      className={cn("dark:brightness-0 dark:invert", className)}
-    />
+    <>
+      <img src="/madar.svg" alt={t("app.name", "Madar")} className={cn(base, ar && "hidden")} />
+      <img src="/madar_ar.svg" alt={t("app.name", "Madar")} className={cn(base, !ar && "hidden")} />
+    </>
   );
 }
 
