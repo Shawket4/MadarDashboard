@@ -3,7 +3,13 @@
 
 <head>
   <meta charset="UTF-8" />
+  <!-- Favicons: lead with a real .ico — Google Search's favicon crawler is
+       unreliable with an SVG-only declaration. SVG is kept for crisp browser tabs,
+       plus raster PNGs (multiples of 48px, per Google's guidelines). -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" type="image/svg+xml" href="/Icon.svg" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <!-- Preload both logotypes so the EN⇄AR switch is instant (no fetch jitter). -->
   <link rel="preload" as="image" href="/madar.svg" type="image/svg+xml" />
