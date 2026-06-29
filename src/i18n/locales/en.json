@@ -1956,58 +1956,96 @@
     "strapline": "Madar · Capability Portfolio"
   },
   "landing": {
-    "cta": {
-      "title": "Ready to upgrade your operations?",
-      "subtitle": "Madar is built to flex with your business. Contact our creator today to get started.",
-      "creator": "Creator",
-      "email": "Email",
-      "dropEmail": "Drop an email"
-    },
-    "trustedBy": {
-      "since": "Since",
-      "branch": "Branch",
-      "branches": "Branches"
-    },
     "nav": {
-      "pos": "POS Features",
       "dashboard": "Dashboard",
-      "flex": "Flexibility",
-      "contact": "Contact"
+      "pos": "Point of sale",
+      "features": "Features",
+      "openDashboard": "Open dashboard"
     },
-    "openDashboard": "Open dashboard",
-    "getStarted": "Get started",
-    "learnMore": "Learn more",
-    "featuresTitle": "Everything your counter needs",
-    "featuresSubtitle": "Purpose-built for cafés and quick-service — fast, reliable, and bilingual.",
     "hero": {
-      "title": "Run your coffee shop, end to end.",
-      "subtitle": "Point of sale, menu & recipe costing, inventory, shifts and analytics — one bilingual platform that works online and off."
+      "eyebrow": "Coffee-shop operations, end to end",
+      "title": "Run the whole shop from one warm ledger.",
+      "subtitle": "Point of sale, recipe costing, inventory, shifts, delivery and analytics — one bilingual platform that ties what you sell to what it costs. Online or off, in Arabic or English.",
+      "ctaPrimary": "Get started",
+      "ctaSecondary": "See it in action",
+      "caption": "The Madar dashboard — live revenue, payment mix and branch performance."
     },
-    "features": {
-      "pos": {
-        "title": "Fast point of sale",
-        "desc": "Take orders in seconds with mixed payments, discounts and instant receipts."
-      },
-      "menu": {
-        "title": "Menu & recipe costing",
-        "desc": "Build menus, recipes and add-ons — and know the true cost of every cup."
-      },
+    "stats": {
+      "branches": { "value": "Multi-branch", "label": "Rollups across every location" },
+      "bilingual": { "value": "EN · ع", "label": "Bilingual, first-class RTL" },
+      "offline": { "value": "Offline-first", "label": "Keeps selling when the line drops" },
+      "ledger": { "value": "Append-only", "label": "An honest, auditable ledger" }
+    },
+    "dashboard": {
+      "eyebrow": "The back office",
+      "title": "Numbers you can act on",
+      "subtitle": "Every order, shift and adjustment rolls up into one trustworthy view — revenue, payment mix, branch performance, and the true cost behind each cup.",
+      "orders": { "title": "Order history" },
       "analytics": {
         "title": "Analytics & reports",
-        "desc": "Revenue, top items, tellers and branch comparison, exportable any time."
+        "desc": "Revenue, top items, peak hours, tellers and branch comparison — exportable any time."
       },
-      "multibranch": {
-        "title": "Multi-branch & roles",
-        "desc": "Manage every location and staff member with granular permissions."
-      },
-      "offline": {
-        "title": "Offline-first",
-        "desc": "Keep ringing up orders even when the internet drops."
-      },
-      "bilingual": {
-        "title": "Arabic & English",
-        "desc": "Fully bilingual with first-class right-to-left support."
+      "recipes": {
+        "title": "Menu & recipe costing",
+        "desc": "Build recipes and add-ons per size and know the true cost — and margin — of everything you sell."
       }
+    },
+    "bilingual": {
+      "eyebrow": "Bilingual by symmetry",
+      "title": "Arabic is a peer, not a translation",
+      "subtitle": "Every layout, number and date reads as native in both directions — Arabic numerals, Cairo time, and a layout that flips cleanly for right-to-left. The same screen, equally at home in either language.",
+      "en": "English · left-to-right",
+      "ar": "العربية · من اليمين لليسار"
+    },
+    "pos": {
+      "eyebrow": "The counter",
+      "title": "A native point of sale, built for the rush",
+      "subtitle": "A fast SwiftUI app for the counter — browse the menu, build a cart, split a bill, take cash with live change, fire to the kitchen, and close the drawer with a Z-report. Offline-first, so the line never stops.",
+      "shots": {
+        "order": { "title": "Order & cart", "desc": "Browse the branch menu, build a cart and watch totals add up live — on one fast screen." },
+        "tender": { "title": "Tender & split", "desc": "Split a bill across payment methods, take cash with live change, add a tip, then print." },
+        "kitchen": { "title": "Kitchen display", "desc": "Fire tickets to a full-screen kitchen board and bump them line by line." },
+        "shift": { "title": "Shifts & Z-report", "desc": "Open and close the drawer with a counted cash report and a printable shift summary." }
+      }
+    },
+    "features": {
+      "eyebrow": "One platform",
+      "title": "Everything your counter needs",
+      "subtitle": "Purpose-built for cafés and quick-service in Egypt — precise with money, honest with the ledger, and fast where it matters.",
+      "items": {
+        "pos": { "title": "Fast point of sale", "desc": "Take orders in seconds with split payments, discounts and instant receipts." },
+        "costing": { "title": "Recipe costing", "desc": "Know the true cost and margin of every cup, per size and add-on." },
+        "inventory": { "title": "Append-only inventory", "desc": "Counts, transfers, waste and stocktakes — reversed with compensating entries, never edited away." },
+        "shifts": { "title": "Shifts & cash", "desc": "Open and close drawers, record pay-ins and pay-outs, and reprint Z-reports." },
+        "delivery": { "title": "Delivery & channels", "desc": "Configure zones and channels, with Talabat online/cash splits handled correctly." },
+        "analytics": { "title": "Analytics & reports", "desc": "Revenue, peak hours, top items and branch comparison — exportable any time." },
+        "multibranch": { "title": "Multi-branch rollups", "desc": "Compare locations and see the whole org at a glance, in one scope bar." },
+        "permissions": { "title": "Roles & permissions", "desc": "Granular, role-based access for owners, managers and tellers." }
+      },
+      "tags": {
+        "offline": "Offline-first",
+        "bilingual": "Arabic & English",
+        "permissions": "Role-based access"
+      }
+    },
+    "customer": {
+      "eyebrow": "For your customers",
+      "title": "A menu worth sharing — and an order they can track",
+      "subtitle": "Give every branch a beautiful public menu and a live order tracker, on any phone, in Arabic or English — no app to install.",
+      "points": {
+        "browse": "Browse a branch's full menu with photos, sizes and add-ons.",
+        "order": "Place a delivery or pickup order in a few taps.",
+        "track": "Follow the order live from kitchen to doorstep."
+      },
+      "menuAlt": "Customer ordering on a phone",
+      "menuLabel": "Order",
+      "trackAlt": "Order tracking on a phone",
+      "trackLabel": "Track"
+    },
+    "cta": {
+      "title": "Ready to run your shop on Madar?",
+      "subtitle": "Bring point of sale, costing, inventory and analytics into one bilingual system. Talk to us and we'll set you up.",
+      "contact": "Contact us"
     }
   },
   "onboarding": {
@@ -2224,6 +2262,11 @@
   "order": {
     "title": "Order online",
     "language": "Language",
+    "scan": {
+      "title": "Scan to order",
+      "body": "Scan the QR code at your table or branch to start ordering.",
+      "hint": "Point your phone's camera at the Madar code"
+    },
     "branch": {
       "heading": "Choose a branch",
       "subtitle": "Pick a branch to order from",

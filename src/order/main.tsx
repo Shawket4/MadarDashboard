@@ -40,6 +40,7 @@ import "@/lib/theme";
 
 import { queryClient } from "@/data/api/query";
 import { PublicOrderingPage } from "@/features/public-ordering/public-ordering-page";
+import { ScanToOrder } from "@/features/public-ordering/scan-to-order";
 import { OrderTrackingPage } from "@/features/order-tracking/tracking-page";
 
 const orderSearchSchema = z.object({
@@ -60,14 +61,7 @@ const rootRoute = createRootRoute({ component: () => <Outlet /> });
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: function Landing() {
-    return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 p-8 text-center">
-        <h1 className="text-2xl font-semibold">Madar</h1>
-        <p className="text-muted-foreground">Scan the QR code at your table or branch to start ordering.</p>
-      </div>
-    );
-  },
+  component: ScanToOrder,
 });
 
 const trackRoute = createRoute({
@@ -158,6 +152,8 @@ const router = createRouter({
   defaultPreload: "intent",
   scrollRestoration: true,
   defaultViewTransition: true,
+  // Any unrecognized path falls back to the branded scan-to-order prompt.
+  defaultNotFoundComponent: ScanToOrder,
 });
 
 createRoot(document.getElementById("root")!).render(

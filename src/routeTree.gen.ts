@@ -11,11 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as LandingRouteImport } from './routes/landing'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as TrackIdRouteImport } from './routes/track.$id'
-import { Route as OrderOrgIdRouteImport } from './routes/order.$orgId'
 import { Route as AppUsersRouteImport } from './routes/_app/users'
 import { Route as AppTillsRouteImport } from './routes/_app/tills'
 import { Route as AppShiftsRouteImport } from './routes/_app/shifts'
@@ -66,11 +63,6 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LandingRoute = LandingRouteImport.update({
-  id: '/landing',
-  path: '/landing',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -79,16 +71,6 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRouteRoute,
-} as any)
-const TrackIdRoute = TrackIdRouteImport.update({
-  id: '/track/$id',
-  path: '/track/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrderOrgIdRoute = OrderOrgIdRouteImport.update({
-  id: '/order/$orgId',
-  path: '/order/$orgId',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const AppUsersRoute = AppUsersRouteImport.update({
   id: '/users',
@@ -289,7 +271,6 @@ const AppDeliveryChannelsRoute = AppDeliveryChannelsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
-  '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/delivery': typeof AppDeliveryRouteRouteWithChildren
@@ -306,8 +287,6 @@ export interface FileRoutesByFullPath {
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
-  '/order/$orgId': typeof OrderOrgIdRoute
-  '/track/$id': typeof TrackIdRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
   '/delivery/settings': typeof AppDeliverySettingsRoute
   '/delivery/zones': typeof AppDeliveryZonesRoute
@@ -335,7 +314,6 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AppSettingsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/analytics': typeof AppAnalyticsRoute
@@ -348,8 +326,6 @@ export interface FileRoutesByTo {
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
-  '/order/$orgId': typeof OrderOrgIdRoute
-  '/track/$id': typeof TrackIdRoute
   '/': typeof AppIndexRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
   '/delivery/settings': typeof AppDeliverySettingsRoute
@@ -380,7 +356,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
-  '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/_app/delivery': typeof AppDeliveryRouteRouteWithChildren
@@ -397,8 +372,6 @@ export interface FileRoutesById {
   '/_app/shifts': typeof AppShiftsRoute
   '/_app/tills': typeof AppTillsRoute
   '/_app/users': typeof AppUsersRoute
-  '/order/$orgId': typeof OrderOrgIdRoute
-  '/track/$id': typeof TrackIdRoute
   '/_app/': typeof AppIndexRoute
   '/_app/delivery/channels': typeof AppDeliveryChannelsRoute
   '/_app/delivery/settings': typeof AppDeliverySettingsRoute
@@ -430,7 +403,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/landing'
     | '/login'
     | '/onboarding'
     | '/delivery'
@@ -447,8 +419,6 @@ export interface FileRouteTypes {
     | '/shifts'
     | '/tills'
     | '/users'
-    | '/order/$orgId'
-    | '/track/$id'
     | '/delivery/channels'
     | '/delivery/settings'
     | '/delivery/zones'
@@ -476,7 +446,6 @@ export interface FileRouteTypes {
     | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/landing'
     | '/login'
     | '/onboarding'
     | '/analytics'
@@ -489,8 +458,6 @@ export interface FileRouteTypes {
     | '/shifts'
     | '/tills'
     | '/users'
-    | '/order/$orgId'
-    | '/track/$id'
     | '/'
     | '/delivery/channels'
     | '/delivery/settings'
@@ -520,7 +487,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
-    | '/landing'
     | '/login'
     | '/onboarding'
     | '/_app/delivery'
@@ -537,8 +503,6 @@ export interface FileRouteTypes {
     | '/_app/shifts'
     | '/_app/tills'
     | '/_app/users'
-    | '/order/$orgId'
-    | '/track/$id'
     | '/_app/'
     | '/_app/delivery/channels'
     | '/_app/delivery/settings'
@@ -569,11 +533,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
-  LandingRoute: typeof LandingRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
-  OrderOrgIdRoute: typeof OrderOrgIdRoute
-  TrackIdRoute: typeof TrackIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -592,13 +553,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/landing': {
-      id: '/landing'
-      path: '/landing'
-      fullPath: '/landing'
-      preLoaderRoute: typeof LandingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -612,20 +566,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
-    }
-    '/track/$id': {
-      id: '/track/$id'
-      path: '/track/$id'
-      fullPath: '/track/$id'
-      preLoaderRoute: typeof TrackIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/order/$orgId': {
-      id: '/order/$orgId'
-      path: '/order/$orgId'
-      fullPath: '/order/$orgId'
-      preLoaderRoute: typeof OrderOrgIdRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_app/users': {
       id: '/_app/users'
@@ -1032,11 +972,8 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
-  LandingRoute: LandingRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
-  OrderOrgIdRoute: OrderOrgIdRoute,
-  TrackIdRoute: TrackIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

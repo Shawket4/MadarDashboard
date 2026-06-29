@@ -41,3 +41,4 @@ brag-output-*/
 src-tauri/gen/
 screenshots/*.png
 dist-order
+dist-get

@@ -8,13 +8,10 @@ import {
   Check,
   ChefHat,
   Clock,
-  Languages,
   Loader2,
   MapPin,
-  Moon,
   PackageCheck,
   ShoppingBag,
-  Sun,
   Truck,
   Wallet,
   XCircle,
@@ -25,10 +22,10 @@ import type { DeliveryTracking } from "@/data/api/generated/models/deliveryTrack
 import { Button } from "@/components/ui/button";
 import { fmtMoney } from "@/lib/format";
 import { listItem, riseIn, spring, staggerContainer } from "@/lib/motion";
-import i18n from "@/i18n";
 
 import { Totals } from "../public-ordering/components/cart-sheet";
 import { useOrderTheme } from "../public-ordering/use-order-theme";
+import { StorefrontShell } from "../public-ordering/storefront-shell";
 
 interface OrderTrackingPageProps {
   id: string;
@@ -76,18 +73,18 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
 
   if (isLoading) {
     return (
-      <Shell>
+      <StorefrontShell>
         <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground" role="status">
           <Loader2 className="size-6 animate-spin motion-reduce:animate-none" />
           <p className="text-sm">{t("order.track.loading", "Loading your order…")}</p>
         </div>
-      </Shell>
+      </StorefrontShell>
     );
   }
 
   if (isError || !data) {
     return (
-      <Shell>
+      <StorefrontShell>
         <div className="flex flex-col items-center gap-3 py-16 text-center">
           <XCircle className="size-12 text-destructive" />
           <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
@@ -97,7 +94,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
             {t("order.track.notFoundBody", "We couldn't find this order. The link may be incorrect or the order may have been removed.")}
           </p>
         </div>
-      </Shell>
+      </StorefrontShell>
     );
   }
 
@@ -108,7 +105,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
   const priceChanged = estimate != null && estimate !== order.total;
 
   return (
-    <Shell>
+    <StorefrontShell>
       <motion.div variants={staggerContainer(0.06)} initial="hidden" animate="show" className="space-y-5">
         {/* Headline + ref */}
         <motion.div variants={riseIn} className="text-center">
@@ -243,79 +240,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
           </Button>
         </motion.div>
       </motion.div>
-    </Shell>
-  );
-}
-
-/** A circular, bordered header icon button — matches the ordering flow's chrome. */
-function HeaderIcon({
-  onClick,
-  label,
-  children,
-}: {
-  onClick?: () => void;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-card text-foreground transition-colors hover:bg-muted motion-reduce:transition-none"
-    >
-      {children}
-    </button>
-  );
-}
-
-/**
- * Storefront-styled brand chrome matching the ordering flow's StepShell: a
- * sticky header carrying the theme/language toggles and a footer with the
- * Madar mark, wrapping a focused mobile-width column.
- */
-function Shell({ children }: { children: React.ReactNode }) {
-  const { t } = useTranslation();
-  const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
-  const toggleLang = () => void i18n.changeLanguage(lang.startsWith("ar") ? "en" : "ar");
-  const mode = useOrderTheme((s) => s.mode);
-  const toggleTheme = useOrderTheme((s) => s.toggle);
-
-  return (
-    <div className="relative flex min-h-[100dvh] flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-[480px] items-center gap-2 px-4 py-3">
-          <span aria-hidden className="size-9 shrink-0" />
-          <span aria-hidden className="flex-1" />
-          <HeaderIcon onClick={toggleTheme} label={t("order.theme")}>
-            {mode === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </HeaderIcon>
-          <HeaderIcon onClick={toggleLang} label={t("order.language")}>
-            <Languages className="size-4" />
-          </HeaderIcon>
-        </div>
-      </header>
-
-      <main className="relative z-10 mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-10 pt-5">
-        <div className="flex-1">{children}</div>
-
-        <footer className="mt-12 flex flex-col items-center gap-2 border-t border-border/60 pt-6 text-center">
-          <img
-            src={lang.startsWith("ar") ? "/madar_ar.svg" : "/madar.svg"}
-            alt={t("app.name")}
-            className="h-6 opacity-80 dark:brightness-0 dark:invert"
-          />
-          <p className="text-xs text-muted-foreground">{t("order.footer.poweredBy")}</p>
-          <p className="text-[11px] text-muted-foreground/70">
-            {t("order.footer.rights", {
-              year: new Date().getFullYear(),
-              name: t("app.name"),
-              defaultValue: "© {{year}} {{name}}. All rights reserved.",
-            })}
-          </p>
-        </footer>
-      </main>
-    </div>
+    </StorefrontShell>
   );
 }
 

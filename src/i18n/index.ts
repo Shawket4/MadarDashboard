@@ -22,7 +22,7 @@ void i18n
     detection: {
       order: ["localStorage", "navigator"],
       caches: ["localStorage"],
-      lookupLocalStorage: "rue.lang",
+      lookupLocalStorage: "madar.lang",
     },
     returnNull: false,
   });

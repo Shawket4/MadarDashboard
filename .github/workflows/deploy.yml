@@ -20,12 +20,20 @@ jobs:
       - name: Build dashboard
         run: npm run build
         env:
-          VITE_API_URL: https://madar-pos.cloud/api
+          # Dashboard talks to the dedicated API origin (cross-origin; CORS allows it).
+          # The main madar-pos.cloud vhost no longer proxies /api.
+          VITE_API_URL: https://api.madar-pos.cloud
 
       - name: Build ordering app (separate, isolated bundle)
         run: npm run build:order
         env:
           VITE_API_URL: https://order.madar-pos.cloud/api
+
+      - name: Build landing app (separate, isolated bundle)
+        run: npm run build:get
+        env:
+          VITE_API_URL: https://get.madar-pos.cloud/api
+          VITE_DASHBOARD_URL: https://madar-pos.cloud
 
       - name: Deploy dashboard to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -45,6 +53,16 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "dist-order/*"
           target: "/var/www/madar-order"
+          strip_components: 1
+
+      - name: Deploy landing app to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "dist-get/*"
+          target: "/var/www/madar-get"
           strip_components: 1
 
       - name: Reload Nginx

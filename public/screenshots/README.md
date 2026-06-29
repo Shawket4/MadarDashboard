@@ -1,35 +1,62 @@
 # public/screenshots/
 
-The portfolio expects these PNGs to land here. Until you drop them in,
-each device frame renders a clean labeled placeholder so you can see
-where they'll go and at what aspect ratio.
+Assets for the marketing landing page (`src/features/landing/`). Each frame on the
+page renders a tasteful labeled placeholder until its file lands here, so the page
+ships before every asset is captured.
 
-## iPad (4:3 landscape — capture at native iPad Pro 12.9" resolution: 2732 × 2048)
+All screenshots are **light mode** — they read better framed on the landing page.
 
-| Filename                 | Page · Use                                    |
-| ------------------------ | --------------------------------------------- |
-| `teller-hero.png`        | Page 5 — hero shot of the teller app          |
-| `teller-detail-1.png`    | Page 6 — first detail iPad (split payments)   |
-| `teller-detail-2.png`    | Page 6 — second detail iPad (shift open/close)|
+## ✅ Already captured (dashboard — from the MSW mock harness)
 
-## Dashboard (16:10 content-only, no browser chrome — target 1920 × 1200 minimum, 2400 × 1500 better)
+Captured deterministically from `npm run dev:mock` via `scripts/capture-shots.mjs`
+at 2880×1800 (16:10), so they're stable to re-generate. EN + AR variants where the
+page swaps by language.
 
-| Filename                       | Page · Use                                  |
-| ------------------------------ | ------------------------------------------- |
-| `dashboard-hero.png`           | Page 7 — main analytics overview            |
-| `dashboard-inventory.png`      | Page 8 — inventory / recipes detail         |
-| `dashboard-shifts.png`         | Page 8 — shift report detail                |
+| File | Screen |
+| ---- | ------ |
+| `dash-overview-{en,ar}.png` | Dashboard overview — KPIs, revenue trend, payment mix, branches (hero + bilingual section) |
+| `dash-orders-{en,ar}.png` | Orders — KPIs, delivery-by-channel split, ledger table |
+| `dash-analytics-{en,ar}.png` | Analytics — KPIs + payment-method donut |
+| `dash-recipes.png` | Menu & recipe costing editor |
 
-The Browser frames render their own chrome (traffic-light dots and URL pill).
-**Capture content-only** — not the whole browser window. Otherwise you'll get two
-chromes stacked.
+## ✅ Already captured (customer surfaces — from the mock harness)
 
-## Notes
+Captured at 402×874 (≈9:19.5 phone) for the phone frames.
 
-- All screenshots should be **light mode** — reads better on the cream page background.
-- iPad screenshots fit 4:3 exactly; the iPad frame is engineered around that ratio
-  with `object-contain` as a safety net so nothing crops.
-- Dashboard screenshots at 16:10 fit the Browser frame cleanly; off-aspect captures
-  will letterbox (with cream visible) instead of cropping.
-- For Arabic, you can ship the same screenshots for both locales or add `-ar`
-  variants and update the page components to swap by language. Same set works for v1.
+| File | Screen |
+| ---- | ------ |
+| `order-menu-{en,ar}.png` | Public ordering entry — "Choose a branch" |
+| `order-track-{en,ar}.png` | Live order tracker — `/track/:id` timeline |
+
+## ⏳ To capture (POS — the SwiftUI app, `madar-pos/swift-app`)
+
+The POS is now native SwiftUI (the Flutter app + its screenshots are deprecated).
+The frame on the landing page is an **iPad (landscape, 4:3)**, so capture the wide
+iPad/desktop layout. **Capture on an iPad Pro 13" simulator/device (2752×2064 or
+similar 4:3), light mode.** Content area is `object-contain`, so off-aspect shots
+letterbox (cream) rather than crop.
+
+> Note: the app talks to the production backend (`api.madar-pos.cloud`), so a
+> populated capture needs a real login (manager device-setup → teller PIN → open a
+> shift → add items). That's why these are best captured by you on the live app
+> rather than auto-generated. The iOS target isn't wired into `project.yml` yet —
+> add an iOS target (framework dep + the MadarUI sources) to run on the simulator,
+> or screenshot a device.
+
+| File | Screen · what to show |
+| ---- | --------------------- |
+| `pos-order.png` | **Order screen** (`OrderView`) — catalog grid on the left, cart column on the right with a few items and live totals. This is the hero shot. |
+| `pos-tender.png` | **Tender** (`TenderView`) — the checkout sheet mid-split (or cash with live change shown), a tip, ready to place. |
+| `pos-kitchen.png` | **Kitchen display** (`KitchenDisplayView`) — the full-screen KDS board with a few outstanding tickets. |
+| `pos-shift.png` | **Shift / Z-report** (`ShiftReportPreview` or `CloseShiftView`) — the payment-mix breakdown + drawer movements + totals. |
+
+Drop the PNGs in with these exact names and the placeholders disappear — no code
+change needed.
+
+## Regenerating the captured shots
+
+```bash
+npm run dev:mock                 # MSW harness on :5180 (auto-seeds a demo session)
+node scripts/capture-shots.mjs   # → dashboard PNGs into this folder
+node scripts/verify-landing.mjs  # sanity-check the landing across locale × theme
+```

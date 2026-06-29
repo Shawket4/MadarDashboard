@@ -83,7 +83,15 @@ export const useAppStore = create<AppState>()(
       onRehydrateStorage: () => (state) => {
         if (state?.selectedOrgId) apiContext.setOrg(state.selectedOrgId);
         if (state?.selectedBranchId) apiContext.setBranch(state.selectedBranchId);
-        if (state?.language) void i18n.changeLanguage(state.language);
+        // Only restore the persisted language when app state was ACTUALLY persisted
+        // (a real dashboard session). Otherwise rehydration fires with the default
+        // "en" and would clobber the i18next language detector on origins that have
+        // no dashboard session — the isolated order / landing apps, which would pull
+        // this store in transitively (via lib/format) and lose the visitor's
+        // Arabic choice on every reload.
+        if (state?.language && localStorage.getItem(LS_KEYS.app)) {
+          void i18n.changeLanguage(state.language);
+        }
       },
     },
   ),
