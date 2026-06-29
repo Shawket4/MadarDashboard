@@ -27,10 +27,12 @@ export interface CreateOrderRequest {
   /** @nullable */
   notes?: string | null;
   /**
-     * Client-minted human order number (the device's per-day sequence). Stored
-   * VERBATIM when present — the device is authoritative so its OFFLINE receipt
-   * at ring-up is byte-identical to the synced reprint. Absent → the server
-   * computes a per-shift number.
+     * IGNORED by the server (accepted for backward compatibility only). The
+   * authoritative per-shift number is ALWAYS `MAX(order_number)+1` computed under
+   * the shift advisory lock — never the client value, which is used only on the
+   * device's local receipt. The byte-identical-at-reprint guarantee rides on
+   * `order_ref`, not this field. Two tills on one shift get distinct numbers
+   * (UNIQUE(shift_id, order_number) + the lock).
      * @nullable
      */
   order_number?: number | null;
