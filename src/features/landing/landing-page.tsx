@@ -18,6 +18,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { useTheme } from "@/lib/theme";
 import { env } from "@/data/config/env";
 import { cn } from "@/lib/utils";
 import {
@@ -42,22 +43,28 @@ import { useLenis } from "./use-lenis";
  * (menu → customise → cart → track), captured EN + AR.
  * ────────────────────────────────────────────────────────────────────────── */
 
-const dashShot = (name: string, lang: string) =>
-  `/screenshots/dash-${name}-${lang === "ar" ? "ar" : "en"}.webp`;
+// Screenshots ship a light and a dark variant (`-dark` suffix). We only ever
+// reference the one matching the active theme, so the other set is NEVER loaded.
+const dashShot = (name: string, lang: string, dark: boolean) =>
+  `/screenshots/dash-${name}-${lang === "ar" ? "ar" : "en"}${dark ? "-dark" : ""}.webp`;
 
 /** Below-the-fold shots to warm into cache after first paint, so they're already
  *  decoded by the time the reader scrolls to them (no pop-in). Hero shot loads
- *  eagerly on its own, so it's intentionally excluded here. */
-const preloadShots = (lang: string): string[] => [
-  dashShot("orders", lang),
-  dashShot("analytics", lang),
-  "/screenshots/dash-recipes.webp",
-  "/screenshots/dash-overview-en.webp",
-  "/screenshots/dash-overview-ar.webp",
-  ...["order-menu", "order-customize", "order-cart", "order-track"].map(
-    (f) => `/screenshots/${f}-${lang}.webp`,
-  ),
-];
+ *  eagerly on its own, so it's intentionally excluded here. Only the active
+ *  theme's variant is warmed. */
+const preloadShots = (lang: string, dark: boolean): string[] => {
+  const d = dark ? "-dark" : "";
+  return [
+    dashShot("orders", lang, dark),
+    dashShot("analytics", lang, dark),
+    `/screenshots/dash-recipes${d}.webp`,
+    `/screenshots/dash-overview-en${d}.webp`,
+    `/screenshots/dash-overview-ar${d}.webp`,
+    ...["order-menu", "order-customize", "order-cart", "order-track"].map(
+      (f) => `/screenshots/${f}-${lang}${d}.webp`,
+    ),
+  ];
+};
 
 /** Warm the browser cache for the given image URLs during idle time after mount. */
 function usePreloadImages(urls: string[]) {
@@ -121,8 +128,9 @@ export function LandingPage() {
   const { i18n } = useTranslation();
   const lang = i18n.language === "ar" ? "ar" : "en";
   const reduced = useReducedMotion();
+  const dark = useTheme((s) => s.resolvedTheme) === "dark";
   useLenis();
-  usePreloadImages(preloadShots(lang));
+  usePreloadImages(preloadShots(lang, dark));
 
   const loginUrl = `${env.VITE_DASHBOARD_URL}/login`;
 
@@ -134,12 +142,12 @@ export function LandingPage() {
       <ScrollProgress reduced={reduced} />
       <Header loginUrl={loginUrl} />
       <main>
-        <Hero lang={lang} reduced={reduced} />
+        <Hero lang={lang} dark={dark} reduced={reduced} />
         <StatStrip />
-        <DashboardShowcase lang={lang} />
-        <BilingualSection />
+        <DashboardShowcase lang={lang} dark={dark} />
+        <BilingualSection dark={dark} />
         <PosShowcase />
-        <CustomerJourney lang={lang} />
+        <CustomerJourney lang={lang} dark={dark} />
         <Pillars />
         <CtaBand loginUrl={loginUrl} />
       </main>
@@ -227,7 +235,7 @@ function Header({ loginUrl }: { loginUrl: string }) {
 
 /* ── Hero ───────────────────────────────────────────────────────────────────── */
 
-function Hero({ lang, reduced }: { lang: string; reduced: boolean | null }) {
+function Hero({ lang, dark, reduced }: { lang: string; dark: boolean; reduced: boolean | null }) {
   const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
@@ -300,7 +308,7 @@ function Hero({ lang, reduced }: { lang: string; reduced: boolean | null }) {
         >
           <BrowserFrame>
             <Screenshot
-              src={dashShot("overview", lang)}
+              src={dashShot("overview", lang, dark)}
               alt={t("landing.hero.caption", "The Madar dashboard")}
               label={t("landing.hero.caption", "The Madar dashboard")}
               priority
@@ -374,7 +382,7 @@ function SectionHead({
 
 /* ── Dashboard showcase ─────────────────────────────────────────────────────── */
 
-function DashboardShowcase({ lang }: { lang: string }) {
+function DashboardShowcase({ lang, dark }: { lang: string; dark: boolean }) {
   const { t } = useTranslation();
   return (
     <section id="dashboard" className="scroll-mt-24 py-24 lg:py-32">
@@ -391,7 +399,7 @@ function DashboardShowcase({ lang }: { lang: string }) {
         <Reveal className="mx-auto mt-14 max-w-5xl" variant="scale" lift>
           <BrowserFrame url="madar-pos.cloud/orders">
             <Screenshot
-              src={dashShot("orders", lang)}
+              src={dashShot("orders", lang, dark)}
               alt={t("landing.dashboard.orders.title", "Order history")}
               label={t("landing.dashboard.orders.title", "Order history")}
             />
@@ -402,7 +410,7 @@ function DashboardShowcase({ lang }: { lang: string }) {
           <Reveal variant="left" className="min-w-0">
             <BrowserFrame url="madar-pos.cloud/analytics">
               <Screenshot
-                src={dashShot("analytics", lang)}
+                src={dashShot("analytics", lang, dark)}
                 alt={t("landing.dashboard.analytics.title", "Analytics")}
                 label={t("landing.dashboard.analytics.title", "Analytics")}
               />
@@ -420,7 +428,7 @@ function DashboardShowcase({ lang }: { lang: string }) {
           <Reveal variant="right" className="min-w-0">
             <BrowserFrame url="madar-pos.cloud/menu/recipes">
               <Screenshot
-                src="/screenshots/dash-recipes.webp"
+                src={`/screenshots/dash-recipes${dark ? "-dark" : ""}.webp`}
                 alt={t("landing.dashboard.recipes.title", "Recipe costing")}
                 label={t("landing.dashboard.recipes.title", "Recipe costing")}
               />
@@ -443,7 +451,7 @@ function DashboardShowcase({ lang }: { lang: string }) {
 
 /* ── Bilingual section (the signature moment) ───────────────────────────────── */
 
-function BilingualSection() {
+function BilingualSection({ dark }: { dark: boolean }) {
   const { t } = useTranslation();
   return (
     <section className="border-y border-border bg-muted/40 py-24 lg:py-32">
@@ -461,7 +469,7 @@ function BilingualSection() {
           <Reveal variant="left">
             <div className="overflow-hidden rounded-xl border border-border shadow-lg" dir="ltr">
               <Screenshot
-                src="/screenshots/dash-overview-en.webp"
+                src={`/screenshots/dash-overview-en${dark ? "-dark" : ""}.webp`}
                 alt="Madar dashboard in English"
                 label="Dashboard — English"
                 className="aspect-[16/10]"
@@ -474,7 +482,7 @@ function BilingualSection() {
           <Reveal variant="right">
             <div className="overflow-hidden rounded-xl border border-border shadow-lg" dir="rtl">
               <Screenshot
-                src="/screenshots/dash-overview-ar.webp"
+                src={`/screenshots/dash-overview-ar${dark ? "-dark" : ""}.webp`}
                 alt="Madar dashboard in Arabic"
                 label="لوحة التحكم — العربية"
                 className="aspect-[16/10]"
@@ -572,7 +580,7 @@ function PosShowcase() {
 
 /* ── Customer ordering journey ──────────────────────────────────────────────── */
 
-function CustomerJourney({ lang }: { lang: string }) {
+function CustomerJourney({ lang, dark }: { lang: string; dark: boolean }) {
   const { t } = useTranslation();
   const steps = [
     { key: "menu", file: "order-menu" },
@@ -601,7 +609,7 @@ function CustomerJourney({ lang }: { lang: string }) {
               <div className={cn("flex w-full flex-col items-center", i % 2 === 1 && "sm:translate-y-12")}>
                 <PhoneFrame className="w-full max-w-[200px] transition-transform duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02]">
                   <Screenshot
-                    src={`/screenshots/${s.file}-${lang}.webp`}
+                    src={`/screenshots/${s.file}-${lang}${dark ? "-dark" : ""}.webp`}
                     alt={t(`landing.customer.steps.${s.key}`, s.key)}
                     label={t(`landing.customer.steps.${s.key}`, s.key)}
                   />
