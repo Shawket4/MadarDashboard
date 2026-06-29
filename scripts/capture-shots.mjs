@@ -14,12 +14,12 @@ const BASE = "http://localhost:5180";
 const VIEW = { width: 1440, height: 900 };
 const DSF = 2;
 
-// Routes worth showcasing (data-rich under the mock harness).
+// Routes the landing showcases (data-rich under the mock harness). Analytics uses
+// the Revenue tab (charts over time); recipes opens Latte to show the costing.
 const SHOTS = [
   { key: "overview", route: "/", hero: true },
   { key: "orders", route: "/orders", hero: true },
-  { key: "analytics", route: "/analytics", hero: true },
-  { key: "inventory", route: "/inventory/items", hero: false },
+  { key: "analytics", route: "/analytics?tab=revenue", hero: true },
   { key: "recipes", route: "/menu/recipes", hero: false, click: "text=Latte" },
 ];
 
@@ -32,7 +32,7 @@ function initScript(lang) {
   return `
     try {
       localStorage.setItem('madar.theme', 'light');
-      localStorage.setItem('i18nextLng', '${lang}');
+      localStorage.setItem('madar.lang', '${lang}');
       localStorage.setItem('madar.app', JSON.stringify({ state: { language: '${lang}' }, version: 0 }));
     } catch (e) {}
   `;
@@ -60,7 +60,7 @@ async function capture(browser, lang) {
     if (shot.click) {
       try {
         await page.click(shot.click, { timeout: 4000 });
-        await page.waitForTimeout(900);
+        await page.waitForTimeout(1600);
       } catch (e) {
         console.warn("click skipped:", shot.click, e.message);
       }

@@ -149,6 +149,35 @@ export const MOCK_PEAK_HOURS: PeakHourPoint[] = _ph_raw.map((r, hour) => ({
   orders_pct: _ph_total_ord > 0 ? Math.round(r.orders / _ph_total_ord * 1000) / 10 : 0,
 }));
 
+// Top sellers + sales-by-category for the analytics overview tab + leaderboards.
+const TOP_ITEMS = [
+  { menu_item_id: "mi_latte", item_name: "Latte", item_name_translations: { ar: "لاتيه" }, quantity_sold: 142, revenue: 852_000 },
+  { menu_item_id: "mi_frappuccino", item_name: "Frappuccino", item_name_translations: { ar: "فرابيتشينو" }, quantity_sold: 67, revenue: 569_500 },
+  { menu_item_id: "mi_cheesecake", item_name: "Cheesecake", item_name_translations: { ar: "تشيز كيك" }, quantity_sold: 62, revenue: 558_000 },
+  { menu_item_id: "mi_cappuccino", item_name: "Cappuccino", item_name_translations: { ar: "كابوتشينو" }, quantity_sold: 98, revenue: 539_000 },
+  { menu_item_id: "mi_americano", item_name: "Americano", item_name_translations: { ar: "أمريكانو" }, quantity_sold: 89, revenue: 400_500 },
+  { menu_item_id: "mi_flatwhite", item_name: "Flat White", item_name_translations: { ar: "فلات وايت" }, quantity_sold: 54, revenue: 351_000 },
+  { menu_item_id: "mi_matcha", item_name: "Matcha Latte", item_name_translations: { ar: "ماتشا لاتيه" }, quantity_sold: 34, revenue: 255_000 },
+];
+
+const CATEGORY_SALES = [
+  {
+    category_id: "cat_hot", category_name: "Hot Drinks", category_name_translations: { ar: "مشروبات ساخنة" },
+    item_count: 6, quantity_sold: 487, revenue: 3_182_500,
+    items: TOP_ITEMS.filter((i) => ["mi_latte", "mi_cappuccino", "mi_americano", "mi_flatwhite", "mi_matcha"].includes(i.menu_item_id)),
+  },
+  {
+    category_id: "cat_cold", category_name: "Cold Drinks", category_name_translations: { ar: "مشروبات باردة" },
+    item_count: 4, quantity_sold: 198, revenue: 1_079_500,
+    items: TOP_ITEMS.filter((i) => i.menu_item_id === "mi_frappuccino"),
+  },
+  {
+    category_id: "cat_food", category_name: "Food", category_name_translations: { ar: "أكل" },
+    item_count: 2, quantity_sold: 98, revenue: 558_000,
+    items: TOP_ITEMS.filter((i) => i.menu_item_id === "mi_cheesecake"),
+  },
+];
+
 /** Single-branch report (used when a branch is selected in the scope bar). */
 export const MOCK_BRANCH_SALES: BranchSalesReport = {
   branch_id: "br_zamalek",
@@ -160,8 +189,8 @@ export const MOCK_BRANCH_SALES: BranchSalesReport = {
   total_tax: 591_930,
   total_discount: 192_800,
   revenue_by_method: methodSplit(4_820_000),
-  by_category: [],
-  top_items: [],
+  by_category: CATEGORY_SALES,
+  top_items: TOP_ITEMS,
   from: "2026-05-18",
   to: "2026-06-16",
 };
