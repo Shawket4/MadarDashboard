@@ -44,12 +44,12 @@ import { useLenis } from "./use-lenis";
 const dashShot = (name: string, lang: string) =>
   `/screenshots/dash-${name}-${lang === "ar" ? "ar" : "en"}.png`;
 
-// Hero load choreography — the eyebrow, headline, subhead and CTAs ease up in turn.
-const HERO_EASE = [0.22, 1, 0.36, 1] as const;
-const heroContainer = { hidden: {}, show: { transition: { staggerChildren: 0.13, delayChildren: 0.06 } } };
+// Hero load choreography — the eyebrow, headline, subhead and CTAs spring up in
+// turn. Transform + opacity only (60fps); a touch of overshoot for life.
+const heroContainer = { hidden: {}, show: { transition: { staggerChildren: 0.11, delayChildren: 0.05 } } };
 const heroItem = {
-  hidden: { opacity: 0, y: 26, filter: "blur(6px)" },
-  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.9, ease: HERO_EASE } },
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 19, mass: 0.85 } },
 };
 
 interface Pillar {
@@ -186,13 +186,14 @@ function Hero({ lang, reduced }: { lang: string; reduced: boolean | null }) {
           </motion.div>
         </motion.div>
 
-        {/* Hero visual — the live dashboard, with a touch of scroll parallax. */}
+        {/* Hero visual — springs up into place (scale + opacity, so it doesn't
+            fight the parallax y), then drifts on scroll. */}
         <motion.div
           style={reduced ? undefined : { y: frameY }}
           {...(reduced
             ? {}
-            : ({ initial: { opacity: 0, y: 36 }, animate: { opacity: 1, y: 0 } } as const))}
-          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.12 }}
+            : ({ initial: { opacity: 0, scale: 0.95 }, animate: { opacity: 1, scale: 1 } } as const))}
+          transition={{ type: "spring" as const, stiffness: 150, damping: 20, mass: 1, delay: 0.18 }}
           className="mx-auto mt-16 max-w-5xl"
         >
           <BrowserFrame>
@@ -284,7 +285,7 @@ function DashboardShowcase({ lang }: { lang: string }) {
           )}
         />
 
-        <Reveal className="mx-auto mt-14 max-w-5xl" variant="scale">
+        <Reveal className="mx-auto mt-14 max-w-5xl" variant="scale" lift>
           <BrowserFrame url="madar-pos.cloud/orders">
             <Screenshot
               src={dashShot("orders", lang)}
@@ -415,7 +416,7 @@ function PosShowcase() {
         />
 
         <div className="mx-auto mt-14 grid max-w-5xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
-          <Reveal variant="scale">
+          <Reveal variant="scale" lift>
             <IpadFrame>
               <Screenshot
                 src="/screenshots/pos-order.png"
@@ -446,7 +447,7 @@ function PosShowcase() {
 
         <RevealGroup className="mx-auto mt-14 grid max-w-5xl gap-6 sm:grid-cols-3">
           {rest.map((s) => (
-            <RevealItem key={s.key}>
+            <RevealItem key={s.key} lift>
               <IpadFrame>
                 <Screenshot
                   src={`/screenshots/${s.file}.png`}
@@ -489,23 +490,24 @@ function CustomerJourney({ lang }: { lang: string }) {
         />
         <RevealGroup className="mx-auto mt-16 grid max-w-5xl grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-4 sm:gap-x-5">
           {steps.map((s, i) => (
-            <RevealItem
-              key={s.key}
-              className={cn("flex flex-col items-center", i % 2 === 1 && "sm:translate-y-10")}
-            >
-              <PhoneFrame className="w-full max-w-[200px]">
-                <Screenshot
-                  src={`/screenshots/${s.file}-${lang}.png`}
-                  alt={t(`landing.customer.steps.${s.key}`, s.key)}
-                  label={t(`landing.customer.steps.${s.key}`, s.key)}
-                />
-              </PhoneFrame>
-              <p className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-foreground">
-                <span className="grid size-5 place-items-center rounded-full bg-brand text-[11px] font-bold text-brand-foreground tabular-nums">
-                  {i + 1}
-                </span>
-                {t(`landing.customer.steps.${s.key}`, s.key)}
-              </p>
+            <RevealItem key={s.key} lift className="flex flex-col items-center">
+              {/* Offset lives on an inner wrapper so the spring's transform doesn't
+                  override it (a motion element owns its own transform). */}
+              <div className={cn("flex w-full flex-col items-center", i % 2 === 1 && "sm:translate-y-12")}>
+                <PhoneFrame className="w-full max-w-[200px]">
+                  <Screenshot
+                    src={`/screenshots/${s.file}-${lang}.png`}
+                    alt={t(`landing.customer.steps.${s.key}`, s.key)}
+                    label={t(`landing.customer.steps.${s.key}`, s.key)}
+                  />
+                </PhoneFrame>
+                <p className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-foreground">
+                  <span className="grid size-5 place-items-center rounded-full bg-brand text-[11px] font-bold text-brand-foreground tabular-nums">
+                    {i + 1}
+                  </span>
+                  {t(`landing.customer.steps.${s.key}`, s.key)}
+                </p>
+              </div>
             </RevealItem>
           ))}
         </RevealGroup>
@@ -531,8 +533,8 @@ function Pillars() {
         />
         <RevealGroup className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {PILLARS.map(({ key, icon: Icon, accent }) => (
-            <RevealItem key={key}>
-              <div className="h-full rounded-2xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-md">
+            <RevealItem key={key} lift>
+              <div className="h-full rounded-2xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-lg">
                 <span className={cn("grid size-11 place-items-center rounded-xl", accent)}>
                   <Icon className="size-5" />
                 </span>

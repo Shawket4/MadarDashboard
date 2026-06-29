@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { motion, useReducedMotion, type Transition, type Variants } from "motion/react";
 import { ImageIcon, Lock } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -15,43 +15,55 @@ import { staggerContainer } from "@/lib/motion";
  * reduced-motion correct: every reveal collapses to its final, visible state.
  * ────────────────────────────────────────────────────────────────────────── */
 
-// A gentle, unhurried ease — content settles in softly (ease-out-quint), never snaps.
-const EASE = [0.22, 1, 0.36, 1] as const;
-const FRAME_DURATION = 0.95;
+/*
+ * Motion = spring physics, transform + opacity ONLY (no blur/filter/layout
+ * animation) — GPU-composited, so the bounce stays at 60fps. Two springs: a
+ * bouncy POP for content that should feel lively, and a calmer GLIDE for the
+ * large device frames (a big rasterised layer doesn't want to overshoot).
+ */
+const POP: Transition = { type: "spring", stiffness: 300, damping: 18, mass: 0.85 };
+const GLIDE: Transition = { type: "spring", stiffness: 190, damping: 24 };
+const HOVER: Transition = { type: "spring", stiffness: 380, damping: 22 };
 
-/** A reveal vocabulary — each entrance fits what it reveals, not a single reflex. */
+/** Per-variant target states (pure transforms) + the spring each one rides. */
 export type RevealVariant = "rise" | "fade" | "left" | "right" | "scale";
 
-const VARIANTS: Record<RevealVariant, Variants> = {
-  rise: { hidden: { opacity: 0, y: 40, filter: "blur(8px)" }, show: { opacity: 1, y: 0, filter: "blur(0px)" } },
-  fade: { hidden: { opacity: 0, filter: "blur(6px)" }, show: { opacity: 1, filter: "blur(0px)" } },
-  left: { hidden: { opacity: 0, x: -56 }, show: { opacity: 1, x: 0 } },
-  right: { hidden: { opacity: 0, x: 56 }, show: { opacity: 1, x: 0 } },
-  scale: { hidden: { opacity: 0, y: 36, scale: 0.955 }, show: { opacity: 1, y: 0, scale: 1 } },
+const TARGETS: Record<RevealVariant, Variants> = {
+  rise: { hidden: { opacity: 0, y: 44 }, show: { opacity: 1, y: 0 } },
+  fade: { hidden: { opacity: 0 }, show: { opacity: 1 } },
+  left: { hidden: { opacity: 0, x: -64 }, show: { opacity: 1, x: 0 } },
+  right: { hidden: { opacity: 0, x: 64 }, show: { opacity: 1, x: 0 } },
+  scale: { hidden: { opacity: 0, y: 36, scale: 0.94 }, show: { opacity: 1, y: 0, scale: 1 } },
+};
+const SPRING: Record<RevealVariant, Transition> = {
+  rise: POP,
+  fade: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  left: GLIDE,
+  right: GLIDE,
+  scale: GLIDE,
 };
 
-// Fire a touch before the element is fully in view so content is mid-reveal as it
-// slides up — more of the page is always animating in as you scroll.
+// Fire a touch before fully in view so content is mid-spring as it slides up.
 const REVEAL_VIEWPORT = { once: true, amount: 0.15 as const, margin: "0px 0px -12% 0px" };
 
 /**
- * Scroll-reveal wrapper: eases in once as it enters the viewport. Under
+ * Scroll-reveal wrapper: springs in once as it enters the viewport. Under
  * reduced-motion it renders statically (no opacity gate), so content is never
- * trapped invisible.
+ * trapped invisible. An optional `lift` adds a spring hover for tactile cards.
  */
 export function Reveal({
   children,
   className,
   delay = 0,
-  duration = FRAME_DURATION,
   variant = "rise",
+  lift = false,
   as = "div",
 }: {
   children: ReactNode;
   className?: string;
   delay?: number;
-  duration?: number;
   variant?: RevealVariant;
+  lift?: boolean;
   as?: "div" | "section" | "li" | "span";
 }) {
   const reduced = useReducedMotion();
@@ -63,22 +75,23 @@ export function Reveal({
   return (
     <Comp
       className={className}
-      variants={VARIANTS[variant]}
+      variants={TARGETS[variant]}
       initial="hidden"
       whileInView="show"
       viewport={REVEAL_VIEWPORT}
-      transition={{ duration, delay, ease: EASE }}
+      transition={{ ...SPRING[variant], delay }}
+      whileHover={lift ? { y: -6, transition: HOVER } : undefined}
     >
       {children}
     </Comp>
   );
 }
 
-/** Stagger container: children (RevealItem) reveal in sequence as the group enters. */
+/** Stagger container: children (RevealItem) spring in sequence as the group enters. */
 export function RevealGroup({
   children,
   className,
-  stagger = 0.1,
+  stagger = 0.08,
 }: {
   children: ReactNode;
   className?: string;
@@ -100,16 +113,31 @@ export function RevealGroup({
 }
 
 const ITEM_VARIANT: Variants = {
-  hidden: { opacity: 0, y: 28, filter: "blur(6px)" },
-  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.8, ease: EASE } },
+  hidden: { opacity: 0, y: 34, scale: 0.9 },
+  show: { opacity: 1, y: 0, scale: 1, transition: POP },
 };
 
-/** A single reveal item to drop inside <RevealGroup>. Eases up with a soft focus-in. */
-export function RevealItem({ children, className }: { children: ReactNode; className?: string }) {
+/**
+ * A single reveal item to drop inside <RevealGroup>: pops up with a little bounce.
+ * `lift` gives it a springy hover (use for cards / framed shots, not text rows).
+ */
+export function RevealItem({
+  children,
+  className,
+  lift = false,
+}: {
+  children: ReactNode;
+  className?: string;
+  lift?: boolean;
+}) {
   const reduced = useReducedMotion();
   if (reduced) return <div className={className}>{children}</div>;
   return (
-    <motion.div className={className} variants={ITEM_VARIANT}>
+    <motion.div
+      className={className}
+      variants={ITEM_VARIANT}
+      whileHover={lift ? { y: -8, scale: 1.025, transition: HOVER } : undefined}
+    >
       {children}
     </motion.div>
   );
