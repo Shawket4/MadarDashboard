@@ -7,6 +7,7 @@ import {
   Boxes,
   Building2,
   Calculator,
+  ChevronDown,
   Clock,
   Languages,
   Receipt,
@@ -149,6 +150,7 @@ export function LandingPage() {
         <PosShowcase />
         <CustomerJourney lang={lang} dark={dark} />
         <Pillars />
+        <FaqSection />
         <CtaBand loginUrl={loginUrl} />
       </main>
       <Footer />
@@ -678,6 +680,83 @@ function Pillars() {
             </span>
           </div>
         </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ── FAQ ────────────────────────────────────────────────────────────────────── */
+
+/* Answer-shaped Q&A — clear, factual, extractable. The same questions/answers are
+ * emitted as FAQPage JSON-LD in get.html so search + AI Overviews can cite them. */
+const FAQ_ITEMS = [
+  {
+    key: "what",
+    q: "What is Madar?",
+    a: "Madar is a bilingual (English/Arabic) platform to run a coffee shop end to end — point of sale, recipe costing, inventory, shifts, delivery and analytics — built for cafés and quick-service in Egypt.",
+  },
+  {
+    key: "costing",
+    q: "How does recipe costing work?",
+    a: "You build a recipe for each item and size from your ingredients, and Madar shows the true cost — and margin — of everything you sell. That cost flows into every order, so you always know your real food cost.",
+  },
+  {
+    key: "offline",
+    q: "Does Madar work offline?",
+    a: "Yes. The point-of-sale app is offline-first — it keeps taking orders when the internet drops and syncs everything automatically the moment the connection returns, so nothing is lost.",
+  },
+  {
+    key: "arabic",
+    q: "Does Madar support Arabic?",
+    a: "Yes. Madar is fully bilingual with first-class right-to-left support: every screen, number and date reads natively in both Arabic and English, and staff can switch language at any time.",
+  },
+  {
+    key: "qr",
+    q: "Can customers order with a QR code?",
+    a: "Yes. Customers scan a QR code at the table or branch and get a bilingual menu to browse, customise each drink, build a cart and track their order live — with no app to install.",
+  },
+  {
+    key: "delivery",
+    q: "Does Madar handle delivery and the kitchen?",
+    a: "Yes. Madar supports delivery with distance-based zones and fees, in-mall and outside channels, live order tracking, and a kitchen display that fires tickets to the line and tracks them by how long they've waited.",
+  },
+  {
+    key: "branches",
+    q: "Does Madar support multiple branches?",
+    a: "Yes. Madar is multi-branch: every order, shift and report rolls up across all your locations, with side-by-side branch comparison and per-branch menu and price overrides.",
+  },
+  {
+    key: "devices",
+    q: "What devices does it run on?",
+    a: "The point of sale is a fast native iPad app, and the management dashboard runs in any web browser (and as a desktop app). Customers order from any phone — no install needed.",
+  },
+] as const;
+
+function FaqSection() {
+  const { t } = useTranslation();
+  return (
+    <section id="faq" className="scroll-mt-24 py-24 lg:py-32">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <SectionHead
+          eyebrow={t("landing.faq.eyebrow", "Good to know")}
+          title={t("landing.faq.title", "Frequently asked")}
+          subtitle={t("landing.faq.subtitle", "What café owners tend to ask before switching.")}
+        />
+        <RevealGroup className="mt-12 space-y-3" stagger={0.06}>
+          {FAQ_ITEMS.map((item) => (
+            <RevealItem key={item.key}>
+              <details className="group rounded-2xl border border-border bg-card px-5 py-4 shadow-sm transition-shadow open:shadow-md">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-foreground marker:hidden [&::-webkit-details-marker]:hidden">
+                  <span className="text-pretty">{t(`landing.faq.items.${item.key}.q`, item.q)}</span>
+                  <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform duration-300 group-open:rotate-180" />
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground text-pretty">
+                  {t(`landing.faq.items.${item.key}.a`, item.a)}
+                </p>
+              </details>
+            </RevealItem>
+          ))}
+        </RevealGroup>
       </div>
     </section>
   );
