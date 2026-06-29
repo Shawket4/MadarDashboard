@@ -156,12 +156,25 @@ const router = createRouter({
   defaultNotFoundComponent: ScanToOrder,
 });
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <MotionConfig reducedMotion="user">
-        <RouterProvider router={router} />
-      </MotionConfig>
-    </QueryClientProvider>
-  </StrictMode>,
-);
+function render() {
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <MotionConfig reducedMotion="user">
+          <RouterProvider router={router} />
+        </MotionConfig>
+      </QueryClientProvider>
+    </StrictMode>,
+  );
+}
+
+// Dev-only mock harness (VITE_MOCK=1): serve curated public data so the ordering
+// flow can be previewed/screenshotted without a backend. Tree-shaken from prod.
+const mockFlag = (import.meta.env as Record<string, string | undefined>).VITE_MOCK;
+if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
+  void import("@/data/api/mock/enable-public").then(({ enablePublicMocks }) =>
+    enablePublicMocks().then(render),
+  );
+} else {
+  render();
+}

@@ -1,60 +1,80 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion, type Variants } from "motion/react";
 import { ImageIcon, Lock } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { riseIn, fadeInUp, staggerContainer } from "@/lib/motion";
+import { staggerContainer } from "@/lib/motion";
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Brand-surface building blocks for the marketing landing page.
  *
- * Everything here is register = BRAND (design is the product): lifted shadows,
- * soft glows, editorial confidence. Still bilingual-by-symmetry (logical
- * properties only) and reduced-motion correct (entrances collapse to their final
- * state when the user opts out — content is never gated behind opacity:0).
+ * Register = BRAND (design is the product): lifted shadows, soft glows, editorial
+ * confidence. Scroll-reveals are varied per content (a panel slides in from the
+ * side it lives on, a frame rises and settles, a grid staggers) — never one
+ * uniform fade on every section. Bilingual-by-symmetry (logical properties) and
+ * reduced-motion correct: every reveal collapses to its final, visible state.
  * ────────────────────────────────────────────────────────────────────────── */
 
-/** Scroll-reveal wrapper. Animates once on enter; static under reduced-motion. */
+const EXPO = [0.16, 1, 0.3, 1] as const;
+
+/** A reveal vocabulary — each entrance fits what it reveals, not a single reflex. */
+export type RevealVariant = "rise" | "fade" | "left" | "right" | "scale";
+
+const VARIANTS: Record<RevealVariant, Variants> = {
+  rise: { hidden: { opacity: 0, y: 32 }, show: { opacity: 1, y: 0 } },
+  fade: { hidden: { opacity: 0 }, show: { opacity: 1 } },
+  left: { hidden: { opacity: 0, x: -48 }, show: { opacity: 1, x: 0 } },
+  right: { hidden: { opacity: 0, x: 48 }, show: { opacity: 1, x: 0 } },
+  scale: { hidden: { opacity: 0, y: 28, scale: 0.965 }, show: { opacity: 1, y: 0, scale: 1 } },
+};
+
+const REVEAL_VIEWPORT = { once: true, amount: 0.2 as const, margin: "0px 0px -10% 0px" };
+
+/**
+ * Scroll-reveal wrapper: animates in once as it enters the viewport. Under
+ * reduced-motion it renders statically (no opacity gate), so content is never
+ * trapped invisible.
+ */
 export function Reveal({
   children,
   className,
   delay = 0,
+  duration = 0.7,
   variant = "rise",
   as = "div",
 }: {
   children: ReactNode;
   className?: string;
   delay?: number;
-  variant?: "rise" | "fade";
+  duration?: number;
+  variant?: RevealVariant;
   as?: "div" | "section" | "li" | "span";
 }) {
   const reduced = useReducedMotion();
-  const Comp = motion[as] as typeof motion.div;
   if (reduced) {
     const Static = as as "div";
     return <Static className={className}>{children}</Static>;
   }
-  // Mount-based entrance (not scroll-gated): the animation runs once and completes
-  // regardless of scroll, so content is never trapped at opacity:0 below the fold
-  // (the project convention — entrance enhances already-visible content).
+  const Comp = motion[as] as typeof motion.div;
   return (
     <Comp
       className={className}
-      variants={variant === "rise" ? riseIn : fadeInUp}
+      variants={VARIANTS[variant]}
       initial="hidden"
-      animate="show"
-      transition={{ delay }}
+      whileInView="show"
+      viewport={REVEAL_VIEWPORT}
+      transition={{ duration, delay, ease: EXPO }}
     >
       {children}
     </Comp>
   );
 }
 
-/** Stagger container for revealing a group of children in sequence on enter. */
+/** Stagger container: children (RevealItem) reveal in sequence as the group enters. */
 export function RevealGroup({
   children,
   className,
-  stagger = 0.08,
+  stagger = 0.09,
 }: {
   children: ReactNode;
   className?: string;
@@ -67,19 +87,25 @@ export function RevealGroup({
       className={className}
       variants={staggerContainer(stagger)}
       initial="hidden"
-      animate="show"
+      whileInView="show"
+      viewport={REVEAL_VIEWPORT}
     >
       {children}
     </motion.div>
   );
 }
 
+const ITEM_VARIANT: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EXPO } },
+};
+
 /** A single reveal item to drop inside <RevealGroup>. */
 export function RevealItem({ children, className }: { children: ReactNode; className?: string }) {
   const reduced = useReducedMotion();
   if (reduced) return <div className={className}>{children}</div>;
   return (
-    <motion.div className={className} variants={fadeInUp}>
+    <motion.div className={className} variants={ITEM_VARIANT}>
       {children}
     </motion.div>
   );

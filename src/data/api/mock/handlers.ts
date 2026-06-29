@@ -15,6 +15,7 @@ import {
   MOCK_MENU_ITEMS,
   MOCK_ORDERS_PAGE,
   MOCK_ORG,
+  MOCK_PUBLIC_MENU,
   MOCK_PURCHASE_ORDERS,
   MOCK_STOCKTAKES,
   MOCK_SUPPLIERS,
@@ -170,9 +171,7 @@ export const handlers = [
   http.post("*/otp/verify", () => HttpResponse.json({ device_token: "mock_device_token_abc123" })),
 
   // ── Public ordering ───────────────────────────────────────────────────────
-  http.get("*/public/branches/:branchId/menu", () =>
-    HttpResponse.json({ items: [], categories: [], addons: [], discount: null }),
-  ),
+  http.get("*/public/branches/:branchId/menu", () => HttpResponse.json(MOCK_PUBLIC_MENU)),
   http.get("*/public/branches/:branchId/delivery-quote", () =>
     HttpResponse.json({ status: "ok", fee: 1500, distance_meters: 2400, zone_id: "z1", zone_name: "Zone A" }),
   ),

@@ -1960,15 +1960,23 @@
       "dashboard": "Dashboard",
       "pos": "Point of sale",
       "features": "Features",
+      "contact": "Contact",
       "openDashboard": "Open dashboard"
     },
     "hero": {
       "eyebrow": "Coffee-shop operations, end to end",
       "title": "Run the whole shop from one warm ledger.",
       "subtitle": "Point of sale, recipe costing, inventory, shifts, delivery and analytics — one bilingual platform that ties what you sell to what it costs. Online or off, in Arabic or English.",
-      "ctaPrimary": "Get started",
       "ctaSecondary": "See it in action",
+      "ctaContact": "Talk to us",
       "caption": "The Madar dashboard — live revenue, payment mix and branch performance."
+    },
+    "contact": {
+      "title": "Let's talk",
+      "subtitle": "Tell us about your shop and we'll get you set up. Reach out any time.",
+      "phone": "Phone & WhatsApp",
+      "email": "Email",
+      "follow": "Follow Madar"
     },
     "stats": {
       "branches": { "value": "Multi-branch", "label": "Rollups across every location" },
@@ -2030,17 +2038,14 @@
     },
     "customer": {
       "eyebrow": "For your customers",
-      "title": "A menu worth sharing — and an order they can track",
-      "subtitle": "Give every branch a beautiful public menu and a live order tracker, on any phone, in Arabic or English — no app to install.",
-      "points": {
-        "browse": "Browse a branch's full menu with photos, sizes and add-ons.",
-        "order": "Place a delivery or pickup order in a few taps.",
-        "track": "Follow the order live from kitchen to doorstep."
-      },
-      "menuAlt": "Customer ordering on a phone",
-      "menuLabel": "Order",
-      "trackAlt": "Order tracking on a phone",
-      "trackLabel": "Track"
+      "title": "Order in a few taps — no app to install",
+      "subtitle": "Scan a QR and your customers get a beautiful bilingual menu: browse, customise each drink, build a cart, and track the order live — on any phone.",
+      "steps": {
+        "menu": "Browse the menu",
+        "customize": "Customise the order",
+        "cart": "Review the cart",
+        "track": "Track it live"
+      }
     },
     "cta": {
       "title": "Ready to run your shop on Madar?",

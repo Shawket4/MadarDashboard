@@ -253,6 +253,75 @@ export const MOCK_ADDON_ITEMS = [
   { id: "ai_extrashot", org_id: MOCK_ORG_ID, name: "Extra Shot", name_translations: { ar: "شوت إضافي" }, addon_type: "shot", default_price: 2_000, is_active: true },
 ];
 
+// ── Public ordering menu (delivery shape) ─────────────────────────────────────
+// The customer-facing menu the public ordering app fetches. Items are shaped as
+// DeliveryMenuItem (price/sizes/allowed_addon_ids) and addons as the global
+// DeliveryAddonOption catalog, so the menu, the item customizer (sizes + add-ons)
+// and the cart all render with real data.
+
+const ITEM_DESCRIPTIONS: Record<string, { en: string; ar: string }> = {
+  mi_espresso: { en: "A short, intense single origin shot.", ar: "شوت مركّز من حبوب أحادية المصدر." },
+  mi_cappuccino: { en: "Espresso, steamed milk and a velvet foam cap.", ar: "إسبريسو وحليب مبخّر ورغوة ناعمة." },
+  mi_latte: { en: "Smooth espresso with silky steamed milk.", ar: "إسبريسو ناعم مع حليب مبخّر حريري." },
+  mi_americano: { en: "Espresso lengthened with hot water.", ar: "إسبريسو ممدود بالماء الساخن." },
+  mi_flatwhite: { en: "Double ristretto under thin micro-foam.", ar: "ريستريتو مزدوج تحت رغوة رفيعة." },
+  mi_matcha: { en: "Stone-ground matcha whisked with milk.", ar: "ماتشا مطحونة مخفوقة بالحليب." },
+  mi_coldbrew: { en: "Steeped 18 hours, smooth and low-acid.", ar: "منقوع ١٨ ساعة، ناعم وقليل الحموضة." },
+  mi_icedlatte: { en: "Espresso over cold milk and ice.", ar: "إسبريسو فوق حليب بارد وثلج." },
+  mi_icedmatcha: { en: "Iced matcha over chilled milk.", ar: "ماتشا مثلجة فوق حليب بارد." },
+  mi_frappuccino: { en: "Blended iced coffee, lightly sweet.", ar: "قهوة مثلجة مخفوقة، حلاوة خفيفة." },
+  mi_croissant: { en: "All-butter, baked fresh each morning.", ar: "بالزبدة، يُخبز طازجًا كل صباح." },
+  mi_cheesecake: { en: "New York style, dense and creamy.", ar: "على الطريقة النيويوركية، كثيف وكريمي." },
+};
+
+const DELIVERY_ADDONS = [
+  { addon_item_id: "ai_oatmilk", is_available: true, name: "Oat Milk", name_translations: { ar: "حليب الشوفان" }, price: 1_500, type: "milk_type" },
+  { addon_item_id: "ai_almondmilk", is_available: true, name: "Almond Milk", name_translations: { ar: "حليب اللوز" }, price: 1_500, type: "milk_type" },
+  { addon_item_id: "ai_extrashot", is_available: true, name: "Extra Shot", name_translations: { ar: "شوت إضافي" }, price: 2_000, type: "coffee_type" },
+  { addon_item_id: "ai_vanilla", is_available: true, name: "Vanilla Syrup", name_translations: { ar: "شراب الفانيليا" }, price: 1_000, type: "extra" },
+  { addon_item_id: "ai_caramel", is_available: true, name: "Caramel Syrup", name_translations: { ar: "شراب الكراميل" }, price: 1_000, type: "extra" },
+  { addon_item_id: "ai_hazelnut", is_available: true, name: "Hazelnut Syrup", name_translations: { ar: "شراب البندق" }, price: 1_000, type: "extra" },
+];
+
+const DRINK_ADDONS = DELIVERY_ADDONS.map((a) => a.addon_item_id);
+
+const DELIVERY_MENU_ITEMS = MOCK_MENU_ITEMS.map((m) => {
+  const isDrink = m.category_id === "cat_hot" || m.category_id === "cat_cold";
+  return {
+    id: m.id,
+    name: m.name,
+    name_translations: m.name_translations,
+    description: ITEM_DESCRIPTIONS[m.id]?.en ?? null,
+    description_translations: { ar: ITEM_DESCRIPTIONS[m.id]?.ar ?? "" },
+    image_url: null,
+    category_id: m.category_id,
+    price: m.base_price,
+    sizes: isDrink
+      ? [
+          { label: "Small", price: Math.max(0, m.base_price - 1_000) },
+          { label: "Medium", price: m.base_price },
+          { label: "Large", price: m.base_price + 1_500 },
+        ]
+      : [],
+    allowed_addon_ids: isDrink ? DRINK_ADDONS : [],
+    default_milk_addon_id: null,
+    optionals: [],
+  };
+});
+
+export const MOCK_PUBLIC_MENU = {
+  categories: MOCK_CATEGORIES.map((c) => ({
+    id: c.id,
+    name: c.name,
+    name_translations: c.name_translations,
+    image_url: null,
+    items: DELIVERY_MENU_ITEMS.filter((i) => i.category_id === c.id),
+  })),
+  items: DELIVERY_MENU_ITEMS,
+  addons: DELIVERY_ADDONS,
+  discount: null,
+};
+
 // ── Orders ───────────────────────────────────────────────────────────────────
 
 export const MOCK_ORDER_SUMMARY: OrderSummary = {

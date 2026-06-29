@@ -13,6 +13,17 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    // Dev-only: the entry is get.html (not index.html), so serve it for every
+    // navigation in `vite` dev (SPA fallback). No effect on build or preview.
+    {
+      name: "get-spa-fallback",
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          if (req.headers.accept?.includes("text/html")) req.url = "/get.html";
+          next();
+        });
+      },
+    },
     compression({
       algorithm: "brotliCompress",
       ext: ".br",

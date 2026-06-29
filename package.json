@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:mock": "VITE_MOCK=1 vite --port 5180 --strictPort",
+    "dev:order": "VITE_MOCK=1 vite --config vite.order.config.ts --port 5183 --strictPort",
+    "dev:get": "vite --config vite.get.config.ts --port 5184 --strictPort",
     "build": "tsc --noEmit --incremental && vite build",
     "build:order": "vite build --config vite.order.config.ts",
     "build:get": "vite build --config vite.get.config.ts",
@@ -57,6 +59,7 @@
     "i18next": "^24.1.0",
     "i18next-browser-languagedetector": "^8.0.2",
     "leaflet": "^1.9.4",
+    "lenis": "^1.3.25",
     "lucide-react": "^0.469.0",
     "motion": "^12.40.0",
     "next-themes": "^0.4.6",
