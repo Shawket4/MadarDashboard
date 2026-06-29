@@ -22,6 +22,7 @@ import { env } from "@/data/config/env";
 import { cn } from "@/lib/utils";
 import {
   BrowserFrame,
+  GpuStaggerReveal,
   IpadFrame,
   PhoneFrame,
   Reveal,
@@ -67,8 +68,10 @@ function usePreloadImages(urls: string[]) {
       if (cancelled) return;
       for (const url of urls) {
         const img = new Image();
-        img.decoding = "async";
         img.src = url;
+        // Decode to a bitmap now (during idle) so the reveal scroll doesn't pay the
+        // decode cost on the same frame it animates.
+        img.decode?.().catch(() => {});
       }
     };
     const ric = (window as unknown as { requestIdleCallback?: typeof window.requestIdleCallback })
@@ -396,7 +399,7 @@ function DashboardShowcase({ lang }: { lang: string }) {
         </Reveal>
 
         <div className="mx-auto mt-10 grid max-w-5xl gap-10 lg:grid-cols-2">
-          <Reveal variant="left">
+          <Reveal variant="left" className="min-w-0">
             <BrowserFrame url="madar-pos.cloud/analytics">
               <Screenshot
                 src={dashShot("analytics", lang)}
@@ -414,7 +417,7 @@ function DashboardShowcase({ lang }: { lang: string }) {
               )}
             </p>
           </Reveal>
-          <Reveal variant="right">
+          <Reveal variant="right" className="min-w-0">
             <BrowserFrame url="madar-pos.cloud/menu/recipes">
               <Screenshot
                 src="/screenshots/dash-recipes.webp"
@@ -588,13 +591,15 @@ function CustomerJourney({ lang }: { lang: string }) {
             "Scan a QR and your customers get a beautiful bilingual menu: browse, customise each drink, build a cart, and track the order live — on any phone.",
           )}
         />
-        <RevealGroup className="mx-auto mt-16 grid max-w-5xl grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-4 sm:gap-x-5">
+        {/* Heavy, image-dense group → GPU-accelerated reveal (compositor WAAPI spring)
+            so it stays smooth against Lenis's scroll loop. The entrance transform is
+            owned by the [data-reveal] element; the staggered offset + hover lift live
+            on inner wrappers so nothing fights for the same transform. */}
+        <GpuStaggerReveal className="mx-auto mt-16 grid max-w-5xl grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-4 sm:gap-x-5">
           {steps.map((s, i) => (
-            <RevealItem key={s.key} lift className="flex flex-col items-center">
-              {/* Offset lives on an inner wrapper so the spring's transform doesn't
-                  override it (a motion element owns its own transform). */}
+            <div key={s.key} data-reveal className="flex flex-col items-center">
               <div className={cn("flex w-full flex-col items-center", i % 2 === 1 && "sm:translate-y-12")}>
-                <PhoneFrame className="w-full max-w-[200px]">
+                <PhoneFrame className="w-full max-w-[200px] transition-transform duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02]">
                   <Screenshot
                     src={`/screenshots/${s.file}-${lang}.webp`}
                     alt={t(`landing.customer.steps.${s.key}`, s.key)}
@@ -608,9 +613,9 @@ function CustomerJourney({ lang }: { lang: string }) {
                   {t(`landing.customer.steps.${s.key}`, s.key)}
                 </p>
               </div>
-            </RevealItem>
+            </div>
           ))}
-        </RevealGroup>
+        </GpuStaggerReveal>
       </div>
     </section>
   );

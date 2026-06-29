@@ -1,5 +1,9 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion, type Transition, type Variants } from "motion/react";
+// Vanilla (non-React) motion — the hybrid WAAPI engine. animate() here precompiles
+// a spring to a linear() easing and runs it on the COMPOSITOR thread, so it stays
+// smooth while Lenis's scroll rAF + React saturate the main thread.
+import { animate, inView, stagger } from "motion";
 import { ImageIcon, Lock } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -143,6 +147,76 @@ export function RevealItem({
   );
 }
 
+/**
+ * GPU-accelerated stagger reveal — for heavy, image-dense groups (the device
+ * frames) where a main-thread spring would stutter against Lenis's scroll loop.
+ *
+ * Drives the entrance with motion's VANILLA animate()/inView() (the hybrid WAAPI
+ * engine): the spring precompiles to a linear() easing and runs on the COMPOSITOR
+ * thread — and an active WAAPI transform promotes each layer, so animating `scale`
+ * no longer re-rasterises the frame's shadow + rounded corners every frame. Same
+ * bouncy feel as <RevealGroup>, none of the main-thread cost.
+ *
+ * Correctness: the resting (revealed) state is the DEFAULT. The hidden state is
+ * applied by JS only just before animating, so reduced-motion / no-JS / a missed
+ * observer can never trap content invisible. Children to animate carry [data-reveal].
+ */
+export function GpuStaggerReveal({
+  children,
+  className,
+  amount = 0.2,
+}: {
+  children: ReactNode;
+  className?: string;
+  amount?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+
+  useLayoutEffect(() => {
+    const root = ref.current;
+    if (!root || reduced) return;
+    const items = Array.from(root.querySelectorAll<HTMLElement>("[data-reveal]"));
+    if (!items.length) return;
+
+    // Hidden state via JS (the rendered default stays visible).
+    for (const el of items) {
+      el.style.opacity = "0";
+      el.style.transform = "translateY(34px) scale(0.92)";
+      el.style.willChange = "transform, opacity";
+    }
+
+    let fired = false;
+    const stop = inView(
+      root,
+      () => {
+        if (fired) return;
+        fired = true;
+        const controls = animate(
+          items,
+          { opacity: [0, 1], transform: ["translateY(34px) scale(0.92)", "translateY(0px) scale(1)"] },
+          // Same POP spring as RevealItem — precompiled to a GPU linear() here.
+          { type: "spring", stiffness: 300, damping: 20, mass: 0.85, delay: stagger(0.08) },
+        );
+        // Drop the layer hint once settled so we don't keep N promoted layers.
+        controls.finished
+          .then(() => {
+            for (const el of items) el.style.willChange = "auto";
+          })
+          .catch(() => {});
+      },
+      { amount },
+    );
+    return () => stop();
+  }, [reduced, amount]);
+
+  return (
+    <div ref={ref} className={className}>
+      {children}
+    </div>
+  );
+}
+
 /* ── Screenshot with graceful placeholder ──────────────────────────────────── */
 
 /**
@@ -229,9 +303,9 @@ export function BrowserFrame({
           <span className="size-2.5 rounded-full bg-foreground/15" />
           <span className="size-2.5 rounded-full bg-foreground/15" />
         </div>
-        <div className="mx-auto flex max-w-xs flex-1 items-center justify-center gap-1.5 rounded-md bg-background/80 px-3 py-1 text-xs text-muted-foreground">
-          <Lock className="size-3" />
-          <span className="truncate" dir="ltr">{url}</span>
+        <div className="mx-auto flex min-w-0 max-w-xs flex-1 items-center justify-center gap-1.5 rounded-md bg-background/80 px-3 py-1 text-xs text-muted-foreground">
+          <Lock className="size-3 shrink-0" />
+          <span className="min-w-0 truncate" dir="ltr">{url}</span>
         </div>
         <div className="w-12" aria-hidden />
       </div>
