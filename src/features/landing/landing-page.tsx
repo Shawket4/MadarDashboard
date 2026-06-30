@@ -666,6 +666,7 @@ function PosShowcase({ lang, dark }: { lang: string; dark: boolean }) {
             <IpadFrame>
               <Screenshot
                 src={posShot("pos-order")}
+                fallbackSrc="/screenshots/pos-order-en.webp"
                 alt={t("landing.pos.shots.order.title", "Order screen")}
                 label={t("landing.pos.shots.order.title", "Order screen")}
               />
@@ -696,6 +697,7 @@ function PosShowcase({ lang, dark }: { lang: string; dark: boolean }) {
               <IpadFrame>
                 <Screenshot
                   src={posShot(s.file)}
+                  fallbackSrc={`/screenshots/${s.file}-en.webp`}
                   alt={t(`landing.pos.shots.${s.key}.title`, s.key)}
                   label={t(`landing.pos.shots.${s.key}.title`, s.key)}
                 />

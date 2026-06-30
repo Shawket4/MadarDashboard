@@ -226,12 +226,16 @@ export function GpuStaggerReveal({
  */
 export function Screenshot({
   src,
+  fallbackSrc,
   alt,
   label,
   className,
   priority = false,
 }: {
   src?: string;
+  /** Tried if `src` fails to load (e.g. a not-yet-captured variant) before the
+   *  placeholder — e.g. a dark/AR POS shot falls back to the en/light default. */
+  fallbackSrc?: string;
   alt: string;
   label: string;
   className?: string;
@@ -239,10 +243,16 @@ export function Screenshot({
   priority?: boolean;
 }) {
   const [errored, setErrored] = useState(false);
-  // Reset when the source changes (e.g. EN ⇄ AR language swap).
-  useEffect(() => setErrored(false), [src]);
+  const [usingFallback, setUsingFallback] = useState(false);
+  // Reset when the source changes (e.g. EN ⇄ AR or light ⇄ dark swap).
+  useEffect(() => {
+    setErrored(false);
+    setUsingFallback(false);
+  }, [src, fallbackSrc]);
 
-  if (!src || errored) {
+  const current = usingFallback ? fallbackSrc : src;
+
+  if (!current || errored) {
     return (
       <div
         className={cn(
@@ -262,12 +272,16 @@ export function Screenshot({
 
   return (
     <img
-      src={src}
+      src={current}
       alt={alt}
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       decoding="async"
-      onError={() => setErrored(true)}
+      onError={() => {
+        // Try the fallback once, then give up to the placeholder.
+        if (fallbackSrc && !usingFallback && fallbackSrc !== src) setUsingFallback(true);
+        else setErrored(true);
+      }}
       className={cn("size-full object-cover object-top", className)}
     />
   );
