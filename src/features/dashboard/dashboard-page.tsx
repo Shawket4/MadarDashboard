@@ -20,6 +20,7 @@ import { ChartCard, chartColor } from "@/components/app/chart-card";
 import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { EmptyState } from "@/components/app/empty-state";
+import { KeepBuildingCard } from "@/features/onboarding/keep-building-card";
 import { ConciseValue, LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ProgressBar } from "@/components/app/progress-bar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -157,6 +158,7 @@ export function DashboardPage() {
 
   return (
     <Page>
+      <KeepBuildingCard />
       {/* Masthead — greeting + the headline KPIs. All four are the canonical
           StatCard (via LedgerStrip): one scale, one card, fully responsive. The
           revenue trend lives in its own chart below, so no oversized hero. */}

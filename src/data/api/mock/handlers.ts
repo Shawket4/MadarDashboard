@@ -30,6 +30,7 @@ import {
   MOCK_MENU_ITEMS,
   MOCK_ORDERS_PAGE,
   MOCK_ORG,
+  MOCK_ORG_ID,
   MOCK_PO_LINES,
   MOCK_PRICE_SUGGESTIONS,
   MOCK_PUBLIC_MENU,
@@ -184,8 +185,78 @@ const MOCK_TRACKING = {
   items: MOCK_ORDER_ITEMS,
 };
 
+/** A rich, mostly-complete onboarding so the wizard + mirror look alive under
+ *  the mock harness: required steps done (can_complete), some optional steps
+ *  still open (so the "keep building" nudge shows), recipe coverage partial.
+ *  Statefully flips to completed on /complete so the finish→dashboard flow
+ *  (and the redirect gate) behave like the real backend. */
+let onboardingDone = false;
+const onboardingStatus = () => ({
+  org_id: MOCK_ORG_ID,
+  completed: onboardingDone,
+  completed_at: onboardingDone ? "2026-06-30T10:00:00Z" : null,
+  can_complete: true,
+  recipe_coverage: 0.45,
+  steps: [
+    { key: "org_profile", done: true, count: 1, required: false },
+    { key: "branch", done: true, count: 2, required: true },
+    { key: "payment_methods", done: true, count: 3, required: true },
+    { key: "categories", done: true, count: 4, required: true },
+    { key: "menu_items", done: true, count: 9, required: true },
+    { key: "ingredients", done: true, count: 12, required: false },
+    { key: "recipes", done: false, count: 4, required: false },
+    { key: "addons", done: false, count: 0, required: false },
+    { key: "team", done: false, count: 0, required: false },
+    { key: "first_order", done: false, count: 0, required: false },
+  ],
+});
+
+/** Echo a create back with a synthetic id so onboarding dialogs succeed under
+ *  mock (multipart bodies aren't JSON — fall back to just an id). */
+const echoCreated = async ({ request }: { request: Request }) => {
+  let body: Record<string, unknown> = {};
+  try {
+    body = (await request.json()) as Record<string, unknown>;
+  } catch {
+    /* multipart / empty */
+  }
+  return HttpResponse.json({ id: `mock_${Math.random().toString(36).slice(2)}`, ...body });
+};
+
 /** All MSW request handlers. Order matters: more specific first. */
 export const handlers = [
+  // ── Demo session ──────────────────────────────────────────────────────────
+  // Mirrors the demo backend so `dev:demo` exercises the playground locally:
+  // `full` lands on a populated dashboard, `empty` flows into onboarding.
+  http.post("*/demo/session", ({ request }) => {
+    const variant = new URL(request.url).searchParams.get("variant") === "empty" ? "empty" : "full";
+    onboardingDone = variant === "full";
+    const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    return HttpResponse.json({ token: MOCK_TOKEN, org_id: MOCK_ORG_ID, expires_at, variant, user: MOCK_USER });
+  }),
+
+  // ── Onboarding ────────────────────────────────────────────────────────────
+  http.get("*/orgs/*/onboarding", () => HttpResponse.json(onboardingStatus())),
+  http.post("*/orgs/*/onboarding/complete", () => {
+    onboardingDone = true;
+    return HttpResponse.json(onboardingStatus());
+  }),
+
+  // ── Setup writes (so the onboarding wizard's dialogs succeed under mock) ─────
+  http.post("*/branches", echoCreated),
+  http.post("*/payment-methods", echoCreated),
+  http.post("*/categories", echoCreated),
+  http.post("*/addon-items", echoCreated),
+  http.post("*/inventory/orgs/*/catalog", echoCreated),
+  http.post("*/users", echoCreated),
+  http.post("*/menu-items/*/sizes", echoCreated),
+  http.post("*/recipes/drinks/*", echoCreated),
+  http.put("*/menu-items/*/allowed-addons", () => HttpResponse.json({})),
+  http.post("*/uploads/menu-items/*", () => HttpResponse.json({ id: "img", image_url: "" })),
+  http.post("*/menu-items", echoCreated),
+  http.patch("*/orgs/*", echoCreated),
+  http.put("*/orgs/*/logo", () => HttpResponse.json({ id: MOCK_ORG_ID, logo_url: null })),
+
   // ── Auth ──────────────────────────────────────────────────────────────────
   http.post("*/auth/login", () =>
     HttpResponse.json({ token: MOCK_TOKEN, user: MOCK_USER, currency_code: "EGP", tax_rate: 0.14 }),

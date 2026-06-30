@@ -387,3 +387,19 @@
     animation: none;
   }
 }
+
+/* Onboarding celebration confetti — a little fun on "open my café". Purely
+ * decorative; the surrounding container is hidden under prefers-reduced-motion. */
+@keyframes onb-confetti {
+  0% {
+    transform: translateY(-12%) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(680deg);
+    opacity: 0.85;
+  }
+}
+.onb-confetti-piece {
+  animation: onb-confetti 2.4s cubic-bezier(0.3, 0.6, 0.4, 1) forwards;
+}

@@ -5,8 +5,8 @@ import type { OnboardingStep } from './onboardingStep';
 export interface OnboardingStatus {
   /** True when every `required` step is done (the Finish button enabler). */
   can_complete: boolean;
-  /** Persisted terminal flag — the dashboard routes into the wizard
-   * when this is false. */
+  /** Derived terminal flag (`completed_at IS NOT NULL`) — the dashboard
+   * routes into the wizard while this is false. */
   completed: boolean;
   /** @nullable */
   completed_at?: string | null;

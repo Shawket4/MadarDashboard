@@ -1611,6 +1611,249 @@ export const UpdateDiscountResponse = zod.object({
 })
 
 
+export const SaveLayoutBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "tables": zod.array(zod.object({
+  "height": zod.number(),
+  "id": zod.string().uuid(),
+  "pos_x": zod.number(),
+  "pos_y": zod.number(),
+  "rotation": zod.number(),
+  "section_id": zod.string().uuid().nullish(),
+  "width": zod.number()
+}).describe('One table\'s geometry in a bulk drag-save. `section_id` lets a drag move a\ntable between sections in the same save.'))
+})
+
+export const SaveLayoutResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "height": zod.number(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "org_id": zod.string().uuid(),
+  "pos_x": zod.number(),
+  "pos_y": zod.number(),
+  "rotation": zod.number(),
+  "seats": zod.number(),
+  "section_id": zod.string().uuid().nullish(),
+  "shape": zod.string(),
+  "status": zod.string(),
+  "updated_at": zod.string().datetime({"offset":true}),
+  "width": zod.number()
+})
+export const SaveLayoutResponse = zod.array(SaveLayoutResponseItem)
+
+
+export const GetReservationSettingsQueryParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const GetReservationSettingsResponse = zod.object({
+  "accepting_reservations": zod.boolean(),
+  "accepting_waitlist": zod.boolean(),
+  "branch_id": zod.string().uuid(),
+  "grace_minutes": zod.number(),
+  "hold_lead_minutes": zod.number(),
+  "lead_minutes": zod.number(),
+  "max_party_size": zod.number().nullish(),
+  "slot_minutes": zod.number(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const PutReservationSettingsQueryParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const PutReservationSettingsBody = zod.object({
+  "accepting_reservations": zod.boolean().nullish(),
+  "accepting_waitlist": zod.boolean().nullish(),
+  "grace_minutes": zod.number().nullish(),
+  "hold_lead_minutes": zod.number().nullish(),
+  "lead_minutes": zod.number().nullish(),
+  "max_party_size": zod.number().nullish(),
+  "slot_minutes": zod.number().nullish()
+})
+
+export const PutReservationSettingsResponse = zod.object({
+  "accepting_reservations": zod.boolean(),
+  "accepting_waitlist": zod.boolean(),
+  "branch_id": zod.string().uuid(),
+  "grace_minutes": zod.number(),
+  "hold_lead_minutes": zod.number(),
+  "lead_minutes": zod.number(),
+  "max_party_size": zod.number().nullish(),
+  "slot_minutes": zod.number(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const ListSectionsQueryParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const ListSectionsResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "canvas_h": zod.number(),
+  "canvas_w": zod.number(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "ordering": zod.number(),
+  "org_id": zod.string().uuid(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+export const ListSectionsResponse = zod.array(ListSectionsResponseItem)
+
+
+export const CreateSectionBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "canvas_h": zod.number().nullish(),
+  "canvas_w": zod.number().nullish(),
+  "name": zod.string(),
+  "ordering": zod.number().nullish()
+})
+
+
+export const DeleteSectionParams = zod.object({
+  "id": zod.string().uuid().describe('Section ID')
+})
+
+
+export const UpdateSectionParams = zod.object({
+  "id": zod.string().uuid().describe('Section ID')
+})
+
+export const UpdateSectionBody = zod.object({
+  "canvas_h": zod.number().nullish(),
+  "canvas_w": zod.number().nullish(),
+  "name": zod.string().nullish(),
+  "ordering": zod.number().nullish()
+})
+
+export const UpdateSectionResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "canvas_h": zod.number(),
+  "canvas_w": zod.number(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "ordering": zod.number(),
+  "org_id": zod.string().uuid(),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const ListFloorTablesQueryParams = zod.object({
+  "branch_id": zod.string().uuid()
+})
+
+export const ListFloorTablesResponseItem = zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "height": zod.number(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "org_id": zod.string().uuid(),
+  "pos_x": zod.number(),
+  "pos_y": zod.number(),
+  "rotation": zod.number(),
+  "seats": zod.number(),
+  "section_id": zod.string().uuid().nullish(),
+  "shape": zod.string(),
+  "status": zod.string(),
+  "updated_at": zod.string().datetime({"offset":true}),
+  "width": zod.number()
+})
+export const ListFloorTablesResponse = zod.array(ListFloorTablesResponseItem)
+
+
+export const CreateFloorTableBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "height": zod.number().nullish(),
+  "label": zod.string(),
+  "pos_x": zod.number().nullish(),
+  "pos_y": zod.number().nullish(),
+  "rotation": zod.number().nullish(),
+  "seats": zod.number().nullish(),
+  "section_id": zod.string().uuid().nullish(),
+  "shape": zod.string().nullish(),
+  "width": zod.number().nullish()
+})
+
+
+export const DeleteFloorTableParams = zod.object({
+  "id": zod.string().uuid().describe('Table ID')
+})
+
+
+export const UpdateFloorTableParams = zod.object({
+  "id": zod.string().uuid().describe('Table ID')
+})
+
+export const UpdateFloorTableBody = zod.object({
+  "height": zod.number().nullish(),
+  "is_active": zod.boolean().nullish(),
+  "label": zod.string().nullish(),
+  "pos_x": zod.number().nullish(),
+  "pos_y": zod.number().nullish(),
+  "rotation": zod.number().nullish(),
+  "seats": zod.number().nullish(),
+  "section_id": zod.string().uuid().nullish(),
+  "shape": zod.string().nullish(),
+  "width": zod.number().nullish()
+})
+
+export const UpdateFloorTableResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "height": zod.number(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "org_id": zod.string().uuid(),
+  "pos_x": zod.number(),
+  "pos_y": zod.number(),
+  "rotation": zod.number(),
+  "seats": zod.number(),
+  "section_id": zod.string().uuid().nullish(),
+  "shape": zod.string(),
+  "status": zod.string(),
+  "updated_at": zod.string().datetime({"offset":true}),
+  "width": zod.number()
+})
+
+
+export const SetTableStatusParams = zod.object({
+  "id": zod.string().uuid().describe('Table ID')
+})
+
+export const SetTableStatusBody = zod.object({
+  "status": zod.string().describe('One of `free`, `held`, `seated`, `dirty`.')
+})
+
+export const SetTableStatusResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "height": zod.number(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "org_id": zod.string().uuid(),
+  "pos_x": zod.number(),
+  "pos_y": zod.number(),
+  "rotation": zod.number(),
+  "seats": zod.number(),
+  "section_id": zod.string().uuid().nullish(),
+  "shape": zod.string(),
+  "status": zod.string(),
+  "updated_at": zod.string().datetime({"offset":true}),
+  "width": zod.number()
+})
+
+
 export const ListMovementsParams = zod.object({
   "branch_id": zod.string().uuid().describe('Branch ID')
 })
@@ -3681,6 +3924,47 @@ export const SettleOpenTicketResponse = zod.object({
 })
 
 
+/**
+ * @summary Switch an open ticket to a different table (the "move table" button). Works
+for any live ticket — walk-in dine-in or one auto-opened from a booking. The
+old table is flagged `dirty` (bus it), the new one `seated`; if the ticket
+came from a booking, the booking's assignment is kept in sync.
+ */
+export const MoveTicketTableParams = zod.object({
+  "id": zod.string().uuid().describe('Open ticket ID')
+})
+
+export const MoveTicketTableBody = zod.object({
+  "table_id": zod.string().uuid().describe('The table to move this ticket onto.')
+})
+
+export const MoveTicketTableResponse = zod.object({
+  "branch_id": zod.string().uuid(),
+  "customer_name": zod.string().nullish(),
+  "guest_count": zod.number().nullish(),
+  "id": zod.string().uuid(),
+  "items": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "line": zod.unknown().describe('The frozen priced SnapshotLine (name, size, addons, totals).'),
+  "line_total": zod.number(),
+  "menu_item_id": zod.string().uuid().nullish(),
+  "round_number": zod.number(),
+  "voided": zod.boolean()
+})),
+  "notes": zod.string().nullish(),
+  "opened_at": zod.string().datetime({"offset":true}),
+  "opened_by": zod.string().uuid(),
+  "opened_by_name": zod.string().nullish(),
+  "order_id": zod.string().uuid().nullish(),
+  "ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "settled_at": zod.string().datetime({"offset":true}).nullish(),
+  "status": zod.string(),
+  "subtotal": zod.number(),
+  "table_id": zod.string().uuid().nullish(),
+  "ticket_ref": zod.string().nullish()
+})
+
+
 export const VoidOpenTicketParams = zod.object({
   "id": zod.string().uuid().describe('Open ticket ID')
 })
@@ -4331,7 +4615,7 @@ export const GetOnboardingParams = zod.object({
 
 export const GetOnboardingResponse = zod.object({
   "can_complete": zod.boolean().describe('True when every `required` step is done (the Finish button enabler).'),
-  "completed": zod.boolean().describe('Persisted terminal flag — the dashboard routes into the wizard\nwhen this is false.'),
+  "completed": zod.boolean().describe('Derived terminal flag (`completed_at IS NOT NULL`) — the dashboard\nroutes into the wizard while this is false.'),
   "completed_at": zod.string().datetime({"offset":true}).nullish(),
   "org_id": zod.string().uuid(),
   "recipe_coverage": zod.number().describe('Recipe coverage across active menu items (0..1) — drives the cost\nengine; surfaced separately because it\'s a percentage, not a bool.'),
@@ -4350,7 +4634,7 @@ export const CompleteOnboardingParams = zod.object({
 
 export const CompleteOnboardingResponse = zod.object({
   "can_complete": zod.boolean().describe('True when every `required` step is done (the Finish button enabler).'),
-  "completed": zod.boolean().describe('Persisted terminal flag — the dashboard routes into the wizard\nwhen this is false.'),
+  "completed": zod.boolean().describe('Derived terminal flag (`completed_at IS NOT NULL`) — the dashboard\nroutes into the wizard while this is false.'),
   "completed_at": zod.string().datetime({"offset":true}).nullish(),
   "org_id": zod.string().uuid(),
   "recipe_coverage": zod.number().describe('Recipe coverage across active menu items (0..1) — drives the cost\nengine; surfaced separately because it\'s a percentage, not a bool.'),
@@ -4802,6 +5086,52 @@ export const OtpVerifyBody = zod.object({
 export const OtpVerifyResponse = zod.object({
   "device_token": zod.string()
 })
+
+
+export const CreatePublicBookingBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "device_token": zod.string().describe('Device-trust token from the delivery OTP flow, proving this phone is verified.'),
+  "kind": zod.string().nullish().describe('`reservation` or `walk_in`; defaults from whether `reserved_for` is set.'),
+  "lat": zod.number().nullish(),
+  "lng": zod.number().nullish(),
+  "party_size": zod.number().nullish(),
+  "reserved_for": zod.string().datetime({"offset":true}).nullish()
+})
+
+
+export const ListReservationPublicBranchesQueryParams = zod.object({
+  "org_id": zod.string().uuid()
+})
+
+export const ListReservationPublicBranchesResponseItem = zod.object({
+  "code": zod.string(),
+  "id": zod.string().uuid(),
+  "in_mall_enabled": zod.boolean(),
+  "in_mall_open_now": zod.boolean().describe('Effective-open right now (enabled + open shift + override + window).'),
+  "in_mall_require_location": zod.boolean().describe('When false, in-mall ordering does not require a device GPS location.'),
+  "name": zod.string(),
+  "otp_required": zod.boolean().describe('When false, the public checkout skips OTP verification for this branch.'),
+  "outside_enabled": zod.boolean(),
+  "outside_open_now": zod.boolean()
+})
+export const ListReservationPublicBranchesResponse = zod.array(ListReservationPublicBranchesResponseItem)
+
+
+export const TrackPublicBookingParams = zod.object({
+  "id": zod.string().uuid().describe('Booking ID')
+})
+
+export const TrackPublicBookingResponse = zod.object({
+  "eta_minutes": zod.number().nullish().describe('OSRM drive estimate from the guest\'s saved location, when available.'),
+  "id": zod.string().uuid(),
+  "kind": zod.string(),
+  "party_size": zod.number(),
+  "reserved_for": zod.string().datetime({"offset":true}).nullish(),
+  "status": zod.string(),
+  "table_count": zod.number()
+}).describe('Slim, guest-safe view (no org\/internal columns).')
 
 
 export const ListPurchaseOrdersParams = zod.object({
@@ -5818,6 +6148,166 @@ export const ShiftSummaryResponse = zod.object({
   "total_revenue": zod.number(),
   "total_tax": zod.number(),
   "voided_orders": zod.number()
+})
+
+
+export const ListBookingsQueryParams = zod.object({
+  "branch_id": zod.string().uuid(),
+  "status": zod.string().optional(),
+  "date": zod.string().date().optional().describe('Filter reservations to this calendar date (YYYY-MM-DD). Omit for the live\nboard (everything not yet completed\/cancelled\/no_show).')
+})
+
+export const ListBookingsResponseItem = zod.object({
+  "arrived_at": zod.string().datetime({"offset":true}).nullish(),
+  "branch_id": zod.string().uuid(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "completed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "created_by": zod.string().uuid().nullish(),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "id": zod.string().uuid(),
+  "kind": zod.string(),
+  "no_show_at": zod.string().datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "notified_at": zod.string().datetime({"offset":true}).nullish(),
+  "org_id": zod.string().uuid(),
+  "otp_verified": zod.boolean(),
+  "party_size": zod.number(),
+  "quoted_ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "reserved_for": zod.string().datetime({"offset":true}).nullish(),
+  "seated_at": zod.string().datetime({"offset":true}).nullish(),
+  "source": zod.string(),
+  "status": zod.string(),
+  "table_ids": zod.array(zod.string().uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+export const ListBookingsResponse = zod.array(ListBookingsResponseItem)
+
+
+export const CreateBookingBody = zod.object({
+  "branch_id": zod.string().uuid(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "kind": zod.string().nullish().describe('`reservation` or `walk_in`. Defaults from whether `reserved_for` is set.'),
+  "notes": zod.string().nullish(),
+  "party_size": zod.number().nullish(),
+  "quoted_ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "reserved_for": zod.string().datetime({"offset":true}).nullish()
+})
+
+
+export const UpdateBookingParams = zod.object({
+  "id": zod.string().uuid().describe('Booking ID')
+})
+
+export const UpdateBookingBody = zod.object({
+  "customer_name": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "party_size": zod.number().nullish(),
+  "quoted_ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "reserved_for": zod.string().datetime({"offset":true}).nullish(),
+  "status": zod.string().nullish().describe('Drive the status machine: confirmed \/ notified \/ arrived \/ seated \/\ncompleted \/ no_show \/ cancelled. The matching timestamp is stamped and,\nfor terminals, assigned tables are freed.')
+})
+
+export const UpdateBookingResponse = zod.object({
+  "arrived_at": zod.string().datetime({"offset":true}).nullish(),
+  "branch_id": zod.string().uuid(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "completed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "created_by": zod.string().uuid().nullish(),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "id": zod.string().uuid(),
+  "kind": zod.string(),
+  "no_show_at": zod.string().datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "notified_at": zod.string().datetime({"offset":true}).nullish(),
+  "org_id": zod.string().uuid(),
+  "otp_verified": zod.boolean(),
+  "party_size": zod.number(),
+  "quoted_ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "reserved_for": zod.string().datetime({"offset":true}).nullish(),
+  "seated_at": zod.string().datetime({"offset":true}).nullish(),
+  "source": zod.string(),
+  "status": zod.string(),
+  "table_ids": zod.array(zod.string().uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const AssignTablesParams = zod.object({
+  "id": zod.string().uuid().describe('Booking ID')
+})
+
+export const AssignTablesBody = zod.object({
+  "table_ids": zod.array(zod.string().uuid())
+})
+
+export const AssignTablesResponse = zod.object({
+  "arrived_at": zod.string().datetime({"offset":true}).nullish(),
+  "branch_id": zod.string().uuid(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "completed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "created_by": zod.string().uuid().nullish(),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "id": zod.string().uuid(),
+  "kind": zod.string(),
+  "no_show_at": zod.string().datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "notified_at": zod.string().datetime({"offset":true}).nullish(),
+  "org_id": zod.string().uuid(),
+  "otp_verified": zod.boolean(),
+  "party_size": zod.number(),
+  "quoted_ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "reserved_for": zod.string().datetime({"offset":true}).nullish(),
+  "seated_at": zod.string().datetime({"offset":true}).nullish(),
+  "source": zod.string(),
+  "status": zod.string(),
+  "table_ids": zod.array(zod.string().uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
+  "updated_at": zod.string().datetime({"offset":true})
+})
+
+
+export const NotifyBookingParams = zod.object({
+  "id": zod.string().uuid().describe('Booking ID')
+})
+
+export const NotifyBookingResponse = zod.object({
+  "arrived_at": zod.string().datetime({"offset":true}).nullish(),
+  "branch_id": zod.string().uuid(),
+  "cancelled_at": zod.string().datetime({"offset":true}).nullish(),
+  "completed_at": zod.string().datetime({"offset":true}).nullish(),
+  "created_at": zod.string().datetime({"offset":true}),
+  "created_by": zod.string().uuid().nullish(),
+  "customer_lat": zod.number().nullish(),
+  "customer_lng": zod.number().nullish(),
+  "customer_name": zod.string(),
+  "customer_phone": zod.string(),
+  "id": zod.string().uuid(),
+  "kind": zod.string(),
+  "no_show_at": zod.string().datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "notified_at": zod.string().datetime({"offset":true}).nullish(),
+  "org_id": zod.string().uuid(),
+  "otp_verified": zod.boolean(),
+  "party_size": zod.number(),
+  "quoted_ready_at": zod.string().datetime({"offset":true}).nullish(),
+  "reserved_for": zod.string().datetime({"offset":true}).nullish(),
+  "seated_at": zod.string().datetime({"offset":true}).nullish(),
+  "source": zod.string(),
+  "status": zod.string(),
+  "table_ids": zod.array(zod.string().uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
+  "updated_at": zod.string().datetime({"offset":true})
 })
 
 

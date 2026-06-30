@@ -55,10 +55,16 @@ function render() {
   );
 }
 
-// Dev-only mock preview harness (VITE_MOCK=1): seed a session + serve mock data,
-// then render. Gated by import.meta.env.DEV so it's tree-shaken from prod builds.
+// Bootstrap order:
+//  • VITE_DEMO  → public playground: provision a throwaway org via the demo
+//    backend, sign in, then render. Tree-shaken out of non-demo builds.
+//  • VITE_MOCK (dev) → mock preview harness: seed a session + serve mock data.
+//  • otherwise   → render normally.
+const demoFlag = (import.meta.env as Record<string, string | undefined>).VITE_DEMO;
 const mockFlag = (import.meta.env as Record<string, string | undefined>).VITE_MOCK;
-if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
+if (demoFlag === "1" || demoFlag === "true") {
+  void import("@/data/api/demo/enable").then(({ enableDemo }) => enableDemo().then(render).catch(render));
+} else if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
   void import("@/data/api/mock/enable").then(({ enableMocks }) => enableMocks().then(render));
 } else {
   render();

@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "dev:mock": "VITE_MOCK=1 vite --port 5180 --strictPort",
+    "dev:demo": "VITE_MOCK=1 VITE_DEMO=1 vite --port 5182 --strictPort",
     "dev:order": "VITE_MOCK=1 vite --config vite.order.config.ts --port 5183 --strictPort",
     "dev:get": "vite --config vite.get.config.ts --port 5184 --strictPort",
     "build": "tsc --noEmit --incremental && vite build",
+    "build:demo": "VITE_DEMO=1 vite build --outDir dist-demo",
     "build:order": "vite build --config vite.order.config.ts",
     "build:get": "vite build --config vite.get.config.ts",
     "preview": "vite preview",

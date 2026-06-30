@@ -1,128 +1,177 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import {
-  AlertCircle, ArrowRight, Check, CreditCard, GitBranch, NotebookPen, PlusCircle, Receipt,
-  Sparkles, Sprout, Tags, UtensilsCrossed, Users,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { AlertCircle, Sparkles } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import { CoverageRing } from "./coverage-ring";
-import { completeOnboarding, useGetOnboarding, getGetOnboardingQueryOptions } from "@/data/api/generated/api";
+import {
+  completeOnboarding,
+  getGetOnboardingQueryOptions,
+  useGetOnboarding,
+  useGetOrg,
+} from "@/data/api/generated/api";
+import type { OnboardingStep } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { queryClient } from "@/data/api/query";
 import { useOrgId } from "@/hooks/use-org-id";
-import { useAppStore } from "@/data/stores/app.store";
 
-// Map each backend step key to the screen that completes it.
-const STEP_META: Record<string, { icon: LucideIcon; to: string }> = {
-  branch: { icon: GitBranch, to: "/branches" },
-  payment_methods: { icon: CreditCard, to: "/settings/payment-methods" },
-  categories: { icon: Tags, to: "/menu/items" },
-  menu_items: { icon: UtensilsCrossed, to: "/menu/items" },
-  ingredients: { icon: Sprout, to: "/menu/recipes" },
-  recipes: { icon: NotebookPen, to: "/menu/recipes" },
-  addons: { icon: PlusCircle, to: "/menu/items" },
-  team: { icon: Users, to: "/users" },
-  first_order: { icon: Receipt, to: "/orders" },
-};
+import { Celebration } from "./celebration";
+import { DashboardMirror } from "./dashboard-mirror";
+import { StepNavigator } from "./step-navigator";
+import { StepPanel } from "./step-panel";
+import { ONBOARDING_SKIP_KEY, STEPS, type StepKey } from "./config";
 
 export function OnboardingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const orgId = useOrgId();
-  const orgLogo = useAppStore((s) => s.selectedOrgLogo);
-  const [busy, setBusy] = useState(false);
+  const [active, setActive] = useState<StepKey | null>(null);
+  const [finishing, setFinishing] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
 
   const q = useGetOnboarding(orgId ?? "", { query: { enabled: !!orgId } });
+  const orgQ = useGetOrg(orgId ?? "", { query: { enabled: !!orgId } });
   const status = q.data;
-  const steps = useMemo(() => status?.steps ?? [], [status]);
-  const requiredDone = steps.filter((s) => s.required && s.done).length;
-  const requiredTotal = steps.filter((s) => s.required).length;
+
+  const byKey = useMemo(() => {
+    const m = new Map<string, OnboardingStep>();
+    status?.steps.forEach((s) => m.set(s.key, s));
+    return m;
+  }, [status]);
+
+  const firstIncomplete = useMemo<StepKey>(() => {
+    const next = STEPS.find((s) => s.statusKey && !byKey.get(s.statusKey)?.done);
+    return next?.key ?? "go_live";
+  }, [byKey]);
+
+  const activeKey = active ?? firstIncomplete;
+  const activeIndex = STEPS.findIndex((s) => s.key === activeKey);
+  const canComplete = !!status?.can_complete;
+
+  const requiredDone = (status?.steps ?? []).filter((s) => s.required && s.done).length;
+  const requiredTotal = (status?.steps ?? []).filter((s) => s.required).length;
+  const progress = requiredTotal ? requiredDone / requiredTotal : 0;
+  const pct = Math.round(progress * 100);
+  const cheer =
+    pct >= 100
+      ? t("onboarding.cheer.done", "Ready to open!")
+      : pct >= 75
+        ? t("onboarding.cheer.most", "Almost there!")
+        : pct >= 50
+          ? t("onboarding.cheer.half", "Halfway there!")
+          : pct > 0
+            ? t("onboarding.cheer.start", "Nice start!")
+            : t("onboarding.cheer.go", "Let's go!");
+
+  const refresh = () =>
+    void queryClient.invalidateQueries({ queryKey: getGetOnboardingQueryOptions(orgId ?? "").queryKey });
+
+  const goTo = (i: number) => setActive(STEPS[Math.max(0, Math.min(STEPS.length - 1, i))].key);
 
   const finish = async () => {
     if (!orgId) return;
-    setBusy(true);
+    setFinishing(true);
     try {
-      await completeOnboarding(orgId);
-      void queryClient.invalidateQueries({ queryKey: getGetOnboardingQueryOptions(orgId).queryKey });
-      toast.success(t("onboarding.finishedToast", "Setup complete — welcome aboard!"));
+      const updated = await completeOnboarding(orgId);
+      // Seed the cache synchronously so the /_app gate sees `completed: true`
+      // immediately and doesn't bounce us back into the wizard on landing.
+      queryClient.setQueryData(getGetOnboardingQueryOptions(orgId).queryKey, updated);
+      // Celebrate, then drop them into their dashboard.
+      setCelebrating(true);
+      await new Promise((r) => setTimeout(r, 1800));
       void navigate({ to: "/" });
     } catch (e) {
       toast.error(getErrorMessage(e));
-    } finally {
-      setBusy(false);
+      setFinishing(false);
     }
+  };
+
+  const skip = () => {
+    try {
+      sessionStorage.setItem(ONBOARDING_SKIP_KEY, "1");
+    } catch {
+      /* private mode — gate just falls through to the dashboard anyway */
+    }
+    void navigate({ to: "/" });
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-10">
-        <header className="flex items-center gap-4">
-          {orgLogo ? <img src={orgLogo} alt={t("onboarding.welcome.logo")} className="size-14 shrink-0 rounded-2xl object-cover" /> : <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground"><Sparkles className="size-6" /></span>}
+      {celebrating ? <Celebration /> : null}
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
+        {/* Top bar */}
+        <header className="mb-8 flex items-center gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand">
+            <Sparkles className="size-5" aria-hidden="true" />
+          </span>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-semibold tracking-tight">{t("onboarding.welcome.title", "Welcome to Madar")}</h1>
-            <p className="text-sm text-muted-foreground">{t("onboarding.welcome.description", "Let's get your restaurant set up. A few quick steps and you're ready to take orders.")}</p>
+            <h1 className="text-lg font-semibold tracking-tight">{t("onboarding.title", "Let's open your café")}</h1>
+            <p className="text-sm text-muted-foreground">{t("onboarding.subtitle", "A few quick steps — watch your dashboard come to life as you go.")}</p>
           </div>
+          <Button variant="ghost" onClick={skip}>{t("onboarding.skip", "Skip for now")}</Button>
         </header>
 
-        <Card>
-          <CardContent className="flex items-center gap-5 p-5">
-            <CoverageRing ratio={status?.recipe_coverage ?? 0} label={t("analytics.share", "coverage")} />
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">{t("onboarding.recipeCoverage", "Recipe cost coverage")}</p>
-              <p className="text-xs text-muted-foreground">{t("onboarding.recipeCoverageHint", "Add ingredient recipes so every item has a known cost.")}</p>
-              <p className="pt-1 text-xs font-medium">{t("onboarding.progress", { done: requiredDone, total: requiredTotal, defaultValue: `${requiredDone} of ${requiredTotal} required steps done` })}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-2">
-          {q.isError ? (
-            <div className="flex flex-col items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center">
-              <AlertCircle className="size-8 text-destructive" aria-hidden="true" />
-              <p className="text-sm font-semibold text-destructive">{t("onboarding.loadError", "Couldn't load your setup checklist")}</p>
-              <p className="text-xs text-muted-foreground">{t("onboarding.loadErrorHint", "Check your connection and try again.")}</p>
-              <Button variant="outline" size="sm" onClick={() => q.refetch()}>{t("common.refresh")}</Button>
-            </div>
-          ) : q.isLoading ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
-            : steps.map((step) => {
-              const meta = STEP_META[step.key] ?? { icon: Check, to: "/" };
-              const Icon = meta.icon;
-              return (
-                <Card key={step.key} className={cn(step.done && "bg-muted/40")}>
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <span className={cn("grid size-10 shrink-0 place-items-center rounded-xl", step.done ? "bg-success/15 text-success" : "bg-primary/10 text-primary")}>
-                      {step.done ? <Check className="size-5" /> : <Icon className="size-5" />}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="flex items-center gap-2 text-sm font-semibold">
-                        {t(`onboarding.stepKeys.${step.key}`, step.key)}
-                        {!step.required ? <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">{t("onboarding.optionalTag", "Optional")}</span> : null}
-                      </p>
-                      {step.count > 0 ? <p className="text-xs text-muted-foreground">{t("onboarding.countAdded", { count: step.count, defaultValue: `${step.count} added` })}</p> : null}
-                    </div>
-                    <Button asChild variant={step.done ? "ghost" : "outline"} size="sm">
-                      <Link to={meta.to}>{step.done ? t("onboarding.review", "Review") : t("onboarding.setUp", "Set up")} <ArrowRight className="size-4 rtl:rotate-180" /></Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
+        {/* Required-progress — playful "X% ready" + a cheer */}
+        <div className="mb-8">
+          <div className="mb-1.5 flex items-center justify-between text-xs font-medium">
+            <span className="text-muted-foreground">
+              {t("onboarding.readyPct", { pct, defaultValue: `${pct}% ready to open` })}
+            </span>
+            <span className="text-brand">{cheer}</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted" aria-hidden="true">
+            <div
+              className="h-full rounded-full bg-brand transition-[width] duration-700 ease-out motion-reduce:transition-none"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
         </div>
 
-        <div className="flex flex-col gap-3 border-t pt-5">
-          <Button size="lg" disabled={!status?.can_complete || busy} loading={busy} onClick={finish}>
-            {t("onboarding.finish", "Finish setup")}
-          </Button>
-          {!status?.can_complete ? <p className="text-center text-xs text-muted-foreground">{t("onboarding.finishHint", "Complete the required steps above to finish.")}</p> : null}
-          <Button asChild variant="ghost"><Link to="/">{t("onboarding.skipToDashboard", "Skip to dashboard")}</Link></Button>
-        </div>
+        {q.isError ? (
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 px-6 py-16 text-center">
+            <AlertCircle className="size-8 text-destructive" aria-hidden="true" />
+            <p className="text-sm font-semibold text-destructive">{t("onboarding.loadError", "Couldn't load your setup")}</p>
+            <Button variant="outline" size="sm" onClick={() => q.refetch()}>{t("common.refresh", "Retry")}</Button>
+          </div>
+        ) : q.isLoading || !orgId ? (
+          <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)_minmax(0,1.05fr)]">
+            <Skeleton className="hidden h-96 lg:block" />
+            <Skeleton className="h-96" />
+            <Skeleton className="h-96" />
+          </div>
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)_minmax(0,1.05fr)]">
+            <aside className="hidden lg:block">
+              <StepNavigator byKey={byKey} activeKey={activeKey} onSelect={setActive} canComplete={canComplete} />
+            </aside>
+
+            <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <StepPanel
+                orgId={orgId}
+                activeKey={activeKey}
+                byKey={byKey}
+                canComplete={canComplete}
+                refresh={refresh}
+                onPrev={() => goTo(activeIndex - 1)}
+                onNext={() => goTo(activeIndex + 1)}
+                isFirst={activeIndex <= 0}
+                onFinish={finish}
+                finishing={finishing}
+              />
+            </section>
+
+            <section>
+              <DashboardMirror
+                byKey={byKey}
+                recipeCoverage={status?.recipe_coverage ?? 0}
+                orgName={orgQ.data?.name}
+                orgLogo={orgQ.data?.logo_url}
+              />
+            </section>
+          </div>
+        )}
       </div>
     </div>
   );

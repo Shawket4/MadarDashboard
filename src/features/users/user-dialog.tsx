@@ -21,6 +21,12 @@ import { invalidateUsers } from "./util";
 
 const ALL_ROLES: UserRole[] = ["super_admin", "org_admin", "branch_manager", "teller", "waiter", "kitchen"];
 
+/** POS roles sign in on the till with a PIN — no email/password. Dashboard
+ *  roles sign in to the web app with email + password — no PIN. The form only
+ *  ever shows the credential a given role actually uses. */
+const POS_ROLES: UserRole[] = ["teller", "waiter", "kitchen"];
+const isPosRole = (r: UserRole) => POS_ROLES.includes(r);
+
 interface Props {
   orgId: string;
   user: UserPublic | null;
@@ -44,17 +50,34 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
 
   const schema = useMemo(
     () =>
-      z.object({
-        name: z.string().min(1, t("common.requiredField", "This field is required")),
-        email: z.string().email(t("common.invalidEmail", "Invalid email")).optional().or(z.literal("")),
-        phone: z.string().optional(),
-        role: z.enum(["super_admin", "org_admin", "branch_manager", "teller", "waiter", "kitchen"]),
-        org_id: z.string().optional(),
-        pin: z.string().regex(/^\d{4,6}$/, t("users.pinError", "PIN must be 4-6 digits")).optional().or(z.literal("")),
-        password: z.string().optional(),
-        is_active: z.boolean(),
-      }),
-    [t],
+      z
+        .object({
+          name: z.string().min(1, t("common.requiredField", "This field is required")),
+          email: z.string().email(t("common.invalidEmail", "Invalid email")).optional().or(z.literal("")),
+          phone: z.string().optional(),
+          role: z.enum(["super_admin", "org_admin", "branch_manager", "teller", "waiter", "kitchen"]),
+          org_id: z.string().optional(),
+          pin: z.string().regex(/^\d{4,6}$/, t("users.pinError", "PIN must be 4-6 digits")).optional().or(z.literal("")),
+          password: z.string().optional(),
+          is_active: z.boolean(),
+        })
+        // Require only the credential the selected role actually uses. On edit,
+        // a blank credential means "keep the current one", so it's not required.
+        .superRefine((v, ctx) => {
+          if (isPosRole(v.role)) {
+            if (!editing && !v.pin) {
+              ctx.addIssue({ path: ["pin"], code: z.ZodIssueCode.custom, message: t("users.pinRequired", "PIN is required") });
+            }
+          } else {
+            if (!v.email) {
+              ctx.addIssue({ path: ["email"], code: z.ZodIssueCode.custom, message: t("users.emailRequired", "Email is required") });
+            }
+            if (!editing && !v.password) {
+              ctx.addIssue({ path: ["password"], code: z.ZodIssueCode.custom, message: t("users.passwordRequired", "Password is required") });
+            }
+          }
+        }),
+    [t, editing],
   );
   type Values = z.infer<typeof schema>;
 
@@ -81,17 +104,26 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
 
   const submit = async (v: Values) => {
     setBusy(true);
+    // Only send the credential the role uses — POS roles carry a PIN and no
+    // email/password; dashboard roles carry email + password and no PIN.
+    const posRole = isPosRole(v.role);
+    const email = posRole ? null : v.email || null;
+    const cred = posRole
+      ? v.pin
+        ? { pin: v.pin }
+        : {}
+      : v.password
+        ? { password: v.password }
+        : {};
     try {
       if (user) {
         await updateUser(user.id, {
-          name: v.name, email: v.email || null, phone: v.phone || null, role: v.role, is_active: v.is_active,
-          ...(v.pin ? { pin: v.pin } : {}), ...(v.password ? { password: v.password } : {}),
+          name: v.name, email, phone: v.phone || null, role: v.role, is_active: v.is_active, ...cred,
         });
       } else {
         await createUser({
           name: v.name, role: v.role, org_id: (isSuperAdmin ? v.org_id : orgId) || orgId,
-          email: v.email || null, phone: v.phone || null,
-          ...(v.pin ? { pin: v.pin } : {}), ...(v.password ? { password: v.password } : {}),
+          email, phone: v.phone || null, ...cred,
         });
       }
       void invalidateUsers();
@@ -103,6 +135,9 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
       setBusy(false);
     }
   };
+
+  const selectedRole = form.watch("role");
+  const pos = isPosRole(selectedRole);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -116,26 +151,8 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem><FormLabel>{t("users.fullName", "Full Name")}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <FormField control={form.control} name="email" render={({ field }) => (
-                <FormItem><FormLabel>{t("auth.email", "Email")}</FormLabel><FormControl><Input type="email" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="phone" render={({ field }) => (
-                <FormItem><FormLabel>{t("users.phone", "Phone")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
-              )} />
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <FormField control={form.control} name="pin" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("users.pin", "PIN (4-6 digits)")}</FormLabel>
-                  <FormControl><Input type="password" inputMode="numeric" maxLength={6} {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ""))} placeholder={editing ? "••••" : ""} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="password" render={({ field }) => (
-                <FormItem><FormLabel>{t("auth.password", "Password")}</FormLabel><FormControl><Input type="password" {...field} value={field.value ?? ""} placeholder={editing ? t("users.leaveBlank", "Leave blank to keep") : t("common.optional", "Optional")} /></FormControl><FormMessage /></FormItem>
-              )} />
-            </div>
+
+            {/* Role first — it decides which credential the rest of the form asks for. */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField control={form.control} name="role" render={({ field }) => (
                 <FormItem>
@@ -158,8 +175,42 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
                     <FormMessage />
                   </FormItem>
                 )} />
-              ) : null}
+              ) : (
+                <FormField control={form.control} name="phone" render={({ field }) => (
+                  <FormItem><FormLabel>{t("users.phone", "Phone")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
+                )} />
+              )}
             </div>
+            {isSuperAdmin && !editing ? (
+              <FormField control={form.control} name="phone" render={({ field }) => (
+                <FormItem><FormLabel>{t("users.phone", "Phone")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
+              )} />
+            ) : null}
+
+            {/* Credentials — only what the selected role actually uses. */}
+            {pos ? (
+              <FormField control={form.control} name="pin" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("users.pin", "PIN (4-6 digits)")}</FormLabel>
+                  <FormControl><Input type="password" inputMode="numeric" maxLength={6} {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ""))} placeholder={editing ? "••••" : ""} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <FormField control={form.control} name="email" render={({ field }) => (
+                  <FormItem><FormLabel>{t("auth.email", "Email")}</FormLabel><FormControl><Input type="email" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="password" render={({ field }) => (
+                  <FormItem><FormLabel>{t("auth.password", "Password")}</FormLabel><FormControl><Input type="password" {...field} value={field.value ?? ""} placeholder={editing ? t("users.leaveBlank", "Leave blank to keep") : ""} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {pos
+                ? t("users.posCredHint", "Signs in on the POS app with this PIN — no email or password.")
+                : t("users.dashCredHint", "Signs in to the dashboard with email + password — no PIN.")}
+            </p>
             {editing ? (
               <FormField control={form.control} name="is_active" render={({ field }) => (
                 <FormItem className="flex items-center justify-between rounded-lg bg-muted p-3">

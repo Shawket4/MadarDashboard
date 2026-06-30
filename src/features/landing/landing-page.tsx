@@ -40,7 +40,7 @@ import { useLenis } from "./use-lenis";
  *
  * Standalone on get.madar-pos.cloud. Editorial, hospitable, bilingual-by-symmetry,
  * with varied scroll-reveals and smooth-scroll flow. Real product shots: the
- * bilingual dashboard, the SwiftUI POS (iPad), and the public ordering journey
+ * bilingual dashboard, the native POS (iPad, Android, Mac, Windows, Linux), and the public ordering journey
  * (menu → customise → cart → track), captured EN + AR.
  * ────────────────────────────────────────────────────────────────────────── */
 
@@ -657,7 +657,7 @@ function PosShowcase({ lang, dark }: { lang: string; dark: boolean }) {
           title={t("landing.pos.title", "A native point of sale, built for the rush")}
           subtitle={t(
             "landing.pos.subtitle",
-            "A fast SwiftUI app for the counter — browse the menu, build a cart, split a bill, take cash with live change, fire to the kitchen, and close the drawer with a Z-report. Offline-first, so the line never stops.",
+            "A fast native app for the counter — on iPad, Android, Mac, Windows or Linux. Browse the menu, build a cart, split a bill, take cash with live change, fire to the kitchen, and close the drawer with a Z-report. Offline-first, so the line never stops.",
           )}
         />
 
@@ -856,7 +856,7 @@ const FAQ_ITEMS = [
   {
     key: "devices",
     q: "What devices does it run on?",
-    a: "The point of sale is a fast native iPad app, and the management dashboard runs in any web browser (and as a desktop app). Customers order from any phone — no install needed.",
+    a: "The point of sale is a fast native app that runs on iPad, Android, Mac, Windows and Linux — every platform sharing one core, so it behaves identically everywhere. The management dashboard runs in any web browser (and as a desktop app). Customers order from any phone — no install needed.",
   },
 ] as const;
 

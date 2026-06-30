@@ -106,6 +106,7 @@
     "shifts": "Shifts",
     "analytics": "Analytics",
     "orders": "Orders",
+    "reservations": "Reservations",
     "discounts": "Discounts",
     "bundles": "Bundles",
     "branchOverrides": "Branch Overrides",
@@ -323,6 +324,11 @@
     "deletedToast": "User deleted",
     "pickOrg": "Select an organization",
     "pinError": "PIN must be 4-6 digits",
+    "pinRequired": "PIN is required",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "posCredHint": "Signs in on the POS app with this PIN — no email or password.",
+    "dashCredHint": "Signs in to the dashboard with email + password — no PIN.",
     "leaveBlank": "Leave blank to keep"
   },
   "permissions": {
@@ -1028,6 +1034,90 @@
     "ingredient": "Ingredient",
     "unit": "Unit"
   },
+  "reservations": {
+    "title": "Reservations",
+    "pageSubtitle": "Floor plan, reservations & waitlist, and smart-nudge settings for this branch.",
+    "pickBranch": "Select a branch in the top bar to manage its reservations",
+    "tabBoard": "Board",
+    "tabFloor": "Floor plan",
+    "tabSettings": "Settings",
+    "reservations": "Reservations",
+    "waitlist": "Waitlist",
+    "none": "None",
+    "newBooking": "New booking",
+    "bookingHint": "Add a reservation (with a time) or a walk-in to the waitlist (no time).",
+    "bookingCreated": "Booking created",
+    "bookingUpdated": "Booking updated",
+    "noBookings": "No active bookings",
+    "noBookingsHint": "Reservations and waitlist parties appear here.",
+    "customerName": "Customer name",
+    "phone": "Phone",
+    "partySize": "Party size",
+    "reservedFor": "Reservation time",
+    "reservedForHint": "Leave empty to add to the waitlist (seat now).",
+    "notes": "Notes",
+    "seat": "Seat",
+    "notify": "Notify",
+    "nudgeSent": "Nudge sent",
+    "seatParty": "Seat {{name}}",
+    "confirmSeat": "Seat ({{n}})",
+    "seated": "Party seated",
+    "noTablesToSeat": "No tables — add some in the Floor tab.",
+    "markConfirmed": "Confirm",
+    "markArrived": "Mark arrived",
+    "markCompleted": "Complete",
+    "markNoShow": "No-show",
+    "markCancelled": "Cancel",
+    "addSection": "Add section",
+    "sectionCreated": "Section created",
+    "areaN": "Area {{n}}",
+    "unassigned": "Unassigned",
+    "newTable": "New table",
+    "editTable": "Edit table",
+    "tableHint": "Tables seat parties and back dine-in tickets.",
+    "tableLabel": "Label",
+    "seats": "Seats",
+    "seatsShort": "seats",
+    "shape": "Shape",
+    "shapeRect": "Rectangle",
+    "shapeCircle": "Circle",
+    "section": "Section",
+    "noSection": "No section",
+    "tableCreated": "Table created",
+    "tableUpdated": "Table updated",
+    "tableDeleted": "Table deleted",
+    "saveLayout": "Save layout",
+    "layoutSaved": "Layout saved",
+    "noTables": "No tables here yet",
+    "noTablesHint": "Add a table, then drag it to position it on the floor.",
+    "setStatus": "Set status",
+    "selectTableHint": "Select a table to set its status, edit, or delete it. Drag tables to arrange the floor, then Save layout.",
+    "status_free": "Free",
+    "status_held": "Held",
+    "status_seated": "Seated",
+    "status_dirty": "Dirty",
+    "status_requested": "Requested",
+    "status_confirmed": "Confirmed",
+    "status_notified": "Notified",
+    "status_arrived": "Arrived",
+    "status_completed": "Completed",
+    "status_no_show": "No-show",
+    "status_cancelled": "Cancelled",
+    "settingsTitle": "Reservation settings",
+    "settingsSubtitle": "Control intake and the smart-nudge timing for this branch.",
+    "settingsSaved": "Settings saved",
+    "acceptingReservations": "Accept reservations",
+    "acceptingReservationsHint": "Allow guests to book a future time online.",
+    "acceptingWaitlist": "Accept waitlist",
+    "acceptingWaitlistHint": "Allow guests to join the live waitlist (seat now).",
+    "leadMinutes": "Departure nudge lead (min)",
+    "leadMinutesHint": "WhatsApp this many minutes before the reservation time.",
+    "graceMinutes": "No-show grace (min)",
+    "graceMinutesHint": "Warn the guest this long after their time if they haven't arrived.",
+    "holdLeadMinutes": "Table hold lead (min)",
+    "holdLeadMinutesHint": "Hold a pre-assigned table this long before the booking.",
+    "slotMinutes": "Slot size (min)"
+  },
   "shifts": {
     "teller": "Teller",
     "title": "Shifts",
@@ -1593,7 +1683,7 @@
         "n": "1",
         "title": "True Offline Resilience",
         "lede": "No half-measures. It just works.",
-        "body": "We don't use fragile caching. The iPad utilizes a secure write-ahead queue to store orders, cash movements, and shift opens locally. When the internet comes back, it syncs flawlessly without double-charging or lost sales."
+        "body": "We don't use fragile caching. The POS app utilizes a secure write-ahead queue to store orders, cash movements, and shift opens locally. When the internet comes back, it syncs flawlessly without double-charging or lost sales."
       },
       "02": {
         "n": "2",
@@ -1637,19 +1727,19 @@
       "04": {
         "n": "4",
         "title": "Operating without a ledger.",
-        "body": "A POS that lets you ring sales without forcing the cash counts to reconcile is just an iPad calculator. Not a real accounting tool."
+        "body": "A POS that lets you ring sales without forcing the cash counts to reconcile is just a glorified calculator. Not a real accounting tool."
       }
     }
   },
   "tellerHero": {
     "eyebrow": "Chapter 3 · The teller",
     "title": "Where the operation\nmeets the customer.",
-    "caption": "The Madar teller — iPad, offline-first."
+    "caption": "The Madar teller — native, offline-first."
   },
   "tellerDetail": {
     "eyebrow": "Chapter 3 · The Teller, continued",
     "title": "Built for speed\nof service.",
-    "body": "Orders ring up in seconds. Modifiers are handled fluidly. First-class support for both Star and Epson printers without wonky drivers. Every action is saved instantly to the iPad first, then syncs backwards to the operation.",
+    "body": "Orders ring up in seconds. Modifiers are handled fluidly. First-class support for both Star and Epson printers without wonky drivers. Every action is saved instantly to the device first, then syncs backwards to the operation.",
     "details": {
       "01": {
         "title": "Split Payments",
@@ -1710,7 +1800,7 @@
     "details": {
       "01": {
         "title": "Write-Ahead Queue",
-        "body": "A ledger on your iPad that safely queues every action."
+        "body": "A ledger on every device that safely queues every action."
       },
       "02": {
         "title": "Idempotent Sync",
@@ -2008,7 +2098,7 @@
     "pos": {
       "eyebrow": "The counter",
       "title": "A native point of sale, built for the rush",
-      "subtitle": "A fast SwiftUI app for the counter — browse the menu, build a cart, split a bill, take cash with live change, fire to the kitchen, and close the drawer with a Z-report. Offline-first, so the line never stops.",
+      "subtitle": "A fast native app for the counter — on iPad, Android, Mac, Windows or Linux. Browse the menu, build a cart, split a bill, take cash with live change, fire to the kitchen, and close the drawer with a Z-report. Offline-first, so the line never stops.",
       "shots": {
         "order": { "title": "Order & cart", "desc": "Browse the branch menu, build a cart and watch totals add up live — on one fast screen." },
         "tender": { "title": "Tender & split", "desc": "Split a bill across payment methods, take cash with live change, add a tip, then print." },
@@ -2053,103 +2143,149 @@
       "contact": "Contact us"
     }
   },
+  "demo": {
+    "title": "You're exploring a live demo",
+    "body": "Changes are temporary and reset in {{time}}.",
+    "reset": "Reset"
+  },
   "onboarding": {
-    "title": "Set up your restaurant",
+    "title": "Let's open your café",
+    "subtitle": "A few quick steps — watch your dashboard come to life as you go.",
+    "readyPct": "{{pct}}% ready to open",
+    "cheer": {
+      "go": "Let's go!",
+      "start": "Nice start!",
+      "half": "Halfway there!",
+      "most": "Almost there!",
+      "done": "Ready to open!"
+    },
+    "celebrate": {
+      "title": "Your café is open! 🎉",
+      "body": "Taking you to your dashboard…"
+    },
+    "skip": "Skip for now",
     "back": "Back",
     "continue": "Continue",
-    "skipStep": "Skip for now",
-    "skipSetup": "Finish setup now →",
-    "steps": {
-      "welcome": "Welcome",
-      "branch": "Branch",
-      "payments": "Payments",
-      "menu": "Menu",
-      "costs": "Ingredient costs",
-      "addons": "Addons",
-      "team": "Team",
-      "review": "Review & finish"
-    },
-    "stepKeys": {
-      "branch": "Create a branch",
-      "payment_methods": "Payment methods",
-      "categories": "Menu categories",
-      "menu_items": "Menu items",
-      "ingredients": "Ingredient catalog",
-      "recipes": "Recipes & costs",
-      "addons": "Addons & extras",
-      "team": "Invite your team",
-      "first_order": "Ring up your first order"
-    },
-    "welcome": {
-      "title": "Welcome to Madar",
-      "description": "Let's get your restaurant set up. A few quick steps and you're ready to take orders.",
-      "pickingUp": "Picking up where you left off — some steps are already done.",
-      "jumpToNext": "Jump to next step",
-      "orgName": "Restaurant name",
-      "orgNamePh": "e.g. Cairo Coffee House",
-      "logo": "Logo"
-    },
-    "branch": {
-      "title": "Create your first branch",
-      "description": "A branch is a physical location — every shift, order and stock count lives under one.",
-      "doneHint": "Branch created — you can add more locations any time.",
-      "emptyTitle": "No branches yet",
-      "emptyDescription": "Add your first location to unlock shifts and orders.",
-      "add": "Create branch",
-      "addAnother": "Add another branch"
-    },
-    "payments": {
-      "title": "How do customers pay?",
-      "description": "These methods are already on — confirm them and switch off anything you don't take.",
-      "noneActive": "At least one active payment method is needed before you can finish setup.",
-      "addCustom": "Add custom method"
-    },
-    "menu": {
-      "title": "Build your menu",
-      "description": "Create at least one category and one item — you can fill in the rest later.",
-      "noCategories": "No categories yet",
-      "noItems": "No items yet",
-      "categoryFirst": "Create a category first"
-    },
-    "costs": {
-      "title": "Ingredient costs (recommended)",
-      "description": "Add ingredient costs and Madar computes profit per item — margins, food cost % and your menu's stars.",
-      "coverageLabel": "Recipe coverage",
-      "openRecipes": "Open recipe editor",
-      "emptyHint": "Add your first ingredient with its cost per unit to start tracking profit."
-    },
-    "addons": {
-      "title": "Addons & extras",
-      "description": "Extra shots, toppings, sides — anything customers add onto an item.",
-      "emptyTitle": "No addons yet",
-      "emptyDescription": "Optional — you can add these any time from the menu screen.",
-      "add": "Add addon"
-    },
-    "team": {
-      "title": "Invite your team",
-      "description": "Add tellers and managers so they can open shifts and ring up orders.",
-      "emptyTitle": "Just you so far",
-      "emptyDescription": "Optional — invite your team now or later from the Users screen.",
-      "add": "Add team member"
-    },
-    "review": "Review",
-    "checklist": {
-      "title": "Finish setting up",
-      "firstOrderHint": "Open a shift on the iPad and ring up your first order"
-    },
-    "lockedHint": "Complete the required steps to enter the dashboard",
-    "recipeCoverage": "Recipe cost coverage",
-    "recipeCoverageHint": "Add ingredient recipes so every item has a known cost.",
-    "progress": "{{done}} of {{total}} required steps done",
-    "setUp": "Set up",
-    "finish": "Finish setup",
-    "finishHint": "Complete the required steps above to finish.",
-    "finishedToast": "Setup complete — welcome aboard!",
-    "skipToDashboard": "Skip to dashboard",
-    "optionalTag": "Optional",
+    "optional": "Optional",
     "countAdded": "{{count}} added",
-    "loadError": "Couldn't load your setup checklist",
-    "loadErrorHint": "Check your connection and try again."
+    "navLabel": "Setup steps",
+    "loadError": "Couldn't load your setup",
+    "finishedToast": "Your café is open — welcome aboard!",
+    "stages": {
+      "cafe": "Your café",
+      "branch": "Your branch",
+      "pay": "Get paid",
+      "menu": "Your menu",
+      "team": "Your team",
+      "live": "Go live"
+    },
+    "steps": {
+      "org_profile": {
+        "title": "Name your café",
+        "desc": "Add your name, logo and currency — they show up across the dashboard and your customers' menu.",
+        "name": "Café name",
+        "namePh": "e.g. Madar Coffee",
+        "currency": "Currency",
+        "save": "Save & continue",
+        "saved": "Café details saved.",
+        "logoHint": "PNG, JPG or WebP",
+        "logoCopy": "Add your logo — it shows up across the dashboard, receipts and your customers' menu."
+      },
+      "branch": {
+        "title": "Add your first branch",
+        "desc": "Every order, shift and report rolls up by branch. Add your first location to begin.",
+        "cta": "Add a branch",
+        "addAnother": "Add another branch",
+        "added": "{{count}} branch added — nicely done.",
+        "empty": "No branch yet — add your first to put your café on the map."
+      },
+      "payment_methods": {
+        "title": "How you get paid",
+        "desc": "Cash, card, wallet — set up the ways customers pay so the drawer balances.",
+        "cta": "Add a payment method",
+        "addAnother": "Add another method",
+        "added": "{{count}} payment methods ready.",
+        "empty": "Add at least one way to take payment."
+      },
+      "ingredients": {
+        "title": "Stock your pantry",
+        "desc": "Add the ingredients you buy and what they cost — this powers recipe costing and inventory.",
+        "cta": "Add an ingredient",
+        "addAnother": "Add another ingredient",
+        "added": "{{count}} ingredients in your catalog.",
+        "empty": "Optional, but adding ingredients unlocks true cost and margin."
+      },
+      "categories": {
+        "title": "Organize your menu",
+        "desc": "Group your menu into categories like Hot Drinks or Pastries.",
+        "cta": "Add a category",
+        "addAnother": "Add another category",
+        "added": "{{count}} categories created.",
+        "empty": "Add a category — every item lives in one."
+      },
+      "menu_items": {
+        "title": "Build your menu",
+        "desc": "Add what you sell, with prices and sizes. You can add a recipe and add-ons right here too.",
+        "cta": "Add a menu item",
+        "addAnother": "Add another item",
+        "added": "{{count}} on the menu board.",
+        "empty": "Build your first item — set its price, sizes, recipe and add-ons in one go.",
+        "needCategory": "Add a category first — every item lives in one."
+      },
+      "addons": {
+        "title": "Add-ons & extras",
+        "desc": "Extra shot, oat milk, large size — optional add-ons customers can choose.",
+        "cta": "Add an add-on",
+        "addAnother": "Add another add-on",
+        "added": "{{count}} add-ons available.",
+        "empty": "Optional — create extras customers can add to an item."
+      },
+      "recipes": {
+        "title": "Recipes & costs",
+        "desc": "Give items a recipe so Madar knows the cost and margin of everything you sell.",
+        "intro": "Open an item and add its recipe — Madar then knows the cost and margin of everything you sell.",
+        "noItems": "Add a menu item first, then come back to give it a recipe.",
+        "addFor": "Add recipe"
+      },
+      "team": {
+        "title": "Invite your team",
+        "desc": "Add managers and tellers so your staff can run shifts and take orders.",
+        "cta": "Add a team member",
+        "addAnother": "Add another member",
+        "added": "{{count}} team members added.",
+        "empty": "Optional — invite your managers and tellers."
+      },
+      "go_live": {
+        "title": "Open your café",
+        "desc": "The finish line — open up and start taking orders.",
+        "heading": "Ready to open your café",
+        "ready": "The essentials are in place. Open your café and start taking orders — you can keep refining anytime.",
+        "notReady": "Finish the required steps (branch, payments, a category and a menu item) to open your café.",
+        "cta": "Open my café"
+      }
+    },
+    "mirror": {
+      "branches": "Branches",
+      "payments": "Payment methods",
+      "categories": "Categories",
+      "items": "Menu items",
+      "ingredients": "Ingredients",
+      "addons": "Add-ons",
+      "team": "Team",
+      "coverage": "Recipe cost coverage",
+      "coverageHint": "Add recipes to know every item's margin.",
+      "sales": "Today's sales",
+      "salesLocked": "Unlocks with your first order",
+      "firstSale": "First sale in!",
+      "yourCafe": "Your café",
+      "dashboard": "Dashboard",
+      "preview": "Live preview"
+    },
+    "nudge": {
+      "title": "Your café is open · {{done}}/{{total}} set up",
+      "body": "Keep building — add recipes, your team and more to unlock cost insights.",
+      "cta": "Keep building"
+    }
   },
   "scope": {
     "selectBranch": "Select branch",

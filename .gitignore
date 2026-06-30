@@ -42,3 +42,7 @@ src-tauri/gen/
 screenshots/*.png
 dist-order
 dist-get
+dist-demo
+
+# Rendered reel videos — large binaries, never commit to git history
+brag-output/*.mp4

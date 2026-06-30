@@ -7,6 +7,7 @@ import {
   BookText,
   Boxes,
   Building2,
+  CalendarCheck,
   ChefHat,
   ClipboardList,
   Clock,
@@ -69,6 +70,7 @@ export const NAV: NavGroup[] = [
     fallback: "Operations",
     entries: [
       { to: "/orders", labelKey: "nav.orders", fallback: "Orders", icon: Receipt },
+      { to: "/reservations", labelKey: "nav.reservations", fallback: "Reservations", icon: CalendarCheck },
       { to: "/shifts", labelKey: "nav.shifts", fallback: "Shifts", icon: Clock },
       {
         labelKey: "nav.inventory",

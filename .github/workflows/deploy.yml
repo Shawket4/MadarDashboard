@@ -35,6 +35,11 @@ jobs:
           VITE_API_URL: https://get.madar-pos.cloud/api
           VITE_DASHBOARD_URL: https://madar-pos.cloud
 
+      - name: Build demo dashboard (VITE_DEMO — talks to the isolated demo API)
+        run: npm run build:demo
+        env:
+          VITE_API_URL: https://demo-api.madar-pos.cloud
+
       - name: Deploy dashboard to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -63,6 +68,16 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "dist-get/*"
           target: "/var/www/madar-get"
+          strip_components: 1
+
+      - name: Deploy demo dashboard to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "dist-demo/*"
+          target: "/var/www/madar-demo"
           strip_components: 1
 
       - name: Reload Nginx

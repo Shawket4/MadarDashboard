@@ -330,8 +330,9 @@ export function BrowserFrame({
 }
 
 /**
- * An iPad (landscape) bezel for the SwiftUI POS shots. The POS renders its wide
- * iPad/desktop layout; content area is 4:3 with object-contain so off-aspect
+ * An iPad (landscape) bezel for the native POS shots (captured on iPad; the POS
+ * also ships native on Android, Mac, Windows and Linux). The POS renders its wide
+ * tablet/desktop layout; content area is 4:3 with object-contain so off-aspect
  * captures letterbox rather than crop.
  */
 export function IpadFrame({ children, className }: { children: ReactNode; className?: string }) {
