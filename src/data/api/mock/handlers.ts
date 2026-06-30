@@ -1,28 +1,57 @@
 import { http, HttpResponse } from "msw";
 
+import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import {
+  MOCK_ADDON_CATALOG,
   MOCK_ADDON_ITEMS,
+  MOCK_ADDON_SALES,
+  MOCK_ADVISOR_RUN,
+  MOCK_BRANCH_ADDON_OVERRIDES,
+  MOCK_BRANCH_MENU_OVERRIDES,
   MOCK_BRANCH_SALES,
+  MOCK_BRANCH_STOCK,
   MOCK_BRANCHES,
+  MOCK_BUNDLE_PERFORMANCE,
+  MOCK_BUNDLE_SUGGESTIONS,
+  MOCK_BUNDLES,
   MOCK_CATEGORIES,
+  MOCK_COMBINED_ITEM_SALES,
   MOCK_COMPARISON,
+  MOCK_CONSUMPTION,
+  MOCK_CURRENT_SHIFT,
   MOCK_DELIVERY_SALES,
+  MOCK_DELIVERY_SETTINGS,
   MOCK_INGREDIENT_CATALOG,
   MOCK_INVENTORY_SETTINGS,
   MOCK_INVENTORY_VALUATION,
   MOCK_LOW_STOCK,
   MOCK_MENU_CATALOG,
+  MOCK_MENU_ENGINEERING,
   MOCK_MENU_ITEMS,
   MOCK_ORDERS_PAGE,
   MOCK_ORG,
+  MOCK_PO_LINES,
+  MOCK_PRICE_SUGGESTIONS,
   MOCK_PUBLIC_MENU,
   MOCK_PURCHASE_ORDERS,
+  MOCK_QR,
+  MOCK_REMOVAL_SCENARIOS,
+  MOCK_REORDER_SUGGESTIONS,
+  MOCK_SHIFT_REPORT,
+  MOCK_SHRINKAGE,
   MOCK_STOCKTAKES,
   MOCK_SUPPLIERS,
+  MOCK_TELLER_STATS,
+  MOCK_USERS,
+  MOCK_VARIANCE_REPORT,
+  MOCK_WASTE,
   MOCK_PEAK_HOURS,
   MOCK_TIMESERIES,
   MOCK_TOKEN,
   MOCK_USER,
+  bundlesPage,
+  permissionMatrix,
+  shiftsPage,
 } from "./data";
 
 const PUBLIC_BRANCHES = [
@@ -164,7 +193,9 @@ export const handlers = [
   http.get("*/me", () =>
     HttpResponse.json({ user: MOCK_USER, currency_code: "EGP", tax_rate: 0.14 }),
   ),
-  http.get("*/permissions*", () => HttpResponse.json({ permissions: [] })),
+  // The current user's permission list (auth bootstrap). Scoped to the real API
+  // path so it can't shadow Vite's "/src/routes/_app/permissions.tsx" module URL.
+  http.get("*/permissions/user/*", () => HttpResponse.json({ permissions: [] })),
 
   // ── OTP ───────────────────────────────────────────────────────────────────
   http.post("*/otp/request", () => HttpResponse.json({ success: true })),
@@ -193,13 +224,16 @@ export const handlers = [
   http.get("*/reports/orgs/*/low-stock", () => HttpResponse.json(MOCK_LOW_STOCK)),
   http.get("*/reports/branches/*/inventory-valuation", () => HttpResponse.json(MOCK_INVENTORY_VALUATION)),
   http.get("*/reports/branches/*/low-stock", () => HttpResponse.json(MOCK_LOW_STOCK)),
-  http.get("*/reports/branches/*/waste-report", () => HttpResponse.json([])),
-  http.get("*/reports/orgs/*/waste-report", () => HttpResponse.json([])),
-  http.get("*/reports/branches/*/consumption", () => HttpResponse.json([])),
-  http.get("*/reports/orgs/*/consumption", () => HttpResponse.json([])),
-  http.get("*/reports/branches/*/shrinkage", () => HttpResponse.json([])),
-  http.get("*/reports/orgs/*/shrinkage", () => HttpResponse.json([])),
-  http.get("*/reports/branches/*/menu-engineering", () => HttpResponse.json({ rows: [] })),
+  http.get("*/reports/branches/*/waste-report", () => HttpResponse.json(MOCK_WASTE)),
+  http.get("*/reports/orgs/*/waste-report", () => HttpResponse.json(MOCK_WASTE)),
+  http.get("*/reports/branches/*/consumption", () => HttpResponse.json(MOCK_CONSUMPTION)),
+  http.get("*/reports/orgs/*/consumption", () => HttpResponse.json(MOCK_CONSUMPTION)),
+  http.get("*/reports/branches/*/shrinkage", () => HttpResponse.json(MOCK_SHRINKAGE)),
+  http.get("*/reports/orgs/*/shrinkage", () => HttpResponse.json(MOCK_SHRINKAGE)),
+  http.get("*/reports/branches/*/items-combined", () => HttpResponse.json(MOCK_COMBINED_ITEM_SALES)),
+  http.get("*/reports/branches/*/addons", () => HttpResponse.json(MOCK_ADDON_SALES)),
+  http.get("*/reports/branches/*/tellers", () => HttpResponse.json(MOCK_TELLER_STATS)),
+  http.get("*/reports/branches/*/menu-engineering", () => HttpResponse.json(MOCK_MENU_ENGINEERING)),
 
   // ── Org ───────────────────────────────────────────────────────────────────
   http.get("*/orgs/:orgId", () => HttpResponse.json(MOCK_ORG)),
@@ -209,7 +243,34 @@ export const handlers = [
   // ── Menu ──────────────────────────────────────────────────────────────────
   http.get("*/categories", () => HttpResponse.json(MOCK_CATEGORIES)),
   http.get("*/costing/catalog", () => HttpResponse.json(MOCK_MENU_CATALOG)),
+  http.get("*/addon-items/catalog", () => HttpResponse.json(MOCK_ADDON_CATALOG)),
   http.get("*/addon-items", () => HttpResponse.json(MOCK_ADDON_ITEMS)),
+
+  // ── Bundles ───────────────────────────────────────────────────────────────
+  http.get("*/bundles/:id/performance", ({ params }) =>
+    HttpResponse.json(
+      MOCK_BUNDLE_PERFORMANCE[params.id as string] ?? {
+        sales_volume: 0, gross_revenue: 0, net_profit: 0, component_popularity: [],
+      },
+    ),
+  ),
+  http.get("*/bundles/available", () => HttpResponse.json(MOCK_BUNDLES)),
+  http.get("*/bundles", ({ request }) => {
+    const status = new URL(request.url).searchParams.get("status");
+    return HttpResponse.json(bundlesPage(status));
+  }),
+
+  // ── Branch overrides ──────────────────────────────────────────────────────
+  http.get("*/branch-menu-overrides", () => HttpResponse.json(MOCK_BRANCH_MENU_OVERRIDES)),
+  http.get("*/branch-addon-overrides", () => HttpResponse.json(MOCK_BRANCH_ADDON_OVERRIDES)),
+
+  // ── Menu Advisor ──────────────────────────────────────────────────────────
+  http.get("*/menu-advisor/branches/*/runs/active", () => HttpResponse.json(null)),
+  http.get("*/menu-advisor/branches/*/runs/latest", () => HttpResponse.json(MOCK_ADVISOR_RUN)),
+  http.get("*/menu-advisor/branches/*/runs", () => HttpResponse.json([MOCK_ADVISOR_RUN])),
+  http.get("*/menu-advisor/runs/*/price-suggestions", () => HttpResponse.json(MOCK_PRICE_SUGGESTIONS)),
+  http.get("*/menu-advisor/runs/*/bundle-suggestions", () => HttpResponse.json(MOCK_BUNDLE_SUGGESTIONS)),
+  http.get("*/menu-advisor/runs/*/removal-scenarios", () => HttpResponse.json(MOCK_REMOVAL_SCENARIOS)),
   http.get("*/menu-items/mi_espresso", () =>
     HttpResponse.json({
       id: "mi_espresso",
@@ -281,45 +342,63 @@ export const handlers = [
   // ── Inventory ─────────────────────────────────────────────────────────────
   http.get("*/inventory/orgs/*/catalog", () => HttpResponse.json(MOCK_INGREDIENT_CATALOG)),
   http.get("*/inventory/orgs/*/settings", () => HttpResponse.json(MOCK_INVENTORY_SETTINGS)),
-  http.get("*/inventory/branches/*/stock", () => HttpResponse.json([])),
+  http.get("*/inventory/branches/*/stock", () => HttpResponse.json(MOCK_BRANCH_STOCK)),
   http.get("*/inventory/branches/*/waste", () => HttpResponse.json([])),
   http.get("*/inventory/branches/*/transfers", () => HttpResponse.json([])),
 
   // ── Purchasing ────────────────────────────────────────────────────────────
+  // A single PO returns its full shape (PurchaseOrder + lines) for the receive dialog.
+  http.get("*/purchasing/orders/:poId/receipts", () => HttpResponse.json([])),
+  http.get("*/purchasing/orders/:poId", ({ params }) => {
+    const po = MOCK_PURCHASE_ORDERS.find((p) => p.id === params.poId) ?? MOCK_PURCHASE_ORDERS[0];
+    return HttpResponse.json({ ...po, lines: MOCK_PO_LINES[po.id] ?? [] });
+  }),
   http.get("*/purchasing/orgs/*/orders", () => HttpResponse.json(MOCK_PURCHASE_ORDERS)),
   http.get("*/purchasing/orgs/*/suppliers", () => HttpResponse.json(MOCK_SUPPLIERS)),
-  http.get("*/purchasing/branches/*/orders", () => HttpResponse.json(MOCK_PURCHASE_ORDERS)),
-  http.get("*/purchasing/branches/*/reorder-suggestions", () => HttpResponse.json([])),
+  http.get("*/purchasing/branches/*/reorder-suggestions", () => HttpResponse.json(MOCK_REORDER_SUGGESTIONS)),
+  http.get("*/purchasing/branches/:branchId/orders", ({ params }) => {
+    const data = params.branchId === ALL_BRANCHES_ID ? MOCK_PURCHASE_ORDERS : MOCK_PURCHASE_ORDERS.filter((p) => p.branch_id === params.branchId);
+    return HttpResponse.json(data);
+  }),
 
   // ── Stocktakes ────────────────────────────────────────────────────────────
-  http.get("*/stocktakes/branches/*", () => HttpResponse.json(MOCK_STOCKTAKES)),
+  http.get("*/stocktakes/:id/variance-report", () => HttpResponse.json(MOCK_VARIANCE_REPORT)),
+  http.get("*/stocktakes/branches/:branchId", ({ params }) => {
+    const data = params.branchId === ALL_BRANCHES_ID ? MOCK_STOCKTAKES : MOCK_STOCKTAKES.filter((s) => s.branch_id === params.branchId);
+    return HttpResponse.json(data);
+  }),
 
   // ── Admin / catalog ───────────────────────────────────────────────────────
   http.get("*/discounts", () => HttpResponse.json([])),
-  http.get("*/users", () => HttpResponse.json([])),
+  // Per-user permission matrix (resource × action) must precede the bare /users.
+  http.get("*/permissions/matrix/:userId", ({ params }) =>
+    HttpResponse.json(permissionMatrix(params.userId as string)),
+  ),
   http.get("*/permissions/matrix", () => HttpResponse.json([])),
+  http.get("*/users", () => HttpResponse.json(MOCK_USERS)),
+
+  // ── QR codes ──────────────────────────────────────────────────────────────
+  http.get("*/branches/:id/qr", ({ request }) => {
+    const inMall = new URL(request.url).searchParams.has("place_name");
+    return HttpResponse.json(MOCK_QR(inMall ? "branch_in_mall" : "branch", "madar-coffee/zamalek", inMall ? "zm-mall" : "zm-menu"));
+  }),
+  http.get("*/orgs/:id/qr", () => HttpResponse.json(MOCK_QR("org", "madar-coffee", "madar"))),
+
+  // ── Shifts ────────────────────────────────────────────────────────────────
+  http.get("*/shifts/branches/:branchId/current", () => HttpResponse.json(MOCK_CURRENT_SHIFT)),
+  http.get("*/shifts/branches/:branchId", ({ params }) =>
+    HttpResponse.json(shiftsPage(params.branchId as string)),
+  ),
+  http.get("*/shifts/:shiftId/report", ({ params }) =>
+    HttpResponse.json(MOCK_SHIFT_REPORT(params.shiftId as string)),
+  ),
+  http.get("*/shifts/:shiftId/cash-movements", () => HttpResponse.json([])),
 
   // ── Delivery settings ─────────────────────────────────────────────────────
   http.get("*/delivery/channel-addon-overrides", () => HttpResponse.json([])),
   http.get("*/delivery/channel-overrides", () => HttpResponse.json([])),
   http.get("*/delivery/zones", () => HttpResponse.json([])),
-  http.get("*/delivery/settings", () =>
-    HttpResponse.json({
-      in_mall_enabled: false,
-      outside_enabled: false,
-      in_mall_open_time: null,
-      in_mall_close_time: null,
-      outside_open_time: null,
-      outside_close_time: null,
-      in_mall_fee: 0,
-      prep_time_minutes: 15,
-      max_road_distance_meters: null,
-      in_mall_discount_id: null,
-      outside_discount_id: null,
-      otp_required: true,
-      in_mall_require_location: true,
-    }),
-  ),
+  http.get("*/delivery/settings", () => HttpResponse.json(MOCK_DELIVERY_SETTINGS)),
 
   // ── Orders ────────────────────────────────────────────────────────────────
   http.get("*/orders", () => HttpResponse.json(MOCK_ORDERS_PAGE)),

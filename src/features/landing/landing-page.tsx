@@ -49,6 +49,14 @@ import { useLenis } from "./use-lenis";
 const dashShot = (name: string, lang: string, dark: boolean) =>
   `/screenshots/dash-${name}-${lang === "ar" ? "ar" : "en"}${dark ? "-dark" : ""}.webp`;
 
+/** Feature shots are captured EN-only (the feature is the point; the bilingual story
+ *  is carried by the dedicated section). Theme-aware: light + dark. */
+const featShot = (name: string, dark: boolean) => `/screenshots/dash-${name}${dark ? "-dark" : ""}.webp`;
+
+/** Feature screenshots to warm into cache after first paint (theme-aware). */
+const featPreload = (dark: boolean): string[] =>
+  ["engineering", "branches", "ingredients", "variance", "lowstock"].map((n) => featShot(n, dark));
+
 /** Below-the-fold shots to warm into cache after first paint, so they're already
  *  decoded by the time the reader scrolls to them (no pop-in). Hero shot loads
  *  eagerly on its own, so it's intentionally excluded here. Only the active
@@ -64,6 +72,7 @@ const preloadShots = (lang: string, dark: boolean): string[] => {
     ...["order-menu", "order-customize", "order-cart", "order-track"].map(
       (f) => `/screenshots/${f}-${lang}${d}.webp`,
     ),
+    ...featPreload(dark),
   ];
 };
 
@@ -146,6 +155,8 @@ export function LandingPage() {
         <Hero lang={lang} dark={dark} reduced={reduced} />
         <StatStrip />
         <DashboardShowcase lang={lang} dark={dark} />
+        <CostSpine dark={dark} />
+        <InventorySection dark={dark} />
         <BilingualSection dark={dark} />
         <PosShowcase />
         <CustomerJourney lang={lang} dark={dark} />
@@ -433,20 +444,146 @@ function DashboardShowcase({ lang, dark }: { lang: string; dark: boolean }) {
             </p>
           </Reveal>
           <Reveal variant="right" className="min-w-0">
-            <BrowserFrame url="madar-pos.cloud/menu/recipes">
+            <BrowserFrame url="madar-pos.cloud/analytics?tab=branches">
               <Screenshot
-                src={`/screenshots/dash-recipes${dark ? "-dark" : ""}.webp`}
-                alt={t("landing.dashboard.recipes.title", "Recipe costing")}
-                label={t("landing.dashboard.recipes.title", "Recipe costing")}
+                src={featShot("branches", dark)}
+                alt={t("landing.dashboard.branches.title", "Branch comparison")}
+                label={t("landing.dashboard.branches.title", "Branch comparison")}
               />
             </BrowserFrame>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground text-pretty">
               <span className="font-medium text-foreground">
-                {t("landing.dashboard.recipes.title", "Menu & recipe costing")}.
+                {t("landing.dashboard.branches.title", "Branch by branch")}.
               </span>{" "}
               {t(
-                "landing.dashboard.recipes.desc",
-                "Build recipes and add-ons per size and know the true cost — and margin — of everything you sell.",
+                "landing.dashboard.branches.desc",
+                "Rank every location side by side — revenue, orders and void rate — so you know what's working where.",
+              )}
+            </p>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Cost-to-margin spine (the differentiator) ──────────────────────────────── */
+
+/** Flagship section: the thread no competitor tells — supplier cost → recipe →
+ *  the real margin on every order. Three framed shots in a stepped narrative. */
+function CostSpine({ dark }: { dark: boolean }) {
+  const { t } = useTranslation();
+  const steps = [
+    {
+      key: "ingredients",
+      url: "madar-pos.cloud/inventory/items",
+      variant: "left" as const,
+      title: "Ingredient cost",
+      desc: "Every ingredient with its cost per unit, supplier and reorder point — the foundation every cost is built on.",
+    },
+    {
+      key: "recipe",
+      url: "madar-pos.cloud/menu/recipes",
+      variant: "rise" as const,
+      recipe: true,
+      title: "Recipe per size",
+      desc: "Tie each item to its ingredients and Madar computes the cost and margin for every size you sell.",
+    },
+    {
+      key: "engineering",
+      url: "madar-pos.cloud/menu/engineering",
+      variant: "right" as const,
+      title: "Profit you can see",
+      desc: "Roll it up: COGS, gross profit, and exactly which items earn their place on the menu.",
+    },
+  ];
+  return (
+    <section id="costing" className="scroll-mt-24 py-24 lg:py-32">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <SectionHead
+          eyebrow={t("landing.cost.eyebrow", "Cost to margin")}
+          title={t("landing.cost.title", "Know the true cost of every cup")}
+          subtitle={t(
+            "landing.cost.subtitle",
+            "Madar follows every piaster — from the supplier invoice to the recipe to the exact cost of each order. You always know your real margin.",
+          )}
+        />
+        <div className="mx-auto mt-14 grid max-w-5xl items-start gap-8 lg:grid-cols-3">
+          {steps.map((s, i) => (
+            <Reveal key={s.key} variant={s.variant} className="min-w-0">
+              <BrowserFrame url={s.url}>
+                <Screenshot
+                  src={s.recipe ? `/screenshots/dash-recipes${dark ? "-dark" : ""}.webp` : featShot(s.key, dark)}
+                  alt={t(`landing.cost.steps.${s.key}.title`, s.title)}
+                  label={t(`landing.cost.steps.${s.key}.title`, s.title)}
+                />
+              </BrowserFrame>
+              <p className="mt-4 inline-flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground text-pretty">
+                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-brand text-[11px] font-bold text-brand-foreground tabular-nums">
+                  {i + 1}
+                </span>
+                <span>
+                  <span className="font-medium text-foreground">{t(`landing.cost.steps.${s.key}.title`, s.title)}.</span>{" "}
+                  {t(`landing.cost.steps.${s.key}.desc`, s.desc)}
+                </span>
+              </p>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Inventory & stock control ──────────────────────────────────────────────── */
+
+function InventorySection({ dark }: { dark: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <section className="border-y border-border bg-muted/40 py-24 lg:py-32">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <SectionHead
+          eyebrow={t("landing.inventory.eyebrow", "Stock control")}
+          title={t("landing.inventory.title", "Catch shrinkage before it eats your margin")}
+          subtitle={t(
+            "landing.inventory.subtitle",
+            "Count stock, log waste and transfer between branches — and let Madar flag what's low and what went missing, with the cost impact in piasters.",
+          )}
+        />
+        <div className="mx-auto mt-14 grid max-w-5xl gap-10 lg:grid-cols-2">
+          <Reveal variant="left" className="min-w-0">
+            <BrowserFrame url="madar-pos.cloud/inventory/counts">
+              <Screenshot
+                src={featShot("variance", dark)}
+                alt={t("landing.inventory.variance.title", "Stock counts")}
+                label={t("landing.inventory.variance.title", "Stock counts")}
+              />
+            </BrowserFrame>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground text-pretty">
+              <span className="font-medium text-foreground">
+                {t("landing.inventory.variance.title", "Stock counts & variance")}.
+              </span>{" "}
+              {t(
+                "landing.inventory.variance.desc",
+                "Count what's on the shelf against what the system expects — every discrepancy flagged, priced and explained.",
+              )}
+            </p>
+          </Reveal>
+          <Reveal variant="right" className="min-w-0">
+            <BrowserFrame url="madar-pos.cloud/inventory/reports">
+              <Screenshot
+                src={featShot("lowstock", dark)}
+                alt={t("landing.inventory.reports.title", "Inventory reports")}
+                label={t("landing.inventory.reports.title", "Inventory reports")}
+              />
+            </BrowserFrame>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground text-pretty">
+              <span className="font-medium text-foreground">
+                {t("landing.inventory.reports.title", "Low-stock alerts & valuation")}.
+              </span>{" "}
+              {t(
+                "landing.inventory.reports.desc",
+                "Know what to reorder before you run out, and the cash value sitting on your shelves at any moment.",
               )}
             </p>
           </Reveal>
