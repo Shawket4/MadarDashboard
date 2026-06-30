@@ -24,7 +24,6 @@ const SHOTS = [
   { key: "overview", route: "/", hero: true },
   { key: "orders", route: "/orders", hero: true },
   { key: "analytics", route: "/analytics?tab=revenue", hero: true },
-  { key: "recipes", route: "/menu/recipes", hero: false, click: "text=Latte" },
 ];
 
 const only = process.argv[2];

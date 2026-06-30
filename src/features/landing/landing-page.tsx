@@ -49,30 +49,18 @@ import { useLenis } from "./use-lenis";
 const dashShot = (name: string, lang: string, dark: boolean) =>
   `/screenshots/dash-${name}-${lang === "ar" ? "ar" : "en"}${dark ? "-dark" : ""}.webp`;
 
-/** Feature shots are captured EN-only (the feature is the point; the bilingual story
- *  is carried by the dedicated section). Theme-aware: light + dark. */
-const featShot = (name: string, dark: boolean) => `/screenshots/dash-${name}${dark ? "-dark" : ""}.webp`;
-
-/** Feature screenshots to warm into cache after first paint (theme-aware). */
-const featPreload = (dark: boolean): string[] =>
-  ["engineering", "branches", "ingredients", "variance", "lowstock"].map((n) => featShot(n, dark));
-
-/** Below-the-fold shots to warm into cache after first paint, so they're already
- *  decoded by the time the reader scrolls to them (no pop-in). Hero shot loads
- *  eagerly on its own, so it's intentionally excluded here. Only the active
- *  theme's variant is warmed. */
+/** Every showcase shot has 4 variants (en/ar × light/dark); the page references only
+ *  the active one, so the rest are never loaded. Below-the-fold shots are warmed into
+ *  cache after first paint (hero loads eagerly on its own). */
+const DASH_SHOTS = ["orders", "analytics", "engineering", "branches", "ingredients", "variance", "lowstock", "recipes"];
 const preloadShots = (lang: string, dark: boolean): string[] => {
   const d = dark ? "-dark" : "";
   return [
-    dashShot("orders", lang, dark),
-    dashShot("analytics", lang, dark),
-    `/screenshots/dash-recipes${d}.webp`,
+    ...DASH_SHOTS.map((n) => dashShot(n, lang, dark)),
+    // The bilingual section always shows both EN and AR overviews.
     `/screenshots/dash-overview-en${d}.webp`,
     `/screenshots/dash-overview-ar${d}.webp`,
-    ...["order-menu", "order-customize", "order-cart", "order-track"].map(
-      (f) => `/screenshots/${f}-${lang}${d}.webp`,
-    ),
-    ...featPreload(dark),
+    ...["order-menu", "order-customize", "order-cart", "order-track"].map((f) => `/screenshots/${f}-${lang}${d}.webp`),
   ];
 };
 
@@ -155,10 +143,10 @@ export function LandingPage() {
         <Hero lang={lang} dark={dark} reduced={reduced} />
         <StatStrip />
         <DashboardShowcase lang={lang} dark={dark} />
-        <CostSpine dark={dark} />
-        <InventorySection dark={dark} />
+        <CostSpine lang={lang} dark={dark} />
+        <InventorySection lang={lang} dark={dark} />
         <BilingualSection dark={dark} />
-        <PosShowcase />
+        <PosShowcase lang={lang} dark={dark} />
         <CustomerJourney lang={lang} dark={dark} />
         <Pillars />
         <FaqSection />
@@ -446,7 +434,7 @@ function DashboardShowcase({ lang, dark }: { lang: string; dark: boolean }) {
           <Reveal variant="right" className="min-w-0">
             <BrowserFrame url="madar-pos.cloud/analytics?tab=branches">
               <Screenshot
-                src={featShot("branches", dark)}
+                src={dashShot("branches", lang, dark)}
                 alt={t("landing.dashboard.branches.title", "Branch comparison")}
                 label={t("landing.dashboard.branches.title", "Branch comparison")}
               />
@@ -471,7 +459,7 @@ function DashboardShowcase({ lang, dark }: { lang: string; dark: boolean }) {
 
 /** Flagship section: the thread no competitor tells — supplier cost → recipe →
  *  the real margin on every order. Three framed shots in a stepped narrative. */
-function CostSpine({ dark }: { dark: boolean }) {
+function CostSpine({ lang, dark }: { lang: string; dark: boolean }) {
   const { t } = useTranslation();
   const steps = [
     {
@@ -513,7 +501,7 @@ function CostSpine({ dark }: { dark: boolean }) {
             <Reveal key={s.key} variant={s.variant} className="min-w-0">
               <BrowserFrame url={s.url}>
                 <Screenshot
-                  src={s.recipe ? `/screenshots/dash-recipes${dark ? "-dark" : ""}.webp` : featShot(s.key, dark)}
+                  src={dashShot(s.recipe ? "recipes" : s.key, lang, dark)}
                   alt={t(`landing.cost.steps.${s.key}.title`, s.title)}
                   label={t(`landing.cost.steps.${s.key}.title`, s.title)}
                 />
@@ -537,7 +525,7 @@ function CostSpine({ dark }: { dark: boolean }) {
 
 /* ── Inventory & stock control ──────────────────────────────────────────────── */
 
-function InventorySection({ dark }: { dark: boolean }) {
+function InventorySection({ lang, dark }: { lang: string; dark: boolean }) {
   const { t } = useTranslation();
   return (
     <section className="border-y border-border bg-muted/40 py-24 lg:py-32">
@@ -554,7 +542,7 @@ function InventorySection({ dark }: { dark: boolean }) {
           <Reveal variant="left" className="min-w-0">
             <BrowserFrame url="madar-pos.cloud/inventory/counts">
               <Screenshot
-                src={featShot("variance", dark)}
+                src={dashShot("variance", lang, dark)}
                 alt={t("landing.inventory.variance.title", "Stock counts")}
                 label={t("landing.inventory.variance.title", "Stock counts")}
               />
@@ -572,7 +560,7 @@ function InventorySection({ dark }: { dark: boolean }) {
           <Reveal variant="right" className="min-w-0">
             <BrowserFrame url="madar-pos.cloud/inventory/reports">
               <Screenshot
-                src={featShot("lowstock", dark)}
+                src={dashShot("lowstock", lang, dark)}
                 alt={t("landing.inventory.reports.title", "Inventory reports")}
                 label={t("landing.inventory.reports.title", "Inventory reports")}
               />
@@ -644,8 +632,11 @@ function BilingualSection({ dark }: { dark: boolean }) {
 
 /* ── POS showcase ───────────────────────────────────────────────────────────── */
 
-function PosShowcase() {
+function PosShowcase({ lang, dark }: { lang: string; dark: boolean }) {
   const { t } = useTranslation();
+  // 4-state like everything else (en/ar × light/dark). Variants you haven't
+  // captured yet fall back to the Screenshot placeholder.
+  const posShot = (file: string) => `/screenshots/${file}-${lang}${dark ? "-dark" : ""}.webp`;
   const features = [
     { key: "order", icon: Receipt },
     { key: "tender", icon: Calculator },
@@ -674,10 +665,9 @@ function PosShowcase() {
           <Reveal variant="scale" lift>
             <IpadFrame>
               <Screenshot
-                src="/screenshots/pos-order.webp"
+                src={posShot("pos-order")}
                 alt={t("landing.pos.shots.order.title", "Order screen")}
                 label={t("landing.pos.shots.order.title", "Order screen")}
-                className="object-contain"
               />
             </IpadFrame>
           </Reveal>
@@ -705,10 +695,9 @@ function PosShowcase() {
             <RevealItem key={s.key} lift>
               <IpadFrame>
                 <Screenshot
-                  src={`/screenshots/${s.file}.webp`}
+                  src={posShot(s.file)}
                   alt={t(`landing.pos.shots.${s.key}.title`, s.key)}
                   label={t(`landing.pos.shots.${s.key}.title`, s.key)}
-                  className="object-contain"
                 />
               </IpadFrame>
               <p className="mt-3 text-center text-sm font-medium text-muted-foreground">

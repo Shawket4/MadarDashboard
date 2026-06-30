@@ -334,7 +334,8 @@ export function IpadFrame({ children, className }: { children: ReactNode; classN
           className="absolute start-1/2 top-2 z-10 size-1.5 -translate-x-1/2 rounded-full bg-white/25 rtl:translate-x-1/2"
           aria-hidden
         />
-        <div className="aspect-[4/3] bg-muted">{children}</div>
+        {/* Matches the iPad Pro 11" capture (2420×1668) so shots fill edge to edge. */}
+        <div className="aspect-[2420/1668] bg-muted">{children}</div>
       </div>
     </div>
   );
