@@ -2421,11 +2421,16 @@
       "title": "Browse the menu",
       "cta": "Browse the menu",
       "bannerTitle": "We're closed right now",
-      "bannerBody": "You're previewing the menu — ordering reopens when we're back.",
+      "bannerBody": "You're previewing the menu — add items now and check out the moment we reopen.",
       "priceNote": "Prices shown for {{channel}}",
       "exit": "See how to order",
       "allClosedTitle": "Everything's closed right now",
-      "allClosedBody": "No channels are taking orders at the moment."
+      "allClosedBody": "No channels are taking orders at the moment.",
+      "checkoutChooseHint": "Choose how to get your order to finish checking out.",
+      "checkoutClosedTitle": "Ordering is closed right now",
+      "checkoutClosedHint": "Your cart is saved — pick up right where you left off.",
+      "checkoutClosedBody": "Every channel is closed at the moment. We've saved your cart — come back when we reopen and check out in a tap.",
+      "keepBrowsing": "Keep browsing"
     },
     "channel": {
       "title": "How would you like it?",
@@ -2435,6 +2440,10 @@
       "inMallHint": "Delivered to your shop or office in the mall",
       "outside": "Delivery",
       "outsideHint": "Delivered to your address outside the mall",
+      "umbrella": "To my umbrella",
+      "umbrellaHint": "Delivered to your beach umbrella or sunbed",
+      "pickup": "Pickup",
+      "pickupHint": "Collect your order at the branch",
       "open": "Open",
       "closed": "Closed",
       "closedTitle": "This isn't available right now",
@@ -2596,7 +2605,15 @@
       "errFloor": "Please enter the floor.",
       "errUnit": "Please enter the unit or office number.",
       "errLocation": "Please pin your delivery location.",
-      "errSubmit": "Something went wrong placing your order. Please try again."
+      "errSubmit": "Something went wrong placing your order. Please try again.",
+      "errUmbrella": "Please enter your umbrella or sunbed number.",
+      "pickupTitle": "Pickup",
+      "umbrellaTitle": "Your spot",
+      "pickupNote": "Collect your order at the branch counter — we'll have it ready under your name.",
+      "umbrellaNumber": "Umbrella / sunbed number",
+      "umbrellaNumberPlaceholder": "e.g. 42",
+      "section": "Section (optional)",
+      "sectionPlaceholder": "e.g. north beach, pool side"
     },
     "phone": {
       "heading": "Your number",
@@ -2785,7 +2802,14 @@
     "inMallRequireLocationHint": "Customers must share their device location to confirm they're at the branch before ordering. Turn off if indoor GPS is unreliable (shop, floor, and unit are always required).",
     "revenueShare": "Revenue share",
     "loadError": "Couldn't load items",
-    "loadErrorHint": "Check your connection and try refreshing."
+    "loadErrorHint": "Check your connection and try refreshing.",
+    "umbrella": "Umbrella delivery",
+    "umbrellaHint": "Delivered to a beach umbrella or sunbed number for a flat fee.",
+    "umbrellaFee": "Umbrella fee (EGP)",
+    "pickup": "Pickup",
+    "pickupHint": "Customers collect their order at the branch counter. Fee defaults to free.",
+    "pickupFee": "Pickup fee (EGP)",
+    "pickupFeeHint": "Leave at 0 for free pickup."
   },
   "whatsapp": {
     "title": "WhatsApp",

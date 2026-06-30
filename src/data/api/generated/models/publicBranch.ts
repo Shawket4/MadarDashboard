@@ -14,4 +14,8 @@ export interface PublicBranch {
   otp_required: boolean;
   outside_enabled: boolean;
   outside_open_now: boolean;
+  pickup_enabled: boolean;
+  pickup_open_now: boolean;
+  umbrella_enabled: boolean;
+  umbrella_open_now: boolean;
 }

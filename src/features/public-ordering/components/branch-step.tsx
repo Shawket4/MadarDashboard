@@ -16,7 +16,8 @@ interface BranchStepProps {
 }
 
 /** A branch is offerable if at least one delivery channel is enabled. */
-const isDeliverable = (b: PublicBranch) => b.in_mall_enabled || b.outside_enabled;
+const isDeliverable = (b: PublicBranch) =>
+  b.in_mall_enabled || b.outside_enabled || b.umbrella_enabled || b.pickup_enabled;
 
 export function BranchStep({ orgId, onSelect, onPreview }: BranchStepProps) {
   const { t } = useTranslation();
@@ -70,7 +71,11 @@ export function BranchStep({ orgId, onSelect, onPreview }: BranchStepProps) {
   return (
     <motion.ul variants={staggerContainer(0.05)} initial="hidden" animate="show" className="space-y-3">
       {branches.map((b) => {
-        const anyOpen = b.in_mall_open_now || b.outside_open_now;
+        const anyOpen =
+          b.in_mall_open_now ||
+          b.outside_open_now ||
+          b.umbrella_open_now ||
+          b.pickup_open_now;
         // A closed-but-deliverable branch is tappable into read-only browse, so it
         // is never a dead end. Falls back to onSelect when no preview handler.
         const canPreview = !anyOpen && !!onPreview;
@@ -112,6 +117,18 @@ export function BranchStep({ orgId, onSelect, onPreview }: BranchStepProps) {
                       )}
                       {b.outside_enabled && (
                         <ChannelPill open={b.outside_open_now} label={t("order.channel.outside")} />
+                      )}
+                      {b.umbrella_enabled && (
+                        <ChannelPill
+                          open={b.umbrella_open_now}
+                          label={t("order.channel.umbrella", "To my umbrella")}
+                        />
+                      )}
+                      {b.pickup_enabled && (
+                        <ChannelPill
+                          open={b.pickup_open_now}
+                          label={t("order.channel.pickup", "Pickup")}
+                        />
                       )}
                     </>
                   ) : (

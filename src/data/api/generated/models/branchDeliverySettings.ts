@@ -33,5 +33,24 @@ export interface BranchDeliverySettings {
   /** @nullable */
   outside_open_time?: string | null;
   outside_override: string;
+  /** @nullable */
+  pickup_close_time?: string | null;
+  /** @nullable */
+  pickup_discount_id?: string | null;
+  pickup_enabled: boolean;
+  pickup_fee: number;
+  /** @nullable */
+  pickup_open_time?: string | null;
+  pickup_override: string;
   prep_time_minutes: number;
+  /** @nullable */
+  umbrella_close_time?: string | null;
+  /** @nullable */
+  umbrella_discount_id?: string | null;
+  umbrella_enabled: boolean;
+  /** Flat per-branch fees (piastres). Pickup defaults to free. */
+  umbrella_fee: number;
+  /** @nullable */
+  umbrella_open_time?: string | null;
+  umbrella_override: string;
 }

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { Bike, ChevronRight, Clock, Store } from "lucide-react";
+import { Bike, ChevronRight, Clock, ShoppingBag, Store, Umbrella } from "lucide-react";
 
 import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,22 @@ export function ChannelStep({ branch, onSelect, onBrowse }: ChannelStepProps) {
       icon: Bike,
       title: t("order.channel.outside"),
       hint: t("order.channel.outsideHint"),
+    },
+    {
+      channel: "umbrella",
+      enabled: branch.umbrella_enabled,
+      open: branch.umbrella_open_now,
+      icon: Umbrella,
+      title: t("order.channel.umbrella", "To my umbrella"),
+      hint: t("order.channel.umbrellaHint", "Delivered to your beach umbrella or sunbed"),
+    },
+    {
+      channel: "pickup",
+      enabled: branch.pickup_enabled,
+      open: branch.pickup_open_now,
+      icon: ShoppingBag,
+      title: t("order.channel.pickup", "Pickup"),
+      hint: t("order.channel.pickupHint", "Collect your order at the branch"),
     },
   ];
   const options = all.filter((o) => o.enabled);

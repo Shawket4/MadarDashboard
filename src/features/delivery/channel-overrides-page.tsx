@@ -43,7 +43,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { invalidateChannelOverrides } from "./util";
 import { exportChannelOverrides } from "./channel-overrides-export";
 
-type Channel = "in_mall" | "outside";
+type Channel = "in_mall" | "outside" | "umbrella" | "pickup";
 const PER_PAGE = 24;
 
 /** Shared price + availability editor card used for both menu items and add-ons. */
@@ -394,6 +394,8 @@ export function ChannelOverridesPage() {
       <SelectContent>
         <SelectItem value="in_mall">{t("delivery.inMall", "In-mall delivery")}</SelectItem>
         <SelectItem value="outside">{t("delivery.outside", "Outside delivery")}</SelectItem>
+        <SelectItem value="umbrella">{t("delivery.umbrella", "Umbrella delivery")}</SelectItem>
+        <SelectItem value="pickup">{t("delivery.pickup", "Pickup")}</SelectItem>
       </SelectContent>
     </Select>
   );

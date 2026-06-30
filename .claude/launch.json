@@ -18,6 +18,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:demo"],
       "port": 5182
+    },
+    {
+      "name": "madar-order",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:order"],
+      "port": 5183
     }
   ]
 }

@@ -46,7 +46,14 @@ export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQuery
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const { data, isLoading, isError } = usePublicMenu(branchId, { channel, preview: browseOnly || undefined });
-  const channelLabel = channel === "in_mall" ? t("order.channel.inMall", "In-mall") : t("order.channel.outside", "Delivery");
+  const channelLabel =
+    channel === "in_mall"
+      ? t("order.channel.inMall", "In-mall")
+      : channel === "umbrella"
+        ? t("order.channel.umbrella", "To my umbrella")
+        : channel === "pickup"
+          ? t("order.channel.pickup", "Pickup")
+          : t("order.channel.outside", "Delivery");
 
   const [active, setActive] = useState<DeliveryMenuItem | null>(null);
   const [customizerOpen, setCustomizerOpen] = useState(false);
@@ -108,7 +115,8 @@ export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQuery
   }
 
   const openItem = (item: DeliveryMenuItem) => {
-    if (browseOnly) return; // read-only: no customizer / add-to-cart
+    // Cart-building is allowed even in browse mode (closed branch preview): the
+    // customer can fill a cart now and check out the moment a channel reopens.
     setActive(item);
     setCustomizerOpen(true);
   };
@@ -279,7 +287,6 @@ export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQuery
                           lang={lang}
                           count={countByItem[item.id] ?? 0}
                           onOpen={() => openItem(item)}
-                          browseOnly={browseOnly}
                         />
                       </motion.li>
                     ))}
@@ -312,13 +319,11 @@ function MenuCard({
   lang,
   count,
   onOpen,
-  browseOnly,
 }: {
   item: DeliveryMenuItem;
   lang: string;
   count: number;
   onOpen: () => void;
-  browseOnly?: boolean;
 }) {
   const { t } = useTranslation();
   const hasSizes = item.sizes.length > 0;
@@ -353,15 +358,6 @@ function MenuCard({
       </div>
     </>
   );
-
-  // Browse-only: a non-interactive, price-only card (no add button, no customizer).
-  if (browseOnly) {
-    return (
-      <div className="flex h-full w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 text-start shadow-sm">
-        {inner}
-      </div>
-    );
-  }
 
   return (
     <button

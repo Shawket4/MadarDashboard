@@ -6,7 +6,7 @@ import type { CartLine, Channel } from "./types";
 
 /** Narrow an arbitrary string to a supported channel (defaults to in_mall). */
 export const asChannel = (v: string | null | undefined): Channel =>
-  v === "outside" ? "outside" : "in_mall";
+  v === "outside" || v === "umbrella" || v === "pickup" ? v : "in_mall";
 
 /** The unit (per-quantity) price of a configured line, in piastres — an estimate. */
 export const lineUnitPrice = (line: CartLine): number => {
@@ -119,6 +119,45 @@ export const setGuestPhone = (orgId: string, phone: string): void => {
     localStorage.setItem(GUEST_PHONE_KEY_PREFIX + orgId, phone);
   } catch {
     /* storage unavailable */
+  }
+};
+
+const CART_KEY_PREFIX = "madar_order_cart:";
+const cartKey = (orgId: string, branchId: string) => `${CART_KEY_PREFIX}${orgId}:${branchId}`;
+
+/**
+ * Restore a previously-built cart for this org+branch. Lets a customer who
+ * browsed a closed branch (or refreshed mid-build) keep their cart and check
+ * out the moment a channel reopens. Server reprices authoritatively at intake,
+ * so a stale snapshot is at worst a corrected estimate.
+ */
+export const loadCart = (orgId: string, branchId: string): CartLine[] => {
+  try {
+    const raw = localStorage.getItem(cartKey(orgId, branchId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as CartLine[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+/** Persist (or, when empty, drop) the cart for this org+branch. */
+export const saveCart = (orgId: string, branchId: string, lines: CartLine[]): void => {
+  try {
+    if (lines.length === 0) localStorage.removeItem(cartKey(orgId, branchId));
+    else localStorage.setItem(cartKey(orgId, branchId), JSON.stringify(lines));
+  } catch {
+    /* storage unavailable — cart simply won't survive a refresh */
+  }
+};
+
+/** Forget the persisted cart for this org+branch (e.g. after a placed order). */
+export const clearCart = (orgId: string, branchId: string): void => {
+  try {
+    localStorage.removeItem(cartKey(orgId, branchId));
+  } catch {
+    /* ignore */
   }
 };
 

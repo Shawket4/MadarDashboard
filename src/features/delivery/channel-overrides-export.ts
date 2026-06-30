@@ -9,7 +9,7 @@ import type {
   ChannelMenuOverride,
 } from "@/data/api/generated/models";
 
-type Channel = "in_mall" | "outside";
+type Channel = "in_mall" | "outside" | "umbrella" | "pickup";
 
 type AnySheet = ExcelSheet<Record<string, unknown>>;
 const asSheet = <T>(s: ExcelSheet<T>): AnySheet => s as unknown as AnySheet;
@@ -62,7 +62,13 @@ export async function exportChannelOverrides(ctx: ChannelOverridesExportCtx): Pr
         : t("delivery.hidden", "Hidden");
 
   const channelLabel =
-    channel === "in_mall" ? t("delivery.inMall", "In-mall delivery") : t("delivery.outside", "Outside delivery");
+    channel === "in_mall"
+      ? t("delivery.inMall", "In-mall delivery")
+      : channel === "umbrella"
+        ? t("delivery.umbrella", "Umbrella delivery")
+        : channel === "pickup"
+          ? t("delivery.pickup", "Pickup")
+          : t("delivery.outside", "Outside delivery");
 
   const itemRows: ItemRow[] = itemOverrides
     .map((o) => {

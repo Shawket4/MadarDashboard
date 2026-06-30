@@ -119,6 +119,7 @@ const orgRoute = createRoute({
 });
 
 const branchRoute = createRoute({
+  // /$orgId/$branchId — branch fixed by the scanned QR; the selector is hidden.
   getParentRoute: () => rootRoute,
   path: "/$orgId/$branchId",
   validateSearch: orderSearchSchema,
@@ -129,6 +130,7 @@ const branchRoute = createRoute({
       <PublicOrderingPage
         orgId={orgId}
         branch={branchId}
+        branchLocked
         channel={s.channel}
         preview={s.preview}
         prefillPlaceName={s.place_name}

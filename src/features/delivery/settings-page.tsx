@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { Bike, MapPin, ShieldCheck, Store } from "lucide-react";
+import { Bike, MapPin, ShieldCheck, ShoppingBag, Store, Umbrella } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -46,11 +46,19 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
       z.object({
         in_mall_enabled: z.boolean(),
         outside_enabled: z.boolean(),
+        umbrella_enabled: z.boolean(),
+        pickup_enabled: z.boolean(),
         in_mall_open_time: z.string().nullable(),
         in_mall_close_time: z.string().nullable(),
         outside_open_time: z.string().nullable(),
         outside_close_time: z.string().nullable(),
+        umbrella_open_time: z.string().nullable(),
+        umbrella_close_time: z.string().nullable(),
+        pickup_open_time: z.string().nullable(),
+        pickup_close_time: z.string().nullable(),
         in_mall_fee: z.coerce.number().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
+        umbrella_fee: z.coerce.number().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
+        pickup_fee: z.coerce.number().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
         prep_time_minutes: z.coerce.number().int().min(0, t("delivery.errPrepNonNeg", "Prep time cannot be negative")),
         max_road_distance_meters: z.coerce
           .number()
@@ -58,6 +66,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
           .optional(),
         in_mall_discount_id: z.string().nullable(),
         outside_discount_id: z.string().nullable(),
+        umbrella_discount_id: z.string().nullable(),
+        pickup_discount_id: z.string().nullable(),
         otp_required: z.boolean(),
         in_mall_require_location: z.boolean(),
       }),
@@ -70,15 +80,25 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
     defaultValues: {
       in_mall_enabled: false,
       outside_enabled: false,
+      umbrella_enabled: false,
+      pickup_enabled: false,
       in_mall_open_time: null,
       in_mall_close_time: null,
       outside_open_time: null,
       outside_close_time: null,
+      umbrella_open_time: null,
+      umbrella_close_time: null,
+      pickup_open_time: null,
+      pickup_close_time: null,
       in_mall_fee: 0,
+      umbrella_fee: 0,
+      pickup_fee: 0,
       prep_time_minutes: 0,
       max_road_distance_meters: undefined,
       in_mall_discount_id: null,
       outside_discount_id: null,
+      umbrella_discount_id: null,
+      pickup_discount_id: null,
       otp_required: true,
       in_mall_require_location: true,
     },
@@ -90,15 +110,25 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
       form.reset({
         in_mall_enabled: s.in_mall_enabled,
         outside_enabled: s.outside_enabled,
+        umbrella_enabled: s.umbrella_enabled,
+        pickup_enabled: s.pickup_enabled,
         in_mall_open_time: s.in_mall_open_time ?? null,
         in_mall_close_time: s.in_mall_close_time ?? null,
         outside_open_time: s.outside_open_time ?? null,
         outside_close_time: s.outside_close_time ?? null,
+        umbrella_open_time: s.umbrella_open_time ?? null,
+        umbrella_close_time: s.umbrella_close_time ?? null,
+        pickup_open_time: s.pickup_open_time ?? null,
+        pickup_close_time: s.pickup_close_time ?? null,
         in_mall_fee: piastresToEgp(s.in_mall_fee),
+        umbrella_fee: piastresToEgp(s.umbrella_fee),
+        pickup_fee: piastresToEgp(s.pickup_fee),
         prep_time_minutes: s.prep_time_minutes,
         max_road_distance_meters: s.max_road_distance_meters ?? undefined,
         in_mall_discount_id: s.in_mall_discount_id ?? null,
         outside_discount_id: s.outside_discount_id ?? null,
+        umbrella_discount_id: s.umbrella_discount_id ?? null,
+        pickup_discount_id: s.pickup_discount_id ?? null,
         otp_required: s.otp_required,
         in_mall_require_location: s.in_mall_require_location,
       });
@@ -107,21 +137,33 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
 
   const inMallEnabled = form.watch("in_mall_enabled");
   const outsideEnabled = form.watch("outside_enabled");
+  const umbrellaEnabled = form.watch("umbrella_enabled");
+  const pickupEnabled = form.watch("pickup_enabled");
 
   const submit = async (v: Values) => {
     const payload: BranchSettingsInput = {
       branch_id: branchId,
       in_mall_enabled: v.in_mall_enabled,
       outside_enabled: v.outside_enabled,
+      umbrella_enabled: v.umbrella_enabled,
+      pickup_enabled: v.pickup_enabled,
       in_mall_open_time: timeOrNull(v.in_mall_open_time),
       in_mall_close_time: timeOrNull(v.in_mall_close_time),
       outside_open_time: timeOrNull(v.outside_open_time),
       outside_close_time: timeOrNull(v.outside_close_time),
+      umbrella_open_time: timeOrNull(v.umbrella_open_time),
+      umbrella_close_time: timeOrNull(v.umbrella_close_time),
+      pickup_open_time: timeOrNull(v.pickup_open_time),
+      pickup_close_time: timeOrNull(v.pickup_close_time),
       in_mall_fee: egpToPiastres(v.in_mall_fee),
+      umbrella_fee: egpToPiastres(v.umbrella_fee),
+      pickup_fee: egpToPiastres(v.pickup_fee),
       prep_time_minutes: v.prep_time_minutes,
       max_road_distance_meters: numOrNull(v.max_road_distance_meters),
       in_mall_discount_id: v.in_mall_discount_id,
       outside_discount_id: v.outside_discount_id,
+      umbrella_discount_id: v.umbrella_discount_id,
+      pickup_discount_id: v.pickup_discount_id,
       otp_required: v.otp_required,
       in_mall_require_location: v.in_mall_require_location,
     };
@@ -140,7 +182,9 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
   const discountOptions = discounts.data ?? [];
   const valueLabel = (d: (typeof discountOptions)[number]) =>
     d.dtype === "percentage" ? `${d.value}%` : fmtMoney(d.value);
-  const discountField = (name: "in_mall_discount_id" | "outside_discount_id") => (
+  const discountField = (
+    name: "in_mall_discount_id" | "outside_discount_id" | "umbrella_discount_id" | "pickup_discount_id",
+  ) => (
     <FormField
       control={form.control}
       name={name}
@@ -261,6 +305,70 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                     <FormItem><FormLabel>{t("delivery.maxRoadDistance", "Max road distance (meters)")}</FormLabel><FormControl><Input type="number" step="1" min="0" {...field} value={field.value ?? ""} className="font-mono" /></FormControl><FormMessage /></FormItem>
                   )} />
                   {discountField("outside_discount_id")}
+                </>
+              ) : null}
+            </div>
+
+            {/* Umbrella channel — beach umbrella / sunbed delivery, flat fee, no map */}
+            <div className="space-y-3 rounded-lg border p-4">
+              <FormField control={form.control} name="umbrella_enabled" render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Umbrella className="size-4 text-muted-foreground" />
+                    <div>
+                      <FormLabel>{t("delivery.umbrella", "Umbrella delivery")}</FormLabel>
+                      <p className="text-xs text-muted-foreground">{t("delivery.umbrellaHint", "Delivered to a beach umbrella or sunbed number for a flat fee.")}</p>
+                    </div>
+                  </div>
+                  <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                </FormItem>
+              )} />
+              {umbrellaEnabled ? (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField control={form.control} name="umbrella_open_time" render={({ field }) => (
+                      <FormItem><FormLabel>{t("delivery.openTime", "Opens")}</FormLabel><FormControl><TimePicker value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="umbrella_close_time" render={({ field }) => (
+                      <FormItem><FormLabel>{t("delivery.closeTime", "Closes")}</FormLabel><FormControl><TimePicker value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                  </div>
+                  <FormField control={form.control} name="umbrella_fee" render={({ field }) => (
+                    <FormItem><FormLabel>{t("delivery.umbrellaFee", "Umbrella fee (EGP)")}</FormLabel><FormControl><Input type="number" step="any" min="0" {...field} className="font-mono" /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  {discountField("umbrella_discount_id")}
+                </>
+              ) : null}
+            </div>
+
+            {/* Pickup channel — self-collect at the counter, flat fee (default free) */}
+            <div className="space-y-3 rounded-lg border p-4">
+              <FormField control={form.control} name="pickup_enabled" render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag className="size-4 text-muted-foreground" />
+                    <div>
+                      <FormLabel>{t("delivery.pickup", "Pickup")}</FormLabel>
+                      <p className="text-xs text-muted-foreground">{t("delivery.pickupHint", "Customers collect their order at the branch counter. Fee defaults to free.")}</p>
+                    </div>
+                  </div>
+                  <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                </FormItem>
+              )} />
+              {pickupEnabled ? (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField control={form.control} name="pickup_open_time" render={({ field }) => (
+                      <FormItem><FormLabel>{t("delivery.openTime", "Opens")}</FormLabel><FormControl><TimePicker value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="pickup_close_time" render={({ field }) => (
+                      <FormItem><FormLabel>{t("delivery.closeTime", "Closes")}</FormLabel><FormControl><TimePicker value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                  </div>
+                  <FormField control={form.control} name="pickup_fee" render={({ field }) => (
+                    <FormItem><FormLabel>{t("delivery.pickupFee", "Pickup fee (EGP)")}</FormLabel><FormControl><Input type="number" step="any" min="0" {...field} className="font-mono" /></FormControl><FormDescription>{t("delivery.pickupFeeHint", "Leave at 0 for free pickup.")}</FormDescription><FormMessage /></FormItem>
+                  )} />
+                  {discountField("pickup_discount_id")}
                 </>
               ) : null}
             </div>

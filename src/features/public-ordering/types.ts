@@ -1,7 +1,12 @@
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
 
 /** The delivery channels the public page supports. */
-export type Channel = "in_mall" | "outside";
+export type Channel = "in_mall" | "outside" | "umbrella" | "pickup";
+
+/** Channels with no map/GPS — flat fee, destination is a label not a pin
+ *  (umbrella = a sunbed number; pickup = collected at the counter). */
+export const FLAT_CHANNELS: Channel[] = ["umbrella", "pickup"];
+export const isFlatChannel = (c: Channel): boolean => FLAT_CHANNELS.includes(c);
 
 /** The ordered steps of the public flow. */
 export type Step = "branch" | "channel" | "phone" | "location" | "menu" | "checkout" | "done";

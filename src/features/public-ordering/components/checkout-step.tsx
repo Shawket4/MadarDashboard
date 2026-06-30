@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertCircle, Banknote, CreditCard, User, MapPin, Wallet, ReceiptText } from "lucide-react";
+import { AlertCircle, Banknote, CreditCard, User, MapPin, ShoppingBag, Umbrella, Wallet, ReceiptText } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +68,22 @@ export function CheckoutStep({
   const subtotal = cartSubtotal(lines);
   const total = subtotal - discountAmount + (deliveryFee ?? 0);
   const isMall = channel === "in_mall";
+  const isUmbrella = channel === "umbrella";
+  const isPickup = channel === "pickup";
+
+  // Channel-specific heading for the destination card.
+  const addressIcon = isPickup ? (
+    <ShoppingBag className="size-4" />
+  ) : isUmbrella ? (
+    <Umbrella className="size-4" />
+  ) : (
+    <MapPin className="size-4" />
+  );
+  const addressTitle = isPickup
+    ? t("order.checkout.pickupTitle", "Pickup")
+    : isUmbrella
+      ? t("order.checkout.umbrellaTitle", "Your spot")
+      : t("order.checkout.deliveryAddress", "Delivery address");
 
   type FieldKey = keyof CheckoutForm;
   const [errors, setErrors] = useState<Partial<Record<FieldKey, string>>>({});
@@ -94,6 +110,11 @@ export function CheckoutStep({
       if (!form.place_name.trim()) e.place_name = t("order.checkout.errShop");
       if (!form.floor.trim()) e.floor = t("order.checkout.errFloor");
       if (!form.unit_number.trim()) e.unit_number = t("order.checkout.errUnit");
+    } else if (isUmbrella) {
+      if (!form.place_name.trim())
+        e.place_name = t("order.checkout.errUmbrella", "Please enter your umbrella or sunbed number.");
+    } else if (isPickup) {
+      // Self-collect: name + phone are enough.
     } else if (!form.address_line.trim()) {
       e.address_line = t("order.checkout.errAddress");
     }
@@ -147,9 +168,44 @@ export function CheckoutStep({
         </Field>
       </SectionCard>
 
-      {/* Address — channel specific */}
-      <SectionCard icon={<MapPin className="size-4" />} title={t("order.checkout.deliveryAddress", "Delivery address")}>
-        {isMall ? (
+      {/* Destination — channel specific */}
+      <SectionCard icon={addressIcon} title={addressTitle}>
+        {isPickup ? (
+          <p className="text-sm text-muted-foreground">
+            {t(
+              "order.checkout.pickupNote",
+              "Collect your order at the branch counter — we'll have it ready under your name.",
+            )}
+          </p>
+        ) : isUmbrella ? (
+          <>
+            <Field
+              label={t("order.checkout.umbrellaNumber", "Umbrella / sunbed number")}
+              htmlFor="po-umbrella"
+              required
+              error={errors.place_name}
+            >
+              <Input
+                id="po-umbrella"
+                value={form.place_name}
+                onChange={(e) => setField({ place_name: e.target.value })}
+                placeholder={t("order.checkout.umbrellaNumberPlaceholder", "e.g. 42")}
+                inputMode="numeric"
+                maxLength={FIELD_LIMITS.shortText}
+                aria-invalid={!!errors.place_name}
+              />
+            </Field>
+            <Field label={t("order.checkout.section", "Section (optional)")} htmlFor="po-section">
+              <Input
+                id="po-section"
+                value={form.landmark}
+                onChange={(e) => setField({ landmark: e.target.value })}
+                placeholder={t("order.checkout.sectionPlaceholder", "e.g. north beach, pool side")}
+                maxLength={FIELD_LIMITS.shortText}
+              />
+            </Field>
+          </>
+        ) : isMall ? (
           <>
             <Field label={t("order.checkout.placeName")} htmlFor="po-place" required error={errors.place_name}>
               <Input

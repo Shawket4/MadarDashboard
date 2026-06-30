@@ -30,5 +30,21 @@ export interface BranchSettingsInput {
   outside_enabled: boolean;
   /** @nullable */
   outside_open_time?: string | null;
+  /** @nullable */
+  pickup_close_time?: string | null;
+  /** @nullable */
+  pickup_discount_id?: string | null;
+  pickup_enabled?: boolean;
+  pickup_fee?: number;
+  /** @nullable */
+  pickup_open_time?: string | null;
   prep_time_minutes: number;
+  /** @nullable */
+  umbrella_close_time?: string | null;
+  /** @nullable */
+  umbrella_discount_id?: string | null;
+  umbrella_enabled?: boolean;
+  umbrella_fee?: number;
+  /** @nullable */
+  umbrella_open_time?: string | null;
 }

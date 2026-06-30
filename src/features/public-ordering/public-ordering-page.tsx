@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   usePublicBranches,
   usePublicMenu,
+  useDeliveryQuote,
   useCreateDeliveryOrder,
   useOtpRequest,
   useOtpVerify,
@@ -23,15 +24,18 @@ import { Input } from "@/components/ui/input";
 import { fmtMoney } from "@/lib/format";
 import { fadeIn } from "@/lib/motion";
 
-import type { CartLine, Channel, Step } from "./types";
+import { isFlatChannel, type CartLine, type Channel, type Step } from "./types";
 import {
   asChannel,
   calcDiscount,
   cartSubtotal,
+  clearCart,
   getDeviceToken,
   isValidPhone,
+  loadCart,
   newUid,
   normalizePhone,
+  saveCart,
   setDeviceToken,
   toCartLineInput,
 } from "./utils";
@@ -48,6 +52,7 @@ import { MenuStep } from "./components/menu-step";
 import { ItemCustomizer } from "./components/item-customizer";
 import { CartSheet, CartPanel } from "./components/cart-sheet";
 import { CheckoutStep, emptyForm, type CheckoutForm } from "./components/checkout-step";
+import { CheckoutChannelSheet } from "./components/checkout-channel-sheet";
 import { OtpDialog } from "./components/otp-dialog";
 import { OrderHistoryDrawer } from "./components/order-history-drawer";
 import type { LatLng } from "./components/delivery-map";
@@ -55,6 +60,9 @@ import type { LatLng } from "./components/delivery-map";
 interface PublicOrderingPageProps {
   orgId: string;
   branch?: string;
+  /** True when the branch is fixed by the URL path (scanned QR) — the branch
+   *  selector is hidden and switching is disabled. */
+  branchLocked?: boolean;
   channel?: string;
   /** Browse-only menu preview (read-only): show the menu even when closed. */
   preview?: boolean;
@@ -66,6 +74,7 @@ interface PublicOrderingPageProps {
 export function PublicOrderingPage({
   orgId,
   branch,
+  branchLocked,
   channel,
   preview,
   prefillPlaceName,
@@ -141,6 +150,27 @@ export function PublicOrderingPage({
   const [cartOpen, setCartOpen] = useState(false);
   const [editing, setEditing] = useState<CartLine | null>(null);
   const [menuQuery, setMenuQuery] = useState("");
+  // Browse-mode checkout: when the customer has a cart but hasn't picked a
+  // channel yet, this sheet either offers the channel chooser or — if nothing
+  // is open — the warm "we're closed, cart saved" state.
+  const [checkoutSheetOpen, setCheckoutSheetOpen] = useState(false);
+
+  // ── Cart persistence (per org+branch) ─────────────────────────────────────
+  // Restore once when the branch is first known, so a customer who built a cart
+  // while the branch was closed keeps it on their next visit. Branch *switching*
+  // (handleSwitchBranch) deliberately starts fresh, so we only auto-restore once.
+  const cartRestored = useRef(false);
+  useEffect(() => {
+    if (cartRestored.current || !branchId) return;
+    cartRestored.current = true;
+    const saved = loadCart(orgId, branchId);
+    if (saved.length) setLines(saved);
+  }, [orgId, branchId]);
+
+  useEffect(() => {
+    if (!branchId) return;
+    saveCart(orgId, branchId, lines);
+  }, [orgId, branchId, lines]);
 
   const [form, setForm] = useState<CheckoutForm>(() => ({
     ...emptyForm(),
@@ -177,7 +207,10 @@ export function PublicOrderingPage({
   const branchPending = !!branchId && branchesLoading && !branchObj;
 
   const deliverableBranches = useMemo(
-    () => (branches ?? []).filter((b) => b.in_mall_enabled || b.outside_enabled),
+    () =>
+      (branches ?? []).filter(
+        (b) => b.in_mall_enabled || b.outside_enabled || b.umbrella_enabled || b.pickup_enabled,
+      ),
     [branches],
   );
 
@@ -193,7 +226,11 @@ export function PublicOrderingPage({
       ? "in_mall"
       : branchObj.outside_enabled
         ? "outside"
-        : null
+        : branchObj.umbrella_enabled
+          ? "umbrella"
+          : branchObj.pickup_enabled
+            ? "pickup"
+            : null
     : null;
   // The channel whose menu/prices we actually request.
   const menuChannel: Channel = selectedChannel ?? browseChannel ?? "in_mall";
@@ -203,10 +240,7 @@ export function PublicOrderingPage({
   // or one that closed mid-session). Drives the apologetic ChannelClosed state.
   // Suppressed in browse mode — there we intentionally ignore open-now.
   const channelClosed =
-    !browseOnly &&
-    !!branchObj &&
-    !!selectedChannel &&
-    !(selectedChannel === "in_mall" ? branchObj.in_mall_open_now : branchObj.outside_open_now);
+    !browseOnly && !!branchObj && !!selectedChannel && !channelOpenNow(branchObj, selectedChannel);
 
   // No auto-selection: when no branch is in the URL (e.g. org-level QR) the
   // customer reaches the branch picker and chooses explicitly.
@@ -224,11 +258,12 @@ export function PublicOrderingPage({
   // ── Derive the active step ────────────────────────────────────────────────
   // Both channels now capture a location: outside = delivery address pin (zones);
   // in-mall = device-GPS confirm you're at the branch (anti-spam).
-  const needsLocation = selectedChannel != null;
+  // Flat channels (umbrella / pickup) capture no location. Outside = delivery pin
+  // (zones); in-mall = device-GPS "confirm you're at the branch" (anti-spam).
+  const needsLocation = selectedChannel != null && !isFlatChannel(selectedChannel);
   const isOutside = selectedChannel === "outside";
-  // Outside always needs a delivery pin. In-mall needs the "confirm you're at the
-  // branch" GPS only when the branch requires it (a per-branch manager toggle).
-  const locationRequired = isOutside || (branchObj?.in_mall_require_location ?? true);
+  const locationRequired =
+    needsLocation && (isOutside || (branchObj?.in_mall_require_location ?? true));
   const step: Step = (() => {
     if (!branchId) return "branch";
     // Browse-only jumps straight to the menu — no channel/phone/location gates.
@@ -240,9 +275,26 @@ export function PublicOrderingPage({
     return "menu";
   })();
 
-  // Both channels capture a location, so the fee + distance come from that quote
-  // (outside: zone fee; in-mall: flat fee + haversine distance for the teller).
-  const deliveryFee: number | null = quote?.status === "ok" ? (quote.fee ?? 0) : null;
+  // Flat channels (umbrella / pickup) capture no location, so the location step
+  // never runs its quote. Fetch the flat per-branch fee directly (coords ignored
+  // server-side for these channels) so checkout can show it instead of a blank "—".
+  const flatChannelSelected = selectedChannel != null && isFlatChannel(selectedChannel);
+  const { data: flatQuote } = useDeliveryQuote(
+    branchId ?? "",
+    { lat: 0, lng: 0, channel: selectedChannel ?? "in_mall" },
+    {
+      query: {
+        enabled: !!branchId && flatChannelSelected && !channelClosed,
+        staleTime: 30_000,
+        retry: false,
+      },
+    },
+  );
+
+  // The fee comes from the location-step quote for map channels (outside: zone
+  // fee; in-mall: flat fee + haversine distance) or the flat quote above.
+  const activeQuote = flatChannelSelected ? flatQuote : quote;
+  const deliveryFee: number | null = activeQuote?.status === "ok" ? (activeQuote.fee ?? 0) : null;
 
   // ── Mutations ─────────────────────────────────────────────────────────────
   const otpRequest = useOtpRequest();
@@ -279,7 +331,11 @@ export function PublicOrderingPage({
         ? b.in_mall_enabled
         : selectedChannel === "outside"
           ? b.outside_enabled
-          : true;
+          : selectedChannel === "umbrella"
+            ? b.umbrella_enabled
+            : selectedChannel === "pickup"
+              ? b.pickup_enabled
+              : true;
     // A different branch means a different menu AND different delivery zones — so
     // the cart starts fresh and the location/quote must be re-confirmed at the new
     // branch (otherwise a stale quote/pin from the old branch leaks into checkout).
@@ -333,6 +389,8 @@ export function PublicOrderingPage({
       return;
     }
     if (step === "channel") {
+      // Drop any lingering "checkout" intent carried over from browse mode.
+      setEnteredCheckout(false);
       setUrl({ branch: undefined, channel: undefined });
       return;
     }
@@ -379,6 +437,23 @@ export function PublicOrderingPage({
   const startEdit = (line: CartLine) => {
     setEditing(line);
     setCartOpen(false);
+  };
+
+  // Checkout requested from the cart. In the normal flow a channel is already
+  // chosen, so go straight to the checkout step. In browse mode (no channel yet)
+  // open the chooser sheet, which itself handles the "everything's closed" state.
+  const requestCheckout = () => {
+    if (browseOnly) setCheckoutSheetOpen(true);
+    else setEnteredCheckout(true);
+  };
+
+  // A channel was picked from the browse-mode checkout sheet: leave the preview,
+  // set the channel, and carry the cart + checkout intent through the gated flow.
+  const handleChooseChannelFromBrowse = (c: Channel) => {
+    setCheckoutSheetOpen(false);
+    setEnteredCheckout(true);
+    setLocationDone(false);
+    setUrl({ branch: branchId ?? undefined, channel: c, preview: undefined });
   };
 
   // ── Phone step resolved ───────────────────────────────────────────────────
@@ -435,6 +510,9 @@ export function PublicOrderingPage({
       try {
         const order = await createOrder.mutateAsync({ data: buildInput(deviceToken) });
         setOtpOpen(false);
+        // Order placed — forget the persisted cart so a return visit starts clean.
+        if (branchId) clearCart(orgId, branchId);
+        setLines([]);
         // Route to the live tracking page (dynamic link with the order UUID). The
         // estimate is carried so the tracking page can flag a backend reprice.
         void navigate({ to: "/track/$id", params: { id: order.id }, search: { est: estimate } });
@@ -486,6 +564,14 @@ export function PublicOrderingPage({
     if (isOutside) {
       if (quote?.status === "out_of_range") return t("order.checkout.errRange");
       if (!form.address_line.trim()) return t("order.checkout.errAddress");
+    } else if (selectedChannel === "umbrella") {
+      // Umbrella # is stored in place_name; section (optional) in landmark.
+      if (!form.place_name.trim())
+        return t("order.checkout.errUmbrella", {
+          defaultValue: "Please enter your umbrella or sunbed number.",
+        });
+    } else if (selectedChannel === "pickup") {
+      // Self-collect: name + phone (checked above) are enough.
     } else {
       if (!form.place_name.trim())
         return t("order.checkout.errShop", {
@@ -583,7 +669,7 @@ export function PublicOrderingPage({
 
   // ── Sticky footer (view-cart bar on menu) ─────────────────────────────────
   const footer =
-    step === "menu" && itemCount > 0 && !channelClosed && !browseOnly ? (
+    step === "menu" && itemCount > 0 && !channelClosed ? (
       <button
         type="button"
         onClick={() => setCartOpen(true)}
@@ -637,11 +723,13 @@ export function PublicOrderingPage({
               : undefined
         }
         branchSelector={
-          <BranchSelector
-            branches={deliverableBranches}
-            currentId={branchId ?? ""}
-            onSelect={handleSwitchBranch}
-          />
+          branchLocked ? undefined : (
+            <BranchSelector
+              branches={deliverableBranches}
+              currentId={branchId ?? ""}
+              onSelect={handleSwitchBranch}
+            />
+          )
         }
         headerSearch={headerSearch}
         wide={step === "menu" && !channelClosed}
@@ -670,7 +758,7 @@ export function PublicOrderingPage({
 
             {step === "channel" && branchObj && (
               <div className="space-y-4">
-                {deliverableBranches.length > 1 && (
+                {!branchLocked && deliverableBranches.length > 1 && (
                   <div className="flex justify-center">
                     <BranchSelector
                       branches={deliverableBranches}
@@ -725,17 +813,15 @@ export function PublicOrderingPage({
                 query={menuQuery}
                 onQueryChange={setMenuQuery}
                 cartSlot={
-                  browseOnly ? undefined : (
-                    <CartPanel
-                      lines={lines}
-                      deliveryFee={deliveryFee}
-                      discountAmount={discountAmount}
-                      onEdit={startEdit}
-                      onRemove={removeLine}
-                      onSetQty={setLineQty}
-                      onCheckout={() => setEnteredCheckout(true)}
-                    />
-                  )
+                  <CartPanel
+                    lines={lines}
+                    deliveryFee={deliveryFee}
+                    discountAmount={discountAmount}
+                    onEdit={startEdit}
+                    onRemove={removeLine}
+                    onSetQty={setLineQty}
+                    onCheckout={requestCheckout}
+                  />
                 }
               />
             )}
@@ -759,7 +845,7 @@ export function PublicOrderingPage({
         </AnimatePresence>
 
         {/* Empty-cart hint on the menu footer area (mobile / tablet only) */}
-        {step === "menu" && itemCount === 0 && !browseOnly && (
+        {step === "menu" && itemCount === 0 && (
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-[480px] items-center justify-center gap-2 px-4 py-4 text-xs text-muted-foreground xl:hidden">
             <ShoppingBag className="size-3.5" />
             {t("order.cart.emptyHint")}
@@ -779,10 +865,22 @@ export function PublicOrderingPage({
         onSetQty={setLineQty}
         onCheckout={() => {
           setCartOpen(false);
-          setEnteredCheckout(true);
+          requestCheckout();
         }}
         onAddMore={() => setCartOpen(false)}
       />
+
+      {/* Browse-mode checkout: pick a channel, or the warm "closed" state */}
+      {branchObj && (
+        <CheckoutChannelSheet
+          open={checkoutSheetOpen}
+          onOpenChange={setCheckoutSheetOpen}
+          branch={branchObj}
+          itemCount={itemCount}
+          subtotal={subtotal}
+          onChoose={handleChooseChannelFromBrowse}
+        />
+      )}
 
       {/* Edit customizer (re-opens a configured line from the cart) */}
       <ItemCustomizer
@@ -815,6 +913,21 @@ export function PublicOrderingPage({
       />
     </>
   );
+}
+
+/** Effective open-now for a channel on a public branch. */
+function channelOpenNow(b: PublicBranch | null | undefined, c: Channel | null): boolean {
+  if (!b || !c) return false;
+  switch (c) {
+    case "in_mall":
+      return b.in_mall_open_now;
+    case "outside":
+      return b.outside_open_now;
+    case "umbrella":
+      return b.umbrella_open_now;
+    case "pickup":
+      return b.pickup_open_now;
+  }
 }
 
 function stepHeaders(

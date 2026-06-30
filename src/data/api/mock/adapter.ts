@@ -56,8 +56,8 @@ const RULES: Rule[] = [
   { test: /\/public\/branches\/[^/]+\/menu/, method: "get", data: { items: [], categories: [], addons: [], discount: null } },
   { test: /\/public\/branches\/[^/]+\/delivery-quote/, method: "get", data: { status: "ok", fee: 1500, distance_meters: 2400, zone_id: "z1", zone_name: "Zone A" } },
   { test: /\/public\/branches/, method: "get", data: [
-    { id: "br_zamalek", name: "Zamalek", code: "ZAM", in_mall_enabled: true, outside_enabled: true, in_mall_open_now: true, outside_open_now: true, otp_required: false, in_mall_require_location: false },
-    { id: "br_newcairo", name: "New Cairo", code: "NC", in_mall_enabled: false, outside_enabled: true, in_mall_open_now: false, outside_open_now: true, otp_required: false, in_mall_require_location: true },
+    { id: "br_zamalek", name: "Zamalek", code: "ZAM", in_mall_enabled: true, outside_enabled: true, umbrella_enabled: true, pickup_enabled: true, in_mall_open_now: true, outside_open_now: true, umbrella_open_now: true, pickup_open_now: true, otp_required: false, in_mall_require_location: false },
+    { id: "br_newcairo", name: "New Cairo", code: "NC", in_mall_enabled: true, outside_enabled: true, umbrella_enabled: true, pickup_enabled: true, in_mall_open_now: false, outside_open_now: false, umbrella_open_now: false, pickup_open_now: false, otp_required: false, in_mall_require_location: true },
   ] },
   { test: /\/public\/delivery-orders\/history/, method: "get", data: [
     { id: "ord_001", delivery_ref: "ZAM-1042", status: "delivered", created_at: "2026-06-10T14:30:00Z", branch_id: "br_zamalek", branch_name: "Zamalek", channel: "outside", subtotal: 18000, delivery_fee: 1500, total: 19500, customer_name: "Ahmed Hassan", address_line: "14 Hassan Sabry St, Zamalek", place_name: null, customer_lat: 30.063, customer_lng: 31.217, items: [{ name: "Latte", quantity: 2 }, { name: "Espresso", quantity: 1 }] },

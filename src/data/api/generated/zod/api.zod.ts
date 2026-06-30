@@ -1335,7 +1335,19 @@ export const SetAcceptingResponse = zod.object({
   "outside_enabled": zod.boolean(),
   "outside_open_time": zod.string().nullish(),
   "outside_override": zod.string(),
-  "prep_time_minutes": zod.number()
+  "pickup_close_time": zod.string().nullish(),
+  "pickup_discount_id": zod.string().uuid().nullish(),
+  "pickup_enabled": zod.boolean(),
+  "pickup_fee": zod.number(),
+  "pickup_open_time": zod.string().nullish(),
+  "pickup_override": zod.string(),
+  "prep_time_minutes": zod.number(),
+  "umbrella_close_time": zod.string().nullish(),
+  "umbrella_discount_id": zod.string().uuid().nullish(),
+  "umbrella_enabled": zod.boolean(),
+  "umbrella_fee": zod.number().describe('Flat per-branch fees (piastres). Pickup defaults to free.'),
+  "umbrella_open_time": zod.string().nullish(),
+  "umbrella_override": zod.string()
 })
 
 
@@ -1437,7 +1449,19 @@ export const GetBranchSettingsResponse = zod.object({
   "outside_enabled": zod.boolean(),
   "outside_open_time": zod.string().nullish(),
   "outside_override": zod.string(),
-  "prep_time_minutes": zod.number()
+  "pickup_close_time": zod.string().nullish(),
+  "pickup_discount_id": zod.string().uuid().nullish(),
+  "pickup_enabled": zod.boolean(),
+  "pickup_fee": zod.number(),
+  "pickup_open_time": zod.string().nullish(),
+  "pickup_override": zod.string(),
+  "prep_time_minutes": zod.number(),
+  "umbrella_close_time": zod.string().nullish(),
+  "umbrella_discount_id": zod.string().uuid().nullish(),
+  "umbrella_enabled": zod.boolean(),
+  "umbrella_fee": zod.number().describe('Flat per-branch fees (piastres). Pickup defaults to free.'),
+  "umbrella_open_time": zod.string().nullish(),
+  "umbrella_override": zod.string()
 })
 
 
@@ -1455,7 +1479,17 @@ export const PutBranchSettingsBody = zod.object({
   "outside_discount_id": zod.string().uuid().nullish(),
   "outside_enabled": zod.boolean(),
   "outside_open_time": zod.string().nullish(),
-  "prep_time_minutes": zod.number()
+  "pickup_close_time": zod.string().nullish(),
+  "pickup_discount_id": zod.string().uuid().nullish(),
+  "pickup_enabled": zod.boolean().optional(),
+  "pickup_fee": zod.number().optional(),
+  "pickup_open_time": zod.string().nullish(),
+  "prep_time_minutes": zod.number(),
+  "umbrella_close_time": zod.string().nullish(),
+  "umbrella_discount_id": zod.string().uuid().nullish(),
+  "umbrella_enabled": zod.boolean().optional(),
+  "umbrella_fee": zod.number().optional(),
+  "umbrella_open_time": zod.string().nullish()
 })
 
 export const PutBranchSettingsResponse = zod.object({
@@ -1474,7 +1508,19 @@ export const PutBranchSettingsResponse = zod.object({
   "outside_enabled": zod.boolean(),
   "outside_open_time": zod.string().nullish(),
   "outside_override": zod.string(),
-  "prep_time_minutes": zod.number()
+  "pickup_close_time": zod.string().nullish(),
+  "pickup_discount_id": zod.string().uuid().nullish(),
+  "pickup_enabled": zod.boolean(),
+  "pickup_fee": zod.number(),
+  "pickup_open_time": zod.string().nullish(),
+  "pickup_override": zod.string(),
+  "prep_time_minutes": zod.number(),
+  "umbrella_close_time": zod.string().nullish(),
+  "umbrella_discount_id": zod.string().uuid().nullish(),
+  "umbrella_enabled": zod.boolean(),
+  "umbrella_fee": zod.number().describe('Flat per-branch fees (piastres). Pickup defaults to free.'),
+  "umbrella_open_time": zod.string().nullish(),
+  "umbrella_override": zod.string()
 })
 
 
@@ -4855,7 +4901,11 @@ export const PublicBranchesResponseItem = zod.object({
   "name": zod.string(),
   "otp_required": zod.boolean().describe('When false, the public checkout skips OTP verification for this branch.'),
   "outside_enabled": zod.boolean(),
-  "outside_open_now": zod.boolean()
+  "outside_open_now": zod.boolean(),
+  "pickup_enabled": zod.boolean(),
+  "pickup_open_now": zod.boolean(),
+  "umbrella_enabled": zod.boolean(),
+  "umbrella_open_now": zod.boolean()
 })
 export const PublicBranchesResponse = zod.array(PublicBranchesResponseItem)
 
@@ -5114,7 +5164,11 @@ export const ListReservationPublicBranchesResponseItem = zod.object({
   "name": zod.string(),
   "otp_required": zod.boolean().describe('When false, the public checkout skips OTP verification for this branch.'),
   "outside_enabled": zod.boolean(),
-  "outside_open_now": zod.boolean()
+  "outside_open_now": zod.boolean(),
+  "pickup_enabled": zod.boolean(),
+  "pickup_open_now": zod.boolean(),
+  "umbrella_enabled": zod.boolean(),
+  "umbrella_open_now": zod.boolean()
 })
 export const ListReservationPublicBranchesResponse = zod.array(ListReservationPublicBranchesResponseItem)
 
