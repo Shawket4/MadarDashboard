@@ -24,6 +24,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:order"],
       "port": 5183
+    },
+    {
+      "name": "madar-landing",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:get"],
+      "port": 5184
     }
   ]
 }

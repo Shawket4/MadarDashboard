@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 import {
   ArrowRight,
+  ArrowUpRight,
   BarChart3,
   Boxes,
   Building2,
@@ -288,6 +289,17 @@ function Hero({ lang, dark, reduced }: { lang: string; dark: boolean; reduced: b
               size="lg"
               variant="brand"
               className="group shadow-sm transition-transform active:scale-[0.97]"
+            >
+              <a href="https://demo.madar-pos.cloud" target="_blank" rel="noopener noreferrer">
+                {t("landing.hero.ctaDemo", "Try the live demo")}
+                <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="group transition-transform active:scale-[0.97]"
             >
               <a href="#dashboard">
                 {t("landing.hero.ctaSecondary", "See it in action")}
