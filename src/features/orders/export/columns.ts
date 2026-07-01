@@ -6,6 +6,7 @@ export const orderColumns = (t: TFunction): ExcelColumn<OrderExport>[] => [
   { key: "order_ref", header: t("orders.orderRef", "Ref"), accessor: (o) => o.order_ref ?? `#${o.order_number}`, type: "text", width: 16 },
   { key: "created_at", header: t("orders.date", "Date"), accessor: (o) => new Date(o.created_at), type: "dateTime", width: 20 },
   { key: "teller", header: t("shifts.teller", "Teller"), accessor: (o) => o.teller_name, type: "text", width: 18 },
+  { key: "waiter", header: t("shifts.waiter", "Waiter"), accessor: (o) => o.waiter_name || "—", type: "text", width: 18 },
   { key: "customer", header: t("orders.customer", "Customer"), accessor: (o) => o.customer_name || "—", type: "text", width: 18 },
   {
     key: "payment_method",

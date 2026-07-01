@@ -63,6 +63,14 @@ export interface Order {
   tax_amount: number;
   teller_id: string;
   teller_name: string;
+  /**
+   * The waiter who opened the ticket this order was settled from.
+   * `null` for direct sales & delivery.
+   * @nullable
+   */
+  waiter_id?: string | null;
+  /** @nullable */
+  waiter_name?: string | null;
   /** @nullable */
   tip_amount?: number | null;
   /** @nullable */

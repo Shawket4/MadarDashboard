@@ -1120,6 +1120,7 @@
   },
   "shifts": {
     "teller": "الصراف",
+    "waiter": "النادل",
     "title": "الورديات",
     "subtitle": "التقارير وإدارة الورديات",
     "openShift": "فتح وردية",
@@ -1273,6 +1274,7 @@
     "reason": "السبب",
     "reasonPlaceholder": "ما سبب إلغاء هذا الطلب؟",
     "searchTeller": "ابحث عن الكاشير…",
+    "searchWaiter": "ابحث عن النادل…",
     "allPayments": "كل طرق الدفع",
     "exportTitle": "تقرير الطلبات",
     "exportDesc": "اختر الأعمدة المراد تضمينها في ملف Excel.",

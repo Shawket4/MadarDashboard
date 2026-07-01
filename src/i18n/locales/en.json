@@ -1120,6 +1120,7 @@
   },
   "shifts": {
     "teller": "Teller",
+    "waiter": "Waiter",
     "title": "Shifts",
     "subtitle": "Reports and shift management",
     "openShift": "Open Shift",
@@ -1273,6 +1274,7 @@
     "reason": "Reason",
     "reasonPlaceholder": "Why is this order being voided?",
     "searchTeller": "Search teller…",
+    "searchWaiter": "Search waiter…",
     "allPayments": "All payments",
     "exportTitle": "Orders report",
     "exportDesc": "Choose the columns to include in the Excel export.",

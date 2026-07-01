@@ -5,6 +5,7 @@ export type ExportOrdersParams = {
 branch_id?: string;
 shift_id?: string;
 teller_name?: string;
+waiter_name?: string;
 payment_method?: string;
 status?: string;
 from?: string;

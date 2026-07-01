@@ -8,6 +8,7 @@ updated_after?: string;
 page?: number;
 per_page?: number;
 teller_name?: string;
+waiter_name?: string;
 payment_method?: string;
 status?: string;
 from?: string;

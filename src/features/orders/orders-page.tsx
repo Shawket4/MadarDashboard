@@ -66,6 +66,8 @@ export function OrdersPage() {
   const [channel, setChannel] = useState<string>(ALL);
   const [tellerInput, setTellerInput] = useState("");
   const teller = useDebounced(tellerInput, 350);
+  const [waiterInput, setWaiterInput] = useState("");
+  const waiter = useDebounced(waiterInput, 350);
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
   // Opened order lives in the URL (?order=<id>) so it's shareable / deep-linkable.
   const navigate = useNavigate();
@@ -80,7 +82,7 @@ export function OrdersPage() {
   // Reset to first page whenever the scope or filters change.
   useEffect(() => {
     setPagination((p) => ({ ...p, pageIndex: 0 }));
-  }, [branchId, from, to, status, payment, teller, orderType, channel]);
+  }, [branchId, from, to, status, payment, teller, waiter, orderType, channel]);
 
   const baseParams = {
     branch_id: branchId ?? undefined,
@@ -89,6 +91,7 @@ export function OrdersPage() {
     status: status === ALL ? undefined : status,
     payment_method: payment === ALL ? undefined : payment,
     teller_name: teller || undefined,
+    waiter_name: waiter || undefined,
     order_type: orderType === ALL ? undefined : orderType,
     // Channel only narrows delivery orders; ignored unless Delivery is picked.
     channel: orderType === "delivery" && channel !== ALL ? channel : undefined,
@@ -154,6 +157,11 @@ export function OrdersPage() {
         cell: ({ row }) => <span className="text-muted-foreground tabular">{fmtDateTime(row.original.created_at)}</span>,
       },
       { accessorKey: "teller_name", header: t("shifts.teller", "Teller") },
+      {
+        accessorKey: "waiter_name",
+        header: t("shifts.waiter", "Waiter"),
+        cell: ({ row }) => row.original.waiter_name || "—",
+      },
       {
         accessorKey: "status",
         header: t("common.status", "Status"),
@@ -253,6 +261,12 @@ export function OrdersPage() {
               value={tellerInput}
               onChange={(e) => setTellerInput(e.target.value)}
               placeholder={t("orders.searchTeller", "Search teller…")}
+              className="h-9 w-full sm:w-48"
+            />
+            <Input
+              value={waiterInput}
+              onChange={(e) => setWaiterInput(e.target.value)}
+              placeholder={t("orders.searchWaiter", "Search waiter…")}
               className="h-9 w-full sm:w-48"
             />
             <Select value={status} onValueChange={setStatus}>

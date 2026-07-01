@@ -86,6 +86,7 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
           status: undefined,
           payment_method: undefined,
           teller_name: undefined,
+          waiter_name: undefined,
           page: 1,
           per_page: ORDERS_PER_PAGE,
         }));
