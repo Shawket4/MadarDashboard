@@ -8,6 +8,10 @@ updated_after?: string;
 page?: number;
 per_page?: number;
 teller_name?: string;
+/**
+ * Filter by the WAITER who opened the ticket (ILIKE, partial match). Matches
+ * only orders that carry a waiter (dine-in settled from a waiter's ticket).
+ */
 waiter_name?: string;
 payment_method?: string;
 status?: string;

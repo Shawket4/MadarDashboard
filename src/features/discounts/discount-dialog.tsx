@@ -44,14 +44,14 @@ export function DiscountDialog({ orgId, discount, open, onOpenChange }: Props) {
         name: z.string().min(1, t("common.requiredField", "This field is required")),
         name_ar: z.string().optional(),
         dtype: z.enum(["percentage", "fixed"]),
-        value: z.coerce.number().min(0),
+        value: z.coerce.number<number>().min(0),
         is_active: z.boolean(),
       }),
     [t],
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", name_ar: "", dtype: "percentage", value: 0, is_active: true },
   });

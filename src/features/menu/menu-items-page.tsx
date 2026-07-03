@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
 import { Copy, CupSoda, Pencil, Percent, Store, Tag, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
@@ -24,20 +25,19 @@ import { invalidateCatalog } from "./util";
 import { useAddonCostMap } from "./costing";
 import {
   createMenuItem,
+  duplicateItem,
   getGetMenuItemQueryOptions,
+  getGetStudioQueryOptions,
   getListAddonCostsQueryOptions,
   getListAddonItemsQueryOptions,
   getListMenuCatalogQueryOptions,
-  getMenuItem,
   listMenuItems,
-  updateAddonItem,
+  patchOption,
   updateCategory,
   updateMenuItem,
-  upsertDrinkRecipe,
-  upsertSize,
-  useDeleteAddonItem,
   useDeleteCategory,
   useDeleteMenuItem,
+  useDeleteOption,
   useListAddonItems,
   useListBranchAddonOverrides,
   useListBranchMenuOverrides,
@@ -51,7 +51,7 @@ import type {
   Category,
   MenuItem,
   MenuItemWithCosts,
-  UpdateAddonItemRequest,
+  PatchOptionRequest,
   UpdateCategoryRequest,
   UpdateMenuItemRequest,
 } from "@/data/api/generated/models";
@@ -70,6 +70,7 @@ export function MenuItemsPage() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const confirm = useConfirm();
+  const navigate = useNavigate();
   const orgId = useOrgId();
   const enabled = !!orgId;
   // When a single branch is scoped (top bar), each card gets an inline
@@ -134,7 +135,11 @@ export function MenuItemsPage() {
   }, [addonOverrides.data]);
 
   // Predictive prefetch: warm a query before the user commits to the action.
-  const prefetchItem = (id: string) => void queryClient.prefetchQuery(getGetMenuItemQueryOptions(id));
+  const prefetchItem = (id: string) => {
+    void queryClient.prefetchQuery(getGetMenuItemQueryOptions(id));
+    void queryClient.prefetchQuery(getGetStudioQueryOptions(id));
+  };
+  const openStudio = (id: string) => void navigate({ to: "/menu/items/$itemId", params: { itemId: id }, search: {} });
   const prefetchNextItemsPage = () => {
     if (itemsPage + 1 >= itemsPageCount) return;
     void queryClient.prefetchQuery(getListMenuCatalogQueryOptions({ ...itemsParams, page: itemsPage + 2 }));
@@ -162,7 +167,9 @@ export function MenuItemsPage() {
     void invalidateCatalog();
   };
   const delItem = useDeleteMenuItem({ mutation: { onSuccess: onDeleted, onError: onErr } });
-  const delAddon = useDeleteAddonItem({ mutation: { onSuccess: onDeleted, onError: onErr } });
+  // Add-ons are modifier OPTIONS post-unification (same stable ids) — deletes go
+  // through the options endpoint (soft-deactivates when order-referenced).
+  const delAddon = useDeleteOption({ mutation: { onSuccess: onDeleted, onError: onErr } });
   const delCategory = useDeleteCategory({ mutation: { onSuccess: onDeleted, onError: onErr } });
 
   const commitOk = () => {
@@ -179,7 +186,14 @@ export function MenuItemsPage() {
   };
   const commitAddon = async (a: AddonItem, patch: Record<string, unknown>) => {
     try {
-      await updateAddonItem(a.id, patch as UpdateAddonItemRequest);
+      // Unified model: an add-on IS a modifier option (stable id). Map the
+      // legacy field names onto the option patch; `addon_type` is the option's
+      // GROUP and is not inline-editable (moving groups = the edit dialog).
+      const p: PatchOptionRequest = {};
+      if ("default_price" in patch) p.price = patch.default_price as number;
+      if ("is_active" in patch) p.is_active = patch.is_active as boolean;
+      if ("name" in patch) p.name = patch.name as string;
+      await patchOption(a.id, p);
       commitOk();
     } catch (e) {
       onErr(e);
@@ -196,22 +210,13 @@ export function MenuItemsPage() {
 
   const duplicate = async (item: MenuItem) => {
     try {
-      const full = await getMenuItem(item.id);
-      const created = await createMenuItem({
-        org_id: orgId ?? "",
-        name: `${full.name} (copy)`,
-        name_translations: full.name_translations,
-        description: full.description,
-        description_translations: full.description_translations,
-        base_price: full.base_price,
-        category_id: full.category_id ?? "",
-      });
+      // Studio deep-copy (server-side): sizes + recipes + modifier attachments +
+      // options + overrides in one call — the old client-side loop silently
+      // dropped slots/optionals/allowlist. The copy starts inactive, as before.
+      const created = await duplicateItem(item.id);
       await updateMenuItem(created.id, { is_active: false });
-      for (const s of full.sizes ?? []) await upsertSize(created.id, { label: s.label, price_override: s.price_override });
-      for (const r of full.recipes ?? [])
-        await upsertDrinkRecipe(created.id, { size_label: r.size_label, org_ingredient_id: r.org_ingredient_id, ingredient_name: r.ingredient_name, ingredient_unit: r.ingredient_unit, quantity_used: r.quantity_used });
       void invalidateCatalog();
-      toast.success(t("menu.grid.duplicated", { name: full.name, defaultValue: "Item duplicated" }));
+      toast.success(t("menu.grid.duplicated", { name: item.name, defaultValue: "Item duplicated" }));
     } catch (e) {
       onErr(e);
     }
@@ -392,7 +397,7 @@ export function MenuItemsPage() {
             }}
             actions={(m) => (
               <>
-                <DropdownMenuItem onClick={() => { setEditingItem(m); setItemOpen(true); }}>
+                <DropdownMenuItem onClick={() => openStudio(m.id)} onMouseEnter={() => prefetchItem(m.id)}>
                   <Pencil className="size-4" /> {t("menu.grid.fullEditor", "Full editor")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => void duplicate(m)}>
@@ -443,7 +448,7 @@ export function MenuItemsPage() {
                 <DropdownMenuItem onClick={() => { setEditingAddon(a); setAddonOpen(true); }}>
                   <Pencil className="size-4" /> {t("common.edit", "Edit")}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(a.name, () => delAddon.mutate({ id: a.id }))}>
+                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(a.name, () => delAddon.mutate({ oid: a.id }))}>
                   <Trash2 className="size-4" /> {t("common.delete", "Delete")}
                 </DropdownMenuItem>
               </>

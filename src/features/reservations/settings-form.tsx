@@ -25,16 +25,16 @@ export function SettingsForm({ branchId }: { branchId: string }) {
       z.object({
         accepting_reservations: z.boolean(),
         accepting_waitlist: z.boolean(),
-        lead_minutes: z.coerce.number().int().min(0).max(1440),
-        hold_lead_minutes: z.coerce.number().int().min(0).max(1440),
-        grace_minutes: z.coerce.number().int().min(0).max(1440),
-        slot_minutes: z.coerce.number().int().min(1).max(240),
+        lead_minutes: z.coerce.number<number>().int().min(0).max(1440),
+        hold_lead_minutes: z.coerce.number<number>().int().min(0).max(1440),
+        grace_minutes: z.coerce.number<number>().int().min(0).max(1440),
+        slot_minutes: z.coerce.number<number>().int().min(1).max(240),
       }),
     [],
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: {
       accepting_reservations: false, accepting_waitlist: false,

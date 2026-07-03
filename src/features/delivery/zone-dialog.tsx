@@ -58,16 +58,16 @@ export function ZoneDialog({ branchId, zone, zones, open, onOpenChange, onSaved 
         // Name optional — falls back to "Zone N" on submit when left blank.
         name: z.string(),
         max_road_distance_km: z.coerce
-          .number()
+          .number<number>()
           .gt(0, t("delivery.errDistancePositive", "Distance must be greater than 0")),
-        fee: z.coerce.number().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
+        fee: z.coerce.number<number>().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
         is_active: z.boolean(),
       }),
     [t],
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",

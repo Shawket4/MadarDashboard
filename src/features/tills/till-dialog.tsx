@@ -40,7 +40,7 @@ export function TillDialog({ branchId, till, open, onOpenChange }: Props) {
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", is_default: false, is_active: true },
   });

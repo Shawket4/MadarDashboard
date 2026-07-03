@@ -58,8 +58,8 @@ export function BundleDialog({ orgId, bundle, open, onOpenChange }: Props) {
         name_ar: z.string().optional(),
         description: z.string().optional(),
         description_ar: z.string().optional(),
-        price: z.coerce.number().min(0.01, t("common.requiredField", "This field is required")),
-        components: z.array(z.object({ item_id: z.string(), quantity: z.coerce.number().min(1) })),
+        price: z.coerce.number<number>().min(0.01, t("common.requiredField", "This field is required")),
+        components: z.array(z.object({ item_id: z.string(), quantity: z.coerce.number<number>().min(1) })),
       }),
     [t],
   );
@@ -74,7 +74,7 @@ export function BundleDialog({ orgId, bundle, open, onOpenChange }: Props) {
     return "permanent";
   };
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: bundle?.name ?? "",

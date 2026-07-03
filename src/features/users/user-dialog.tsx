@@ -81,7 +81,7 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", email: "", phone: "", role: "teller", org_id: orgId, pin: "", password: "", is_active: true },
   });

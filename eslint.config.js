@@ -36,6 +36,14 @@ export default [
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // react-hooks v7 ships React-Compiler-era rules as errors; this app
+      // doesn't use the compiler. OFF for now (candidates
+      // for a dedicated cleanup pass — 62 sites) so --max-warnings 0 keeps gating — the
+      // pre-upgrade lint contract was rules-of-hooks + exhaustive-deps.
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/incompatible-library': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/purity': 'off',
       'react-refresh/only-export-components': 'off',
       'no-undef': 'off',
       'no-unused-vars': 'off',

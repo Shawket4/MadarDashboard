@@ -40,7 +40,11 @@ export function AppSidebar() {
   const role = useAuthStore((s) => s.user?.role);
   const isSuperAdmin = role === "super_admin";
 
-  const visible = (leaf: NavLeaf) => !leaf.superAdminOnly || isSuperAdmin;
+  const visible = (leaf: NavLeaf) => {
+    if (leaf.superAdminOnly && !isSuperAdmin) return false;
+    if (leaf.roles && (!role || !leaf.roles.includes(role))) return false;
+    return true;
+  };
   const close = () => setOpenMobile(false);
 
   // Predictive preloading on hover/focus: route code chunk + the page's queries.

@@ -5,6 +5,7 @@ import { Check, Minus, Plus, Search, UtensilsCrossed, X } from "lucide-react";
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
 import type { DeliveryAddonOption } from "@/data/api/generated/models/deliveryAddonOption";
 import type { DeliveryOptionalField } from "@/data/api/generated/models/deliveryOptionalField";
+import type { DeliveryModifierGroup } from "@/data/api/generated/models/deliveryModifierGroup";
 import {
   Drawer,
   DrawerClose,
@@ -36,12 +37,12 @@ interface ItemCustomizerProps {
 }
 
 /**
- * Global addon types, in display order (mirrors the POS sheet). `milk_type` is a
- * single-select swap (radio chips, optional, re-tap clears); `coffee_type` and
- * `extra` are multi-select with qty steppers. The SAME catalog shows for every
- * item — addon availability/price is resolved server-side per channel.
+ * `milk_type` is a single-select swap (radio chips, optional, re-tap clears); every
+ * other addon type (`coffee_type`, `extra`, and any custom group) is multi-select
+ * with qty steppers. The offered groups are derived from the item's own configured
+ * addons (see `groups` below) — no hard-coded type list — so custom modifier groups
+ * appear. Addon availability/price is resolved server-side per channel.
  */
-const GLOBAL_TYPES = ["milk_type", "coffee_type", "extra"] as const;
 const SINGLE_SELECT_TYPES = new Set<string>(["milk_type"]);
 
 /** Map of addon_item_id → quantity (single-select types hold at most one key). */
@@ -74,6 +75,11 @@ export function ItemCustomizer({
 
   // Default view: only the item's configured addons (nothing when allowedSet is empty).
   // "Show all" bypasses the filter and shows the full available catalog.
+  //
+  // Groups are derived DYNAMICALLY from whatever addon types the item actually
+  // offers — not a hard-coded list — so custom modifier groups (beyond
+  // milk/coffee/extra) surface too. milk_type/coffee_type keep their swap ordering
+  // and 'extra' sorts last; any other type slots in between, alphabetically.
   const groups = useMemo(() => {
     const byType = new Map<string, DeliveryAddonOption[]>();
     for (const a of addons) {
@@ -83,11 +89,60 @@ export function ItemCustomizer({
       list.push(a);
       byType.set(a.type, list);
     }
-    return GLOBAL_TYPES.flatMap((type) => {
-      const options = byType.get(type) ?? [];
-      return options.length > 0 ? [{ type, options }] : [];
-    });
+    const rank = (type: string) =>
+      type === "milk_type" ? 0 : type === "coffee_type" ? 1 : type === "extra" ? 3 : 2;
+    return [...byType.keys()]
+      .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
+      .map((type) => ({ type, options: byType.get(type)! }));
   }, [addons, allowedSet, showAll]);
+
+  // Unified per-item MODIFIER GROUPS from the server (menu-unification). When
+  // present they are the authoritative default view — group names, min/max/
+  // required constraints and channel-effective prices come from the backend.
+  // Options are mapped onto the flat-catalog shape (stable ids: option_id ==
+  // addon_item_id) so selection/pricing/submission stay unchanged. "Show all"
+  // still flips to the flat full-catalog view.
+  const serverGroups = useMemo(() => {
+    const raw: DeliveryModifierGroup[] = item?.modifier_groups ?? [];
+    const byId = new Map(addons.map((a) => [a.addon_item_id, a]));
+    return raw
+      .map((g) => ({
+        key: g.group_id,
+        title: getTranslatedName(
+          { name: g.name, name_translations: g.name_translations },
+          lang,
+        ),
+        single: g.selection_type === "single" || g.max_selections === 1,
+        min: Math.max(g.min_selections, g.is_required ? 1 : 0),
+        max: g.max_selections ?? null,
+        type: g.addon_type ?? "extra",
+        options: g.options.map(
+          (o): DeliveryAddonOption => ({
+            addon_item_id: o.option_id,
+            name: o.name,
+            name_translations: o.name_translations,
+            type: byId.get(o.option_id)?.type ?? g.addon_type ?? "extra",
+            price: o.price,
+            is_available: true,
+          }),
+        ),
+      }))
+      .filter((g) => g.options.length > 0);
+  }, [item, addons, lang]);
+  const useServerGroups = serverGroups.length > 0 && !showAll;
+
+  // Groups whose min/max constraint the current selection breaks — the confirm
+  // CTA stays disabled until every group is satisfied.
+  const groupViolations = useMemo(() => {
+    if (!useServerGroups) return [];
+    return serverGroups.filter((g) => {
+      const selected = g.options.reduce(
+        (n, o) => n + (selections[o.addon_item_id] ?? 0),
+        0,
+      );
+      return selected < g.min || (g.max != null && selected > g.max);
+    });
+  }, [useServerGroups, serverGroups, selections]);
 
   // Milk/coffee are swap selections (never searched). The generic "extra" add-ons
   // are the searchable list — the search filters ONLY those.
@@ -171,17 +226,23 @@ export function ItemCustomizer({
     [item, size],
   );
 
-  // Single-select (swap): picking one clears every option of that type across the
-  // FULL catalog (not just the filtered subset), so a hidden, previously-picked
-  // option can't linger; re-tapping the active option clears it (optional swap).
-  const pickSingle = (addonId: string, type: string) =>
+  // Single-select: picking one clears every sibling in `clearIds` (the group's
+  // options for a server group; every option of the type for the legacy view),
+  // so a hidden, previously-picked option can't linger; re-tapping the active
+  // option clears it (optional swap).
+  const pickSingleAmong = (addonId: string, clearIds: readonly string[]) =>
     setSelections((prev) => {
       const next = { ...prev };
       const wasActive = (prev[addonId] ?? 0) > 0;
-      for (const a of addons) if (a.type === type) delete next[a.addon_item_id];
+      for (const id of clearIds) delete next[id];
       if (!wasActive) next[addonId] = 1;
       return next;
     });
+  const pickSingle = (addonId: string, type: string) =>
+    pickSingleAmong(
+      addonId,
+      addons.filter((a) => a.type === type).map((a) => a.addon_item_id),
+    );
 
   // Multi-select (coffee_type / extra): qty stepper, 0 removes the option.
   const setMultiQty = (addonId: string, n: number) =>
@@ -325,22 +386,52 @@ export function ItemCustomizer({
               </button>
             </div>
 
+            {/* Unified modifier groups (server-authoritative constraints) */}
+            {useServerGroups &&
+              serverGroups.map((g) => (
+                <AddonGroupSection
+                  key={g.key}
+                  type={g.type}
+                  title={g.title}
+                  single={g.single}
+                  rule={
+                    g.min > 0
+                      ? t("order.customize.required", "Required")
+                      : g.single
+                        ? t("order.customize.pickOne")
+                        : t("order.customize.optional")
+                  }
+                  options={g.options}
+                  lang={lang}
+                  selections={selections}
+                  priceOf={swapAdjustedPrice}
+                  onPickSingle={(addonId) =>
+                    pickSingleAmong(
+                      addonId,
+                      g.options.map((o) => o.addon_item_id),
+                    )
+                  }
+                  onSetQty={setMultiQty}
+                />
+              ))}
+
             {/* Milk / coffee — swap selections (never searched) */}
-            {swapGroups.map(({ type, options }) => (
-              <AddonGroupSection
-                key={type}
-                type={type}
-                options={options}
-                lang={lang}
-                selections={selections}
-                priceOf={swapAdjustedPrice}
-                onPickSingle={(addonId) => pickSingle(addonId, type)}
-                onSetQty={setMultiQty}
-              />
-            ))}
+            {!useServerGroups &&
+              swapGroups.map(({ type, options }) => (
+                <AddonGroupSection
+                  key={type}
+                  type={type}
+                  options={options}
+                  lang={lang}
+                  selections={selections}
+                  priceOf={swapAdjustedPrice}
+                  onPickSingle={(addonId) => pickSingle(addonId, type)}
+                  onSetQty={setMultiQty}
+                />
+              ))}
 
             {/* Extra add-ons — searchable */}
-            {extraGroup && (
+            {!useServerGroups && extraGroup && (
               <div className="space-y-3">
                 {showAddonSearch && (
                   <div className="relative">
@@ -434,12 +525,14 @@ export function ItemCustomizer({
           <Button
             className="flex-1"
             size="lg"
-            disabled={!draft}
+            disabled={!draft || groupViolations.length > 0}
             onClick={() => draft && (onConfirm(draft), onOpenChange(false))}
           >
-            {editing
-              ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
-              : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
+            {groupViolations.length > 0
+              ? `${groupViolations[0].title}: ${t("order.customize.required", "Required")}`
+              : editing
+                ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
+                : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
           </Button>
         </div>
       </DrawerContent>
@@ -457,6 +550,9 @@ function AddonGroupSection({
   priceOf,
   onPickSingle,
   onSetQty,
+  title: titleOverride,
+  single: singleOverride,
+  rule: ruleOverride,
 }: {
   type: string;
   options: DeliveryAddonOption[];
@@ -465,13 +561,18 @@ function AddonGroupSection({
   priceOf: (opt: DeliveryAddonOption) => number;
   onPickSingle: (addonId: string) => void;
   onSetQty: (addonId: string, n: number) => void;
+  /** Server-group overrides (unified model): authored name + constraints. */
+  title?: string;
+  single?: boolean;
+  rule?: string;
 }) {
   const { t } = useTranslation();
-  const single = SINGLE_SELECT_TYPES.has(type);
-  const title = t(`order.customize.addonType.${type}`, addonTypeFallback(type));
-  const rule = single
-    ? t("order.customize.pickOne")
-    : t("order.customize.optional");
+  const single = singleOverride ?? SINGLE_SELECT_TYPES.has(type);
+  const title =
+    titleOverride ?? t(`order.customize.addonType.${type}`, addonTypeFallback(type));
+  const rule =
+    ruleOverride ??
+    (single ? t("order.customize.pickOne") : t("order.customize.optional"));
 
   return (
     <Section title={title} rule={rule}>

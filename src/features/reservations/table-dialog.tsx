@@ -38,7 +38,7 @@ export function TableDialog({ branchId, sectionId, sections, table, open, onOpen
     () =>
       z.object({
         label: z.string().min(1, t("common.requiredField", "This field is required")),
-        seats: z.coerce.number().int().min(0).max(99),
+        seats: z.coerce.number<number>().int().min(0).max(99),
         shape: z.enum(["rect", "circle"]),
         section_id: z.string().nullable(),
         is_active: z.boolean(),
@@ -47,7 +47,7 @@ export function TableDialog({ branchId, sectionId, sections, table, open, onOpen
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: { label: "", seats: 2, shape: "rect", section_id: sectionId, is_active: true },
   });

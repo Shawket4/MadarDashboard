@@ -56,12 +56,12 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
         umbrella_close_time: z.string().nullable(),
         pickup_open_time: z.string().nullable(),
         pickup_close_time: z.string().nullable(),
-        in_mall_fee: z.coerce.number().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
-        umbrella_fee: z.coerce.number().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
-        pickup_fee: z.coerce.number().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
-        prep_time_minutes: z.coerce.number().int().min(0, t("delivery.errPrepNonNeg", "Prep time cannot be negative")),
+        in_mall_fee: z.coerce.number<number>().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
+        umbrella_fee: z.coerce.number<number>().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
+        pickup_fee: z.coerce.number<number>().min(0, t("delivery.errFeeNonNeg", "Fee cannot be negative")),
+        prep_time_minutes: z.coerce.number<number>().int().min(0, t("delivery.errPrepNonNeg", "Prep time cannot be negative")),
         max_road_distance_meters: z.coerce
-          .number()
+          .number<number>()
           .gt(0, t("delivery.errDistancePositive", "Distance must be greater than 0"))
           .optional(),
         in_mall_discount_id: z.string().nullable(),
@@ -75,7 +75,7 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: {
       in_mall_enabled: false,

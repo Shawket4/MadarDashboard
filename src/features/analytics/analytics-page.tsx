@@ -304,7 +304,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
               : (
                 <ChartFrame>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={isPeak ? phData : tsData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+                    <BarChart data={(isPeak ? phData : tsData) as Record<string, string | number>[]} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
                       {grid}
                       <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={isPeak ? 2 : 0} />
                       <YAxis tick={AXIS} tickLine={false} axisLine={false} allowDecimals={isPeak} width={36} tickFormatter={isPeak ? (v) => fmtNumber(Number(v), { maximumFractionDigits: 1 }) : undefined} />

@@ -25,16 +25,15 @@ import { ImageUploader } from "@/components/app/image-uploader";
 import { CategoryDialog } from "./category-dialog";
 import {
   createMenuItem,
-  deleteDrinkRecipe,
-  deleteSize,
-  putAllowedAddons,
+  putModifierGroups,
+  putSizeRecipe,
+  putSizes,
   updateMenuItem,
   uploadMenuItemImage,
-  upsertDrinkRecipe,
-  upsertSize,
   useGetMenuItem,
   useListAddonItems,
   useListCatalog,
+  useListGroups,
 } from "@/data/api/generated/api";
 import type { AddonItem, Category, MenuItem, UploadResponse } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -78,6 +77,9 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
   const { data: liveItem } = useGetMenuItem(item?.id ?? "", { query: { enabled: open && !!item?.id } });
   const catalog = useListCatalog(orgId, { query: { enabled: open && !!orgId } });
   const { data: allAddons } = useListAddonItems({ org_id: orgId }, { query: { enabled: open && !!orgId } });
+  // Reusable modifier groups — the allowlist picker writes group ATTACHMENTS
+  // (unified model) keyed by each addon's type → its group.
+  const { data: modifierGroups } = useListGroups({ org_id: orgId }, { query: { enabled: open && !!orgId } });
 
   const schema = useMemo(
     () =>
@@ -86,14 +88,14 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
         name_ar: z.string().optional(),
         description: z.string().optional(),
         description_ar: z.string().optional(),
-        base_price: z.coerce.number().min(0),
+        base_price: z.coerce.number<number>().min(0),
         category_id: z.string().min(1, t("common.requiredField", "This field is required")),
         is_active: z.boolean(),
         sizes: z.array(
           z.object({
             id: z.string().optional(),
             label: z.string().min(1, t("common.requiredField", "This field is required")),
-            price_override: z.coerce.number().min(0),
+            price_override: z.coerce.number<number>().min(0),
           }),
         ),
       }),
@@ -101,7 +103,7 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", name_ar: "", description: "", description_ar: "", base_price: 0, category_id: "", is_active: true, sizes: [] },
   });
@@ -168,28 +170,55 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
         : await createMenuItem({ org_id: orgId, ...payload });
       const itemId = res.id;
 
-      // Sizes diff: delete removed, upsert the rest.
-      const existing = liveItem?.sizes ?? [];
-      const keptIds = new Set(v.sizes.map((s) => s.id).filter(Boolean));
-      await Promise.all(existing.filter((s) => !keptIds.has(s.id)).map((s) => deleteSize(itemId, s.id)));
-      for (const s of v.sizes) {
-        await upsertSize(itemId, { label: s.label, price_override: egpToPiastres(s.price_override) });
-      }
+      // Sizes — one replace-set on the unified endpoint (the server upserts by
+      // label and soft-deactivates removed sizes that have order history). The
+      // returned Studio aggregate carries the size IDS the recipes need.
+      const studio = await putSizes(itemId, {
+        sizes: v.sizes.map((s, i) => ({
+          label: s.label,
+          price: egpToPiastres(s.price_override),
+          sort: i,
+          is_active: true,
+        })),
+      });
 
-      // Recipe diff — rows streamed from the embedded builder.
-      const rk = (r: { size_label: string; ingredient_name: string }) => `${r.size_label}::${r.ingredient_name}`;
-      const keptKeys = new Set(recipeRows.map(rk));
-      for (const r of recipeRows) await upsertDrinkRecipe(itemId, r);
-      for (const r of (liveItem?.recipes ?? []).filter((x) => !keptKeys.has(rk(x)))) {
-        await deleteDrinkRecipe(itemId, r.size_label, { ingredient_name: r.ingredient_name });
+      // Recipe — replace-set per size on `recipe_lines` (id-keyed: only rows
+      // linked to a catalog ingredient are writable; the builder always links).
+      for (const size of studio.sizes) {
+        const lines = recipeRows
+          .filter((r) => r.size_label === size.label && r.org_ingredient_id)
+          .map((r) => ({
+            ingredient_id: r.org_ingredient_id!,
+            quantity: r.quantity_used,
+            unit: r.ingredient_unit,
+          }));
+        await putSizeRecipe(size.id, { lines });
       }
 
       if (!item && pendingImage) {
         await uploadMenuItemImage(itemId, { image: pendingImage });
       }
 
-      // Allowed addons — always PUT (creates or replaces the set).
-      await putAllowedAddons(itemId, { addon_item_ids: Array.from(allowedIds) });
+      // Offered add-ons — group ATTACHMENTS on the unified model: each selected
+      // addon's type maps to its reusable group, the selection becoming that
+      // attachment's `included_option_ids`. Empty selection = no attachments
+      // (old clients keep their org-default via the shim; new clients author
+      // offers in the Studio's Modifiers tab).
+      const typeOf = new Map((allAddons ?? []).map((a) => [a.id, a.addon_type]));
+      const groupByType = new Map(
+        (modifierGroups ?? []).map((g) => [g.legacy_addon_type ?? g.name, g]),
+      );
+      const byType = new Map<string, string[]>();
+      for (const id of allowedIds) {
+        const ty = typeOf.get(id);
+        if (!ty) continue;
+        byType.set(ty, [...(byType.get(ty) ?? []), id]);
+      }
+      const groups = Array.from(byType.entries()).flatMap(([ty, ids], i) => {
+        const g = groupByType.get(ty);
+        return g ? [{ group_id: g.id, sort: i, included_option_ids: ids }] : [];
+      });
+      await putModifierGroups(itemId, { groups });
 
       return res;
     },

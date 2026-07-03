@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ItemsPage } from "@/features/inventory/items-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/** Legacy path — inventory Items renamed to Ingredients. */
 export const Route = createFileRoute("/_app/inventory/items")({
-  component: ItemsPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/inventory/ingredients" });
+  },
 });

@@ -84,7 +84,7 @@ export function UsersPage() {
           return (
             <div className="flex justify-end gap-1 rtl:flex-row-reverse" onClick={(e) => e.stopPropagation()}>
               <Button asChild variant="ghost" size="icon-sm" title={t("users.permissions", "Manage permissions")}>
-                <Link to="/permissions" search={{ user: u.id } as never}><Shield className="size-4" /></Link>
+                <Link to="/access/roles" search={{ user: u.id } as never}><Shield className="size-4" /></Link>
               </Button>
               {assignable ? <Button variant="ghost" size="icon-sm" title={t("users.assignBranches", "Assign branches")} onClick={() => update({ branches: u.id })}><GitBranch className="size-4" /></Button> : null}
               <Button variant="ghost" size="icon-sm" onClick={() => update({ edit: u.id })}><Pencil className="size-4" /></Button>

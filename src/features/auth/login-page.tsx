@@ -52,7 +52,7 @@ export function LoginPage() {
     [t],
   );
 
-  const form = useForm<LoginValues>({
+  const form = useForm<z.input<typeof schema>, unknown, LoginValues>({
     resolver: zodResolver(schema),
     defaultValues: { email: "", password: "" },
   });

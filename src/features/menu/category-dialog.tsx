@@ -46,7 +46,7 @@ export function CategoryDialog({ orgId, category, open, onOpenChange, onCreated 
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", name_ar: "", is_active: true },
   });

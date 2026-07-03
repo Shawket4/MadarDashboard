@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PermissionsPage } from "@/features/permissions/permissions-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** ?user=<id> selects whose permission matrix to edit (deep-linked from Users). */
+/** Legacy path — Permissions merged into Administration ▸ Users & Permissions.
+ *  Preserve ?user (whose matrix to edit) across the redirect. */
 export const Route = createFileRoute("/_app/permissions")({
   validateSearch: (s: Record<string, unknown>): { user?: string } => ({
     user: typeof s.user === "string" ? s.user : undefined,
   }),
-  component: PermissionsPage,
+  beforeLoad: ({ search }) => {
+    throw redirect({ to: "/access/roles", search });
+  },
 });

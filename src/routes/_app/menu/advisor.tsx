@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { MenuAdvisorPage } from "@/features/menu-advisor/advisor-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/** Legacy path — Menu Advisor moved to Insights ▸ Menu profitability. */
 export const Route = createFileRoute("/_app/menu/advisor")({
-  component: MenuAdvisorPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/insights/menu-profitability/advisor" });
+  },
 });

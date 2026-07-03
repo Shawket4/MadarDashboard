@@ -28,10 +28,12 @@ import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/rou
 import { Route as AppMenuRouteRouteImport } from './routes/_app/menu/route'
 import { Route as AppInventoryRouteRouteImport } from './routes/_app/inventory/route'
 import { Route as AppDeliveryRouteRouteImport } from './routes/_app/delivery/route'
+import { Route as AppAccessRouteRouteImport } from './routes/_app/access/route'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
 import { Route as AppMenuIndexRouteImport } from './routes/_app/menu/index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app/inventory/index'
 import { Route as AppDeliveryIndexRouteImport } from './routes/_app/delivery/index'
+import { Route as AppAccessIndexRouteImport } from './routes/_app/access/index'
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
@@ -49,10 +51,20 @@ import { Route as AppInventorySettingsRouteImport } from './routes/_app/inventor
 import { Route as AppInventoryReportsRouteImport } from './routes/_app/inventory/reports'
 import { Route as AppInventoryPurchasingRouteImport } from './routes/_app/inventory/purchasing'
 import { Route as AppInventoryItemsRouteImport } from './routes/_app/inventory/items'
+import { Route as AppInventoryIngredientsRouteImport } from './routes/_app/inventory/ingredients'
 import { Route as AppInventoryCountsRouteImport } from './routes/_app/inventory/counts'
+import { Route as AppInsightsSalesRouteImport } from './routes/_app/insights/sales'
+import { Route as AppInsightsInventoryReportsRouteImport } from './routes/_app/insights/inventory-reports'
 import { Route as AppDeliveryZonesRouteImport } from './routes/_app/delivery/zones'
 import { Route as AppDeliverySettingsRouteImport } from './routes/_app/delivery/settings'
 import { Route as AppDeliveryChannelsRouteImport } from './routes/_app/delivery/channels'
+import { Route as AppAccessUsersRouteImport } from './routes/_app/access/users'
+import { Route as AppAccessRolesRouteImport } from './routes/_app/access/roles'
+import { Route as AppInsightsMenuProfitabilityRouteRouteImport } from './routes/_app/insights/menu-profitability/route'
+import { Route as AppInsightsMenuProfitabilityIndexRouteImport } from './routes/_app/insights/menu-profitability/index'
+import { Route as AppMenuItemsItemIdRouteImport } from './routes/_app/menu/items.$itemId'
+import { Route as AppInsightsMenuProfitabilityEngineeringRouteImport } from './routes/_app/insights/menu-profitability/engineering'
+import { Route as AppInsightsMenuProfitabilityAdvisorRouteImport } from './routes/_app/insights/menu-profitability/advisor'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -148,6 +160,11 @@ const AppDeliveryRouteRoute = AppDeliveryRouteRouteImport.update({
   path: '/delivery',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppAccessRouteRoute = AppAccessRouteRouteImport.update({
+  id: '/access',
+  path: '/access',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -167,6 +184,11 @@ const AppDeliveryIndexRoute = AppDeliveryIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppDeliveryRouteRoute,
+} as any)
+const AppAccessIndexRoute = AppAccessIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAccessRouteRoute,
 } as any)
 const AppSettingsWhatsappRoute = AppSettingsWhatsappRouteImport.update({
   id: '/whatsapp',
@@ -254,11 +276,27 @@ const AppInventoryItemsRoute = AppInventoryItemsRouteImport.update({
   path: '/items',
   getParentRoute: () => AppInventoryRouteRoute,
 } as any)
+const AppInventoryIngredientsRoute = AppInventoryIngredientsRouteImport.update({
+  id: '/ingredients',
+  path: '/ingredients',
+  getParentRoute: () => AppInventoryRouteRoute,
+} as any)
 const AppInventoryCountsRoute = AppInventoryCountsRouteImport.update({
   id: '/counts',
   path: '/counts',
   getParentRoute: () => AppInventoryRouteRoute,
 } as any)
+const AppInsightsSalesRoute = AppInsightsSalesRouteImport.update({
+  id: '/insights/sales',
+  path: '/insights/sales',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppInsightsInventoryReportsRoute =
+  AppInsightsInventoryReportsRouteImport.update({
+    id: '/insights/inventory-reports',
+    path: '/insights/inventory-reports',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppDeliveryZonesRoute = AppDeliveryZonesRouteImport.update({
   id: '/zones',
   path: '/zones',
@@ -274,11 +312,51 @@ const AppDeliveryChannelsRoute = AppDeliveryChannelsRouteImport.update({
   path: '/channels',
   getParentRoute: () => AppDeliveryRouteRoute,
 } as any)
+const AppAccessUsersRoute = AppAccessUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppAccessRouteRoute,
+} as any)
+const AppAccessRolesRoute = AppAccessRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AppAccessRouteRoute,
+} as any)
+const AppInsightsMenuProfitabilityRouteRoute =
+  AppInsightsMenuProfitabilityRouteRouteImport.update({
+    id: '/insights/menu-profitability',
+    path: '/insights/menu-profitability',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppInsightsMenuProfitabilityIndexRoute =
+  AppInsightsMenuProfitabilityIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppInsightsMenuProfitabilityRouteRoute,
+  } as any)
+const AppMenuItemsItemIdRoute = AppMenuItemsItemIdRouteImport.update({
+  id: '/$itemId',
+  path: '/$itemId',
+  getParentRoute: () => AppMenuItemsRoute,
+} as any)
+const AppInsightsMenuProfitabilityEngineeringRoute =
+  AppInsightsMenuProfitabilityEngineeringRouteImport.update({
+    id: '/engineering',
+    path: '/engineering',
+    getParentRoute: () => AppInsightsMenuProfitabilityRouteRoute,
+  } as any)
+const AppInsightsMenuProfitabilityAdvisorRoute =
+  AppInsightsMenuProfitabilityAdvisorRouteImport.update({
+    id: '/advisor',
+    path: '/advisor',
+    getParentRoute: () => AppInsightsMenuProfitabilityRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/access': typeof AppAccessRouteRouteWithChildren
   '/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/inventory': typeof AppInventoryRouteRouteWithChildren
   '/menu': typeof AppMenuRouteRouteWithChildren
@@ -294,10 +372,16 @@ export interface FileRoutesByFullPath {
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
+  '/insights/menu-profitability': typeof AppInsightsMenuProfitabilityRouteRouteWithChildren
+  '/access/roles': typeof AppAccessRolesRoute
+  '/access/users': typeof AppAccessUsersRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
   '/delivery/settings': typeof AppDeliverySettingsRoute
   '/delivery/zones': typeof AppDeliveryZonesRoute
+  '/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
+  '/insights/sales': typeof AppInsightsSalesRoute
   '/inventory/counts': typeof AppInventoryCountsRoute
+  '/inventory/ingredients': typeof AppInventoryIngredientsRoute
   '/inventory/items': typeof AppInventoryItemsRoute
   '/inventory/purchasing': typeof AppInventoryPurchasingRoute
   '/inventory/reports': typeof AppInventoryReportsRoute
@@ -310,15 +394,20 @@ export interface FileRoutesByFullPath {
   '/menu/advisor': typeof AppMenuAdvisorRoute
   '/menu/bundles': typeof AppMenuBundlesRoute
   '/menu/engineering': typeof AppMenuEngineeringRoute
-  '/menu/items': typeof AppMenuItemsRoute
+  '/menu/items': typeof AppMenuItemsRouteWithChildren
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/access/': typeof AppAccessIndexRoute
   '/delivery/': typeof AppDeliveryIndexRoute
   '/inventory/': typeof AppInventoryIndexRoute
   '/menu/': typeof AppMenuIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
+  '/insights/menu-profitability/advisor': typeof AppInsightsMenuProfitabilityAdvisorRoute
+  '/insights/menu-profitability/engineering': typeof AppInsightsMenuProfitabilityEngineeringRoute
+  '/menu/items/$itemId': typeof AppMenuItemsItemIdRoute
+  '/insights/menu-profitability/': typeof AppInsightsMenuProfitabilityIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -335,10 +424,15 @@ export interface FileRoutesByTo {
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
   '/': typeof AppIndexRoute
+  '/access/roles': typeof AppAccessRolesRoute
+  '/access/users': typeof AppAccessUsersRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
   '/delivery/settings': typeof AppDeliverySettingsRoute
   '/delivery/zones': typeof AppDeliveryZonesRoute
+  '/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
+  '/insights/sales': typeof AppInsightsSalesRoute
   '/inventory/counts': typeof AppInventoryCountsRoute
+  '/inventory/ingredients': typeof AppInventoryIngredientsRoute
   '/inventory/items': typeof AppInventoryItemsRoute
   '/inventory/purchasing': typeof AppInventoryPurchasingRoute
   '/inventory/reports': typeof AppInventoryReportsRoute
@@ -351,21 +445,27 @@ export interface FileRoutesByTo {
   '/menu/advisor': typeof AppMenuAdvisorRoute
   '/menu/bundles': typeof AppMenuBundlesRoute
   '/menu/engineering': typeof AppMenuEngineeringRoute
-  '/menu/items': typeof AppMenuItemsRoute
+  '/menu/items': typeof AppMenuItemsRouteWithChildren
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/access': typeof AppAccessIndexRoute
   '/delivery': typeof AppDeliveryIndexRoute
   '/inventory': typeof AppInventoryIndexRoute
   '/menu': typeof AppMenuIndexRoute
   '/settings': typeof AppSettingsIndexRoute
+  '/insights/menu-profitability/advisor': typeof AppInsightsMenuProfitabilityAdvisorRoute
+  '/insights/menu-profitability/engineering': typeof AppInsightsMenuProfitabilityEngineeringRoute
+  '/menu/items/$itemId': typeof AppMenuItemsItemIdRoute
+  '/insights/menu-profitability': typeof AppInsightsMenuProfitabilityIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/_app/access': typeof AppAccessRouteRouteWithChildren
   '/_app/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/_app/inventory': typeof AppInventoryRouteRouteWithChildren
   '/_app/menu': typeof AppMenuRouteRouteWithChildren
@@ -382,10 +482,16 @@ export interface FileRoutesById {
   '/_app/tills': typeof AppTillsRoute
   '/_app/users': typeof AppUsersRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/insights/menu-profitability': typeof AppInsightsMenuProfitabilityRouteRouteWithChildren
+  '/_app/access/roles': typeof AppAccessRolesRoute
+  '/_app/access/users': typeof AppAccessUsersRoute
   '/_app/delivery/channels': typeof AppDeliveryChannelsRoute
   '/_app/delivery/settings': typeof AppDeliverySettingsRoute
   '/_app/delivery/zones': typeof AppDeliveryZonesRoute
+  '/_app/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
+  '/_app/insights/sales': typeof AppInsightsSalesRoute
   '/_app/inventory/counts': typeof AppInventoryCountsRoute
+  '/_app/inventory/ingredients': typeof AppInventoryIngredientsRoute
   '/_app/inventory/items': typeof AppInventoryItemsRoute
   '/_app/inventory/purchasing': typeof AppInventoryPurchasingRoute
   '/_app/inventory/reports': typeof AppInventoryReportsRoute
@@ -398,15 +504,20 @@ export interface FileRoutesById {
   '/_app/menu/advisor': typeof AppMenuAdvisorRoute
   '/_app/menu/bundles': typeof AppMenuBundlesRoute
   '/_app/menu/engineering': typeof AppMenuEngineeringRoute
-  '/_app/menu/items': typeof AppMenuItemsRoute
+  '/_app/menu/items': typeof AppMenuItemsRouteWithChildren
   '/_app/menu/overrides': typeof AppMenuOverridesRoute
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/_app/access/': typeof AppAccessIndexRoute
   '/_app/delivery/': typeof AppDeliveryIndexRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
   '/_app/menu/': typeof AppMenuIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
+  '/_app/insights/menu-profitability/advisor': typeof AppInsightsMenuProfitabilityAdvisorRoute
+  '/_app/insights/menu-profitability/engineering': typeof AppInsightsMenuProfitabilityEngineeringRoute
+  '/_app/menu/items/$itemId': typeof AppMenuItemsItemIdRoute
+  '/_app/insights/menu-profitability/': typeof AppInsightsMenuProfitabilityIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -414,6 +525,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/onboarding'
+    | '/access'
     | '/delivery'
     | '/inventory'
     | '/menu'
@@ -429,10 +541,16 @@ export interface FileRouteTypes {
     | '/shifts'
     | '/tills'
     | '/users'
+    | '/insights/menu-profitability'
+    | '/access/roles'
+    | '/access/users'
     | '/delivery/channels'
     | '/delivery/settings'
     | '/delivery/zones'
+    | '/insights/inventory-reports'
+    | '/insights/sales'
     | '/inventory/counts'
+    | '/inventory/ingredients'
     | '/inventory/items'
     | '/inventory/purchasing'
     | '/inventory/reports'
@@ -450,10 +568,15 @@ export interface FileRouteTypes {
     | '/menu/recipes'
     | '/settings/payment-methods'
     | '/settings/whatsapp'
+    | '/access/'
     | '/delivery/'
     | '/inventory/'
     | '/menu/'
     | '/settings/'
+    | '/insights/menu-profitability/advisor'
+    | '/insights/menu-profitability/engineering'
+    | '/menu/items/$itemId'
+    | '/insights/menu-profitability/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -470,10 +593,15 @@ export interface FileRouteTypes {
     | '/tills'
     | '/users'
     | '/'
+    | '/access/roles'
+    | '/access/users'
     | '/delivery/channels'
     | '/delivery/settings'
     | '/delivery/zones'
+    | '/insights/inventory-reports'
+    | '/insights/sales'
     | '/inventory/counts'
+    | '/inventory/ingredients'
     | '/inventory/items'
     | '/inventory/purchasing'
     | '/inventory/reports'
@@ -491,15 +619,21 @@ export interface FileRouteTypes {
     | '/menu/recipes'
     | '/settings/payment-methods'
     | '/settings/whatsapp'
+    | '/access'
     | '/delivery'
     | '/inventory'
     | '/menu'
     | '/settings'
+    | '/insights/menu-profitability/advisor'
+    | '/insights/menu-profitability/engineering'
+    | '/menu/items/$itemId'
+    | '/insights/menu-profitability'
   id:
     | '__root__'
     | '/_app'
     | '/login'
     | '/onboarding'
+    | '/_app/access'
     | '/_app/delivery'
     | '/_app/inventory'
     | '/_app/menu'
@@ -516,10 +650,16 @@ export interface FileRouteTypes {
     | '/_app/tills'
     | '/_app/users'
     | '/_app/'
+    | '/_app/insights/menu-profitability'
+    | '/_app/access/roles'
+    | '/_app/access/users'
     | '/_app/delivery/channels'
     | '/_app/delivery/settings'
     | '/_app/delivery/zones'
+    | '/_app/insights/inventory-reports'
+    | '/_app/insights/sales'
     | '/_app/inventory/counts'
+    | '/_app/inventory/ingredients'
     | '/_app/inventory/items'
     | '/_app/inventory/purchasing'
     | '/_app/inventory/reports'
@@ -537,10 +677,15 @@ export interface FileRouteTypes {
     | '/_app/menu/recipes'
     | '/_app/settings/payment-methods'
     | '/_app/settings/whatsapp'
+    | '/_app/access/'
     | '/_app/delivery/'
     | '/_app/inventory/'
     | '/_app/menu/'
     | '/_app/settings/'
+    | '/_app/insights/menu-profitability/advisor'
+    | '/_app/insights/menu-profitability/engineering'
+    | '/_app/menu/items/$itemId'
+    | '/_app/insights/menu-profitability/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -684,6 +829,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDeliveryRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/access': {
+      id: '/_app/access'
+      path: '/access'
+      fullPath: '/access'
+      preLoaderRoute: typeof AppAccessRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/settings/': {
       id: '/_app/settings/'
       path: '/'
@@ -711,6 +863,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/delivery/'
       preLoaderRoute: typeof AppDeliveryIndexRouteImport
       parentRoute: typeof AppDeliveryRouteRoute
+    }
+    '/_app/access/': {
+      id: '/_app/access/'
+      path: '/'
+      fullPath: '/access/'
+      preLoaderRoute: typeof AppAccessIndexRouteImport
+      parentRoute: typeof AppAccessRouteRoute
     }
     '/_app/settings/whatsapp': {
       id: '/_app/settings/whatsapp'
@@ -831,12 +990,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInventoryItemsRouteImport
       parentRoute: typeof AppInventoryRouteRoute
     }
+    '/_app/inventory/ingredients': {
+      id: '/_app/inventory/ingredients'
+      path: '/ingredients'
+      fullPath: '/inventory/ingredients'
+      preLoaderRoute: typeof AppInventoryIngredientsRouteImport
+      parentRoute: typeof AppInventoryRouteRoute
+    }
     '/_app/inventory/counts': {
       id: '/_app/inventory/counts'
       path: '/counts'
       fullPath: '/inventory/counts'
       preLoaderRoute: typeof AppInventoryCountsRouteImport
       parentRoute: typeof AppInventoryRouteRoute
+    }
+    '/_app/insights/sales': {
+      id: '/_app/insights/sales'
+      path: '/insights/sales'
+      fullPath: '/insights/sales'
+      preLoaderRoute: typeof AppInsightsSalesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/insights/inventory-reports': {
+      id: '/_app/insights/inventory-reports'
+      path: '/insights/inventory-reports'
+      fullPath: '/insights/inventory-reports'
+      preLoaderRoute: typeof AppInsightsInventoryReportsRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/delivery/zones': {
       id: '/_app/delivery/zones'
@@ -859,8 +1039,73 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDeliveryChannelsRouteImport
       parentRoute: typeof AppDeliveryRouteRoute
     }
+    '/_app/access/users': {
+      id: '/_app/access/users'
+      path: '/users'
+      fullPath: '/access/users'
+      preLoaderRoute: typeof AppAccessUsersRouteImport
+      parentRoute: typeof AppAccessRouteRoute
+    }
+    '/_app/access/roles': {
+      id: '/_app/access/roles'
+      path: '/roles'
+      fullPath: '/access/roles'
+      preLoaderRoute: typeof AppAccessRolesRouteImport
+      parentRoute: typeof AppAccessRouteRoute
+    }
+    '/_app/insights/menu-profitability': {
+      id: '/_app/insights/menu-profitability'
+      path: '/insights/menu-profitability'
+      fullPath: '/insights/menu-profitability'
+      preLoaderRoute: typeof AppInsightsMenuProfitabilityRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/insights/menu-profitability/': {
+      id: '/_app/insights/menu-profitability/'
+      path: '/'
+      fullPath: '/insights/menu-profitability/'
+      preLoaderRoute: typeof AppInsightsMenuProfitabilityIndexRouteImport
+      parentRoute: typeof AppInsightsMenuProfitabilityRouteRoute
+    }
+    '/_app/menu/items/$itemId': {
+      id: '/_app/menu/items/$itemId'
+      path: '/$itemId'
+      fullPath: '/menu/items/$itemId'
+      preLoaderRoute: typeof AppMenuItemsItemIdRouteImport
+      parentRoute: typeof AppMenuItemsRoute
+    }
+    '/_app/insights/menu-profitability/engineering': {
+      id: '/_app/insights/menu-profitability/engineering'
+      path: '/engineering'
+      fullPath: '/insights/menu-profitability/engineering'
+      preLoaderRoute: typeof AppInsightsMenuProfitabilityEngineeringRouteImport
+      parentRoute: typeof AppInsightsMenuProfitabilityRouteRoute
+    }
+    '/_app/insights/menu-profitability/advisor': {
+      id: '/_app/insights/menu-profitability/advisor'
+      path: '/advisor'
+      fullPath: '/insights/menu-profitability/advisor'
+      preLoaderRoute: typeof AppInsightsMenuProfitabilityAdvisorRouteImport
+      parentRoute: typeof AppInsightsMenuProfitabilityRouteRoute
+    }
   }
 }
+
+interface AppAccessRouteRouteChildren {
+  AppAccessRolesRoute: typeof AppAccessRolesRoute
+  AppAccessUsersRoute: typeof AppAccessUsersRoute
+  AppAccessIndexRoute: typeof AppAccessIndexRoute
+}
+
+const AppAccessRouteRouteChildren: AppAccessRouteRouteChildren = {
+  AppAccessRolesRoute: AppAccessRolesRoute,
+  AppAccessUsersRoute: AppAccessUsersRoute,
+  AppAccessIndexRoute: AppAccessIndexRoute,
+}
+
+const AppAccessRouteRouteWithChildren = AppAccessRouteRoute._addFileChildren(
+  AppAccessRouteRouteChildren,
+)
 
 interface AppDeliveryRouteRouteChildren {
   AppDeliveryChannelsRoute: typeof AppDeliveryChannelsRoute
@@ -881,6 +1126,7 @@ const AppDeliveryRouteRouteWithChildren =
 
 interface AppInventoryRouteRouteChildren {
   AppInventoryCountsRoute: typeof AppInventoryCountsRoute
+  AppInventoryIngredientsRoute: typeof AppInventoryIngredientsRoute
   AppInventoryItemsRoute: typeof AppInventoryItemsRoute
   AppInventoryPurchasingRoute: typeof AppInventoryPurchasingRoute
   AppInventoryReportsRoute: typeof AppInventoryReportsRoute
@@ -893,6 +1139,7 @@ interface AppInventoryRouteRouteChildren {
 
 const AppInventoryRouteRouteChildren: AppInventoryRouteRouteChildren = {
   AppInventoryCountsRoute: AppInventoryCountsRoute,
+  AppInventoryIngredientsRoute: AppInventoryIngredientsRoute,
   AppInventoryItemsRoute: AppInventoryItemsRoute,
   AppInventoryPurchasingRoute: AppInventoryPurchasingRoute,
   AppInventoryReportsRoute: AppInventoryReportsRoute,
@@ -906,11 +1153,23 @@ const AppInventoryRouteRouteChildren: AppInventoryRouteRouteChildren = {
 const AppInventoryRouteRouteWithChildren =
   AppInventoryRouteRoute._addFileChildren(AppInventoryRouteRouteChildren)
 
+interface AppMenuItemsRouteChildren {
+  AppMenuItemsItemIdRoute: typeof AppMenuItemsItemIdRoute
+}
+
+const AppMenuItemsRouteChildren: AppMenuItemsRouteChildren = {
+  AppMenuItemsItemIdRoute: AppMenuItemsItemIdRoute,
+}
+
+const AppMenuItemsRouteWithChildren = AppMenuItemsRoute._addFileChildren(
+  AppMenuItemsRouteChildren,
+)
+
 interface AppMenuRouteRouteChildren {
   AppMenuAdvisorRoute: typeof AppMenuAdvisorRoute
   AppMenuBundlesRoute: typeof AppMenuBundlesRoute
   AppMenuEngineeringRoute: typeof AppMenuEngineeringRoute
-  AppMenuItemsRoute: typeof AppMenuItemsRoute
+  AppMenuItemsRoute: typeof AppMenuItemsRouteWithChildren
   AppMenuOverridesRoute: typeof AppMenuOverridesRoute
   AppMenuRecipesRoute: typeof AppMenuRecipesRoute
   AppMenuIndexRoute: typeof AppMenuIndexRoute
@@ -920,7 +1179,7 @@ const AppMenuRouteRouteChildren: AppMenuRouteRouteChildren = {
   AppMenuAdvisorRoute: AppMenuAdvisorRoute,
   AppMenuBundlesRoute: AppMenuBundlesRoute,
   AppMenuEngineeringRoute: AppMenuEngineeringRoute,
-  AppMenuItemsRoute: AppMenuItemsRoute,
+  AppMenuItemsRoute: AppMenuItemsRouteWithChildren,
   AppMenuOverridesRoute: AppMenuOverridesRoute,
   AppMenuRecipesRoute: AppMenuRecipesRoute,
   AppMenuIndexRoute: AppMenuIndexRoute,
@@ -945,7 +1204,29 @@ const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
 const AppSettingsRouteRouteWithChildren =
   AppSettingsRouteRoute._addFileChildren(AppSettingsRouteRouteChildren)
 
+interface AppInsightsMenuProfitabilityRouteRouteChildren {
+  AppInsightsMenuProfitabilityAdvisorRoute: typeof AppInsightsMenuProfitabilityAdvisorRoute
+  AppInsightsMenuProfitabilityEngineeringRoute: typeof AppInsightsMenuProfitabilityEngineeringRoute
+  AppInsightsMenuProfitabilityIndexRoute: typeof AppInsightsMenuProfitabilityIndexRoute
+}
+
+const AppInsightsMenuProfitabilityRouteRouteChildren: AppInsightsMenuProfitabilityRouteRouteChildren =
+  {
+    AppInsightsMenuProfitabilityAdvisorRoute:
+      AppInsightsMenuProfitabilityAdvisorRoute,
+    AppInsightsMenuProfitabilityEngineeringRoute:
+      AppInsightsMenuProfitabilityEngineeringRoute,
+    AppInsightsMenuProfitabilityIndexRoute:
+      AppInsightsMenuProfitabilityIndexRoute,
+  }
+
+const AppInsightsMenuProfitabilityRouteRouteWithChildren =
+  AppInsightsMenuProfitabilityRouteRoute._addFileChildren(
+    AppInsightsMenuProfitabilityRouteRouteChildren,
+  )
+
 interface AppRouteRouteChildren {
+  AppAccessRouteRoute: typeof AppAccessRouteRouteWithChildren
   AppDeliveryRouteRoute: typeof AppDeliveryRouteRouteWithChildren
   AppInventoryRouteRoute: typeof AppInventoryRouteRouteWithChildren
   AppMenuRouteRoute: typeof AppMenuRouteRouteWithChildren
@@ -962,11 +1243,15 @@ interface AppRouteRouteChildren {
   AppTillsRoute: typeof AppTillsRoute
   AppUsersRoute: typeof AppUsersRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppInsightsMenuProfitabilityRouteRoute: typeof AppInsightsMenuProfitabilityRouteRouteWithChildren
+  AppInsightsInventoryReportsRoute: typeof AppInsightsInventoryReportsRoute
+  AppInsightsSalesRoute: typeof AppInsightsSalesRoute
   AppKitchenRoutingRoute: typeof AppKitchenRoutingRoute
   AppKitchenStationsRoute: typeof AppKitchenStationsRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppAccessRouteRoute: AppAccessRouteRouteWithChildren,
   AppDeliveryRouteRoute: AppDeliveryRouteRouteWithChildren,
   AppInventoryRouteRoute: AppInventoryRouteRouteWithChildren,
   AppMenuRouteRoute: AppMenuRouteRouteWithChildren,
@@ -983,6 +1268,10 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppTillsRoute: AppTillsRoute,
   AppUsersRoute: AppUsersRoute,
   AppIndexRoute: AppIndexRoute,
+  AppInsightsMenuProfitabilityRouteRoute:
+    AppInsightsMenuProfitabilityRouteRouteWithChildren,
+  AppInsightsInventoryReportsRoute: AppInsightsInventoryReportsRoute,
+  AppInsightsSalesRoute: AppInsightsSalesRoute,
   AppKitchenRoutingRoute: AppKitchenRoutingRoute,
   AppKitchenStationsRoute: AppKitchenStationsRoute,
 }

@@ -63,14 +63,6 @@ export interface Order {
   tax_amount: number;
   teller_id: string;
   teller_name: string;
-  /**
-   * The waiter who opened the ticket this order was settled from.
-   * `null` for direct sales & delivery.
-   * @nullable
-   */
-  waiter_id?: string | null;
-  /** @nullable */
-  waiter_name?: string | null;
   /** @nullable */
   tip_amount?: number | null;
   /** @nullable */
@@ -84,4 +76,13 @@ export interface Order {
   voided_at?: string | null;
   /** @nullable */
   voided_by?: string | null;
+  /**
+     * The WAITER who opened this order's ticket (`open_tickets.opened_by`),
+   * stamped server-side at settle time. `null` for direct teller sales and
+   * delivery orders (they never pass through a waiter's ticket).
+     * @nullable
+     */
+  waiter_id?: string | null;
+  /** @nullable */
+  waiter_name?: string | null;
 }

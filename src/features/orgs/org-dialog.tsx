@@ -47,7 +47,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         name: z.string().min(1, t("common.requiredField", "This field is required")),
         slug: z.string().min(1, t("common.requiredField", "This field is required")),
         currency_code: z.string().min(1, t("common.requiredField", "This field is required")),
-        tax_rate: z.coerce.number().min(0),
+        tax_rate: z.coerce.number<number>().min(0),
         receipt_footer: z.string().optional(),
         timezone: z.string().min(1, t("common.requiredField", "This field is required")),
         is_active: z.boolean(),
@@ -56,7 +56,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true },
   });

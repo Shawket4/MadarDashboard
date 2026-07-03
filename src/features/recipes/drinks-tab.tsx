@@ -9,7 +9,7 @@ import { RecipeBuilder, type CleanRow, type RecipeRowInit } from "./recipe-build
 import { MasterList } from "./master-list";
 import { invalidateRecipes } from "./util";
 import {
-  deleteDrinkRecipe, getMenuItem, upsertDrinkRecipe, useGetMenuItem, useListCatalog, useListMenuItems,
+  getMenuItem, getStudio, putSizeRecipe, useGetMenuItem, useListCatalog, useListMenuItems,
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { getTranslatedName } from "@/lib/translation";
@@ -65,10 +65,23 @@ function DrinkDetail({ itemId, orgId, catalog, copySources }: { itemId: string; 
   };
 
   const onErr = (e: unknown) => toast.error(getErrorMessage(e));
-  const saveAll = async (rows: CleanRow[], removed: { size_label: string; ingredient_name: string }[]) => {
+  const saveAll = async (rows: CleanRow[], _removed: { size_label: string; ingredient_name: string }[]) => {
     try {
-      for (const r of rows) await upsertDrinkRecipe(itemId, r);
-      for (const r of removed) await deleteDrinkRecipe(itemId, r.size_label, { ingredient_name: r.ingredient_name });
+      // Unified model: recipes live in id-keyed `recipe_lines` per SIZE — one
+      // replace-set per size covers adds/edits/removals (no diffing). The Studio
+      // aggregate provides the size ids; only ingredient-linked rows are
+      // writable (the builder always links via the catalog picker).
+      const studio = await getStudio(itemId);
+      for (const size of studio.sizes) {
+        const lines = rows
+          .filter((r) => r.size_label === size.label && r.org_ingredient_id)
+          .map((r) => ({
+            ingredient_id: r.org_ingredient_id!,
+            quantity: r.quantity_used,
+            unit: r.ingredient_unit,
+          }));
+        await putSizeRecipe(size.id, { lines });
+      }
       void invalidateRecipes();
       toast.success(t("recipes.builder.saved", "Recipe saved"));
     } catch (e) {

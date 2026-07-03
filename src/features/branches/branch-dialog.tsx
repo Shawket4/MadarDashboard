@@ -44,16 +44,16 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
         is_active: z.boolean(),
         printer_brand: z.enum(["none", "star", "epson"]),
         printer_ip: z.string().optional(),
-        printer_port: z.coerce.number().optional(),
-        latitude: z.coerce.number().optional(),
-        longitude: z.coerce.number().optional(),
-        geo_radius_meters: z.coerce.number().optional(),
+        printer_port: z.coerce.number<number>().optional(),
+        latitude: z.coerce.number<number>().optional(),
+        longitude: z.coerce.number<number>().optional(),
+        geo_radius_meters: z.coerce.number<number>().optional(),
       }),
     [t],
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "", phone: "", address: "", timezone: "Africa/Cairo", is_active: true,

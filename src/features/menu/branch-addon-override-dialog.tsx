@@ -15,8 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
-  useDeleteBranchAddonOverride,
-  useUpsertBranchAddonOverride,
+  deletePriceOverride,
+  putPriceOverride,
 } from "@/data/api/generated/api";
 import type { BranchAddonOverride } from "@/data/api/generated/models";
 import { invalidateCatalog } from "./util";
@@ -61,12 +61,20 @@ export function BranchAddonOverrideDialog({
     toast.success(t("common.savedChanges", "Changes saved"));
     onOpenChange(false);
   };
-  const upsert = useUpsertBranchAddonOverride({ mutation: { onSuccess: done, onError: onErr } });
-  const del = useDeleteBranchAddonOverride({ mutation: { onSuccess: done, onError: onErr } });
+  const [busy, setBusy] = useState(false);
 
-  const save = () => {
+  // Merged override table (unified model): an add-on is a modifier OPTION by
+  // the same stable id — one branch-scoped row carries price + availability.
+  const rowBase = () => ({
+    scope: "branch" as const,
+    branch_id: branchId,
+    target_type: "modifier_option" as const,
+    target_id: addonId ?? "",
+  });
+
+  const save = async () => {
     if (!addonId) return;
-    let price_override: number | null = null;
+    let price: number | null = null;
     const v = branchPrice.trim();
     if (v !== "") {
       const n = parseFloat(v);
@@ -74,14 +82,39 @@ export function BranchAddonOverrideDialog({
         toast.error(t("menu.overrides.invalidPrice", "Enter a valid price"));
         return;
       }
-      price_override = egpToPiastres(n);
+      price = egpToPiastres(n);
     }
-    upsert.mutate({ data: { branch_id: branchId, addon_item_id: addonId, price_override, is_available: available } });
+    setBusy(true);
+    try {
+      if (price == null && available) {
+        // Nothing to override — clear any existing row (inherit the org catalog).
+        if (override) await deletePriceOverride(rowBase());
+      } else {
+        await putPriceOverride({
+          ...rowBase(),
+          price,
+          is_available: available ? null : false,
+        });
+      }
+      done();
+    } catch (e) {
+      onErr(e);
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const clearOverride = () => {
+  const clearOverride = async () => {
     if (!addonId) return;
-    del.mutate({ params: { branch_id: branchId, addon_item_id: addonId } });
+    setBusy(true);
+    try {
+      await deletePriceOverride(rowBase());
+      done();
+    } catch (e) {
+      onErr(e);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -121,7 +154,7 @@ export function BranchAddonOverrideDialog({
 
         <DialogFooter className="gap-2 sm:justify-between">
           {override ? (
-            <Button type="button" variant="outline" className="text-destructive" loading={del.isPending} onClick={clearOverride}>
+            <Button type="button" variant="outline" className="text-destructive" loading={busy} onClick={() => void clearOverride()}>
               {t("menu.overrides.clear", "Clear override")}
             </Button>
           ) : (
@@ -131,7 +164,7 @@ export function BranchAddonOverrideDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("common.cancel", "Cancel")}
             </Button>
-            <Button type="button" loading={upsert.isPending} onClick={save}>
+            <Button type="button" loading={busy} onClick={() => void save()}>
               {t("common.save", "Save")}
             </Button>
           </div>

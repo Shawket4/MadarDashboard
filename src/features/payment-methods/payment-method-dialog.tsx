@@ -47,7 +47,7 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", labelEn: "", labelAr: "", icon: "money", color: PM_COLORS[2], is_cash: false, is_active: true },
   });

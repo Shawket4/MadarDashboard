@@ -9,7 +9,7 @@ import { RecipeBuilder, type CleanRow, type RecipeRowInit } from "./recipe-build
 import { MasterList } from "./master-list";
 import { invalidateRecipes } from "./util";
 import {
-  deleteAddonIngredient, listAddonIngredients, upsertAddonIngredient, useListAddonIngredients, useListAddonItems, useListCatalog,
+  listAddonIngredients, putOptionRecipe, useListAddonIngredients, useListAddonItems, useListCatalog,
 } from "@/data/api/generated/api";
 import type { AddonItem } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -55,10 +55,19 @@ function AddonDetail({ addon, orgId, catalog, copySources }: { addon: AddonItem;
   })), [ingredients.data]);
 
   const onErr = (e: unknown) => toast.error(getErrorMessage(e));
-  const saveAll = async (rows: CleanRow[], removed: { size_label: string; ingredient_name: string }[]) => {
+  const saveAll = async (rows: CleanRow[], _removed: { size_label: string; ingredient_name: string }[]) => {
     try {
-      for (const r of rows) await upsertAddonIngredient(addon.id, { org_ingredient_id: r.org_ingredient_id, ingredient_name: r.ingredient_name, ingredient_unit: r.ingredient_unit, quantity_used: r.quantity_used });
-      for (const r of removed) await deleteAddonIngredient(addon.id, { ingredient_name: r.ingredient_name });
+      // Unified model: an add-on IS a modifier option (same stable id) and its
+      // recipe is one replace-set of id-keyed lines — adds/edits/removals in a
+      // single call (quantity 0 = swap marker, allowed).
+      const lines = rows
+        .filter((r) => r.org_ingredient_id)
+        .map((r) => ({
+          ingredient_id: r.org_ingredient_id!,
+          quantity: r.quantity_used,
+          unit: r.ingredient_unit,
+        }));
+      await putOptionRecipe(addon.id, lines);
       void invalidateRecipes();
       toast.success(t("recipes.builder.saved", "Recipe saved"));
     } catch (e) {

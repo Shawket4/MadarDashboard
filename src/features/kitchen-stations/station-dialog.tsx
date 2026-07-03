@@ -39,7 +39,7 @@ export function StationDialog({ branchId, station, open, onOpenChange }: Props) 
         name: z.string().min(1, t("common.requiredField", "This field is required")),
         printer_brand: z.enum(["none", "star", "epson"]),
         printer_ip: z.string().optional(),
-        printer_port: z.coerce.number().optional(),
+        printer_port: z.coerce.number<number>().optional(),
         is_default: z.boolean(),
         is_active: z.boolean(),
       }),
@@ -47,7 +47,7 @@ export function StationDialog({ branchId, station, open, onOpenChange }: Props) 
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", printer_brand: "none", printer_ip: "", printer_port: 9100, is_default: false, is_active: true },
   });

@@ -16,17 +16,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
+  deletePriceOverride,
   getListAddonCatalogQueryOptions,
   getListMenuCatalogQueryOptions,
-  useDeleteChannelAddonOverride,
-  useDeleteChannelOverride,
+  getStudio,
+  putPriceOverride,
   useListAddonCatalog,
   useListBranches,
   useListChannelAddonOverrides,
   useListChannelOverrides,
   useListMenuCatalog,
-  useUpsertChannelAddonOverride,
-  useUpsertChannelOverride,
 } from "@/data/api/generated/api";
 import type {
   AddonItem,
@@ -170,9 +169,59 @@ function ItemRow({
   const { t } = useTranslation();
   const onErr = (e: unknown) => toast.error(getErrorMessage(e));
   const done = () => { onChanged(); toast.success(t("common.savedChanges", "Changes saved")); };
-  const upsert = useUpsertChannelOverride({ mutation: { onSuccess: done, onError: onErr } });
-  const del = useDeleteChannelOverride({ mutation: { onSuccess: done, onError: onErr } });
-  const busy = upsert.isPending || del.isPending;
+  const [busy, setBusy] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  // Merged override table: channel state is per SIZE. The item-level price maps
+  // to the `one_size` row (mirroring the migration backfill); availability fans
+  // out to every size. Size ids come from the Studio aggregate on save.
+  const sizeRows = async () => {
+    const studio = await getStudio(item.id);
+    return studio.sizes.map((s) => ({
+      id: s.id,
+      isOneSize: s.label === "one_size",
+      base: {
+        scope: "branch_channel" as const,
+        branch_id: branchId,
+        channel,
+        target_type: "menu_item_size" as const,
+        target_id: s.id,
+      },
+    }));
+  };
+
+  const save = async (priceOverride: number | null, available: boolean | null) => {
+    setBusy(true);
+    try {
+      for (const s of await sizeRows()) {
+        const price = s.isOneSize ? priceOverride : null;
+        if (price != null || available != null) {
+          await putPriceOverride({ ...s.base, price, is_available: available });
+        } else {
+          await deletePriceOverride({ ...s.base });
+        }
+      }
+      done();
+    } catch (e) {
+      onErr(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const clear = async () => {
+    setBusy(true);
+    setClearing(true);
+    try {
+      for (const s of await sizeRows()) await deletePriceOverride({ ...s.base });
+      done();
+    } catch (e) {
+      onErr(e);
+    } finally {
+      setBusy(false);
+      setClearing(false);
+    }
+  };
 
   return (
     <OverrideCard
@@ -182,20 +231,10 @@ function ItemRow({
       Icon={CupSoda}
       override={override}
       busy={busy}
-      saving={upsert.isPending}
-      clearing={del.isPending}
-      onSave={(priceOverride, available) =>
-        upsert.mutate({
-          data: {
-            branch_id: branchId,
-            menu_item_id: item.id,
-            channel,
-            price_override: priceOverride,
-            is_available: available,
-          },
-        })
-      }
-      onClear={() => del.mutate({ params: { branch_id: branchId, menu_item_id: item.id, channel } })}
+      saving={busy && !clearing}
+      clearing={clearing}
+      onSave={(priceOverride, available) => void save(priceOverride, available)}
+      onClear={() => void clear()}
     />
   );
 }
@@ -218,9 +257,48 @@ function AddonRow({
   const { t } = useTranslation();
   const onErr = (e: unknown) => toast.error(getErrorMessage(e));
   const done = () => { onChanged(); toast.success(t("common.savedChanges", "Changes saved")); };
-  const upsert = useUpsertChannelAddonOverride({ mutation: { onSuccess: done, onError: onErr } });
-  const del = useDeleteChannelAddonOverride({ mutation: { onSuccess: done, onError: onErr } });
-  const busy = upsert.isPending || del.isPending;
+  const [busy, setBusy] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  // Merged override table: an add-on is a modifier OPTION (same stable id) —
+  // one branch_channel-scoped row carries price + availability.
+  const rowBase = {
+    scope: "branch_channel" as const,
+    branch_id: branchId,
+    channel,
+    target_type: "modifier_option" as const,
+    target_id: addon.id,
+  };
+
+  const save = async (priceOverride: number | null, available: boolean | null) => {
+    setBusy(true);
+    try {
+      if (priceOverride != null || available != null) {
+        await putPriceOverride({ ...rowBase, price: priceOverride, is_available: available });
+      } else {
+        await deletePriceOverride({ ...rowBase });
+      }
+      done();
+    } catch (e) {
+      onErr(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const clear = async () => {
+    setBusy(true);
+    setClearing(true);
+    try {
+      await deletePriceOverride({ ...rowBase });
+      done();
+    } catch (e) {
+      onErr(e);
+    } finally {
+      setBusy(false);
+      setClearing(false);
+    }
+  };
 
   return (
     <OverrideCard
@@ -229,20 +307,10 @@ function AddonRow({
       Icon={Tag}
       override={override}
       busy={busy}
-      saving={upsert.isPending}
-      clearing={del.isPending}
-      onSave={(priceOverride, available) =>
-        upsert.mutate({
-          data: {
-            branch_id: branchId,
-            addon_item_id: addon.id,
-            channel,
-            price_override: priceOverride,
-            is_available: available,
-          },
-        })
-      }
-      onClear={() => del.mutate({ params: { branch_id: branchId, addon_item_id: addon.id, channel } })}
+      saving={busy && !clearing}
+      clearing={clearing}
+      onSave={(priceOverride, available) => void save(priceOverride, available)}
+      onClear={() => void clear()}
     />
   );
 }

@@ -163,7 +163,7 @@ export function TodayPage() {
           <CardTitle className="flex items-center gap-2 text-base">
             <AlertTriangle className="size-4 text-warning" /> {t("inventory.today.lowStockHeading", "Low stock — reorder soon")}
           </CardTitle>
-          <Link to="/inventory/items" className="text-sm text-primary hover:underline">{t("inventory.today.viewAll", "View all")}</Link>
+          <Link to="/inventory/ingredients" className="text-sm text-primary hover:underline">{t("inventory.today.viewAll", "View all")}</Link>
         </CardHeader>
         <CardContent>
           {lowStock.isLoading ? (

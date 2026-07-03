@@ -515,14 +515,16 @@ export const ListBundlesResponse = zod.object({
   "components": zod.array(zod.object({
   "bundle_id": zod.string().uuid(),
   "id": zod.string().uuid(),
-  "item_cost": zod.number(),
+  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
+  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
   "item_id": zod.string().uuid(),
   "item_name": zod.string(),
   "item_price": zod.number(),
   "position": zod.number(),
   "quantity": zod.number()
 })),
-  "computed_cost": zod.number()
+  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
+  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
 }))),
   "page": zod.number(),
   "per_page": zod.number(),
@@ -579,14 +581,16 @@ export const AvailableBundlesResponseItem = zod.object({
   "components": zod.array(zod.object({
   "bundle_id": zod.string().uuid(),
   "id": zod.string().uuid(),
-  "item_cost": zod.number(),
+  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
+  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
   "item_id": zod.string().uuid(),
   "item_name": zod.string(),
   "item_price": zod.number(),
   "position": zod.number(),
   "quantity": zod.number()
 })),
-  "computed_cost": zod.number()
+  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
+  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
 }))
 export const AvailableBundlesResponse = zod.array(AvailableBundlesResponseItem)
 
@@ -617,14 +621,16 @@ export const GetBundleResponse = zod.object({
   "components": zod.array(zod.object({
   "bundle_id": zod.string().uuid(),
   "id": zod.string().uuid(),
-  "item_cost": zod.number(),
+  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
+  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
   "item_id": zod.string().uuid(),
   "item_name": zod.string(),
   "item_price": zod.number(),
   "position": zod.number(),
   "quantity": zod.number()
 })),
-  "computed_cost": zod.number()
+  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
+  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
 }))
 
 
@@ -678,14 +684,16 @@ export const UpdateBundleResponse = zod.object({
   "components": zod.array(zod.object({
   "bundle_id": zod.string().uuid(),
   "id": zod.string().uuid(),
-  "item_cost": zod.number(),
+  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
+  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
   "item_id": zod.string().uuid(),
   "item_name": zod.string(),
   "item_price": zod.number(),
   "position": zod.number(),
   "quantity": zod.number()
 })),
-  "computed_cost": zod.number()
+  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
+  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
 }))
 
 
@@ -715,14 +723,16 @@ export const ActivateBundleResponse = zod.object({
   "components": zod.array(zod.object({
   "bundle_id": zod.string().uuid(),
   "id": zod.string().uuid(),
-  "item_cost": zod.number(),
+  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
+  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
   "item_id": zod.string().uuid(),
   "item_name": zod.string(),
   "item_price": zod.number(),
   "position": zod.number(),
   "quantity": zod.number()
 })),
-  "computed_cost": zod.number()
+  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
+  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
 }))
 
 
@@ -752,14 +762,16 @@ export const ArchiveBundleResponse = zod.object({
   "components": zod.array(zod.object({
   "bundle_id": zod.string().uuid(),
   "id": zod.string().uuid(),
-  "item_cost": zod.number(),
+  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
+  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
   "item_id": zod.string().uuid(),
   "item_name": zod.string(),
   "item_price": zod.number(),
   "position": zod.number(),
   "quantity": zod.number()
 })),
-  "computed_cost": zod.number()
+  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
+  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
 }))
 
 
@@ -782,6 +794,59 @@ export const BundlePerformanceResponse = zod.object({
   "net_profit": zod.number(),
   "sales_volume": zod.number()
 })
+
+
+export const CatalogSyncQueryParams = zod.object({
+  "branch_id": zod.string().uuid().describe('Branch whose resolved prices\/availability to return'),
+  "channel": zod.string().optional().describe('delivery_channel: in_mall | outside | umbrella | pickup — omit for branch-only resolution (in-store POS)'),
+  "since": zod.number().optional().describe('Device\'s cached catalog_revision; == current ⇒ changed:false, no payload')
+})
+
+export const CatalogSyncResponse = zod.object({
+  "catalog_revision": zod.number(),
+  "changed": zod.boolean().describe('`false` when `since` equals the current revision (client is up to date;\n`items`\/`ingredients` are then empty). `true` ⇒ the full payload follows.'),
+  "ingredients": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "unit": zod.string()
+}).describe('An org ingredient referenced by a returned option recipe.')).optional(),
+  "items": zod.array(zod.object({
+  "category_id": zod.string().uuid().nullish(),
+  "id": zod.string().uuid(),
+  "modifier_groups": zod.array(zod.object({
+  "group_id": zod.string().uuid(),
+  "is_required": zod.boolean(),
+  "legacy_addon_type": zod.string().nullish(),
+  "max": zod.number().nullish(),
+  "min": zod.number(),
+  "name": zod.string().describe('The group\'s authored display name (custom groups have no legacy type —\nthis is what the POS renders as the section title).'),
+  "name_translations": zod.object({
+
+}).passthrough(),
+  "options": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "is_available": zod.boolean().describe('Effective availability (branch_channel → branch → channel → TRUE).'),
+  "name": zod.string(),
+  "price": zod.number().describe('Effective price in piastres (branch_channel → branch → channel → catalog default).'),
+  "recipe": zod.array(zod.object({
+  "ingredient_id": zod.string().uuid(),
+  "quantity": zod.string().describe('Base-unit quantity, serialized as a string for numeric fidelity.'),
+  "unit": zod.string()
+}).describe('One recipe line of a modifier option: which ingredient the option deducts\n(or swaps in, when `quantity = 0`). Base-unit, yield-normalized values.')),
+  "replaces_ingredient_id": zod.string().uuid().nullish().describe('The org_ingredient this option swaps out, if it is a swap-style option.')
+}).describe('A modifier option, with price\/availability resolved for `(branch, channel)`.')),
+  "selection_type": zod.string()
+}).describe('A modifier group attached to an item, with min\/max\/required resolved from the\nattachment overrides (falling back to the group defaults).')),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "sizes": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "is_available": zod.boolean().describe('Effective availability (branch_channel → branch → channel → TRUE).'),
+  "label": zod.string(),
+  "price": zod.number().describe('Effective price in piastres (branch_channel → branch → channel → catalog default).')
+}).describe('A size (menu_item_sizes row) with its price\/availability resolved for the\nrequested `(branch, channel)`.'))
+}).describe('One menu item with its sizes and attached modifier groups.')).optional()
+}).describe('The full catalog snapshot for a POS device.')
 
 
 export const ListCategoriesQueryParams = zod.object({
@@ -3332,6 +3397,34 @@ export const ListRemovalScenariosHandlerResponseItem = zod.object({
 export const ListRemovalScenariosHandlerResponse = zod.array(ListRemovalScenariosHandlerResponseItem)
 
 
+export const PutSizeRecipeParams = zod.object({
+  "size_id": zod.string().uuid().describe('menu_item_sizes ID')
+})
+
+export const PutSizeRecipeBody = zod.object({
+  "lines": zod.array(zod.object({
+  "ingredient_id": zod.string().uuid(),
+  "quantity": zod.number().describe('Submitted quantity (in `unit`); server normalizes to the ingredient base unit.'),
+  "unit": zod.string()
+}))
+})
+
+export const PutSizeRecipeResponse = zod.object({
+  "catalog_revision": zod.number(),
+  "cost_incomplete": zod.boolean(),
+  "cost_piastres": zod.number().nullish(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
+  "size_id": zod.string().uuid()
+}).describe('Result of a recipe replace: the recomputed size cost.')
+
+
 export const ListMenuItemsQueryParams = zod.object({
   "org_id": zod.string().uuid(),
   "category_id": zod.string().uuid().optional(),
@@ -3581,6 +3674,139 @@ export const PutAllowedAddonsResponseItem = zod.string()
 export const PutAllowedAddonsResponse = zod.array(PutAllowedAddonsResponseItem)
 
 
+export const GetItemCostParams = zod.object({
+  "id": zod.string().uuid().describe('Menu item ID')
+})
+
+export const GetItemCostResponseItem = zod.object({
+  "cost_incomplete": zod.boolean(),
+  "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres. `null` = unknown (no priced ingredient),\nnever 0. A partial rollup returns the sum-so-far with `cost_incomplete=true`.'),
+  "label": zod.string(),
+  "size_id": zod.string().uuid()
+}).describe('Live per-size cost of an item from the NEW tables.')
+export const GetItemCostResponse = zod.array(GetItemCostResponseItem)
+
+
+export const DuplicateItemParams = zod.object({
+  "id": zod.string().uuid().describe('Menu item ID to duplicate')
+})
+
+
+export const PutModifierGroupsParams = zod.object({
+  "id": zod.string().uuid().describe('Menu item ID')
+})
+
+export const PutModifierGroupsBody = zod.object({
+  "groups": zod.array(zod.object({
+  "group_id": zod.string().uuid(),
+  "included_option_ids": zod.array(zod.string().uuid()).nullish().describe('`null` = offer all of the group\'s options; else the allowlisted subset.'),
+  "is_required_override": zod.boolean().nullish(),
+  "max_override": zod.number().nullish(),
+  "min_override": zod.number().nullish(),
+  "sort": zod.number().optional()
+}))
+})
+
+export const PutModifierGroupsResponse = zod.object({
+  "availability": zod.object({
+  "branches": zod.array(zod.object({
+  "branch_id": zod.string().uuid(),
+  "channels": zod.array(zod.object({
+  "channel": zod.string(),
+  "sizes": zod.array(zod.object({
+  "is_available": zod.boolean().nullish().describe('Override availability; `null` = inherit (defaults to available).'),
+  "price": zod.number().nullish().describe('Override price in piastres; `null` = inherit the catalog default.'),
+  "size_id": zod.string().uuid()
+}).describe('Per-branch\/channel availability & price overrides for a single size.'))
+})),
+  "sizes": zod.array(zod.object({
+  "is_available": zod.boolean().nullish().describe('Override availability; `null` = inherit (defaults to available).'),
+  "price": zod.number().nullish().describe('Override price in piastres; `null` = inherit the catalog default.'),
+  "size_id": zod.string().uuid()
+}).describe('Per-branch\/channel availability & price overrides for a single size.'))
+})),
+  "org_active": zod.boolean()
+}),
+  "catalog_revision": zod.number(),
+  "category_id": zod.string().uuid().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "modifier_groups": zod.array(zod.object({
+  "attachment_id": zod.string().uuid(),
+  "group_id": zod.string().uuid(),
+  "is_required": zod.boolean(),
+  "legacy_addon_type": zod.string().nullish(),
+  "max": zod.number().nullish(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "options": zod.array(zod.object({
+  "cost_incomplete": zod.boolean(),
+  "cost_piastres": zod.number().nullish().describe('Option recipe cost in piastres (swap markers cost 0). `null` = unknown.'),
+  "id": zod.string().uuid(),
+  "included": zod.boolean().describe('`false` = the group offers this option but it is not enabled on this item\n(item\'s `included_option_ids` allowlist excludes it).'),
+  "is_active": zod.boolean(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
+  "replaces_ingredient_id": zod.string().uuid().nullish()
+}).describe('A modifier option inside an attached group.')),
+  "selection_type": zod.string(),
+  "sort": zod.number()
+}).describe('A reusable modifier group attached to this item, with min\/max\/required resolved\nfrom the attachment overrides (falling back to the group defaults).')),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "options": zod.array(zod.object({
+  "cost_incomplete": zod.boolean(),
+  "cost_piastres": zod.number().nullish(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
+}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+  "org_id": zod.string().uuid(),
+  "sizes": zod.array(zod.object({
+  "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
+  "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
+  "sort": zod.number()
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
+  "used_in_bundles": zod.array(zod.object({
+  "bundle_id": zod.string().uuid(),
+  "name": zod.string()
+}))
+}).describe('The full item aggregate the one-page Menu Studio editor renders.')
+
+
 export const ListOptionalFieldsParams = zod.object({
   "id": zod.string().uuid().describe('Menu item ID')
 })
@@ -3667,6 +3893,43 @@ export const UpdateOptionalFieldResponse = zod.object({
 })
 
 
+export const PutItemOptionsParams = zod.object({
+  "id": zod.string().uuid().describe('Menu item ID')
+})
+
+export const PutItemOptionsBody = zod.object({
+  "options": zod.array(zod.object({
+  "id": zod.string().uuid().nullish(),
+  "is_active": zod.boolean().optional(),
+  "name": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "ingredient_id": zod.string().uuid(),
+  "quantity": zod.number(),
+  "unit": zod.string()
+}).describe('One recipe line as submitted to the option-recipe replace endpoint. `quantity`\nmay be 0 (a swap marker). Server normalizes to the ingredient base unit.')).nullish().describe('`null` = keep no recipe; else the option\'s replace-set of recipe lines.')
+}).describe('One priced optional in the item\'s per-item `Options` set. `id` present ⇒ update\nthat option; absent ⇒ create a new one. `recipe` null ⇒ leave the option with no\nrecipe lines; else the replace-set of its lines.'))
+})
+
+export const PutItemOptionsResponseItem = zod.object({
+  "cost_incomplete": zod.boolean(),
+  "cost_piastres": zod.number().nullish(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
+}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')
+export const PutItemOptionsResponse = zod.array(PutItemOptionsResponseItem)
+
+
 export const ListAddonOverridesParams = zod.object({
   "id": zod.string().uuid().describe('Menu item ID')
 })
@@ -3731,6 +3994,119 @@ export const DeleteAddonOverrideParams = zod.object({
 })
 
 
+export const PutSizesParams = zod.object({
+  "id": zod.string().uuid().describe('Menu item ID')
+})
+
+export const PutSizesBody = zod.object({
+  "sizes": zod.array(zod.object({
+  "is_active": zod.boolean().optional(),
+  "label": zod.string(),
+  "price": zod.number(),
+  "sort": zod.number().optional()
+}))
+})
+
+export const PutSizesResponse = zod.object({
+  "availability": zod.object({
+  "branches": zod.array(zod.object({
+  "branch_id": zod.string().uuid(),
+  "channels": zod.array(zod.object({
+  "channel": zod.string(),
+  "sizes": zod.array(zod.object({
+  "is_available": zod.boolean().nullish().describe('Override availability; `null` = inherit (defaults to available).'),
+  "price": zod.number().nullish().describe('Override price in piastres; `null` = inherit the catalog default.'),
+  "size_id": zod.string().uuid()
+}).describe('Per-branch\/channel availability & price overrides for a single size.'))
+})),
+  "sizes": zod.array(zod.object({
+  "is_available": zod.boolean().nullish().describe('Override availability; `null` = inherit (defaults to available).'),
+  "price": zod.number().nullish().describe('Override price in piastres; `null` = inherit the catalog default.'),
+  "size_id": zod.string().uuid()
+}).describe('Per-branch\/channel availability & price overrides for a single size.'))
+})),
+  "org_active": zod.boolean()
+}),
+  "catalog_revision": zod.number(),
+  "category_id": zod.string().uuid().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "modifier_groups": zod.array(zod.object({
+  "attachment_id": zod.string().uuid(),
+  "group_id": zod.string().uuid(),
+  "is_required": zod.boolean(),
+  "legacy_addon_type": zod.string().nullish(),
+  "max": zod.number().nullish(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "options": zod.array(zod.object({
+  "cost_incomplete": zod.boolean(),
+  "cost_piastres": zod.number().nullish().describe('Option recipe cost in piastres (swap markers cost 0). `null` = unknown.'),
+  "id": zod.string().uuid(),
+  "included": zod.boolean().describe('`false` = the group offers this option but it is not enabled on this item\n(item\'s `included_option_ids` allowlist excludes it).'),
+  "is_active": zod.boolean(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
+  "replaces_ingredient_id": zod.string().uuid().nullish()
+}).describe('A modifier option inside an attached group.')),
+  "selection_type": zod.string(),
+  "sort": zod.number()
+}).describe('A reusable modifier group attached to this item, with min\/max\/required resolved\nfrom the attachment overrides (falling back to the group defaults).')),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "options": zod.array(zod.object({
+  "cost_incomplete": zod.boolean(),
+  "cost_piastres": zod.number().nullish(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
+}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+  "org_id": zod.string().uuid(),
+  "sizes": zod.array(zod.object({
+  "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
+  "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
+  "sort": zod.number()
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
+  "used_in_bundles": zod.array(zod.object({
+  "bundle_id": zod.string().uuid(),
+  "name": zod.string()
+}))
+}).describe('The full item aggregate the one-page Menu Studio editor renders.')
+
+
 export const UpsertSizeParams = zod.object({
   "id": zod.string().uuid().describe('Menu item ID')
 })
@@ -3753,6 +4129,294 @@ export const DeleteSizeParams = zod.object({
   "id": zod.string().uuid().describe('Menu item ID'),
   "sid": zod.string().uuid().describe('Size ID')
 })
+
+
+export const GetStudioParams = zod.object({
+  "id": zod.string().uuid().describe('Menu item ID')
+})
+
+export const GetStudioResponse = zod.object({
+  "availability": zod.object({
+  "branches": zod.array(zod.object({
+  "branch_id": zod.string().uuid(),
+  "channels": zod.array(zod.object({
+  "channel": zod.string(),
+  "sizes": zod.array(zod.object({
+  "is_available": zod.boolean().nullish().describe('Override availability; `null` = inherit (defaults to available).'),
+  "price": zod.number().nullish().describe('Override price in piastres; `null` = inherit the catalog default.'),
+  "size_id": zod.string().uuid()
+}).describe('Per-branch\/channel availability & price overrides for a single size.'))
+})),
+  "sizes": zod.array(zod.object({
+  "is_available": zod.boolean().nullish().describe('Override availability; `null` = inherit (defaults to available).'),
+  "price": zod.number().nullish().describe('Override price in piastres; `null` = inherit the catalog default.'),
+  "size_id": zod.string().uuid()
+}).describe('Per-branch\/channel availability & price overrides for a single size.'))
+})),
+  "org_active": zod.boolean()
+}),
+  "catalog_revision": zod.number(),
+  "category_id": zod.string().uuid().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "modifier_groups": zod.array(zod.object({
+  "attachment_id": zod.string().uuid(),
+  "group_id": zod.string().uuid(),
+  "is_required": zod.boolean(),
+  "legacy_addon_type": zod.string().nullish(),
+  "max": zod.number().nullish(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "options": zod.array(zod.object({
+  "cost_incomplete": zod.boolean(),
+  "cost_piastres": zod.number().nullish().describe('Option recipe cost in piastres (swap markers cost 0). `null` = unknown.'),
+  "id": zod.string().uuid(),
+  "included": zod.boolean().describe('`false` = the group offers this option but it is not enabled on this item\n(item\'s `included_option_ids` allowlist excludes it).'),
+  "is_active": zod.boolean(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
+  "replaces_ingredient_id": zod.string().uuid().nullish()
+}).describe('A modifier option inside an attached group.')),
+  "selection_type": zod.string(),
+  "sort": zod.number()
+}).describe('A reusable modifier group attached to this item, with min\/max\/required resolved\nfrom the attachment overrides (falling back to the group defaults).')),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "options": zod.array(zod.object({
+  "cost_incomplete": zod.boolean(),
+  "cost_piastres": zod.number().nullish(),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
+}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+  "org_id": zod.string().uuid(),
+  "sizes": zod.array(zod.object({
+  "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
+  "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "ingredient_id": zod.string().uuid(),
+  "ingredient_name": zod.string(),
+  "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
+  "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "unit": zod.string()
+}).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
+  "sort": zod.number()
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
+  "used_in_bundles": zod.array(zod.object({
+  "bundle_id": zod.string().uuid(),
+  "name": zod.string()
+}))
+}).describe('The full item aggregate the one-page Menu Studio editor renders.')
+
+
+export const PutPriceOverrideBody = zod.object({
+  "branch_id": zod.string().uuid().nullish(),
+  "channel": zod.string().nullish().describe('delivery_channel: \'in_mall\' | \'outside\' | \'umbrella\' | \'pickup\'.'),
+  "is_available": zod.boolean().nullish(),
+  "price": zod.number().nullish(),
+  "scope": zod.string().describe('\'branch\' | \'channel\' | \'branch_channel\'.'),
+  "target_id": zod.string().uuid(),
+  "target_type": zod.string().describe('\'menu_item_size\' | \'modifier_option\'.')
+})
+
+export const PutPriceOverrideResponse = zod.object({
+  "branch_id": zod.string().uuid().nullish(),
+  "channel": zod.string().nullish(),
+  "id": zod.string().uuid(),
+  "is_available": zod.boolean().nullish(),
+  "price": zod.number().nullish(),
+  "scope": zod.string(),
+  "target_id": zod.string().uuid(),
+  "target_type": zod.string()
+}).describe('The persisted override row (returned by the upsert).')
+
+
+export const DeletePriceOverrideBody = zod.object({
+  "branch_id": zod.string().uuid().nullish(),
+  "channel": zod.string().nullish().describe('delivery_channel: \'in_mall\' | \'outside\' | \'umbrella\' | \'pickup\'.'),
+  "is_available": zod.boolean().nullish(),
+  "price": zod.number().nullish(),
+  "scope": zod.string().describe('\'branch\' | \'channel\' | \'branch_channel\'.'),
+  "target_id": zod.string().uuid(),
+  "target_type": zod.string().describe('\'menu_item_size\' | \'modifier_option\'.')
+})
+
+
+export const ListGroupsQueryParams = zod.object({
+  "org_id": zod.string().uuid().describe('Organization whose reusable modifier groups to list')
+})
+
+export const ListGroupsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "is_required": zod.boolean(),
+  "legacy_addon_type": zod.string().nullish(),
+  "max_selections": zod.number().nullish(),
+  "min_selections": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "options": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "price": zod.number(),
+  "replaces_ingredient_id": zod.string().uuid().nullish(),
+  "sort": zod.number()
+}).describe('A modifier option as returned by the reusable-group endpoints (org-scoped,\nno per-item `included`\/cost context — that belongs to the studio aggregate).')),
+  "org_id": zod.string().uuid(),
+  "selection_type": zod.string(),
+  "sort": zod.number()
+}).describe('A reusable modifier group with its options (org-scoped catalog view).')
+export const ListGroupsResponse = zod.array(ListGroupsResponseItem)
+
+
+export const CreateGroupBody = zod.object({
+  "is_required": zod.boolean().optional(),
+  "legacy_addon_type": zod.string().nullish().describe('The legacy addon type this group is presented as to OLD clients through\nthe compat shim (the managed addon-type dropdown, e.g. `milk_type` \/\n`coffee_type` \/ `extra`). Swap-family behavior keys on it. `null` = a\ncustom group with no legacy lineage — INVISIBLE to old clients (the shim\nprojects `type` from this value, and the old wire requires it), so set\nit whenever the pre-teardown fleet must see the group\'s options.'),
+  "max_selections": zod.number().nullish(),
+  "min_selections": zod.number().optional(),
+  "name": zod.string(),
+  "name_translations": zod.unknown().optional(),
+  "selection_type": zod.string().describe('\'single\' | \'multi\'.'),
+  "sort": zod.number().optional()
+})
+
+
+export const DeleteGroupParams = zod.object({
+  "gid": zod.string().uuid().describe('Modifier group ID')
+})
+
+
+export const PatchGroupParams = zod.object({
+  "gid": zod.string().uuid().describe('Modifier group ID')
+})
+
+export const PatchGroupBody = zod.object({
+  "is_required": zod.boolean().nullish(),
+  "max_selections": zod.number().nullish(),
+  "min_selections": zod.number().nullish(),
+  "name": zod.string().nullish(),
+  "name_translations": zod.unknown().optional(),
+  "selection_type": zod.string().nullish(),
+  "sort": zod.number().nullish()
+}).describe('Every field optional — only present keys are updated. `Option<Option<T>>` (with\n`deserialize_with`) is avoided; nullable columns that must be clearable\n(`max_selections`) are handled by a dedicated presence flag pattern below.')
+
+export const PatchGroupResponse = zod.object({
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "is_required": zod.boolean(),
+  "legacy_addon_type": zod.string().nullish(),
+  "max_selections": zod.number().nullish(),
+  "min_selections": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "options": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "price": zod.number(),
+  "replaces_ingredient_id": zod.string().uuid().nullish(),
+  "sort": zod.number()
+}).describe('A modifier option as returned by the reusable-group endpoints (org-scoped,\nno per-item `included`\/cost context — that belongs to the studio aggregate).')),
+  "org_id": zod.string().uuid(),
+  "selection_type": zod.string(),
+  "sort": zod.number()
+}).describe('A reusable modifier group with its options (org-scoped catalog view).')
+
+
+export const CreateOptionParams = zod.object({
+  "gid": zod.string().uuid().describe('Modifier group ID')
+})
+
+export const CreateOptionBody = zod.object({
+  "is_active": zod.boolean().optional(),
+  "is_default": zod.boolean().optional(),
+  "name": zod.string(),
+  "name_translations": zod.unknown().optional(),
+  "price": zod.number(),
+  "replaces_ingredient_id": zod.string().uuid().nullish()
+})
+
+
+export const DeleteOptionParams = zod.object({
+  "oid": zod.string().uuid().describe('Modifier option ID')
+})
+
+
+export const PatchOptionParams = zod.object({
+  "oid": zod.string().uuid().describe('Modifier option ID')
+})
+
+export const PatchOptionBody = zod.object({
+  "is_active": zod.boolean().nullish(),
+  "is_default": zod.boolean().nullish(),
+  "name": zod.string().nullish(),
+  "name_translations": zod.object({
+
+}).passthrough().optional(),
+  "price": zod.number().nullish(),
+  "replaces_ingredient_id": zod.string().uuid().nullish()
+})
+
+export const PatchOptionResponse = zod.object({
+  "id": zod.string().uuid(),
+  "is_active": zod.boolean(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "price": zod.number(),
+  "replaces_ingredient_id": zod.string().uuid().nullish(),
+  "sort": zod.number()
+}).describe('A modifier option as returned by the reusable-group endpoints (org-scoped,\nno per-item `included`\/cost context — that belongs to the studio aggregate).')
+
+
+export const PutOptionRecipeParams = zod.object({
+  "oid": zod.string().uuid().describe('Modifier option ID')
+})
+
+export const PutOptionRecipeBodyItem = zod.object({
+  "ingredient_id": zod.string().uuid(),
+  "quantity": zod.number(),
+  "unit": zod.string()
+}).describe('One recipe line as submitted to the option-recipe replace endpoint. `quantity`\nmay be 0 (a swap marker). Server normalizes to the ingredient base unit.')
+export const PutOptionRecipeBody = zod.array(PutOptionRecipeBodyItem)
+
+export const PutOptionRecipeResponseItem = zod.object({
+  "ingredient_id": zod.string().uuid(),
+  "quantity": zod.number(),
+  "unit": zod.string()
+}).describe('One recipe line as submitted to the option-recipe replace endpoint. `quantity`\nmay be 0 (a swap marker). Server normalizes to the ingredient base unit.')
+export const PutOptionRecipeResponse = zod.array(PutOptionRecipeResponseItem)
 
 
 export const ListOpenTicketsQueryParams = zod.object({
@@ -3966,7 +4630,9 @@ export const SettleOpenTicketResponse = zod.object({
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.string().datetime({"offset":true}).nullish(),
-  "voided_by": zod.string().uuid().nullish()
+  "voided_by": zod.string().uuid().nullish(),
+  "waiter_id": zod.string().uuid().nullish().describe('The WAITER who opened this order\'s ticket (`open_tickets.opened_by`),\nstamped server-side at settle time. `null` for direct teller sales and\ndelivery orders (they never pass through a waiter\'s ticket).'),
+  "waiter_name": zod.string().nullish()
 })
 
 
@@ -4053,6 +4719,7 @@ export const ListOrdersQueryParams = zod.object({
   "page": zod.number().optional(),
   "per_page": zod.number().optional(),
   "teller_name": zod.string().optional(),
+  "waiter_name": zod.string().optional().describe('Filter by the WAITER who opened the ticket (ILIKE, partial match). Matches\nonly orders that carry a waiter (dine-in settled from a waiter\'s ticket).'),
   "payment_method": zod.string().optional(),
   "status": zod.string().optional(),
   "from": zod.string().datetime({"offset":true}).optional(),
@@ -4096,7 +4763,9 @@ export const ListOrdersResponse = zod.object({
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.string().datetime({"offset":true}).nullish(),
-  "voided_by": zod.string().uuid().nullish()
+  "voided_by": zod.string().uuid().nullish(),
+  "waiter_id": zod.string().uuid().nullish().describe('The WAITER who opened this order\'s ticket (`open_tickets.opened_by`),\nstamped server-side at settle time. `null` for direct teller sales and\ndelivery orders (they never pass through a waiter\'s ticket).'),
+  "waiter_name": zod.string().nullish()
 })),
   "page": zod.number(),
   "per_page": zod.number(),
@@ -4179,6 +4848,7 @@ export const ExportOrdersQueryParams = zod.object({
   "branch_id": zod.string().uuid().optional(),
   "shift_id": zod.string().uuid().optional(),
   "teller_name": zod.string().optional(),
+  "waiter_name": zod.string().optional().describe('Filter by the WAITER who opened the ticket (ILIKE, partial match).'),
   "payment_method": zod.string().optional(),
   "status": zod.string().optional(),
   "from": zod.string().datetime({"offset":true}).optional(),
@@ -4219,7 +4889,9 @@ export const ExportOrdersResponse = zod.object({
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.string().datetime({"offset":true}).nullish(),
-  "voided_by": zod.string().uuid().nullish()
+  "voided_by": zod.string().uuid().nullish(),
+  "waiter_id": zod.string().uuid().nullish().describe('The WAITER who opened this order\'s ticket (`open_tickets.opened_by`),\nstamped server-side at settle time. `null` for direct teller sales and\ndelivery orders (they never pass through a waiter\'s ticket).'),
+  "waiter_name": zod.string().nullish()
 }).and(zod.object({
   "items": zod.array(zod.object({
   "bundle_id": zod.string().uuid().nullish(),
@@ -4391,7 +5063,9 @@ export const GetOrderResponse = zod.object({
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.string().datetime({"offset":true}).nullish(),
-  "voided_by": zod.string().uuid().nullish()
+  "voided_by": zod.string().uuid().nullish(),
+  "waiter_id": zod.string().uuid().nullish().describe('The WAITER who opened this order\'s ticket (`open_tickets.opened_by`),\nstamped server-side at settle time. `null` for direct teller sales and\ndelivery orders (they never pass through a waiter\'s ticket).'),
+  "waiter_name": zod.string().nullish()
 }).and(zod.object({
   "delivery": zod.union([zod.null(),zod.object({
   "address_line": zod.string().nullish(),
@@ -4537,7 +5211,9 @@ export const VoidOrderResponse = zod.object({
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.string().datetime({"offset":true}).nullish(),
-  "voided_by": zod.string().uuid().nullish()
+  "voided_by": zod.string().uuid().nullish(),
+  "waiter_id": zod.string().uuid().nullish().describe('The WAITER who opened this order\'s ticket (`open_tickets.opened_by`),\nstamped server-side at settle time. `null` for direct teller sales and\ndelivery orders (they never pass through a waiter\'s ticket).'),
+  "waiter_name": zod.string().nullish()
 })
 
 
@@ -4973,6 +5649,26 @@ export const PublicMenuResponse = zod.object({
   "description": zod.string().nullish(),
   "id": zod.string().uuid(),
   "image_url": zod.string().nullish(),
+  "modifier_groups": zod.array(zod.object({
+  "addon_type": zod.string().nullish().describe('The group\'s legacy addon type (`milk_type` \/ `coffee_type` \/ `extra` \/\ncustom) — the swap-family hint the customizer keys its delta-price\nestimate on. `None` for groups with no legacy lineage.'),
+  "group_id": zod.string().uuid(),
+  "is_required": zod.boolean(),
+  "max_selections": zod.number().nullish(),
+  "min_selections": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
+  "options": zod.array(zod.object({
+  "name": zod.string(),
+  "name_translations": zod.object({
+
+}).passthrough(),
+  "option_id": zod.string().uuid(),
+  "price": zod.number().describe('Channel-effective surcharge (piastres): branch_channel → branch →\nchannel → catalog default. Unavailable options are excluded entirely.')
+}).describe('One option inside a per-item modifier group. `option_id` is the STABLE id —\nit equals the legacy `addon_item_id`, so order intake accepts it unchanged in\n`addons[].addon_item_id` (menu-unification stable-id rule).')),
+  "selection_type": zod.string().describe('\"single\" | \"multi\".')
+}).describe('A per-item modifier group from the unified model (`menu_item_modifier_groups`\n→ `modifier_groups`\/`modifier_options`), constraints resolved (attachment\noverrides beat group defaults) and options already filtered to the\nattachment\'s `included_option_ids`. Only addon-sourced options appear here —\nthe item\'s priced optionals stay in `optionals`. Empty until the org\'s\ncatalog is backfilled onto the unified tables; the customizer falls back to\nthe flat `addons` catalog + `allowed_addon_ids` in that case.')).describe('The item\'s modifier groups (unified model), channel-effective. Empty ⇒\nthe customizer falls back to `addons` + `allowed_addon_ids`.'),
   "name": zod.string(),
   "name_translations": zod.object({
 

@@ -171,7 +171,7 @@ export function QrPage() {
   // Preview dialog
   const [preview, setPreview] = useState<{ qr: QrResponse; title: string } | null>(null);
 
-  const inMallForm = useForm<InMallValues>({
+  const inMallForm = useForm<z.input<typeof inMallSchema>, unknown, InMallValues>({
     resolver: zodResolver(inMallSchema),
     defaultValues: { place_name: "", floor: "", unit_number: "" },
   });

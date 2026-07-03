@@ -126,7 +126,7 @@ export function BundlesPage() {
         ),
       },
       { accessorKey: "price", header: t("bundles.price", "Price"), cell: ({ row }) => <span className="font-bold tabular">{fmtMoney(row.original.price)}</span> },
-      { accessorKey: "computed_cost", header: t("bundles.computedCostLabel", "Recipe cost"), cell: ({ row }) => <span className="text-xs tabular text-muted-foreground">{fmtMoney(row.original.computed_cost)}</span> },
+      { accessorKey: "computed_cost", header: t("bundles.computedCostLabel", "Recipe cost"), cell: ({ row }) => <span className="text-xs tabular text-muted-foreground">{row.original.cost_missing ? "—" : fmtMoney(row.original.computed_cost)}</span> },
       {
         accessorKey: "status", header: t("common.status", "Status"),
         cell: ({ row }) => {
@@ -161,7 +161,7 @@ export function BundlesPage() {
       const cols: ExcelColumn<BundleWithComponents>[] = [
         { header: t("bundles.bundleName", "Bundle name"), accessor: (b) => tname(b), type: "text", width: 28 },
         { header: t("bundles.price", "Price"), accessor: (b) => piastresToEgp(b.price), type: "number", width: 14 },
-        { header: t("bundles.computedCostLabel", "Recipe cost"), accessor: (b) => piastresToEgp(b.computed_cost), type: "number", width: 14 },
+        { header: t("bundles.computedCostLabel", "Recipe cost"), accessor: (b) => (b.cost_missing ? undefined : piastresToEgp(b.computed_cost)), type: "number", width: 14 },
         { header: t("bundles.components", "Items"), accessor: (b) => b.components.map((c) => `${c.item_name} (x${c.quantity})`).join(", "), type: "text", width: 40 },
         { header: t("common.status", "Status"), accessor: (b) => t(`bundles.status.${b.status}`, b.status), type: "text", width: 12 },
       ];

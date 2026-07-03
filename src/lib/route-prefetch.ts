@@ -131,9 +131,12 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
       if (orgId) void qc.prefetchQuery(getListBundlesQueryOptions({ org_id: orgId, page: 1, per_page: 20 }));
       break;
     case "/menu/engineering":
+    case "/insights/menu-profitability":
+    case "/insights/menu-profitability/engineering":
       if (branchId) void qc.prefetchQuery(getBranchMenuEngineeringQueryOptions(branchId, { from: from ?? undefined, to: to ?? undefined }));
       break;
     case "/menu/advisor":
+    case "/insights/menu-profitability/advisor":
       if (branchId) {
         void qc.prefetchQuery(getGetLatestRunHandlerQueryOptions(branchId));
         void qc.prefetchQuery(getGetActiveRunHandlerQueryOptions(branchId));
@@ -150,12 +153,16 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
       break;
     case "/users":
     case "/permissions":
+    case "/access":
+    case "/access/users":
+    case "/access/roles":
       if (orgId) void qc.prefetchQuery(getListUsersQueryOptions({ org_id: orgId }));
       break;
     case "/settings/payment-methods":
       if (orgId) void qc.prefetchQuery(getListPaymentMethodsQueryOptions());
       break;
     case "/analytics":
+    case "/insights/sales":
       // Default tab is Overview → branch sales summary.
       if (branchId) void qc.prefetchQuery(getBranchSalesQueryOptions(branchId, period));
       break;
@@ -179,6 +186,7 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
       }
       break;
     case "/inventory/items":
+    case "/inventory/ingredients":
       if (orgId) {
         void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
         void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
@@ -208,6 +216,7 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
       if (branchId) void qc.prefetchQuery(getListTransfersQueryOptions(branchId, { direction: undefined }));
       break;
     case "/inventory/reports":
+    case "/insights/inventory-reports":
       // Default tab is Valuation.
       if (orgId) void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
       if (branchId) void qc.prefetchQuery(getBranchInventoryValuationQueryOptions(branchId));

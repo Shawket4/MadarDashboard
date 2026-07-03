@@ -138,7 +138,18 @@
     "deliverySettings": "Settings",
     "deliveryZones": "Zone rings",
     "deliveryChannels": "Channel overrides",
-    "qr": "QR Codes"
+    "qr": "QR Codes",
+    "sell": "Sell",
+    "insights": "Insights",
+    "setup": "Setup",
+    "salesInsights": "Sales",
+    "menuProfitability": "Menu profitability",
+    "inventoryReports": "Inventory reports",
+    "ingredients": "Ingredients",
+    "paymentMethods": "Payment methods",
+    "whatsapp": "WhatsApp",
+    "usersPermissions": "Users & Permissions",
+    "rolesPermissions": "Roles & Permissions"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -595,13 +606,99 @@
     "recipeOnRecipesPage": "Per-size ingredient recipes are managed on the Recipes tab.",
     "recipe": "Recipe",
     "recipeHint": "What this item consumes, per size",
-    "removeSize": "Remove size"
+    "removeSize": "Remove size",
+    "studio": {
+      "backToItems": "Back to items",
+      "untitled": "Untitled item",
+      "revision": "Revision {{rev}}",
+      "usedInBundles": "Used in bundles:",
+      "loadError": "Could not load this item",
+      "duplicateTitle": "Duplicate this item?",
+      "duplicateDesc": "Creates a new item with the same sizes, recipes, modifiers, options and overrides. The copy has no order history.",
+      "duplicated": "Item duplicated",
+      "tabs": {
+        "basics": "Basics",
+        "sizes": "Sizes & pricing",
+        "recipe": "Recipe & cost",
+        "modifiers": "Modifiers",
+        "options": "Options",
+        "availability": "Availability"
+      },
+      "basics": {
+        "title": "Item details",
+        "desc": "The name, description and category customers see.",
+        "activeHint": "Inactive items are hidden from every menu.",
+        "imageDesc": "Shown on the storefront and POS. PNG/JPG/WebP, up to 5 MB."
+      },
+      "sizes": {
+        "desc": "Each size has its own price. Reorder to control how they appear.",
+        "empty": "No sizes yet. Add one to set a price.",
+        "needOne": "Add at least one size.",
+        "labelPh": "e.g. Small",
+        "moveUp": "Move up",
+        "softDelete": "Sizes with order history are deactivated rather than deleted, preserving past orders."
+      },
+      "recipe": {
+        "desc": "What one unit of this size consumes. Cost is computed live.",
+        "needSize": "Add a size first — recipes are defined per size.",
+        "liveCost": "Live cost",
+        "incomplete": "Cost incomplete",
+        "complete": "Fully costed",
+        "pickIngredient": "Pick an ingredient",
+        "setCost": "Set cost",
+        "costPerUnit": "Cost per {{unit}} (EGP)",
+        "costSet": "Ingredient cost set",
+        "invalidCost": "Enter a valid cost",
+        "fixHint": "Link every line to an ingredient and give each ingredient a cost to complete the cost.",
+        "saveRecipe": "Save recipe"
+      },
+      "modifiers": {
+        "desc": "Attach reusable modifier groups. Pick which options are offered and set the rules per item.",
+        "attach": "Attach a group…",
+        "empty": "No modifier groups attached",
+        "detach": "Detach",
+        "single": "Single choice",
+        "multi": "Multi choice",
+        "min": "Min",
+        "max": "Max",
+        "unlimited": "∞",
+        "required": "Required",
+        "offered": "Offered options",
+        "noOptions": "This group has no options yet.",
+        "option": "options"
+      },
+      "options": {
+        "desc": "Priced add-ons private to this item. Each can optionally deduct an ingredient when chosen.",
+        "add": "Add option",
+        "empty": "No options yet",
+        "namePh": "e.g. Extra shot",
+        "deducts": "Deducts",
+        "noDeduction": "No deduction",
+        "cost": "Cost {{cost}}"
+      },
+      "availability": {
+        "orgTitle": "Organization availability",
+        "orgDesc": "The catalog-wide default. Toggle it on the Basics tab.",
+        "orgOn": "Offered across the organization by default.",
+        "orgOff": "Hidden everywhere until reactivated.",
+        "branchTitle": "Per-branch overrides",
+        "branchDesc": "Override price or hide a size at a specific branch or delivery channel. Blank price inherits the catalog.",
+        "needSize": "Add a size before setting overrides.",
+        "noBranches": "No active branches",
+        "branchLevel": "Whole branch",
+        "channel_in_mall": "In-mall",
+        "channel_outside": "Delivery",
+        "channel_umbrella": "Umbrella",
+        "channel_pickup": "Pickup"
+      }
+    },
+    "addonTypeLocked": "The type (group) can't change — recreate the add-on to move it."
   },
   "recipes": {
     "title": "Recipes",
     "subtitle": "Define what each item and add-on consumes",
     "tabs": {
-      "drinks": "Drinks",
+      "drinks": "Items",
       "addons": "Add-ons",
       "slotsOptionals": "Slots & Optionals"
     },
@@ -660,7 +757,10 @@
       "minMaxSummary": "min {{min}}, max {{max}}",
       "displayLabelEn": "Display label (EN)",
       "displayLabelAr": "Display label (AR)",
-      "removeSlot": "Remove slot"
+      "removeSlot": "Remove slot",
+      "movedHint": "Modifier groups are managed in the Menu Studio now.",
+      "editInStudio": "Edit in Menu Studio",
+      "emptyStudioHint": "Attach modifier groups from the Menu Studio."
     },
     "optionals": {
       "title": "Optional fields",
@@ -674,7 +774,9 @@
       "saveField": "Save field",
       "checkboxLabelEn": "Checkbox label (EN)",
       "checkboxLabelAr": "Checkbox label (AR)",
-      "removeField": "Remove field"
+      "removeField": "Remove field",
+      "movedHint": "Priced options are managed in the Menu Studio now.",
+      "emptyStudioHint": "Add priced options from the Menu Studio."
     }
   },
   "inventory": {
@@ -2072,16 +2174,30 @@
       "follow": "Follow Madar"
     },
     "stats": {
-      "branches": { "value": "Multi-branch", "label": "Rollups across every location" },
-      "bilingual": { "value": "EN · ع", "label": "Bilingual, first-class RTL" },
-      "offline": { "value": "Offline-first", "label": "Keeps selling when the line drops" },
-      "ledger": { "value": "Append-only", "label": "An honest, auditable ledger" }
+      "branches": {
+        "value": "Multi-branch",
+        "label": "Rollups across every location"
+      },
+      "bilingual": {
+        "value": "EN · ع",
+        "label": "Bilingual, first-class RTL"
+      },
+      "offline": {
+        "value": "Offline-first",
+        "label": "Keeps selling when the line drops"
+      },
+      "ledger": {
+        "value": "Append-only",
+        "label": "An honest, auditable ledger"
+      }
     },
     "dashboard": {
       "eyebrow": "The back office",
       "title": "Numbers you can act on",
       "subtitle": "Every order, shift and adjustment rolls up into one trustworthy view — revenue, payment mix, branch performance, and the true cost behind each cup.",
-      "orders": { "title": "Order history" },
+      "orders": {
+        "title": "Order history"
+      },
       "analytics": {
         "title": "Analytics & reports",
         "desc": "Revenue, top items, peak hours, tellers and branch comparison — exportable any time."
@@ -2103,10 +2219,22 @@
       "title": "A native point of sale, built for the rush",
       "subtitle": "A fast native app for the counter — on iPad, Android, Mac, Windows or Linux. Browse the menu, build a cart, split a bill, take cash with live change, fire to the kitchen, and close the drawer with a Z-report. Offline-first, so the line never stops.",
       "shots": {
-        "order": { "title": "Order & cart", "desc": "Browse the branch menu, build a cart and watch totals add up live — on one fast screen." },
-        "tender": { "title": "Tender & split", "desc": "Split a bill across payment methods, take cash with live change, add a tip, then print." },
-        "kitchen": { "title": "Kitchen display", "desc": "Fire tickets to a full-screen kitchen board and bump them line by line." },
-        "shift": { "title": "Shifts & Z-report", "desc": "Open and close the drawer with a counted cash report and a printable shift summary." }
+        "order": {
+          "title": "Order & cart",
+          "desc": "Browse the branch menu, build a cart and watch totals add up live — on one fast screen."
+        },
+        "tender": {
+          "title": "Tender & split",
+          "desc": "Split a bill across payment methods, take cash with live change, add a tip, then print."
+        },
+        "kitchen": {
+          "title": "Kitchen display",
+          "desc": "Fire tickets to a full-screen kitchen board and bump them line by line."
+        },
+        "shift": {
+          "title": "Shifts & Z-report",
+          "desc": "Open and close the drawer with a counted cash report and a printable shift summary."
+        }
       }
     },
     "features": {
@@ -2114,14 +2242,38 @@
       "title": "Everything your counter needs",
       "subtitle": "Purpose-built for cafés and quick-service in Egypt — precise with money, honest with the ledger, and fast where it matters.",
       "items": {
-        "pos": { "title": "Fast point of sale", "desc": "Take orders in seconds with split payments, discounts and instant receipts." },
-        "costing": { "title": "Recipe costing", "desc": "Know the true cost and margin of every cup, per size and add-on." },
-        "inventory": { "title": "Append-only inventory", "desc": "Counts, transfers, waste and stocktakes — reversed with compensating entries, never edited away." },
-        "shifts": { "title": "Shifts & cash", "desc": "Open and close drawers, record pay-ins and pay-outs, and reprint Z-reports." },
-        "delivery": { "title": "Delivery & channels", "desc": "Configure zones and channels, with Talabat online/cash splits handled correctly." },
-        "analytics": { "title": "Analytics & reports", "desc": "Revenue, peak hours, top items and branch comparison — exportable any time." },
-        "multibranch": { "title": "Multi-branch rollups", "desc": "Compare locations and see the whole org at a glance, in one scope bar." },
-        "permissions": { "title": "Roles & permissions", "desc": "Granular, role-based access for owners, managers and tellers." }
+        "pos": {
+          "title": "Fast point of sale",
+          "desc": "Take orders in seconds with split payments, discounts and instant receipts."
+        },
+        "costing": {
+          "title": "Recipe costing",
+          "desc": "Know the true cost and margin of every cup, per size and add-on."
+        },
+        "inventory": {
+          "title": "Append-only inventory",
+          "desc": "Counts, transfers, waste and stocktakes — reversed with compensating entries, never edited away."
+        },
+        "shifts": {
+          "title": "Shifts & cash",
+          "desc": "Open and close drawers, record pay-ins and pay-outs, and reprint Z-reports."
+        },
+        "delivery": {
+          "title": "Delivery & channels",
+          "desc": "Configure zones and channels, with Talabat online/cash splits handled correctly."
+        },
+        "analytics": {
+          "title": "Analytics & reports",
+          "desc": "Revenue, peak hours, top items and branch comparison — exportable any time."
+        },
+        "multibranch": {
+          "title": "Multi-branch rollups",
+          "desc": "Compare locations and see the whole org at a glance, in one scope bar."
+        },
+        "permissions": {
+          "title": "Roles & permissions",
+          "desc": "Granular, role-based access for owners, managers and tellers."
+        }
       },
       "tags": {
         "offline": "Offline-first",

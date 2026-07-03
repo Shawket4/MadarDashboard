@@ -32,7 +32,7 @@ export function BookingDialog({ branchId, open, onOpenChange }: Props) {
       z.object({
         customer_name: z.string().min(1, t("common.requiredField", "This field is required")),
         customer_phone: z.string().min(1, t("common.requiredField", "This field is required")),
-        party_size: z.coerce.number().int().min(1).max(99),
+        party_size: z.coerce.number<number>().int().min(1).max(99),
         reserved_for: z.string().optional(),
         notes: z.string().optional(),
       }),
@@ -40,7 +40,7 @@ export function BookingDialog({ branchId, open, onOpenChange }: Props) {
   );
   type Values = z.infer<typeof schema>;
 
-  const form = useForm<Values>({
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: { customer_name: "", customer_phone: "", party_size: 2, reserved_for: "", notes: "" },
   });

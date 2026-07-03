@@ -2,6 +2,7 @@
 // @ts-nocheck
 import type { DeliveryMenuItemNameTranslations } from './deliveryMenuItemNameTranslations';
 import type { DeliveryMenuSize } from './deliveryMenuSize';
+import type { DeliveryModifierGroup } from './deliveryModifierGroup';
 import type { DeliveryOptionalField } from './deliveryOptionalField';
 
 export interface DeliveryMenuItem {
@@ -24,6 +25,9 @@ export interface DeliveryMenuItem {
   id: string;
   /** @nullable */
   image_url?: string | null;
+  /** The item's modifier groups (unified model), channel-effective. Empty ⇒
+   * the customizer falls back to `addons` + `allowed_addon_ids`. */
+  modifier_groups: DeliveryModifierGroup[];
   name: string;
   name_translations: DeliveryMenuItemNameTranslations;
   optionals: DeliveryOptionalField[];
