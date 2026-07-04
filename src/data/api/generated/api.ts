@@ -46,7 +46,6 @@ import type {
   BranchInventoryItem,
   BranchInventoryMovement,
   BranchInventoryTransfer,
-  BranchMenuEngineeringParams,
   BranchMenuOverride,
   BranchMenuOverrideInput,
   BranchQrParams,
@@ -63,9 +62,7 @@ import type {
   BundlePerformanceParams,
   BundlePerformanceResponse,
   BundleSalesRow,
-  BundleSuggestionRecord,
   BundleWithComponents,
-  CalibrationSummary,
   CancelInput,
   CashMovement,
   CashMovementRequest,
@@ -101,8 +98,6 @@ import type {
   CreatePaymentMethodRequest,
   CreatePurchaseOrderRequest,
   CreateReturnRequest,
-  CreateRunBody,
-  CreateRunResponse,
   CreateSectionRequest,
   CreateStationRequest,
   CreateStocktakeRequest,
@@ -113,7 +108,6 @@ import type {
   CreateUserRequest,
   CreateUserResponse,
   CreateWasteRequest,
-  DecisionRecord,
   DeductionLogRow,
   DeleteAddonIngredientParams,
   DeleteBranchAddonOverrideParams,
@@ -144,9 +138,7 @@ import type {
   FloorTable,
   ForceCloseRequest,
   GetBranchSettingsParams,
-  GetCalibrationHandlerParams,
   GetCurrentShiftParams,
-  GetLatestRunHandlerParams,
   GetReservationSettingsParams,
   GetRoutingModeParams,
   GoodsReceipt,
@@ -168,12 +160,10 @@ import type {
   ListBranchAddonOverridesParams,
   ListBranchMenuOverridesParams,
   ListBranchesParams,
-  ListBundleSuggestionsHandlerParams,
   ListBundlesParams,
   ListCategoriesParams,
   ListChannelAddonOverridesParams,
   ListChannelOverridesParams,
-  ListDecisionsHandlerParams,
   ListDeliveryOrdersParams,
   ListDiscountsParams,
   ListFloorTablesParams,
@@ -184,12 +174,9 @@ import type {
   ListOpenTicketsParams,
   ListOrdersParams,
   ListOrgPurchaseOrdersParams,
-  ListPriceSuggestionsHandlerParams,
   ListPurchaseOrdersParams,
-  ListRemovalScenariosHandlerParams,
   ListReservationPublicBranchesParams,
   ListRoutesParams,
-  ListRunsHandlerParams,
   ListSectionsParams,
   ListShiftsParams,
   ListSkuCostsParams,
@@ -203,7 +190,6 @@ import type {
   LowStockRow,
   MarketingLink,
   MeResponse,
-  MenuEngineeringReport,
   MenuItem,
   MenuItemFull,
   MoveTicketTableRequest,
@@ -241,14 +227,11 @@ import type {
   PeakHourPoint,
   Permission,
   PermissionMatrix,
-  PersistedRun,
   PrepTimeInput,
   PreviewIngredient,
   PreviewRecipeRequest,
   PriceOverrideOut,
   PriceOverrideRequest,
-  PriceSuggestionRecord,
-  PromoteBundleBody,
   PublicBooking,
   PublicBranch,
   PublicBranchesParams,
@@ -267,8 +250,6 @@ import type {
   QuoteResponse,
   ReceivePurchaseOrderRequest,
   RecipeCostResult,
-  RecordDecisionBody,
-  RemovalScenarioRecord,
   ReorderSuggestion,
   ReservationSettings,
   ResolveBranchRequest,
@@ -346,6 +327,21 @@ import { customInstance } from '../custom-instance';
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
+
+const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K };
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === 'queryKey') continue;
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    });
+  }
+  return result;
+};
 
 export const listAddonItems = (
     params: ListAddonItemsParams,
@@ -426,7 +422,7 @@ export function useListAddonItems<TData = Awaited<ReturnType<typeof listAddonIte
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -448,6 +444,7 @@ export const createAddonItem = (
     },
       options);
     }
+
 
 
 
@@ -572,7 +569,7 @@ export function useListAddonCatalog<TData = Awaited<ReturnType<typeof listAddonC
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -592,6 +589,7 @@ export const deleteAddonItem = (
     },
       options);
     }
+
 
 
 
@@ -654,6 +652,7 @@ export const updateAddonItem = (
 
 
 
+
 export const getUpdateAddonItemMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAddonItem>>, TError,{id: string;data: UpdateAddonItemRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateAddonItem>>, TError,{id: string;data: UpdateAddonItemRequest}, TContext> => {
@@ -709,6 +708,7 @@ export const login = (
     },
       options);
     }
+
 
 
 
@@ -832,7 +832,7 @@ export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorBody
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -919,7 +919,7 @@ export function useGetMyPermissions<TData = Awaited<ReturnType<typeof getMyPermi
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -941,6 +941,7 @@ export const resolveBranch = (
     },
       options);
     }
+
 
 
 
@@ -1065,7 +1066,7 @@ export function useListBranchAddonOverrides<TData = Awaited<ReturnType<typeof li
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -1087,6 +1088,7 @@ export const upsertBranchAddonOverride = (
     },
       options);
     }
+
 
 
 
@@ -1144,6 +1146,7 @@ export const deleteBranchAddonOverride = (
     },
       options);
     }
+
 
 
 
@@ -1268,7 +1271,7 @@ export function useListBranchMenuOverrides<TData = Awaited<ReturnType<typeof lis
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -1290,6 +1293,7 @@ export const upsertBranchMenuOverride = (
     },
       options);
     }
+
 
 
 
@@ -1347,6 +1351,7 @@ export const deleteBranchMenuOverride = (
     },
       options);
     }
+
 
 
 
@@ -1471,7 +1476,7 @@ export function useListBranches<TData = Awaited<ReturnType<typeof listBranches>>
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -1493,6 +1498,7 @@ export const createBranch = (
     },
       options);
     }
+
 
 
 
@@ -1616,7 +1622,7 @@ export function useGetBranch<TData = Awaited<ReturnType<typeof getBranch>>, TErr
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -1639,6 +1645,7 @@ export const updateBranch = (
     },
       options);
     }
+
 
 
 
@@ -1695,6 +1702,7 @@ export const deleteBranch = (
     },
       options);
     }
+
 
 
 
@@ -1826,7 +1834,7 @@ export function useBranchQr<TData = Awaited<ReturnType<typeof branchQr>>, TError
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -1913,7 +1921,7 @@ export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TE
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -1936,6 +1944,7 @@ export const createTable = (
     },
       options);
     }
+
 
 
 
@@ -1993,6 +2002,7 @@ export const deleteTable = (
     },
       options);
     }
+
 
 
 
@@ -2131,7 +2141,7 @@ export function useTableQr<TData = Awaited<ReturnType<typeof tableQr>>, TError =
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -2219,7 +2229,7 @@ export function useListBundles<TData = Awaited<ReturnType<typeof listBundles>>, 
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -2241,6 +2251,7 @@ export const createBundle = (
     },
       options);
     }
+
 
 
 
@@ -2365,7 +2376,7 @@ export function useAvailableBundles<TData = Awaited<ReturnType<typeof availableB
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -2452,7 +2463,7 @@ export function useGetBundle<TData = Awaited<ReturnType<typeof getBundle>>, TErr
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -2472,6 +2483,7 @@ export const deleteBundle = (
     },
       options);
     }
+
 
 
 
@@ -2534,6 +2546,7 @@ export const updateBundle = (
 
 
 
+
 export const getUpdateBundleMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBundle>>, TError,{id: string;data: UpdateBundleRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateBundle>>, TError,{id: string;data: UpdateBundleRequest}, TContext> => {
@@ -2590,6 +2603,7 @@ export const activateBundle = (
 
 
 
+
 export const getActivateBundleMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateBundle>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof activateBundle>>, TError,{id: string}, TContext> => {
@@ -2643,6 +2657,7 @@ export const archiveBundle = (
     },
       options);
     }
+
 
 
 
@@ -2774,7 +2789,7 @@ export function useBundlePerformance<TData = Awaited<ReturnType<typeof bundlePer
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -2862,7 +2877,7 @@ export function useCatalogSync<TData = Awaited<ReturnType<typeof catalogSync>>, 
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -2950,7 +2965,7 @@ export function useListCategories<TData = Awaited<ReturnType<typeof listCategori
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -2972,6 +2987,7 @@ export const createCategory = (
     },
       options);
     }
+
 
 
 
@@ -3031,6 +3047,7 @@ export const deleteCategory = (
 
 
 
+
 export const getDeleteCategoryMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteCategory>>, TError,{id: string}, TContext> => {
@@ -3087,6 +3104,7 @@ export const updateCategory = (
     },
       options);
     }
+
 
 
 
@@ -3211,7 +3229,7 @@ export function useListAddonCosts<TData = Awaited<ReturnType<typeof listAddonCos
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -3299,7 +3317,7 @@ export function useListMenuCatalog<TData = Awaited<ReturnType<typeof listMenuCat
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -3387,7 +3405,7 @@ export function useListSkuCosts<TData = Awaited<ReturnType<typeof listSkuCosts>>
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -3475,7 +3493,7 @@ export function useListDeliveryOrders<TData = Awaited<ReturnType<typeof listDeli
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -3577,7 +3595,7 @@ export function useStreamDeliveryOrders<TData = Awaited<ReturnType<typeof stream
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -3664,7 +3682,7 @@ export function useGetDeliveryOrder<TData = Awaited<ReturnType<typeof getDeliver
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -3687,6 +3705,7 @@ export const cancelDeliveryOrder = (
     },
       options);
     }
+
 
 
 
@@ -3749,6 +3768,7 @@ export const finalizeDeliveryOrder = (
 
 
 
+
 export const getFinalizeDeliveryOrderMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeDeliveryOrder>>, TError,{id: string;data: FinalizeInput}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof finalizeDeliveryOrder>>, TError,{id: string;data: FinalizeInput}, TContext> => {
@@ -3805,6 +3825,7 @@ export const setPrepTime = (
     },
       options);
     }
+
 
 
 
@@ -3936,7 +3957,7 @@ export function useDeliveryOrderQr<TData = Awaited<ReturnType<typeof deliveryOrd
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -3959,6 +3980,7 @@ export const setStatus = (
     },
       options);
     }
+
 
 
 
@@ -4017,6 +4039,7 @@ export const setAccepting = (
     },
       options);
     }
+
 
 
 
@@ -4141,7 +4164,7 @@ export function useListChannelAddonOverrides<TData = Awaited<ReturnType<typeof l
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -4163,6 +4186,7 @@ export const upsertChannelAddonOverride = (
     },
       options);
     }
+
 
 
 
@@ -4220,6 +4244,7 @@ export const deleteChannelAddonOverride = (
     },
       options);
     }
+
 
 
 
@@ -4344,7 +4369,7 @@ export function useListChannelOverrides<TData = Awaited<ReturnType<typeof listCh
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -4366,6 +4391,7 @@ export const upsertChannelOverride = (
     },
       options);
     }
+
 
 
 
@@ -4423,6 +4449,7 @@ export const deleteChannelOverride = (
     },
       options);
     }
+
 
 
 
@@ -4547,7 +4574,7 @@ export function useGetBranchSettings<TData = Awaited<ReturnType<typeof getBranch
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -4569,6 +4596,7 @@ export const putBranchSettings = (
     },
       options);
     }
+
 
 
 
@@ -4693,7 +4721,7 @@ export function useListZones<TData = Awaited<ReturnType<typeof listZones>>, TErr
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -4715,6 +4743,7 @@ export const createZone = (
     },
       options);
     }
+
 
 
 
@@ -4776,6 +4805,7 @@ export const deleteZone = (
 
 
 
+
 export const getDeleteZoneMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteZone>>, TError,{id: string;params: DeleteZoneParams}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteZone>>, TError,{id: string;params: DeleteZoneParams}, TContext> => {
@@ -4832,6 +4862,7 @@ export const updateZone = (
     },
       options);
     }
+
 
 
 
@@ -4956,7 +4987,7 @@ export function useListDiscounts<TData = Awaited<ReturnType<typeof listDiscounts
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -4978,6 +5009,7 @@ export const createDiscount = (
     },
       options);
     }
+
 
 
 
@@ -5034,6 +5066,7 @@ export const deleteDiscount = (
     },
       options);
     }
+
 
 
 
@@ -5096,6 +5129,7 @@ export const updateDiscount = (
 
 
 
+
 export const getUpdateDiscountMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDiscount>>, TError,{id: string;data: UpdateDiscountRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateDiscount>>, TError,{id: string;data: UpdateDiscountRequest}, TContext> => {
@@ -5151,6 +5185,7 @@ export const saveLayout = (
     },
       options);
     }
+
 
 
 
@@ -5275,7 +5310,7 @@ export function useGetReservationSettings<TData = Awaited<ReturnType<typeof getR
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -5299,6 +5334,7 @@ export const putReservationSettings = (
     },
       options);
     }
+
 
 
 
@@ -5423,7 +5459,7 @@ export function useListSections<TData = Awaited<ReturnType<typeof listSections>>
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -5445,6 +5481,7 @@ export const createSection = (
     },
       options);
     }
+
 
 
 
@@ -5504,6 +5541,7 @@ export const deleteSection = (
 
 
 
+
 export const getDeleteSectionMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSection>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteSection>>, TError,{id: string}, TContext> => {
@@ -5560,6 +5598,7 @@ export const updateSection = (
     },
       options);
     }
+
 
 
 
@@ -5684,7 +5723,7 @@ export function useListFloorTables<TData = Awaited<ReturnType<typeof listFloorTa
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -5706,6 +5745,7 @@ export const createFloorTable = (
     },
       options);
     }
+
 
 
 
@@ -5762,6 +5802,7 @@ export const deleteFloorTable = (
     },
       options);
     }
+
 
 
 
@@ -5824,6 +5865,7 @@ export const updateFloorTable = (
 
 
 
+
 export const getUpdateFloorTableMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFloorTable>>, TError,{id: string;data: UpdateFloorTableRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateFloorTable>>, TError,{id: string;data: UpdateFloorTableRequest}, TContext> => {
@@ -5880,6 +5922,7 @@ export const setTableStatus = (
     },
       options);
     }
+
 
 
 
@@ -6011,7 +6054,7 @@ export function useListMovements<TData = Awaited<ReturnType<typeof listMovements
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -6098,7 +6141,7 @@ export function useListBranchStock<TData = Awaited<ReturnType<typeof listBranchS
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -6121,6 +6164,7 @@ export const addToBranchStock = (
     },
       options);
     }
+
 
 
 
@@ -6181,6 +6225,7 @@ export const removeFromBranchStock = (
 
 
 
+
 export const getRemoveFromBranchStockMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeFromBranchStock>>, TError,{branchId: string;id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof removeFromBranchStock>>, TError,{branchId: string;id: string}, TContext> => {
@@ -6238,6 +6283,7 @@ export const updateBranchStock = (
     },
       options);
     }
+
 
 
 
@@ -6369,7 +6415,7 @@ export function useListTransfers<TData = Awaited<ReturnType<typeof listTransfers
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -6456,7 +6502,7 @@ export function useListWaste<TData = Awaited<ReturnType<typeof listWaste>>, TErr
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -6479,6 +6525,7 @@ export const createWaste = (
     },
       options);
     }
+
 
 
 
@@ -6602,7 +6649,7 @@ export function useListCatalog<TData = Awaited<ReturnType<typeof listCatalog>>, 
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -6625,6 +6672,7 @@ export const createCatalogItem = (
     },
       options);
     }
+
 
 
 
@@ -6685,6 +6733,7 @@ export const deleteCatalogItem = (
 
 
 
+
 export const getDeleteCatalogItemMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogItem>>, TError,{orgId: string;id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogItem>>, TError,{orgId: string;id: string}, TContext> => {
@@ -6742,6 +6791,7 @@ export const updateCatalogItem = (
     },
       options);
     }
+
 
 
 
@@ -6865,7 +6915,7 @@ export function useGetInventorySettings<TData = Awaited<ReturnType<typeof getInv
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -6888,6 +6938,7 @@ export const updateInventorySettings = (
     },
       options);
     }
+
 
 
 
@@ -6949,6 +7000,7 @@ export const createTransfer = (
 
 
 
+
 export const getCreateTransferMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateTransferRequest}, TContext> => {
@@ -7002,6 +7054,7 @@ export const deleteTransfer = (
     },
       options);
     }
+
 
 
 
@@ -7064,6 +7117,7 @@ export const updateTransfer = (
 
 
 
+
 export const getUpdateTransferMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTransfer>>, TError,{id: string;data: UpdateTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateTransfer>>, TError,{id: string;data: UpdateTransferRequest}, TContext> => {
@@ -7120,6 +7174,7 @@ export const bump = (
 
 
 
+
 export const getBumpMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bump>>, TError,{itemId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof bump>>, TError,{itemId: string}, TContext> => {
@@ -7173,6 +7228,7 @@ export const unbump = (
     },
       options);
     }
+
 
 
 
@@ -7307,7 +7363,7 @@ export function useFeed<TData = Awaited<ReturnType<typeof feed>>, TError = Error
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -7395,7 +7451,7 @@ export function useListRoutes<TData = Awaited<ReturnType<typeof listRoutes>>, TE
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -7417,6 +7473,7 @@ export const putCategoryRoute = (
     },
       options);
     }
+
 
 
 
@@ -7474,6 +7531,7 @@ export const deleteCategoryRoute = (
     },
       options);
     }
+
 
 
 
@@ -7535,6 +7593,7 @@ export const putItemRoute = (
 
 
 
+
 export const getPutItemRouteMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putItemRoute>>, TError,{data: ItemRouteInput}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof putItemRoute>>, TError,{data: ItemRouteInput}, TContext> => {
@@ -7589,6 +7648,7 @@ export const deleteItemRoute = (
     },
       options);
     }
+
 
 
 
@@ -7713,7 +7773,7 @@ export function useGetRoutingMode<TData = Awaited<ReturnType<typeof getRoutingMo
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -7735,6 +7795,7 @@ export const setRoutingMode = (
     },
       options);
     }
+
 
 
 
@@ -7859,7 +7920,7 @@ export function useListStations<TData = Awaited<ReturnType<typeof listStations>>
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -7881,6 +7942,7 @@ export const createStation = (
     },
       options);
     }
+
 
 
 
@@ -7937,6 +7999,7 @@ export const deleteStation = (
     },
       options);
     }
+
 
 
 
@@ -7999,6 +8062,7 @@ export const updateStation = (
 
 
 
+
 export const getUpdateStationMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStation>>, TError,{id: string;data: UpdateStationRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateStation>>, TError,{id: string;data: UpdateStationRequest}, TContext> => {
@@ -8041,1383 +8105,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getUpdateStationMutationOptions(options), queryClient);
     }
 
-export const getCalibrationHandler = (
-    branchId: string,
-    params?: GetCalibrationHandlerParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<CalibrationSummary>(
-      {url: `/menu-advisor/branches/${branchId}/calibration`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getGetCalibrationHandlerQueryKey = (branchId: string,
-    params?: GetCalibrationHandlerParams,) => {
-    return [
-    `/menu-advisor/branches/${branchId}/calibration`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getGetCalibrationHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getCalibrationHandler>>, TError = ErrorBody>(branchId: string,
-    params?: GetCalibrationHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetCalibrationHandlerQueryKey(branchId,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCalibrationHandler>>> = ({ signal }) => getCalibrationHandler(branchId,params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetCalibrationHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getCalibrationHandler>>>
-export type GetCalibrationHandlerQueryError = ErrorBody
-
-
-export function useGetCalibrationHandler<TData = Awaited<ReturnType<typeof getCalibrationHandler>>, TError = ErrorBody>(
- branchId: string,
-    params: undefined |  GetCalibrationHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getCalibrationHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getCalibrationHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCalibrationHandler<TData = Awaited<ReturnType<typeof getCalibrationHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: GetCalibrationHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getCalibrationHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getCalibrationHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCalibrationHandler<TData = Awaited<ReturnType<typeof getCalibrationHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: GetCalibrationHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetCalibrationHandler<TData = Awaited<ReturnType<typeof getCalibrationHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: GetCalibrationHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCalibrationHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetCalibrationHandlerQueryOptions(branchId,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const listDecisionsHandler = (
-    branchId: string,
-    params?: ListDecisionsHandlerParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<DecisionRecord[]>(
-      {url: `/menu-advisor/branches/${branchId}/decisions`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getListDecisionsHandlerQueryKey = (branchId: string,
-    params?: ListDecisionsHandlerParams,) => {
-    return [
-    `/menu-advisor/branches/${branchId}/decisions`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListDecisionsHandlerQueryOptions = <TData = Awaited<ReturnType<typeof listDecisionsHandler>>, TError = ErrorBody>(branchId: string,
-    params?: ListDecisionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListDecisionsHandlerQueryKey(branchId,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDecisionsHandler>>> = ({ signal }) => listDecisionsHandler(branchId,params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListDecisionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listDecisionsHandler>>>
-export type ListDecisionsHandlerQueryError = ErrorBody
-
-
-export function useListDecisionsHandler<TData = Awaited<ReturnType<typeof listDecisionsHandler>>, TError = ErrorBody>(
- branchId: string,
-    params: undefined |  ListDecisionsHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listDecisionsHandler>>,
-          TError,
-          Awaited<ReturnType<typeof listDecisionsHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListDecisionsHandler<TData = Awaited<ReturnType<typeof listDecisionsHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: ListDecisionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listDecisionsHandler>>,
-          TError,
-          Awaited<ReturnType<typeof listDecisionsHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListDecisionsHandler<TData = Awaited<ReturnType<typeof listDecisionsHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: ListDecisionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListDecisionsHandler<TData = Awaited<ReturnType<typeof listDecisionsHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: ListDecisionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListDecisionsHandlerQueryOptions(branchId,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const getLatestItemKpiHandler = (
-    branchId: string,
-    menuItemId: string,
-    sizeLabel: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PriceSuggestionRecord>(
-      {url: `/menu-advisor/branches/${branchId}/items/${menuItemId}/sizes/${sizeLabel}/latest-kpi`, method: 'GET', signal
-    },
-      options);
-    }
-
-
-
-
-export const getGetLatestItemKpiHandlerQueryKey = (branchId: string,
-    menuItemId: string,
-    sizeLabel: string,) => {
-    return [
-    `/menu-advisor/branches/${branchId}/items/${menuItemId}/sizes/${sizeLabel}/latest-kpi`
-    ] as const;
-    }
-
-
-export const getGetLatestItemKpiHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError = ErrorBody>(branchId: string,
-    menuItemId: string,
-    sizeLabel: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetLatestItemKpiHandlerQueryKey(branchId,menuItemId,sizeLabel);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLatestItemKpiHandler>>> = ({ signal }) => getLatestItemKpiHandler(branchId,menuItemId,sizeLabel, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined && menuItemId !== null && menuItemId !== undefined && sizeLabel !== null && sizeLabel !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetLatestItemKpiHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getLatestItemKpiHandler>>>
-export type GetLatestItemKpiHandlerQueryError = ErrorBody
-
-
-export function useGetLatestItemKpiHandler<TData = Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError = ErrorBody>(
- branchId: string,
-    menuItemId: string,
-    sizeLabel: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getLatestItemKpiHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getLatestItemKpiHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLatestItemKpiHandler<TData = Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError = ErrorBody>(
- branchId: string,
-    menuItemId: string,
-    sizeLabel: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getLatestItemKpiHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getLatestItemKpiHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLatestItemKpiHandler<TData = Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError = ErrorBody>(
- branchId: string,
-    menuItemId: string,
-    sizeLabel: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetLatestItemKpiHandler<TData = Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError = ErrorBody>(
- branchId: string,
-    menuItemId: string,
-    sizeLabel: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestItemKpiHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetLatestItemKpiHandlerQueryOptions(branchId,menuItemId,sizeLabel,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const listRunsHandler = (
-    branchId: string,
-    params?: ListRunsHandlerParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PersistedRun[]>(
-      {url: `/menu-advisor/branches/${branchId}/runs`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getListRunsHandlerQueryKey = (branchId: string,
-    params?: ListRunsHandlerParams,) => {
-    return [
-    `/menu-advisor/branches/${branchId}/runs`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListRunsHandlerQueryOptions = <TData = Awaited<ReturnType<typeof listRunsHandler>>, TError = ErrorBody>(branchId: string,
-    params?: ListRunsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListRunsHandlerQueryKey(branchId,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRunsHandler>>> = ({ signal }) => listRunsHandler(branchId,params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListRunsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listRunsHandler>>>
-export type ListRunsHandlerQueryError = ErrorBody
-
-
-export function useListRunsHandler<TData = Awaited<ReturnType<typeof listRunsHandler>>, TError = ErrorBody>(
- branchId: string,
-    params: undefined |  ListRunsHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listRunsHandler>>,
-          TError,
-          Awaited<ReturnType<typeof listRunsHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListRunsHandler<TData = Awaited<ReturnType<typeof listRunsHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: ListRunsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listRunsHandler>>,
-          TError,
-          Awaited<ReturnType<typeof listRunsHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListRunsHandler<TData = Awaited<ReturnType<typeof listRunsHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: ListRunsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListRunsHandler<TData = Awaited<ReturnType<typeof listRunsHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: ListRunsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRunsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListRunsHandlerQueryOptions(branchId,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const createRunHandler = (
-    branchId: string,
-    createRunBody: CreateRunBody,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<CreateRunResponse>(
-      {url: `/menu-advisor/branches/${branchId}/runs`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createRunBody, signal
-    },
-      options);
-    }
-
-
-
-export const getCreateRunHandlerMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRunHandler>>, TError,{branchId: string;data: CreateRunBody}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createRunHandler>>, TError,{branchId: string;data: CreateRunBody}, TContext> => {
-
-const mutationKey = ['createRunHandler'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRunHandler>>, {branchId: string;data: CreateRunBody}> = (props) => {
-          const {branchId,data} = props ?? {};
-
-          return  createRunHandler(branchId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateRunHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof createRunHandler>>>
-    export type CreateRunHandlerMutationBody = CreateRunBody
-    export type CreateRunHandlerMutationError = ErrorBody
-
-    export const useCreateRunHandler = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRunHandler>>, TError,{branchId: string;data: CreateRunBody}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createRunHandler>>,
-        TError,
-        {branchId: string;data: CreateRunBody},
-        TContext
-      > => {
-      return useMutation(getCreateRunHandlerMutationOptions(options), queryClient);
-    }
-
-export const getActiveRunHandler = (
-    branchId: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<null | PersistedRun>(
-      {url: `/menu-advisor/branches/${branchId}/runs/active`, method: 'GET', signal
-    },
-      options);
-    }
-
-
-
-
-export const getGetActiveRunHandlerQueryKey = (branchId: string,) => {
-    return [
-    `/menu-advisor/branches/${branchId}/runs/active`
-    ] as const;
-    }
-
-
-export const getGetActiveRunHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getActiveRunHandler>>, TError = ErrorBody>(branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetActiveRunHandlerQueryKey(branchId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getActiveRunHandler>>> = ({ signal }) => getActiveRunHandler(branchId, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetActiveRunHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getActiveRunHandler>>>
-export type GetActiveRunHandlerQueryError = ErrorBody
-
-
-export function useGetActiveRunHandler<TData = Awaited<ReturnType<typeof getActiveRunHandler>>, TError = ErrorBody>(
- branchId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getActiveRunHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getActiveRunHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetActiveRunHandler<TData = Awaited<ReturnType<typeof getActiveRunHandler>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getActiveRunHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getActiveRunHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetActiveRunHandler<TData = Awaited<ReturnType<typeof getActiveRunHandler>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetActiveRunHandler<TData = Awaited<ReturnType<typeof getActiveRunHandler>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetActiveRunHandlerQueryOptions(branchId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const getLatestRunHandler = (
-    branchId: string,
-    params?: GetLatestRunHandlerParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<null | PersistedRun>(
-      {url: `/menu-advisor/branches/${branchId}/runs/latest`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getGetLatestRunHandlerQueryKey = (branchId: string,
-    params?: GetLatestRunHandlerParams,) => {
-    return [
-    `/menu-advisor/branches/${branchId}/runs/latest`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getGetLatestRunHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getLatestRunHandler>>, TError = ErrorBody>(branchId: string,
-    params?: GetLatestRunHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetLatestRunHandlerQueryKey(branchId,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLatestRunHandler>>> = ({ signal }) => getLatestRunHandler(branchId,params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetLatestRunHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getLatestRunHandler>>>
-export type GetLatestRunHandlerQueryError = ErrorBody
-
-
-export function useGetLatestRunHandler<TData = Awaited<ReturnType<typeof getLatestRunHandler>>, TError = ErrorBody>(
- branchId: string,
-    params: undefined |  GetLatestRunHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getLatestRunHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getLatestRunHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLatestRunHandler<TData = Awaited<ReturnType<typeof getLatestRunHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: GetLatestRunHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getLatestRunHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getLatestRunHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLatestRunHandler<TData = Awaited<ReturnType<typeof getLatestRunHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: GetLatestRunHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetLatestRunHandler<TData = Awaited<ReturnType<typeof getLatestRunHandler>>, TError = ErrorBody>(
- branchId: string,
-    params?: GetLatestRunHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetLatestRunHandlerQueryOptions(branchId,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const getBundleSuggestionHandler = (
-    id: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<BundleSuggestionRecord>(
-      {url: `/menu-advisor/bundle-suggestions/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-
-
-
-
-export const getGetBundleSuggestionHandlerQueryKey = (id: string,) => {
-    return [
-    `/menu-advisor/bundle-suggestions/${id}`
-    ] as const;
-    }
-
-
-export const getGetBundleSuggestionHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetBundleSuggestionHandlerQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBundleSuggestionHandler>>> = ({ signal }) => getBundleSuggestionHandler(id, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetBundleSuggestionHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getBundleSuggestionHandler>>>
-export type GetBundleSuggestionHandlerQueryError = ErrorBody
-
-
-export function useGetBundleSuggestionHandler<TData = Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError = ErrorBody>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getBundleSuggestionHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getBundleSuggestionHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBundleSuggestionHandler<TData = Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getBundleSuggestionHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getBundleSuggestionHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBundleSuggestionHandler<TData = Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetBundleSuggestionHandler<TData = Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBundleSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetBundleSuggestionHandlerQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const setBundlePromotedHandler = (
-    id: string,
-    promoteBundleBody: PromoteBundleBody,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<void>(
-      {url: `/menu-advisor/bundle-suggestions/${id}/promote`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: promoteBundleBody, signal
-    },
-      options);
-    }
-
-
-
-export const getSetBundlePromotedHandlerMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setBundlePromotedHandler>>, TError,{id: string;data: PromoteBundleBody}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof setBundlePromotedHandler>>, TError,{id: string;data: PromoteBundleBody}, TContext> => {
-
-const mutationKey = ['setBundlePromotedHandler'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setBundlePromotedHandler>>, {id: string;data: PromoteBundleBody}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  setBundlePromotedHandler(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type SetBundlePromotedHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof setBundlePromotedHandler>>>
-    export type SetBundlePromotedHandlerMutationBody = PromoteBundleBody
-    export type SetBundlePromotedHandlerMutationError = ErrorBody
-
-    export const useSetBundlePromotedHandler = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setBundlePromotedHandler>>, TError,{id: string;data: PromoteBundleBody}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof setBundlePromotedHandler>>,
-        TError,
-        {id: string;data: PromoteBundleBody},
-        TContext
-      > => {
-      return useMutation(getSetBundlePromotedHandlerMutationOptions(options), queryClient);
-    }
-
-export const recordDecisionHandler = (
-    recordDecisionBody: RecordDecisionBody,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<DecisionRecord>(
-      {url: `/menu-advisor/decisions`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: recordDecisionBody, signal
-    },
-      options);
-    }
-
-
-
-export const getRecordDecisionHandlerMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordDecisionHandler>>, TError,{data: RecordDecisionBody}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof recordDecisionHandler>>, TError,{data: RecordDecisionBody}, TContext> => {
-
-const mutationKey = ['recordDecisionHandler'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordDecisionHandler>>, {data: RecordDecisionBody}> = (props) => {
-          const {data} = props ?? {};
-
-          return  recordDecisionHandler(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RecordDecisionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof recordDecisionHandler>>>
-    export type RecordDecisionHandlerMutationBody = RecordDecisionBody
-    export type RecordDecisionHandlerMutationError = ErrorBody
-
-    export const useRecordDecisionHandler = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordDecisionHandler>>, TError,{data: RecordDecisionBody}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof recordDecisionHandler>>,
-        TError,
-        {data: RecordDecisionBody},
-        TContext
-      > => {
-      return useMutation(getRecordDecisionHandlerMutationOptions(options), queryClient);
-    }
-
-export const getPriceSuggestionHandler = (
-    id: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PriceSuggestionRecord>(
-      {url: `/menu-advisor/price-suggestions/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-
-
-
-
-export const getGetPriceSuggestionHandlerQueryKey = (id: string,) => {
-    return [
-    `/menu-advisor/price-suggestions/${id}`
-    ] as const;
-    }
-
-
-export const getGetPriceSuggestionHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetPriceSuggestionHandlerQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPriceSuggestionHandler>>> = ({ signal }) => getPriceSuggestionHandler(id, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetPriceSuggestionHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getPriceSuggestionHandler>>>
-export type GetPriceSuggestionHandlerQueryError = ErrorBody
-
-
-export function useGetPriceSuggestionHandler<TData = Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError = ErrorBody>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPriceSuggestionHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getPriceSuggestionHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPriceSuggestionHandler<TData = Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPriceSuggestionHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getPriceSuggestionHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPriceSuggestionHandler<TData = Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetPriceSuggestionHandler<TData = Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPriceSuggestionHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetPriceSuggestionHandlerQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const getRemovalScenarioHandler = (
-    id: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<RemovalScenarioRecord>(
-      {url: `/menu-advisor/removal-scenarios/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-
-
-
-
-export const getGetRemovalScenarioHandlerQueryKey = (id: string,) => {
-    return [
-    `/menu-advisor/removal-scenarios/${id}`
-    ] as const;
-    }
-
-
-export const getGetRemovalScenarioHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetRemovalScenarioHandlerQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRemovalScenarioHandler>>> = ({ signal }) => getRemovalScenarioHandler(id, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetRemovalScenarioHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getRemovalScenarioHandler>>>
-export type GetRemovalScenarioHandlerQueryError = ErrorBody
-
-
-export function useGetRemovalScenarioHandler<TData = Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError = ErrorBody>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRemovalScenarioHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getRemovalScenarioHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRemovalScenarioHandler<TData = Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRemovalScenarioHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getRemovalScenarioHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRemovalScenarioHandler<TData = Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetRemovalScenarioHandler<TData = Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRemovalScenarioHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetRemovalScenarioHandlerQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const getRunHandler = (
-    id: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PersistedRun>(
-      {url: `/menu-advisor/runs/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-
-
-
-
-export const getGetRunHandlerQueryKey = (id: string,) => {
-    return [
-    `/menu-advisor/runs/${id}`
-    ] as const;
-    }
-
-
-export const getGetRunHandlerQueryOptions = <TData = Awaited<ReturnType<typeof getRunHandler>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetRunHandlerQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRunHandler>>> = ({ signal }) => getRunHandler(id, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetRunHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getRunHandler>>>
-export type GetRunHandlerQueryError = ErrorBody
-
-
-export function useGetRunHandler<TData = Awaited<ReturnType<typeof getRunHandler>>, TError = ErrorBody>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRunHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getRunHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRunHandler<TData = Awaited<ReturnType<typeof getRunHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRunHandler>>,
-          TError,
-          Awaited<ReturnType<typeof getRunHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRunHandler<TData = Awaited<ReturnType<typeof getRunHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetRunHandler<TData = Awaited<ReturnType<typeof getRunHandler>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRunHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetRunHandlerQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const listBundleSuggestionsHandler = (
-    id: string,
-    params?: ListBundleSuggestionsHandlerParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<BundleSuggestionRecord[]>(
-      {url: `/menu-advisor/runs/${id}/bundle-suggestions`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getListBundleSuggestionsHandlerQueryKey = (id: string,
-    params?: ListBundleSuggestionsHandlerParams,) => {
-    return [
-    `/menu-advisor/runs/${id}/bundle-suggestions`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListBundleSuggestionsHandlerQueryOptions = <TData = Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError = ErrorBody>(id: string,
-    params?: ListBundleSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListBundleSuggestionsHandlerQueryKey(id,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>> = ({ signal }) => listBundleSuggestionsHandler(id,params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListBundleSuggestionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>>
-export type ListBundleSuggestionsHandlerQueryError = ErrorBody
-
-
-export function useListBundleSuggestionsHandler<TData = Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError = ErrorBody>(
- id: string,
-    params: undefined |  ListBundleSuggestionsHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listBundleSuggestionsHandler>>,
-          TError,
-          Awaited<ReturnType<typeof listBundleSuggestionsHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListBundleSuggestionsHandler<TData = Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError = ErrorBody>(
- id: string,
-    params?: ListBundleSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listBundleSuggestionsHandler>>,
-          TError,
-          Awaited<ReturnType<typeof listBundleSuggestionsHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListBundleSuggestionsHandler<TData = Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError = ErrorBody>(
- id: string,
-    params?: ListBundleSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListBundleSuggestionsHandler<TData = Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError = ErrorBody>(
- id: string,
-    params?: ListBundleSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBundleSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListBundleSuggestionsHandlerQueryOptions(id,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const listPriceSuggestionsHandler = (
-    id: string,
-    params?: ListPriceSuggestionsHandlerParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PriceSuggestionRecord[]>(
-      {url: `/menu-advisor/runs/${id}/price-suggestions`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getListPriceSuggestionsHandlerQueryKey = (id: string,
-    params?: ListPriceSuggestionsHandlerParams,) => {
-    return [
-    `/menu-advisor/runs/${id}/price-suggestions`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListPriceSuggestionsHandlerQueryOptions = <TData = Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError = ErrorBody>(id: string,
-    params?: ListPriceSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListPriceSuggestionsHandlerQueryKey(id,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>> = ({ signal }) => listPriceSuggestionsHandler(id,params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListPriceSuggestionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>>
-export type ListPriceSuggestionsHandlerQueryError = ErrorBody
-
-
-export function useListPriceSuggestionsHandler<TData = Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError = ErrorBody>(
- id: string,
-    params: undefined |  ListPriceSuggestionsHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listPriceSuggestionsHandler>>,
-          TError,
-          Awaited<ReturnType<typeof listPriceSuggestionsHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPriceSuggestionsHandler<TData = Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError = ErrorBody>(
- id: string,
-    params?: ListPriceSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listPriceSuggestionsHandler>>,
-          TError,
-          Awaited<ReturnType<typeof listPriceSuggestionsHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPriceSuggestionsHandler<TData = Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError = ErrorBody>(
- id: string,
-    params?: ListPriceSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListPriceSuggestionsHandler<TData = Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError = ErrorBody>(
- id: string,
-    params?: ListPriceSuggestionsHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceSuggestionsHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListPriceSuggestionsHandlerQueryOptions(id,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const listRemovalScenariosHandler = (
-    id: string,
-    params?: ListRemovalScenariosHandlerParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<RemovalScenarioRecord[]>(
-      {url: `/menu-advisor/runs/${id}/removal-scenarios`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getListRemovalScenariosHandlerQueryKey = (id: string,
-    params?: ListRemovalScenariosHandlerParams,) => {
-    return [
-    `/menu-advisor/runs/${id}/removal-scenarios`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListRemovalScenariosHandlerQueryOptions = <TData = Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError = ErrorBody>(id: string,
-    params?: ListRemovalScenariosHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListRemovalScenariosHandlerQueryKey(id,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRemovalScenariosHandler>>> = ({ signal }) => listRemovalScenariosHandler(id,params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListRemovalScenariosHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listRemovalScenariosHandler>>>
-export type ListRemovalScenariosHandlerQueryError = ErrorBody
-
-
-export function useListRemovalScenariosHandler<TData = Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError = ErrorBody>(
- id: string,
-    params: undefined |  ListRemovalScenariosHandlerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listRemovalScenariosHandler>>,
-          TError,
-          Awaited<ReturnType<typeof listRemovalScenariosHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListRemovalScenariosHandler<TData = Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError = ErrorBody>(
- id: string,
-    params?: ListRemovalScenariosHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listRemovalScenariosHandler>>,
-          TError,
-          Awaited<ReturnType<typeof listRemovalScenariosHandler>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListRemovalScenariosHandler<TData = Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError = ErrorBody>(
- id: string,
-    params?: ListRemovalScenariosHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListRemovalScenariosHandler<TData = Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError = ErrorBody>(
- id: string,
-    params?: ListRemovalScenariosHandlerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRemovalScenariosHandler>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListRemovalScenariosHandlerQueryOptions(id,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
 export const putSizeRecipe = (
     sizeId: string,
     putRecipeRequest: PutRecipeRequest,
@@ -9432,6 +8119,7 @@ export const putSizeRecipe = (
     },
       options);
     }
+
 
 
 
@@ -9556,7 +8244,7 @@ export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -9578,6 +8266,7 @@ export const createMenuItem = (
     },
       options);
     }
+
 
 
 
@@ -9701,7 +8390,7 @@ export function useGetMenuItem<TData = Awaited<ReturnType<typeof getMenuItem>>, 
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -9721,6 +8410,7 @@ export const deleteMenuItem = (
     },
       options);
     }
+
 
 
 
@@ -9780,6 +8470,7 @@ export const updateMenuItem = (
     },
       options);
     }
+
 
 
 
@@ -9903,7 +8594,7 @@ export function useListAddonSlots<TData = Awaited<ReturnType<typeof listAddonSlo
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -9926,6 +8617,7 @@ export const createAddonSlot = (
     },
       options);
     }
+
 
 
 
@@ -9983,6 +8675,7 @@ export const deleteAddonSlot = (
     },
       options);
     }
+
 
 
 
@@ -10046,6 +8739,7 @@ export const updateAddonSlot = (
 
 
 
+
 export const getUpdateAddonSlotMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAddonSlot>>, TError,{id: string;slotId: string;data: UpdateAddonSlotRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateAddonSlot>>, TError,{id: string;slotId: string;data: UpdateAddonSlotRequest}, TContext> => {
@@ -10102,6 +8796,7 @@ export const putAllowedAddons = (
     },
       options);
     }
+
 
 
 
@@ -10225,7 +8920,7 @@ export function useGetItemCost<TData = Awaited<ReturnType<typeof getItemCost>>, 
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -10245,6 +8940,7 @@ export const duplicateItem = (
     },
       options);
     }
+
 
 
 
@@ -10304,6 +9000,7 @@ export const putModifierGroups = (
     },
       options);
     }
+
 
 
 
@@ -10427,7 +9124,7 @@ export function useListOptionalFields<TData = Awaited<ReturnType<typeof listOpti
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -10450,6 +9147,7 @@ export const createOptionalField = (
     },
       options);
     }
+
 
 
 
@@ -10507,6 +9205,7 @@ export const deleteOptionalField = (
     },
       options);
     }
+
 
 
 
@@ -10570,6 +9269,7 @@ export const updateOptionalField = (
 
 
 
+
 export const getUpdateOptionalFieldMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionalField>>, TError,{id: string;fieldId: string;data: UpdateOptionalFieldRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateOptionalField>>, TError,{id: string;fieldId: string;data: UpdateOptionalFieldRequest}, TContext> => {
@@ -10626,6 +9326,7 @@ export const putItemOptions = (
     },
       options);
     }
+
 
 
 
@@ -10749,7 +9450,7 @@ export function useListAddonOverrides<TData = Awaited<ReturnType<typeof listAddo
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -10772,6 +9473,7 @@ export const upsertAddonOverride = (
     },
       options);
     }
+
 
 
 
@@ -10829,6 +9531,7 @@ export const deleteAddonOverride = (
     },
       options);
     }
+
 
 
 
@@ -10891,6 +9594,7 @@ export const putSizes = (
 
 
 
+
 export const getPutSizesMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putSizes>>, TError,{id: string;data: PutSizesRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof putSizes>>, TError,{id: string;data: PutSizesRequest}, TContext> => {
@@ -10950,6 +9654,7 @@ export const upsertSize = (
 
 
 
+
 export const getUpsertSizeMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertSize>>, TError,{id: string;data: UpsertSizeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof upsertSize>>, TError,{id: string;data: UpsertSizeRequest}, TContext> => {
@@ -11004,6 +9709,7 @@ export const deleteSize = (
     },
       options);
     }
+
 
 
 
@@ -11127,7 +9833,7 @@ export function useGetStudio<TData = Awaited<ReturnType<typeof getStudio>>, TErr
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -11149,6 +9855,7 @@ export const putPriceOverride = (
     },
       options);
     }
+
 
 
 
@@ -11207,6 +9914,7 @@ export const deletePriceOverride = (
     },
       options);
     }
+
 
 
 
@@ -11331,7 +10039,7 @@ export function useListGroups<TData = Awaited<ReturnType<typeof listGroups>>, TE
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -11353,6 +10061,7 @@ export const createGroup = (
     },
       options);
     }
+
 
 
 
@@ -11409,6 +10118,7 @@ export const deleteGroup = (
     },
       options);
     }
+
 
 
 
@@ -11471,6 +10181,7 @@ export const patchGroup = (
 
 
 
+
 export const getPatchGroupMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchGroup>>, TError,{gid: string;data: PatchGroupRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchGroup>>, TError,{gid: string;data: PatchGroupRequest}, TContext> => {
@@ -11530,6 +10241,7 @@ export const createOption = (
 
 
 
+
 export const getCreateOptionMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOption>>, TError,{gid: string;data: CreateOptionRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createOption>>, TError,{gid: string;data: CreateOptionRequest}, TContext> => {
@@ -11583,6 +10295,7 @@ export const deleteOption = (
     },
       options);
     }
+
 
 
 
@@ -11645,6 +10358,7 @@ export const patchOption = (
 
 
 
+
 export const getPatchOptionMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchOption>>, TError,{oid: string;data: PatchOptionRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchOption>>, TError,{oid: string;data: PatchOptionRequest}, TContext> => {
@@ -11701,6 +10415,7 @@ export const putOptionRecipe = (
     },
       options);
     }
+
 
 
 
@@ -11825,7 +10540,7 @@ export function useListOpenTickets<TData = Awaited<ReturnType<typeof listOpenTic
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -11847,6 +10562,7 @@ export const createOpenTicket = (
     },
       options);
     }
+
 
 
 
@@ -11970,7 +10686,7 @@ export function useGetOpenTicket<TData = Awaited<ReturnType<typeof getOpenTicket
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -11993,6 +10709,7 @@ export const addRound = (
     },
       options);
     }
+
 
 
 
@@ -12052,6 +10769,7 @@ export const settleOpenTicket = (
     },
       options);
     }
+
 
 
 
@@ -12120,6 +10838,7 @@ export const moveTicketTable = (
 
 
 
+
 export const getMoveTicketTableMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveTicketTable>>, TError,{id: string;data: MoveTicketTableRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof moveTicketTable>>, TError,{id: string;data: MoveTicketTableRequest}, TContext> => {
@@ -12182,6 +10901,7 @@ export const voidOpenTicket = (
     },
       options);
     }
+
 
 
 
@@ -12306,7 +11026,7 @@ export function useListOrders<TData = Awaited<ReturnType<typeof listOrders>>, TE
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -12328,6 +11048,7 @@ export const createOrder = (
     },
       options);
     }
+
 
 
 
@@ -12452,7 +11173,7 @@ export function useExportOrders<TData = Awaited<ReturnType<typeof exportOrders>>
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -12474,6 +11195,7 @@ export const previewRecipe = (
     },
       options);
     }
+
 
 
 
@@ -12597,7 +11319,7 @@ export function useGetOrder<TData = Awaited<ReturnType<typeof getOrder>>, TError
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -12620,6 +11342,7 @@ export const voidOrder = (
     },
       options);
     }
+
 
 
 
@@ -12743,7 +11466,7 @@ export function useListOrgs<TData = Awaited<ReturnType<typeof listOrgs>>, TError
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -12783,6 +11506,7 @@ if(createOrgMultipart.timezone !== undefined && createOrgMultipart.timezone !== 
     },
       options);
     }
+
 
 
 
@@ -12906,7 +11630,7 @@ export function useGetOrg<TData = Awaited<ReturnType<typeof getOrg>>, TError = E
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -12926,6 +11650,7 @@ export const deleteOrg = (
     },
       options);
     }
+
 
 
 
@@ -12988,6 +11713,7 @@ export const updateOrg = (
 
 
 
+
 export const getUpdateOrgMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOrg>>, TError,{id: string;data: UpdateOrgRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateOrg>>, TError,{id: string;data: UpdateOrgRequest}, TContext> => {
@@ -13046,6 +11772,7 @@ formData.append(`logo`, uploadLogoMultipart.logo);
     },
       options);
     }
+
 
 
 
@@ -13169,7 +11896,7 @@ export function useOfflineAuthBundle<TData = Awaited<ReturnType<typeof offlineAu
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -13256,7 +11983,7 @@ export function useGetOnboarding<TData = Awaited<ReturnType<typeof getOnboarding
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -13276,6 +12003,7 @@ export const completeOnboarding = (
     },
       options);
     }
+
 
 
 
@@ -13407,7 +12135,7 @@ export function useOrgQr<TData = Awaited<ReturnType<typeof orgQr>>, TError = Err
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -13494,7 +12222,7 @@ export function useListPaymentMethods<TData = Awaited<ReturnType<typeof listPaym
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -13516,6 +12244,7 @@ export const createPaymentMethod = (
     },
       options);
     }
+
 
 
 
@@ -13578,6 +12307,7 @@ export const updatePaymentMethod = (
 
 
 
+
 export const getUpdatePaymentMethodMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePaymentMethod>>, TError,{id: string;data: UpdatePaymentMethodRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updatePaymentMethod>>, TError,{id: string;data: UpdatePaymentMethodRequest}, TContext> => {
@@ -13634,6 +12364,7 @@ export const activatePaymentMethod = (
 
 
 
+
 export const getActivatePaymentMethodMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activatePaymentMethod>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof activatePaymentMethod>>, TError,{id: string}, TContext> => {
@@ -13687,6 +12418,7 @@ export const deactivatePaymentMethod = (
     },
       options);
     }
+
 
 
 
@@ -13810,7 +12542,7 @@ export function useGetPermissionMatrix<TData = Awaited<ReturnType<typeof getPerm
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -13897,7 +12629,7 @@ export function useGetRolePermissions<TData = Awaited<ReturnType<typeof getRoleP
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -13919,6 +12651,7 @@ export const upsertRolePermission = (
     },
       options);
     }
+
 
 
 
@@ -14042,7 +12775,7 @@ export function useGetUserPermissions<TData = Awaited<ReturnType<typeof getUserP
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -14065,6 +12798,7 @@ export const upsertUserPermission = (
     },
       options);
     }
+
 
 
 
@@ -14123,6 +12857,7 @@ export const deleteUserPermission = (
     },
       options);
     }
+
 
 
 
@@ -14247,7 +12982,7 @@ export function usePublicBranches<TData = Awaited<ReturnType<typeof publicBranch
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -14342,7 +13077,7 @@ export function useDeliveryQuote<TData = Awaited<ReturnType<typeof deliveryQuote
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -14437,7 +13172,7 @@ export function usePublicMenu<TData = Awaited<ReturnType<typeof publicMenu>>, TE
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -14459,6 +13194,7 @@ export const createDeliveryOrder = (
     },
       options);
     }
+
 
 
 
@@ -14583,7 +13319,7 @@ export function useGuestOrderHistory<TData = Awaited<ReturnType<typeof guestOrde
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -14671,7 +13407,7 @@ export function useGuestPastLocations<TData = Awaited<ReturnType<typeof guestPas
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -14758,7 +13494,7 @@ export function useTrackDeliveryOrder<TData = Awaited<ReturnType<typeof trackDel
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -14845,7 +13581,7 @@ export function useListPublicOrgs<TData = Awaited<ReturnType<typeof listPublicOr
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -14867,6 +13603,7 @@ export const otpRequest = (
     },
       options);
     }
+
 
 
 
@@ -14928,6 +13665,7 @@ export const otpVerify = (
 
 
 
+
 export const getOtpVerifyMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof otpVerify>>, TError,{data: OtpVerifyInput}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof otpVerify>>, TError,{data: OtpVerifyInput}, TContext> => {
@@ -14983,6 +13721,7 @@ export const createPublicBooking = (
     },
       options);
     }
+
 
 
 
@@ -15107,7 +13846,7 @@ export function useListReservationPublicBranches<TData = Awaited<ReturnType<type
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -15194,7 +13933,7 @@ export function useTrackPublicBooking<TData = Awaited<ReturnType<typeof trackPub
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -15289,7 +14028,7 @@ export function useListPurchaseOrders<TData = Awaited<ReturnType<typeof listPurc
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -15312,6 +14051,7 @@ export const createPurchaseOrder = (
     },
       options);
     }
+
 
 
 
@@ -15445,7 +14185,7 @@ export function useReorderSuggestions<TData = Awaited<ReturnType<typeof reorderS
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -15473,6 +14213,7 @@ export const createReturn = (
     },
       options);
     }
+
 
 
 
@@ -15601,7 +14342,7 @@ export function useGetPurchaseOrder<TData = Awaited<ReturnType<typeof getPurchas
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -15621,6 +14362,7 @@ export const cancelPurchaseOrder = (
     },
       options);
     }
+
 
 
 
@@ -15752,7 +14494,7 @@ export function useListPoReceipts<TData = Awaited<ReturnType<typeof listPoReceip
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -15775,6 +14517,7 @@ export const receivePurchaseOrder = (
     },
       options);
     }
+
 
 
 
@@ -15837,6 +14580,7 @@ export const submitPurchaseOrder = (
     },
       options);
     }
+
 
 
 
@@ -15974,7 +14718,7 @@ export function useListOrgPurchaseOrders<TData = Awaited<ReturnType<typeof listO
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -16061,7 +14805,7 @@ export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -16084,6 +14828,7 @@ export const createSupplier = (
     },
       options);
     }
+
 
 
 
@@ -16143,6 +14888,7 @@ export const deleteSupplier = (
 
 
 
+
 export const getDeleteSupplierMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSupplier>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteSupplier>>, TError,{id: string}, TContext> => {
@@ -16199,6 +14945,7 @@ export const updateSupplier = (
     },
       options);
     }
+
 
 
 
@@ -16322,7 +15069,7 @@ export function useListMarketingLinks<TData = Awaited<ReturnType<typeof listMark
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -16344,6 +15091,7 @@ export const createMarketingLink = (
     },
       options);
     }
+
 
 
 
@@ -16480,7 +15228,7 @@ export function useStream<TData = Awaited<ReturnType<typeof stream>>, TError = E
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -16567,7 +15315,7 @@ export function useListAddonIngredients<TData = Awaited<ReturnType<typeof listAd
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -16590,6 +15338,7 @@ export const upsertAddonIngredient = (
     },
       options);
     }
+
 
 
 
@@ -16648,6 +15397,7 @@ export const deleteAddonIngredient = (
     },
       options);
     }
+
 
 
 
@@ -16771,7 +15521,7 @@ export function useListDrinkRecipes<TData = Awaited<ReturnType<typeof listDrinkR
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -16794,6 +15544,7 @@ export const upsertDrinkRecipe = (
     },
       options);
     }
+
 
 
 
@@ -16853,6 +15604,7 @@ export const deleteDrinkRecipe = (
     },
       options);
     }
+
 
 
 
@@ -16984,7 +15736,7 @@ export function useBranchAddonSales<TData = Awaited<ReturnType<typeof branchAddo
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -17079,7 +15831,7 @@ export function useBranchBundleSales<TData = Awaited<ReturnType<typeof branchBun
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -17174,7 +15926,7 @@ export function useBranchConsumption<TData = Awaited<ReturnType<typeof branchCon
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -17269,7 +16021,7 @@ export function useBranchDeliverySales<TData = Awaited<ReturnType<typeof branchD
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -17356,7 +16108,7 @@ export function useBranchInventoryValuation<TData = Awaited<ReturnType<typeof br
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -17451,7 +16203,7 @@ export function useBranchCombinedItemSales<TData = Awaited<ReturnType<typeof bra
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -17538,102 +16290,7 @@ export function useBranchLowStock<TData = Awaited<ReturnType<typeof branchLowSto
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const branchMenuEngineering = (
-    branchId: string,
-    params?: BranchMenuEngineeringParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<MenuEngineeringReport>(
-      {url: `/reports/branches/${branchId}/menu-engineering`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getBranchMenuEngineeringQueryKey = (branchId: string,
-    params?: BranchMenuEngineeringParams,) => {
-    return [
-    `/reports/branches/${branchId}/menu-engineering`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getBranchMenuEngineeringQueryOptions = <TData = Awaited<ReturnType<typeof branchMenuEngineering>>, TError = ErrorBody>(branchId: string,
-    params?: BranchMenuEngineeringParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getBranchMenuEngineeringQueryKey(branchId,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchMenuEngineering>>> = ({ signal }) => branchMenuEngineering(branchId,params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type BranchMenuEngineeringQueryResult = NonNullable<Awaited<ReturnType<typeof branchMenuEngineering>>>
-export type BranchMenuEngineeringQueryError = ErrorBody
-
-
-export function useBranchMenuEngineering<TData = Awaited<ReturnType<typeof branchMenuEngineering>>, TError = ErrorBody>(
- branchId: string,
-    params: undefined |  BranchMenuEngineeringParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof branchMenuEngineering>>,
-          TError,
-          Awaited<ReturnType<typeof branchMenuEngineering>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useBranchMenuEngineering<TData = Awaited<ReturnType<typeof branchMenuEngineering>>, TError = ErrorBody>(
- branchId: string,
-    params?: BranchMenuEngineeringParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof branchMenuEngineering>>,
-          TError,
-          Awaited<ReturnType<typeof branchMenuEngineering>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useBranchMenuEngineering<TData = Awaited<ReturnType<typeof branchMenuEngineering>>, TError = ErrorBody>(
- branchId: string,
-    params?: BranchMenuEngineeringParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useBranchMenuEngineering<TData = Awaited<ReturnType<typeof branchMenuEngineering>>, TError = ErrorBody>(
- branchId: string,
-    params?: BranchMenuEngineeringParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMenuEngineering>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getBranchMenuEngineeringQueryOptions(branchId,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -17728,7 +16385,7 @@ export function useBranchSales<TData = Awaited<ReturnType<typeof branchSales>>, 
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -17823,7 +16480,7 @@ export function useBranchSalesPeakHours<TData = Awaited<ReturnType<typeof branch
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -17918,7 +16575,7 @@ export function useBranchSalesTimeseries<TData = Awaited<ReturnType<typeof branc
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18013,7 +16670,7 @@ export function useBranchShrinkage<TData = Awaited<ReturnType<typeof branchShrin
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18100,7 +16757,7 @@ export function useBranchStock<TData = Awaited<ReturnType<typeof branchStock>>, 
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18195,7 +16852,7 @@ export function useBranchTellerStats<TData = Awaited<ReturnType<typeof branchTel
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18290,7 +16947,7 @@ export function useBranchWasteReport<TData = Awaited<ReturnType<typeof branchWas
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18385,7 +17042,7 @@ export function useOrgBranchComparison<TData = Awaited<ReturnType<typeof orgBran
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18480,7 +17137,7 @@ export function useOrgConsumption<TData = Awaited<ReturnType<typeof orgConsumpti
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18567,7 +17224,7 @@ export function useOrgInventoryValuation<TData = Awaited<ReturnType<typeof orgIn
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18654,7 +17311,7 @@ export function useOrgLowStock<TData = Awaited<ReturnType<typeof orgLowStock>>, 
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18749,7 +17406,7 @@ export function useOrgShrinkage<TData = Awaited<ReturnType<typeof orgShrinkage>>
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18844,7 +17501,7 @@ export function useOrgWasteReport<TData = Awaited<ReturnType<typeof orgWasteRepo
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -18931,7 +17588,7 @@ export function useShiftDeductions<TData = Awaited<ReturnType<typeof shiftDeduct
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -19018,7 +17675,7 @@ export function useShiftSummary<TData = Awaited<ReturnType<typeof shiftSummary>>
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -19106,7 +17763,7 @@ export function useListBookings<TData = Awaited<ReturnType<typeof listBookings>>
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -19128,6 +17785,7 @@ export const createBooking = (
     },
       options);
     }
+
 
 
 
@@ -19190,6 +17848,7 @@ export const updateBooking = (
 
 
 
+
 export const getUpdateBookingMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBooking>>, TError,{id: string;data: UpdateBookingRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateBooking>>, TError,{id: string;data: UpdateBookingRequest}, TContext> => {
@@ -19249,6 +17908,7 @@ export const assignTables = (
 
 
 
+
 export const getAssignTablesMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignTables>>, TError,{id: string;data: AssignTablesRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof assignTables>>, TError,{id: string;data: AssignTablesRequest}, TContext> => {
@@ -19302,6 +17962,7 @@ export const notifyBooking = (
     },
       options);
     }
+
 
 
 
@@ -19433,7 +18094,7 @@ export function useListShifts<TData = Awaited<ReturnType<typeof listShifts>>, TE
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -19528,7 +18189,7 @@ export function useGetCurrentShift<TData = Awaited<ReturnType<typeof getCurrentS
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -19551,6 +18212,7 @@ export const openShift = (
     },
       options);
     }
+
 
 
 
@@ -19674,7 +18336,7 @@ export function useGetShift<TData = Awaited<ReturnType<typeof getShift>>, TError
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -19694,6 +18356,7 @@ export const deleteShift = (
     },
       options);
     }
+
 
 
 
@@ -19817,7 +18480,7 @@ export function useListCashMovements<TData = Awaited<ReturnType<typeof listCashM
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -19840,6 +18503,7 @@ export const addCashMovement = (
     },
       options);
     }
+
 
 
 
@@ -19902,6 +18566,7 @@ export const closeShift = (
 
 
 
+
 export const getCloseShiftMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeShift>>, TError,{shiftId: string;data: CloseShiftRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof closeShift>>, TError,{shiftId: string;data: CloseShiftRequest}, TContext> => {
@@ -19958,6 +18623,7 @@ export const forceCloseShift = (
     },
       options);
     }
+
 
 
 
@@ -20081,7 +18747,7 @@ export function useGetShiftReport<TData = Awaited<ReturnType<typeof getShiftRepo
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -20168,7 +18834,7 @@ export function useListStocktakes<TData = Awaited<ReturnType<typeof listStocktak
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -20191,6 +18857,7 @@ export const createStocktake = (
     },
       options);
     }
+
 
 
 
@@ -20314,7 +18981,7 @@ export function useGetStocktake<TData = Awaited<ReturnType<typeof getStocktake>>
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -20334,6 +19001,7 @@ export const cancelStocktake = (
     },
       options);
     }
+
 
 
 
@@ -20393,6 +19061,7 @@ export const finalizeStocktake = (
 
 
 
+
 export const getFinalizeStocktakeMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeStocktake>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof finalizeStocktake>>, TError,{id: string}, TContext> => {
@@ -20449,6 +19118,7 @@ export const upsertItems = (
     },
       options);
     }
+
 
 
 
@@ -20572,7 +19242,7 @@ export function useVarianceReport<TData = Awaited<ReturnType<typeof varianceRepo
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -20660,7 +19330,7 @@ export function useListTills<TData = Awaited<ReturnType<typeof listTills>>, TErr
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -20682,6 +19352,7 @@ export const createTill = (
     },
       options);
     }
+
 
 
 
@@ -20741,6 +19412,7 @@ export const deleteTill = (
 
 
 
+
 export const getDeleteTillMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTill>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteTill>>, TError,{id: string}, TContext> => {
@@ -20797,6 +19469,7 @@ export const updateTill = (
     },
       options);
     }
+
 
 
 
@@ -20932,7 +19605,7 @@ export function useListTimezones<TData = Awaited<ReturnType<typeof listTimezones
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -20957,6 +19630,7 @@ formData.append(`image`, uploadImageMultipart.image);
     },
       options);
     }
+
 
 
 
@@ -21081,7 +19755,7 @@ export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TErr
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -21103,6 +19777,7 @@ export const createUser = (
     },
       options);
     }
+
 
 
 
@@ -21226,7 +19901,7 @@ export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError =
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -21246,6 +19921,7 @@ export const deleteUser = (
     },
       options);
     }
+
 
 
 
@@ -21305,6 +19981,7 @@ export const updateUser = (
     },
       options);
     }
+
 
 
 
@@ -21428,7 +20105,7 @@ export function useListUserBranches<TData = Awaited<ReturnType<typeof listUserBr
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 
@@ -21451,6 +20128,7 @@ export const assignBranch = (
     },
       options);
     }
+
 
 
 
@@ -21511,6 +20189,7 @@ export const unassignBranch = (
 
 
 
+
 export const getUnassignBranchMutationOptions = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unassignBranch>>, TError,{id: string;branchId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof unassignBranch>>, TError,{id: string;branchId: string}, TContext> => {
@@ -21568,6 +20247,7 @@ export const whatsappLogout = (
     },
       options);
     }
+
 
 
 
@@ -21636,6 +20316,7 @@ export const whatsappPair = (
 
 
 
+
 export const getWhatsappPairMutationOptions = <TError = ErrorBody | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof whatsappPair>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof whatsappPair>>, TError,void, TContext> => {
@@ -21700,6 +20381,7 @@ export const whatsappPause = (
     },
       options);
     }
+
 
 
 
@@ -21835,7 +20517,7 @@ export function useWhatsappStatus<TData = Awaited<ReturnType<typeof whatsappStat
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return withQueryKey(query, queryOptions.queryKey);
 }
 
 

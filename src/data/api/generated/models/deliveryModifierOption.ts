@@ -11,7 +11,9 @@ export interface DeliveryModifierOption {
   name: string;
   name_translations: DeliveryModifierOptionNameTranslations;
   option_id: string;
-  /** Channel-effective surcharge (piastres): branch_channel → branch →
-   * channel → catalog default. Unavailable options are excluded entirely. */
+  /**
+     * Channel-effective surcharge (piastres): branch_channel → branch →
+     * channel → catalog default. Unavailable options are excluded entirely.
+     */
   price: number;
 }

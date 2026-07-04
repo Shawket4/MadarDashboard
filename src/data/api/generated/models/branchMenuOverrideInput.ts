@@ -13,7 +13,7 @@ export interface BranchMenuOverrideInput {
   price_override?: number | null;
   /**
      * Per-size branch prices. `null`/omitted → leave existing size overrides untouched;
-   * a list → REPLACE the item's size overrides with exactly that set (empty clears them).
+     * a list → REPLACE the item's size overrides with exactly that set (empty clears them).
      * @nullable
      */
   sizes?: BranchSizeOverrideInput[] | null;

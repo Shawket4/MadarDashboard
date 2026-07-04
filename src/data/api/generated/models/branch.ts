@@ -7,8 +7,8 @@ export interface Branch {
   address?: string | null;
   /**
      * Short org-unique branch prefix (A-Z0-9) embedded in every order_ref
-   * (`<CODE>-YYMMDD-…`). Exposed so an offline device can mint the same ref the
-   * server would, from first boot, without waiting for a synced order.
+     * (`<CODE>-YYMMDD-…`). Exposed so an offline device can mint the same ref the
+     * server would, from first boot, without waiting for a synced order.
      * @nullable
      */
   code?: string | null;
@@ -44,9 +44,11 @@ export interface Branch {
   printer_ip?: string | null;
   /** @nullable */
   printer_port?: number | null;
-  /** Effective IANA timezone name for this branch, resolved as
-   * `branch.timezone → org.timezone → Africa/Cairo`. Always present;
-   * clients should format all of this branch's timestamps in this zone. */
+  /**
+     * Effective IANA timezone name for this branch, resolved as
+     * `branch.timezone → org.timezone → Africa/Cairo`. Always present;
+     * clients should format all of this branch's timestamps in this zone.
+     */
   timezone: string;
   updated_at: string;
 }

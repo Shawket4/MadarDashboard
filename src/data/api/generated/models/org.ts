@@ -11,10 +11,14 @@ export interface Org {
   /** @nullable */
   receipt_footer?: string | null;
   slug: string;
-  /** Tax rate as a decimal (e.g. `0.14` for 14% VAT).
-   * Stored as `BigDecimal` internally; transmitted as a JSON number. */
+  /**
+     * Tax rate as a decimal (e.g. `0.14` for 14% VAT).
+     * Stored as `BigDecimal` internally; transmitted as a JSON number.
+     */
   tax_rate: number;
-  /** IANA timezone name. The org-level default that branches inherit when
-   * their own timezone is unset. Defaults to `Africa/Cairo`. */
+  /**
+     * IANA timezone name. The org-level default that branches inherit when
+     * their own timezone is unset. Defaults to `Africa/Cairo`.
+     */
   timezone: string;
 }

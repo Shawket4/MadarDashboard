@@ -3,8 +3,10 @@
 
 export interface OrderSummary {
   completed: number;
-  /** Total delivery charges (piastres) across completed orders in scope.
-   * Lets the dashboard surface delivery revenue separately from item sales. */
+  /**
+     * Total delivery charges (piastres) across completed orders in scope.
+     * Lets the dashboard surface delivery revenue separately from item sales.
+     */
   delivery_fees?: number;
   /** Count of completed delivery orders. */
   delivery_orders?: number;

@@ -13,8 +13,10 @@ export interface ModifierOptionOut {
      */
   cost_piastres?: number | null;
   id: string;
-  /** `false` = the group offers this option but it is not enabled on this item
-   * (item's `included_option_ids` allowlist excludes it). */
+  /**
+     * `false` = the group offers this option but it is not enabled on this item
+     * (item's `included_option_ids` allowlist excludes it).
+     */
   included: boolean;
   is_active: boolean;
   is_default: boolean;

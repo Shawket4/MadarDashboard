@@ -9,13 +9,15 @@ export interface AddonCost {
   addon_type: string;
   /**
      * Ingredient cost rollup in piastres over the ingredients that *are*
-   * priced. A partial rollup still returns the sum so far, with
-   * `cost_missing = true`; `null` only when nothing is priced.
+     * priced. A partial rollup still returns the sum so far, with
+     * `cost_missing = true`; `null` only when nothing is priced.
      * @nullable
      */
   cost?: number | null;
-  /** `true` when at least one ingredient is unlinked or has no cost, so `cost`
-   * (if any) is partial rather than the full figure. */
+  /**
+     * `true` when at least one ingredient is unlinked or has no cost, so `cost`
+     * (if any) is partial rather than the full figure.
+     */
   cost_missing: boolean;
   /**
      * `(price - cost) / price` — only when the cost is *complete* and price > 0.

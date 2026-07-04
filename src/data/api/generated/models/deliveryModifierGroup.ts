@@ -15,8 +15,8 @@ import type { DeliveryModifierOption } from './deliveryModifierOption';
 export interface DeliveryModifierGroup {
   /**
      * The group's legacy addon type (`milk_type` / `coffee_type` / `extra` /
-   * custom) — the swap-family hint the customizer keys its delta-price
-   * estimate on. `None` for groups with no legacy lineage.
+     * custom) — the swap-family hint the customizer keys its delta-price
+     * estimate on. `None` for groups with no legacy lineage.
      * @nullable
      */
   addon_type?: string | null;

@@ -8,7 +8,7 @@ export interface OrderItemAddon {
   id: string;
   /**
      * Ingredient cost of this addon line in piastres. `null` ⟺ unknown, or
-   * a swap addon (its cost lives in the item's recipe cost).
+     * a swap addon (its cost lives in the item's recipe cost).
      * @nullable
      */
   line_cost?: number | null;

@@ -5,7 +5,7 @@ export interface OrgIngredient {
   category: string;
   /**
      * Piastres per unit. `null` ⟺ never entered (unknown, NOT free) —
-   * recipes using this ingredient are cost-missing everywhere.
+     * recipes using this ingredient are cost-missing everywhere.
      * @nullable
      */
   cost_per_unit?: number | null;
@@ -42,7 +42,7 @@ export interface OrgIngredient {
   updated_at: string;
   /**
      * Usable % after trim/cook loss (e.g. 70 = 70%); `null` = 100%. Recipe
-   * quantities are grossed up by this at save time.
+     * quantities are grossed up by this at save time.
      * @nullable
      */
   yield_pct?: number | null;

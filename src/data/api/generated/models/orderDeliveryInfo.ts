@@ -26,7 +26,7 @@ export interface OrderDeliveryInfo {
   landmark?: string | null;
   /**
      * Payment method the customer indicated at intake ("cash"/"card"); the
-   * teller confirms the actual method at finalize.
+     * teller confirms the actual method at finalize.
      * @nullable
      */
   payment_method_hint?: string | null;

@@ -2,14 +2,11 @@ import type { QueryClient } from "@tanstack/react-query";
 import {
   getBranchInventoryValuationQueryOptions,
   getBranchLowStockQueryOptions,
-  getBranchMenuEngineeringQueryOptions,
   getBranchSalesQueryOptions,
   getBranchSalesTimeseriesQueryOptions,
   getBranchWasteReportQueryOptions,
-  getGetActiveRunHandlerQueryOptions,
   getGetCurrentShiftQueryOptions,
   getGetInventorySettingsQueryOptions,
-  getGetLatestRunHandlerQueryOptions,
   getListAddonItemsQueryOptions,
   getListAddonCatalogQueryOptions,
   getListBranchAddonOverridesQueryOptions,
@@ -129,18 +126,6 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
     case "/menu/bundles":
       // Mirrors bundles-page's first server page (default sort/filter omitted).
       if (orgId) void qc.prefetchQuery(getListBundlesQueryOptions({ org_id: orgId, page: 1, per_page: 20 }));
-      break;
-    case "/menu/engineering":
-    case "/insights/menu-profitability":
-    case "/insights/menu-profitability/engineering":
-      if (branchId) void qc.prefetchQuery(getBranchMenuEngineeringQueryOptions(branchId, { from: from ?? undefined, to: to ?? undefined }));
-      break;
-    case "/menu/advisor":
-    case "/insights/menu-profitability/advisor":
-      if (branchId) {
-        void qc.prefetchQuery(getGetLatestRunHandlerQueryOptions(branchId));
-        void qc.prefetchQuery(getGetActiveRunHandlerQueryOptions(branchId));
-      }
       break;
     case "/discounts":
       if (orgId) void qc.prefetchQuery(getListDiscountsQueryOptions({ org_id: orgId }));

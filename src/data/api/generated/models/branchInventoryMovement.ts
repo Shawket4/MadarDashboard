@@ -10,7 +10,7 @@ export interface BranchInventoryMovement {
   branch_inventory_id?: string | null;
   /**
      * Branch name; only populated by the all-branches waste roll-up (nil
-   * {branch_id}). `None` for single-branch queries that do not select it.
+     * {branch_id}). `None` for single-branch queries that do not select it.
      * @nullable
      */
   branch_name?: string | null;
@@ -21,8 +21,10 @@ export interface BranchInventoryMovement {
   created_by_name?: string | null;
   id: string;
   ingredient_name: string;
-  /** inventory_movement_type: sale | void_restock | adjustment_add |
-   * adjustment_remove | waste | transfer_out | transfer_in | purchase_in | stock_count */
+  /**
+     * inventory_movement_type: sale | void_restock | adjustment_add |
+     * adjustment_remove | waste | transfer_out | transfer_in | purchase_in | stock_count
+     */
   movement_type: string;
   /** @nullable */
   note?: string | null;

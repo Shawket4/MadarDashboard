@@ -6,7 +6,7 @@ export interface CreateOrgMultipart {
   currency_code?: string | null;
   /**
      * Logo image file. PNG, JPEG, or WebP. Optional — omit the field
-   * entirely to create the org without a logo.
+     * entirely to create the org without a logo.
      * @nullable
      */
   logo?: Blob | null;

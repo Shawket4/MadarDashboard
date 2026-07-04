@@ -7,8 +7,10 @@
 export interface QrResponse {
   kind: string;
   long_url: string;
-  /** `data:image/png;base64,…` (or `data:image/svg+xml;base64,…` when
-   * `svg=true`).  Paste into a browser `<img src="…">` to verify. */
+  /**
+     * `data:image/png;base64,…` (or `data:image/svg+xml;base64,…` when
+     * `svg=true`).  Paste into a browser `<img src="…">` to verify.
+     */
   qr_data_url: string;
   short_code: string;
   short_url: string;

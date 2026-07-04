@@ -16,17 +16,16 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  useBranchConsumption, useBranchInventoryValuation, useBranchMenuEngineering, useBranchShrinkage,
+  useBranchConsumption, useBranchInventoryValuation, useBranchShrinkage,
   useBranchWasteReport, useListCatalog, useOrgConsumption, useOrgInventoryValuation, useOrgShrinkage,
   useOrgWasteReport,
 } from "@/data/api/generated/api";
 import { useOrgId } from "@/hooks/use-org-id";
-import { useScope, ALL_BRANCHES_ID } from "@/data/scope/use-scope";
-import { fmtMoney, fmtNumber, fmtShare, fmtUnit } from "@/lib/format";
+import { useScope } from "@/data/scope/use-scope";
+import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 
 type ReportScope = "branch" | "org";
-type CostBasis = "snapshot" | "current";
 
 export function ReportsPage() {
   const { t } = useTranslation();
@@ -35,7 +34,6 @@ export function ReportsPage() {
 
   const [scope, setScope] = useState<ReportScope>(branchId ? "branch" : "org");
   const [tab, setTab] = useState("valuation");
-  const [costBasis, setCostBasis] = useState<CostBasis>("snapshot");
 
   const isBranch = scope === "branch";
   const scopeId = isBranch ? branchId : orgId;
@@ -47,11 +45,6 @@ export function ReportsPage() {
   const orgVal = useOrgInventoryValuation(orgId ?? "", { query: { enabled: !isBranch && on("valuation") && !!orgId } });
   const valuation = isBranch ? branchVal : orgVal;
   const catalog = useListCatalog(orgId ?? "", { query: { enabled: on("valuation") && !!orgId } });
-
-  // COGS / menu engineering has no org variant — in org scope the all-branches
-  // sentinel gives the org-wide roll-up; in branch scope it's that branch.
-  const cogsBranch = isBranch ? (branchId ?? "") : ALL_BRANCHES_ID;
-  const cogs = useBranchMenuEngineering(cogsBranch, { ...range, cost_basis: costBasis }, { query: { enabled: on("cogs") && !!cogsBranch } });
 
   // Consumption
   const branchCons = useBranchConsumption(branchId ?? "", range, { query: { enabled: isBranch && on("consumption") && !!branchId } });
@@ -100,19 +93,6 @@ export function ReportsPage() {
         { header: t("inventory.reports.totalValue", "Total value"), accessor: (r) => r.value, type: "money", width: 16 },
       ];
       rows = byCategory.rows.map(([cat, val]) => ({ category: t(`inventory.catalog.cat_${cat}`, cat), value: val }));
-    } else if (tab === "cogs") {
-      title = t("inventory.reports.cogs", "COGS & margins");
-      cols = [
-        { header: item, accessor: (r) => r.item, type: "text", width: 28 },
-        { header: t("inventory.reports.sold", "Sold"), accessor: (r) => r.sold, type: "number", width: 12 },
-        { header: t("inventory.reports.revenue", "Revenue"), accessor: (r) => r.revenue, type: "money", width: 14 },
-        { header: t("inventory.reports.cost", "Cost"), accessor: (r) => r.cost, type: "money", width: 14 },
-        { header: t("inventory.reports.profit", "Profit"), accessor: (r) => r.profit, type: "money", width: 14 },
-      ];
-      rows = (cogs.data?.rows ?? []).map((r) => ({
-        item: r.size_label !== "one_size" ? `${r.item_name} · ${r.size_label}` : r.item_name,
-        sold: r.quantity_sold, revenue: r.sales, cost: r.total_cost, profit: r.total_profit,
-      }));
     } else if (tab === "consumption") {
       title = t("inventory.reports.consumption", "Consumption");
       cols = [
@@ -156,10 +136,9 @@ export function ReportsPage() {
 
   const currentCount =
     tab === "valuation" ? byCategory.rows.length
-      : tab === "cogs" ? (cogs.data?.rows?.length ?? 0)
-        : tab === "consumption" ? (consumption.data?.length ?? 0)
-          : tab === "shrinkage" ? (shrinkage.data?.length ?? 0)
-            : (wasteReport.data?.length ?? 0);
+      : tab === "consumption" ? (consumption.data?.length ?? 0)
+        : tab === "shrinkage" ? (shrinkage.data?.length ?? 0)
+          : (wasteReport.data?.length ?? 0);
 
   if (!orgId) {
     return (
@@ -196,7 +175,6 @@ export function ReportsPage() {
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
         <PageTabsList>
           <PageTabsTrigger value="valuation">{t("inventory.reports.valuation", "Valuation")}</PageTabsTrigger>
-          <PageTabsTrigger value="cogs">{t("inventory.reports.cogs", "COGS & margins")}</PageTabsTrigger>
           <PageTabsTrigger value="consumption">{t("inventory.reports.consumption", "Consumption")}</PageTabsTrigger>
           <PageTabsTrigger value="shrinkage">{t("inventory.reports.shrinkage", "Shrinkage")}</PageTabsTrigger>
           <PageTabsTrigger value="waste">{t("inventory.reports.wasteReport", "Waste")}</PageTabsTrigger>
@@ -237,51 +215,6 @@ export function ReportsPage() {
                   ))}
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            {/* COGS & margins */}
-            <TabsContent value="cogs" className="space-y-3">
-              {!scopeId ? (
-                <EmptyState icon={Store} title={t("inventory.pickBranch", "Select a branch to manage its stock")} description={t("inventory.reports.branch", "This branch")} />
-              ) : (
-                <>
-                  <SegmentedControl<CostBasis>
-                    value={costBasis}
-                    onChange={setCostBasis}
-                    options={[
-                      { value: "snapshot", label: t("inventory.reports.snapshot", "Snapshot") },
-                      { value: "current", label: t("inventory.reports.current", "Current") },
-                    ]}
-                  />
-                  <div className="overflow-x-auto rounded-xl border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t("inventory.reports.ingredient", "Item")}</TableHead>
-                          <TableHead className="text-end">{t("inventory.reports.sold", "Sold")}</TableHead>
-                          <TableHead className="text-end">{t("inventory.reports.revenue", "Revenue")}</TableHead>
-                          <TableHead className="text-end">{t("inventory.reports.cost", "Cost")}</TableHead>
-                          <TableHead className="text-end">{t("inventory.reports.margin", "Margin")}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {(cogs.data?.rows ?? []).map((r) => (
-                          <TableRow key={`${r.menu_item_id}-${r.size_label}`}>
-                            <TableCell>{r.item_name}{r.size_label !== "one_size" ? <span className="text-muted-foreground"> · {r.size_label}</span> : null}</TableCell>
-                            <TableCell className="text-end tabular">{fmtNumber(r.quantity_sold)}</TableCell>
-                            <TableCell className="text-end tabular">{fmtMoney(r.sales)}</TableCell>
-                            <TableCell className="text-end tabular">{fmtMoney(r.total_cost)}</TableCell>
-                            <TableCell className="text-end tabular">{r.sales > 0 ? fmtShare(r.total_profit, r.sales) : "—"}</TableCell>
-                          </TableRow>
-                        ))}
-                        {(cogs.data?.rows ?? []).length === 0 && !cogs.isLoading ? (
-                          <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">{t("inventory.reports.noData", "No data")}</TableCell></TableRow>
-                        ) : null}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </>
-              )}
             </TabsContent>
 
             {/* Consumption */}

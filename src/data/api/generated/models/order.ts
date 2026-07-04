@@ -12,19 +12,21 @@ export interface Order {
   customer_name?: string | null;
   /**
      * Delivery channel ("in_mall" | "outside") of the linked delivery order,
-   * surfaced on the list so clients can flag + segment delivery orders
-   * without a per-order detail fetch. `null` for dine-in orders.
+     * surfaced on the list so clients can flag + segment delivery orders
+     * without a per-order detail fetch. `null` for dine-in orders.
      * @nullable
      */
   delivery_channel?: string | null;
-  /** Delivery charge in piastres, shown separately from the item subtotal.
-   * Always 0 for dine-in orders; for delivery orders
-   * `total_amount == subtotal + tax_amount + delivery_fee` (minus discount). */
+  /**
+     * Delivery charge in piastres, shown separately from the item subtotal.
+     * Always 0 for dine-in orders; for delivery orders
+     * `total_amount == subtotal + tax_amount + delivery_fee` (minus discount).
+     */
   delivery_fee: number;
   /**
      * Customer location of the linked delivery order, so clients can link out
-   * to a map (e.g. Google Maps) without a per-order detail fetch. `null` for
-   * dine-in orders or delivery orders without captured coordinates.
+     * to a map (e.g. Google Maps) without a per-order detail fetch. `null` for
+     * dine-in orders or delivery orders without captured coordinates.
      * @nullable
      */
   delivery_lat?: number | null;
@@ -32,7 +34,7 @@ export interface Order {
   delivery_lng?: number | null;
   /**
      * Links a finalized delivery order back to its `delivery_orders` row
-   * (customer, address, channel, zone). `null` for dine-in orders.
+     * (customer, address, channel, zone). `null` for dine-in orders.
      * @nullable
      */
   delivery_order_id?: string | null;
@@ -48,13 +50,15 @@ export interface Order {
   order_number: number;
   /**
      * Human-readable, org-unique reference (e.g. "DT-260614-0042"). Additive
-   * alongside the per-shift order_number. Optional only during the rollout
-   * window before the historical backfill runs; never null afterwards.
+     * alongside the per-shift order_number. Optional only during the rollout
+     * window before the historical backfill runs; never null afterwards.
      * @nullable
      */
   order_ref?: string | null;
-  /** Order origin: "dine_in" (POS sale) or "delivery" (finalized delivery
-   * order). Defaults to "dine_in" for every POS sale. */
+  /**
+     * Order origin: "dine_in" (POS sale) or "delivery" (finalized delivery
+     * order). Defaults to "dine_in" for every POS sale.
+     */
   order_type: string;
   payment_method: string;
   shift_id: string;
@@ -78,8 +82,8 @@ export interface Order {
   voided_by?: string | null;
   /**
      * The WAITER who opened this order's ticket (`open_tickets.opened_by`),
-   * stamped server-side at settle time. `null` for direct teller sales and
-   * delivery orders (they never pass through a waiter's ticket).
+     * stamped server-side at settle time. `null` for direct teller sales and
+     * delivery orders (they never pass through a waiter's ticket).
      * @nullable
      */
   waiter_id?: string | null;

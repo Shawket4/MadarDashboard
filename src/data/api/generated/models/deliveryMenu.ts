@@ -6,8 +6,10 @@ import type { DeliveryMenuDiscount } from './deliveryMenuDiscount';
 import type { DeliveryMenuItem } from './deliveryMenuItem';
 
 export interface DeliveryMenu {
-  /** Org-wide addon catalog (global, POS model): channel-effective, grouped by
-   * `type`, applicable to every item. Channel-unavailable options are excluded. */
+  /**
+     * Org-wide addon catalog (global, POS model): channel-effective, grouped by
+     * `type`, applicable to every item. Channel-unavailable options are excluded.
+     */
   addons: DeliveryAddonOption[];
   categories: DeliveryMenuCategory[];
   discount?: null | DeliveryMenuDiscount;

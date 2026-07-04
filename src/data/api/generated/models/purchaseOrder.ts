@@ -5,7 +5,7 @@ export interface PurchaseOrder {
   branch_id: string;
   /**
      * Branch label — populated by the order lists so the "All branches" view
-   * can show which branch each PO belongs to; other endpoints leave it null.
+     * can show which branch each PO belongs to; other endpoints leave it null.
      * @nullable
      */
   branch_name?: string | null;

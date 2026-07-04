@@ -20,7 +20,7 @@ export interface UpdateCatalogItemRequest {
   pack_unit?: string | null;
   /**
      * Set/replace the default supplier. (Omitted = unchanged; clearing to
-   * none is not supported via this field.)
+     * none is not supported via this field.)
      * @nullable
      */
   supplier_id?: string | null;

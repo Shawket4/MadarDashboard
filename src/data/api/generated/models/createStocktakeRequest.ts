@@ -4,7 +4,7 @@
 export interface CreateStocktakeRequest {
   /**
      * Cycle-count scope: snapshot only ingredients in this catalog category.
-   * Omit (with org_ingredient_ids) for a full-branch count.
+     * Omit (with org_ingredient_ids) for a full-branch count.
      * @nullable
      */
   category?: string | null;

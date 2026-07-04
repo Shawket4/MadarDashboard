@@ -7,8 +7,8 @@ export interface UpdateBundleRequest {
   available_from_date?: string | null;
   /**
      * `null`  → clear the field (no start time restriction)
-   * omitted → keep the existing value
-   * a value → set to that time
+     * omitted → keep the existing value
+     * a value → set to that time
      * @nullable
      */
   available_from_time?: string | null;

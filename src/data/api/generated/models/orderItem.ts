@@ -14,7 +14,7 @@ export interface OrderItem {
   item_name: string;
   /**
      * Full line COGS in piastres (recipe + addons + optionals + components).
-   * `null` ⟺ unknown.
+     * `null` ⟺ unknown.
      * @nullable
      */
   line_cost?: number | null;
@@ -30,7 +30,7 @@ export interface OrderItem {
   size_label?: string | null;
   /**
      * Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown
-   * or bundle line.
+     * or bundle line.
      * @nullable
      */
   unit_cost?: number | null;

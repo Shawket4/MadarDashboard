@@ -40,9 +40,7 @@ import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
 import { Route as AppMenuPricingRouteImport } from './routes/_app/menu/pricing'
 import { Route as AppMenuOverridesRouteImport } from './routes/_app/menu/overrides'
 import { Route as AppMenuItemsRouteImport } from './routes/_app/menu/items'
-import { Route as AppMenuEngineeringRouteImport } from './routes/_app/menu/engineering'
 import { Route as AppMenuBundlesRouteImport } from './routes/_app/menu/bundles'
-import { Route as AppMenuAdvisorRouteImport } from './routes/_app/menu/advisor'
 import { Route as AppKitchenStationsRouteImport } from './routes/_app/kitchen/stations'
 import { Route as AppKitchenRoutingRouteImport } from './routes/_app/kitchen/routing'
 import { Route as AppInventoryWasteRouteImport } from './routes/_app/inventory/waste'
@@ -61,11 +59,7 @@ import { Route as AppDeliverySettingsRouteImport } from './routes/_app/delivery/
 import { Route as AppDeliveryChannelsRouteImport } from './routes/_app/delivery/channels'
 import { Route as AppAccessUsersRouteImport } from './routes/_app/access/users'
 import { Route as AppAccessRolesRouteImport } from './routes/_app/access/roles'
-import { Route as AppInsightsMenuProfitabilityRouteRouteImport } from './routes/_app/insights/menu-profitability/route'
-import { Route as AppInsightsMenuProfitabilityIndexRouteImport } from './routes/_app/insights/menu-profitability/index'
 import { Route as AppMenuItemsItemIdRouteImport } from './routes/_app/menu/items_.$itemId'
-import { Route as AppInsightsMenuProfitabilityEngineeringRouteImport } from './routes/_app/insights/menu-profitability/engineering'
-import { Route as AppInsightsMenuProfitabilityAdvisorRouteImport } from './routes/_app/insights/menu-profitability/advisor'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -222,19 +216,9 @@ const AppMenuItemsRoute = AppMenuItemsRouteImport.update({
   path: '/items',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
-const AppMenuEngineeringRoute = AppMenuEngineeringRouteImport.update({
-  id: '/engineering',
-  path: '/engineering',
-  getParentRoute: () => AppMenuRouteRoute,
-} as any)
 const AppMenuBundlesRoute = AppMenuBundlesRouteImport.update({
   id: '/bundles',
   path: '/bundles',
-  getParentRoute: () => AppMenuRouteRoute,
-} as any)
-const AppMenuAdvisorRoute = AppMenuAdvisorRouteImport.update({
-  id: '/advisor',
-  path: '/advisor',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
 const AppKitchenStationsRoute = AppKitchenStationsRouteImport.update({
@@ -328,35 +312,11 @@ const AppAccessRolesRoute = AppAccessRolesRouteImport.update({
   path: '/roles',
   getParentRoute: () => AppAccessRouteRoute,
 } as any)
-const AppInsightsMenuProfitabilityRouteRoute =
-  AppInsightsMenuProfitabilityRouteRouteImport.update({
-    id: '/insights/menu-profitability',
-    path: '/insights/menu-profitability',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
-const AppInsightsMenuProfitabilityIndexRoute =
-  AppInsightsMenuProfitabilityIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppInsightsMenuProfitabilityRouteRoute,
-  } as any)
 const AppMenuItemsItemIdRoute = AppMenuItemsItemIdRouteImport.update({
   id: '/items_/$itemId',
   path: '/items/$itemId',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
-const AppInsightsMenuProfitabilityEngineeringRoute =
-  AppInsightsMenuProfitabilityEngineeringRouteImport.update({
-    id: '/engineering',
-    path: '/engineering',
-    getParentRoute: () => AppInsightsMenuProfitabilityRouteRoute,
-  } as any)
-const AppInsightsMenuProfitabilityAdvisorRoute =
-  AppInsightsMenuProfitabilityAdvisorRouteImport.update({
-    id: '/advisor',
-    path: '/advisor',
-    getParentRoute: () => AppInsightsMenuProfitabilityRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -378,7 +338,6 @@ export interface FileRoutesByFullPath {
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
-  '/insights/menu-profitability': typeof AppInsightsMenuProfitabilityRouteRouteWithChildren
   '/access/roles': typeof AppAccessRolesRoute
   '/access/users': typeof AppAccessUsersRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -397,9 +356,7 @@ export interface FileRoutesByFullPath {
   '/inventory/waste': typeof AppInventoryWasteRoute
   '/kitchen/routing': typeof AppKitchenRoutingRoute
   '/kitchen/stations': typeof AppKitchenStationsRoute
-  '/menu/advisor': typeof AppMenuAdvisorRoute
   '/menu/bundles': typeof AppMenuBundlesRoute
-  '/menu/engineering': typeof AppMenuEngineeringRoute
   '/menu/items': typeof AppMenuItemsRoute
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/pricing': typeof AppMenuPricingRoute
@@ -411,10 +368,7 @@ export interface FileRoutesByFullPath {
   '/inventory/': typeof AppInventoryIndexRoute
   '/menu/': typeof AppMenuIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
-  '/insights/menu-profitability/advisor': typeof AppInsightsMenuProfitabilityAdvisorRoute
-  '/insights/menu-profitability/engineering': typeof AppInsightsMenuProfitabilityEngineeringRoute
   '/menu/items/$itemId': typeof AppMenuItemsItemIdRoute
-  '/insights/menu-profitability/': typeof AppInsightsMenuProfitabilityIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -449,9 +403,7 @@ export interface FileRoutesByTo {
   '/inventory/waste': typeof AppInventoryWasteRoute
   '/kitchen/routing': typeof AppKitchenRoutingRoute
   '/kitchen/stations': typeof AppKitchenStationsRoute
-  '/menu/advisor': typeof AppMenuAdvisorRoute
   '/menu/bundles': typeof AppMenuBundlesRoute
-  '/menu/engineering': typeof AppMenuEngineeringRoute
   '/menu/items': typeof AppMenuItemsRoute
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/pricing': typeof AppMenuPricingRoute
@@ -463,10 +415,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof AppInventoryIndexRoute
   '/menu': typeof AppMenuIndexRoute
   '/settings': typeof AppSettingsIndexRoute
-  '/insights/menu-profitability/advisor': typeof AppInsightsMenuProfitabilityAdvisorRoute
-  '/insights/menu-profitability/engineering': typeof AppInsightsMenuProfitabilityEngineeringRoute
   '/menu/items/$itemId': typeof AppMenuItemsItemIdRoute
-  '/insights/menu-profitability': typeof AppInsightsMenuProfitabilityIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -490,7 +439,6 @@ export interface FileRoutesById {
   '/_app/tills': typeof AppTillsRoute
   '/_app/users': typeof AppUsersRoute
   '/_app/': typeof AppIndexRoute
-  '/_app/insights/menu-profitability': typeof AppInsightsMenuProfitabilityRouteRouteWithChildren
   '/_app/access/roles': typeof AppAccessRolesRoute
   '/_app/access/users': typeof AppAccessUsersRoute
   '/_app/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -509,9 +457,7 @@ export interface FileRoutesById {
   '/_app/inventory/waste': typeof AppInventoryWasteRoute
   '/_app/kitchen/routing': typeof AppKitchenRoutingRoute
   '/_app/kitchen/stations': typeof AppKitchenStationsRoute
-  '/_app/menu/advisor': typeof AppMenuAdvisorRoute
   '/_app/menu/bundles': typeof AppMenuBundlesRoute
-  '/_app/menu/engineering': typeof AppMenuEngineeringRoute
   '/_app/menu/items': typeof AppMenuItemsRoute
   '/_app/menu/overrides': typeof AppMenuOverridesRoute
   '/_app/menu/pricing': typeof AppMenuPricingRoute
@@ -523,10 +469,7 @@ export interface FileRoutesById {
   '/_app/inventory/': typeof AppInventoryIndexRoute
   '/_app/menu/': typeof AppMenuIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
-  '/_app/insights/menu-profitability/advisor': typeof AppInsightsMenuProfitabilityAdvisorRoute
-  '/_app/insights/menu-profitability/engineering': typeof AppInsightsMenuProfitabilityEngineeringRoute
   '/_app/menu/items_/$itemId': typeof AppMenuItemsItemIdRoute
-  '/_app/insights/menu-profitability/': typeof AppInsightsMenuProfitabilityIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -550,7 +493,6 @@ export interface FileRouteTypes {
     | '/shifts'
     | '/tills'
     | '/users'
-    | '/insights/menu-profitability'
     | '/access/roles'
     | '/access/users'
     | '/delivery/channels'
@@ -569,9 +511,7 @@ export interface FileRouteTypes {
     | '/inventory/waste'
     | '/kitchen/routing'
     | '/kitchen/stations'
-    | '/menu/advisor'
     | '/menu/bundles'
-    | '/menu/engineering'
     | '/menu/items'
     | '/menu/overrides'
     | '/menu/pricing'
@@ -583,10 +523,7 @@ export interface FileRouteTypes {
     | '/inventory/'
     | '/menu/'
     | '/settings/'
-    | '/insights/menu-profitability/advisor'
-    | '/insights/menu-profitability/engineering'
     | '/menu/items/$itemId'
-    | '/insights/menu-profitability/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -621,9 +558,7 @@ export interface FileRouteTypes {
     | '/inventory/waste'
     | '/kitchen/routing'
     | '/kitchen/stations'
-    | '/menu/advisor'
     | '/menu/bundles'
-    | '/menu/engineering'
     | '/menu/items'
     | '/menu/overrides'
     | '/menu/pricing'
@@ -635,10 +570,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/menu'
     | '/settings'
-    | '/insights/menu-profitability/advisor'
-    | '/insights/menu-profitability/engineering'
     | '/menu/items/$itemId'
-    | '/insights/menu-profitability'
   id:
     | '__root__'
     | '/_app'
@@ -661,7 +593,6 @@ export interface FileRouteTypes {
     | '/_app/tills'
     | '/_app/users'
     | '/_app/'
-    | '/_app/insights/menu-profitability'
     | '/_app/access/roles'
     | '/_app/access/users'
     | '/_app/delivery/channels'
@@ -680,9 +611,7 @@ export interface FileRouteTypes {
     | '/_app/inventory/waste'
     | '/_app/kitchen/routing'
     | '/_app/kitchen/stations'
-    | '/_app/menu/advisor'
     | '/_app/menu/bundles'
-    | '/_app/menu/engineering'
     | '/_app/menu/items'
     | '/_app/menu/overrides'
     | '/_app/menu/pricing'
@@ -694,10 +623,7 @@ export interface FileRouteTypes {
     | '/_app/inventory/'
     | '/_app/menu/'
     | '/_app/settings/'
-    | '/_app/insights/menu-profitability/advisor'
-    | '/_app/insights/menu-profitability/engineering'
     | '/_app/menu/items_/$itemId'
-    | '/_app/insights/menu-profitability/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -925,25 +851,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMenuItemsRouteImport
       parentRoute: typeof AppMenuRouteRoute
     }
-    '/_app/menu/engineering': {
-      id: '/_app/menu/engineering'
-      path: '/engineering'
-      fullPath: '/menu/engineering'
-      preLoaderRoute: typeof AppMenuEngineeringRouteImport
-      parentRoute: typeof AppMenuRouteRoute
-    }
     '/_app/menu/bundles': {
       id: '/_app/menu/bundles'
       path: '/bundles'
       fullPath: '/menu/bundles'
       preLoaderRoute: typeof AppMenuBundlesRouteImport
-      parentRoute: typeof AppMenuRouteRoute
-    }
-    '/_app/menu/advisor': {
-      id: '/_app/menu/advisor'
-      path: '/advisor'
-      fullPath: '/menu/advisor'
-      preLoaderRoute: typeof AppMenuAdvisorRouteImport
       parentRoute: typeof AppMenuRouteRoute
     }
     '/_app/kitchen/stations': {
@@ -1072,40 +984,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccessRolesRouteImport
       parentRoute: typeof AppAccessRouteRoute
     }
-    '/_app/insights/menu-profitability': {
-      id: '/_app/insights/menu-profitability'
-      path: '/insights/menu-profitability'
-      fullPath: '/insights/menu-profitability'
-      preLoaderRoute: typeof AppInsightsMenuProfitabilityRouteRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/insights/menu-profitability/': {
-      id: '/_app/insights/menu-profitability/'
-      path: '/'
-      fullPath: '/insights/menu-profitability/'
-      preLoaderRoute: typeof AppInsightsMenuProfitabilityIndexRouteImport
-      parentRoute: typeof AppInsightsMenuProfitabilityRouteRoute
-    }
     '/_app/menu/items_/$itemId': {
       id: '/_app/menu/items_/$itemId'
       path: '/items/$itemId'
       fullPath: '/menu/items/$itemId'
       preLoaderRoute: typeof AppMenuItemsItemIdRouteImport
       parentRoute: typeof AppMenuRouteRoute
-    }
-    '/_app/insights/menu-profitability/engineering': {
-      id: '/_app/insights/menu-profitability/engineering'
-      path: '/engineering'
-      fullPath: '/insights/menu-profitability/engineering'
-      preLoaderRoute: typeof AppInsightsMenuProfitabilityEngineeringRouteImport
-      parentRoute: typeof AppInsightsMenuProfitabilityRouteRoute
-    }
-    '/_app/insights/menu-profitability/advisor': {
-      id: '/_app/insights/menu-profitability/advisor'
-      path: '/advisor'
-      fullPath: '/insights/menu-profitability/advisor'
-      preLoaderRoute: typeof AppInsightsMenuProfitabilityAdvisorRouteImport
-      parentRoute: typeof AppInsightsMenuProfitabilityRouteRoute
     }
   }
 }
@@ -1173,9 +1057,7 @@ const AppInventoryRouteRouteWithChildren =
   AppInventoryRouteRoute._addFileChildren(AppInventoryRouteRouteChildren)
 
 interface AppMenuRouteRouteChildren {
-  AppMenuAdvisorRoute: typeof AppMenuAdvisorRoute
   AppMenuBundlesRoute: typeof AppMenuBundlesRoute
-  AppMenuEngineeringRoute: typeof AppMenuEngineeringRoute
   AppMenuItemsRoute: typeof AppMenuItemsRoute
   AppMenuOverridesRoute: typeof AppMenuOverridesRoute
   AppMenuPricingRoute: typeof AppMenuPricingRoute
@@ -1185,9 +1067,7 @@ interface AppMenuRouteRouteChildren {
 }
 
 const AppMenuRouteRouteChildren: AppMenuRouteRouteChildren = {
-  AppMenuAdvisorRoute: AppMenuAdvisorRoute,
   AppMenuBundlesRoute: AppMenuBundlesRoute,
-  AppMenuEngineeringRoute: AppMenuEngineeringRoute,
   AppMenuItemsRoute: AppMenuItemsRoute,
   AppMenuOverridesRoute: AppMenuOverridesRoute,
   AppMenuPricingRoute: AppMenuPricingRoute,
@@ -1215,27 +1095,6 @@ const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
 const AppSettingsRouteRouteWithChildren =
   AppSettingsRouteRoute._addFileChildren(AppSettingsRouteRouteChildren)
 
-interface AppInsightsMenuProfitabilityRouteRouteChildren {
-  AppInsightsMenuProfitabilityAdvisorRoute: typeof AppInsightsMenuProfitabilityAdvisorRoute
-  AppInsightsMenuProfitabilityEngineeringRoute: typeof AppInsightsMenuProfitabilityEngineeringRoute
-  AppInsightsMenuProfitabilityIndexRoute: typeof AppInsightsMenuProfitabilityIndexRoute
-}
-
-const AppInsightsMenuProfitabilityRouteRouteChildren: AppInsightsMenuProfitabilityRouteRouteChildren =
-  {
-    AppInsightsMenuProfitabilityAdvisorRoute:
-      AppInsightsMenuProfitabilityAdvisorRoute,
-    AppInsightsMenuProfitabilityEngineeringRoute:
-      AppInsightsMenuProfitabilityEngineeringRoute,
-    AppInsightsMenuProfitabilityIndexRoute:
-      AppInsightsMenuProfitabilityIndexRoute,
-  }
-
-const AppInsightsMenuProfitabilityRouteRouteWithChildren =
-  AppInsightsMenuProfitabilityRouteRoute._addFileChildren(
-    AppInsightsMenuProfitabilityRouteRouteChildren,
-  )
-
 interface AppRouteRouteChildren {
   AppAccessRouteRoute: typeof AppAccessRouteRouteWithChildren
   AppDeliveryRouteRoute: typeof AppDeliveryRouteRouteWithChildren
@@ -1254,7 +1113,6 @@ interface AppRouteRouteChildren {
   AppTillsRoute: typeof AppTillsRoute
   AppUsersRoute: typeof AppUsersRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppInsightsMenuProfitabilityRouteRoute: typeof AppInsightsMenuProfitabilityRouteRouteWithChildren
   AppInsightsInventoryReportsRoute: typeof AppInsightsInventoryReportsRoute
   AppInsightsSalesRoute: typeof AppInsightsSalesRoute
   AppKitchenRoutingRoute: typeof AppKitchenRoutingRoute
@@ -1279,8 +1137,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppTillsRoute: AppTillsRoute,
   AppUsersRoute: AppUsersRoute,
   AppIndexRoute: AppIndexRoute,
-  AppInsightsMenuProfitabilityRouteRoute:
-    AppInsightsMenuProfitabilityRouteRouteWithChildren,
   AppInsightsInventoryReportsRoute: AppInsightsInventoryReportsRoute,
   AppInsightsSalesRoute: AppInsightsSalesRoute,
   AppKitchenRoutingRoute: AppKitchenRoutingRoute,

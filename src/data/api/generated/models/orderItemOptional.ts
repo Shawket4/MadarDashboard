@@ -5,7 +5,7 @@ import type { OrderItemOptionalNameTranslations } from './orderItemOptionalNameT
 export interface OrderItemOptional {
   /**
      * Ingredient cost per parent-item unit in piastres. `null` ⟺ unknown or
-   * no ingredient linked.
+     * no ingredient linked.
      * @nullable
      */
   cost?: number | null;

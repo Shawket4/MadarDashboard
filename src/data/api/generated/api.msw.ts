@@ -13,19 +13,8 @@ import type {
 } from 'msw';
 
 import {
-  Action,
   BundleStatus,
-  CmQuadrant,
-  Confidence,
-  Decision,
-  GuardClip,
-  PeerPosition,
-  PriceRoundingRule,
   PrinterBrand,
-  RemovalRecommendation,
-  RevenueClass,
-  RunStatus,
-  SuggestionKind,
   UserRole
 } from './models';
 import type {
@@ -49,9 +38,7 @@ import type {
   BranchTable,
   BundlePerformanceResponse,
   BundleSalesRow,
-  BundleSuggestionRecord,
   BundleWithComponents,
-  CalibrationSummary,
   CashMovement,
   CatalogSyncResponse,
   Category,
@@ -60,9 +47,7 @@ import type {
   CloseShiftResponse,
   CombinedItemSalesRow,
   ConsumptionRow,
-  CreateRunResponse,
   CreateUserResponse,
-  DecisionRecord,
   DeductionLogRow,
   DeliveryMenu,
   DeliveryMenuDiscount,
@@ -89,7 +74,6 @@ import type {
   LowStockRow,
   MarketingLink,
   MeResponse,
-  MenuEngineeringReport,
   MenuItem,
   MenuItemFull,
   OfflineAuthBundle,
@@ -114,13 +98,10 @@ import type {
   PaginatedOrders,
   PaginatedShifts,
   PeakHourPoint,
-  PeerComparison,
   Permission,
   PermissionMatrix,
-  PersistedRun,
   PreviewIngredient,
   PriceOverrideOut,
-  PriceSuggestionRecord,
   PublicBooking,
   PublicBranch,
   PublicOrg,
@@ -129,7 +110,6 @@ import type {
   QrResponse,
   QuoteResponse,
   RecipeCostResult,
-  RemovalScenarioRecord,
   ReorderSuggestion,
   ReservationSettings,
   ResolveBranchResponse,
@@ -150,7 +130,6 @@ import type {
   TellerStats,
   Till,
   TimeseriesPoint,
-  Triplet,
   UploadResponse,
   UserBranch,
   UserPublic,
@@ -331,64 +310,6 @@ export const getListStationsResponseMock = (): KitchenStation[] => (Array.from({
 export const getCreateStationResponseMock = (overrideResponse: Partial<Extract<KitchenStation, object>> = {}): KitchenStation => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), is_active: faker.datatype.boolean(), is_default: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, org_id: faker.string.uuid(), printer_brand: faker.helpers.arrayElement([faker.helpers.arrayElement([null,faker.helpers.arrayElement(Object.values(PrinterBrand)),]), undefined]), printer_ip: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), printer_port: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), sort_order: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
 export const getUpdateStationResponseMock = (overrideResponse: Partial<Extract<KitchenStation, object>> = {}): KitchenStation => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), is_active: faker.datatype.boolean(), is_default: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, org_id: faker.string.uuid(), printer_brand: faker.helpers.arrayElement([faker.helpers.arrayElement([null,faker.helpers.arrayElement(Object.values(PrinterBrand)),]), undefined]), printer_ip: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), printer_port: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), sort_order: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
-
-export const getGetCalibrationHandlerResponseMock = (overrideResponse: Partial<Extract<CalibrationSummary, object>> = {}): CalibrationSummary => ({branch_id: faker.string.uuid(), cm_in_range_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), points_cm: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({classification_mode: faker.string.alpha({length: {min: 10, max: 20}}), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', item_name: faker.string.alpha({length: {min: 10, max: 20}}), menu_item_id: faker.string.uuid(), predicted_delta_pct: faker.number.float({fractionDigits: 2}), previous_price: faker.number.int(), realized_at: faker.date.past().toISOString().slice(0, 19) + 'Z', realized_delta_pct: faker.number.float({fractionDigits: 2}), realized_price: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}}), suggested_price: faker.number.int(), suggestion_id: faker.string.uuid()})), points_revenue: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({classification_mode: faker.string.alpha({length: {min: 10, max: 20}}), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', item_name: faker.string.alpha({length: {min: 10, max: 20}}), menu_item_id: faker.string.uuid(), predicted_delta_pct: faker.number.float({fractionDigits: 2}), previous_price: faker.number.int(), realized_at: faker.date.past().toISOString().slice(0, 19) + 'Z', realized_delta_pct: faker.number.float({fractionDigits: 2}), realized_price: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}}), suggested_price: faker.number.int(), suggestion_id: faker.string.uuid()})), revenue_in_range_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), since: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ...overrideResponse})
-
-export const getListDecisionsHandlerResponseMock = (): DecisionRecord[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_by: faker.string.uuid(), decision: faker.helpers.arrayElement(Object.values(Decision)), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), suggestion_id: faker.string.uuid(), suggestion_kind: faker.helpers.arrayElement(Object.values(SuggestionKind))})))
-
-export const getGetLatestItemKpiHandlerResponsePeerComparisonMock = (overrideResponse: Partial<PeerComparison> = {}): PeerComparison => ({...{median_cm_per_unit_peers: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), median_effective_price_peers: faker.number.float({fractionDigits: 2}), median_margin_pct_peers: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), same_category_count: faker.number.int({min: 0}), your_position: faker.helpers.arrayElement(Object.values(PeerPosition))}, ...overrideResponse});
-
-export const getGetLatestItemKpiHandlerResponseDecisionRecordMock = (overrideResponse: Partial<DecisionRecord> = {}): DecisionRecord => ({...{branch_id: faker.string.uuid(), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_by: faker.string.uuid(), decision: faker.helpers.arrayElement(Object.values(Decision)), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), suggestion_id: faker.string.uuid(), suggestion_kind: faker.helpers.arrayElement(Object.values(SuggestionKind))}, ...overrideResponse});
-
-export const getGetLatestItemKpiHandlerResponseMock = (): PriceSuggestionRecord => ({...{action: faker.helpers.arrayElement(Object.values(Action)), anchors: {cost_plus: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), peer_median: faker.number.float({fractionDigits: 2}), status_quo: faker.number.float({fractionDigits: 2})}, classification: faker.helpers.arrayElement([{mode: faker.helpers.arrayElement(['cm'] as const), quadrant: faker.helpers.arrayElement(Object.values(CmQuadrant))},{class: faker.helpers.arrayElement(Object.values(RevenueClass)), mode: faker.helpers.arrayElement(['revenue'] as const)},{mode: faker.helpers.arrayElement(['insufficient'] as const)},]), cm_per_unit: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), confidence: faker.helpers.arrayElement(Object.values(Confidence)), cost_missing: faker.datatype.boolean(), cost_reduction_whatif_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), current_price: faker.number.int(), effective_price: faker.number.float({fractionDigits: 2}), explanation: faker.string.alpha({length: {min: 10, max: 20}}), food_cost_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), guard_clips: faker.helpers.arrayElements(Object.values(GuardClip)), item_name: faker.string.alpha({length: {min: 10, max: 20}}), key: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), peer_comparison: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getGetLatestItemKpiHandlerResponsePeerComparisonMock()},]), undefined]), popularity_share: faker.number.float({fractionDigits: 2}), price_changed_in_window: faker.datatype.boolean(), suggested_delta_abs: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), suggested_delta_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), suggested_price: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), units_sold_raw: faker.number.float({fractionDigits: 2})},...{branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decision: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getGetLatestItemKpiHandlerResponseDecisionRecordMock()},]), undefined]), id: faker.string.uuid(), run_id: faker.string.uuid()},})
-
-export const getListRunsHandlerResponseMock = (): PersistedRun[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), config: {analysis_window_days: faker.number.float({fractionDigits: 2}), bundle_discount_pct_range: [], bundle_max_size: faker.number.int({min: 0}), bundle_top_k_partners: faker.number.int({min: 0}), bundle_top_n_per_focus: faker.number.int({min: 0}), halo_repeat_rate: faker.number.float({fractionDigits: 2}), max_price_change_pct_per_cycle: faker.number.float({fractionDigits: 2}), min_cooccurrences_for_bundle: faker.number.float({fractionDigits: 2}), min_gross_margin_pct: faker.number.float({fractionDigits: 2}), min_lift_for_bundle: faker.number.float({fractionDigits: 2}), min_units_for_classification: faker.number.float({fractionDigits: 2}), price_rounding_rule: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(PriceRoundingRule)),]), promotion_lift_prior: faker.number.float({fractionDigits: 2}), recency_half_life_days: faker.number.float({fractionDigits: 2}), revenue_mode_max_raise_pct: faker.number.float({fractionDigits: 2}), target_food_cost_pct: faker.number.float({fractionDigits: 2})}, error_message: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), mode_summary: {items_cm_tracked: faker.number.int({min: 0}), items_insufficient: faker.number.int({min: 0}), items_revenue_only: faker.number.int({min: 0}), items_total: faker.number.int({min: 0})}, org_id: faker.string.uuid(), started_at: faker.date.past().toISOString().slice(0, 19) + 'Z', status: faker.helpers.arrayElement(Object.values(RunStatus)), window_days: faker.number.float({fractionDigits: 2})})))
-
-export const getCreateRunHandlerResponseMock = (overrideResponse: Partial<Extract<CreateRunResponse, object>> = {}): CreateRunResponse => ({run_id: faker.string.uuid(), ...overrideResponse})
-
-export const getGetActiveRunHandlerResponsePersistedRunMock = (overrideResponse: Partial<PersistedRun> = {}): PersistedRun => ({...{branch_id: faker.string.uuid(), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), config: {analysis_window_days: faker.number.float({fractionDigits: 2}), bundle_discount_pct_range: [], bundle_max_size: faker.number.int({min: 0}), bundle_top_k_partners: faker.number.int({min: 0}), bundle_top_n_per_focus: faker.number.int({min: 0}), halo_repeat_rate: faker.number.float({fractionDigits: 2}), max_price_change_pct_per_cycle: faker.number.float({fractionDigits: 2}), min_cooccurrences_for_bundle: faker.number.float({fractionDigits: 2}), min_gross_margin_pct: faker.number.float({fractionDigits: 2}), min_lift_for_bundle: faker.number.float({fractionDigits: 2}), min_units_for_classification: faker.number.float({fractionDigits: 2}), price_rounding_rule: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(PriceRoundingRule)),]), promotion_lift_prior: faker.number.float({fractionDigits: 2}), recency_half_life_days: faker.number.float({fractionDigits: 2}), revenue_mode_max_raise_pct: faker.number.float({fractionDigits: 2}), target_food_cost_pct: faker.number.float({fractionDigits: 2})}, error_message: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), mode_summary: {items_cm_tracked: faker.number.int({min: 0}), items_insufficient: faker.number.int({min: 0}), items_revenue_only: faker.number.int({min: 0}), items_total: faker.number.int({min: 0})}, org_id: faker.string.uuid(), started_at: faker.date.past().toISOString().slice(0, 19) + 'Z', status: faker.helpers.arrayElement(Object.values(RunStatus)), window_days: faker.number.float({fractionDigits: 2})}, ...overrideResponse});
-
-export const getGetActiveRunHandlerResponseMock = (): null | PersistedRun => (faker.helpers.arrayElement([null,{...getGetActiveRunHandlerResponsePersistedRunMock()},]))
-
-export const getGetLatestRunHandlerResponsePersistedRunMock = (overrideResponse: Partial<PersistedRun> = {}): PersistedRun => ({...{branch_id: faker.string.uuid(), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), config: {analysis_window_days: faker.number.float({fractionDigits: 2}), bundle_discount_pct_range: [], bundle_max_size: faker.number.int({min: 0}), bundle_top_k_partners: faker.number.int({min: 0}), bundle_top_n_per_focus: faker.number.int({min: 0}), halo_repeat_rate: faker.number.float({fractionDigits: 2}), max_price_change_pct_per_cycle: faker.number.float({fractionDigits: 2}), min_cooccurrences_for_bundle: faker.number.float({fractionDigits: 2}), min_gross_margin_pct: faker.number.float({fractionDigits: 2}), min_lift_for_bundle: faker.number.float({fractionDigits: 2}), min_units_for_classification: faker.number.float({fractionDigits: 2}), price_rounding_rule: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(PriceRoundingRule)),]), promotion_lift_prior: faker.number.float({fractionDigits: 2}), recency_half_life_days: faker.number.float({fractionDigits: 2}), revenue_mode_max_raise_pct: faker.number.float({fractionDigits: 2}), target_food_cost_pct: faker.number.float({fractionDigits: 2})}, error_message: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), mode_summary: {items_cm_tracked: faker.number.int({min: 0}), items_insufficient: faker.number.int({min: 0}), items_revenue_only: faker.number.int({min: 0}), items_total: faker.number.int({min: 0})}, org_id: faker.string.uuid(), started_at: faker.date.past().toISOString().slice(0, 19) + 'Z', status: faker.helpers.arrayElement(Object.values(RunStatus)), window_days: faker.number.float({fractionDigits: 2})}, ...overrideResponse});
-
-export const getGetLatestRunHandlerResponseMock = (): null | PersistedRun => (faker.helpers.arrayElement([null,{...getGetLatestRunHandlerResponsePersistedRunMock()},]))
-
-export const getGetBundleSuggestionHandlerResponseTripletMock = (overrideResponse: Partial<Triplet> = {}): Triplet => ({...{hi: faker.number.float({fractionDigits: 2}), lo: faker.number.float({fractionDigits: 2}), mid: faker.number.float({fractionDigits: 2})}, ...overrideResponse});
-
-export const getGetBundleSuggestionHandlerResponseDecisionRecordMock = (overrideResponse: Partial<DecisionRecord> = {}): DecisionRecord => ({...{branch_id: faker.string.uuid(), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_by: faker.string.uuid(), decision: faker.helpers.arrayElement(Object.values(Decision)), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), suggestion_id: faker.string.uuid(), suggestion_kind: faker.helpers.arrayElement(Object.values(SuggestionKind))}, ...overrideResponse});
-
-export const getGetBundleSuggestionHandlerResponseMock = (): BundleSuggestionRecord => ({...{association: {composite_score: faker.number.float({fractionDigits: 2}), pair_lifts: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({confidence_ab: faker.number.float({fractionDigits: 2}), item_a: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, item_b: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, lift: faker.number.float({fractionDigits: 2}), support: faker.number.float({fractionDigits: 2})}))}, bundle_cm: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), bundle_cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), bundle_discount_pct: faker.number.float({fractionDigits: 2}), bundle_items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})), bundle_list_price: faker.number.int(), bundle_margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), bundle_suggested_price: faker.number.int(), explanation: faker.string.alpha({length: {min: 10, max: 20}}), focus_item: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, forecast: {expected_velocity: {hi: faker.number.float({fractionDigits: 2}), lo: faker.number.float({fractionDigits: 2}), mid: faker.number.float({fractionDigits: 2})}, halo_units_x: faker.number.float({fractionDigits: 2}), incremental_cm: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getGetBundleSuggestionHandlerResponseTripletMock()},]), undefined]), inside_bundle_units_x: faker.number.float({fractionDigits: 2}), total_units_uplift_x: faker.number.float({fractionDigits: 2})}, guard_clips: faker.helpers.arrayElements(Object.values(GuardClip)), missing_costs: faker.datatype.boolean()},...{branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decision: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getGetBundleSuggestionHandlerResponseDecisionRecordMock()},]), undefined]), id: faker.string.uuid(), promoted_bundle_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), run_id: faker.string.uuid()},})
-
-export const getRecordDecisionHandlerResponseMock = (overrideResponse: Partial<Extract<DecisionRecord, object>> = {}): DecisionRecord => ({branch_id: faker.string.uuid(), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_by: faker.string.uuid(), decision: faker.helpers.arrayElement(Object.values(Decision)), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), suggestion_id: faker.string.uuid(), suggestion_kind: faker.helpers.arrayElement(Object.values(SuggestionKind)), ...overrideResponse})
-
-export const getGetPriceSuggestionHandlerResponsePeerComparisonMock = (overrideResponse: Partial<PeerComparison> = {}): PeerComparison => ({...{median_cm_per_unit_peers: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), median_effective_price_peers: faker.number.float({fractionDigits: 2}), median_margin_pct_peers: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), same_category_count: faker.number.int({min: 0}), your_position: faker.helpers.arrayElement(Object.values(PeerPosition))}, ...overrideResponse});
-
-export const getGetPriceSuggestionHandlerResponseDecisionRecordMock = (overrideResponse: Partial<DecisionRecord> = {}): DecisionRecord => ({...{branch_id: faker.string.uuid(), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_by: faker.string.uuid(), decision: faker.helpers.arrayElement(Object.values(Decision)), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), suggestion_id: faker.string.uuid(), suggestion_kind: faker.helpers.arrayElement(Object.values(SuggestionKind))}, ...overrideResponse});
-
-export const getGetPriceSuggestionHandlerResponseMock = (): PriceSuggestionRecord => ({...{action: faker.helpers.arrayElement(Object.values(Action)), anchors: {cost_plus: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), peer_median: faker.number.float({fractionDigits: 2}), status_quo: faker.number.float({fractionDigits: 2})}, classification: faker.helpers.arrayElement([{mode: faker.helpers.arrayElement(['cm'] as const), quadrant: faker.helpers.arrayElement(Object.values(CmQuadrant))},{class: faker.helpers.arrayElement(Object.values(RevenueClass)), mode: faker.helpers.arrayElement(['revenue'] as const)},{mode: faker.helpers.arrayElement(['insufficient'] as const)},]), cm_per_unit: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), confidence: faker.helpers.arrayElement(Object.values(Confidence)), cost_missing: faker.datatype.boolean(), cost_reduction_whatif_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), current_price: faker.number.int(), effective_price: faker.number.float({fractionDigits: 2}), explanation: faker.string.alpha({length: {min: 10, max: 20}}), food_cost_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), guard_clips: faker.helpers.arrayElements(Object.values(GuardClip)), item_name: faker.string.alpha({length: {min: 10, max: 20}}), key: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), peer_comparison: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getGetPriceSuggestionHandlerResponsePeerComparisonMock()},]), undefined]), popularity_share: faker.number.float({fractionDigits: 2}), price_changed_in_window: faker.datatype.boolean(), suggested_delta_abs: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), suggested_delta_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), suggested_price: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), units_sold_raw: faker.number.float({fractionDigits: 2})},...{branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decision: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getGetPriceSuggestionHandlerResponseDecisionRecordMock()},]), undefined]), id: faker.string.uuid(), run_id: faker.string.uuid()},})
-
-export const getGetRemovalScenarioHandlerResponseDecisionRecordMock = (overrideResponse: Partial<DecisionRecord> = {}): DecisionRecord => ({...{branch_id: faker.string.uuid(), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_by: faker.string.uuid(), decision: faker.helpers.arrayElement(Object.values(Decision)), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), suggestion_id: faker.string.uuid(), suggestion_kind: faker.helpers.arrayElement(Object.values(SuggestionKind))}, ...overrideResponse});
-
-export const getGetRemovalScenarioHandlerResponseMock = (): RemovalScenarioRecord => ({...{absorbed_by: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({absorbed_cm: faker.number.float({fractionDigits: 2}), absorbed_units: faker.number.float({fractionDigits: 2}), key: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}})), baseline_cm: faker.number.float({fractionDigits: 2}), complementary_losses: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({key: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, lost_cm: faker.number.float({fractionDigits: 2}), lost_units: faker.number.float({fractionDigits: 2})})), explanation: faker.string.alpha({length: {min: 10, max: 20}}), item_name: faker.string.alpha({length: {min: 10, max: 20}}), key: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, net_cm_change: faker.number.float({fractionDigits: 2}), net_cm_change_hi: faker.number.float({fractionDigits: 2}), net_cm_change_lo: faker.number.float({fractionDigits: 2}), recommendation: faker.helpers.arrayElement(Object.values(RemovalRecommendation))},...{branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decision: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getGetRemovalScenarioHandlerResponseDecisionRecordMock()},]), undefined]), id: faker.string.uuid(), run_id: faker.string.uuid()},})
-
-export const getGetRunHandlerResponseMock = (overrideResponse: Partial<Extract<PersistedRun, object>> = {}): PersistedRun => ({branch_id: faker.string.uuid(), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), config: {analysis_window_days: faker.number.float({fractionDigits: 2}), bundle_discount_pct_range: [], bundle_max_size: faker.number.int({min: 0}), bundle_top_k_partners: faker.number.int({min: 0}), bundle_top_n_per_focus: faker.number.int({min: 0}), halo_repeat_rate: faker.number.float({fractionDigits: 2}), max_price_change_pct_per_cycle: faker.number.float({fractionDigits: 2}), min_cooccurrences_for_bundle: faker.number.float({fractionDigits: 2}), min_gross_margin_pct: faker.number.float({fractionDigits: 2}), min_lift_for_bundle: faker.number.float({fractionDigits: 2}), min_units_for_classification: faker.number.float({fractionDigits: 2}), price_rounding_rule: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(PriceRoundingRule)),]), promotion_lift_prior: faker.number.float({fractionDigits: 2}), recency_half_life_days: faker.number.float({fractionDigits: 2}), revenue_mode_max_raise_pct: faker.number.float({fractionDigits: 2}), target_food_cost_pct: faker.number.float({fractionDigits: 2})}, error_message: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), mode_summary: {items_cm_tracked: faker.number.int({min: 0}), items_insufficient: faker.number.int({min: 0}), items_revenue_only: faker.number.int({min: 0}), items_total: faker.number.int({min: 0})}, org_id: faker.string.uuid(), started_at: faker.date.past().toISOString().slice(0, 19) + 'Z', status: faker.helpers.arrayElement(Object.values(RunStatus)), window_days: faker.number.float({fractionDigits: 2}), ...overrideResponse})
-
-export const getListBundleSuggestionsHandlerResponseTripletMock = (overrideResponse: Partial<Triplet> = {}): Triplet => ({...{hi: faker.number.float({fractionDigits: 2}), lo: faker.number.float({fractionDigits: 2}), mid: faker.number.float({fractionDigits: 2})}, ...overrideResponse});
-
-export const getListBundleSuggestionsHandlerResponseDecisionRecordMock = (overrideResponse: Partial<DecisionRecord> = {}): DecisionRecord => ({...{branch_id: faker.string.uuid(), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_by: faker.string.uuid(), decision: faker.helpers.arrayElement(Object.values(Decision)), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), suggestion_id: faker.string.uuid(), suggestion_kind: faker.helpers.arrayElement(Object.values(SuggestionKind))}, ...overrideResponse});
-
-export const getListBundleSuggestionsHandlerResponseMock = (): BundleSuggestionRecord[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({...{association: {composite_score: faker.number.float({fractionDigits: 2}), pair_lifts: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({confidence_ab: faker.number.float({fractionDigits: 2}), item_a: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, item_b: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, lift: faker.number.float({fractionDigits: 2}), support: faker.number.float({fractionDigits: 2})}))}, bundle_cm: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), bundle_cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), bundle_discount_pct: faker.number.float({fractionDigits: 2}), bundle_items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})), bundle_list_price: faker.number.int(), bundle_margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), bundle_suggested_price: faker.number.int(), explanation: faker.string.alpha({length: {min: 10, max: 20}}), focus_item: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, forecast: {expected_velocity: {hi: faker.number.float({fractionDigits: 2}), lo: faker.number.float({fractionDigits: 2}), mid: faker.number.float({fractionDigits: 2})}, halo_units_x: faker.number.float({fractionDigits: 2}), incremental_cm: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getListBundleSuggestionsHandlerResponseTripletMock()},]), undefined]), inside_bundle_units_x: faker.number.float({fractionDigits: 2}), total_units_uplift_x: faker.number.float({fractionDigits: 2})}, guard_clips: faker.helpers.arrayElements(Object.values(GuardClip)), missing_costs: faker.datatype.boolean()},...{branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decision: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getListBundleSuggestionsHandlerResponseDecisionRecordMock()},]), undefined]), id: faker.string.uuid(), promoted_bundle_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), run_id: faker.string.uuid()},})))
-
-export const getListPriceSuggestionsHandlerResponsePeerComparisonMock = (overrideResponse: Partial<PeerComparison> = {}): PeerComparison => ({...{median_cm_per_unit_peers: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), median_effective_price_peers: faker.number.float({fractionDigits: 2}), median_margin_pct_peers: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), same_category_count: faker.number.int({min: 0}), your_position: faker.helpers.arrayElement(Object.values(PeerPosition))}, ...overrideResponse});
-
-export const getListPriceSuggestionsHandlerResponseDecisionRecordMock = (overrideResponse: Partial<DecisionRecord> = {}): DecisionRecord => ({...{branch_id: faker.string.uuid(), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_by: faker.string.uuid(), decision: faker.helpers.arrayElement(Object.values(Decision)), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), suggestion_id: faker.string.uuid(), suggestion_kind: faker.helpers.arrayElement(Object.values(SuggestionKind))}, ...overrideResponse});
-
-export const getListPriceSuggestionsHandlerResponseMock = (): PriceSuggestionRecord[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({...{action: faker.helpers.arrayElement(Object.values(Action)), anchors: {cost_plus: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), peer_median: faker.number.float({fractionDigits: 2}), status_quo: faker.number.float({fractionDigits: 2})}, classification: faker.helpers.arrayElement([{mode: faker.helpers.arrayElement(['cm'] as const), quadrant: faker.helpers.arrayElement(Object.values(CmQuadrant))},{class: faker.helpers.arrayElement(Object.values(RevenueClass)), mode: faker.helpers.arrayElement(['revenue'] as const)},{mode: faker.helpers.arrayElement(['insufficient'] as const)},]), cm_per_unit: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), confidence: faker.helpers.arrayElement(Object.values(Confidence)), cost_missing: faker.datatype.boolean(), cost_reduction_whatif_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), current_price: faker.number.int(), effective_price: faker.number.float({fractionDigits: 2}), explanation: faker.string.alpha({length: {min: 10, max: 20}}), food_cost_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), guard_clips: faker.helpers.arrayElements(Object.values(GuardClip)), item_name: faker.string.alpha({length: {min: 10, max: 20}}), key: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), peer_comparison: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getListPriceSuggestionsHandlerResponsePeerComparisonMock()},]), undefined]), popularity_share: faker.number.float({fractionDigits: 2}), price_changed_in_window: faker.datatype.boolean(), suggested_delta_abs: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), suggested_delta_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), suggested_price: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), units_sold_raw: faker.number.float({fractionDigits: 2})},...{branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decision: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getListPriceSuggestionsHandlerResponseDecisionRecordMock()},]), undefined]), id: faker.string.uuid(), run_id: faker.string.uuid()},})))
-
-export const getListRemovalScenariosHandlerResponseDecisionRecordMock = (overrideResponse: Partial<DecisionRecord> = {}): DecisionRecord => ({...{branch_id: faker.string.uuid(), decided_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_by: faker.string.uuid(), decision: faker.helpers.arrayElement(Object.values(Decision)), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), suggestion_id: faker.string.uuid(), suggestion_kind: faker.helpers.arrayElement(Object.values(SuggestionKind))}, ...overrideResponse});
-
-export const getListRemovalScenariosHandlerResponseMock = (): RemovalScenarioRecord[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({...{absorbed_by: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({absorbed_cm: faker.number.float({fractionDigits: 2}), absorbed_units: faker.number.float({fractionDigits: 2}), key: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}})), baseline_cm: faker.number.float({fractionDigits: 2}), complementary_losses: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({key: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, lost_cm: faker.number.float({fractionDigits: 2}), lost_units: faker.number.float({fractionDigits: 2})})), explanation: faker.string.alpha({length: {min: 10, max: 20}}), item_name: faker.string.alpha({length: {min: 10, max: 20}}), key: {menu_item_id: faker.string.uuid(), size_label: faker.string.alpha({length: {min: 10, max: 20}})}, net_cm_change: faker.number.float({fractionDigits: 2}), net_cm_change_hi: faker.number.float({fractionDigits: 2}), net_cm_change_lo: faker.number.float({fractionDigits: 2}), recommendation: faker.helpers.arrayElement(Object.values(RemovalRecommendation))},...{branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decision: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getListRemovalScenariosHandlerResponseDecisionRecordMock()},]), undefined]), id: faker.string.uuid(), run_id: faker.string.uuid()},})))
 
 export const getPutSizeRecipeResponseMock = (overrideResponse: Partial<Extract<RecipeCostResult, object>> = {}): RecipeCostResult => ({catalog_revision: faker.number.int(), cost_incomplete: faker.datatype.boolean(), cost_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), recipe: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), ingredient_id: faker.string.uuid(), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), line_cost_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), quantity: faker.string.alpha({length: {min: 10, max: 20}}), unit: faker.string.alpha({length: {min: 10, max: 20}})})), size_id: faker.string.uuid(), ...overrideResponse})
 
@@ -595,8 +516,6 @@ export const getBranchInventoryValuationResponseMock = (overrideResponse: Partia
 export const getBranchCombinedItemSalesResponseMock = (): CombinedItemSalesRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({bundle_qty: faker.number.int(), item_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), item_name: faker.string.alpha({length: {min: 10, max: 20}}), item_name_translations: {}, standalone_qty: faker.number.int(), total_qty: faker.number.int()})))
 
 export const getBranchLowStockResponseMock = (): LowStockRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), current_stock: faker.number.float({fractionDigits: 2}), deficit: faker.number.float({fractionDigits: 2}), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), org_ingredient_id: faker.string.uuid(), reorder_threshold: faker.number.float({fractionDigits: 2}), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), unit: faker.string.alpha({length: {min: 10, max: 20}})})))
-
-export const getBranchMenuEngineeringResponseMock = (overrideResponse: Partial<Extract<MenuEngineeringReport, object>> = {}): MenuEngineeringReport => ({branch_id: faker.string.uuid(), cost_basis: faker.string.alpha({length: {min: 10, max: 20}}), excluded_sales: faker.number.int(), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), rows: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), class: faker.string.alpha({length: {min: 10, max: 20}}), cost_missing_lines: faker.number.int(), item_name: faker.string.alpha({length: {min: 10, max: 20}}), item_profit: faker.number.int(), menu_item_id: faker.string.uuid(), popularity_category: faker.string.alpha({length: {min: 10, max: 20}}), popularity_pct: faker.number.float({fractionDigits: 2}), profit_category: faker.string.alpha({length: {min: 10, max: 20}}), quantity_sold: faker.number.int(), sales: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}}), total_cost: faker.number.int(), total_profit: faker.number.int()})), rows_cost_missing: faker.number.int(), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), total_cost: faker.number.int(), total_profit: faker.number.int(), total_sales: faker.number.int(), ...overrideResponse})
 
 export const getBranchSalesResponseMock = (overrideResponse: Partial<Extract<BranchSalesReport, object>> = {}): BranchSalesReport => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), by_category: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), category_name_translations: {}, item_count: faker.number.int(), items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({item_name: faker.string.alpha({length: {min: 10, max: 20}}), item_name_translations: {}, menu_item_id: faker.string.uuid(), quantity_sold: faker.number.int(), revenue: faker.number.int()})), quantity_sold: faker.number.int(), revenue: faker.number.int()})), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), revenue_by_method: {}, subtotal: faker.number.int(), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), top_items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({item_name: faker.string.alpha({length: {min: 10, max: 20}}), item_name_translations: {}, menu_item_id: faker.string.uuid(), quantity_sold: faker.number.int(), revenue: faker.number.int()})), total_discount: faker.number.int(), total_orders: faker.number.int(), total_revenue: faker.number.int(), total_tax: faker.number.int(), voided_orders: faker.number.int(), ...overrideResponse})
 
@@ -1973,196 +1892,6 @@ export const getUpdateStationMockHandler = (overrideResponse?: KitchenStation | 
   }, options)
 }
 
-export const getGetCalibrationHandlerMockHandler = (overrideResponse?: CalibrationSummary | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<CalibrationSummary> | CalibrationSummary), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/branches/:branchId/calibration', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getGetCalibrationHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getListDecisionsHandlerMockHandler = (overrideResponse?: DecisionRecord[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DecisionRecord[]> | DecisionRecord[]), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/branches/:branchId/decisions', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getListDecisionsHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getGetLatestItemKpiHandlerMockHandler = (overrideResponse?: PriceSuggestionRecord | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PriceSuggestionRecord> | PriceSuggestionRecord), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/branches/:branchId/items/:menuItemId/sizes/:sizeLabel/latest-kpi', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getGetLatestItemKpiHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getListRunsHandlerMockHandler = (overrideResponse?: PersistedRun[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PersistedRun[]> | PersistedRun[]), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/branches/:branchId/runs', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getListRunsHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getCreateRunHandlerMockHandler = (overrideResponse?: CreateRunResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CreateRunResponse> | CreateRunResponse), options?: RequestHandlerOptions) => {
-  return http.post('*/menu-advisor/branches/:branchId/runs', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getCreateRunHandlerResponseMock(),
-      { status: 202
-      })
-  }, options)
-}
-
-export const getGetActiveRunHandlerMockHandler = (overrideResponse?: null | PersistedRun | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<null | PersistedRun> | null | PersistedRun), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/branches/:branchId/runs/active', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getGetActiveRunHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getGetLatestRunHandlerMockHandler = (overrideResponse?: null | PersistedRun | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<null | PersistedRun> | null | PersistedRun), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/branches/:branchId/runs/latest', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getGetLatestRunHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getGetBundleSuggestionHandlerMockHandler = (overrideResponse?: BundleSuggestionRecord | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<BundleSuggestionRecord> | BundleSuggestionRecord), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/bundle-suggestions/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getGetBundleSuggestionHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getSetBundlePromotedHandlerMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
-  return http.post('*/menu-advisor/bundle-suggestions/:id/promote', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
-
-    return new HttpResponse(null,
-      { status: 200
-      })
-  }, options)
-}
-
-export const getRecordDecisionHandlerMockHandler = (overrideResponse?: DecisionRecord | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<DecisionRecord> | DecisionRecord), options?: RequestHandlerOptions) => {
-  return http.post('*/menu-advisor/decisions', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getRecordDecisionHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getGetPriceSuggestionHandlerMockHandler = (overrideResponse?: PriceSuggestionRecord | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PriceSuggestionRecord> | PriceSuggestionRecord), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/price-suggestions/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getGetPriceSuggestionHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getGetRemovalScenarioHandlerMockHandler = (overrideResponse?: RemovalScenarioRecord | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<RemovalScenarioRecord> | RemovalScenarioRecord), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/removal-scenarios/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getGetRemovalScenarioHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getGetRunHandlerMockHandler = (overrideResponse?: PersistedRun | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PersistedRun> | PersistedRun), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/runs/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getGetRunHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getListBundleSuggestionsHandlerMockHandler = (overrideResponse?: BundleSuggestionRecord[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<BundleSuggestionRecord[]> | BundleSuggestionRecord[]), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/runs/:id/bundle-suggestions', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getListBundleSuggestionsHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getListPriceSuggestionsHandlerMockHandler = (overrideResponse?: PriceSuggestionRecord[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PriceSuggestionRecord[]> | PriceSuggestionRecord[]), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/runs/:id/price-suggestions', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getListPriceSuggestionsHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getListRemovalScenariosHandlerMockHandler = (overrideResponse?: RemovalScenarioRecord[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<RemovalScenarioRecord[]> | RemovalScenarioRecord[]), options?: RequestHandlerOptions) => {
-  return http.get('*/menu-advisor/runs/:id/removal-scenarios', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getListRemovalScenariosHandlerResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
 export const getPutSizeRecipeMockHandler = (overrideResponse?: RecipeCostResult | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<RecipeCostResult> | RecipeCostResult), options?: RequestHandlerOptions) => {
   return http.put('*/menu-item-sizes/:sizeId/recipe', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
 
@@ -3491,18 +3220,6 @@ export const getBranchLowStockMockHandler = (overrideResponse?: LowStockRow[] | 
   }, options)
 }
 
-export const getBranchMenuEngineeringMockHandler = (overrideResponse?: MenuEngineeringReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MenuEngineeringReport> | MenuEngineeringReport), options?: RequestHandlerOptions) => {
-  return http.get('*/reports/branches/:branchId/menu-engineering', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getBranchMenuEngineeringResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
 export const getBranchSalesMockHandler = (overrideResponse?: BranchSalesReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<BranchSalesReport> | BranchSalesReport), options?: RequestHandlerOptions) => {
   return http.get('*/reports/branches/:branchId/sales', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -4263,22 +3980,6 @@ export const getMadarAPIMock = () => [
   getCreateStationMockHandler(),
   getDeleteStationMockHandler(),
   getUpdateStationMockHandler(),
-  getGetCalibrationHandlerMockHandler(),
-  getListDecisionsHandlerMockHandler(),
-  getGetLatestItemKpiHandlerMockHandler(),
-  getListRunsHandlerMockHandler(),
-  getCreateRunHandlerMockHandler(),
-  getGetActiveRunHandlerMockHandler(),
-  getGetLatestRunHandlerMockHandler(),
-  getGetBundleSuggestionHandlerMockHandler(),
-  getSetBundlePromotedHandlerMockHandler(),
-  getRecordDecisionHandlerMockHandler(),
-  getGetPriceSuggestionHandlerMockHandler(),
-  getGetRemovalScenarioHandlerMockHandler(),
-  getGetRunHandlerMockHandler(),
-  getListBundleSuggestionsHandlerMockHandler(),
-  getListPriceSuggestionsHandlerMockHandler(),
-  getListRemovalScenariosHandlerMockHandler(),
   getPutSizeRecipeMockHandler(),
   getListMenuItemsMockHandler(),
   getCreateMenuItemMockHandler(),
@@ -4392,7 +4093,6 @@ export const getMadarAPIMock = () => [
   getBranchInventoryValuationMockHandler(),
   getBranchCombinedItemSalesMockHandler(),
   getBranchLowStockMockHandler(),
-  getBranchMenuEngineeringMockHandler(),
   getBranchSalesMockHandler(),
   getBranchSalesPeakHoursMockHandler(),
   getBranchSalesTimeseriesMockHandler(),

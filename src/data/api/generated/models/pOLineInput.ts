@@ -9,7 +9,7 @@ export interface POLineInput {
   unit_cost: number;
   /**
      * Stock units per purchase unit. Ignored when `purchase_unit` is a known
-   * inventory unit (the factor is derived from the ingredient's base unit).
+     * inventory unit (the factor is derived from the ingredient's base unit).
      * @nullable
      */
   units_per_purchase_unit?: number | null;

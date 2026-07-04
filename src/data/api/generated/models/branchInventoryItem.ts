@@ -17,7 +17,7 @@ export interface BranchInventoryItem {
   ingredient_name: string;
   /**
      * When this item was last reconciled by a finalized stock count; `null` =
-   * never counted. Drives the "count due" signal on the inventory home.
+     * never counted. Drives the "count due" signal on the inventory home.
      * @nullable
      */
   last_counted_at?: string | null;

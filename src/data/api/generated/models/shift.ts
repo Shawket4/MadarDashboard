@@ -5,8 +5,8 @@ export interface Shift {
   branch_id: string;
   /**
      * Branch label — only populated by the shifts list (so the "All branches"
-   * view can show which branch each shift belongs to). Other shift endpoints
-   * leave it `null`.
+     * view can show which branch each shift belongs to). Other shift endpoints
+     * leave it `null`.
      * @nullable
      */
   branch_name?: string | null;
@@ -41,8 +41,8 @@ export interface Shift {
   teller_name: string;
   /**
      * The till (drawer) this shift is on. Populated by the read/list/open
-   * endpoints; mutation responses that build the row via RETURNING may leave
-   * `till_name` null (same convention as `branch_name`).
+     * endpoints; mutation responses that build the row via RETURNING may leave
+     * `till_name` null (same convention as `branch_name`).
      * @nullable
      */
   till_id?: string | null;

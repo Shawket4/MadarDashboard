@@ -15,8 +15,10 @@ export interface SyncModifierGroup {
   /** @nullable */
   max?: number | null;
   min: number;
-  /** The group's authored display name (custom groups have no legacy type —
-   * this is what the POS renders as the section title). */
+  /**
+     * The group's authored display name (custom groups have no legacy type —
+     * this is what the POS renders as the section title).
+     */
   name: string;
   name_translations: SyncModifierGroupNameTranslations;
   options: SyncOption[];

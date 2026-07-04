@@ -14,8 +14,10 @@ export interface WhatsappStatus {
   has_qr: boolean;
   /** A number is linked and ready to send. */
   logged_in: boolean;
-  /** Sending is paused by an admin — the number stays linked but every
-   * outbound message (OTP + status) is suppressed until resumed. */
+  /**
+     * Sending is paused by an admin — the number stays linked but every
+     * outbound message (OTP + status) is suppressed until resumed.
+     */
   paused: boolean;
   /**
      * When sending was last paused (audit).

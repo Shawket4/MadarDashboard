@@ -99,7 +99,6 @@ const RULES: Rule[] = [
   { test: /\/reports\/orgs\/[^/]+\/consumption/, method: "get", data: [] },
   { test: /\/reports\/branches\/[^/]+\/shrinkage/, method: "get", data: [] },
   { test: /\/reports\/orgs\/[^/]+\/shrinkage/, method: "get", data: [] },
-  { test: /\/reports\/branches\/[^/]+\/menu-engineering/, method: "get", data: { rows: [] } },
   // Admin / catalog endpoints
   { test: /\/discounts/, method: "get", data: [] },
   { test: /\/users/, method: "get", data: [] },

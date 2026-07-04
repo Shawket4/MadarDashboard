@@ -5,7 +5,7 @@ import type { UserRole } from './userRole';
 export interface CreateUserRequest {
   /**
      * Branches to assign the new user to immediately. Branch managers
-   * can only assign to branches they themselves are assigned to.
+     * can only assign to branches they themselves are assigned to.
      * @nullable
      */
   branch_ids?: string[] | null;
@@ -18,7 +18,7 @@ export interface CreateUserRequest {
   org_id: string;
   /**
      * Required when `role` is anything other than `teller`. Plain text;
-   * hashed server-side with bcrypt before storage.
+     * hashed server-side with bcrypt before storage.
      * @nullable
      */
   password?: string | null;

@@ -36,7 +36,7 @@ export interface DeliveryOrder {
   discount_amount?: number;
   /**
      * Frozen channel discount on the item subtotal (`total == subtotal -
-   * discount_amount + delivery_fee`). `discount_amount` is 0 when none.
+     * discount_amount + delivery_fee`). `discount_amount` is 0 when none.
      * @nullable
      */
   discount_id?: string | null;

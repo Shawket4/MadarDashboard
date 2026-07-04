@@ -28,19 +28,19 @@ export interface CreateOrderRequest {
   notes?: string | null;
   /**
      * IGNORED by the server (accepted for backward compatibility only). The
-   * authoritative per-shift number is ALWAYS `MAX(order_number)+1` computed under
-   * the shift advisory lock — never the client value, which is used only on the
-   * device's local receipt. The byte-identical-at-reprint guarantee rides on
-   * `order_ref`, not this field. Two tills on one shift get distinct numbers
-   * (UNIQUE(shift_id, order_number) + the lock).
+     * authoritative per-shift number is ALWAYS `MAX(order_number)+1` computed under
+     * the shift advisory lock — never the client value, which is used only on the
+     * device's local receipt. The byte-identical-at-reprint guarantee rides on
+     * `order_ref`, not this field. Two tills on one shift get distinct numbers
+     * (UNIQUE(shift_id, order_number) + the lock).
      * @nullable
      */
   order_number?: number | null;
   /**
      * Client-minted order reference (`<BRANCH>-<YYMMDD>-<DEVICE>-<NNNN>`). Stored
-   * verbatim when present; absent → the server mints the deterministic
-   * shift-based ref. The global `UNIQUE(order_ref)` index keeps both paths
-   * collision-safe (a managed per-device code makes concurrent tills unique).
+     * verbatim when present; absent → the server mints the deterministic
+     * shift-based ref. The global `UNIQUE(order_ref)` index keeps both paths
+     * collision-safe (a managed per-device code makes concurrent tills unique).
      * @nullable
      */
   order_ref?: string | null;

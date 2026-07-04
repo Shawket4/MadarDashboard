@@ -26,7 +26,6 @@ import {
   ShoppingCart,
   Store,
   Trash2,
-  TrendingUp,
   Truck,
   Users,
   UtensilsCrossed,
@@ -103,7 +102,6 @@ export const NAV: NavGroup[] = [
     fallback: "Insights",
     entries: [
       { to: "/insights/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
-      { to: "/insights/menu-profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
     ],
   },
   {
