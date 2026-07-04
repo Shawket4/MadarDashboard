@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
-import { Copy, CupSoda, Pencil, Percent, Store, Tag, Trash2, UtensilsCrossed } from "lucide-react";
+import { ChefHat, Copy, CupSoda, Pencil, Percent, Store, Tag, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page } from "@/components/app/page";
@@ -19,6 +19,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CategoryDialog } from "./category-dialog";
 import { AddonDialog } from "./addon-dialog";
+import { AddonRecipeDialog } from "./addon-recipe-dialog";
 import { MenuItemDialog } from "./menu-item-dialog";
 import { BranchAddonAvailabilitySwitch, BranchMenuItemAvailabilitySwitch } from "./branch-availability-switch";
 import { invalidateCatalog } from "./util";
@@ -88,6 +89,8 @@ export function MenuItemsPage() {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [addonOpen, setAddonOpen] = useState(false);
   const [editingAddon, setEditingAddon] = useState<AddonItem | null>(null);
+  const [recipeOpen, setRecipeOpen] = useState(false);
+  const [recipeAddon, setRecipeAddon] = useState<AddonItem | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [bulkRows, setBulkRows] = useState<MenuItem[] | null>(null);
@@ -448,6 +451,9 @@ export function MenuItemsPage() {
                 <DropdownMenuItem onClick={() => { setEditingAddon(a); setAddonOpen(true); }}>
                   <Pencil className="size-4" /> {t("common.edit", "Edit")}
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setRecipeAddon(a); setRecipeOpen(true); }}>
+                  <ChefHat className="size-4" /> {t("menu.addonRecipe.edit", "Edit recipe")}
+                </DropdownMenuItem>
                 <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(a.name, () => delAddon.mutate({ oid: a.id }))}>
                   <Trash2 className="size-4" /> {t("common.delete", "Delete")}
                 </DropdownMenuItem>
@@ -485,6 +491,7 @@ export function MenuItemsPage() {
 
       <MenuItemDialog orgId={orgId} categories={catList} item={editingItem} defaultCategoryId={categoryFilter !== ALL ? categoryFilter : null} open={itemOpen} onOpenChange={setItemOpen} />
       <AddonDialog orgId={orgId} addon={editingAddon} open={addonOpen} onOpenChange={setAddonOpen} />
+      <AddonRecipeDialog orgId={orgId ?? ""} addon={recipeAddon} open={recipeOpen} onOpenChange={setRecipeOpen} />
       <CategoryDialog orgId={orgId} category={editingCategory} open={categoryOpen} onOpenChange={setCategoryOpen} />
       <BulkPriceDialog open={!!bulkRows} rows={bulkRows ?? []} onClose={() => setBulkRows(null)} onDone={() => void invalidateCatalog()} />
     </Page>

@@ -1,11 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { RecipesPage } from "@/features/recipes/recipes-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** Deep-link support: ?item=<menuItemId> opens that drink, ?addon=<addonId> that add-on. */
+/** Retired: item recipes live in the Menu Studio (per-size Recipe tab), add-on
+ *  recipes in the Add-ons manager's "Edit recipe". Old deep links land on the
+ *  items list. */
 export const Route = createFileRoute("/_app/menu/recipes")({
-  validateSearch: (s: Record<string, unknown>): { item?: string; addon?: string } => ({
-    item: typeof s.item === "string" ? s.item : undefined,
-    addon: typeof s.addon === "string" ? s.addon : undefined,
-  }),
-  component: RecipesPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/menu/items" });
+  },
 });

@@ -106,11 +106,15 @@ export function BundleDialog({ orgId, bundle, open, onOpenChange }: Props) {
     () => new Map((bundle?.components ?? []).map((c) => [c.item_id, c.item_cost])),
     [bundle],
   );
-  const recipeCost = isEdit
+  // A bundle's recipe cost is UNKNOWN if any component's cost is unresolved
+  // (unified model: `cost_missing`) — an unknown cost is never counted as 0, or
+  // the profit line would overstate margin. Unknown ⇒ suppress cost + profit.
+  const costKnown = isEdit && !bundle?.cost_missing;
+  const recipeCost = costKnown
     ? watched.reduce((sum, w) => sum + (costByItem.get(w.item_id) ?? 0) * (Number(w.quantity) || 1), 0)
     : 0;
   const savings = retailValue > priceP ? retailValue - priceP : 0;
-  const profit = isEdit && priceP > recipeCost ? priceP - recipeCost : 0;
+  const profit = costKnown && priceP > recipeCost ? priceP - recipeCost : 0;
 
   const optionsFor = (idx: number) =>
     menuItems
@@ -258,9 +262,10 @@ export function BundleDialog({ orgId, bundle, open, onOpenChange }: Props) {
 
               <div className="space-y-2 rounded-xl border bg-muted/40 p-4 text-xs">
                 <div className="flex justify-between border-b pb-2"><span className="text-muted-foreground">{t("bundles.cost", "Retail value")}</span><span className="font-semibold tabular">{fmtMoney(retailValue)}</span></div>
-                {isEdit && recipeCost > 0 ? <div className="flex justify-between border-b pb-2"><span className="text-muted-foreground">{t("bundles.computedCostLabel", "Recipe cost")}</span><span className="font-semibold tabular text-success">{fmtMoney(recipeCost)}</span></div> : null}
+                {costKnown && recipeCost > 0 ? <div className="flex justify-between border-b pb-2"><span className="text-muted-foreground">{t("bundles.computedCostLabel", "Recipe cost")}</span><span className="font-semibold tabular text-success">{fmtMoney(recipeCost)}</span></div> : null}
                 {savings > 0 ? <div className="flex justify-between border-b pb-2"><span className="text-muted-foreground">{t("bundles.customerSavings", "Customer saves")}</span><span className="font-bold tabular text-warning">-{fmtMoney(savings)}</span></div> : null}
-                {isEdit && profit > 0 ? <div className="flex justify-between"><span className="text-muted-foreground">{t("bundles.computedProfitLabel", "Profit")}</span><span className="font-bold tabular text-success">{fmtMoney(profit)}</span></div> : null}
+                {costKnown && profit > 0 ? <div className="flex justify-between"><span className="text-muted-foreground">{t("bundles.computedProfitLabel", "Profit")}</span><span className="font-bold tabular text-success">{fmtMoney(profit)}</span></div> : null}
+                {isEdit && bundle?.cost_missing ? <div className="flex justify-between"><span className="text-muted-foreground">{t("bundles.computedProfitLabel", "Profit")}</span><span className="tabular text-muted-foreground">{t("bundles.costIncomplete", "Cost incomplete")}</span></div> : null}
               </div>
 
               <div className="space-y-2 border-t pt-2">

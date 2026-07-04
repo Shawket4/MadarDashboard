@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, CreditCard, Languages, MessageCircle, Monitor, Moon, Sun } from "lucide-react";
+import { ChevronRight, Languages, MessageCircle, Monitor, Moon, Sun } from "lucide-react";
 
 import { Page } from "@/components/app/page";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,7 +27,6 @@ export function SettingsPage() {
   const setTheme = useTheme((s) => s.setTheme);
   const language = useAppStore((s) => s.language);
   const setLanguage = useAppStore((s) => s.setLanguage);
-  const canManagePayments = role === "org_admin" || role === "super_admin";
   const isSuperAdmin = role === "super_admin";
 
   return (
@@ -67,19 +66,8 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
-        {canManagePayments ? (
-          <Card>
-            <CardContent className="p-0">
-              <Link to="/settings/payment-methods" className="flex items-center justify-between p-5 transition-colors hover:bg-muted/50">
-                <div className="flex items-center gap-4">
-                  <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary"><CreditCard className="size-5" /></span>
-                  <div><p className="text-sm font-bold">{t("settings.paymentMethods", "Payment Methods")}</p><p className="text-xs text-muted-foreground">{t("settings.paymentMethodsHint", "Manage payment methods available for checkout.")}</p></div>
-                </div>
-                <ChevronRight className="size-5 text-muted-foreground rtl:rotate-180" />
-              </Link>
-            </CardContent>
-          </Card>
-        ) : null}
+        {/* Payment methods live in the sidebar (Setup › Payment methods) — not
+            duplicated here, so the sidebar entry owns its own active state. */}
 
         {isSuperAdmin ? (
           <Card>

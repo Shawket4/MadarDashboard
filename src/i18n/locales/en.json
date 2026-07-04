@@ -149,7 +149,8 @@
     "paymentMethods": "Payment methods",
     "whatsapp": "WhatsApp",
     "usersPermissions": "Users & Permissions",
-    "rolesPermissions": "Roles & Permissions"
+    "rolesPermissions": "Roles & Permissions",
+    "pricingAvailability": "Pricing & Availability"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -419,6 +420,33 @@
       "colAvailability": "Availability",
       "colSizeOverrides": "Size overrides",
       "colUpdated": "Updated"
+    },
+    "pricing": {
+      "title": "Pricing & availability",
+      "subtitle": "Set effective price and availability for items and add-ons at a branch — in-store or per delivery channel.",
+      "pickOrg": "Select an organization to manage pricing",
+      "selectBranch": "Select a branch",
+      "noBranches": "No active branches",
+      "inStore": "In-store (no channel)",
+      "channel_in_mall": "In-mall delivery",
+      "channel_outside": "Outside delivery",
+      "channel_umbrella": "Umbrella delivery",
+      "channel_pickup": "Pickup",
+      "menuItems": "Menu items",
+      "addonItems": "Add-ons",
+      "catalogPrice": "Catalog",
+      "inherit": "Inherit",
+      "available": "Available",
+      "hidden": "Hidden",
+      "overridden": "Overridden",
+      "clear": "Clear",
+      "saved": "Changes saved",
+      "invalidPrice": "Enter a valid price",
+      "noSizes": "No sizes to price",
+      "noItems": "No menu items",
+      "noAddons": "No add-ons",
+      "loadError": "Couldn't load items",
+      "loadErrorHint": "Check your connection and try refreshing."
     },
     "itemName": "Item Name",
     "size": "Size",
@@ -692,7 +720,12 @@
         "channel_pickup": "Pickup"
       }
     },
-    "addonTypeLocked": "The type (group) can't change — recreate the add-on to move it."
+    "addonTypeLocked": "The type (group) can't change — recreate the add-on to move it.",
+    "addonRecipe": {
+      "title": "Add-on recipe",
+      "desc": "Ingredients deducted from stock when this add-on is chosen.",
+      "edit": "Edit recipe"
+    }
   },
   "recipes": {
     "title": "Recipes",
@@ -1611,7 +1644,8 @@
       "popularity": "Component popularity",
       "sold": "{{qty}} sold",
       "loadError": "Could not load performance data"
-    }
+    },
+    "costIncomplete": "Cost incomplete"
   },
   "menuAdvisor": {
     "title": "Menu Advisor",

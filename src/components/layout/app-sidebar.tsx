@@ -26,9 +26,25 @@ import { NAV, isParent, type NavLeaf } from "@/config/nav";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
 
+// Every leaf destination in the nav, so active-matching can pick the MOST
+// SPECIFIC one: a parent-ish link like `/settings` must not light up when a
+// more specific sibling (`/settings/payment-methods`) owns the current path.
+const NAV_TARGETS: string[] = NAV.flatMap((g) =>
+  g.entries.flatMap((e) => (isParent(e) ? e.children.map((c) => c.to) : [e.to])),
+);
+
 const useIsActive = () => {
   const { pathname } = useLocation();
-  return (to: string) => (to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(`${to}/`));
+  return (to: string) => {
+    if (to === "/") return pathname === "/";
+    if (pathname !== to && !pathname.startsWith(`${to}/`)) return false;
+    // `to` matches — but only win if no other nav target is a longer match.
+    return !NAV_TARGETS.some(
+      (o) =>
+        o.length > to.length &&
+        (pathname === o || pathname.startsWith(`${o}/`)),
+    );
+  };
 };
 
 export function AppSidebar() {

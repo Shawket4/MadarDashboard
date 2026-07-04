@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ReportsPage } from "@/features/inventory/reports-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** Inventory reports surfaced under Insights — renders the existing inventory
- *  reports feature (also reachable at /inventory/reports inside the Inventory
- *  section). Thin wrapper: no logic of its own. */
+/** Inventory reports live under the Inventory section (`/inventory/reports`).
+ *  This former Insights mirror is retired — redirect so old bookmarks/deep
+ *  links land on the canonical page instead of a now-unlinked duplicate. */
 export const Route = createFileRoute("/_app/insights/inventory-reports")({
-  component: ReportsPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/inventory/reports" });
+  },
 });

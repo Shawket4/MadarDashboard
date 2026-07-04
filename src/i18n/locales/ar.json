@@ -149,7 +149,8 @@
     "paymentMethods": "طرق الدفع",
     "whatsapp": "واتساب",
     "usersPermissions": "المستخدمون والصلاحيات",
-    "rolesPermissions": "الأدوار والصلاحيات"
+    "rolesPermissions": "الأدوار والصلاحيات",
+    "pricingAvailability": "الأسعار والإتاحة"
   },
   "auth": {
     "welcome": "مرحباً بعودتك",
@@ -419,6 +420,33 @@
       "colAvailability": "التوفّر",
       "colSizeOverrides": "تجاوزات الأحجام",
       "colUpdated": "آخر تحديث"
+    },
+    "pricing": {
+      "title": "الأسعار والتوفّر",
+      "subtitle": "حدّد السعر الفعلي والتوفّر للأصناف والإضافات في فرع — داخل المتجر أو حسب قناة التوصيل.",
+      "pickOrg": "اختر مؤسسة لإدارة الأسعار",
+      "selectBranch": "اختر فرعًا",
+      "noBranches": "لا توجد فروع نشطة",
+      "inStore": "داخل المتجر (بدون قناة)",
+      "channel_in_mall": "التوصيل داخل المول",
+      "channel_outside": "التوصيل خارج المول",
+      "channel_umbrella": "توصيل للمظلات",
+      "channel_pickup": "استلام",
+      "menuItems": "الأصناف",
+      "addonItems": "الإضافات",
+      "catalogPrice": "الكتالوج",
+      "inherit": "موروث",
+      "available": "متاح",
+      "hidden": "مخفي",
+      "overridden": "متجاوَز",
+      "clear": "مسح",
+      "saved": "تم حفظ التغييرات",
+      "invalidPrice": "أدخل سعرًا صحيحًا",
+      "noSizes": "لا توجد أحجام للتسعير",
+      "noItems": "لا توجد أصناف",
+      "noAddons": "لا توجد إضافات",
+      "loadError": "تعذّر تحميل العناصر",
+      "loadErrorHint": "تحقّق من اتصالك وحاول التحديث."
     },
     "itemName": "اسم الصنف",
     "size": "الحجم",
@@ -692,7 +720,12 @@
         "channel_pickup": "استلام"
       }
     },
-    "addonTypeLocked": "لا يمكن تغيير النوع (المجموعة) — أنشئ الإضافة من جديد لنقلها."
+    "addonTypeLocked": "لا يمكن تغيير النوع (المجموعة) — أنشئ الإضافة من جديد لنقلها.",
+    "addonRecipe": {
+      "title": "مكوّنات الإضافة",
+      "desc": "المكوّنات التي تُخصم من المخزون عند اختيار هذه الإضافة.",
+      "edit": "تعديل المكوّنات"
+    }
   },
   "recipes": {
     "title": "الوصفات",
@@ -1611,7 +1644,8 @@
       "popularity": "رواج المكوّنات",
       "sold": "بيع {{qty}}",
       "loadError": "تعذّر تحميل بيانات الأداء"
-    }
+    },
+    "costIncomplete": "التكلفة غير مكتملة"
   },
   "menuAdvisor": {
     "title": "مستشار القائمة",

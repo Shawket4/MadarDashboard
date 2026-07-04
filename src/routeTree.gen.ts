@@ -37,6 +37,7 @@ import { Route as AppAccessIndexRouteImport } from './routes/_app/access/index'
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
+import { Route as AppMenuPricingRouteImport } from './routes/_app/menu/pricing'
 import { Route as AppMenuOverridesRouteImport } from './routes/_app/menu/overrides'
 import { Route as AppMenuItemsRouteImport } from './routes/_app/menu/items'
 import { Route as AppMenuEngineeringRouteImport } from './routes/_app/menu/engineering'
@@ -204,6 +205,11 @@ const AppSettingsPaymentMethodsRoute =
 const AppMenuRecipesRoute = AppMenuRecipesRouteImport.update({
   id: '/recipes',
   path: '/recipes',
+  getParentRoute: () => AppMenuRouteRoute,
+} as any)
+const AppMenuPricingRoute = AppMenuPricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
 const AppMenuOverridesRoute = AppMenuOverridesRouteImport.update({
@@ -396,6 +402,7 @@ export interface FileRoutesByFullPath {
   '/menu/engineering': typeof AppMenuEngineeringRoute
   '/menu/items': typeof AppMenuItemsRouteWithChildren
   '/menu/overrides': typeof AppMenuOverridesRoute
+  '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
@@ -447,6 +454,7 @@ export interface FileRoutesByTo {
   '/menu/engineering': typeof AppMenuEngineeringRoute
   '/menu/items': typeof AppMenuItemsRouteWithChildren
   '/menu/overrides': typeof AppMenuOverridesRoute
+  '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
@@ -506,6 +514,7 @@ export interface FileRoutesById {
   '/_app/menu/engineering': typeof AppMenuEngineeringRoute
   '/_app/menu/items': typeof AppMenuItemsRouteWithChildren
   '/_app/menu/overrides': typeof AppMenuOverridesRoute
+  '/_app/menu/pricing': typeof AppMenuPricingRoute
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
@@ -565,6 +574,7 @@ export interface FileRouteTypes {
     | '/menu/engineering'
     | '/menu/items'
     | '/menu/overrides'
+    | '/menu/pricing'
     | '/menu/recipes'
     | '/settings/payment-methods'
     | '/settings/whatsapp'
@@ -616,6 +626,7 @@ export interface FileRouteTypes {
     | '/menu/engineering'
     | '/menu/items'
     | '/menu/overrides'
+    | '/menu/pricing'
     | '/menu/recipes'
     | '/settings/payment-methods'
     | '/settings/whatsapp'
@@ -674,6 +685,7 @@ export interface FileRouteTypes {
     | '/_app/menu/engineering'
     | '/_app/menu/items'
     | '/_app/menu/overrides'
+    | '/_app/menu/pricing'
     | '/_app/menu/recipes'
     | '/_app/settings/payment-methods'
     | '/_app/settings/whatsapp'
@@ -890,6 +902,13 @@ declare module '@tanstack/react-router' {
       path: '/recipes'
       fullPath: '/menu/recipes'
       preLoaderRoute: typeof AppMenuRecipesRouteImport
+      parentRoute: typeof AppMenuRouteRoute
+    }
+    '/_app/menu/pricing': {
+      id: '/_app/menu/pricing'
+      path: '/pricing'
+      fullPath: '/menu/pricing'
+      preLoaderRoute: typeof AppMenuPricingRouteImport
       parentRoute: typeof AppMenuRouteRoute
     }
     '/_app/menu/overrides': {
@@ -1171,6 +1190,7 @@ interface AppMenuRouteRouteChildren {
   AppMenuEngineeringRoute: typeof AppMenuEngineeringRoute
   AppMenuItemsRoute: typeof AppMenuItemsRouteWithChildren
   AppMenuOverridesRoute: typeof AppMenuOverridesRoute
+  AppMenuPricingRoute: typeof AppMenuPricingRoute
   AppMenuRecipesRoute: typeof AppMenuRecipesRoute
   AppMenuIndexRoute: typeof AppMenuIndexRoute
 }
@@ -1181,6 +1201,7 @@ const AppMenuRouteRouteChildren: AppMenuRouteRouteChildren = {
   AppMenuEngineeringRoute: AppMenuEngineeringRoute,
   AppMenuItemsRoute: AppMenuItemsRouteWithChildren,
   AppMenuOverridesRoute: AppMenuOverridesRoute,
+  AppMenuPricingRoute: AppMenuPricingRoute,
   AppMenuRecipesRoute: AppMenuRecipesRoute,
   AppMenuIndexRoute: AppMenuIndexRoute,
 }

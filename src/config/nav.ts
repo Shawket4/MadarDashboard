@@ -91,8 +91,7 @@ export const NAV: NavGroup[] = [
         basePath: "/menu",
         children: [
           { to: "/menu/items", labelKey: "nav.items", fallback: "Items", icon: CupSoda },
-          { to: "/menu/overrides", labelKey: "nav.branchOverrides", fallback: "Branch Overrides", icon: SlidersHorizontal },
-          { to: "/menu/recipes", labelKey: "nav.recipes", fallback: "Recipes", icon: ChefHat },
+          { to: "/menu/pricing", labelKey: "nav.pricingAvailability", fallback: "Pricing & Availability", icon: SlidersHorizontal },
         ],
       },
       { to: "/menu/bundles", labelKey: "nav.bundles", fallback: "Bundles", icon: Layers },
@@ -105,7 +104,6 @@ export const NAV: NavGroup[] = [
     entries: [
       { to: "/insights/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
       { to: "/insights/menu-profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
-      { to: "/insights/inventory-reports", labelKey: "nav.inventoryReports", fallback: "Inventory reports", icon: FileBarChart },
     ],
   },
   {
@@ -142,7 +140,6 @@ export const NAV: NavGroup[] = [
         children: [
           { to: "/delivery/settings", labelKey: "nav.deliverySettings", fallback: "Settings", icon: Settings2 },
           { to: "/delivery/zones", labelKey: "nav.deliveryZones", fallback: "Zone rings", icon: Layers },
-          { to: "/delivery/channels", labelKey: "nav.deliveryChannels", fallback: "Channel overrides", icon: SlidersHorizontal },
         ],
       },
       {
