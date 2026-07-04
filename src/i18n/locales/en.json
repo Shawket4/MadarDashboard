@@ -695,7 +695,10 @@
         "needOne": "Add at least one size.",
         "labelPh": "e.g. Small",
         "moveUp": "Move up",
-        "softDelete": "Sizes with order history are deactivated rather than deleted, preserving past orders."
+        "softDelete": "Sizes with order history are deactivated rather than deleted, preserving past orders.",
+        "moveDown": "Move down",
+        "costMargin": "Cost {{cost}} · Margin {{margin}}",
+        "costOnly": "Cost {{cost}}"
       },
       "recipe": {
         "desc": "What one unit of this size consumes. Cost is computed live.",
@@ -749,6 +752,24 @@
         "channel_outside": "Delivery",
         "channel_umbrella": "Umbrella",
         "channel_pickup": "Pickup"
+      },
+      "pricingLink": "Branch & channel pricing",
+      "usedInBundlesN": "Used in {{count}} bundle",
+      "usedInBundlesN_other": "Used in {{count}} bundles",
+      "unsavedN": "{{count}} unsaved changes",
+      "discard": "Discard",
+      "saveFailedIn": "Couldn't save {{section}}: {{error}}",
+      "sectionRecipeFor": "the recipe for “{{label}}”",
+      "sections": {
+        "sizesTitle": "Sizes, price & recipe",
+        "sizesDesc": "Each size has its own price and recipe. Costs update as you type."
+      },
+      "validate": {
+        "nameRequired": "Item name is required",
+        "sizeLabel": "Every size needs a label",
+        "sizeLabelDup": "Size labels must be unique — “{{label}}” repeats",
+        "priceFor": "Enter a valid price for “{{name}}”",
+        "optionName": "Every option needs a name"
       }
     },
     "addonTypeLocked": "The type (group) can't change — recreate the add-on to move it.",
