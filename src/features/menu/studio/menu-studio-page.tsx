@@ -54,7 +54,9 @@ import { SectionSizes } from "./section-sizes";
 import { SectionModifiers } from "./section-modifiers";
 import { SectionOptions } from "./section-options";
 
-const routeApi = getRouteApi("/_app/menu/items/$itemId");
+// NOTE: the route file is `items_.$itemId.tsx` (trailing underscore = un-nested
+// from the items LIST route), so the route id carries the underscore too.
+const routeApi = getRouteApi("/_app/menu/items_/$itemId");
 
 /** Old `?tab=` deep links → section anchors. `availability` (and anything else
  * without a section) lands on the header, whose pricing link is its new home. */

@@ -352,12 +352,16 @@ function PricingCell({
   const inputId = `price-${targetId}-${colId(col)}`;
 
   return (
-    <div
+    // A real <td> per scope column — the header's <th>s and these cells must
+    // participate in the SAME table column sizing, or the headers drift off
+    // their fields once a row renders (the original flex-in-one-td bug).
+    <td
       className={cn(
-        "flex min-w-36 flex-col gap-1.5 border-s px-2.5 py-2 transition-colors",
+        "min-w-36 border-s p-0 align-top transition-colors",
         dirty && "bg-brand/5",
       )}
     >
+      <div className="flex flex-col gap-1.5 px-2.5 py-2">
       <div className="relative">
         <Input
           id={inputId}
@@ -437,16 +441,18 @@ function PricingCell({
           </TooltipContent>
         </Tooltip>
       </div>
-    </div>
+      </div>
+    </td>
   );
 }
 
-/** The read-only catalog reference cell (first data column). */
+/** The read-only catalog reference cell (first data column) — a real <td> so it
+ * shares column sizing with its header. */
 function CatalogCell({ price }: { price: number }) {
   return (
-    <div className="flex min-w-28 flex-col justify-center px-2.5 py-2">
+    <td className="min-w-28 px-2.5 py-2 align-middle">
       <span className="font-mono text-sm font-medium tabular">{fmtMoney(price)}</span>
-    </div>
+    </td>
   );
 }
 
@@ -689,11 +695,7 @@ function ItemRow({
                     ) : null}
                   </span>
                 </th>
-                <td className="p-0">
-                  <div className="flex">
-                    <TargetCells target={target} dirty={dirty} currencyLabel={currencyLabel} />
-                  </div>
-                </td>
+                <TargetCells target={target} dirty={dirty} currencyLabel={currencyLabel} />
               </tr>
             );
           })
@@ -731,11 +733,7 @@ function AddonRow({
           {dirtyHere ? <span className="size-2 shrink-0 rounded-full bg-brand" aria-hidden="true" /> : null}
         </span>
       </th>
-      <td className="p-0">
-        <div className="flex">
-          <TargetCells target={target} dirty={dirty} currencyLabel={currencyLabel} />
-        </div>
-      </td>
+      <TargetCells target={target} dirty={dirty} currencyLabel={currencyLabel} />
     </tr>
   );
 }
