@@ -79,12 +79,18 @@ type TName = { name: string; name_translations?: unknown };
 function SizeOverrideRow({
   size,
   existing,
+  inheritPrice,
+  inheritsFromBranch,
   branchId,
   channel,
   onChanged,
 }: {
   size: SizeOut;
   existing: SizeOverrideOut | undefined;
+  /** Effective price this row inherits when left blank — the branch override
+   *  when a channel is selected and one exists, else the catalog default. */
+  inheritPrice: number;
+  inheritsFromBranch: boolean;
   branchId: string;
   channel: string;
   onChanged: () => void;
@@ -159,7 +165,8 @@ function SizeOverrideRow({
         {size.label}
       </span>
       <span className="text-xs text-muted-foreground">
-        {t("menu.pricing.catalogPrice", "Catalog")} <span className="tabular">{fmtMoney(size.price)}</span>
+        {inheritsFromBranch ? t("menu.pricing.branchPrice", "Branch") : t("menu.pricing.catalogPrice", "Catalog")}{" "}
+        <span className="tabular">{fmtMoney(inheritPrice)}</span>
       </span>
       <div className="ms-auto flex flex-wrap items-center gap-2">
         <label className="flex items-center gap-2">
@@ -224,6 +231,8 @@ function ItemCard({
     [studio],
   );
 
+  const isChannel = channel !== IN_STORE;
+
   // The branch's current per-size rows for the selected scope. In-store reads the
   // branch-level `sizes`; a channel reads that channel's `sizes`.
   const currentBySize = useMemo(() => {
@@ -238,6 +247,17 @@ function ItemCard({
     for (const r of rows) m.set(r.size_id, r);
     return m;
   }, [studio, branchId, channel]);
+
+  // Branch-level price per size — the baseline a CHANNEL row inherits from
+  // (precedence: branch_channel → branch → catalog). Only branch rows that set
+  // a price count; availability-only branch rows still inherit catalog price.
+  const branchPriceBySize = useMemo(() => {
+    const m = new Map<string, number>();
+    if (!studio) return m;
+    const branch = studio.availability.branches.find((b) => b.branch_id === branchId);
+    for (const r of branch?.sizes ?? []) if (r.price != null) m.set(r.size_id, r.price);
+    return m;
+  }, [studio, branchId]);
 
   return (
     <Card className="gap-0 overflow-hidden py-0">
@@ -285,16 +305,22 @@ function ItemCard({
             </p>
           ) : (
             <div className="divide-y">
-              {sizes.map((size) => (
-                <SizeOverrideRow
-                  key={size.id}
-                  size={size}
-                  existing={currentBySize.get(size.id)}
-                  branchId={branchId}
-                  channel={channel}
-                  onChanged={onChanged}
-                />
-              ))}
+              {sizes.map((size) => {
+                const branchPrice = branchPriceBySize.get(size.id);
+                const inheritsFromBranch = isChannel && branchPrice != null;
+                return (
+                  <SizeOverrideRow
+                    key={size.id}
+                    size={size}
+                    existing={currentBySize.get(size.id)}
+                    inheritPrice={inheritsFromBranch ? branchPrice! : size.price}
+                    inheritsFromBranch={inheritsFromBranch}
+                    branchId={branchId}
+                    channel={channel}
+                    onChanged={onChanged}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
@@ -311,6 +337,8 @@ function AddonCard({
   addon,
   addonName,
   override,
+  inheritPrice,
+  inheritsFromBranch,
   branchId,
   channel,
   onChanged,
@@ -318,6 +346,10 @@ function AddonCard({
   addon: AddonItem;
   addonName: string;
   override: ChannelAddonOverride | undefined;
+  /** Baseline this add-on inherits when blank — the branch override when a
+   *  channel is selected and one exists, else the catalog default. */
+  inheritPrice: number;
+  inheritsFromBranch: boolean;
   branchId: string;
   channel: string;
   onChanged: () => void;
@@ -395,7 +427,8 @@ function AddonCard({
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{addonName}</p>
             <p className="text-xs text-muted-foreground">
-              {t("menu.pricing.catalogPrice", "Catalog")} {fmtMoney(addon.default_price)}
+              {inheritsFromBranch ? t("menu.pricing.branchPrice", "Branch") : t("menu.pricing.catalogPrice", "Catalog")}{" "}
+              {fmtMoney(inheritPrice)}
             </p>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -502,9 +535,11 @@ export function PricingAvailabilityPage() {
     { branch_id: branchId ?? "", channel: isChannel ? channel : IN_STORE },
     { query: { enabled: on && isChannel } },
   );
+  // Fetched whenever a branch is picked (not only in-store): under a channel it
+  // supplies the branch baseline each channel add-on row inherits from.
   const branchAddonOvr = useListBranchAddonOverrides(
     { branch_id: branchId ?? "" },
-    { query: { enabled: on && !isChannel } },
+    { query: { enabled: on } },
   );
 
   const items: MenuItemWithCosts[] = catalog.data?.data ?? [];
@@ -539,6 +574,14 @@ export function PricingAvailabilityPage() {
     }
     return m;
   }, [isChannel, channelAddonOvr.data, branchAddonOvr.data]);
+
+  // Branch-level add-on price — the baseline a CHANNEL add-on row inherits from
+  // (branch_channel → branch → catalog).
+  const branchAddonPriceById = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const o of branchAddonOvr.data ?? []) if (o.price_override != null) m.set(o.addon_item_id, o.price_override);
+    return m;
+  }, [branchAddonOvr.data]);
 
   const refresh = () => { void invalidatePricingOverrides(); };
 
@@ -715,17 +758,23 @@ export function PricingAvailabilityPage() {
               <EmptyState icon={Tag} title={t("menu.pricing.noAddons", "No add-ons")} />
             ) : (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {addonList.map((addon) => (
-                  <AddonCard
-                    key={addon.id}
-                    addon={addon}
-                    addonName={tname(addon)}
-                    override={addonOverrideById.get(addon.id)}
-                    branchId={branchId}
-                    channel={channel}
-                    onChanged={refresh}
-                  />
-                ))}
+                {addonList.map((addon) => {
+                  const branchPrice = branchAddonPriceById.get(addon.id);
+                  const inheritsFromBranch = isChannel && branchPrice != null;
+                  return (
+                    <AddonCard
+                      key={addon.id}
+                      addon={addon}
+                      addonName={tname(addon)}
+                      override={addonOverrideById.get(addon.id)}
+                      inheritPrice={inheritsFromBranch ? branchPrice! : addon.default_price}
+                      inheritsFromBranch={inheritsFromBranch}
+                      branchId={branchId}
+                      channel={channel}
+                      onChanged={refresh}
+                    />
+                  );
+                })}
               </div>
             )}
 

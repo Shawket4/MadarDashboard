@@ -446,7 +446,8 @@
       "noItems": "No menu items",
       "noAddons": "No add-ons",
       "loadError": "Couldn't load items",
-      "loadErrorHint": "Check your connection and try refreshing."
+      "loadErrorHint": "Check your connection and try refreshing.",
+      "branchPrice": "Branch"
     },
     "itemName": "Item Name",
     "size": "Size",
