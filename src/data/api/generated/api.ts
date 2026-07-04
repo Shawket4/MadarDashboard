@@ -85,6 +85,8 @@ import type {
   CreateBundleRequest,
   CreateCatalogItemRequest,
   CreateCategoryRequest,
+  CreateDecisionParams,
+  CreateDecisionRequest,
   CreateDiscountRequest,
   CreateFloorTableRequest,
   CreateGroupRequest,
@@ -108,6 +110,7 @@ import type {
   CreateUserRequest,
   CreateUserResponse,
   CreateWasteRequest,
+  DecisionOut,
   DeductionLogRow,
   DeleteAddonIngredientParams,
   DeleteBranchAddonOverrideParams,
@@ -139,6 +142,7 @@ import type {
   ForceCloseRequest,
   GetBranchSettingsParams,
   GetCurrentShiftParams,
+  GetMarginTargetsParams,
   GetReservationSettingsParams,
   GetRoutingModeParams,
   GoodsReceipt,
@@ -164,6 +168,7 @@ import type {
   ListCategoriesParams,
   ListChannelAddonOverridesParams,
   ListChannelOverridesParams,
+  ListDecisionsParams,
   ListDeliveryOrdersParams,
   ListDiscountsParams,
   ListFloorTablesParams,
@@ -188,10 +193,15 @@ import type {
   LoginRequest,
   LoginResponse,
   LowStockRow,
+  MarginLedgerReport,
+  MarginTargets,
+  MarginWatch,
+  MarginWatchParams,
   MarketingLink,
   MeResponse,
   MenuItem,
   MenuItemFull,
+  MenuMarginLedgerParams,
   MoveTicketTableRequest,
   OfflineAuthBundle,
   OnboardingStatus,
@@ -242,10 +252,12 @@ import type {
   PurchaseOrderFull,
   PutAllowedAddonsRequest,
   PutItemOptionsRequest,
+  PutMarginTargetParams,
   PutModifierGroupsRequest,
   PutRecipeRequest,
   PutReservationSettingsParams,
   PutSizesRequest,
+  PutTargetRequest,
   QrResponse,
   QuoteResponse,
   ReceivePurchaseOrderRequest,
@@ -5966,6 +5978,494 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSetTableStatusMutationOptions(options), queryClient);
+    }
+
+export const marginWatch = (
+    branchId: string,
+    params?: MarginWatchParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MarginWatch>(
+      {url: `/insights/branches/${branchId}/margin-watch`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getMarginWatchQueryKey = (branchId: string,
+    params?: MarginWatchParams,) => {
+    return [
+    `/insights/branches/${branchId}/margin-watch`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getMarginWatchQueryOptions = <TData = Awaited<ReturnType<typeof marginWatch>>, TError = unknown>(branchId: string,
+    params?: MarginWatchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof marginWatch>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMarginWatchQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof marginWatch>>> = ({ signal }) => marginWatch(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof marginWatch>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MarginWatchQueryResult = NonNullable<Awaited<ReturnType<typeof marginWatch>>>
+export type MarginWatchQueryError = unknown
+
+
+export function useMarginWatch<TData = Awaited<ReturnType<typeof marginWatch>>, TError = unknown>(
+ branchId: string,
+    params: undefined |  MarginWatchParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof marginWatch>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof marginWatch>>,
+          TError,
+          Awaited<ReturnType<typeof marginWatch>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMarginWatch<TData = Awaited<ReturnType<typeof marginWatch>>, TError = unknown>(
+ branchId: string,
+    params?: MarginWatchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof marginWatch>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof marginWatch>>,
+          TError,
+          Awaited<ReturnType<typeof marginWatch>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMarginWatch<TData = Awaited<ReturnType<typeof marginWatch>>, TError = unknown>(
+ branchId: string,
+    params?: MarginWatchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof marginWatch>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMarginWatch<TData = Awaited<ReturnType<typeof marginWatch>>, TError = unknown>(
+ branchId: string,
+    params?: MarginWatchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof marginWatch>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMarginWatchQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const menuMarginLedger = (
+    branchId: string,
+    params?: MenuMarginLedgerParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MarginLedgerReport>(
+      {url: `/insights/branches/${branchId}/menu-margin`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getMenuMarginLedgerQueryKey = (branchId: string,
+    params?: MenuMarginLedgerParams,) => {
+    return [
+    `/insights/branches/${branchId}/menu-margin`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getMenuMarginLedgerQueryOptions = <TData = Awaited<ReturnType<typeof menuMarginLedger>>, TError = unknown>(branchId: string,
+    params?: MenuMarginLedgerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof menuMarginLedger>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMenuMarginLedgerQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof menuMarginLedger>>> = ({ signal }) => menuMarginLedger(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof menuMarginLedger>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MenuMarginLedgerQueryResult = NonNullable<Awaited<ReturnType<typeof menuMarginLedger>>>
+export type MenuMarginLedgerQueryError = unknown
+
+
+export function useMenuMarginLedger<TData = Awaited<ReturnType<typeof menuMarginLedger>>, TError = unknown>(
+ branchId: string,
+    params: undefined |  MenuMarginLedgerParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof menuMarginLedger>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof menuMarginLedger>>,
+          TError,
+          Awaited<ReturnType<typeof menuMarginLedger>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMenuMarginLedger<TData = Awaited<ReturnType<typeof menuMarginLedger>>, TError = unknown>(
+ branchId: string,
+    params?: MenuMarginLedgerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof menuMarginLedger>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof menuMarginLedger>>,
+          TError,
+          Awaited<ReturnType<typeof menuMarginLedger>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMenuMarginLedger<TData = Awaited<ReturnType<typeof menuMarginLedger>>, TError = unknown>(
+ branchId: string,
+    params?: MenuMarginLedgerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof menuMarginLedger>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMenuMarginLedger<TData = Awaited<ReturnType<typeof menuMarginLedger>>, TError = unknown>(
+ branchId: string,
+    params?: MenuMarginLedgerParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof menuMarginLedger>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMenuMarginLedgerQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const listDecisions = (
+    params: ListDecisionsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DecisionOut[]>(
+      {url: `/insights/decisions`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListDecisionsQueryKey = (params?: ListDecisionsParams,) => {
+    return [
+    `/insights/decisions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListDecisionsQueryOptions = <TData = Awaited<ReturnType<typeof listDecisions>>, TError = unknown>(params: ListDecisionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDecisionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDecisions>>> = ({ signal }) => listDecisions(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDecisions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListDecisionsQueryResult = NonNullable<Awaited<ReturnType<typeof listDecisions>>>
+export type ListDecisionsQueryError = unknown
+
+
+export function useListDecisions<TData = Awaited<ReturnType<typeof listDecisions>>, TError = unknown>(
+ params: ListDecisionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDecisions>>,
+          TError,
+          Awaited<ReturnType<typeof listDecisions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDecisions<TData = Awaited<ReturnType<typeof listDecisions>>, TError = unknown>(
+ params: ListDecisionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDecisions>>,
+          TError,
+          Awaited<ReturnType<typeof listDecisions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDecisions<TData = Awaited<ReturnType<typeof listDecisions>>, TError = unknown>(
+ params: ListDecisionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListDecisions<TData = Awaited<ReturnType<typeof listDecisions>>, TError = unknown>(
+ params: ListDecisionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDecisions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListDecisionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const createDecision = (
+    createDecisionRequest: CreateDecisionRequest,
+    params: CreateDecisionParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DecisionOut>(
+      {url: `/insights/decisions`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createDecisionRequest,
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getCreateDecisionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDecision>>, TError,{data: CreateDecisionRequest;params: CreateDecisionParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createDecision>>, TError,{data: CreateDecisionRequest;params: CreateDecisionParams}, TContext> => {
+
+const mutationKey = ['createDecision'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDecision>>, {data: CreateDecisionRequest;params: CreateDecisionParams}> = (props) => {
+          const {data,params} = props ?? {};
+
+          return  createDecision(data,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateDecisionMutationResult = NonNullable<Awaited<ReturnType<typeof createDecision>>>
+    export type CreateDecisionMutationBody = CreateDecisionRequest
+    export type CreateDecisionMutationError = unknown
+
+    export const useCreateDecision = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDecision>>, TError,{data: CreateDecisionRequest;params: CreateDecisionParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createDecision>>,
+        TError,
+        {data: CreateDecisionRequest;params: CreateDecisionParams},
+        TContext
+      > => {
+      return useMutation(getCreateDecisionMutationOptions(options), queryClient);
+    }
+
+export const getMarginTargets = (
+    params: GetMarginTargetsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MarginTargets>(
+      {url: `/insights/margin-target`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetMarginTargetsQueryKey = (params?: GetMarginTargetsParams,) => {
+    return [
+    `/insights/margin-target`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMarginTargetsQueryOptions = <TData = Awaited<ReturnType<typeof getMarginTargets>>, TError = unknown>(params: GetMarginTargetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMarginTargets>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMarginTargetsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMarginTargets>>> = ({ signal }) => getMarginTargets(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMarginTargets>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMarginTargetsQueryResult = NonNullable<Awaited<ReturnType<typeof getMarginTargets>>>
+export type GetMarginTargetsQueryError = unknown
+
+
+export function useGetMarginTargets<TData = Awaited<ReturnType<typeof getMarginTargets>>, TError = unknown>(
+ params: GetMarginTargetsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMarginTargets>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMarginTargets>>,
+          TError,
+          Awaited<ReturnType<typeof getMarginTargets>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMarginTargets<TData = Awaited<ReturnType<typeof getMarginTargets>>, TError = unknown>(
+ params: GetMarginTargetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMarginTargets>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMarginTargets>>,
+          TError,
+          Awaited<ReturnType<typeof getMarginTargets>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMarginTargets<TData = Awaited<ReturnType<typeof getMarginTargets>>, TError = unknown>(
+ params: GetMarginTargetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMarginTargets>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMarginTargets<TData = Awaited<ReturnType<typeof getMarginTargets>>, TError = unknown>(
+ params: GetMarginTargetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMarginTargets>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMarginTargetsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const putMarginTarget = (
+    putTargetRequest: PutTargetRequest,
+    params: PutMarginTargetParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MarginTargets>(
+      {url: `/insights/margin-target`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: putTargetRequest,
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutMarginTargetMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putMarginTarget>>, TError,{data: PutTargetRequest;params: PutMarginTargetParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putMarginTarget>>, TError,{data: PutTargetRequest;params: PutMarginTargetParams}, TContext> => {
+
+const mutationKey = ['putMarginTarget'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putMarginTarget>>, {data: PutTargetRequest;params: PutMarginTargetParams}> = (props) => {
+          const {data,params} = props ?? {};
+
+          return  putMarginTarget(data,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutMarginTargetMutationResult = NonNullable<Awaited<ReturnType<typeof putMarginTarget>>>
+    export type PutMarginTargetMutationBody = PutTargetRequest
+    export type PutMarginTargetMutationError = unknown
+
+    export const usePutMarginTarget = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putMarginTarget>>, TError,{data: PutTargetRequest;params: PutMarginTargetParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putMarginTarget>>,
+        TError,
+        {data: PutTargetRequest;params: PutMarginTargetParams},
+        TContext
+      > => {
+      return useMutation(getPutMarginTargetMutationOptions(options), queryClient);
     }
 
 export const listMovements = (

@@ -2149,6 +2149,237 @@ export const SetTableStatusResponse = zod.object({
 })
 
 
+export const MarginWatchParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch id, or the nil UUID for org-wide')
+})
+
+export const MarginWatchQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "cost_basis": zod.string().optional().describe('`snapshot` (default) | `current`.')
+})
+
+export const MarginWatchResponse = zod.object({
+  "bottom": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "category_name": zod.string().nullish(),
+  "cost": zod.number().nullish().describe('Piastres under the chosen basis; `null` = unknown (never 0).'),
+  "flags": zod.array(zod.object({
+  "kind": zod.string().describe('below_cost | below_target | cost_spike | price_candidate |\nremoval_candidate | recipe_incomplete'),
+  "link": zod.string().describe('Where the fix lives: `pricing` | `studio` | `studio_recipe`.'),
+  "params": zod.looseObject({
+
+})
+}).describe('One advisory flag on a ledger row. `params` carries the evidence numbers the\nclient templates into a localized reason; `link` names the fix surface.')),
+  "item_name": zod.string(),
+  "margin": zod.number().nullish(),
+  "margin_pct": zod.number().nullish(),
+  "margin_share_pct": zod.number().nullish().describe('This row\'s share of the total KNOWN margin (null when margin unknown\nor total margin ≤ 0).'),
+  "menu_item_id": zod.uuid(),
+  "on_menu": zod.boolean().describe('False when this SKU no longer exists on the active menu (historical\nsales under a removed size\/item).'),
+  "prev_margin": zod.number().nullish(),
+  "prev_quantity": zod.number().describe('Previous equal-length period, for the trend column.'),
+  "quantity_sold": zod.number(),
+  "revenue": zod.number(),
+  "size_label": zod.string().describe('`\"one_size\"` for items without sizes.')
+})).describe('Worst contributors (asc, only rows with known margin), max 3.'),
+  "branch_id": zod.uuid(),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "open_signals": zod.number(),
+  "rows_cost_unknown": zod.number(),
+  "target_pct": zod.number(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "top": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "category_name": zod.string().nullish(),
+  "cost": zod.number().nullish().describe('Piastres under the chosen basis; `null` = unknown (never 0).'),
+  "flags": zod.array(zod.object({
+  "kind": zod.string().describe('below_cost | below_target | cost_spike | price_candidate |\nremoval_candidate | recipe_incomplete'),
+  "link": zod.string().describe('Where the fix lives: `pricing` | `studio` | `studio_recipe`.'),
+  "params": zod.looseObject({
+
+})
+}).describe('One advisory flag on a ledger row. `params` carries the evidence numbers the\nclient templates into a localized reason; `link` names the fix surface.')),
+  "item_name": zod.string(),
+  "margin": zod.number().nullish(),
+  "margin_pct": zod.number().nullish(),
+  "margin_share_pct": zod.number().nullish().describe('This row\'s share of the total KNOWN margin (null when margin unknown\nor total margin ≤ 0).'),
+  "menu_item_id": zod.uuid(),
+  "on_menu": zod.boolean().describe('False when this SKU no longer exists on the active menu (historical\nsales under a removed size\/item).'),
+  "prev_margin": zod.number().nullish(),
+  "prev_quantity": zod.number().describe('Previous equal-length period, for the trend column.'),
+  "quantity_sold": zod.number(),
+  "revenue": zod.number(),
+  "size_label": zod.string().describe('`\"one_size\"` for items without sizes.')
+})).describe('Top contributors by known margin (desc), max 3.'),
+  "totals": zod.object({
+  "below_target_gap": zod.number().describe('Σ(target·revenue − margin) over below-target rows — \"margin left on\nthe table\" this period, in piastres.'),
+  "cost_known": zod.number().describe('Cost summed over rows where it is known.'),
+  "margin_known": zod.number(),
+  "margin_pct": zod.number().nullish(),
+  "prev_margin_known": zod.number(),
+  "prev_revenue": zod.number(),
+  "revenue": zod.number(),
+  "revenue_cost_unknown": zod.number().describe('Revenue sitting on rows whose cost is unknown (visibly reconciles).')
+})
+})
+
+
+export const MenuMarginLedgerParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch id, or the nil UUID for every branch in the org')
+})
+
+export const MenuMarginLedgerQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "cost_basis": zod.string().optional().describe('`snapshot` (default) | `current`.')
+})
+
+export const MenuMarginLedgerResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cost_basis": zod.string(),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "rows": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "category_name": zod.string().nullish(),
+  "cost": zod.number().nullish().describe('Piastres under the chosen basis; `null` = unknown (never 0).'),
+  "flags": zod.array(zod.object({
+  "kind": zod.string().describe('below_cost | below_target | cost_spike | price_candidate |\nremoval_candidate | recipe_incomplete'),
+  "link": zod.string().describe('Where the fix lives: `pricing` | `studio` | `studio_recipe`.'),
+  "params": zod.looseObject({
+
+})
+}).describe('One advisory flag on a ledger row. `params` carries the evidence numbers the\nclient templates into a localized reason; `link` names the fix surface.')),
+  "item_name": zod.string(),
+  "margin": zod.number().nullish(),
+  "margin_pct": zod.number().nullish(),
+  "margin_share_pct": zod.number().nullish().describe('This row\'s share of the total KNOWN margin (null when margin unknown\nor total margin ≤ 0).'),
+  "menu_item_id": zod.uuid(),
+  "on_menu": zod.boolean().describe('False when this SKU no longer exists on the active menu (historical\nsales under a removed size\/item).'),
+  "prev_margin": zod.number().nullish(),
+  "prev_quantity": zod.number().describe('Previous equal-length period, for the trend column.'),
+  "quantity_sold": zod.number(),
+  "revenue": zod.number(),
+  "size_label": zod.string().describe('`\"one_size\"` for items without sizes.')
+})),
+  "rows_cost_unknown": zod.number().describe('Rows whose cost is unknown under the chosen basis (they ARE in `rows`).'),
+  "target_pct": zod.number(),
+  "target_source": zod.string().describe('`branch` | `org` | `default`.'),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "totals": zod.object({
+  "below_target_gap": zod.number().describe('Σ(target·revenue − margin) over below-target rows — \"margin left on\nthe table\" this period, in piastres.'),
+  "cost_known": zod.number().describe('Cost summed over rows where it is known.'),
+  "margin_known": zod.number(),
+  "margin_pct": zod.number().nullish(),
+  "prev_margin_known": zod.number(),
+  "prev_revenue": zod.number(),
+  "revenue": zod.number(),
+  "revenue_cost_unknown": zod.number().describe('Revenue sitting on rows whose cost is unknown (visibly reconciles).')
+})
+})
+
+
+export const ListDecisionsQueryParams = zod.object({
+  "org_id": zod.uuid(),
+  "branch_id": zod.uuid().optional(),
+  "limit": zod.number().optional()
+})
+
+export const ListDecisionsResponseItem = zod.object({
+  "action": zod.string(),
+  "baseline": zod.looseObject({
+
+}),
+  "branch_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "detail": zod.looseObject({
+
+}),
+  "id": zod.uuid(),
+  "impact": zod.looseObject({
+
+}).describe('Measured after-window aggregate; `null` until ≥1 day of after-data.'),
+  "impact_complete": zod.boolean().describe('True once the full baseline window has elapsed since the decision.'),
+  "item_name": zod.string(),
+  "menu_item_id": zod.uuid(),
+  "signal_kind": zod.string(),
+  "size_label": zod.string()
+})
+export const ListDecisionsResponse = zod.array(ListDecisionsResponseItem)
+
+
+export const CreateDecisionQueryParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const CreateDecisionBody = zod.object({
+  "action": zod.string().describe('`acted` | `dismissed` | `snoozed`.'),
+  "branch_id": zod.uuid().nullish(),
+  "detail": zod.looseObject({
+
+}).optional(),
+  "menu_item_id": zod.uuid(),
+  "signal_kind": zod.string(),
+  "size_label": zod.string().optional()
+})
+
+export const CreateDecisionResponse = zod.object({
+  "action": zod.string(),
+  "baseline": zod.looseObject({
+
+}),
+  "branch_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "detail": zod.looseObject({
+
+}),
+  "id": zod.uuid(),
+  "impact": zod.looseObject({
+
+}).describe('Measured after-window aggregate; `null` until ≥1 day of after-data.'),
+  "impact_complete": zod.boolean().describe('True once the full baseline window has elapsed since the decision.'),
+  "item_name": zod.string(),
+  "menu_item_id": zod.uuid(),
+  "signal_kind": zod.string(),
+  "size_label": zod.string()
+})
+
+
+export const GetMarginTargetsQueryParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const GetMarginTargetsResponse = zod.object({
+  "branches": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "target_pct": zod.number()
+})),
+  "builtin_default_pct": zod.number(),
+  "org_default_pct": zod.number().nullish()
+})
+
+
+export const PutMarginTargetQueryParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const PutMarginTargetBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('Omit for the org default; set for a branch override.'),
+  "target_pct": zod.number()
+})
+
+export const PutMarginTargetResponse = zod.object({
+  "branches": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "target_pct": zod.number()
+})),
+  "builtin_default_pct": zod.number(),
+  "org_default_pct": zod.number().nullish()
+})
+
+
 export const ListMovementsParams = zod.object({
   "branch_id": zod.uuid().describe('Branch ID')
 })

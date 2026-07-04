@@ -46,6 +46,12 @@ import {
   MOCK_TOKEN,
   MOCK_USER,
   bundlesPage,
+  mockCreateDecision,
+  mockDecisions,
+  mockMarginTargets,
+  mockMarginWatch,
+  mockMenuMargin,
+  mockPutMarginTarget,
   permissionMatrix,
   shiftsPage,
 } from "./data";
@@ -309,6 +315,20 @@ export const handlers = [
   http.get("*/reports/branches/*/items-combined", () => HttpResponse.json(MOCK_COMBINED_ITEM_SALES)),
   http.get("*/reports/branches/*/addons", () => HttpResponse.json(MOCK_ADDON_SALES)),
   http.get("*/reports/branches/*/tellers", () => HttpResponse.json(MOCK_TELLER_STATS)),
+
+  // ── Insights (menu profitability) ─────────────────────────────────────────
+  http.get("*/insights/branches/*/margin-watch", () => HttpResponse.json(mockMarginWatch())),
+  http.get("*/insights/branches/*/menu-margin", () => HttpResponse.json(mockMenuMargin())),
+  http.get("*/insights/margin-target", () => HttpResponse.json(mockMarginTargets())),
+  http.put("*/insights/margin-target", async ({ request }) => {
+    const body = (await request.json()) as { branch_id?: string | null; target_pct: number };
+    return HttpResponse.json(mockPutMarginTarget(body));
+  }),
+  http.get("*/insights/decisions", () => HttpResponse.json(mockDecisions)),
+  http.post("*/insights/decisions", async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json(mockCreateDecision(body));
+  }),
 
   // ── Org ───────────────────────────────────────────────────────────────────
   http.get("*/orgs/:orgId", () => HttpResponse.json(MOCK_ORG)),

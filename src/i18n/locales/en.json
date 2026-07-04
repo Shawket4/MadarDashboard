@@ -3191,5 +3191,95 @@
     "subtitle": "Physical cash drawers / registers for this branch.",
     "title": "Tills",
     "updated": "Till updated"
+  },
+  "insights": {
+    "pickOrg": "Select an organization to see menu profitability",
+    "profitability": {
+      "title": "Menu profitability",
+      "revenue": "Revenue",
+      "grossMargin": "Gross margin",
+      "ofRevenue": "{{pct}}% of revenue",
+      "belowTargetGap": "Margin below target",
+      "costUnknownNote_one": "1 item excluded from margin — cost unknown",
+      "costUnknownNote_other": "{{count}} items excluded from margin — cost unknown",
+      "basisSnapshot": "Snapshot",
+      "basisCurrent": "Today's costs",
+      "ledgerTab": "Ledger",
+      "decisionsTab": "Decisions",
+      "flaggedOnly": "Flagged only",
+      "offMenu": "Off menu",
+      "vsPrev": "vs previous period",
+      "noFlags": "Nothing flagged — margins look healthy",
+      "noRows": "No sales in this period"
+    },
+    "columns": {
+      "item": "Item",
+      "sold": "Sold",
+      "revenue": "Revenue",
+      "cost": "Cost",
+      "margin": "Margin",
+      "marginPct": "Margin %",
+      "share": "Share %",
+      "flags": "Flags",
+      "signal": "Signal",
+      "action": "Action",
+      "when": "When"
+    },
+    "target": {
+      "title": "Margin target",
+      "hint": "Rows under this gross-margin bar get flagged.",
+      "branchSource": "Branch target {{pct}}%",
+      "orgSource": "Org target {{pct}}%",
+      "defaultSource": "Default {{pct}}% — set yours",
+      "orgDefault": "Org default %",
+      "branchOverride": "This branch %"
+    },
+    "actions": {
+      "fix": "Fix",
+      "dismiss": "Dismiss",
+      "snooze": "Snooze",
+      "acted": "Fixed",
+      "dismissed": "Dismissed",
+      "snoozed": "Snoozed"
+    },
+    "signals": {
+      "label": {
+        "below_cost": "Below cost",
+        "below_target": "Below target",
+        "cost_spike": "Cost spike",
+        "price_candidate": "Price check",
+        "removal_candidate": "No sales",
+        "recipe_incomplete": "No recipe"
+      },
+      "reason": {
+        "below_cost": "Sells below cost — margin {{margin}}",
+        "below_target": "Margin {{marginPct}}% is under the {{targetPct}}% target",
+        "cost_spike": "{{ingredient}} cost moved {{pct}}% this period",
+        "price_candidate": "Top seller under target — suggested price {{price}}",
+        "removal_candidate": "No sales this period",
+        "recipe_incomplete": "Recipe incomplete — cost unknown"
+      }
+    },
+    "decisions": {
+      "empty": "No decisions yet",
+      "emptyHint": "Fix, dismiss or snooze a flag on the ledger and its measured impact shows up here.",
+      "measuring": "Measuring…",
+      "complete": "Measurement complete",
+      "qtyPerDay": "Qty/day",
+      "status": "Status"
+    },
+    "watch": {
+      "title": "Margin watch",
+      "vsPrev": "vs previous period",
+      "openSignals_one": "1 open signal",
+      "openSignals_other": "{{count}} open signals",
+      "costUnknown_one": "1 item missing cost",
+      "costUnknown_other": "{{count}} items missing cost",
+      "sold_one": "1 sold",
+      "sold_other": "{{count}} sold",
+      "top": "Top earners",
+      "bottom": "Needs attention",
+      "viewAll": "Menu profitability"
+    }
   }
 }

@@ -928,3 +928,238 @@ export const MOCK_DELIVERY_SETTINGS = {
   max_road_distance_meters: 5_000,
   otp_required: true,
 };
+
+// ── Insights: menu margin ledger, margin watch, targets, decisions ────────────
+
+interface InsightSignal { kind: string; params: Record<string, unknown>; link: string }
+interface LedgerSeed {
+  id: string; name: string; size: string; qty: number; prevQty: number;
+  /** Unit price / unit cost in piastres; null cost = recipe incomplete. */
+  price: number; unitCost: number | null;
+  onMenu?: boolean; flags?: InsightSignal[];
+}
+
+/** Plausible coffee-shop economics against the 60% default target. */
+const LEDGER_SEEDS: LedgerSeed[] = [
+  { id: "mi_latte", name: "Latte", size: "M", qty: 102, prevQty: 96, price: 5_500, unitCost: 1_520 },
+  { id: "mi_latte", name: "Latte", size: "L", qty: 64, prevQty: 58, price: 6_500, unitCost: 1_760 },
+  { id: "mi_cheesecake", name: "Cheesecake", size: "one_size", qty: 93, prevQty: 88, price: 9_000, unitCost: 3_400 },
+  { id: "mi_cappuccino", name: "Cappuccino", size: "one_size", qty: 116, prevQty: 121, price: 6_000, unitCost: 1_740 },
+  { id: "mi_frappuccino", name: "Frappuccino", size: "one_size", qty: 76, prevQty: 69, price: 8_500, unitCost: 2_900 },
+  { id: "mi_americano", name: "Americano", size: "one_size", qty: 96, prevQty: 104, price: 5_000, unitCost: 950 },
+  {
+    id: "mi_icedlatte", name: "Iced Latte", size: "one_size", qty: 70, prevQty: 61, price: 7_000, unitCost: 3_200,
+    flags: [
+      { kind: "below_target", params: { margin_pct: 54.3, target_pct: 60 }, link: "pricing" },
+      { kind: "price_candidate", params: { margin_pct: 54.3, target_pct: 60, suggested_price: 8_000 }, link: "pricing" },
+    ],
+  },
+  {
+    id: "mi_coldbrew", name: "Cold Brew", size: "one_size", qty: 43, prevQty: 38, price: 6_500, unitCost: 1_300,
+    flags: [{ kind: "cost_spike", params: { ingredient: "Espresso Beans", pct: 12.5 }, link: "studio_recipe" }],
+  },
+  {
+    id: "mi_croissant", name: "Croissant", size: "one_size", qty: 50, prevQty: 57, price: 4_500, unitCost: 4_650,
+    flags: [{ kind: "below_cost", params: { margin: -7_500, revenue: 225_000, cost: 232_500 }, link: "pricing" }],
+  },
+  {
+    id: "mi_matcha", name: "Matcha Latte", size: "one_size", qty: 40, prevQty: 44, price: 8_000, unitCost: null,
+    flags: [{ kind: "recipe_incomplete", params: {}, link: "studio_recipe" }],
+  },
+  {
+    id: "mi_flatwhite", name: "Flat White", size: "one_size", qty: 0, prevQty: 12, price: 6_000, unitCost: 1_650,
+    flags: [{ kind: "removal_candidate", params: {}, link: "studio" }],
+  },
+];
+
+const round1 = (n: number) => Math.round(n * 10) / 10;
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Signals suppressed by a demo dismiss/snooze/fix (server-side in real life). */
+const suppressedSignals = new Set<string>();
+const signalKey = (item: string, size: string, kind: string) => `${item}|${size}|${kind}`;
+
+let mockOrgTargetPct: number | null = null;
+const mockBranchTargets = new Map<string, number>();
+const effectiveTargetPct = () => mockOrgTargetPct ?? 60;
+
+export const mockMarginTargets = () => ({
+  org_default_pct: mockOrgTargetPct,
+  builtin_default_pct: 60,
+  branches: Array.from(mockBranchTargets, ([branch_id, target_pct]) => ({ branch_id, target_pct })),
+});
+
+export const mockPutMarginTarget = (b: { branch_id?: string | null; target_pct: number }) => {
+  if (b.branch_id) mockBranchTargets.set(b.branch_id, b.target_pct);
+  else mockOrgTargetPct = b.target_pct;
+  return mockMarginTargets();
+};
+
+const buildLedgerRows = () => {
+  const rows = LEDGER_SEEDS.map((s) => {
+    const revenue = s.qty * s.price;
+    const cost = s.unitCost == null || s.qty === 0 ? null : s.qty * s.unitCost;
+    const margin = cost == null ? null : revenue - cost;
+    const prevMargin = s.unitCost == null || s.prevQty === 0 ? null : s.prevQty * (s.price - s.unitCost);
+    return {
+      menu_item_id: s.id,
+      size_label: s.size,
+      item_name: s.name,
+      category_id: null,
+      category_name: null,
+      on_menu: s.onMenu ?? true,
+      quantity_sold: s.qty,
+      revenue,
+      cost,
+      margin,
+      margin_pct: margin != null && revenue > 0 ? round1((margin / revenue) * 100) : null,
+      margin_share_pct: null as number | null,
+      prev_quantity: s.prevQty,
+      prev_margin: prevMargin,
+      flags: (s.flags ?? []).filter((f) => !suppressedSignals.has(signalKey(s.id, s.size, f.kind))),
+    };
+  });
+  const marginKnown = rows.reduce((sum, r) => sum + (r.margin ?? 0), 0);
+  if (marginKnown > 0) {
+    for (const r of rows) {
+      if (r.margin != null) r.margin_share_pct = round1((r.margin / marginKnown) * 100);
+    }
+  }
+  // Server pre-ranks: best margin first, unknown-cost rows last.
+  rows.sort((a, b) => (b.margin ?? Number.MIN_SAFE_INTEGER) - (a.margin ?? Number.MIN_SAFE_INTEGER));
+  return rows;
+};
+
+const buildLedgerTotals = (rows: ReturnType<typeof buildLedgerRows>) => {
+  const target = effectiveTargetPct();
+  const revenue = rows.reduce((s, r) => s + r.revenue, 0);
+  const costKnown = rows.reduce((s, r) => s + (r.cost ?? 0), 0);
+  const marginKnown = rows.reduce((s, r) => s + (r.margin ?? 0), 0);
+  const revenueKnown = rows.filter((r) => r.cost != null).reduce((s, r) => s + r.revenue, 0);
+  return {
+    revenue,
+    cost_known: costKnown,
+    margin_known: marginKnown,
+    margin_pct: revenueKnown > 0 ? round1((marginKnown / revenueKnown) * 100) : null,
+    revenue_cost_unknown: rows.filter((r) => r.cost == null && r.quantity_sold > 0).reduce((s, r) => s + r.revenue, 0),
+    prev_revenue: LEDGER_SEEDS.reduce((s, x) => s + x.prevQty * x.price, 0),
+    prev_margin_known: rows.reduce((s, r) => s + (r.prev_margin ?? 0), 0),
+    below_target_gap: rows.reduce(
+      (s, r) =>
+        r.margin != null && r.margin_pct != null && r.margin_pct < target
+          ? s + Math.round((target / 100) * r.revenue - r.margin)
+          : s,
+      0,
+    ),
+  };
+};
+
+/** GET /insights/branches/{id}/menu-margin */
+export const mockMenuMargin = () => {
+  const rows = buildLedgerRows();
+  return {
+    branch_id: ALL_BRANCHES_ID,
+    from: null,
+    to: null,
+    cost_basis: "snapshot",
+    target_pct: effectiveTargetPct(),
+    target_source: mockOrgTargetPct != null ? "org" : "default",
+    rows,
+    rows_cost_unknown: rows.filter((r) => r.cost == null && r.quantity_sold > 0).length,
+    totals: buildLedgerTotals(rows),
+  };
+};
+
+/** GET /insights/branches/{id}/margin-watch */
+export const mockMarginWatch = () => {
+  const rows = buildLedgerRows();
+  const known = rows.filter((r) => r.margin != null);
+  return {
+    branch_id: ALL_BRANCHES_ID,
+    from: null,
+    to: null,
+    target_pct: effectiveTargetPct(),
+    top: known.slice(0, 3),
+    bottom: [...known].sort((a, b) => (a.margin ?? 0) - (b.margin ?? 0)).slice(0, 3),
+    open_signals: rows.reduce((s, r) => s + r.flags.length, 0),
+    rows_cost_unknown: rows.filter((r) => r.cost == null && r.quantity_sold > 0).length,
+    totals: buildLedgerTotals(rows),
+  };
+};
+
+const skuWindow = (qty: number, price: number, unitCost: number | null) => {
+  const revenue = qty * price;
+  const cost = unitCost == null ? null : qty * unitCost;
+  const margin = cost == null ? null : revenue - cost;
+  return {
+    window_days: 28,
+    quantity: qty,
+    revenue,
+    cost,
+    margin,
+    margin_pct: margin != null && revenue > 0 ? round1((margin / revenue) * 100) : null,
+    qty_per_day: round2(qty / 28),
+  };
+};
+
+const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
+
+/** Newest first — one fully measured, one still measuring. */
+export const mockDecisions: Record<string, unknown>[] = [
+  {
+    id: "dec_iced_price",
+    branch_id: null,
+    menu_item_id: "mi_icedlatte",
+    size_label: "one_size",
+    item_name: "Iced Latte",
+    signal_kind: "price_candidate",
+    action: "acted",
+    detail: {},
+    baseline: skuWindow(58, 6_500, 3_200),
+    created_by: "u_admin",
+    created_at: daysAgo(3),
+    impact: skuWindow(8, 7_000, 3_200),
+    impact_complete: false,
+  },
+  {
+    id: "dec_croissant_cost",
+    branch_id: null,
+    menu_item_id: "mi_croissant",
+    size_label: "one_size",
+    item_name: "Croissant",
+    signal_kind: "below_cost",
+    action: "dismissed",
+    detail: {},
+    baseline: skuWindow(61, 4_500, 4_650),
+    created_by: "u_admin",
+    created_at: daysAgo(30),
+    impact: skuWindow(55, 4_500, 4_650),
+    impact_complete: true,
+  },
+];
+
+/** POST /insights/decisions — suppress the signal + append to the log. */
+export const mockCreateDecision = (b: Record<string, unknown>) => {
+  const item = String(b.menu_item_id ?? "");
+  const size = String(b.size_label ?? "one_size");
+  const kind = String(b.signal_kind ?? "");
+  suppressedSignals.add(signalKey(item, size, kind));
+  const seed = LEDGER_SEEDS.find((s) => s.id === item && s.size === size) ?? LEDGER_SEEDS[0];
+  const decision: Record<string, unknown> = {
+    id: `dec_${Math.random().toString(36).slice(2, 10)}`,
+    branch_id: b.branch_id ?? null,
+    menu_item_id: item,
+    size_label: size,
+    item_name: seed.name,
+    signal_kind: kind,
+    action: b.action ?? "dismissed",
+    detail: b.detail ?? {},
+    baseline: skuWindow(seed.qty, seed.price, seed.unitCost),
+    created_by: "u_admin",
+    created_at: new Date().toISOString(),
+    impact: null,
+    impact_complete: false,
+  };
+  mockDecisions.unshift(decision);
+  return decision;
+};

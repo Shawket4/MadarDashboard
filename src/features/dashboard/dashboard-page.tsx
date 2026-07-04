@@ -22,6 +22,7 @@ import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { EmptyState } from "@/components/app/empty-state";
 import { KeepBuildingCard } from "@/features/onboarding/keep-building-card";
 import { ConciseValue, LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { MarginWatchCard } from "@/features/insights/margin-watch-card";
 import { ProgressBar } from "@/components/app/progress-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COUNT_ANIM_MS, fadeInUp, listItem, staggerContainer } from "@/lib/motion";
@@ -353,6 +354,9 @@ export function DashboardPage() {
           </motion.ol>
         )}
       </ChartCard>
+
+      {/* Margin watch — menu profitability at a glance for the current scope */}
+      <MarginWatchCard />
 
       {/* Delivery + per-channel KPIs */}
       <section className="space-y-3">

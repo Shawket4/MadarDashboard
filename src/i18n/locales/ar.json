@@ -3269,5 +3269,111 @@
     "subtitle": "أدراج النقد المادية / نقاط البيع لهذا الفرع.",
     "title": "الأدراج",
     "updated": "تم تحديث الدرج"
+  },
+  "insights": {
+    "pickOrg": "اختر مؤسسة لعرض ربحية القائمة",
+    "profitability": {
+      "title": "ربحية القائمة",
+      "revenue": "الإيرادات",
+      "grossMargin": "هامش الربح الإجمالي",
+      "ofRevenue": "{{pct}}٪ من الإيرادات",
+      "belowTargetGap": "هامش دون المستهدف",
+      "costUnknownNote_zero": "لا أصناف مستبعدة من الهامش",
+      "costUnknownNote_one": "صنف واحد مستبعد من الهامش — التكلفة غير معروفة",
+      "costUnknownNote_two": "صنفان مستبعدان من الهامش — التكلفة غير معروفة",
+      "costUnknownNote_few": "{{count}} أصناف مستبعدة من الهامش — التكلفة غير معروفة",
+      "costUnknownNote_many": "{{count}} صنفًا مستبعدًا من الهامش — التكلفة غير معروفة",
+      "costUnknownNote_other": "{{count}} صنف مستبعد من الهامش — التكلفة غير معروفة",
+      "basisSnapshot": "وقت البيع",
+      "basisCurrent": "تكاليف اليوم",
+      "ledgerTab": "السجل",
+      "decisionsTab": "القرارات",
+      "flaggedOnly": "المعلَّمة فقط",
+      "offMenu": "خارج القائمة",
+      "vsPrev": "مقارنة بالفترة السابقة",
+      "noFlags": "لا توجد تنبيهات — الهوامش بحالة جيدة",
+      "noRows": "لا مبيعات خلال هذه الفترة"
+    },
+    "columns": {
+      "item": "الصنف",
+      "sold": "المبيع",
+      "revenue": "الإيرادات",
+      "cost": "التكلفة",
+      "margin": "الهامش",
+      "marginPct": "الهامش ٪",
+      "share": "الحصة ٪",
+      "flags": "التنبيهات",
+      "signal": "الإشارة",
+      "action": "الإجراء",
+      "when": "التاريخ"
+    },
+    "target": {
+      "title": "هامش الربح المستهدف",
+      "hint": "تُعلَّم الأصناف التي يقل هامشها الإجمالي عن هذا الحد.",
+      "branchSource": "مستهدف الفرع {{pct}}٪",
+      "orgSource": "مستهدف المؤسسة {{pct}}٪",
+      "defaultSource": "الافتراضي {{pct}}٪ — حدّد مستهدفك",
+      "orgDefault": "افتراضي المؤسسة ٪",
+      "branchOverride": "هذا الفرع ٪"
+    },
+    "actions": {
+      "fix": "إصلاح",
+      "dismiss": "تجاهل",
+      "snooze": "تأجيل",
+      "acted": "تم الإصلاح",
+      "dismissed": "متجاهَل",
+      "snoozed": "مؤجَّل"
+    },
+    "signals": {
+      "label": {
+        "below_cost": "أقل من التكلفة",
+        "below_target": "دون المستهدف",
+        "cost_spike": "قفزة تكلفة",
+        "price_candidate": "مراجعة سعر",
+        "removal_candidate": "بلا مبيعات",
+        "recipe_incomplete": "وصفة ناقصة"
+      },
+      "reason": {
+        "below_cost": "يُباع بأقل من التكلفة — الهامش {{margin}}",
+        "below_target": "الهامش {{marginPct}}٪ أقل من المستهدف {{targetPct}}٪",
+        "cost_spike": "تكلفة {{ingredient}} تغيّرت بنسبة {{pct}}٪ خلال هذه الفترة",
+        "price_candidate": "من الأكثر مبيعًا ودون المستهدف — السعر المقترح {{price}}",
+        "removal_candidate": "لا مبيعات خلال هذه الفترة",
+        "recipe_incomplete": "الوصفة غير مكتملة — التكلفة غير معروفة"
+      }
+    },
+    "decisions": {
+      "empty": "لا قرارات بعد",
+      "emptyHint": "أصلح تنبيهًا أو تجاهله أو أجّله من السجل وسيظهر أثره المقاس هنا.",
+      "measuring": "قيد القياس…",
+      "complete": "اكتمل القياس",
+      "qtyPerDay": "كمية/يوم",
+      "status": "الحالة"
+    },
+    "watch": {
+      "title": "مراقبة الهامش",
+      "vsPrev": "مقارنة بالفترة السابقة",
+      "openSignals_zero": "لا تنبيهات مفتوحة",
+      "openSignals_one": "تنبيه مفتوح واحد",
+      "openSignals_two": "تنبيهان مفتوحان",
+      "openSignals_few": "{{count}} تنبيهات مفتوحة",
+      "openSignals_many": "{{count}} تنبيهًا مفتوحًا",
+      "openSignals_other": "{{count}} تنبيه مفتوح",
+      "costUnknown_zero": "لا أصناف بلا تكلفة",
+      "costUnknown_one": "صنف واحد بلا تكلفة",
+      "costUnknown_two": "صنفان بلا تكلفة",
+      "costUnknown_few": "{{count}} أصناف بلا تكلفة",
+      "costUnknown_many": "{{count}} صنفًا بلا تكلفة",
+      "costUnknown_other": "{{count}} صنف بلا تكلفة",
+      "sold_zero": "لم يُبَع",
+      "sold_one": "بيعت قطعة واحدة",
+      "sold_two": "بيعت قطعتان",
+      "sold_few": "بيعت {{count}} قطع",
+      "sold_many": "بيعت {{count}} قطعة",
+      "sold_other": "بيعت {{count}} قطعة",
+      "top": "الأعلى ربحًا",
+      "bottom": "يحتاج انتباهًا",
+      "viewAll": "ربحية القائمة"
+    }
   }
 }

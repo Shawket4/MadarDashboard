@@ -53,6 +53,7 @@ import { Route as AppInventoryItemsRouteImport } from './routes/_app/inventory/i
 import { Route as AppInventoryIngredientsRouteImport } from './routes/_app/inventory/ingredients'
 import { Route as AppInventoryCountsRouteImport } from './routes/_app/inventory/counts'
 import { Route as AppInsightsSalesRouteImport } from './routes/_app/insights/sales'
+import { Route as AppInsightsProfitabilityRouteImport } from './routes/_app/insights/profitability'
 import { Route as AppInsightsInventoryReportsRouteImport } from './routes/_app/insights/inventory-reports'
 import { Route as AppDeliveryZonesRouteImport } from './routes/_app/delivery/zones'
 import { Route as AppDeliverySettingsRouteImport } from './routes/_app/delivery/settings'
@@ -281,6 +282,12 @@ const AppInsightsSalesRoute = AppInsightsSalesRouteImport.update({
   path: '/insights/sales',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppInsightsProfitabilityRoute =
+  AppInsightsProfitabilityRouteImport.update({
+    id: '/insights/profitability',
+    path: '/insights/profitability',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppInsightsInventoryReportsRoute =
   AppInsightsInventoryReportsRouteImport.update({
     id: '/insights/inventory-reports',
@@ -344,6 +351,7 @@ export interface FileRoutesByFullPath {
   '/delivery/settings': typeof AppDeliverySettingsRoute
   '/delivery/zones': typeof AppDeliveryZonesRoute
   '/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
+  '/insights/profitability': typeof AppInsightsProfitabilityRoute
   '/insights/sales': typeof AppInsightsSalesRoute
   '/inventory/counts': typeof AppInventoryCountsRoute
   '/inventory/ingredients': typeof AppInventoryIngredientsRoute
@@ -391,6 +399,7 @@ export interface FileRoutesByTo {
   '/delivery/settings': typeof AppDeliverySettingsRoute
   '/delivery/zones': typeof AppDeliveryZonesRoute
   '/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
+  '/insights/profitability': typeof AppInsightsProfitabilityRoute
   '/insights/sales': typeof AppInsightsSalesRoute
   '/inventory/counts': typeof AppInventoryCountsRoute
   '/inventory/ingredients': typeof AppInventoryIngredientsRoute
@@ -445,6 +454,7 @@ export interface FileRoutesById {
   '/_app/delivery/settings': typeof AppDeliverySettingsRoute
   '/_app/delivery/zones': typeof AppDeliveryZonesRoute
   '/_app/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
+  '/_app/insights/profitability': typeof AppInsightsProfitabilityRoute
   '/_app/insights/sales': typeof AppInsightsSalesRoute
   '/_app/inventory/counts': typeof AppInventoryCountsRoute
   '/_app/inventory/ingredients': typeof AppInventoryIngredientsRoute
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/delivery/settings'
     | '/delivery/zones'
     | '/insights/inventory-reports'
+    | '/insights/profitability'
     | '/insights/sales'
     | '/inventory/counts'
     | '/inventory/ingredients'
@@ -546,6 +557,7 @@ export interface FileRouteTypes {
     | '/delivery/settings'
     | '/delivery/zones'
     | '/insights/inventory-reports'
+    | '/insights/profitability'
     | '/insights/sales'
     | '/inventory/counts'
     | '/inventory/ingredients'
@@ -599,6 +611,7 @@ export interface FileRouteTypes {
     | '/_app/delivery/settings'
     | '/_app/delivery/zones'
     | '/_app/insights/inventory-reports'
+    | '/_app/insights/profitability'
     | '/_app/insights/sales'
     | '/_app/inventory/counts'
     | '/_app/inventory/ingredients'
@@ -942,6 +955,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInsightsSalesRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/insights/profitability': {
+      id: '/_app/insights/profitability'
+      path: '/insights/profitability'
+      fullPath: '/insights/profitability'
+      preLoaderRoute: typeof AppInsightsProfitabilityRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/insights/inventory-reports': {
       id: '/_app/insights/inventory-reports'
       path: '/insights/inventory-reports'
@@ -1114,6 +1134,7 @@ interface AppRouteRouteChildren {
   AppUsersRoute: typeof AppUsersRoute
   AppIndexRoute: typeof AppIndexRoute
   AppInsightsInventoryReportsRoute: typeof AppInsightsInventoryReportsRoute
+  AppInsightsProfitabilityRoute: typeof AppInsightsProfitabilityRoute
   AppInsightsSalesRoute: typeof AppInsightsSalesRoute
   AppKitchenRoutingRoute: typeof AppKitchenRoutingRoute
   AppKitchenStationsRoute: typeof AppKitchenStationsRoute
@@ -1138,6 +1159,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppUsersRoute: AppUsersRoute,
   AppIndexRoute: AppIndexRoute,
   AppInsightsInventoryReportsRoute: AppInsightsInventoryReportsRoute,
+  AppInsightsProfitabilityRoute: AppInsightsProfitabilityRoute,
   AppInsightsSalesRoute: AppInsightsSalesRoute,
   AppKitchenRoutingRoute: AppKitchenRoutingRoute,
   AppKitchenStationsRoute: AppKitchenStationsRoute,

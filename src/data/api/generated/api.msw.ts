@@ -48,6 +48,7 @@ import type {
   CombinedItemSalesRow,
   ConsumptionRow,
   CreateUserResponse,
+  DecisionOut,
   DeductionLogRow,
   DeliveryMenu,
   DeliveryMenuDiscount,
@@ -72,6 +73,9 @@ import type {
   KitchenTicketView,
   LoginResponse,
   LowStockRow,
+  MarginLedgerReport,
+  MarginTargets,
+  MarginWatch,
   MarketingLink,
   MeResponse,
   MenuItem,
@@ -268,6 +272,18 @@ export const getCreateFloorTableResponseMock = (overrideResponse: Partial<Extrac
 export const getUpdateFloorTableResponseMock = (overrideResponse: Partial<Extract<FloorTable, object>> = {}): FloorTable => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', height: faker.number.float({fractionDigits: 2}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), label: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), pos_x: faker.number.float({fractionDigits: 2}), pos_y: faker.number.float({fractionDigits: 2}), rotation: faker.number.float({fractionDigits: 2}), seats: faker.number.int(), section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), shape: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', width: faker.number.float({fractionDigits: 2}), ...overrideResponse})
 
 export const getSetTableStatusResponseMock = (overrideResponse: Partial<Extract<FloorTable, object>> = {}): FloorTable => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', height: faker.number.float({fractionDigits: 2}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), label: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), pos_x: faker.number.float({fractionDigits: 2}), pos_y: faker.number.float({fractionDigits: 2}), rotation: faker.number.float({fractionDigits: 2}), seats: faker.number.int(), section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), shape: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', width: faker.number.float({fractionDigits: 2}), ...overrideResponse})
+
+export const getMarginWatchResponseMock = (overrideResponse: Partial<Extract<MarginWatch, object>> = {}): MarginWatch => ({bottom: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), flags: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), link: faker.string.alpha({length: {min: 10, max: 20}}), params: {}})), item_name: faker.string.alpha({length: {min: 10, max: 20}}), margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), margin_share_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), menu_item_id: faker.string.uuid(), on_menu: faker.datatype.boolean(), prev_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), prev_quantity: faker.number.int(), quantity_sold: faker.number.int(), revenue: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})), branch_id: faker.string.uuid(), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), open_signals: faker.number.int(), rows_cost_unknown: faker.number.int(), target_pct: faker.number.float({fractionDigits: 2}), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), top: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), flags: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), link: faker.string.alpha({length: {min: 10, max: 20}}), params: {}})), item_name: faker.string.alpha({length: {min: 10, max: 20}}), margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), margin_share_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), menu_item_id: faker.string.uuid(), on_menu: faker.datatype.boolean(), prev_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), prev_quantity: faker.number.int(), quantity_sold: faker.number.int(), revenue: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})), totals: {below_target_gap: faker.number.int(), cost_known: faker.number.int(), margin_known: faker.number.int(), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), prev_margin_known: faker.number.int(), prev_revenue: faker.number.int(), revenue: faker.number.int(), revenue_cost_unknown: faker.number.int()}, ...overrideResponse})
+
+export const getMenuMarginLedgerResponseMock = (overrideResponse: Partial<Extract<MarginLedgerReport, object>> = {}): MarginLedgerReport => ({branch_id: faker.string.uuid(), cost_basis: faker.string.alpha({length: {min: 10, max: 20}}), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), rows: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), flags: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), link: faker.string.alpha({length: {min: 10, max: 20}}), params: {}})), item_name: faker.string.alpha({length: {min: 10, max: 20}}), margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), margin_share_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), menu_item_id: faker.string.uuid(), on_menu: faker.datatype.boolean(), prev_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), prev_quantity: faker.number.int(), quantity_sold: faker.number.int(), revenue: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})), rows_cost_unknown: faker.number.int(), target_pct: faker.number.float({fractionDigits: 2}), target_source: faker.string.alpha({length: {min: 10, max: 20}}), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), totals: {below_target_gap: faker.number.int(), cost_known: faker.number.int(), margin_known: faker.number.int(), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), prev_margin_known: faker.number.int(), prev_revenue: faker.number.int(), revenue: faker.number.int(), revenue_cost_unknown: faker.number.int()}, ...overrideResponse})
+
+export const getListDecisionsResponseMock = (): DecisionOut[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({action: faker.string.alpha({length: {min: 10, max: 20}}), baseline: {}, branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), detail: {}, id: faker.string.uuid(), impact: {}, impact_complete: faker.datatype.boolean(), item_name: faker.string.alpha({length: {min: 10, max: 20}}), menu_item_id: faker.string.uuid(), signal_kind: faker.string.alpha({length: {min: 10, max: 20}}), size_label: faker.string.alpha({length: {min: 10, max: 20}})})))
+
+export const getCreateDecisionResponseMock = (overrideResponse: Partial<Extract<DecisionOut, object>> = {}): DecisionOut => ({action: faker.string.alpha({length: {min: 10, max: 20}}), baseline: {}, branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), detail: {}, id: faker.string.uuid(), impact: {}, impact_complete: faker.datatype.boolean(), item_name: faker.string.alpha({length: {min: 10, max: 20}}), menu_item_id: faker.string.uuid(), signal_kind: faker.string.alpha({length: {min: 10, max: 20}}), size_label: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getGetMarginTargetsResponseMock = (overrideResponse: Partial<Extract<MarginTargets, object>> = {}): MarginTargets => ({branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), target_pct: faker.number.float({fractionDigits: 2})})), builtin_default_pct: faker.number.float({fractionDigits: 2}), org_default_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), ...overrideResponse})
+
+export const getPutMarginTargetResponseMock = (overrideResponse: Partial<Extract<MarginTargets, object>> = {}): MarginTargets => ({branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), target_pct: faker.number.float({fractionDigits: 2})})), builtin_default_pct: faker.number.float({fractionDigits: 2}), org_default_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), ...overrideResponse})
 
 export const getListMovementsResponseMock = (): BranchInventoryMovement[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({balance_after: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), below_zero: faker.datatype.boolean(), branch_id: faker.string.uuid(), branch_inventory_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_by_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), movement_type: faker.string.alpha({length: {min: 10, max: 20}}), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_ingredient_id: faker.string.uuid(), quantity: faker.number.float({fractionDigits: 2}), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), source_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), source_type: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), unit: faker.string.alpha({length: {min: 10, max: 20}}), unit_cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined])})))
 
@@ -1535,6 +1551,78 @@ export const getSetTableStatusMockHandler = (overrideResponse?: FloorTable | ((i
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getSetTableStatusResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getMarginWatchMockHandler = (overrideResponse?: MarginWatch | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MarginWatch> | MarginWatch), options?: RequestHandlerOptions) => {
+  return http.get('*/insights/branches/:branchId/margin-watch', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMarginWatchResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getMenuMarginLedgerMockHandler = (overrideResponse?: MarginLedgerReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MarginLedgerReport> | MarginLedgerReport), options?: RequestHandlerOptions) => {
+  return http.get('*/insights/branches/:branchId/menu-margin', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMenuMarginLedgerResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListDecisionsMockHandler = (overrideResponse?: DecisionOut[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DecisionOut[]> | DecisionOut[]), options?: RequestHandlerOptions) => {
+  return http.get('*/insights/decisions', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListDecisionsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateDecisionMockHandler = (overrideResponse?: DecisionOut | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<DecisionOut> | DecisionOut), options?: RequestHandlerOptions) => {
+  return http.post('*/insights/decisions', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateDecisionResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getGetMarginTargetsMockHandler = (overrideResponse?: MarginTargets | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MarginTargets> | MarginTargets), options?: RequestHandlerOptions) => {
+  return http.get('*/insights/margin-target', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetMarginTargetsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPutMarginTargetMockHandler = (overrideResponse?: MarginTargets | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<MarginTargets> | MarginTargets), options?: RequestHandlerOptions) => {
+  return http.put('*/insights/margin-target', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutMarginTargetResponseMock(),
       { status: 200
       })
   }, options)
@@ -3949,6 +4037,12 @@ export const getMadarAPIMock = () => [
   getDeleteFloorTableMockHandler(),
   getUpdateFloorTableMockHandler(),
   getSetTableStatusMockHandler(),
+  getMarginWatchMockHandler(),
+  getMenuMarginLedgerMockHandler(),
+  getListDecisionsMockHandler(),
+  getCreateDecisionMockHandler(),
+  getGetMarginTargetsMockHandler(),
+  getPutMarginTargetMockHandler(),
   getListMovementsMockHandler(),
   getListBranchStockMockHandler(),
   getAddToBranchStockMockHandler(),
