@@ -2163,6 +2163,7 @@ export const MarginWatchResponse = zod.object({
   "bottom": zod.array(zod.object({
   "category_id": zod.uuid().nullish(),
   "category_name": zod.string().nullish(),
+  "class": zod.string().nullish().describe('Classic menu-engineering class (Kasavana–Smith): `star` | `workhorse` |\n`challenge` | `dog`. High\/low popularity splits at the 70%-rule\nthreshold (0.70\/n of tracked units); high\/low profit splits at the\nweighted-average unit contribution margin. `null` for rows that can\'t\nbe classified (no sales in the period, or cost unknown).'),
   "cost": zod.number().nullish().describe('Piastres under the chosen basis; `null` = unknown (never 0).'),
   "flags": zod.array(zod.object({
   "kind": zod.string().describe('below_cost | below_target | cost_spike | price_candidate |\nremoval_candidate | recipe_incomplete'),
@@ -2177,6 +2178,7 @@ export const MarginWatchResponse = zod.object({
   "margin_share_pct": zod.number().nullish().describe('This row\'s share of the total KNOWN margin (null when margin unknown\nor total margin ≤ 0).'),
   "menu_item_id": zod.uuid(),
   "on_menu": zod.boolean().describe('False when this SKU no longer exists on the active menu (historical\nsales under a removed size\/item).'),
+  "popularity_pct": zod.number().nullish().describe('This SKU\'s share of tracked units (the popularity axis), when classified.'),
   "prev_margin": zod.number().nullish(),
   "prev_quantity": zod.number().describe('Previous equal-length period, for the trend column.'),
   "quantity_sold": zod.number(),
@@ -2192,6 +2194,7 @@ export const MarginWatchResponse = zod.object({
   "top": zod.array(zod.object({
   "category_id": zod.uuid().nullish(),
   "category_name": zod.string().nullish(),
+  "class": zod.string().nullish().describe('Classic menu-engineering class (Kasavana–Smith): `star` | `workhorse` |\n`challenge` | `dog`. High\/low popularity splits at the 70%-rule\nthreshold (0.70\/n of tracked units); high\/low profit splits at the\nweighted-average unit contribution margin. `null` for rows that can\'t\nbe classified (no sales in the period, or cost unknown).'),
   "cost": zod.number().nullish().describe('Piastres under the chosen basis; `null` = unknown (never 0).'),
   "flags": zod.array(zod.object({
   "kind": zod.string().describe('below_cost | below_target | cost_spike | price_candidate |\nremoval_candidate | recipe_incomplete'),
@@ -2206,6 +2209,7 @@ export const MarginWatchResponse = zod.object({
   "margin_share_pct": zod.number().nullish().describe('This row\'s share of the total KNOWN margin (null when margin unknown\nor total margin ≤ 0).'),
   "menu_item_id": zod.uuid(),
   "on_menu": zod.boolean().describe('False when this SKU no longer exists on the active menu (historical\nsales under a removed size\/item).'),
+  "popularity_pct": zod.number().nullish().describe('This SKU\'s share of tracked units (the popularity axis), when classified.'),
   "prev_margin": zod.number().nullish(),
   "prev_quantity": zod.number().describe('Previous equal-length period, for the trend column.'),
   "quantity_sold": zod.number(),
@@ -2242,6 +2246,7 @@ export const MenuMarginLedgerResponse = zod.object({
   "rows": zod.array(zod.object({
   "category_id": zod.uuid().nullish(),
   "category_name": zod.string().nullish(),
+  "class": zod.string().nullish().describe('Classic menu-engineering class (Kasavana–Smith): `star` | `workhorse` |\n`challenge` | `dog`. High\/low popularity splits at the 70%-rule\nthreshold (0.70\/n of tracked units); high\/low profit splits at the\nweighted-average unit contribution margin. `null` for rows that can\'t\nbe classified (no sales in the period, or cost unknown).'),
   "cost": zod.number().nullish().describe('Piastres under the chosen basis; `null` = unknown (never 0).'),
   "flags": zod.array(zod.object({
   "kind": zod.string().describe('below_cost | below_target | cost_spike | price_candidate |\nremoval_candidate | recipe_incomplete'),
@@ -2256,6 +2261,7 @@ export const MenuMarginLedgerResponse = zod.object({
   "margin_share_pct": zod.number().nullish().describe('This row\'s share of the total KNOWN margin (null when margin unknown\nor total margin ≤ 0).'),
   "menu_item_id": zod.uuid(),
   "on_menu": zod.boolean().describe('False when this SKU no longer exists on the active menu (historical\nsales under a removed size\/item).'),
+  "popularity_pct": zod.number().nullish().describe('This SKU\'s share of tracked units (the popularity axis), when classified.'),
   "prev_margin": zod.number().nullish(),
   "prev_quantity": zod.number().describe('Previous equal-length period, for the trend column.'),
   "quantity_sold": zod.number(),

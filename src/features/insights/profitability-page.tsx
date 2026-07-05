@@ -11,9 +11,13 @@ import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -31,6 +35,38 @@ import { invalidateInsights } from "./util";
 type CostBasis = "snapshot" | "current";
 
 const COLS = 8;
+
+/** The classic menu-engineering quadrants (secondary lens on the ledger). */
+const ALL_CLASSES = "__all__";
+const CLASS_META: Record<string, { fallback: string; className: string }> = {
+  star: { fallback: "Star", className: "bg-success/10 text-success" },
+  workhorse: { fallback: "Workhorse", className: "bg-info/10 text-info" },
+  challenge: { fallback: "Challenge", className: "bg-warning/15 text-warning-foreground" },
+  dog: { fallback: "Dog", className: "bg-muted text-muted-foreground" },
+};
+
+/** Quiet class chip with the popularity/profit rationale on hover. */
+function ClassChip({ r }: { r: MarginLedgerRow }) {
+  const { t } = useTranslation();
+  if (!r.class) return null;
+  const meta = CLASS_META[r.class];
+  if (!meta) return null;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className={cn("shrink-0 cursor-default rounded-full px-2 py-0.5 text-[11px] font-medium", meta.className)}>
+          {t(`insights.class.${r.class}`, meta.fallback)}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>
+        {t("insights.class.tooltip", {
+          popularity: r.popularity_pct ?? 0,
+          defaultValue: "Popularity {{popularity}}% of units · profit vs menu average",
+        })}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 /** Ratio for the trend pill, e.g. 0.12 → +12% vs the previous period. */
 const trendOf = (cur: number | undefined, prev: number | undefined): number | null =>
@@ -50,6 +86,7 @@ export function ProfitabilityPage() {
 
   const [basis, setBasis] = useState<CostBasis>("snapshot");
   const [tab, setTab] = useState("ledger");
+  const [classFilter, setClassFilter] = useState<string>(ALL_CLASSES);
   const [flaggedOnly, setFlaggedOnly] = useState(false);
 
   const ledger = useMenuMarginLedger(
@@ -155,7 +192,11 @@ export function ProfitabilityPage() {
     },
   ];
 
-  const rows = (report?.rows ?? []).filter((r) => !flaggedOnly || r.flags.length > 0);
+  const rows = (report?.rows ?? []).filter(
+    (r) =>
+      (!flaggedOnly || r.flags.length > 0) &&
+      (classFilter === ALL_CLASSES || r.class === classFilter),
+  );
 
   return (
     <Page>
@@ -205,11 +246,24 @@ export function ProfitabilityPage() {
         </PageTabsList>
 
         <TabsContent value="ledger" className="space-y-3">
-          <div className="flex items-center justify-end gap-2">
-            <Switch id="insights-flagged-only" checked={flaggedOnly} onCheckedChange={setFlaggedOnly} />
-            <Label htmlFor="insights-flagged-only" className="text-sm font-normal text-muted-foreground">
-              {t("insights.profitability.flaggedOnly", "Flagged only")}
-            </Label>
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <Select value={classFilter} onValueChange={setClassFilter}>
+              <SelectTrigger className="h-8 w-auto min-w-36 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_CLASSES}>{t("insights.class.all", "All classes")}</SelectItem>
+                {Object.entries(CLASS_META).map(([k, m]) => (
+                  <SelectItem key={k} value={k}>{t(`insights.class.${k}`, m.fallback)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-2">
+              <Switch id="insights-flagged-only" checked={flaggedOnly} onCheckedChange={setFlaggedOnly} />
+              <Label htmlFor="insights-flagged-only" className="text-sm font-normal text-muted-foreground">
+                {t("insights.profitability.flaggedOnly", "Flagged only")}
+              </Label>
+            </div>
           </div>
 
           {ledger.isError ? (
@@ -297,6 +351,7 @@ function LedgerRow({
           {r.size_label !== "one_size" ? (
             <Badge variant="outline" className="shrink-0">{r.size_label}</Badge>
           ) : null}
+          <ClassChip r={r} />
           {!r.on_menu ? (
             <Badge variant="ghost" className="shrink-0 bg-muted text-muted-foreground">
               {t("insights.profitability.offMenu", "Off menu")}

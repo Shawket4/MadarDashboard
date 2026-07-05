@@ -8,6 +8,15 @@ export interface MarginLedgerRow {
   /** @nullable */
   category_name?: string | null;
   /**
+     * Classic menu-engineering class (Kasavana–Smith): `star` | `workhorse` |
+     * `challenge` | `dog`. High/low popularity splits at the 70%-rule
+     * threshold (0.70/n of tracked units); high/low profit splits at the
+     * weighted-average unit contribution margin. `null` for rows that can't
+     * be classified (no sales in the period, or cost unknown).
+     * @nullable
+     */
+  class?: string | null;
+  /**
      * Piastres under the chosen basis; `null` = unknown (never 0).
      * @nullable
      */
@@ -30,6 +39,11 @@ export interface MarginLedgerRow {
      * sales under a removed size/item).
      */
   on_menu: boolean;
+  /**
+     * This SKU's share of tracked units (the popularity axis), when classified.
+     * @nullable
+     */
+  popularity_pct?: number | null;
   /** @nullable */
   prev_margin?: number | null;
   /** Previous equal-length period, for the trend column. */

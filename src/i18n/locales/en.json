@@ -3280,6 +3280,14 @@
       "top": "Top earners",
       "bottom": "Needs attention",
       "viewAll": "Menu profitability"
+    },
+    "class": {
+      "all": "All classes",
+      "star": "Star",
+      "workhorse": "Workhorse",
+      "challenge": "Challenge",
+      "dog": "Dog",
+      "tooltip": "Popularity {{popularity}}% of units · profit vs menu average"
     }
   }
 }
