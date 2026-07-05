@@ -68,6 +68,16 @@ export const signalReason = (t: TFunction, signal: Signal): string => {
         defaultValue: "{{ingredient}} cost moved {{pct}}% this period",
       });
     case "price_candidate":
+      // Outcome-aware: when the LAST price action on this SKU measurably hurt
+      // net margin (volume fell harder than margin rose), the server sends
+      // caution instead of a higher suggestion — advise holding/reverting.
+      if (p.caution === true) {
+        return t("insights.signals.reason.price_candidate_caution", {
+          delta: fmtMoney(Math.abs(num("last_margin_per_day_delta"))),
+          defaultValue:
+            "Still under target, but the last price change cost {{delta}}/day in margin — consider holding or reverting",
+        });
+      }
       return t("insights.signals.reason.price_candidate", {
         price: fmtMoney(num("suggested_price")),
         defaultValue: "Top seller under target — suggested price {{price}}",
