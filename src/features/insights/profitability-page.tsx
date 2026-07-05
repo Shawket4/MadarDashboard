@@ -7,6 +7,7 @@ import { AlertCircle, ArrowDownRight, ArrowUpRight, Building2, Info } from "luci
 import { Page } from "@/components/app/page";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
+import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ import { useCreateDecision, useMenuMarginLedger } from "@/data/api/generated/api
 import type { MarginLedgerRow, Signal } from "@/data/api/generated/models";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DecisionsTab } from "./decisions-tab";
@@ -54,7 +56,13 @@ function ClassChip({ r }: { r: MarginLedgerRow }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className={cn("shrink-0 cursor-default rounded-full px-2 py-0.5 text-[11px] font-medium", meta.className)}>
+        <span
+          tabIndex={0}
+          className={cn(
+            "shrink-0 cursor-default rounded-full px-2 py-0.5 text-[11px] font-medium focus-visible:outline-2 focus-visible:outline-ring",
+            meta.className,
+          )}
+        >
           {t(`insights.class.${r.class}`, meta.fallback)}
         </span>
       </TooltipTrigger>
@@ -111,7 +119,9 @@ export function ProfitabilityPage() {
       size_label: row.size_label,
       signal_kind: signal.kind,
       action,
-      detail: {},
+      // The signal's evidence rides along so the decision log can show WHAT
+      // was suggested/measured at the moment of the decision.
+      detail: signal.params ?? {},
     },
     params: { org_id: orgId ?? "" },
   });
@@ -198,6 +208,38 @@ export function ProfitabilityPage() {
       (classFilter === ALL_CLASSES || r.class === classFilter),
   );
 
+  /** Export the currently-visible (filtered) ledger. */
+  const handleExport = () => {
+    type Row = Record<string, string | number | null>;
+    const cols: ExcelColumn<Row>[] = [
+      { header: t("insights.columns.item", "Item"), accessor: (r) => r.item, type: "text", width: 28 },
+      { header: t("insights.columns.size", "Size"), accessor: (r) => r.size, type: "text", width: 10 },
+      { header: t("insights.class.all", "All classes"), accessor: (r) => r.cls, type: "text", width: 12 },
+      { header: t("insights.columns.sold", "Sold"), accessor: (r) => r.sold, type: "number", width: 10 },
+      { header: t("insights.columns.revenue", "Revenue"), accessor: (r) => r.revenue, type: "money", width: 14 },
+      { header: t("insights.columns.cost", "Cost"), accessor: (r) => r.cost, type: "money", width: 14 },
+      { header: t("insights.columns.margin", "Margin"), accessor: (r) => r.margin, type: "money", width: 14 },
+      { header: t("insights.columns.marginPct", "Margin %"), accessor: (r) => r.marginPct, type: "number", width: 10 },
+      { header: t("insights.columns.flags", "Flags"), accessor: (r) => r.flags, type: "text", width: 30 },
+    ];
+    const data: Row[] = rows.map((r) => ({
+      item: r.item_name,
+      size: r.size_label,
+      cls: r.class ? t(`insights.class.${r.class}`, r.class) : "",
+      sold: r.quantity_sold,
+      revenue: r.revenue,
+      cost: r.cost ?? null,
+      margin: r.margin ?? null,
+      marginPct: r.margin_pct != null ? Math.round(r.margin_pct * 10) / 10 : null,
+      flags: r.flags.map((f) => f.kind).join(", "),
+    }));
+    const title = t("insights.profitability.title", "Menu profitability");
+    void exportToExcel({
+      filename: `Madar-${title}`,
+      sheets: [{ name: title, title, rows: data as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],
+    });
+  };
+
   return (
     <Page>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -247,6 +289,7 @@ export function ProfitabilityPage() {
 
         <TabsContent value="ledger" className="space-y-3">
           <div className="flex flex-wrap items-center justify-end gap-3">
+            <ExportButton size="sm" onExport={handleExport} disabled={rows.length === 0} />
             <Select value={classFilter} onValueChange={setClassFilter}>
               <SelectTrigger className="h-8 w-auto min-w-36 text-sm">
                 <SelectValue />

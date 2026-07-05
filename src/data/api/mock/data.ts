@@ -951,7 +951,7 @@ const LEDGER_SEEDS: LedgerSeed[] = [
     id: "mi_icedlatte", name: "Iced Latte", size: "one_size", qty: 70, prevQty: 61, price: 7_000, unitCost: 3_200,
     flags: [
       { kind: "below_target", params: { margin_pct: 54.3, target_pct: 60 }, link: "pricing" },
-      { kind: "price_candidate", params: { margin_pct: 54.3, target_pct: 60, suggested_price: 8_000 }, link: "pricing" },
+      { kind: "price_candidate", params: { margin_pct: 54.3, target_pct: 60, suggested_price: 7_600, elasticity: -1.35, expected_margin_per_day_delta: 5_200, last_worked: true }, link: "pricing" },
     ],
   },
   {
@@ -1014,6 +1014,8 @@ const buildLedgerRows = () => {
       margin,
       margin_pct: margin != null && revenue > 0 ? round1((margin / revenue) * 100) : null,
       margin_share_pct: null as number | null,
+      class: null as string | null,
+      popularity_pct: null as number | null,
       prev_quantity: s.prevQty,
       prev_margin: prevMargin,
       flags: (s.flags ?? []).filter((f) => !suppressedSignals.has(signalKey(s.id, s.size, f.kind))),
@@ -1023,6 +1025,24 @@ const buildLedgerRows = () => {
   if (marginKnown > 0) {
     for (const r of rows) {
       if (r.margin != null) r.margin_share_pct = round1((r.margin / marginKnown) * 100);
+    }
+  }
+  // Classic menu-engineering class over classified rows (mirrors the server).
+  const classified = rows.filter((r) => r.margin != null && r.quantity_sold > 0);
+  if (classified.length > 0) {
+    const totalUnits = classified.reduce((s2, r) => s2 + r.quantity_sold, 0);
+    const popThreshold = 0.7 / classified.length;
+    const units = classified.reduce((s2, r) => s2 + r.quantity_sold, 0);
+    const profit = classified.reduce((s2, r) => s2 + (r.margin ?? 0), 0);
+    const avgUnitProfit = units > 0 ? profit / units : 0;
+    for (const r of classified) {
+      const pop = r.quantity_sold / Math.max(totalUnits, 1);
+      const unitProfit = (r.margin ?? 0) / r.quantity_sold;
+      r.popularity_pct = round1(pop * 100);
+      r.class =
+        pop >= popThreshold
+          ? unitProfit >= avgUnitProfit ? "star" : "workhorse"
+          : unitProfit >= avgUnitProfit ? "challenge" : "dog";
     }
   }
   // Server pre-ranks: best margin first, unknown-cost rows last.

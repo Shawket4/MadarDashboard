@@ -55,12 +55,22 @@ export const signalReason = (t: TFunction, signal: Signal): string => {
         margin: fmtMoney(num("margin")),
         defaultValue: "Sells below cost — margin {{margin}}",
       });
-    case "below_target":
-      return t("insights.signals.reason.below_target", {
+    case "below_target": {
+      const base = t("insights.signals.reason.below_target", {
         marginPct: pct1(num("margin_pct")),
         targetPct: pct1(num("target_pct")),
         defaultValue: "Margin {{marginPct}}% is under the {{targetPct}}% target",
       });
+      // Adaptive-bar transparency: this kind's evidence bar was raised because
+      // the team keeps dismissing it — say so instead of silently moving goalposts.
+      if (num("adaptive_bar") > 0) {
+        return `${base} ${t("insights.signals.reason.adaptive_note", {
+          pts: pct1(num("adaptive_bar")),
+          defaultValue: "(bar raised {{pts}} pts — these are often dismissed)",
+        })}`;
+      }
+      return base;
+    }
     case "cost_spike":
       return t("insights.signals.reason.cost_spike", {
         ingredient: String(p.ingredient ?? ""),
@@ -76,6 +86,16 @@ export const signalReason = (t: TFunction, signal: Signal): string => {
           delta: fmtMoney(Math.abs(num("last_margin_per_day_delta"))),
           defaultValue:
             "Still under target, but the last price change cost {{delta}}/day in margin — consider holding or reverting",
+        });
+      }
+      // Elasticity-informed: the suggestion came from this SKU's own measured
+      // price/volume history, with a margin-per-day forecast attached.
+      if (typeof p.elasticity === "number") {
+        return t("insights.signals.reason.price_candidate_learned", {
+          price: fmtMoney(num("suggested_price")),
+          forecast: fmtMoney(Math.max(0, num("expected_margin_per_day_delta"))),
+          defaultValue:
+            "Top seller under target — {{price}} is the best measured price (≈+{{forecast}}/day expected, from this item's own sales response)",
         });
       }
       return t("insights.signals.reason.price_candidate", {
