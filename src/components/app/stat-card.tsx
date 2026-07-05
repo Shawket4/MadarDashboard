@@ -63,8 +63,10 @@ export function StatCard({
 
   if (loading) {
     return (
-      <motion.div variants={listItem}>
-        <Card className={pad}>
+      // h-full down the chain: grid cells stretch, and sibling cards in one
+      // strip must share the row height (content-sized cards read as ragged).
+      <motion.div variants={listItem} className="h-full">
+        <Card className={cn(pad, "h-full")}>
           <div className="flex items-center justify-between gap-3">
             <Skeleton className="h-4 w-20" />
             {Icon ? <Skeleton className={cn(tileSize, "rounded-lg")} /> : null}
@@ -92,7 +94,7 @@ export function StatCard({
   const up = (trend ?? 0) >= 0;
 
   return (
-    <motion.div variants={listItem}>
+    <motion.div variants={listItem} className="h-full">
       <Card
         onClick={onClick}
         role={onClick ? "button" : undefined}
@@ -108,7 +110,7 @@ export function StatCard({
             : undefined
         }
         className={cn(
-          "transition-all duration-200 motion-reduce:transition-none",
+          "h-full transition-all duration-200 motion-reduce:transition-none",
           onClick &&
             "cursor-pointer hover:bg-accent/30 hover:shadow-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring",
           pad,
