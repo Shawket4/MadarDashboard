@@ -3257,7 +3257,8 @@
         "cost_spike": "{{ingredient}} cost moved {{pct}}% this period",
         "price_candidate": "Top seller under target — suggested price {{price}}",
         "removal_candidate": "No sales this period",
-        "recipe_incomplete": "Recipe incomplete — cost unknown"
+        "recipe_incomplete": "Recipe incomplete — cost unknown",
+        "price_candidate_caution": "Still under target, but the last price change cost {{delta}}/day in margin — consider holding or reverting"
       }
     },
     "decisions": {
