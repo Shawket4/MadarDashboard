@@ -52,6 +52,7 @@ export interface LineItemRow {
   order_ref: string;
   created_at: string;
   payment_method: string;
+  waiter_name: string | null;
   item_name: string;
   size_label: string | null;
   quantity: number;
@@ -73,6 +74,7 @@ export const lineItemColumns = (t: TFunction): ExcelColumn<LineItemRow>[] => [
     type: "text",
     width: 18,
   },
+  { key: "waiter", header: t("shifts.waiter", "Waiter"), accessor: (r) => r.waiter_name || "—", type: "text", width: 18 },
   { key: "item_name", header: t("menu.item", "Item"), accessor: (r) => r.item_name, type: "text", width: 22 },
   { key: "size_label", header: t("menu.size", "Size"), accessor: (r) => r.size_label || "—", type: "text", width: 12 },
   { key: "quantity", header: t("common.qty", "Qty"), accessor: (r) => r.quantity, type: "number", width: 10, total: true },

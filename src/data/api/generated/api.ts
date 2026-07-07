@@ -58,6 +58,7 @@ import type {
   BranchStockReport,
   BranchTable,
   BranchTellerStatsParams,
+  BranchWaiterStatsParams,
   BranchWasteReportParams,
   BundlePerformanceParams,
   BundlePerformanceResponse,
@@ -328,6 +329,7 @@ import type {
   VarianceReport,
   VoidOpenTicketRequest,
   VoidOrderRequest,
+  WaiterStatsReport,
   WasteReportRow,
   WhatsappStatus,
   ZoneInput
@@ -17349,6 +17351,101 @@ export function useBranchTellerStats<TData = Awaited<ReturnType<typeof branchTel
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getBranchTellerStatsQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const branchWaiterStats = (
+    branchId: string,
+    params?: BranchWaiterStatsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<WaiterStatsReport>(
+      {url: `/reports/branches/${branchId}/waiters`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchWaiterStatsQueryKey = (branchId: string,
+    params?: BranchWaiterStatsParams,) => {
+    return [
+    `/reports/branches/${branchId}/waiters`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchWaiterStatsQueryOptions = <TData = Awaited<ReturnType<typeof branchWaiterStats>>, TError = ErrorBody>(branchId: string,
+    params?: BranchWaiterStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchWaiterStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchWaiterStatsQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchWaiterStats>>> = ({ signal }) => branchWaiterStats(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchWaiterStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchWaiterStatsQueryResult = NonNullable<Awaited<ReturnType<typeof branchWaiterStats>>>
+export type BranchWaiterStatsQueryError = ErrorBody
+
+
+export function useBranchWaiterStats<TData = Awaited<ReturnType<typeof branchWaiterStats>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  BranchWaiterStatsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchWaiterStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchWaiterStats>>,
+          TError,
+          Awaited<ReturnType<typeof branchWaiterStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchWaiterStats<TData = Awaited<ReturnType<typeof branchWaiterStats>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchWaiterStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchWaiterStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchWaiterStats>>,
+          TError,
+          Awaited<ReturnType<typeof branchWaiterStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchWaiterStats<TData = Awaited<ReturnType<typeof branchWaiterStats>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchWaiterStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchWaiterStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchWaiterStats<TData = Awaited<ReturnType<typeof branchWaiterStats>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchWaiterStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchWaiterStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchWaiterStatsQueryOptions(branchId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -5,7 +5,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Ban, CalendarRange, Coins, Percent, Receipt, TrendingUp } from "lucide-react";
+import { Ban, CalendarRange, Coins, Percent, Receipt, ShoppingBasket, TrendingUp } from "lucide-react";
 
 import { Page } from "@/components/app/page";
 import { ChartCard, chartColor } from "@/components/app/chart-card";
@@ -23,7 +23,8 @@ import { usePageSearch } from "@/data/scope/use-page-search";
 import { useOrgId } from "@/hooks/use-org-id";
 import {
   useBranchAddonSales, useBranchCombinedItemSales, useBranchSales,
-  useBranchSalesPeakHours, useBranchSalesTimeseries, useBranchTellerStats, useOrgBranchComparison,
+  useBranchSalesPeakHours, useBranchSalesTimeseries, useBranchTellerStats,
+  useBranchWaiterStats, useOrgBranchComparison,
 } from "@/data/api/generated/api";
 import type { PeakHourPoint, TimeseriesPoint } from "@/data/api/generated/models";
 import { GRANULARITIES, type Granularity, type MethodMap, tName } from "./lib";
@@ -75,6 +76,7 @@ function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
     { key: "revenue", label: t("dashboard.revenue", "Revenue"), icon: Coins, accent: "brand", value: d?.total_revenue ?? 0, formatType: "money", loading: q.isLoading },
     { key: "tax", label: t("orders.tax", "Tax"), icon: Percent, accent: "info", value: d?.total_tax ?? 0, formatType: "money", loading: q.isLoading },
     { key: "orders", label: t("dashboard.orders", "Orders"), icon: Receipt, accent: "primary", value: d?.total_orders ?? 0, formatType: "number", loading: q.isLoading },
+    { key: "line_items", label: t("analytics.itemsSold", "Items Sold"), icon: ShoppingBasket, accent: "info", value: d?.total_line_items ?? 0, formatType: "number", loading: q.isLoading },
     { key: "aov", label: t("analytics.avgOrder", "Avg Order"), icon: TrendingUp, accent: "info", value: aov, formatType: "money", loading: q.isLoading },
     { key: "voided", label: t("orders.voided", "Voided"), icon: Ban, accent: "warning", value: d?.voided_orders ?? 0, formatType: "number", loading: q.isLoading },
   ];
@@ -506,6 +508,90 @@ function TellersTab({ branchId, range }: { branchId: string; range: Range }) {
   );
 }
 
+// ── Waiters ──────────────────────────────────────────────────────────────────
+function WaitersTab({ branchId, range }: { branchId: string; range: Range }) {
+  const { t, i18n } = useTranslation();
+  const reduced = useReducedMotion();
+  const isRtl = i18n.dir() === "rtl";
+  const q = useBranchWaiterStats(branchId, range, { query: { enabled: !!branchId } });
+  const rows = useMemo(() => q.data?.waiters ?? [], [q.data]);
+  const chart = useMemo(
+    () => [...rows].sort((a, b) => b.revenue - a.revenue).slice(0, 10).map((r) => ({ name: r.waiter_name, revenue: r.revenue })),
+    [rows],
+  );
+
+  return (
+    <div className="space-y-4">
+      <ChartCard title={t("analytics.revenueByWaiter", "Revenue by Waiter")}>
+        {q.isLoading ? <ChartSkeleton /> : q.isError ? <EmptyState className="h-72" title={t("common.somethingWrong", "Something went wrong")} /> : chart.length === 0
+          ? <EmptyState className="h-72" title={t("analytics.noData", "No data for this period")} />
+          : (
+            <ChartFrame>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chart} layout="vertical" margin={{ top: 4, right: 12, left: 4, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                  <XAxis type="number" tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} />
+                  <YAxis type="category" dataKey="name" tick={AXIS} tickLine={false} axisLine={false} width={110} />
+                  <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => fmtMoney(v)} />} />
+                  {/* RTL: leading edge is the end of the bar (right in LTR, left in RTL), so flip radius accordingly */}
+                  <Bar dataKey="revenue" fill={chartColor(4)} radius={isRtl ? [4, 0, 0, 4] : [0, 4, 4, 0]} isAnimationActive={!reduced} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartFrame>
+          )}
+      </ChartCard>
+
+      <ChartCard title={t("analytics.waiterDetails", "Waiter Details")} contentClassName="px-0 sm:px-0">
+        {q.isLoading
+          ? <div className="space-y-2 p-4">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9" />)}</div>
+          : q.isError
+            ? <EmptyState title={t("common.somethingWrong", "Something went wrong")} />
+          : rows.length === 0
+            ? <EmptyState title={t("analytics.noData", "No data for this period")} />
+            : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="px-4 py-2.5 text-start text-xs font-medium text-muted-foreground">{t("shifts.waiter", "Waiter")}</th>
+                      <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("dashboard.orders", "Orders")}</th>
+                      <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("dashboard.revenue", "Revenue")}</th>
+                      <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("analytics.aov", "AOV")}</th>
+                      <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("analytics.itemsSold", "Items Sold")}</th>
+                      <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("analytics.itemsPerOrder", "Items / Order")}</th>
+                      <th className="px-4 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("orders.voided", "Voided")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <tr key={r.waiter_id} className="border-b last:border-0 transition-colors hover:bg-muted/40">
+                        <td className="px-4 py-2.5 font-medium">{r.waiter_name}</td>
+                        <td className="px-3 py-2.5 text-end tabular">{fmtNumber(r.orders)}</td>
+                        <td className="px-3 py-2.5 text-end font-semibold tabular">{fmtMoney(r.revenue)}</td>
+                        <td className="px-3 py-2.5 text-end tabular text-muted-foreground">{fmtMoney(r.avg_order_value)}</td>
+                        <td className="px-3 py-2.5 text-end tabular text-muted-foreground">{fmtNumber(r.line_items)}</td>
+                        <td className="px-3 py-2.5 text-end tabular text-muted-foreground">{fmtNumber(r.avg_items_per_order, { maximumFractionDigits: 1 })}</td>
+                        <td className="px-4 py-2.5 text-end tabular text-muted-foreground">{fmtNumber(r.voided)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+        {/* Waiter-attributed orders are a subset (teller-direct + delivery never carry one) — caption the gap so totals don't look short vs Overview. */}
+        {!q.isLoading && !q.isError && q.data && q.data.total_orders > 0 ? (
+          <p className="px-4 pt-3 text-xs text-muted-foreground">
+            {t("analytics.waiterCoverage", "{{attributed}} of {{total}} orders came through waiters", {
+              attributed: fmtNumber(q.data.attributed_orders),
+              total: fmtNumber(q.data.total_orders),
+            })}
+          </p>
+        ) : null}
+      </ChartCard>
+    </div>
+  );
+}
+
 // ── Branches (org comparison) ────────────────────────────────────────────────
 function BranchesTab({ orgId, range }: { orgId: string; range: Range }) {
   const { t } = useTranslation();
@@ -576,8 +662,8 @@ function BranchesTab({ orgId, range }: { orgId: string; range: Range }) {
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
-type TabKey = "overview" | "revenue" | "items" | "tellers" | "branches";
-const TABS: TabKey[] = ["overview", "revenue", "items", "tellers", "branches"];
+type TabKey = "overview" | "revenue" | "items" | "tellers" | "waiters" | "branches";
+const TABS: TabKey[] = ["overview", "revenue", "items", "tellers", "waiters", "branches"];
 
 export function AnalyticsPage() {
   const { t } = useTranslation();
@@ -612,6 +698,7 @@ export function AnalyticsPage() {
         : tab === "revenue" ? <RevenueTab branchId={scopeBranchId} range={range} gran={gran} setGran={(g) => update({ gran: g })} />
         : tab === "items" ? <ItemsTab branchId={scopeBranchId} range={range} />
         : tab === "tellers" ? <TellersTab branchId={scopeBranchId} range={range} />
+        : tab === "waiters" ? <WaitersTab branchId={scopeBranchId} range={range} />
         : <BranchesTab orgId={orgId ?? ""} range={range} />}
     </Page>
   );

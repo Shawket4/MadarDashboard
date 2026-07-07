@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Ban, Coins, Eye, MoreHorizontal, Percent, Receipt, Truck, Ban as VoidIcon } from "lucide-react";
+import { Ban, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, Truck, Ban as VoidIcon } from "lucide-react";
 
 import { Page } from "@/components/app/page";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
@@ -115,6 +115,7 @@ export function OrdersPage() {
   const primaryKpis: LedgerItem[] = [
     { key: "revenue", label: t("dashboard.revenue", "Revenue"), value: summary?.revenue ?? 0, formatType: "money", icon: Coins, accent: "brand", loading: isLoading },
     { key: "completed", label: t("orders.completed", "Completed"), value: summary?.completed ?? 0, formatType: "number", icon: Receipt, accent: "success", loading: isLoading },
+    { key: "line_items", label: t("orders.itemsSold", "Items Sold"), value: summary?.line_items ?? 0, formatType: "number", icon: ShoppingBasket, accent: "info", loading: isLoading },
     { key: "voided", label: t("dashboard.voided", "Voided"), value: summary?.voided ?? 0, formatType: "number", icon: Ban, accent: "destructive", loading: isLoading },
     { key: "discounts", label: t("orders.discounts", "Discounts"), value: summary?.discounts ?? 0, formatType: "money", icon: Percent, accent: "warning", loading: isLoading },
   ];

@@ -4660,6 +4660,7 @@ export const ListOrdersResponse = zod.object({
   "in_mall_fees": zod.number().optional(),
   "in_mall_orders": zod.number().optional().describe('In-mall channel: order count \/ gross revenue \/ delivery fees.'),
   "in_mall_revenue": zod.number().optional(),
+  "line_items": zod.number().optional().describe('Units sold (SUM of order_items.quantity) across completed orders in\nscope. Counts units, not distinct lines, matching the item-sales\nreports (\"3× burger\" contributes 3).'),
   "outside_fees": zod.number().optional(),
   "outside_orders": zod.number().optional().describe('Outside channel: order count \/ gross revenue \/ delivery fees.'),
   "outside_revenue": zod.number().optional(),
@@ -5012,6 +5013,7 @@ export const ExportOrdersResponse = zod.object({
   "in_mall_fees": zod.number().optional(),
   "in_mall_orders": zod.number().optional().describe('In-mall channel: order count \/ gross revenue \/ delivery fees.'),
   "in_mall_revenue": zod.number().optional(),
+  "line_items": zod.number().optional().describe('Units sold (SUM of order_items.quantity) across completed orders in\nscope. Counts units, not distinct lines, matching the item-sales\nreports (\"3× burger\" contributes 3).'),
   "outside_fees": zod.number().optional(),
   "outside_orders": zod.number().optional().describe('Outside channel: order count \/ gross revenue \/ delivery fees.'),
   "outside_revenue": zod.number().optional(),
@@ -6738,6 +6740,7 @@ export const BranchSalesResponse = zod.object({
   "revenue": zod.number()
 })),
   "total_discount": zod.number(),
+  "total_line_items": zod.number().optional().describe('Units sold (SUM of order_items.quantity) across non-voided orders in\nrange. Counts units, not distinct lines (\"3× burger\" contributes 3),\nmatching quantity_sold in the item\/category breakdowns.'),
   "total_orders": zod.number(),
   "total_revenue": zod.number(),
   "total_tax": zod.number(),
@@ -6852,6 +6855,32 @@ export const BranchTellerStatsResponseItem = zod.object({
   "voided": zod.number()
 })
 export const BranchTellerStatsResponse = zod.array(BranchTellerStatsResponseItem)
+
+
+export const BranchWaiterStatsParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const BranchWaiterStatsQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const BranchWaiterStatsResponse = zod.object({
+  "attributed_orders": zod.number().describe('Non-voided orders in range that carry a waiter.'),
+  "total_orders": zod.number().describe('All non-voided orders in range (waiter or not).'),
+  "waiters": zod.array(zod.object({
+  "avg_items_per_order": zod.number().describe('line_items \/ orders; 0 when the waiter has no non-voided orders.'),
+  "avg_order_value": zod.number(),
+  "line_items": zod.number().describe('Units sold (SUM of order_items.quantity) on this waiter\'s non-voided\norders — the upsell signal behind avg_items_per_order.'),
+  "orders": zod.number(),
+  "revenue": zod.number(),
+  "voided": zod.number(),
+  "waiter_id": zod.uuid(),
+  "waiter_name": zod.string()
+}).describe('Per-waiter sales split. Only waiter-attributed orders appear (dine-in\nsettled from a waiter\'s ticket — `orders.waiter_id IS NOT NULL`); direct\nteller sales and delivery orders are out of scope, so totals here are a\nsubset of the branch overview. `attributed_orders`\/`attributed_revenue`\non the report envelope let the UI caption that gap.'))
+}).describe('Envelope for the waiters split: rows plus the branch-level totals needed\nto caption coverage (\"X of Y orders came through waiters\").')
 
 
 export const BranchWasteReportParams = zod.object({

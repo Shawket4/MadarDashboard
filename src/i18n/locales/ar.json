@@ -1492,7 +1492,8 @@
     "channel": "القناة",
     "allChannels": "كل القنوات",
     "location": "الموقع",
-    "openInMaps": "فتح في الخرائط"
+    "openInMaps": "فتح في الخرائط",
+    "itemsSold": "الأصناف المباعة"
   },
   "ordersExport": {
     "title": "تصدير الطلبات",
@@ -1557,7 +1558,8 @@
       "items": "الأصناف",
       "tellers": "الكاشيرز",
       "branches": "الفروع",
-      "inventory": "المخزون"
+      "inventory": "المخزون",
+      "waiters": "النوادل"
     },
     "granularity": {
       "peak_hours": "ساعات الذروة",
@@ -1594,7 +1596,12 @@
     "pickBranch": "اختر فرعًا",
     "pickBranchHint": "اختر فرعًا من شريط النطاق لعرض هذا التقرير.",
     "tellerDetails": "تفاصيل الكاشيرات",
-    "branchDetails": "تفاصيل الفروع"
+    "branchDetails": "تفاصيل الفروع",
+    "itemsSold": "الأصناف المباعة",
+    "revenueByWaiter": "الإيراد حسب النادل",
+    "waiterDetails": "تفاصيل النوادل",
+    "itemsPerOrder": "صنف / طلب",
+    "waiterCoverage": "{{attributed}} من {{total}} طلبًا تمت عبر النوادل"
   },
   "discounts": {
     "title": "الخصومات",

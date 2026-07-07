@@ -1493,7 +1493,8 @@
     "channel": "Channel",
     "allChannels": "All channels",
     "location": "Location",
-    "openInMaps": "Open in Maps"
+    "openInMaps": "Open in Maps",
+    "itemsSold": "Items Sold"
   },
   "ordersExport": {
     "title": "Export Orders",
@@ -1558,7 +1559,8 @@
       "items": "Items",
       "tellers": "Tellers",
       "branches": "Branches",
-      "inventory": "Inventory"
+      "inventory": "Inventory",
+      "waiters": "Waiters"
     },
     "granularity": {
       "peak_hours": "Peak Hours",
@@ -1595,7 +1597,12 @@
     "pickBranch": "Select a branch",
     "pickBranchHint": "Choose a branch in the scope bar to view this report.",
     "tellerDetails": "Teller Details",
-    "branchDetails": "Branch Details"
+    "branchDetails": "Branch Details",
+    "itemsSold": "Items Sold",
+    "revenueByWaiter": "Revenue by Waiter",
+    "waiterDetails": "Waiter Details",
+    "itemsPerOrder": "Items / Order",
+    "waiterCoverage": "{{attributed}} of {{total}} orders came through waiters"
   },
   "discounts": {
     "title": "Discounts",

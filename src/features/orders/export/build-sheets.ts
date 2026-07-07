@@ -46,6 +46,7 @@ export function buildSheets(orders: OrderExport[], grains: Grain[], t: TFunction
         order_ref: o.order_ref ?? `#${o.order_number}`,
         created_at: o.created_at,
         payment_method: o.payment_method,
+        waiter_name: o.waiter_name ?? null,
         item_name: getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, lang),
         size_label: it.size_label || null,
         quantity: it.quantity,
