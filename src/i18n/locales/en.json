@@ -1602,7 +1602,12 @@
     "revenueByWaiter": "Revenue by Waiter",
     "waiterDetails": "Waiter Details",
     "itemsPerOrder": "Items / Order",
-    "waiterCoverage": "{{attributed}} of {{total}} orders came through waiters"
+    "waiterCoverage": "{{attributed}} of {{total}} orders came through waiters",
+    "excludeItems": "Exclude items from this count",
+    "excludedFromCount": "Excluded from Items Sold",
+    "nExcluded_one": "{{count}} item excluded",
+    "nExcluded_other": "{{count}} items excluded",
+    "excludeScopeNote": "Hides items from the Items Sold count only. Revenue, orders, and all other figures always include every item."
   },
   "discounts": {
     "title": "Discounts",

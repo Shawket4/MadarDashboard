@@ -32,4 +32,11 @@ channel?: string;
  * orders in one round trip instead of fetching each order separately.
  */
 include_items?: boolean;
+/**
+ * Comma-separated menu_item/bundle UUIDs left out of the summary's
+ * `line_items` count (units sold) — e.g. water bottles or service
+ * pseudo-items that inflate it. Affects ONLY that KPI: revenue, order
+ * counts, and the order rows themselves are untouched.
+ */
+exclude_items?: string;
 };

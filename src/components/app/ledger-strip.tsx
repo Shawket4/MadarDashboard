@@ -24,6 +24,8 @@ export interface LedgerItem {
   /** Small muted line under the value. */
   hint?: ReactNode;
   loading?: boolean;
+  /** Small control rendered in the card's header row (e.g. a per-KPI filter). */
+  action?: ReactNode;
 }
 
 // Responsive column counts keyed by item count (literal classes for the JIT).
@@ -71,6 +73,7 @@ export function LedgerStrip({
           trend={item.trend}
           hint={item.hint}
           loading={item.loading}
+          action={item.action}
         />
       ))}
     </motion.div>

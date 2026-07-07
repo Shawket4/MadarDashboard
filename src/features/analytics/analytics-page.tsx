@@ -12,6 +12,7 @@ import { ChartCard, chartColor } from "@/components/app/chart-card";
 import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { EmptyState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { ExcludeItemsControl, excludeItemsParam, useExcludedItems } from "@/components/app/exclude-items-control";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -55,7 +56,13 @@ function ChartSkeleton() {
 function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t, i18n } = useTranslation();
   const reduced = useReducedMotion();
-  const q = useBranchSales(branchId, range, { query: { enabled: !!branchId } });
+  // Excluded from the Items Sold KPI only (server ignores it everywhere else).
+  const [excludedItems, setExcludedItems] = useExcludedItems();
+  const q = useBranchSales(
+    branchId,
+    { ...range, exclude_items: excludeItemsParam(excludedItems) },
+    { query: { enabled: !!branchId } },
+  );
   const d = q.data;
   const aov = d && d.total_orders ? Math.round(d.total_revenue / d.total_orders) : 0;
 
@@ -76,7 +83,17 @@ function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
     { key: "revenue", label: t("dashboard.revenue", "Revenue"), icon: Coins, accent: "brand", value: d?.total_revenue ?? 0, formatType: "money", loading: q.isLoading },
     { key: "tax", label: t("orders.tax", "Tax"), icon: Percent, accent: "info", value: d?.total_tax ?? 0, formatType: "money", loading: q.isLoading },
     { key: "orders", label: t("dashboard.orders", "Orders"), icon: Receipt, accent: "primary", value: d?.total_orders ?? 0, formatType: "number", loading: q.isLoading },
-    { key: "line_items", label: t("analytics.itemsSold", "Items Sold"), icon: ShoppingBasket, accent: "info", value: d?.total_line_items ?? 0, formatType: "number", loading: q.isLoading },
+    {
+      key: "line_items",
+      label: t("analytics.itemsSold", "Items Sold"),
+      icon: ShoppingBasket,
+      accent: "info",
+      value: d?.total_line_items ?? 0,
+      formatType: "number",
+      loading: q.isLoading,
+      hint: excludedItems.length ? t("analytics.nExcluded", "{{count}} item excluded", { count: excludedItems.length }) : undefined,
+      action: <ExcludeItemsControl excluded={excludedItems} onChange={setExcludedItems} />,
+    },
     { key: "aov", label: t("analytics.avgOrder", "Avg Order"), icon: TrendingUp, accent: "info", value: aov, formatType: "money", loading: q.isLoading },
     { key: "voided", label: t("orders.voided", "Voided"), icon: Ban, accent: "warning", value: d?.voided_orders ?? 0, formatType: "number", loading: q.isLoading },
   ];

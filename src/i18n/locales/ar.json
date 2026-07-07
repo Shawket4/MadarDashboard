@@ -1601,7 +1601,16 @@
     "revenueByWaiter": "الإيراد حسب النادل",
     "waiterDetails": "تفاصيل النوادل",
     "itemsPerOrder": "صنف / طلب",
-    "waiterCoverage": "{{attributed}} من {{total}} طلبًا تمت عبر النوادل"
+    "waiterCoverage": "{{attributed}} من {{total}} طلبًا تمت عبر النوادل",
+    "excludeItems": "استبعاد أصناف من هذا العدّ",
+    "excludedFromCount": "مستبعد من الأصناف المباعة",
+    "nExcluded_zero": "لا أصناف مستبعدة",
+    "nExcluded_one": "صنف واحد مستبعد",
+    "nExcluded_two": "صنفان مستبعدان",
+    "nExcluded_few": "{{count}} أصناف مستبعدة",
+    "nExcluded_many": "{{count}} صنفًا مستبعدًا",
+    "nExcluded_other": "{{count}} صنف مستبعد",
+    "excludeScopeNote": "يُخفي الأصناف من عدّ الأصناف المباعة فقط. الإيراد والطلبات وكل الأرقام الأخرى تشمل دائمًا جميع الأصناف."
   },
   "discounts": {
     "title": "الخصومات",

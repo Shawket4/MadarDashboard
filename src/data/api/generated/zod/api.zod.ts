@@ -4608,7 +4608,8 @@ export const ListOrdersQueryParams = zod.object({
   "to": zod.iso.datetime({"offset":true}).optional(),
   "order_type": zod.string().optional().describe('Filter by order origin: \"dine_in\" or \"delivery\".'),
   "channel": zod.string().optional().describe('Filter delivery orders by channel: \"in_mall\" or \"outside\".'),
-  "include_items": zod.boolean().optional().describe('When true, each order in `data` embeds its full line items\n(addons\/optionals\/bundle components) — the response shape becomes\n[PaginatedOrdersFull]. Lets offline-first clients cache complete\norders in one round trip instead of fetching each order separately.')
+  "include_items": zod.boolean().optional().describe('When true, each order in `data` embeds its full line items\n(addons\/optionals\/bundle components) — the response shape becomes\n[PaginatedOrdersFull]. Lets offline-first clients cache complete\norders in one round trip instead of fetching each order separately.'),
+  "exclude_items": zod.string().optional().describe('Comma-separated menu_item\/bundle UUIDs left out of the summary\'s\n`line_items` count (units sold) — e.g. water bottles or service\npseudo-items that inflate it. Affects ONLY that KPI: revenue, order\ncounts, and the order rows themselves are untouched.')
 })
 
 export const ListOrdersResponse = zod.object({
@@ -6701,7 +6702,8 @@ export const BranchSalesParams = zod.object({
 export const BranchSalesQueryParams = zod.object({
   "from": zod.iso.datetime({"offset":true}).optional(),
   "to": zod.iso.datetime({"offset":true}).optional(),
-  "limit": zod.number().optional()
+  "limit": zod.number().optional(),
+  "exclude_items": zod.string().optional().describe('Comma-separated menu_item\/bundle UUIDs left out of `total_line_items`\n(units sold) ONLY — revenue, top items, and categories are untouched.')
 })
 
 export const BranchSalesResponse = zod.object({

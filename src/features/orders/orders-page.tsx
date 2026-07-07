@@ -7,6 +7,7 @@ import { Ban, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, Truc
 
 import { Page } from "@/components/app/page";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { ExcludeItemsControl, excludeItemsParam, useExcludedItems } from "@/components/app/exclude-items-control";
 import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { DataTable } from "@/components/app/data-table";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +85,9 @@ export function OrdersPage() {
     setPagination((p) => ({ ...p, pageIndex: 0 }));
   }, [branchId, from, to, status, payment, teller, waiter, orderType, channel]);
 
+  // Excluded from the Items Sold KPI only (server ignores it everywhere else).
+  const [excludedItems, setExcludedItems] = useExcludedItems();
+
   const baseParams = {
     branch_id: branchId ?? undefined,
     from: from ?? undefined,
@@ -95,6 +99,7 @@ export function OrdersPage() {
     order_type: orderType === ALL ? undefined : orderType,
     // Channel only narrows delivery orders; ignored unless Delivery is picked.
     channel: orderType === "delivery" && channel !== ALL ? channel : undefined,
+    exclude_items: excludeItemsParam(excludedItems),
   };
 
   const enabled = Boolean(branchId || orgId);
@@ -115,7 +120,17 @@ export function OrdersPage() {
   const primaryKpis: LedgerItem[] = [
     { key: "revenue", label: t("dashboard.revenue", "Revenue"), value: summary?.revenue ?? 0, formatType: "money", icon: Coins, accent: "brand", loading: isLoading },
     { key: "completed", label: t("orders.completed", "Completed"), value: summary?.completed ?? 0, formatType: "number", icon: Receipt, accent: "success", loading: isLoading },
-    { key: "line_items", label: t("orders.itemsSold", "Items Sold"), value: summary?.line_items ?? 0, formatType: "number", icon: ShoppingBasket, accent: "info", loading: isLoading },
+    {
+      key: "line_items",
+      label: t("orders.itemsSold", "Items Sold"),
+      value: summary?.line_items ?? 0,
+      formatType: "number",
+      icon: ShoppingBasket,
+      accent: "info",
+      loading: isLoading,
+      hint: excludedItems.length ? t("analytics.nExcluded", "{{count}} item excluded", { count: excludedItems.length }) : undefined,
+      action: <ExcludeItemsControl excluded={excludedItems} onChange={setExcludedItems} />,
+    },
     { key: "voided", label: t("dashboard.voided", "Voided"), value: summary?.voided ?? 0, formatType: "number", icon: Ban, accent: "destructive", loading: isLoading },
     { key: "discounts", label: t("orders.discounts", "Discounts"), value: summary?.discounts ?? 0, formatType: "money", icon: Percent, accent: "warning", loading: isLoading },
   ];

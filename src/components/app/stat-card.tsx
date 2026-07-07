@@ -40,6 +40,8 @@ interface StatCardProps {
   loading?: boolean;
   /** Tighter padding + smaller value text — for crowded grids (e.g. 4-up KPI rows). */
   dense?: boolean;
+  /** Small control rendered in the header row (e.g. a per-KPI filter). */
+  action?: ReactNode;
   onClick?: () => void;
   className?: string;
 }
@@ -54,6 +56,7 @@ export function StatCard({
   hint,
   loading,
   dense = false,
+  action,
   onClick,
   className,
 }: StatCardProps) {
@@ -119,11 +122,14 @@ export function StatCard({
       >
         <div className="flex items-center justify-between gap-2">
           <p className="min-w-0 truncate text-xs font-medium text-muted-foreground sm:text-sm">{label}</p>
-          {Icon ? (
-            <span className={cn("grid shrink-0 place-items-center rounded-lg", tileSize, accentClasses[accent])}>
-              <Icon className={iconSize} />
-            </span>
-          ) : null}
+          <span className="flex shrink-0 items-center gap-1">
+            {action}
+            {Icon ? (
+              <span className={cn("grid shrink-0 place-items-center rounded-lg", tileSize, accentClasses[accent])}>
+                <Icon className={iconSize} />
+              </span>
+            ) : null}
+          </span>
         </div>
         {valueNode}
         {hasTrend || hint ? (
