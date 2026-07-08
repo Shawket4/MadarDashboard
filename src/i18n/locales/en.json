@@ -3209,6 +3209,7 @@
     "title": "Ask your data",
     "subtitle": "Ask in plain language. A deterministic algorithm matches your question to a verified report and answers with your real numbers — never guessed, no hallucinations.",
     "badge": "Verified reports · real numbers",
+    "badgeShort": "Verified",
     "heroTitle": "What would you like to know?",
     "empty": "Pick a question to start, or type your own.",
     "verified": "Verified report",

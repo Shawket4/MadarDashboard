@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
 import { ArrowUp, Loader2, MessagesSquare, ShieldCheck } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { Page } from "@/components/app/page";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -117,35 +117,41 @@ export function AiChatPage() {
   );
 
   return (
-    <Page className="flex h-[calc(100dvh-4rem)] max-w-[880px] flex-col gap-4">
-      <motion.div variants={fadeInUp} initial="hidden" animate="show">
-        <PageHeader
-          title={t("aiChat.title", "Ask your data")}
-          description={t(
+    <Page className="flex h-[calc(100dvh-4rem)] max-w-[880px] flex-col gap-3 space-y-0 p-3 sm:gap-4 sm:p-6 lg:p-8">
+      {/* Compact, responsive header: on phones the title stays small, the long
+          subtitle is hidden (the empty-state hero conveys it), and the trust
+          badge collapses to a word — so the chat area isn't squeezed. */}
+      <motion.div variants={fadeInUp} initial="hidden" animate="show" className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="truncate text-lg font-semibold tracking-tight sm:text-2xl">
+            {t("aiChat.title", "Ask your data")}
+          </h1>
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border bg-muted/40 px-2 py-1 text-[11px] font-medium text-muted-foreground sm:px-2.5 sm:text-xs">
+            <ShieldCheck className="size-3.5 text-emerald-500" aria-hidden="true" />
+            <span className="hidden sm:inline">{t("aiChat.badge", "Verified reports · real numbers")}</span>
+            <span className="sm:hidden">{t("aiChat.badgeShort", "Verified")}</span>
+          </span>
+        </div>
+        <p className="hidden max-w-prose text-sm text-muted-foreground sm:block">
+          {t(
             "aiChat.subtitle",
             "Ask in plain language. A deterministic algorithm matches your question to a verified report and answers with your real numbers — never guessed, no hallucinations.",
           )}
-          actions={
-            <span className="inline-flex items-center gap-1.5 rounded-full border bg-muted/40 px-2.5 py-1 text-xs font-medium text-muted-foreground">
-              <ShieldCheck className="size-3.5 text-emerald-500" aria-hidden="true" />
-              {t("aiChat.badge", "Verified reports · real numbers")}
-            </span>
-          }
-        />
+        </p>
       </motion.div>
 
       <LayoutGroup>
         {/* Conversation */}
-        <div ref={scrollRef} className="min-h-0 flex-1 space-y-6 overflow-y-auto pe-1">
+        <div ref={scrollRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto pe-1 sm:space-y-6">
           {!started ? (
             <motion.div
-              className="flex h-full flex-col items-center justify-center gap-5 text-center"
+              className="flex h-full flex-col items-center justify-center gap-4 px-1 text-center sm:gap-5"
               variants={staggerContainer(0.06)}
               initial="hidden"
               animate="show"
             >
-              <motion.div variants={scaleIn} className="rounded-2xl bg-primary/10 p-3.5">
-                <MessagesSquare className="size-7 text-primary" aria-hidden="true" />
+              <motion.div variants={scaleIn} className="rounded-2xl bg-primary/10 p-3 sm:p-3.5">
+                <MessagesSquare className="size-6 text-primary sm:size-7" aria-hidden="true" />
               </motion.div>
               <motion.div variants={fadeInUp} className="space-y-1.5">
                 <h2 className="text-lg font-semibold tracking-tight">
