@@ -167,6 +167,7 @@ export const ChatResponse = zod.object({
   "kind": zod.enum(['money', 'count', 'label', 'date', 'number']).describe('The renderable kind of an output column (money vs count vs label vs a time\naxis) so the frontend can format it and pick a chart.'),
   "label": zod.string()
 }).describe('One output column: its SQL alias (also the JSON key) and how to render it.')).describe('Column metadata for rendering the table\/chart.'),
+  "facet_by": zod.string().nullish().describe('When set, the client renders one section (chart + table) per distinct\nvalue of this column key — e.g. one table per branch (\"faceting\").'),
   "provider": zod.string().describe('Which model answered (e.g. \"gemini-2.5-flash\").'),
   "report_id": zod.string().describe('The report the assistant chose.'),
   "row_count": zod.number().min(chatResponseRowCountMin),

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "motion/react";
 import { AlertTriangle, BadgeCheck, Building2 } from "lucide-react";
@@ -62,11 +63,8 @@ function measureFormatter(col: Column) {
 export function AiResultView({ res }: { res: AiChatResponse }) {
   const { t } = useTranslation();
   const reduce = useReducedMotion();
-  const dimension = res.columns.find(isDimension);
-  const primary = res.columns.find(isMeasure);
   const rows = res.rows as Row[];
-
-  const showChart = res.chart !== "table" && !!dimension && !!primary && rows.length > 0;
+  const facetKey = res.facet_by ?? null;
 
   // Build the scope label frontend-side so it localizes (the API label is English).
   const scope = res.scope;
@@ -75,6 +73,23 @@ export function AiResultView({ res }: { res: AiChatResponse }) {
       ? t("aiChat.scopeAllN", "All branches ({{count}})", { count: scope.branches.length })
       : (scope.branches[0] ?? t("aiChat.scopeAll", "All branches"))
     : scope.branches.join(", ");
+
+  // Columns rendered inside each section — when faceting, the facet column is
+  // the section heading, so drop it from the per-section table/chart.
+  const sectionColumns = facetKey ? res.columns.filter((c) => c.key !== facetKey) : res.columns;
+
+  // Group rows by the facet column, preserving first-seen order.
+  const groups = useMemo(() => {
+    if (!facetKey) return null;
+    const map = new Map<string, Row[]>();
+    for (const row of rows) {
+      const k = String(row[facetKey] ?? "—");
+      const arr = map.get(k) ?? [];
+      arr.push(row);
+      map.set(k, arr);
+    }
+    return Array.from(map, ([key, groupRows]) => ({ key, rows: groupRows }));
+  }, [facetKey, rows]);
 
   return (
     <motion.div
@@ -108,11 +123,62 @@ export function AiResultView({ res }: { res: AiChatResponse }) {
         </div>
       ) : null}
 
-      {showChart && dimension && primary ? (
+      {groups ? (
+        <div className="space-y-5">
+          {groups.map((g) => (
+            <section key={g.key} className="space-y-2">
+              <h3 className="text-sm font-semibold text-foreground">{g.key}</h3>
+              <ResultSection
+                columns={sectionColumns}
+                rows={g.rows}
+                chart={res.chart}
+                reduce={reduce ?? false}
+              />
+            </section>
+          ))}
+        </div>
+      ) : (
+        <ResultSection
+          columns={sectionColumns}
+          rows={rows}
+          chart={res.chart}
+          reduce={reduce ?? false}
+        />
+      )}
+
+      {res.truncated ? (
+        <p className="text-xs text-muted-foreground">
+          {t("aiChat.truncated", "Showing the first {{count}} rows.", { count: res.row_count })}
+        </p>
+      ) : null}
+    </motion.div>
+  );
+}
+
+/** One result block: an optional chart (all measures as series) plus the table. */
+function ResultSection({
+  columns,
+  rows,
+  chart,
+  reduce,
+}: {
+  columns: Column[];
+  rows: Row[];
+  chart: string;
+  reduce: boolean;
+}) {
+  const { t } = useTranslation();
+  const dimension = columns.find(isDimension);
+  const measures = columns.filter(isMeasure);
+  const showChart = chart !== "table" && !!dimension && measures.length > 0 && rows.length > 0;
+
+  return (
+    <>
+      {showChart && dimension ? (
         <ChartCard>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              {renderChart(res.chart, rows, dimension, primary, reduce ?? false)}
+              {renderChart(chart, rows, dimension, measures, reduce)}
             </ResponsiveContainer>
           </div>
         </ChartCard>
@@ -122,7 +188,7 @@ export function AiResultView({ res }: { res: AiChatResponse }) {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              {res.columns.map((c) => (
+              {columns.map((c) => (
                 <TableHead
                   key={c.key}
                   className={isMeasure(c) ? "text-end whitespace-nowrap" : "whitespace-nowrap"}
@@ -135,21 +201,15 @@ export function AiResultView({ res }: { res: AiChatResponse }) {
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={res.columns.length}
-                  className="py-8 text-center text-muted-foreground"
-                >
+                <TableCell colSpan={columns.length} className="py-8 text-center text-muted-foreground">
                   {t("aiChat.noData", "No data for this question.")}
                 </TableCell>
               </TableRow>
             ) : (
               rows.map((row, i) => (
                 <TableRow key={i}>
-                  {res.columns.map((c) => (
-                    <TableCell
-                      key={c.key}
-                      className={isMeasure(c) ? "text-end tabular-nums" : undefined}
-                    >
+                  {columns.map((c) => (
+                    <TableCell key={c.key} className={isMeasure(c) ? "text-end tabular-nums" : undefined}>
                       {formatCell(c, row[c.key])}
                     </TableCell>
                   ))}
@@ -159,33 +219,33 @@ export function AiResultView({ res }: { res: AiChatResponse }) {
           </TableBody>
         </Table>
       </div>
-
-      {res.truncated ? (
-        <p className="text-xs text-muted-foreground">
-          {t("aiChat.truncated", "Showing the first {{count}} rows.", { count: res.row_count })}
-        </p>
-      ) : null}
-    </motion.div>
+    </>
   );
 }
 
-function renderChart(
-  chart: string,
-  rows: Row[],
-  dimension: Column,
-  primary: Column,
-  reduce: boolean,
-) {
-  const fmt = measureFormatter(primary);
-  const axisTick = { fontSize: 11 };
+/** Tooltip/axis value formatter that respects each series' own column kind. */
+function seriesFormatter(measures: Column[]) {
+  return (value: number, name?: string) => {
+    const col = measures.find((m) => m.label === name) ?? measures[0];
+    return [measureFormatter(col)(Number(value)), name] as [string, string | undefined];
+  };
+}
+
+function renderChart(chart: string, rows: Row[], dimension: Column, measures: Column[], reduce: boolean) {
   const anim = !reduce;
+  const axisTick = { fontSize: 11 };
+  // Axis uses the first measure's formatter (mixed-unit axes share one scale).
+  const axisFmt = measureFormatter(measures[0]);
+  const tipFmt = seriesFormatter(measures);
+  const multi = measures.length > 1;
 
   if (chart === "pie") {
+    const m = measures[0];
     return (
       <PieChart>
         <Pie
           data={rows}
-          dataKey={primary.key}
+          dataKey={m.key}
           nameKey={dimension.key}
           cx="50%"
           cy="50%"
@@ -197,7 +257,7 @@ function renderChart(
             <Cell key={i} fill={chartColor(i)} />
           ))}
         </Pie>
-        <Tooltip formatter={(v) => fmt(Number(v))} />
+        <Tooltip formatter={(v) => measureFormatter(m)(Number(v))} />
         <Legend />
       </PieChart>
     );
@@ -208,17 +268,21 @@ function renderChart(
       <LineChart data={rows} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
         <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border" />
         <XAxis dataKey={dimension.key} tickLine={false} axisLine={false} tick={axisTick} />
-        <YAxis tickLine={false} axisLine={false} width={52} tick={axisTick} tickFormatter={fmt} />
-        <Tooltip formatter={(v) => fmt(Number(v))} />
-        <Line
-          type="monotone"
-          dataKey={primary.key}
-          name={primary.label}
-          stroke={chartColor(0)}
-          strokeWidth={2}
-          dot={false}
-          isAnimationActive={anim}
-        />
+        <YAxis tickLine={false} axisLine={false} width={52} tick={axisTick} tickFormatter={axisFmt} />
+        <Tooltip formatter={tipFmt} />
+        {multi ? <Legend /> : null}
+        {measures.map((m, i) => (
+          <Line
+            key={m.key}
+            type="monotone"
+            dataKey={m.key}
+            name={m.label}
+            stroke={chartColor(i)}
+            strokeWidth={2}
+            dot={false}
+            isAnimationActive={anim}
+          />
+        ))}
       </LineChart>
     );
   }
@@ -227,15 +291,19 @@ function renderChart(
     <BarChart data={rows} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
       <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border" />
       <XAxis dataKey={dimension.key} tickLine={false} axisLine={false} tick={axisTick} />
-      <YAxis tickLine={false} axisLine={false} width={52} tick={axisTick} tickFormatter={fmt} />
-      <Tooltip formatter={(v) => fmt(Number(v))} />
-      <Bar
-        dataKey={primary.key}
-        name={primary.label}
-        fill={chartColor(0)}
-        radius={[4, 4, 0, 0]}
-        isAnimationActive={anim}
-      />
+      <YAxis tickLine={false} axisLine={false} width={52} tick={axisTick} tickFormatter={axisFmt} />
+      <Tooltip formatter={tipFmt} />
+      {multi ? <Legend /> : null}
+      {measures.map((m, i) => (
+        <Bar
+          key={m.key}
+          dataKey={m.key}
+          name={m.label}
+          fill={chartColor(i)}
+          radius={[4, 4, 0, 0]}
+          isAnimationActive={anim}
+        />
+      ))}
     </BarChart>
   );
 }

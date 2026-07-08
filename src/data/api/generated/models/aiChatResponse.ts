@@ -10,6 +10,12 @@ export interface AiChatResponse {
   chart: ChartHint;
   /** Column metadata for rendering the table/chart. */
   columns: Column[];
+  /**
+     * When set, the client renders one section (chart + table) per distinct
+     * value of this column key — e.g. one table per branch ("faceting").
+     * @nullable
+     */
+  facet_by?: string | null;
   /** Which model answered (e.g. "gemini-2.5-flash"). */
   provider: string;
   /** The report the assistant chose. */
