@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { motion, useReducedMotion } from "motion/react";
+import { BadgeCheck } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -57,41 +59,49 @@ function measureFormatter(col: Column) {
   return (v: number) => fmtNumberCompact(v);
 }
 
-/** The renderable pieces derived from the response's typed columns. */
-function useShape(res: AiChatResponse) {
-  const dimension = res.columns.find(isDimension);
-  const measures = res.columns.filter(isMeasure);
-  const primary = measures[0];
-  return { dimension, measures, primary };
-}
-
 export function AiResultView({ res }: { res: AiChatResponse }) {
   const { t } = useTranslation();
-  const { dimension, primary } = useShape(res);
+  const reduce = useReducedMotion();
+  const dimension = res.columns.find(isDimension);
+  const primary = res.columns.find(isMeasure);
   const rows = res.rows as Row[];
 
-  const showChart =
-    res.chart !== "table" && !!dimension && !!primary && rows.length > 0;
+  const showChart = res.chart !== "table" && !!dimension && !!primary && rows.length > 0;
 
   return (
-    <div className="space-y-4">
+    <motion.div
+      className="space-y-3"
+      initial={reduce ? undefined : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {/* Trust marker: the answer came from a named, verified report — not a guess. */}
+      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <BadgeCheck className="size-3.5 text-emerald-500" aria-hidden="true" />
+        <span>{t("aiChat.verified", "Verified report")}</span>
+        <span className="text-muted-foreground/50">·</span>
+        <span>{res.title}</span>
+      </div>
+
       {showChart && dimension && primary ? (
-        <ChartCard title={res.title}>
+        <ChartCard>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              {renderChart(res.chart, rows, dimension, primary)}
+              {renderChart(res.chart, rows, dimension, primary, reduce ?? false)}
             </ResponsiveContainer>
           </div>
         </ChartCard>
       ) : null}
 
-      {/* Always show the full data as a table — the source of truth. */}
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl border bg-card/50">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="hover:bg-transparent">
               {res.columns.map((c) => (
-                <TableHead key={c.key} className={isMeasure(c) ? "text-end" : undefined}>
+                <TableHead
+                  key={c.key}
+                  className={isMeasure(c) ? "text-end whitespace-nowrap" : "whitespace-nowrap"}
+                >
                   {c.label}
                 </TableHead>
               ))}
@@ -100,7 +110,10 @@ export function AiResultView({ res }: { res: AiChatResponse }) {
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={res.columns.length} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={res.columns.length}
+                  className="py-8 text-center text-muted-foreground"
+                >
                   {t("aiChat.noData", "No data for this question.")}
                 </TableCell>
               </TableRow>
@@ -127,13 +140,20 @@ export function AiResultView({ res }: { res: AiChatResponse }) {
           {t("aiChat.truncated", "Showing the first {{count}} rows.", { count: res.row_count })}
         </p>
       ) : null}
-    </div>
+    </motion.div>
   );
 }
 
-function renderChart(chart: string, rows: Row[], dimension: Column, primary: Column) {
+function renderChart(
+  chart: string,
+  rows: Row[],
+  dimension: Column,
+  primary: Column,
+  reduce: boolean,
+) {
   const fmt = measureFormatter(primary);
   const axisTick = { fontSize: 11 };
+  const anim = !reduce;
 
   if (chart === "pie") {
     return (
@@ -145,6 +165,7 @@ function renderChart(chart: string, rows: Row[], dimension: Column, primary: Col
           cx="50%"
           cy="50%"
           outerRadius="80%"
+          isAnimationActive={anim}
           label={(e: { name?: string }) => e.name ?? ""}
         >
           {rows.map((_, i) => (
@@ -160,7 +181,7 @@ function renderChart(chart: string, rows: Row[], dimension: Column, primary: Col
   if (chart === "line") {
     return (
       <LineChart data={rows} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
-        <CartesianGrid vertical={false} strokeDasharray="3 3" />
+        <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border" />
         <XAxis dataKey={dimension.key} tickLine={false} axisLine={false} tick={axisTick} />
         <YAxis tickLine={false} axisLine={false} width={52} tick={axisTick} tickFormatter={fmt} />
         <Tooltip formatter={(v) => fmt(Number(v))} />
@@ -171,19 +192,25 @@ function renderChart(chart: string, rows: Row[], dimension: Column, primary: Col
           stroke={chartColor(0)}
           strokeWidth={2}
           dot={false}
+          isAnimationActive={anim}
         />
       </LineChart>
     );
   }
 
-  // bar (default)
   return (
     <BarChart data={rows} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
-      <CartesianGrid vertical={false} strokeDasharray="3 3" />
+      <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border" />
       <XAxis dataKey={dimension.key} tickLine={false} axisLine={false} tick={axisTick} />
       <YAxis tickLine={false} axisLine={false} width={52} tick={axisTick} tickFormatter={fmt} />
       <Tooltip formatter={(v) => fmt(Number(v))} />
-      <Bar dataKey={primary.key} name={primary.label} fill={chartColor(0)} radius={[4, 4, 0, 0]} />
+      <Bar
+        dataKey={primary.key}
+        name={primary.label}
+        fill={chartColor(0)}
+        radius={[4, 4, 0, 0]}
+        isAnimationActive={anim}
+      />
     </BarChart>
   );
 }

@@ -142,7 +142,7 @@
     "sell": "Sell",
     "insights": "Insights",
     "setup": "Setup",
-    "aiChat": "AI Analytics",
+    "aiChat": "Ask",
     "salesInsights": "Sales",
     "menuProfitability": "Menu profitability",
     "inventoryReports": "Inventory reports",
@@ -3206,14 +3206,24 @@
     "updated": "Till updated"
   },
   "aiChat": {
-    "title": "AI Analytics",
-    "subtitle": "Ask about your business in plain language — sales, products, branches, and more.",
-    "empty": "Try one of these, or ask your own question.",
+    "title": "Ask your data",
+    "subtitle": "Ask in plain language. A deterministic algorithm matches your question to a verified report and answers with your real numbers — never guessed, no hallucinations.",
+    "badge": "Verified reports · real numbers",
+    "heroTitle": "What would you like to know?",
+    "empty": "Pick a question to start, or type your own.",
+    "verified": "Verified report",
     "placeholder": "Ask about sales, products, branches…",
     "send": "Send",
     "noData": "No data for this question.",
     "truncated": "Showing the first {{count}} rows.",
-    "disclaimer": "Answers are generated from your own data. Double-check before acting.",
+    "disclaimer": "Every answer runs a verified report over your own data.",
+    "loading": [
+      "Reading your question",
+      "Matching a verified report",
+      "Running the query",
+      "Crunching the numbers",
+      "Formatting your answer"
+    ],
     "suggest": {
       "sales": "How were sales last week?",
       "topProducts": "Top 5 products this month",

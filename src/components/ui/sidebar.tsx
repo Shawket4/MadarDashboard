@@ -384,7 +384,11 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        // overscroll-contain: a trackpad swipe over the nav scrolls the nav and
+        // never chains through to the page behind it (esp. when the nav fits and
+        // has no scroll room of its own, where chaining reads as "the sidebar
+        // won't scroll, the page moves instead").
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto overscroll-contain group-data-[collapsible=icon]:overflow-hidden",
         className
       )}
       {...props}
