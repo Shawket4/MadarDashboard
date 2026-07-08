@@ -24,6 +24,7 @@ import {
   Settings2,
   SlidersHorizontal,
   ShoppingCart,
+  Sparkles,
   Store,
   Trash2,
   TrendingUp,
@@ -102,6 +103,7 @@ export const NAV: NavGroup[] = [
     labelKey: "nav.insights",
     fallback: "Insights",
     entries: [
+      { to: "/insights/ai-chat", labelKey: "nav.aiChat", fallback: "AI Analytics", icon: Sparkles },
       { to: "/insights/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
       { to: "/insights/profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
     ],

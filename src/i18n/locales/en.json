@@ -142,6 +142,7 @@
     "sell": "Sell",
     "insights": "Insights",
     "setup": "Setup",
+    "aiChat": "AI Analytics",
     "salesInsights": "Sales",
     "menuProfitability": "Menu profitability",
     "inventoryReports": "Inventory reports",
@@ -3203,6 +3204,24 @@
     "subtitle": "Physical cash drawers / registers for this branch.",
     "title": "Tills",
     "updated": "Till updated"
+  },
+  "aiChat": {
+    "title": "AI Analytics",
+    "subtitle": "Ask about your business in plain language — sales, products, branches, and more.",
+    "empty": "Try one of these, or ask your own question.",
+    "placeholder": "Ask about sales, products, branches…",
+    "send": "Send",
+    "noData": "No data for this question.",
+    "truncated": "Showing the first {{count}} rows.",
+    "disclaimer": "Answers are generated from your own data. Double-check before acting.",
+    "suggest": {
+      "sales": "How were sales last week?",
+      "topProducts": "Top 5 products this month",
+      "byBranch": "Compare sales by branch",
+      "peak": "What are my peak hours?",
+      "payments": "Cash vs card breakdown",
+      "profit": "Most profitable products"
+    }
   },
   "insights": {
     "pickOrg": "Select an organization to see menu profitability",

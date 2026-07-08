@@ -146,6 +146,33 @@ export const UpdateAddonItemResponse = zod.object({
 })
 
 
+export const ChatBody = zod.object({
+  "include_summary": zod.boolean().optional().describe('When true, also return a one-sentence natural-language summary of the\nresult (a second, small model call, answered in `locale`). Default false.'),
+  "locale": zod.string().nullish().describe('Answer language — \"en\" or \"ar\" (default \"en\"). Drives translated labels\nand the summary language. Usually the dashboard\'s active language.'),
+  "question": zod.string().describe('The merchant\'s plain-language question, e.g. \"top 5 products last month\"\nor \"أعلى ٥ منتجات الشهر الماضي\".')
+})
+
+export const chatResponseRowCountMin = 0;
+
+
+
+export const ChatResponse = zod.object({
+  "chart": zod.enum(['table', 'bar', 'line', 'pie']).describe('Suggested visualization for the result.'),
+  "columns": zod.array(zod.object({
+  "key": zod.string(),
+  "kind": zod.enum(['money', 'count', 'label', 'date', 'number']).describe('The renderable kind of an output column (money vs count vs label vs a time\naxis) so the frontend can format it and pick a chart.'),
+  "label": zod.string()
+}).describe('One output column: its SQL alias (also the JSON key) and how to render it.')).describe('Column metadata for rendering the table\/chart.'),
+  "provider": zod.string().describe('Which model answered (e.g. \"gemini-2.5-flash\").'),
+  "report_id": zod.string().describe('The report the assistant chose.'),
+  "row_count": zod.number().min(chatResponseRowCountMin),
+  "rows": zod.array(zod.record(zod.string(), zod.unknown())).describe('Result rows, each an object keyed by column key.'),
+  "summary": zod.string().nullish().describe('Optional one-sentence summary (only when `include_summary` was set and\nthe model produced one), in the requested locale.'),
+  "title": zod.string(),
+  "truncated": zod.boolean().describe('True when the result was capped.')
+})
+
+
 export const loginBodyPinMin = 4;
 export const loginBodyPinMax = 6;
 

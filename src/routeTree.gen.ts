@@ -55,6 +55,7 @@ import { Route as AppInventoryCountsRouteImport } from './routes/_app/inventory/
 import { Route as AppInsightsSalesRouteImport } from './routes/_app/insights/sales'
 import { Route as AppInsightsProfitabilityRouteImport } from './routes/_app/insights/profitability'
 import { Route as AppInsightsInventoryReportsRouteImport } from './routes/_app/insights/inventory-reports'
+import { Route as AppInsightsAiChatRouteImport } from './routes/_app/insights/ai-chat'
 import { Route as AppDeliveryZonesRouteImport } from './routes/_app/delivery/zones'
 import { Route as AppDeliverySettingsRouteImport } from './routes/_app/delivery/settings'
 import { Route as AppDeliveryChannelsRouteImport } from './routes/_app/delivery/channels'
@@ -294,6 +295,11 @@ const AppInsightsInventoryReportsRoute =
     path: '/insights/inventory-reports',
     getParentRoute: () => AppRouteRoute,
   } as any)
+const AppInsightsAiChatRoute = AppInsightsAiChatRouteImport.update({
+  id: '/insights/ai-chat',
+  path: '/insights/ai-chat',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppDeliveryZonesRoute = AppDeliveryZonesRouteImport.update({
   id: '/zones',
   path: '/zones',
@@ -350,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/delivery/channels': typeof AppDeliveryChannelsRoute
   '/delivery/settings': typeof AppDeliverySettingsRoute
   '/delivery/zones': typeof AppDeliveryZonesRoute
+  '/insights/ai-chat': typeof AppInsightsAiChatRoute
   '/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
   '/insights/profitability': typeof AppInsightsProfitabilityRoute
   '/insights/sales': typeof AppInsightsSalesRoute
@@ -398,6 +405,7 @@ export interface FileRoutesByTo {
   '/delivery/channels': typeof AppDeliveryChannelsRoute
   '/delivery/settings': typeof AppDeliverySettingsRoute
   '/delivery/zones': typeof AppDeliveryZonesRoute
+  '/insights/ai-chat': typeof AppInsightsAiChatRoute
   '/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
   '/insights/profitability': typeof AppInsightsProfitabilityRoute
   '/insights/sales': typeof AppInsightsSalesRoute
@@ -453,6 +461,7 @@ export interface FileRoutesById {
   '/_app/delivery/channels': typeof AppDeliveryChannelsRoute
   '/_app/delivery/settings': typeof AppDeliverySettingsRoute
   '/_app/delivery/zones': typeof AppDeliveryZonesRoute
+  '/_app/insights/ai-chat': typeof AppInsightsAiChatRoute
   '/_app/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
   '/_app/insights/profitability': typeof AppInsightsProfitabilityRoute
   '/_app/insights/sales': typeof AppInsightsSalesRoute
@@ -508,6 +517,7 @@ export interface FileRouteTypes {
     | '/delivery/channels'
     | '/delivery/settings'
     | '/delivery/zones'
+    | '/insights/ai-chat'
     | '/insights/inventory-reports'
     | '/insights/profitability'
     | '/insights/sales'
@@ -556,6 +566,7 @@ export interface FileRouteTypes {
     | '/delivery/channels'
     | '/delivery/settings'
     | '/delivery/zones'
+    | '/insights/ai-chat'
     | '/insights/inventory-reports'
     | '/insights/profitability'
     | '/insights/sales'
@@ -610,6 +621,7 @@ export interface FileRouteTypes {
     | '/_app/delivery/channels'
     | '/_app/delivery/settings'
     | '/_app/delivery/zones'
+    | '/_app/insights/ai-chat'
     | '/_app/insights/inventory-reports'
     | '/_app/insights/profitability'
     | '/_app/insights/sales'
@@ -969,6 +981,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInsightsInventoryReportsRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/insights/ai-chat': {
+      id: '/_app/insights/ai-chat'
+      path: '/insights/ai-chat'
+      fullPath: '/insights/ai-chat'
+      preLoaderRoute: typeof AppInsightsAiChatRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/delivery/zones': {
       id: '/_app/delivery/zones'
       path: '/zones'
@@ -1133,6 +1152,7 @@ interface AppRouteRouteChildren {
   AppTillsRoute: typeof AppTillsRoute
   AppUsersRoute: typeof AppUsersRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppInsightsAiChatRoute: typeof AppInsightsAiChatRoute
   AppInsightsInventoryReportsRoute: typeof AppInsightsInventoryReportsRoute
   AppInsightsProfitabilityRoute: typeof AppInsightsProfitabilityRoute
   AppInsightsSalesRoute: typeof AppInsightsSalesRoute
@@ -1158,6 +1178,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppTillsRoute: AppTillsRoute,
   AppUsersRoute: AppUsersRoute,
   AppIndexRoute: AppIndexRoute,
+  AppInsightsAiChatRoute: AppInsightsAiChatRoute,
   AppInsightsInventoryReportsRoute: AppInsightsInventoryReportsRoute,
   AppInsightsProfitabilityRoute: AppInsightsProfitabilityRoute,
   AppInsightsSalesRoute: AppInsightsSalesRoute,

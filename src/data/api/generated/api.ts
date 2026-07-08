@@ -29,6 +29,8 @@ import type {
   AddonOverride,
   AddonSalesRow,
   AddonSlot,
+  AiChatRequest,
+  AiChatResponse,
   AssignBranchRequest,
   AssignTablesRequest,
   AuthPermissionsResponse,
@@ -707,6 +709,65 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUpdateAddonItemMutationOptions(options), queryClient);
+    }
+
+export const chat = (
+    aiChatRequest: AiChatRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AiChatResponse>(
+      {url: `/ai/chat`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: aiChatRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getChatMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chat>>, TError,{data: AiChatRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof chat>>, TError,{data: AiChatRequest}, TContext> => {
+
+const mutationKey = ['chat'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chat>>, {data: AiChatRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  chat(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatMutationResult = NonNullable<Awaited<ReturnType<typeof chat>>>
+    export type ChatMutationBody = AiChatRequest
+    export type ChatMutationError = ErrorBody
+
+    export const useChat = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chat>>, TError,{data: AiChatRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chat>>,
+        TError,
+        {data: AiChatRequest},
+        TContext
+      > => {
+      return useMutation(getChatMutationOptions(options), queryClient);
     }
 
 export const login = (
