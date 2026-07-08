@@ -30,6 +30,7 @@ import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DecisionsTab } from "./decisions-tab";
+import { RepricingTab } from "./repricing-tab";
 import { FlagChip } from "./flag-chip";
 import { TargetEditor } from "./target-editor";
 import { invalidateInsights } from "./util";
@@ -284,6 +285,7 @@ export function ProfitabilityPage() {
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
         <PageTabsList>
           <PageTabsTrigger value="ledger">{t("insights.profitability.ledgerTab", "Ledger")}</PageTabsTrigger>
+          <PageTabsTrigger value="repricing">{t("insights.profitability.repricingTab", "Repricing")}</PageTabsTrigger>
           <PageTabsTrigger value="decisions">{t("insights.profitability.decisionsTab", "Decisions")}</PageTabsTrigger>
         </PageTabsList>
 
@@ -359,6 +361,10 @@ export function ProfitabilityPage() {
               </Table>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="repricing">
+          <RepricingTab scopeBranchId={scopeBranchId} />
         </TabsContent>
 
         <TabsContent value="decisions">

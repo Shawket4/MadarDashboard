@@ -3239,6 +3239,20 @@
   },
   "insights": {
     "pickOrg": "Select an organization to see menu profitability",
+    "repricing": {
+      "error": "Couldn't load repricing suggestions",
+      "coverage": "Target {{target}} · {{costed}} of {{total}} priced items have full cost",
+      "adjust": "Adjust prices",
+      "none": "No repricing opportunities",
+      "noneCost": "Add recipe costs to more items to unlock suggestions.",
+      "noneOk": "Every costed item is at or above its target margin.",
+      "item": "Item",
+      "current": "Current",
+      "cost": "Cost",
+      "marginCol": "Margin",
+      "suggested": "Suggested",
+      "uplift": "Uplift"
+    },
     "profitability": {
       "title": "Menu profitability",
       "revenue": "Revenue",
@@ -3250,6 +3264,7 @@
       "basisSnapshot": "Snapshot",
       "basisCurrent": "Today's costs",
       "ledgerTab": "Ledger",
+      "repricingTab": "Repricing",
       "decisionsTab": "Decisions",
       "flaggedOnly": "Flagged only",
       "offMenu": "Off menu",

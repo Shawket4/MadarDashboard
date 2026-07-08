@@ -266,6 +266,7 @@ import type {
   ReceivePurchaseOrderRequest,
   RecipeCostResult,
   ReorderSuggestion,
+  RepricingReport,
   ReservationSettings,
   ResolveBranchRequest,
   ResolveBranchResponse,
@@ -6221,6 +6222,93 @@ export function useMenuMarginLedger<TData = Awaited<ReturnType<typeof menuMargin
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getMenuMarginLedgerQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const repricing = (
+    branchId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RepricingReport>(
+      {url: `/insights/branches/${branchId}/repricing`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getRepricingQueryKey = (branchId: string,) => {
+    return [
+    `/insights/branches/${branchId}/repricing`
+    ] as const;
+    }
+
+
+export const getRepricingQueryOptions = <TData = Awaited<ReturnType<typeof repricing>>, TError = unknown>(branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof repricing>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getRepricingQueryKey(branchId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof repricing>>> = ({ signal }) => repricing(branchId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof repricing>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type RepricingQueryResult = NonNullable<Awaited<ReturnType<typeof repricing>>>
+export type RepricingQueryError = unknown
+
+
+export function useRepricing<TData = Awaited<ReturnType<typeof repricing>>, TError = unknown>(
+ branchId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof repricing>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof repricing>>,
+          TError,
+          Awaited<ReturnType<typeof repricing>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRepricing<TData = Awaited<ReturnType<typeof repricing>>, TError = unknown>(
+ branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof repricing>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof repricing>>,
+          TError,
+          Awaited<ReturnType<typeof repricing>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRepricing<TData = Awaited<ReturnType<typeof repricing>>, TError = unknown>(
+ branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof repricing>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useRepricing<TData = Awaited<ReturnType<typeof repricing>>, TError = unknown>(
+ branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof repricing>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getRepricingQueryOptions(branchId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

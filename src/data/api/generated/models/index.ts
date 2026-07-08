@@ -360,6 +360,8 @@ export * from './recipeLineInput';
 export * from './recipeLineOut';
 export * from './reorderLine';
 export * from './reorderSuggestion';
+export * from './repricingReport';
+export * from './repricingSuggestion';
 export * from './reservationSettings';
 export * from './resolveBranchRequest';
 export * from './resolveBranchResponse';

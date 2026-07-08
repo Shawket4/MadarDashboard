@@ -2322,6 +2322,31 @@ export const MenuMarginLedgerResponse = zod.object({
 })
 
 
+export const RepricingParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch id (branch-actual costs), or the nil UUID for org-wide (org-standard costs)')
+})
+
+export const RepricingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "skus_considered": zod.number().describe('Active priced SKUs considered in total.'),
+  "skus_cost_unknown": zod.number().describe('Active priced SKUs whose cost is not fully known — NOT suggested (no\nguessed cost); surfaced so coverage is transparent.'),
+  "suggestions": zod.array(zod.object({
+  "below_cost": zod.boolean().describe('True when the item currently sells BELOW cost (negative margin).'),
+  "cost": zod.number().describe('Complete recipe cost, piastres.'),
+  "current_price": zod.number().describe('Current selling price, piastres.'),
+  "item_name": zod.string(),
+  "margin_pct": zod.number().describe('`(price − cost) \/ price`, current.'),
+  "menu_item_id": zod.uuid(),
+  "size_label": zod.string().describe('`\"one_size\"` for items without sizes.'),
+  "suggested_price": zod.number().describe('Target-restoring price `ceil(cost \/ (1 − target))` to whole EGP, piastres.'),
+  "target_pct": zod.number().describe('The org\/branch target margin this suggestion aims for.'),
+  "uplift": zod.number().describe('`suggested_price − current_price`, piastres.')
+}).describe('One repricing suggestion: an underpriced SKU + the price that would restore\nthe target margin.')).describe('Underpriced SKUs with a target-restoring suggestion, biggest uplift first.'),
+  "target_pct": zod.number(),
+  "target_source": zod.string().describe('`branch` | `org` | `default`.')
+}).describe('The repricing surface for a branch (or org-wide).')
+
+
 export const ListDecisionsQueryParams = zod.object({
   "org_id": zod.uuid(),
   "branch_id": zod.uuid().optional(),
