@@ -147,6 +147,10 @@ export const UpdateAddonItemResponse = zod.object({
 
 
 export const ChatBody = zod.object({
+  "history": zod.array(zod.object({
+  "question": zod.string().describe('The earlier user question.'),
+  "report_id": zod.string().nullish().describe('The report id that answered it, if known.')
+}).describe('One earlier exchange in the same conversation, in COMPACT form: the question\nand which report answered it. This is all the model needs to resolve a\nfollow-up (\"and last month?\", \"what about Sidi Henish?\") — never the full\nresult tables — so per-message cost stays constant with the sliding window.')).nullish().describe('Recent prior turns in this conversation (oldest → newest), so follow-ups\nlike \"and last month?\" resolve. Send only the last few; the server caps\nthe window regardless.'),
   "include_summary": zod.boolean().optional().describe('When true, also return a one-sentence natural-language summary of the\nresult (a second, small model call, answered in `locale`). Default false.'),
   "locale": zod.string().nullish().describe('Answer language — \"en\" or \"ar\" (default \"en\"). Drives translated labels\nand the summary language. Usually the dashboard\'s active language.'),
   "question": zod.string().describe('The merchant\'s plain-language question, e.g. \"top 5 products last month\"\nor \"أعلى ٥ منتجات الشهر الماضي\".')
@@ -167,6 +171,12 @@ export const ChatResponse = zod.object({
   "report_id": zod.string().describe('The report the assistant chose.'),
   "row_count": zod.number().min(chatResponseRowCountMin),
   "rows": zod.array(zod.record(zod.string(), zod.unknown())).describe('Result rows, each an object keyed by column key.'),
+  "scope": zod.object({
+  "all_branches": zod.boolean().describe('True when the answer spans EVERY branch the caller can access.'),
+  "branches": zod.array(zod.string()).describe('The branch names the answer covers.'),
+  "label": zod.string().describe('Human-readable label, e.g. \"All branches (3)\" or \"Sidi Henish\".'),
+  "unmatched_branch": zod.string().nullish().describe('Set when the user named a branch that couldn\'t be matched; the answer\nthen falls back to all accessible branches and this flags the mismatch.')
+}).describe('Which branches this answer covers.'),
   "summary": zod.string().nullish().describe('Optional one-sentence summary (only when `include_summary` was set and\nthe model produced one), in the requested locale.'),
   "title": zod.string(),
   "truncated": zod.boolean().describe('True when the result was capped.')

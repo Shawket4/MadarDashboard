@@ -3,6 +3,7 @@
 import type { AiChatResponseRowsItem } from './aiChatResponseRowsItem';
 import type { ChartHint } from './chartHint';
 import type { Column } from './column';
+import type { ScopeInfo } from './scopeInfo';
 
 export interface AiChatResponse {
   /** Suggested visualization for the result. */
@@ -17,6 +18,8 @@ export interface AiChatResponse {
   row_count: number;
   /** Result rows, each an object keyed by column key. */
   rows: AiChatResponseRowsItem[];
+  /** Which branches this answer covers. */
+  scope: ScopeInfo;
   /**
      * Optional one-sentence summary (only when `include_summary` was set and
      * the model produced one), in the requested locale.

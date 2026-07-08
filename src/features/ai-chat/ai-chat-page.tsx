@@ -51,13 +51,27 @@ export function AiChatPage() {
     const q = question.trim();
     if (!q || chat.isPending) return;
     const id = nextId.current++;
+
+    // Compact conversation window (last few answered turns) so follow-ups like
+    // "and last month?" resolve. Only question + which report answered — never
+    // the data tables — so the payload stays small; the server caps it too.
+    const history = turns
+      .filter((turn) => turn.status === "done" && turn.response)
+      .slice(-6)
+      .map((turn) => ({ question: turn.question, report_id: turn.response!.report_id }));
+
     setTurns((prev) => [...prev, { id, question: q, status: "loading" }]);
     setInput("");
     scrollToEnd();
 
     try {
       const response = await chat.mutateAsync({
-        data: { question: q, include_summary: true, locale: i18n.resolvedLanguage ?? "en" },
+        data: {
+          question: q,
+          include_summary: true,
+          locale: i18n.resolvedLanguage ?? "en",
+          history,
+        },
       });
       setTurns((prev) =>
         prev.map((turn) => (turn.id === id ? { ...turn, status: "done", response } : turn)),

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "motion/react";
-import { BadgeCheck } from "lucide-react";
+import { AlertTriangle, BadgeCheck, Building2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -68,6 +68,14 @@ export function AiResultView({ res }: { res: AiChatResponse }) {
 
   const showChart = res.chart !== "table" && !!dimension && !!primary && rows.length > 0;
 
+  // Build the scope label frontend-side so it localizes (the API label is English).
+  const scope = res.scope;
+  const scopeLabel = scope.all_branches
+    ? scope.branches.length > 1
+      ? t("aiChat.scopeAllN", "All branches ({{count}})", { count: scope.branches.length })
+      : (scope.branches[0] ?? t("aiChat.scopeAll", "All branches"))
+    : scope.branches.join(", ");
+
   return (
     <motion.div
       className="space-y-3"
@@ -75,13 +83,30 @@ export function AiResultView({ res }: { res: AiChatResponse }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
-      {/* Trust marker: the answer came from a named, verified report — not a guess. */}
-      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+      {/* Trust + scope: the answer came from a named, verified report — and this
+          states exactly which branches it covers, never ambiguously. */}
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-medium text-muted-foreground">
         <BadgeCheck className="size-3.5 text-emerald-500" aria-hidden="true" />
         <span>{t("aiChat.verified", "Verified report")}</span>
         <span className="text-muted-foreground/50">·</span>
         <span>{res.title}</span>
+        <span
+          className="ms-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5"
+          title={t("aiChat.scopeTitle", "Branches covered by this answer")}
+        >
+          <Building2 className="size-3" aria-hidden="true" />
+          {scopeLabel}
+        </span>
       </div>
+
+      {scope.unmatched_branch ? (
+        <div className="flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+          <AlertTriangle className="size-3.5 shrink-0" aria-hidden="true" />
+          {t("aiChat.scopeUnmatched", "Couldn't find a branch called “{{name}}” — showing all branches.", {
+            name: scope.unmatched_branch,
+          })}
+        </div>
+      ) : null}
 
       {showChart && dimension && primary ? (
         <ChartCard>
