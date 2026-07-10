@@ -51,6 +51,7 @@ import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 import { useDebounced } from "@/lib/use-debounced";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { invalidatePricingOverrides } from "./util";
@@ -319,11 +320,15 @@ function firstInvalid(cells: PendingCell[]): string | null {
 
 // ── Cell UI ───────────────────────────────────────────────────────────────────
 
-/** One matrix cell: effective price + availability, inline-editable. Explicit
- * overrides render solid with a clear (×) affordance; inherited values render
- * muted with a "↳ source" hint. Typing a value promotes an inherited cell to an
- * explicit override; blanking it (then Save) drops back to inheritance. */
-function PricingCell({
+/** The editable control shared by the desktop table cell and the mobile card
+ * row: effective price + availability, inline-editable. Explicit overrides
+ * render solid with a clear (×) affordance; inherited values render muted with a
+ * "↳ source" hint. Typing a value promotes an inherited cell to an explicit
+ * override; blanking it (then Save) drops back to inheritance.
+ *
+ * `layout` tunes touch ergonomics only: "cell" is the dense desktop control;
+ * "row" enlarges the toggle/clear hit targets to ~40px for coarse pointers. */
+function PricingControl({
   col,
   targetId,
   resolved,
@@ -331,6 +336,7 @@ function PricingCell({
   onChange,
   onClear,
   currencyLabel,
+  layout = "cell",
 }: {
   col: ScopeCol;
   targetId: string;
@@ -339,12 +345,14 @@ function PricingCell({
   onChange: (patch: Partial<DraftCell>) => void;
   onClear: () => void;
   currencyLabel: string;
+  layout?: "cell" | "row";
 }) {
   const { t } = useTranslation();
   const dirty = isDirty(draft, resolved);
   const priceExplicit = draft.price.trim() !== "";
   const availHidden = !draft.available;
   const availInherited = !resolved.availExplicit && !dirty;
+  const touch = layout === "row";
   const fromLabel =
     resolved.priceFrom === "branch"
       ? t("menu.pricing.fromBranch", "↳ branch")
@@ -352,16 +360,7 @@ function PricingCell({
   const inputId = `price-${targetId}-${colId(col)}`;
 
   return (
-    // A real <td> per scope column — the header's <th>s and these cells must
-    // participate in the SAME table column sizing, or the headers drift off
-    // their fields once a row renders (the original flex-in-one-td bug).
-    <td
-      className={cn(
-        "min-w-36 border-s p-0 align-top transition-colors",
-        dirty && "bg-brand/5",
-      )}
-    >
-      <div className="flex flex-col gap-1.5 px-2.5 py-2">
+    <div className="flex flex-col gap-1.5">
       <div className="relative">
         <Input
           id={inputId}
@@ -374,7 +373,8 @@ function PricingCell({
           placeholder={fmtNumberPlaceholder(resolved.effectivePrice)}
           aria-label={t("menu.pricing.priceAria", "Price ({{currency}})", { currency: currencyLabel })}
           className={cn(
-            "h-8 pe-6 font-mono text-sm tabular",
+            "pe-8 font-mono tabular",
+            touch ? "h-10" : "h-8 pe-6 text-sm",
             priceExplicit ? "font-semibold" : "text-muted-foreground placeholder:text-muted-foreground/70",
           )}
         />
@@ -385,7 +385,10 @@ function PricingCell({
                 type="button"
                 onClick={onClear}
                 aria-label={t("menu.pricing.clearOverride", "Remove override")}
-                className="absolute end-1 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className={cn(
+                  "absolute end-1 top-1/2 grid -translate-y-1/2 place-items-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  touch ? "size-8" : "size-5",
+                )}
               >
                 <X className="size-3.5" />
               </button>
@@ -423,7 +426,8 @@ function PricingCell({
                   : t("menu.pricing.hidden", "Hidden")
               }
               className={cn(
-                "grid size-6 place-items-center rounded-md border transition-colors",
+                "grid place-items-center rounded-md border transition-colors",
+                touch ? "size-9" : "size-6",
                 availHidden
                   ? "border-destructive/30 bg-destructive/10 text-destructive"
                   : availInherited
@@ -441,6 +445,27 @@ function PricingCell({
           </TooltipContent>
         </Tooltip>
       </div>
+    </div>
+  );
+}
+
+/** One matrix cell (desktop): a real <td> per scope column so the header's <th>s
+ * and these cells share the SAME table column sizing (headers drift off their
+ * fields otherwise — the original flex-in-one-td bug). Wraps {@link PricingControl}. */
+function PricingCell(props: {
+  col: ScopeCol;
+  targetId: string;
+  resolved: ResolvedCell;
+  draft: DraftCell;
+  onChange: (patch: Partial<DraftCell>) => void;
+  onClear: () => void;
+  currencyLabel: string;
+}) {
+  const dirty = isDirty(props.draft, props.resolved);
+  return (
+    <td className={cn("min-w-36 border-s p-0 align-top transition-colors", dirty && "bg-brand/5")}>
+      <div className="px-2.5 py-2">
+        <PricingControl {...props} layout="cell" />
       </div>
     </td>
   );
@@ -543,29 +568,19 @@ function collectPending(
   return out;
 }
 
-// ── Menu item row (expandable → size sub-rows) ────────────────────────────────
-
-function ItemRow({
-  item,
-  itemName,
-  branchId,
-  dirty,
-  colCount,
-  currencyLabel,
-  registerTargets,
-}: {
-  item: MenuItemWithCosts;
-  itemName: string;
-  branchId: string;
-  dirty: DirtyState;
-  colCount: number;
-  currencyLabel: string;
-  /** Publish this item's size targets so the page-level Save can batch them. */
-  registerTargets: (itemId: string, targets: RowTarget[]) => void;
-}) {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const studioQ = useGetStudio(item.id, { query: { enabled: open } });
+/**
+ * Per-item studio fetch → this branch's size targets (branch + per-channel
+ * overrides), plus keeping the page-level Save registry in sync. Shared by the
+ * desktop {@link ItemRow} and the mobile {@link ItemCard} so their data can't drift.
+ * Only fetches once `open` (the item is expanded).
+ */
+function useItemSizeTargets(
+  itemId: string,
+  branchId: string,
+  open: boolean,
+  registerTargets: (itemId: string, targets: RowTarget[]) => void,
+) {
+  const studioQ = useGetStudio(itemId, { query: { enabled: open } });
   const studio = studioQ.data;
 
   const sizes: SizeOut[] = useMemo(
@@ -607,8 +622,35 @@ function ItemRow({
   // Keep the page-level target registry in sync whenever the studio data lands
   // (so the page-level Save can batch this item's size cells without re-fetching).
   useEffect(() => {
-    if (open) registerTargets(item.id, targets);
-  }, [open, targets, item.id, registerTargets]);
+    if (open) registerTargets(itemId, targets);
+  }, [open, targets, itemId, registerTargets]);
+
+  return { studioQ, sizes, targets };
+}
+
+// ── Menu item row (expandable → size sub-rows) ────────────────────────────────
+
+function ItemRow({
+  item,
+  itemName,
+  branchId,
+  dirty,
+  colCount,
+  currencyLabel,
+  registerTargets,
+}: {
+  item: MenuItemWithCosts;
+  itemName: string;
+  branchId: string;
+  dirty: DirtyState;
+  colCount: number;
+  currencyLabel: string;
+  /** Publish this item's size targets so the page-level Save can batch them. */
+  registerTargets: (itemId: string, targets: RowTarget[]) => void;
+}) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const { studioQ, sizes, targets } = useItemSizeTargets(item.id, branchId, open, registerTargets);
 
   const dirtyHere = useMemo(
     () => targets.some((tg) => EDITABLE_COLS.some((c) => dirty.drafts.has(cellKey(c, tg.targetId)))),
@@ -785,6 +827,188 @@ function Matrix({ head, children }: { head: ReactNode; children: ReactNode }) {
   );
 }
 
+// ── Mobile cards (below md, the matrix stacks into one card per target) ────────
+
+/** The scope stack for one target on mobile: a read-only Catalog reference line
+ * followed by the editable scopes (in-store + the four channels) as full-width
+ * rows. Same resolve/dirty plumbing as the desktop {@link TargetCells} — only the
+ * layout differs, so edits made here and on desktop share one dirty store. */
+function TargetScopeList({
+  target,
+  dirty,
+  currencyLabel,
+}: {
+  target: RowTarget;
+  dirty: DirtyState;
+  currencyLabel: string;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-2 border-t px-3 py-2">
+        <span className="text-xs text-muted-foreground">
+          {t("menu.pricing.col_catalog", "Catalog")}{" "}
+          <span className="text-muted-foreground/70">({t("menu.pricing.readonly", "ref")})</span>
+        </span>
+        <span className="font-mono text-sm font-medium tabular">{fmtMoney(target.catalogPrice)}</span>
+      </div>
+      {EDITABLE_COLS.map((col) => {
+        const channelRaw =
+          col.kind === "channel" ? (target.byChannel.get(col.channel) ?? EMPTY_RAW) : EMPTY_RAW;
+        const resolved = resolveCell(col, target.catalogPrice, target.branch, channelRaw);
+        const draft = dirty.draftFor(col, target.targetId, resolved);
+        const cellDirty = isDirty(draft, resolved);
+        const { key, fallback } = colLabel(col);
+        return (
+          <div
+            key={colId(col)}
+            className={cn(
+              "flex items-start gap-3 border-t px-3 py-2 transition-colors",
+              cellDirty && "bg-brand/5",
+            )}
+          >
+            <span className="w-20 shrink-0 pt-2.5 text-sm font-medium leading-tight">
+              {t(key, fallback)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <PricingControl
+                col={col}
+                targetId={target.targetId}
+                resolved={resolved}
+                draft={draft}
+                currencyLabel={currencyLabel}
+                layout="row"
+                onChange={(patch) => dirty.set(col, target.targetId, resolved, patch)}
+                onClear={() => dirty.set(col, target.targetId, resolved, { price: "", available: true })}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** One add-on as a mobile card: header + its scope stack. */
+function AddonCard({
+  target,
+  addonName,
+  dirty,
+  currencyLabel,
+}: {
+  target: RowTarget;
+  addonName: string;
+  dirty: DirtyState;
+  currencyLabel: string;
+}) {
+  const dirtyHere = useMemo(
+    () => EDITABLE_COLS.some((c) => dirty.drafts.has(cellKey(c, target.targetId))),
+    [dirty.drafts, target.targetId],
+  );
+  return (
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="flex items-center gap-2.5 px-3 py-2.5">
+        <span className="grid size-9 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
+          <Tag className="size-4" />
+        </span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium">{addonName}</span>
+        {dirtyHere ? <span className="size-2 shrink-0 rounded-full bg-brand" aria-hidden="true" /> : null}
+      </div>
+      <TargetScopeList target={target} dirty={dirty} currencyLabel={currencyLabel} />
+    </div>
+  );
+}
+
+/** One menu item as a mobile card: tap the header to expand into per-size scope
+ * stacks. Mirrors the desktop {@link ItemRow} via {@link useItemSizeTargets}. */
+function ItemCard({
+  item,
+  itemName,
+  branchId,
+  dirty,
+  currencyLabel,
+  registerTargets,
+}: {
+  item: MenuItemWithCosts;
+  itemName: string;
+  branchId: string;
+  dirty: DirtyState;
+  currencyLabel: string;
+  registerTargets: (itemId: string, targets: RowTarget[]) => void;
+}) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const { studioQ, sizes, targets } = useItemSizeTargets(item.id, branchId, open, registerTargets);
+  const dirtyHere = useMemo(
+    () => targets.some((tg) => EDITABLE_COLS.some((c) => dirty.drafts.has(cellKey(c, tg.targetId)))),
+    [targets, dirty.drafts],
+  );
+
+  return (
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-start transition-colors hover:bg-muted/40"
+      >
+        <ChevronDown
+          className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+          aria-hidden="true"
+        />
+        <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-muted text-muted-foreground">
+          {item.image_url ? (
+            <img src={item.image_url} alt="" className="size-full object-cover" />
+          ) : (
+            <CupSoda className="size-4" />
+          )}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium">{itemName}</span>
+          <span className="block text-xs text-muted-foreground">
+            {open
+              ? t("menu.pricing.collapseHint", "Collapse")
+              : t("menu.pricing.expandHint", "Expand to price sizes")}
+          </span>
+        </span>
+        {dirtyHere ? <span className="size-2 shrink-0 rounded-full bg-brand" aria-hidden="true" /> : null}
+      </button>
+
+      {open ? (
+        studioQ.isLoading ? (
+          <div className="border-t p-3">
+            <Skeleton className="h-24 w-full rounded-md" />
+          </div>
+        ) : studioQ.isError ? (
+          <div className="border-t px-3 py-4 text-center text-sm text-muted-foreground">
+            {t("menu.pricing.loadError", "Couldn't load items")}
+          </div>
+        ) : targets.length === 0 ? (
+          <div className="border-t px-3 py-4 text-center text-sm text-muted-foreground">
+            {t("menu.pricing.noSizes", "No sizes to price")}
+          </div>
+        ) : (
+          sizes.map((size, i) => (
+            <div key={size.id} className="border-t">
+              <div className="flex items-center gap-2 bg-muted/30 px-3 py-1.5">
+                <span className="inline-flex items-center rounded-full bg-background px-2 py-0.5 text-xs font-medium">
+                  {size.label}
+                </span>
+                {!size.is_active ? (
+                  <span className="text-[11px] text-muted-foreground">
+                    {t("menu.pricing.inactive", "inactive")}
+                  </span>
+                ) : null}
+              </div>
+              <TargetScopeList target={targets[i]} dirty={dirty} currencyLabel={currencyLabel} />
+            </div>
+          ))
+        )
+      ) : null}
+    </div>
+  );
+}
+
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 /**
@@ -818,6 +1042,9 @@ export function PricingAvailabilityPage() {
   );
 
   const on = !!orgId && !!branchId;
+  // Below md the matrix stacks into one card per target (the sticky name column
+  // alone eats ~60% of a phone). Same dirty store / Save path either way.
+  const isMobile = useIsMobile();
   const tname = useCallback(
     (m: { name: string; name_translations?: unknown }) => getTranslatedName(m, lang),
     [lang],
@@ -1123,20 +1350,36 @@ export function PricingAvailabilityPage() {
               ) : items.length === 0 ? (
                 <EmptyState icon={UtensilsCrossed} title={t("menu.pricing.noItems", "No menu items")} />
               ) : (
-                <Matrix head={<MatrixHead firstLabel={t("menu.pricing.itemColumn", "Item / size")} />}>
-                  {items.map((item) => (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      itemName={tname(item)}
-                      branchId={branchId}
-                      dirty={dirty}
-                      colCount={colCount}
-                      currencyLabel={currencyLabel}
-                      registerTargets={registerTargets}
-                    />
-                  ))}
-                </Matrix>
+                isMobile ? (
+                  <div className="space-y-3">
+                    {items.map((item) => (
+                      <ItemCard
+                        key={item.id}
+                        item={item}
+                        itemName={tname(item)}
+                        branchId={branchId}
+                        dirty={dirty}
+                        currencyLabel={currencyLabel}
+                        registerTargets={registerTargets}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Matrix head={<MatrixHead firstLabel={t("menu.pricing.itemColumn", "Item / size")} />}>
+                    {items.map((item) => (
+                      <ItemRow
+                        key={item.id}
+                        item={item}
+                        itemName={tname(item)}
+                        branchId={branchId}
+                        dirty={dirty}
+                        colCount={colCount}
+                        currencyLabel={currencyLabel}
+                        registerTargets={registerTargets}
+                      />
+                    ))}
+                  </Matrix>
+                )
               )}
 
               {pager(itemsPage, itemsPageCount, setItemsPage)}
@@ -1159,21 +1402,39 @@ export function PricingAvailabilityPage() {
               ) : addonList.length === 0 ? (
                 <EmptyState icon={Tag} title={t("menu.pricing.noAddons", "No add-ons")} />
               ) : (
-                <Matrix head={<MatrixHead firstLabel={t("menu.pricing.addonColumn", "Add-on")} />}>
-                  {addonList.map((addon) => {
-                    const target = addonTargets.get(addon.id);
-                    if (!target) return null;
-                    return (
-                      <AddonRow
-                        key={addon.id}
-                        target={target}
-                        addonName={tname(addon)}
-                        dirty={dirty}
-                        currencyLabel={currencyLabel}
-                      />
-                    );
-                  })}
-                </Matrix>
+                isMobile ? (
+                  <div className="space-y-3">
+                    {addonList.map((addon) => {
+                      const target = addonTargets.get(addon.id);
+                      if (!target) return null;
+                      return (
+                        <AddonCard
+                          key={addon.id}
+                          target={target}
+                          addonName={tname(addon)}
+                          dirty={dirty}
+                          currencyLabel={currencyLabel}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Matrix head={<MatrixHead firstLabel={t("menu.pricing.addonColumn", "Add-on")} />}>
+                    {addonList.map((addon) => {
+                      const target = addonTargets.get(addon.id);
+                      if (!target) return null;
+                      return (
+                        <AddonRow
+                          key={addon.id}
+                          target={target}
+                          addonName={tname(addon)}
+                          dirty={dirty}
+                          currencyLabel={currencyLabel}
+                        />
+                      );
+                    })}
+                  </Matrix>
+                )
               )}
 
               {pager(addonsPage, addonsPageCount, setAddonsPage)}
@@ -1182,11 +1443,16 @@ export function PricingAvailabilityPage() {
         </TooltipProvider>
       )}
 
-      {/* Sticky save bar — only while there are unsaved changes. */}
+      {/* Floating save bar — only while there are unsaved changes. Fixed (not
+          sticky: as Page's last child, sticky can't float it) so it stays in
+          reach on tall mobile card lists; the spacer keeps it clear of the last
+          card, and it sits above the iOS home indicator. */}
       {dirty.count > 0 ? (
-        <div className="pointer-events-none sticky bottom-4 z-30 flex justify-center">
-          <div className="pointer-events-auto flex items-center gap-3 rounded-full border bg-card/95 px-4 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/80">
-            <span className="text-sm font-medium">
+        <>
+          <div className="h-16" aria-hidden="true" />
+          <div className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-3">
+          <div className="pointer-events-auto flex max-w-full items-center gap-2 rounded-full border bg-card/95 px-3 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:gap-3 sm:px-4">
+            <span className="min-w-0 truncate text-sm font-medium">
               {t("menu.pricing.unsavedN", "{{count}} unsaved changes", { count: dirty.count })}
             </span>
             <Button variant="ghost" size="sm" onClick={() => dirty.reset()} disabled={saving}>
@@ -1196,7 +1462,8 @@ export function PricingAvailabilityPage() {
               {t("common.save", "Save")}
             </Button>
           </div>
-        </div>
+          </div>
+        </>
       ) : null}
     </Page>
   );
