@@ -30,6 +30,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:get"],
       "port": 5184
+    },
+    {
+      "name": "apex-truck-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/shawket/Desktop/apex-maintenance/truck-preview", "run", "dev"],
+      "port": 5199
     }
   ]
 }

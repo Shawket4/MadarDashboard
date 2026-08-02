@@ -254,7 +254,8 @@
     "pickBranchTrend": "اختر فرعًا لعرض اتجاه الإيرادات الخاص به",
     "branchPerformance": "أداء الفروع",
     "periodTotal": "{{total}} لهذه الفترة",
-    "branchRevenueBar": "حصة الإيرادات لـ {{name}}"
+    "branchRevenueBar": "حصة الإيرادات لـ {{name}}",
+    "tips": "البقشيش"
   },
   "orgs": {
     "title": "المؤسسات",
@@ -1394,7 +1395,9 @@
     "pickBranch": "اختر فرعًا لعرض ورديّاته",
     "empty": "لا توجد ورديات بعد",
     "viewReport": "عرض التقرير",
-    "branch": "الفرع"
+    "branch": "الفرع",
+    "tips": "البقشيش",
+    "tipsCash": "منها نقدًا"
   },
   "orders": {
     "branch": "الفرع",

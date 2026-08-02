@@ -4562,7 +4562,11 @@ export const SettleOpenTicketResponse = zod.object({
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
-  "payment_method": zod.string(),
+  "payment_legs": zod.array(zod.object({
+  "amount": zod.number(),
+  "method": zod.string()
+}).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
+  "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -4696,7 +4700,11 @@ export const ListOrdersResponse = zod.object({
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
-  "payment_method": zod.string(),
+  "payment_legs": zod.array(zod.object({
+  "amount": zod.number(),
+  "method": zod.string()
+}).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
+  "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -4810,7 +4818,11 @@ export const CreateOrderResponse = zod.object({
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
-  "payment_method": zod.string(),
+  "payment_legs": zod.array(zod.object({
+  "amount": zod.number(),
+  "method": zod.string()
+}).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
+  "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -4959,7 +4971,11 @@ export const ExportOrdersResponse = zod.object({
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
-  "payment_method": zod.string(),
+  "payment_legs": zod.array(zod.object({
+  "amount": zod.number(),
+  "method": zod.string()
+}).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
+  "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -5134,7 +5150,11 @@ export const GetOrderResponse = zod.object({
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
-  "payment_method": zod.string(),
+  "payment_legs": zod.array(zod.object({
+  "amount": zod.number(),
+  "method": zod.string()
+}).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
+  "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -5282,7 +5302,11 @@ export const VoidOrderResponse = zod.object({
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
-  "payment_method": zod.string(),
+  "payment_legs": zod.array(zod.object({
+  "amount": zod.number(),
+  "method": zod.string()
+}).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
+  "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -6791,8 +6815,9 @@ export const BranchSalesResponse = zod.object({
   "quantity_sold": zod.number(),
   "revenue": zod.number()
 })),
+  "cash_tips": zod.number().optional().describe('The cash slice of `total_tips` (snapshotted `tip_is_cash`).'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
-  "revenue_by_method": zod.unknown(),
+  "revenue_by_method": zod.unknown().describe('Money collected FOR GOODS, bucketed by the method actually tendered\n(`order_payments`). Tips are not in here — see `total_tips`.'),
   "subtotal": zod.number(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "top_items": zod.array(zod.object({
@@ -6809,6 +6834,7 @@ export const BranchSalesResponse = zod.object({
   "total_orders": zod.number(),
   "total_revenue": zod.number(),
   "total_tax": zod.number(),
+  "total_tips": zod.number().optional().describe('Tips, standalone — never folded into a method bucket and never part of\n`total_revenue`. Same definition as `total_tips` on the shift report, so\nthe two screens can be reconciled line for line.'),
   "voided_orders": zod.number()
 })
 
@@ -6984,9 +7010,11 @@ export const OrgBranchComparisonResponse = zod.object({
   "avg_order_value": zod.number(),
   "branch_id": zod.uuid(),
   "branch_name": zod.string(),
-  "revenue_by_method": zod.unknown(),
+  "cash_tips": zod.number().optional().describe('The cash slice of `total_tips`.'),
+  "revenue_by_method": zod.unknown().describe('Goods only, by method actually tendered. Tips are in `total_tips`.'),
   "total_orders": zod.number(),
   "total_revenue": zod.number(),
+  "total_tips": zod.number().optional().describe('Tips, standalone — same definition as on the branch sales + shift reports.'),
   "void_rate_pct": zod.number(),
   "voided_orders": zod.number()
 })),
@@ -7121,12 +7149,13 @@ export const ShiftSummaryResponse = zod.object({
   "branch_id": zod.uuid(),
   "branch_name": zod.string(),
   "cash_discrepancy": zod.number().nullish(),
+  "cash_tips": zod.number().optional().describe('The cash slice of `total_tips`.'),
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
   "opened_at": zod.iso.datetime({"offset":true}),
   "opening_cash": zod.number(),
-  "revenue_by_method": zod.unknown(),
+  "revenue_by_method": zod.unknown().describe('Goods only, by method actually tendered. Tips are in `total_tips`.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "teller_id": zod.uuid(),
@@ -7135,6 +7164,7 @@ export const ShiftSummaryResponse = zod.object({
   "total_orders": zod.number(),
   "total_revenue": zod.number(),
   "total_tax": zod.number(),
+  "total_tips": zod.number().optional().describe('Tips, standalone — matches `total_tips` on `GET \/shifts\/{id}\/report`.'),
   "voided_orders": zod.number()
 })
 
@@ -7608,14 +7638,16 @@ export const GetShiftReportResponse = zod.object({
   "cash_movements_in": zod.number(),
   "cash_movements_net": zod.number().describe('Net of all cash movements (in - out) as a signed integer'),
   "cash_movements_out": zod.number(),
+  "cash_tips": zod.number().describe('The cash slice of `total_tips` (snapshotted `tip_is_cash`). This IS in\nthe drawer, so it is counted by `expected_cash` even though it is not\npart of `net_payments`.'),
   "expected_cash": zod.number().describe('Authoritative system (expected) cash in the drawer. For a closed shift\nthis is the snapshot taken at close (`closing_cash_system`); for an open\nshift it is computed live via the same formula. Clients should display\nthis directly instead of re-deriving it from the payment breakdown.'),
   "net_payments": zod.number(),
+  "non_cash_tips": zod.number().describe('`total_tips - cash_tips` — tips added onto a card\/wallet tender.'),
   "payment_summary": zod.array(zod.object({
   "is_cash": zod.boolean(),
   "order_count": zod.number(),
   "payment_method": zod.string(),
   "total": zod.number()
-})),
+})).describe('Money COLLECTED FOR GOODS, bucketed by the method actually tendered\n(`order_payments`, so a split order contributes to each leg it really\nused). Tips are NOT in here — see `total_tips`.'),
   "printed_at": zod.iso.datetime({"offset":true}),
   "shift": zod.object({
   "branch_id": zod.uuid(),
@@ -7642,6 +7674,7 @@ export const GetShiftReportResponse = zod.object({
   "till_name": zod.string().nullish()
 }),
   "total_payments": zod.number(),
+  "total_tips": zod.number().describe('Tips, as a standalone figure — never folded into a method bucket, and\nnever part of `total_payments`\/`net_payments`. Mirrors `total_tips` on\nthe sales reports so the two screens agree on what \"revenue\" means.'),
   "voided_amount": zod.number()
 })
 

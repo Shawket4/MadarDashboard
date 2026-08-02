@@ -171,7 +171,20 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                   {order.customer_name ? <Row label={t("orders.customer", "Customer")} value={order.customer_name} /> : null}
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">{t("orders.payment", "Payment")}</span>
-                    <Badge variant="outline">{t(`payments.${order.payment_method}`, order.payment_method)}</Badge>
+                    {/* Split sales carry the nominal "mixed" label; the legs are
+                        what every money report actually buckets by. */}
+                    {(order.payment_legs ?? []).length > 1 ? (
+                      <span className="flex flex-wrap justify-end gap-1">
+                        {order.payment_legs.map((leg, i) => (
+                          <Badge key={`${leg.method}-${i}`} variant="outline">
+                            {t(`payments.${leg.method}`, leg.method)}
+                            <span className="ms-1 tabular">{fmtMoney(leg.amount)}</span>
+                          </Badge>
+                        ))}
+                      </span>
+                    ) : (
+                      <Badge variant="outline">{t(`payments.${order.payment_method}`, order.payment_method)}</Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { PaymentLeg } from './paymentLeg';
 
 export interface Order {
   /** @nullable */
@@ -60,6 +61,20 @@ export interface Order {
      * order). Defaults to "dine_in" for every POS sale.
      */
   order_type: string;
+  /**
+     * What was ACTUALLY tendered, one entry per `order_payments` row — the same
+     * rows every money report buckets by. A single-tender order has one leg; a
+     * split order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the
+     * response to order creation, where the legs are written just after the row
+     * this statement returns; every read hydrates it.
+     */
+  payment_legs: PaymentLeg[];
+  /**
+     * The order's NOMINAL payment label. For a split order this is the literal
+     * `'mixed'` — a label that exists in no money report, because reports bucket
+     * by what was actually tendered. Use [`Order::payment_legs`] for the real
+     * methods; treat this as a display badge only.
+     */
   payment_method: string;
   shift_id: string;
   status: string;

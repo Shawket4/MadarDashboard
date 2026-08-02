@@ -254,7 +254,8 @@
     "pickBranchTrend": "Select a branch to see its revenue trend",
     "branchPerformance": "Branch performance",
     "periodTotal": "{{total}} this period",
-    "branchRevenueBar": "Revenue share for {{name}}"
+    "branchRevenueBar": "Revenue share for {{name}}",
+    "tips": "Tips"
   },
   "orgs": {
     "title": "Organizations",
@@ -1395,7 +1396,9 @@
     "pickBranch": "Select a branch to view its shifts",
     "empty": "No shifts yet",
     "viewReport": "View report",
-    "branch": "Branch"
+    "branch": "Branch",
+    "tips": "Tips",
+    "tipsCash": "of which cash"
   },
   "orders": {
     "branch": "Branch",

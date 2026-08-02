@@ -321,6 +321,7 @@ export * from './patchGroupRequest';
 export * from './patchOptionRequest';
 export * from './patchOptionRequestNameTranslations';
 export * from './pauseInput';
+export * from './paymentLeg';
 export * from './paymentSplitInput';
 export * from './paymentSummaryRow';
 export * from './peakHourPoint';

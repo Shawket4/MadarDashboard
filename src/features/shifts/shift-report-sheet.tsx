@@ -89,6 +89,21 @@ export function ShiftReportSheet({ shiftId, open, onOpenChange }: Props) {
                     <span>{t("shifts.netPayments", "Net payments")}</span>
                     <span className="tabular">{fmtMoney(report.net_payments)}</span>
                   </div>
+                  {/* Tips sit OUTSIDE the method buckets and outside net payments —
+                      they are not revenue, and folding them into a bucket is what
+                      used to make this card disagree with the sales report. */}
+                  {report.total_tips ? (
+                    <div className="mt-1 space-y-1 border-t pt-2">
+                      <Row label={t("shifts.tips", "Tips")} value={fmtMoney(report.total_tips)} />
+                      {report.cash_tips ? (
+                        <Row
+                          label={t("shifts.tipsCash", "of which cash")}
+                          value={fmtMoney(report.cash_tips)}
+                          className="ps-3 text-xs"
+                        />
+                      ) : null}
+                    </div>
+                  ) : null}
                   {report.voided_amount ? (
                     <Row label={t("dashboard.voided", "Voided")} value={fmtMoney(report.voided_amount)} className="text-destructive" />
                   ) : null}

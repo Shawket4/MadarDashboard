@@ -186,7 +186,25 @@ export function OrdersPage() {
       {
         accessorKey: "payment_method",
         header: t("orders.payment", "Payment"),
-        cell: ({ row }) => t(`payments.${row.original.payment_method}`, row.original.payment_method),
+        // A split sale's nominal method is the literal "mixed", which appears in
+        // no money report — those bucket by the legs actually tendered. Show the
+        // legs so this column reconciles with the sales/shift payment breakdown.
+        cell: ({ row }) => {
+          const legs = row.original.payment_legs ?? [];
+          if (legs.length <= 1) {
+            return t(`payments.${row.original.payment_method}`, row.original.payment_method);
+          }
+          return (
+            <span className="inline-flex flex-wrap items-center gap-1">
+              {legs.map((leg, i) => (
+                <span key={`${leg.method}-${i}`} className="text-xs">
+                  {t(`payments.${leg.method}`, leg.method)}
+                  <span className="ms-0.5 tabular text-muted-foreground">{fmtMoney(leg.amount)}</span>
+                </span>
+              ))}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "tax_amount",

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "motion/react";
-import { AlertCircle, Ban, CalendarRange, Coins, Receipt, Store, TrendingUp } from "lucide-react";
+import { AlertCircle, Ban, CalendarRange, Coins, HandCoins, Receipt, Store, TrendingUp } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -91,15 +91,21 @@ export function DashboardPage() {
   const kpis = useMemo(() => {
     if (branchId && branchSales.data) {
       const d = branchSales.data;
-      return { revenue: d.total_revenue, orders: d.total_orders, voided: d.voided_orders };
+      return {
+        revenue: d.total_revenue,
+        orders: d.total_orders,
+        voided: d.voided_orders,
+        tips: d.total_tips ?? 0,
+      };
     }
     return branches.reduce(
       (acc, b) => ({
         revenue: acc.revenue + b.total_revenue,
         orders: acc.orders + b.total_orders,
         voided: acc.voided + b.voided_orders,
+        tips: acc.tips + (b.total_tips ?? 0),
       }),
-      { revenue: 0, orders: 0, voided: 0 },
+      { revenue: 0, orders: 0, voided: 0, tips: 0 },
     );
   }, [branchId, branchSales.data, branches]);
 
@@ -148,13 +154,18 @@ export function DashboardPage() {
       ? t("common.cairoTime", "Cairo time")
       : t("common.timezoneLabel", { city: tzCity, defaultValue: `${tzCity} time` });
 
-  // All four headline KPIs as the canonical StatCard (via LedgerStrip) — the
-  // same card, scale, and compact/expand behavior used across the app.
+  // The headline KPIs as the canonical StatCard (via LedgerStrip) — the same
+  // card, scale, and compact/expand behavior used across the app. Tips are their
+  // own stat: they are never part of Revenue and never part of a payment-method
+  // bucket, so this reads the same way the shift report does.
   const kpiCards: LedgerItem[] = [
     { key: "revenue", label: t("dashboard.revenue", "Revenue"), icon: Coins, accent: "brand", value: kpis.revenue, formatType: "money", loading: kpiLoading },
     { key: "orders", label: t("nav.orders", "Orders"), icon: Receipt, accent: "info", value: kpis.orders, formatType: "number", loading: kpiLoading },
     { key: "avg", label: t("dashboard.avgTicket", "Avg ticket"), icon: TrendingUp, accent: "success", value: avgTicket, formatType: "money", loading: kpiLoading },
     { key: "voided", label: t("dashboard.voided", "Voided"), icon: Ban, accent: "warning", value: kpis.voided, formatType: "number", loading: kpiLoading },
+    ...(kpis.tips
+      ? [{ key: "tips", label: t("dashboard.tips", "Tips"), icon: HandCoins, accent: "success", value: kpis.tips, formatType: "money", loading: kpiLoading } as LedgerItem]
+      : []),
   ];
 
   return (

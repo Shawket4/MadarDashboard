@@ -7,8 +7,14 @@ export interface BranchSalesReport {
   branch_id: string;
   branch_name: string;
   by_category: CategorySales[];
+  /** The cash slice of `total_tips` (snapshotted `tip_is_cash`). */
+  cash_tips?: number;
   /** @nullable */
   from?: string | null;
+  /**
+     * Money collected FOR GOODS, bucketed by the method actually tendered
+     * (`order_payments`). Tips are not in here — see `total_tips`.
+     */
   revenue_by_method: unknown;
   subtotal: number;
   /** @nullable */
@@ -24,5 +30,11 @@ export interface BranchSalesReport {
   total_orders: number;
   total_revenue: number;
   total_tax: number;
+  /**
+     * Tips, standalone — never folded into a method bucket and never part of
+     * `total_revenue`. Same definition as `total_tips` on the shift report, so
+     * the two screens can be reconciled line for line.
+     */
+  total_tips?: number;
   voided_orders: number;
 }

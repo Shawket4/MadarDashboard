@@ -225,9 +225,13 @@ function ResultSection({
 
 /** Tooltip/axis value formatter that respects each series' own column kind. */
 function seriesFormatter(measures: Column[]) {
-  return (value: number, name?: string) => {
-    const col = measures.find((m) => m.label === name) ?? measures[0];
-    return [measureFormatter(col)(Number(value)), name] as [string, string | undefined];
+  // Recharts types the formatter's value/name as ValueType/NameType (either can
+  // be undefined), so widen the params and narrow here rather than declaring
+  // number/string and failing to match the expected signature.
+  return (value: unknown, name?: unknown) => {
+    const label = typeof name === "string" ? name : undefined;
+    const col = measures.find((m) => m.label === label) ?? measures[0];
+    return [measureFormatter(col)(Number(value)), label] as [string, string | undefined];
   };
 }
 
