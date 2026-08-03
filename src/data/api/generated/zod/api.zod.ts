@@ -2483,7 +2483,7 @@ export const AnalyticsOrdersResponse = zod.object({
   "to": zod.iso.date(),
   "to_utc": zod.iso.datetime({"offset":true}),
   "total_discount": zod.number(),
-  "total_orders": zod.number().describe('Orders in the window. Voided and refunded orders are excluded here and\neverywhere below — they are not returned at all.'),
+  "total_orders": zod.number().describe('Orders in the window. Voided and refunded orders are excluded here and\neverywhere below, as are orders tendered with a payment method the\nmerchant has hidden from partners — none are returned at all.'),
   "total_revenue": zod.number().describe('Sum of the per-order `total_amount`.'),
   "total_service_charge": zod.number(),
   "total_tax": zod.number()
@@ -5629,7 +5629,8 @@ export const ListPaymentMethodsResponseItem = zod.object({
   "label_translations": zod.unknown(),
   "name": zod.string(),
   "org_id": zod.uuid(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visible_in_integrations": zod.boolean().describe('When false, orders tendered with this method are excluded entirely\nfrom the partner analytics API (`\/integrations\/analytics\/orders`) —\nrows and aggregates alike. Defaults to true.')
 })
 export const ListPaymentMethodsResponse = zod.array(ListPaymentMethodsResponseItem)
 
@@ -5640,7 +5641,8 @@ export const CreatePaymentMethodBody = zod.object({
   "is_active": zod.boolean().nullish(),
   "is_cash": zod.boolean(),
   "label_translations": zod.record(zod.string(), zod.string()),
-  "name": zod.string()
+  "name": zod.string(),
+  "visible_in_integrations": zod.boolean().nullish().describe('Defaults to true — see [`OrgPaymentMethod::visible_in_integrations`].')
 })
 
 export const CreatePaymentMethodResponse = zod.object({
@@ -5653,7 +5655,8 @@ export const CreatePaymentMethodResponse = zod.object({
   "label_translations": zod.unknown(),
   "name": zod.string(),
   "org_id": zod.uuid(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visible_in_integrations": zod.boolean().describe('When false, orders tendered with this method are excluded entirely\nfrom the partner analytics API (`\/integrations\/analytics\/orders`) —\nrows and aggregates alike. Defaults to true.')
 })
 
 
@@ -5667,7 +5670,8 @@ export const UpdatePaymentMethodBody = zod.object({
   "is_active": zod.boolean().nullish(),
   "is_cash": zod.boolean().nullish(),
   "label_translations": zod.record(zod.string(), zod.string()).nullish(),
-  "name": zod.string().nullish()
+  "name": zod.string().nullish(),
+  "visible_in_integrations": zod.boolean().nullish()
 })
 
 export const UpdatePaymentMethodResponse = zod.object({
@@ -5680,7 +5684,8 @@ export const UpdatePaymentMethodResponse = zod.object({
   "label_translations": zod.unknown(),
   "name": zod.string(),
   "org_id": zod.uuid(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visible_in_integrations": zod.boolean().describe('When false, orders tendered with this method are excluded entirely\nfrom the partner analytics API (`\/integrations\/analytics\/orders`) —\nrows and aggregates alike. Defaults to true.')
 })
 
 
@@ -5698,7 +5703,8 @@ export const ActivatePaymentMethodResponse = zod.object({
   "label_translations": zod.unknown(),
   "name": zod.string(),
   "org_id": zod.uuid(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visible_in_integrations": zod.boolean().describe('When false, orders tendered with this method are excluded entirely\nfrom the partner analytics API (`\/integrations\/analytics\/orders`) —\nrows and aggregates alike. Defaults to true.')
 })
 
 
@@ -5716,7 +5722,8 @@ export const DeactivatePaymentMethodResponse = zod.object({
   "label_translations": zod.unknown(),
   "name": zod.string(),
   "org_id": zod.uuid(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visible_in_integrations": zod.boolean().describe('When false, orders tendered with this method are excluded entirely\nfrom the partner analytics API (`\/integrations\/analytics\/orders`) —\nrows and aggregates alike. Defaults to true.')
 })
 
 

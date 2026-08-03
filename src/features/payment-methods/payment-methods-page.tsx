@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CreditCard, Pencil, Plus } from "lucide-react";
+import { CreditCard, EyeOff, Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -57,6 +57,20 @@ export function PaymentMethodsPage() {
         },
       },
       { accessorKey: "is_cash", header: t("common.type", "Type"), cell: ({ row }) => <Badge variant={row.original.is_cash ? "outline" : "secondary"} className={row.original.is_cash ? "border-transparent bg-success/15 text-success" : ""}>{row.original.is_cash ? t("settings.pm.cashBase", "Cash") : t("settings.pm.nonCash", "Non-cash")}</Badge> },
+      {
+        id: "visible_in_integrations",
+        header: t("settings.pm.partners", "Partners"),
+        // Only ever flagged when hidden: the default is visible, so a badge on
+        // every row would be noise rather than information.
+        cell: ({ row }) =>
+          row.original.visible_in_integrations === false ? (
+            <Badge variant="outline" className="border-transparent bg-muted text-muted-foreground">
+              <EyeOff className="size-3" /> {t("settings.pm.hiddenFromPartners", "Hidden")}
+            </Badge>
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          ),
+      },
       {
         accessorKey: "is_active", header: t("common.status", "Status"),
         cell: ({ row }) => (

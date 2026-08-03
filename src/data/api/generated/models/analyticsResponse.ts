@@ -32,7 +32,8 @@ export interface AnalyticsResponse {
   total_discount: number;
   /**
      * Orders in the window. Voided and refunded orders are excluded here and
-     * everywhere below — they are not returned at all.
+     * everywhere below, as are orders tendered with a payment method the
+     * merchant has hidden from partners — none are returned at all.
      */
   total_orders: number;
   /** Sum of the per-order `total_amount`. */

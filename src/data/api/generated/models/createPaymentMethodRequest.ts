@@ -10,4 +10,9 @@ export interface CreatePaymentMethodRequest {
   is_cash: boolean;
   label_translations: CreatePaymentMethodRequestLabelTranslations;
   name: string;
+  /**
+     * Defaults to true — see [`OrgPaymentMethod::visible_in_integrations`].
+     * @nullable
+     */
+  visible_in_integrations?: boolean | null;
 }

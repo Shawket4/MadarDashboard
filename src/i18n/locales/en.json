@@ -1868,7 +1868,11 @@
         "store": "Store Credit",
         "star": "Loyalty Points",
         "link": "Payment Link"
-      }
+      },
+      "visibleInIntegrations": "Share with partners",
+      "visibleInIntegrationsHint": "Include orders paid this way in the partner analytics API. Turn off and they disappear from it entirely — a split order is hidden if any part of it used this method.",
+      "partners": "Partners",
+      "hiddenFromPartners": "Hidden"
     },
     "whatsapp": "WhatsApp",
     "whatsappHint": "Link the number that sends delivery OTP and order updates."

@@ -15,4 +15,6 @@ export interface UpdatePaymentMethodRequest {
   label_translations?: UpdatePaymentMethodRequestLabelTranslations;
   /** @nullable */
   name?: string | null;
+  /** @nullable */
+  visible_in_integrations?: boolean | null;
 }

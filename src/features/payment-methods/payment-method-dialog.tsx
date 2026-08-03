@@ -42,6 +42,7 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
         color: z.string().min(1),
         is_cash: z.boolean(),
         is_active: z.boolean(),
+        visible_in_integrations: z.boolean(),
       }),
     [t],
   );
@@ -49,7 +50,7 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", labelEn: "", labelAr: "", icon: "money", color: PM_COLORS[2], is_cash: false, is_active: true },
+    defaultValues: { name: "", labelEn: "", labelAr: "", icon: "money", color: PM_COLORS[2], is_cash: false, is_active: true, visible_in_integrations: true },
   });
 
   useEffect(() => {
@@ -63,6 +64,7 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
         color: method?.color?.startsWith("#") ? method.color : PM_COLORS[2],
         is_cash: method?.is_cash ?? false,
         is_active: method?.is_active ?? true,
+        visible_in_integrations: method?.visible_in_integrations ?? true,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -72,8 +74,8 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
     const label_translations = { en: v.labelEn, ar: v.labelAr || "" };
     setBusy(true);
     try {
-      if (method) await updatePaymentMethod(method.id, { name: v.name, label_translations, color: v.color, icon: v.icon, is_cash: v.is_cash, is_active: v.is_active });
-      else await createPaymentMethod({ name: v.name, label_translations, color: v.color, icon: v.icon, is_cash: v.is_cash, is_active: v.is_active });
+      if (method) await updatePaymentMethod(method.id, { name: v.name, label_translations, color: v.color, icon: v.icon, is_cash: v.is_cash, is_active: v.is_active, visible_in_integrations: v.visible_in_integrations });
+      else await createPaymentMethod({ name: v.name, label_translations, color: v.color, icon: v.icon, is_cash: v.is_cash, is_active: v.is_active, visible_in_integrations: v.visible_in_integrations });
       void invalidatePaymentMethods();
       toast.success(t("common.saved", "Saved"));
       onOpenChange(false);
@@ -156,6 +158,15 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
                 </FormItem>
               )} />
             </div>
+            <FormField control={form.control} name="visible_in_integrations" render={({ field }) => (
+              <FormItem className="flex items-center justify-between rounded-lg border bg-card p-3">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-sm">{t("settings.pm.visibleInIntegrations", "Share with partners")}</FormLabel>
+                  <FormDescription className="text-xs">{t("settings.pm.visibleInIntegrationsHint", "Include orders paid this way in the partner analytics API. Turn off and they disappear from it entirely — a split order is hidden if any part of it used this method.")}</FormDescription>
+                </div>
+                <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+              </FormItem>
+            )} />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
               <Button type="submit" loading={busy}>{t("common.save", "Save")}</Button>
