@@ -104,6 +104,10 @@ export default defineConfig({
           // Excel export
           if (id.includes("exceljs")) return "exceljs-vendor";
 
+          // Encrypted credential handoff (zip.js). Pure ESM, so unlike exceljs
+          // it needs no optimizeDeps entry — just its own lazy chunk.
+          if (id.includes("@zip.js")) return "zip-vendor";
+
           return undefined;
         },
       },

@@ -27,6 +27,7 @@ import type {
   AddonSalesRow,
   AddonSlot,
   AiChatResponse,
+  AnalyticsResponse,
   AuthPermissionsResponse,
   BookingView,
   Branch,
@@ -51,6 +52,8 @@ import type {
   CombinedItemSalesRow,
   ConsumptionRow,
   CreateUserResponse,
+  CredentialSummary,
+  CredentialWithSecret,
   DecisionOut,
   DeductionLogRow,
   DeliveryMenu,
@@ -295,6 +298,14 @@ export const getCreateDecisionResponseMock = (overrideResponse: Partial<Extract<
 export const getGetMarginTargetsResponseMock = (overrideResponse: Partial<Extract<MarginTargets, object>> = {}): MarginTargets => ({branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), target_pct: faker.number.float({fractionDigits: 2})})), builtin_default_pct: faker.number.float({fractionDigits: 2}), org_default_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), ...overrideResponse})
 
 export const getPutMarginTargetResponseMock = (overrideResponse: Partial<Extract<MarginTargets, object>> = {}): MarginTargets => ({branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), target_pct: faker.number.float({fractionDigits: 2})})), builtin_default_pct: faker.number.float({fractionDigits: 2}), org_default_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), ...overrideResponse})
+
+export const getAnalyticsOrdersResponseMock = (overrideResponse: Partial<Extract<AnalyticsResponse, object>> = {}): AnalyticsResponse => ({avg_order_total: faker.number.int(), branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), from: faker.date.past().toISOString().slice(0, 10), from_utc: faker.date.past().toISOString().slice(0, 19) + 'Z', limit: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), offset: faker.number.int(), orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({business_date: faker.date.past().toISOString().slice(0, 10), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', discount_amount: faker.number.int(), order_id: faker.string.uuid(), order_number: faker.number.int(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), service_charge: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), subtotal: faker.number.int(), tax_amount: faker.number.int(), total_amount: faker.number.int()})), returned: faker.number.int(), subtotal: faker.number.int(), timezone: faker.string.alpha({length: {min: 10, max: 20}}), to: faker.date.past().toISOString().slice(0, 10), to_utc: faker.date.past().toISOString().slice(0, 19) + 'Z', total_discount: faker.number.int(), total_orders: faker.number.int(), total_revenue: faker.number.int(), total_service_charge: faker.number.int(), total_tax: faker.number.int(), ...overrideResponse})
+
+export const getListCredentialsResponseMock = (): CredentialSummary[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_used_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), revoked_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), username: faker.string.alpha({length: {min: 10, max: 20}})})))
+
+export const getCreateCredentialResponseMock = (): CredentialWithSecret => ({...{branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_used_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), revoked_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), username: faker.string.alpha({length: {min: 10, max: 20}})},...{secret: faker.string.alpha({length: {min: 10, max: 20}})},})
+
+export const getRotateCredentialResponseMock = (): CredentialWithSecret => ({...{branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_used_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), revoked_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), username: faker.string.alpha({length: {min: 10, max: 20}})},...{secret: faker.string.alpha({length: {min: 10, max: 20}})},})
 
 export const getListMovementsResponseMock = (): BranchInventoryMovement[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({balance_after: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), below_zero: faker.datatype.boolean(), branch_id: faker.string.uuid(), branch_inventory_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_by_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), movement_type: faker.string.alpha({length: {min: 10, max: 20}}), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_ingredient_id: faker.string.uuid(), quantity: faker.number.float({fractionDigits: 2}), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), source_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), source_type: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), unit: faker.string.alpha({length: {min: 10, max: 20}}), unit_cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined])})))
 
@@ -1660,6 +1671,64 @@ export const getPutMarginTargetMockHandler = (overrideResponse?: MarginTargets |
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getPutMarginTargetResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getAnalyticsOrdersMockHandler = (overrideResponse?: AnalyticsResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AnalyticsResponse> | AnalyticsResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/integrations/analytics/orders', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAnalyticsOrdersResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListCredentialsMockHandler = (overrideResponse?: CredentialSummary[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<CredentialSummary[]> | CredentialSummary[]), options?: RequestHandlerOptions) => {
+  return http.get('*/integrations/credentials', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListCredentialsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateCredentialMockHandler = (overrideResponse?: CredentialWithSecret | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CredentialWithSecret> | CredentialWithSecret), options?: RequestHandlerOptions) => {
+  return http.post('*/integrations/credentials', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateCredentialResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getRevokeCredentialMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/integrations/credentials/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getRotateCredentialMockHandler = (overrideResponse?: CredentialWithSecret | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CredentialWithSecret> | CredentialWithSecret), options?: RequestHandlerOptions) => {
+  return http.post('*/integrations/credentials/:id/rotate', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getRotateCredentialResponseMock(),
       { status: 200
       })
   }, options)
@@ -4094,6 +4163,11 @@ export const getMadarAPIMock = () => [
   getCreateDecisionMockHandler(),
   getGetMarginTargetsMockHandler(),
   getPutMarginTargetMockHandler(),
+  getAnalyticsOrdersMockHandler(),
+  getListCredentialsMockHandler(),
+  getCreateCredentialMockHandler(),
+  getRevokeCredentialMockHandler(),
+  getRotateCredentialMockHandler(),
   getListMovementsMockHandler(),
   getListBranchStockMockHandler(),
   getAddToBranchStockMockHandler(),

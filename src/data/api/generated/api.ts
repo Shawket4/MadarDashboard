@@ -31,6 +31,8 @@ import type {
   AddonSlot,
   AiChatRequest,
   AiChatResponse,
+  AnalyticsOrdersParams,
+  AnalyticsResponse,
   AssignBranchRequest,
   AssignTablesRequest,
   AuthPermissionsResponse,
@@ -88,6 +90,7 @@ import type {
   CreateBundleRequest,
   CreateCatalogItemRequest,
   CreateCategoryRequest,
+  CreateCredentialRequest,
   CreateDecisionParams,
   CreateDecisionRequest,
   CreateDiscountRequest,
@@ -113,6 +116,8 @@ import type {
   CreateUserRequest,
   CreateUserResponse,
   CreateWasteRequest,
+  CredentialSummary,
+  CredentialWithSecret,
   DecisionOut,
   DeductionLogRow,
   DeleteAddonIngredientParams,
@@ -6617,6 +6622,354 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getPutMarginTargetMutationOptions(options), queryClient);
+    }
+
+export const analyticsOrders = (
+    params: AnalyticsOrdersParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AnalyticsResponse>(
+      {url: `/integrations/analytics/orders`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getAnalyticsOrdersQueryKey = (params?: AnalyticsOrdersParams,) => {
+    return [
+    `/integrations/analytics/orders`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getAnalyticsOrdersQueryOptions = <TData = Awaited<ReturnType<typeof analyticsOrders>>, TError = ErrorBody>(params: AnalyticsOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAnalyticsOrdersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof analyticsOrders>>> = ({ signal }) => analyticsOrders(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof analyticsOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AnalyticsOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof analyticsOrders>>>
+export type AnalyticsOrdersQueryError = ErrorBody
+
+
+export function useAnalyticsOrders<TData = Awaited<ReturnType<typeof analyticsOrders>>, TError = ErrorBody>(
+ params: AnalyticsOrdersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsOrders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof analyticsOrders>>,
+          TError,
+          Awaited<ReturnType<typeof analyticsOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAnalyticsOrders<TData = Awaited<ReturnType<typeof analyticsOrders>>, TError = ErrorBody>(
+ params: AnalyticsOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsOrders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof analyticsOrders>>,
+          TError,
+          Awaited<ReturnType<typeof analyticsOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAnalyticsOrders<TData = Awaited<ReturnType<typeof analyticsOrders>>, TError = ErrorBody>(
+ params: AnalyticsOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useAnalyticsOrders<TData = Awaited<ReturnType<typeof analyticsOrders>>, TError = ErrorBody>(
+ params: AnalyticsOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAnalyticsOrdersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const listCredentials = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CredentialSummary[]>(
+      {url: `/integrations/credentials`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListCredentialsQueryKey = () => {
+    return [
+    `/integrations/credentials`
+    ] as const;
+    }
+
+
+export const getListCredentialsQueryOptions = <TData = Awaited<ReturnType<typeof listCredentials>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCredentials>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCredentialsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCredentials>>> = ({ signal }) => listCredentials(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCredentials>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCredentialsQueryResult = NonNullable<Awaited<ReturnType<typeof listCredentials>>>
+export type ListCredentialsQueryError = ErrorBody
+
+
+export function useListCredentials<TData = Awaited<ReturnType<typeof listCredentials>>, TError = ErrorBody>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCredentials>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCredentials>>,
+          TError,
+          Awaited<ReturnType<typeof listCredentials>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCredentials<TData = Awaited<ReturnType<typeof listCredentials>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCredentials>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCredentials>>,
+          TError,
+          Awaited<ReturnType<typeof listCredentials>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCredentials<TData = Awaited<ReturnType<typeof listCredentials>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCredentials>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListCredentials<TData = Awaited<ReturnType<typeof listCredentials>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCredentials>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCredentialsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const createCredential = (
+    createCredentialRequest: CreateCredentialRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CredentialWithSecret>(
+      {url: `/integrations/credentials`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createCredentialRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getCreateCredentialMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCredential>>, TError,{data: CreateCredentialRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCredential>>, TError,{data: CreateCredentialRequest}, TContext> => {
+
+const mutationKey = ['createCredential'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCredential>>, {data: CreateCredentialRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCredential(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCredentialMutationResult = NonNullable<Awaited<ReturnType<typeof createCredential>>>
+    export type CreateCredentialMutationBody = CreateCredentialRequest
+    export type CreateCredentialMutationError = ErrorBody
+
+    export const useCreateCredential = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCredential>>, TError,{data: CreateCredentialRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createCredential>>,
+        TError,
+        {data: CreateCredentialRequest},
+        TContext
+      > => {
+      return useMutation(getCreateCredentialMutationOptions(options), queryClient);
+    }
+
+export const revokeCredential = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/integrations/credentials/${id}`, method: 'DELETE', signal
+    },
+      options);
+    }
+
+
+
+
+export const getRevokeCredentialMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeCredential>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeCredential>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['revokeCredential'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeCredential>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  revokeCredential(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeCredentialMutationResult = NonNullable<Awaited<ReturnType<typeof revokeCredential>>>
+
+    export type RevokeCredentialMutationError = ErrorBody
+
+    export const useRevokeCredential = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeCredential>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeCredential>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getRevokeCredentialMutationOptions(options), queryClient);
+    }
+
+export const rotateCredential = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CredentialWithSecret>(
+      {url: `/integrations/credentials/${id}/rotate`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getRotateCredentialMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rotateCredential>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof rotateCredential>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['rotateCredential'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rotateCredential>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  rotateCredential(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RotateCredentialMutationResult = NonNullable<Awaited<ReturnType<typeof rotateCredential>>>
+
+    export type RotateCredentialMutationError = ErrorBody
+
+    export const useRotateCredential = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rotateCredential>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rotateCredential>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getRotateCredentialMutationOptions(options), queryClient);
     }
 
 export const listMovements = (

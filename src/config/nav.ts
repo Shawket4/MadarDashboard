@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   MessageCircle,
   Package,
+  Plug,
   QrCode,
   Receipt,
   Settings,
@@ -160,6 +161,13 @@ export const NAV: NavGroup[] = [
         labelKey: "nav.paymentMethods",
         fallback: "Payment methods",
         icon: CreditCard,
+        roles: ["org_admin", "super_admin"],
+      },
+      {
+        to: "/settings/integrations",
+        labelKey: "nav.integrations",
+        fallback: "Integrations",
+        icon: Plug,
         roles: ["org_admin", "super_admin"],
       },
       {

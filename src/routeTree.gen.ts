@@ -36,6 +36,7 @@ import { Route as AppDeliveryIndexRouteImport } from './routes/_app/delivery/ind
 import { Route as AppAccessIndexRouteImport } from './routes/_app/access/index'
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
+import { Route as AppSettingsIntegrationsRouteImport } from './routes/_app/settings/integrations'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
 import { Route as AppMenuPricingRouteImport } from './routes/_app/menu/pricing'
 import { Route as AppMenuOverridesRouteImport } from './routes/_app/menu/overrides'
@@ -198,6 +199,11 @@ const AppSettingsPaymentMethodsRoute =
     path: '/payment-methods',
     getParentRoute: () => AppSettingsRouteRoute,
   } as any)
+const AppSettingsIntegrationsRoute = AppSettingsIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
 const AppMenuRecipesRoute = AppMenuRecipesRouteImport.update({
   id: '/recipes',
   path: '/recipes',
@@ -376,6 +382,7 @@ export interface FileRoutesByFullPath {
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
+  '/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/access/': typeof AppAccessIndexRoute
@@ -425,6 +432,7 @@ export interface FileRoutesByTo {
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
+  '/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/access': typeof AppAccessIndexRoute
@@ -481,6 +489,7 @@ export interface FileRoutesById {
   '/_app/menu/overrides': typeof AppMenuOverridesRoute
   '/_app/menu/pricing': typeof AppMenuPricingRoute
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
+  '/_app/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/_app/access/': typeof AppAccessIndexRoute
@@ -537,6 +546,7 @@ export interface FileRouteTypes {
     | '/menu/overrides'
     | '/menu/pricing'
     | '/menu/recipes'
+    | '/settings/integrations'
     | '/settings/payment-methods'
     | '/settings/whatsapp'
     | '/access/'
@@ -586,6 +596,7 @@ export interface FileRouteTypes {
     | '/menu/overrides'
     | '/menu/pricing'
     | '/menu/recipes'
+    | '/settings/integrations'
     | '/settings/payment-methods'
     | '/settings/whatsapp'
     | '/access'
@@ -641,6 +652,7 @@ export interface FileRouteTypes {
     | '/_app/menu/overrides'
     | '/_app/menu/pricing'
     | '/_app/menu/recipes'
+    | '/_app/settings/integrations'
     | '/_app/settings/payment-methods'
     | '/_app/settings/whatsapp'
     | '/_app/access/'
@@ -846,6 +858,13 @@ declare module '@tanstack/react-router' {
       path: '/payment-methods'
       fullPath: '/settings/payment-methods'
       preLoaderRoute: typeof AppSettingsPaymentMethodsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations': {
+      id: '/_app/settings/integrations'
+      path: '/integrations'
+      fullPath: '/settings/integrations'
+      preLoaderRoute: typeof AppSettingsIntegrationsRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
     '/_app/menu/recipes': {
@@ -1120,12 +1139,14 @@ const AppMenuRouteRouteWithChildren = AppMenuRouteRoute._addFileChildren(
 )
 
 interface AppSettingsRouteRouteChildren {
+  AppSettingsIntegrationsRoute: typeof AppSettingsIntegrationsRoute
   AppSettingsPaymentMethodsRoute: typeof AppSettingsPaymentMethodsRoute
   AppSettingsWhatsappRoute: typeof AppSettingsWhatsappRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
 
 const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
+  AppSettingsIntegrationsRoute: AppSettingsIntegrationsRoute,
   AppSettingsPaymentMethodsRoute: AppSettingsPaymentMethodsRoute,
   AppSettingsWhatsappRoute: AppSettingsWhatsappRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,

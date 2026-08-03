@@ -89,7 +89,8 @@
     "download": "Download",
     "copyFailed": "Copy failed",
     "copied": "Copied!",
-    "copyLink": "Copy link"
+    "copyLink": "Copy link",
+    "copy": "Copy"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -151,7 +152,8 @@
     "whatsapp": "WhatsApp",
     "usersPermissions": "Users & Permissions",
     "rolesPermissions": "Roles & Permissions",
-    "pricingAvailability": "Pricing & Availability"
+    "pricingAvailability": "Pricing & Availability",
+    "integrations": "Integrations"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -3356,6 +3358,58 @@
       "challenge": "Challenge",
       "dog": "Dog",
       "tooltip": "Popularity {{popularity}}% of units · profit vs menu average"
+    }
+  },
+  "integrations": {
+    "title": "Integrations",
+    "hint": "Give a partner read-only access to one branch's order analytics.",
+    "issue": "Issue credential",
+    "newTitle": "New integration credential",
+    "newHint": "Grants a partner read-only access to one branch's order analytics.",
+    "label": "Label",
+    "labelPlaceholder": "Rue — One Ninety",
+    "labelHint": "Who this credential is for. Only you see it.",
+    "branch": "Branch",
+    "branchPlaceholder": "Select a branch",
+    "branchRequired": "Choose a branch",
+    "branchHint": "The only branch this partner can read. It cannot be changed later — issue a second credential for another branch.",
+    "username": "Username",
+    "usernameHint": "Generated for you. The password is generated too and goes straight into an encrypted file — it is never shown on screen.",
+    "usernameLength": "3–64 characters",
+    "usernameChars": "Letters, numbers, dot, dash and underscore only",
+    "lastUsed": "Last used",
+    "never": "Never",
+    "revokedStatus": "Revoked",
+    "rotate": "Rotate",
+    "rotateTitle": "Rotate password?",
+    "rotateHint": "{{name}} will stop working immediately until the partner updates to the new password.",
+    "revoke": "Revoke",
+    "revokeTitle": "Revoke access?",
+    "revokeHint": "{{name}} loses access immediately and permanently. This cannot be undone — issue a new credential if they need access again.",
+    "revoked": "Access revoked",
+    "emptyTitle": "No integrations yet",
+    "emptyHint": "Issue a credential to let a partner pull this branch's order analytics.",
+    "regenerate": "Regenerate",
+    "handoff": {
+      "createdTitle": "Credentials for {{name}}",
+      "createdHint": "An encrypted file has been downloaded. It contains the credentials and the full integration guide.",
+      "rotatedTitle": "New password for {{name}}",
+      "rotatedHint": "The previous password stopped working immediately. Send the partner this replacement.",
+      "passphrase": "Password for the file",
+      "building": "Preparing…",
+      "step1": "Send the downloaded file to your partner (email is fine — it is encrypted).",
+      "step2": "Read this password to them over the phone. Never send both through the same channel.",
+      "step3": "Tell them to open it with 7-Zip, WinRAR or Keka. Windows and macOS built-in extractors cannot open encrypted archives.",
+      "warning": "Once you close this, the password is gone for good — it is not stored anywhere and cannot be shown again. If you lose it, rotate the credential.",
+      "downloadAgain": "Download again",
+      "copyFailed": "Could not copy — select the text and copy manually.",
+      "closeTitle": "Close without the file?",
+      "closeHint": "You haven't downloaded the credentials file. The password cannot be recovered afterwards — you would have to rotate this credential to issue a new one.",
+      "closeAnyway": "Close anyway",
+      "failedTitle": "The credential was created, but the file could not be built.",
+      "failedHint": "Try again. If it keeps failing, close this and use Rotate to issue a fresh password.",
+      "retry": "Try again",
+      "noSecureRandom": "This browser cannot generate a secure password. Open the dashboard over HTTPS and try again."
     }
   }
 }

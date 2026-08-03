@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Building2, Download, Link2, QrCode, RefreshCw, Store } from "lucide-react";
 import { toast } from "sonner";
 
+import { downloadUrl } from "@/lib/download";
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import {
@@ -97,11 +98,7 @@ function QrResult({ qr, title, onPreview }: { qr: QrResponse; title: string; onP
   const isSvg = qr.qr_data_url.startsWith("data:image/svg");
 
   const download = () => {
-    const ext = isSvg ? "svg" : "png";
-    const a = document.createElement("a");
-    a.href = qr.qr_data_url;
-    a.download = `qr-${qr.short_code}.${ext}`;
-    a.click();
+    downloadUrl(qr.qr_data_url, `qr-${qr.short_code}.${isSvg ? "svg" : "png"}`);
   };
 
   return (

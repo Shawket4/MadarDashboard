@@ -10,6 +10,7 @@ import type * as ExcelJSNS from "exceljs";
 import { TZDate } from "@date-fns/tz";
 import { toast } from "sonner";
 import i18n from "@/i18n";
+import { downloadBlob } from "@/lib/download";
 import { fmtDateTimeFull, getActiveTz } from "@/lib/format";
 
 export type ColumnType = "text" | "money" | "moneyRaw" | "number" | "integer" | "percent" | "date" | "dateTime" | "bool";
@@ -331,12 +332,7 @@ export async function exportToExcel(config: ExcelConfig): Promise<void> {
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${config.filename}-${new Date().toISOString().slice(0, 10)}.xlsx`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, `${config.filename}-${new Date().toISOString().slice(0, 10)}.xlsx`);
 
     const total = config.sheets.reduce((s, sh) => s + sh.rows.length, 0);
     toast.success(t("excel.done", { count: total, defaultValue: `Exported ${total} rows` }), { id: toastId });

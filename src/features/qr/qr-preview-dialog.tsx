@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { QrResponse } from "@/data/api/generated/models";
+import { downloadUrl } from "@/lib/download";
 
 interface Props {
   qr: QrResponse | null;
@@ -40,11 +41,7 @@ export function QrPreviewDialog({ qr, title, open, onOpenChange }: Props) {
   };
 
   const handleDownload = () => {
-    const ext = isSvg ? "svg" : "png";
-    const a = document.createElement("a");
-    a.href = qr.qr_data_url;
-    a.download = `qr-${qr.short_code}.${ext}`;
-    a.click();
+    downloadUrl(qr.qr_data_url, `qr-${qr.short_code}.${isSvg ? "svg" : "png"}`);
   };
 
   return (

@@ -2449,6 +2449,105 @@ export const PutMarginTargetResponse = zod.object({
 })
 
 
+export const AnalyticsOrdersQueryParams = zod.object({
+  "from": zod.iso.date().describe('First business day to include, `YYYY-MM-DD`, in the branch\'s timezone.'),
+  "to": zod.iso.date().describe('Last business day to include, `YYYY-MM-DD`, INCLUSIVE.'),
+  "limit": zod.number().optional().describe('Optional page size (max 5000). Omit for the whole window.'),
+  "offset": zod.number().optional().describe('Optional row offset, used with `limit`. Defaults to 0.')
+})
+
+export const AnalyticsOrdersResponse = zod.object({
+  "avg_order_total": zod.number().describe('`total_revenue \/ total_orders`, truncated to whole piastres. 0 when the\nwindow is empty.'),
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "from": zod.iso.date(),
+  "from_utc": zod.iso.datetime({"offset":true}).describe('The exact half-open instant window `[from_utc, to_utc)` the figures\ncover, echoed so there is never a question about what was included.'),
+  "limit": zod.number().nullish().describe('Echo of the paging actually applied, and how many rows came back.'),
+  "offset": zod.number(),
+  "orders": zod.array(zod.object({
+  "business_date": zod.iso.date().describe('Calendar day the order belongs to, in the branch\'s timezone. Derived\nfrom `created_at` — the SAME derivation the receipt\'s `order_ref` uses,\nso the date here always matches the date embedded in that reference.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "discount_amount": zod.number(),
+  "order_id": zod.uuid(),
+  "order_number": zod.number().describe('Per-shift sequence number shown on the POS.'),
+  "order_ref": zod.string().nullish().describe('The human-readable reference printed on the receipt\n(`<BRANCHCODE>-<YYMMDD>-<NNNN>`). Null for orders predating it.'),
+  "service_charge": zod.number().describe('Always 0: Madar has no service-charge concept. Present so the field is\nstable if one is ever introduced.'),
+  "status": zod.string(),
+  "subtotal": zod.number().describe('Piastres. Sum of the line items before discount and tax.'),
+  "tax_amount": zod.number(),
+  "total_amount": zod.number().describe('`subtotal - discount_amount + tax_amount`. Deliberately COMPUTED rather\nthan read from `orders.total_amount`, which also carries the delivery\nfee — this figure is the order\'s own value and nothing else. Tips are\nexcluded too (they are not part of `total_amount` in the first place).')
+}).describe('One order, reduced to the money that belongs to the order itself.')),
+  "returned": zod.number(),
+  "subtotal": zod.number(),
+  "timezone": zod.string().describe('IANA zone the business days were resolved in.'),
+  "to": zod.iso.date(),
+  "to_utc": zod.iso.datetime({"offset":true}),
+  "total_discount": zod.number(),
+  "total_orders": zod.number().describe('Orders in the window. Voided and refunded orders are excluded here and\neverywhere below — they are not returned at all.'),
+  "total_revenue": zod.number().describe('Sum of the per-order `total_amount`.'),
+  "total_service_charge": zod.number(),
+  "total_tax": zod.number()
+})
+
+
+export const ListCredentialsResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_used_at": zod.iso.datetime({"offset":true}).nullish().describe('Last successful authentication, or null if the partner has never pulled.'),
+  "name": zod.string(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "username": zod.string()
+})
+export const ListCredentialsResponse = zod.array(ListCredentialsResponseItem)
+
+
+export const CreateCredentialBody = zod.object({
+  "branch_id": zod.uuid().describe('The single branch this credential may read.'),
+  "name": zod.string().describe('Operator-facing label, e.g. \"Rue — One Ninety\".'),
+  "username": zod.string().describe('Basic-auth username. Unique across all orgs, case-insensitively.')
+})
+
+export const CreateCredentialResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_used_at": zod.iso.datetime({"offset":true}).nullish().describe('Last successful authentication, or null if the partner has never pulled.'),
+  "name": zod.string(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "username": zod.string()
+}).and(zod.object({
+  "secret": zod.string()
+})).describe('Returned ONLY by create and rotate. The secret is bcrypt-hashed on the way\nin and is not recoverable afterwards, so the dashboard must show it once and\ntell the operator to copy it.')
+
+
+export const RevokeCredentialParams = zod.object({
+  "id": zod.uuid().describe('Credential ID')
+})
+
+export const RevokeCredentialResponse = zod.void()
+
+
+export const RotateCredentialParams = zod.object({
+  "id": zod.uuid().describe('Credential ID')
+})
+
+export const RotateCredentialResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_used_at": zod.iso.datetime({"offset":true}).nullish().describe('Last successful authentication, or null if the partner has never pulled.'),
+  "name": zod.string(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "username": zod.string()
+}).and(zod.object({
+  "secret": zod.string()
+})).describe('Returned ONLY by create and rotate. The secret is bcrypt-hashed on the way\nin and is not recoverable afterwards, so the dashboard must show it once and\ntell the operator to copy it.')
+
+
 export const ListMovementsParams = zod.object({
   "branch_id": zod.uuid().describe('Branch ID')
 })
