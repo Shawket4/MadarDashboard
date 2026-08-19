@@ -1,12 +1,12 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Armchair,
   ArrowLeftRight,
   Wallet,
   BadgePercent,
   BarChart3,
   Boxes,
   Building2,
-  CalendarCheck,
   ChefHat,
   ClipboardList,
   Clock,
@@ -77,7 +77,7 @@ export const NAV: NavGroup[] = [
     fallback: "Sell",
     entries: [
       { to: "/orders", labelKey: "nav.orders", fallback: "Orders", icon: Receipt },
-      { to: "/reservations", labelKey: "nav.reservations", fallback: "Reservations", icon: CalendarCheck },
+      { to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
       { to: "/shifts", labelKey: "nav.shifts", fallback: "Shifts", icon: Clock },
       { to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
     ],

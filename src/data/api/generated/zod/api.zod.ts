@@ -2115,6 +2115,15 @@ export const CreateFloorTableResponse = zod.object({
 })
 
 
+export const SwapTablesBody = zod.object({
+  "branch_id": zod.uuid(),
+  "table_a": zod.uuid(),
+  "table_b": zod.uuid()
+})
+
+export const SwapTablesResponse = zod.unknown()
+
+
 export const DeleteFloorTableParams = zod.object({
   "id": zod.uuid().describe('Table ID')
 })
@@ -2159,6 +2168,19 @@ export const UpdateFloorTableResponse = zod.object({
 })
 
 
+export const UpdateTableStateParams = zod.object({
+  "id": zod.uuid().describe('Table ID')
+})
+
+export const UpdateTableStateBody = zod.object({
+  "clear_section": zod.boolean().optional(),
+  "section_id": zod.uuid().nullish(),
+  "status": zod.string().nullish().describe('`free` | `held` | `seated` | `dirty`.')
+}).describe('Operational table-state edit from the POS: the layout (geometry\/shape) is\ndashboard-authored, but STATE — status walks (bussing a dirty table) and\nwhich zone the physical table currently sits in — belongs to the floor\nstaff. Both fields optional; `clear_section` moves the table out of every\nsection (`section_id` wins when both are sent).')
+
+export const UpdateTableStateResponse = zod.unknown()
+
+
 export const SetTableStatusParams = zod.object({
   "id": zod.uuid().describe('Table ID')
 })
@@ -2184,6 +2206,328 @@ export const SetTableStatusResponse = zod.object({
   "status": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "width": zod.number()
+})
+
+
+export const ListFloorTransfersQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "since": zod.iso.datetime({"offset":true}).optional().describe('Sync cursor (as on \/held-orders). Omit for the waiting queue only.')
+})
+
+export const ListFloorTransfersResponse = zod.object({
+  "server_time": zod.iso.datetime({"offset":true}),
+  "transfers": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "from_table_id": zod.uuid().nullish(),
+  "fulfilled_table_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "note": zod.string().nullish(),
+  "occupant_id": zod.uuid(),
+  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
+  "requested_by": zod.uuid().nullish(),
+  "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`waiting` | `fulfilled` | `cancelled`.'),
+  "target_section_id": zod.uuid().nullish(),
+  "target_table_id": zod.uuid().nullish(),
+  "updated_at": zod.iso.datetime({"offset":true})
+}))
+})
+
+
+export const CreateFloorTransferBody = zod.object({
+  "branch_id": zod.uuid(),
+  "id": zod.uuid().describe('Client-minted id (offline-first identity; retries dedup on it).'),
+  "note": zod.string().nullish(),
+  "occupant_id": zod.uuid(),
+  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "target_section_id": zod.uuid().nullish().describe('The wish: any table in this section…'),
+  "target_table_id": zod.uuid().nullish().describe('…or exactly this table. At least one of the two is required.')
+})
+
+export const CreateFloorTransferResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "from_table_id": zod.uuid().nullish(),
+  "fulfilled_table_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "note": zod.string().nullish(),
+  "occupant_id": zod.uuid(),
+  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
+  "requested_by": zod.uuid().nullish(),
+  "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`waiting` | `fulfilled` | `cancelled`.'),
+  "target_section_id": zod.uuid().nullish(),
+  "target_table_id": zod.uuid().nullish(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const CancelTransferParams = zod.object({
+  "id": zod.uuid().describe('Transfer request ID')
+})
+
+export const CancelTransferResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "from_table_id": zod.uuid().nullish(),
+  "fulfilled_table_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "note": zod.string().nullish(),
+  "occupant_id": zod.uuid(),
+  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
+  "requested_by": zod.uuid().nullish(),
+  "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`waiting` | `fulfilled` | `cancelled`.'),
+  "target_section_id": zod.uuid().nullish(),
+  "target_table_id": zod.uuid().nullish(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const FulfillTransferParams = zod.object({
+  "id": zod.uuid().describe('Transfer request ID')
+})
+
+export const FulfillTransferBody = zod.object({
+  "table_id": zod.uuid().describe('The table the party actually moves to (must satisfy the wish).')
+})
+
+export const FulfillTransferResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "from_table_id": zod.uuid().nullish(),
+  "fulfilled_table_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "note": zod.string().nullish(),
+  "occupant_id": zod.uuid(),
+  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
+  "requested_by": zod.uuid().nullish(),
+  "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`waiting` | `fulfilled` | `cancelled`.'),
+  "target_section_id": zod.uuid().nullish(),
+  "target_table_id": zod.uuid().nullish(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const ListHeldOrdersQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "since": zod.iso.datetime({"offset":true}).optional().describe('Sync cursor: return everything updated after this instant, INCLUDING\ncompleted\/discarded tombstones. Omit for the live board (held+resumed).')
+})
+
+export const ListHeldOrdersResponse = zod.object({
+  "held_orders": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})),
+  "server_time": zod.iso.datetime({"offset":true})
+}).describe('The `GET \/held-orders` sync payload. With `since`, tombstones are included\nso devices retire local copies; `server_time` is the client\'s next cursor.')
+
+
+export const ParkHeldOrderBody = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('Opaque client cart payload, stored and returned verbatim.'),
+  "created_at": zod.iso.datetime({"offset":true}).nullish().describe('Original creation instant (strip ordering); defaults to now.'),
+  "device_id": zod.string().nullish().describe('The parking device\'s installation id (also the claim key on resume).'),
+  "id": zod.uuid().describe('Client-minted id — the held order\'s identity across parks\/resumes\/devices.'),
+  "name": zod.string().optional(),
+  "table_id": zod.uuid().nullish().describe('Requested table. On conflict the park still succeeds WITHOUT the table\n(`table_conflict: true` in the response) — a queued offline park must\nnever dead-letter over a table race.')
+})
+
+export const ParkHeldOrderResponse = zod.object({
+  "held_order": zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "table_conflict": zod.boolean()
+}).describe('Park\/upsert result: the stored order plus whether a requested table\nassignment was DROPPED because the table was taken (offline-first parks\nkeep the cart and lose the race, never the other way around).')
+
+
+export const UpdateHeldOrderParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const UpdateHeldOrderBody = zod.object({
+  "base_revision": zod.number().nullish().describe('Optimistic-concurrency fence: reject (409) if the server has moved past\nthis revision. Omit to last-write-wins.'),
+  "name": zod.string().nullish()
+})
+
+export const UpdateHeldOrderResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const ClaimHeldOrderParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const ClaimHeldOrderBody = zod.object({
+  "device_id": zod.string().describe('The resuming device — recorded as the claim holder.'),
+  "force": zod.boolean().optional().describe('Steal a claim held by another device (that till died mid-edit).')
+})
+
+export const ClaimHeldOrderResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const CompleteHeldOrderParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const CompleteHeldOrderBody = zod.object({
+  "order_id": zod.uuid().nullish().describe('The paid order this cart became (linked for the audit trail).')
+})
+
+export const CompleteHeldOrderResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const DiscardHeldOrderParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const DiscardHeldOrderBody = zod.object({
+  "device_id": zod.string().nullish(),
+  "force": zod.boolean().optional().describe('Discard even while another device holds the resume claim.')
+})
+
+export const DiscardHeldOrderResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const ReleaseHeldOrderParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const ReleaseHeldOrderBody = zod.object({
+  "device_id": zod.string()
+})
+
+export const ReleaseHeldOrderResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const AssignHeldOrderTableParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const AssignHeldOrderTableBody = zod.object({
+  "table_id": zod.uuid().nullish().describe('The table to seat this held order on; `null` releases the current table.')
+})
+
+export const AssignHeldOrderTableResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
 })
 
 
@@ -2902,11 +3246,11 @@ export const UpdateInventorySettingsResponse = zod.object({
 
 
 export const CreateTransferBody = zod.object({
+  "source_branch_id": zod.uuid(),
   "destination_branch_id": zod.uuid(),
-  "note": zod.string().nullish(),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number(),
-  "source_branch_id": zod.uuid()
+  "note": zod.string().nullish()
 })
 
 export const CreateTransferResponse = zod.object({
@@ -6124,66 +6468,6 @@ export const OtpVerifyResponse = zod.object({
 })
 
 
-export const CreatePublicBookingBody = zod.object({
-  "branch_id": zod.uuid(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "device_token": zod.string().describe('Device-trust token from the delivery OTP flow, proving this phone is verified.'),
-  "kind": zod.string().nullish().describe('`reservation` or `walk_in`; defaults from whether `reserved_for` is set.'),
-  "lat": zod.number().nullish(),
-  "lng": zod.number().nullish(),
-  "party_size": zod.number().nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish()
-})
-
-export const CreatePublicBookingResponse = zod.object({
-  "eta_minutes": zod.number().nullish().describe('OSRM drive estimate from the guest\'s saved location, when available.'),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "party_size": zod.number(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string(),
-  "table_count": zod.number()
-}).describe('Slim, guest-safe view (no org\/internal columns).')
-
-
-export const ListReservationPublicBranchesQueryParams = zod.object({
-  "org_id": zod.uuid()
-})
-
-export const ListReservationPublicBranchesResponseItem = zod.object({
-  "code": zod.string(),
-  "id": zod.uuid(),
-  "in_mall_enabled": zod.boolean(),
-  "in_mall_open_now": zod.boolean().describe('Effective-open right now (enabled + open shift + override + window).'),
-  "in_mall_require_location": zod.boolean().describe('When false, in-mall ordering does not require a device GPS location.'),
-  "name": zod.string(),
-  "otp_required": zod.boolean().describe('When false, the public checkout skips OTP verification for this branch.'),
-  "outside_enabled": zod.boolean(),
-  "outside_open_now": zod.boolean(),
-  "pickup_enabled": zod.boolean(),
-  "pickup_open_now": zod.boolean(),
-  "umbrella_enabled": zod.boolean(),
-  "umbrella_open_now": zod.boolean()
-})
-export const ListReservationPublicBranchesResponse = zod.array(ListReservationPublicBranchesResponseItem)
-
-
-export const TrackPublicBookingParams = zod.object({
-  "id": zod.uuid().describe('Booking ID')
-})
-
-export const TrackPublicBookingResponse = zod.object({
-  "eta_minutes": zod.number().nullish().describe('OSRM drive estimate from the guest\'s saved location, when available.'),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "party_size": zod.number(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string(),
-  "table_count": zod.number()
-}).describe('Slim, guest-safe view (no org\/internal columns).')
-
-
 export const ListPurchaseOrdersParams = zod.object({
   "branch_id": zod.uuid().describe('Branch ID')
 })
@@ -7272,194 +7556,6 @@ export const ShiftSummaryResponse = zod.object({
   "total_tax": zod.number(),
   "total_tips": zod.number().optional().describe('Tips, standalone — matches `total_tips` on `GET \/shifts\/{id}\/report`.'),
   "voided_orders": zod.number()
-})
-
-
-export const ListBookingsQueryParams = zod.object({
-  "branch_id": zod.uuid(),
-  "status": zod.string().optional(),
-  "date": zod.iso.date().optional().describe('Filter reservations to this calendar date (YYYY-MM-DD). Omit for the live\nboard (everything not yet completed\/cancelled\/no_show).')
-})
-
-export const ListBookingsResponseItem = zod.object({
-  "arrived_at": zod.iso.datetime({"offset":true}).nullish(),
-  "branch_id": zod.uuid(),
-  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "customer_lat": zod.number().nullish(),
-  "customer_lng": zod.number().nullish(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
-  "notes": zod.string().nullish(),
-  "notified_at": zod.iso.datetime({"offset":true}).nullish(),
-  "org_id": zod.uuid(),
-  "otp_verified": zod.boolean(),
-  "party_size": zod.number(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "table_ids": zod.array(zod.uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-export const ListBookingsResponse = zod.array(ListBookingsResponseItem)
-
-
-export const CreateBookingBody = zod.object({
-  "branch_id": zod.uuid(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "kind": zod.string().nullish().describe('`reservation` or `walk_in`. Defaults from whether `reserved_for` is set.'),
-  "notes": zod.string().nullish(),
-  "party_size": zod.number().nullish(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish()
-})
-
-export const CreateBookingResponse = zod.object({
-  "arrived_at": zod.iso.datetime({"offset":true}).nullish(),
-  "branch_id": zod.uuid(),
-  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "customer_lat": zod.number().nullish(),
-  "customer_lng": zod.number().nullish(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
-  "notes": zod.string().nullish(),
-  "notified_at": zod.iso.datetime({"offset":true}).nullish(),
-  "org_id": zod.uuid(),
-  "otp_verified": zod.boolean(),
-  "party_size": zod.number(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "table_ids": zod.array(zod.uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const UpdateBookingParams = zod.object({
-  "id": zod.uuid().describe('Booking ID')
-})
-
-export const UpdateBookingBody = zod.object({
-  "customer_name": zod.string().nullish(),
-  "notes": zod.string().nullish(),
-  "party_size": zod.number().nullish(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string().nullish().describe('Drive the status machine: confirmed \/ notified \/ arrived \/ seated \/\ncompleted \/ no_show \/ cancelled. The matching timestamp is stamped and,\nfor terminals, assigned tables are freed.')
-})
-
-export const UpdateBookingResponse = zod.object({
-  "arrived_at": zod.iso.datetime({"offset":true}).nullish(),
-  "branch_id": zod.uuid(),
-  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "customer_lat": zod.number().nullish(),
-  "customer_lng": zod.number().nullish(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
-  "notes": zod.string().nullish(),
-  "notified_at": zod.iso.datetime({"offset":true}).nullish(),
-  "org_id": zod.uuid(),
-  "otp_verified": zod.boolean(),
-  "party_size": zod.number(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "table_ids": zod.array(zod.uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const AssignTablesParams = zod.object({
-  "id": zod.uuid().describe('Booking ID')
-})
-
-export const AssignTablesBody = zod.object({
-  "table_ids": zod.array(zod.uuid())
-})
-
-export const AssignTablesResponse = zod.object({
-  "arrived_at": zod.iso.datetime({"offset":true}).nullish(),
-  "branch_id": zod.uuid(),
-  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "customer_lat": zod.number().nullish(),
-  "customer_lng": zod.number().nullish(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
-  "notes": zod.string().nullish(),
-  "notified_at": zod.iso.datetime({"offset":true}).nullish(),
-  "org_id": zod.uuid(),
-  "otp_verified": zod.boolean(),
-  "party_size": zod.number(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "table_ids": zod.array(zod.uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const NotifyBookingParams = zod.object({
-  "id": zod.uuid().describe('Booking ID')
-})
-
-export const NotifyBookingResponse = zod.object({
-  "arrived_at": zod.iso.datetime({"offset":true}).nullish(),
-  "branch_id": zod.uuid(),
-  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "customer_lat": zod.number().nullish(),
-  "customer_lng": zod.number().nullish(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
-  "notes": zod.string().nullish(),
-  "notified_at": zod.iso.datetime({"offset":true}).nullish(),
-  "org_id": zod.uuid(),
-  "otp_verified": zod.boolean(),
-  "party_size": zod.number(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "table_ids": zod.array(zod.uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
-  "updated_at": zod.iso.datetime({"offset":true})
 })
 
 

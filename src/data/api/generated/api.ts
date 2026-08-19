@@ -34,10 +34,9 @@ import type {
   AnalyticsOrdersParams,
   AnalyticsResponse,
   AssignBranchRequest,
-  AssignTablesRequest,
+  AssignTableRequest,
   AuthPermissionsResponse,
   AvailableBundlesParams,
-  BookingView,
   Branch,
   BranchAddonOverride,
   BranchAddonOverrideInput,
@@ -79,13 +78,14 @@ import type {
   ChannelAddonOverrideInput,
   ChannelMenuOverride,
   ChannelOverrideInput,
+  ClaimHeldOrderRequest,
   CloseShiftRequest,
   CloseShiftResponse,
   CombinedItemSalesRow,
+  CompleteHeldOrderRequest,
   ConsumptionRow,
   CreateAddonItemRequest,
   CreateAddonSlotRequest,
-  CreateBookingRequest,
   CreateBranchRequest,
   CreateBundleRequest,
   CreateCatalogItemRequest,
@@ -95,7 +95,9 @@ import type {
   CreateDecisionRequest,
   CreateDiscountRequest,
   CreateFloorTableRequest,
+  CreateFloorTransferRequest,
   CreateGroupRequest,
+  CreateInventoryTransferRequest,
   CreateMarketingLinkRequest,
   CreateMenuItemRequest,
   CreateOpenTicketRequest,
@@ -112,7 +114,6 @@ import type {
   CreateSupplierRequest,
   CreateTableRequest,
   CreateTillRequest,
-  CreateTransferRequest,
   CreateUserRequest,
   CreateUserResponse,
   CreateWasteRequest,
@@ -137,6 +138,7 @@ import type {
   DeliverySalesReport,
   DeliveryTracking,
   DeliveryZone,
+  DiscardHeldOrderRequest,
   Discount,
   DrinkRecipe,
   ErrorBody,
@@ -148,6 +150,7 @@ import type {
   FloorSection,
   FloorTable,
   ForceCloseRequest,
+  FulfillTransferRequest,
   GetBranchSettingsParams,
   GetCurrentShiftParams,
   GetMarginTargetsParams,
@@ -159,6 +162,9 @@ import type {
   GuestOrderHistoryParams,
   GuestPastLocationsParams,
   GuestSavedLocation,
+  HeldOrderParkResponse,
+  HeldOrderView,
+  HeldOrdersSyncResponse,
   InventoryValuationReport,
   ItemOptionOut,
   ItemRouteInput,
@@ -168,7 +174,6 @@ import type {
   ListAddonCatalogParams,
   ListAddonCostsParams,
   ListAddonItemsParams,
-  ListBookingsParams,
   ListBranchAddonOverridesParams,
   ListBranchMenuOverridesParams,
   ListBranchesParams,
@@ -180,7 +185,9 @@ import type {
   ListDeliveryOrdersParams,
   ListDiscountsParams,
   ListFloorTablesParams,
+  ListFloorTransfersParams,
   ListGroupsParams,
+  ListHeldOrdersParams,
   ListMenuCatalogParams,
   ListMenuItemsParams,
   ListMovementsParams,
@@ -188,7 +195,6 @@ import type {
   ListOrdersParams,
   ListOrgPurchaseOrdersParams,
   ListPurchaseOrdersParams,
-  ListReservationPublicBranchesParams,
   ListRoutesParams,
   ListSectionsParams,
   ListShiftsParams,
@@ -239,6 +245,7 @@ import type {
   PaginatedMenuItems,
   PaginatedOrders,
   PaginatedShifts,
+  ParkHeldOrderRequest,
   PatchGroupRequest,
   PatchOptionRequest,
   PauseInput,
@@ -250,10 +257,8 @@ import type {
   PreviewRecipeRequest,
   PriceOverrideOut,
   PriceOverrideRequest,
-  PublicBooking,
   PublicBranch,
   PublicBranchesParams,
-  PublicCreateBookingRequest,
   PublicMenuParams,
   PublicOrg,
   PurchaseOrder,
@@ -270,6 +275,7 @@ import type {
   QuoteResponse,
   ReceivePurchaseOrderRequest,
   RecipeCostResult,
+  ReleaseHeldOrderRequest,
   ReorderSuggestion,
   RepricingReport,
   ReservationSettings,
@@ -296,19 +302,22 @@ import type {
   StreamParams,
   StudioAggregate,
   Supplier,
+  SwapTablesRequest,
   TableQrParams,
   TellerStats,
   Till,
   TimeseriesPoint,
+  TransferView,
+  TransfersSyncResponse,
   UpdateAddonItemRequest,
   UpdateAddonSlotRequest,
-  UpdateBookingRequest,
   UpdateBranchRequest,
   UpdateBundleRequest,
   UpdateCatalogItemRequest,
   UpdateCategoryRequest,
   UpdateDiscountRequest,
   UpdateFloorTableRequest,
+  UpdateHeldOrderRequest,
   UpdateInventorySettingsRequest,
   UpdateMenuItemRequest,
   UpdateOptionalFieldRequest,
@@ -319,6 +328,7 @@ import type {
   UpdateStationRequest,
   UpdateStockRequest,
   UpdateSupplierRequest,
+  UpdateTableStateRequest,
   UpdateTillRequest,
   UpdateTransferRequest,
   UpdateUserRequest,
@@ -5872,6 +5882,65 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreateFloorTableMutationOptions(options), queryClient);
     }
 
+export const swapTables = (
+    swapTablesRequest: SwapTablesRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/floor/tables/swap`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: swapTablesRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getSwapTablesMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof swapTables>>, TError,{data: SwapTablesRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof swapTables>>, TError,{data: SwapTablesRequest}, TContext> => {
+
+const mutationKey = ['swapTables'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof swapTables>>, {data: SwapTablesRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  swapTables(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SwapTablesMutationResult = NonNullable<Awaited<ReturnType<typeof swapTables>>>
+    export type SwapTablesMutationBody = SwapTablesRequest
+    export type SwapTablesMutationError = ErrorBody
+
+    export const useSwapTables = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof swapTables>>, TError,{data: SwapTablesRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof swapTables>>,
+        TError,
+        {data: SwapTablesRequest},
+        TContext
+      > => {
+      return useMutation(getSwapTablesMutationOptions(options), queryClient);
+    }
+
 export const deleteFloorTable = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -5989,6 +6058,66 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getUpdateFloorTableMutationOptions(options), queryClient);
     }
 
+export const updateTableState = (
+    id: string,
+    updateTableStateRequest: UpdateTableStateRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/floor/tables/${id}/state`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateTableStateRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getUpdateTableStateMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTableState>>, TError,{id: string;data: UpdateTableStateRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTableState>>, TError,{id: string;data: UpdateTableStateRequest}, TContext> => {
+
+const mutationKey = ['updateTableState'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTableState>>, {id: string;data: UpdateTableStateRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTableState(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTableStateMutationResult = NonNullable<Awaited<ReturnType<typeof updateTableState>>>
+    export type UpdateTableStateMutationBody = UpdateTableStateRequest
+    export type UpdateTableStateMutationError = ErrorBody
+
+    export const useUpdateTableState = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTableState>>, TError,{id: string;data: UpdateTableStateRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateTableState>>,
+        TError,
+        {id: string;data: UpdateTableStateRequest},
+        TContext
+      > => {
+      return useMutation(getUpdateTableStateMutationOptions(options), queryClient);
+    }
+
 export const setTableStatus = (
     id: string,
     setTableStatusRequest: SetTableStatusRequest,
@@ -6047,6 +6176,777 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSetTableStatusMutationOptions(options), queryClient);
+    }
+
+export const listFloorTransfers = (
+    params: ListFloorTransfersParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TransfersSyncResponse>(
+      {url: `/floor/transfers`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListFloorTransfersQueryKey = (params?: ListFloorTransfersParams,) => {
+    return [
+    `/floor/transfers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListFloorTransfersQueryOptions = <TData = Awaited<ReturnType<typeof listFloorTransfers>>, TError = ErrorBody>(params: ListFloorTransfersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFloorTransfers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFloorTransfersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFloorTransfers>>> = ({ signal }) => listFloorTransfers(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFloorTransfers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListFloorTransfersQueryResult = NonNullable<Awaited<ReturnType<typeof listFloorTransfers>>>
+export type ListFloorTransfersQueryError = ErrorBody
+
+
+export function useListFloorTransfers<TData = Awaited<ReturnType<typeof listFloorTransfers>>, TError = ErrorBody>(
+ params: ListFloorTransfersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFloorTransfers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFloorTransfers>>,
+          TError,
+          Awaited<ReturnType<typeof listFloorTransfers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFloorTransfers<TData = Awaited<ReturnType<typeof listFloorTransfers>>, TError = ErrorBody>(
+ params: ListFloorTransfersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFloorTransfers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFloorTransfers>>,
+          TError,
+          Awaited<ReturnType<typeof listFloorTransfers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFloorTransfers<TData = Awaited<ReturnType<typeof listFloorTransfers>>, TError = ErrorBody>(
+ params: ListFloorTransfersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFloorTransfers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListFloorTransfers<TData = Awaited<ReturnType<typeof listFloorTransfers>>, TError = ErrorBody>(
+ params: ListFloorTransfersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFloorTransfers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListFloorTransfersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const createFloorTransfer = (
+    createFloorTransferRequest: CreateFloorTransferRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TransferView>(
+      {url: `/floor/transfers`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createFloorTransferRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getCreateFloorTransferMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFloorTransfer>>, TError,{data: CreateFloorTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createFloorTransfer>>, TError,{data: CreateFloorTransferRequest}, TContext> => {
+
+const mutationKey = ['createFloorTransfer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createFloorTransfer>>, {data: CreateFloorTransferRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createFloorTransfer(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateFloorTransferMutationResult = NonNullable<Awaited<ReturnType<typeof createFloorTransfer>>>
+    export type CreateFloorTransferMutationBody = CreateFloorTransferRequest
+    export type CreateFloorTransferMutationError = ErrorBody
+
+    export const useCreateFloorTransfer = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFloorTransfer>>, TError,{data: CreateFloorTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createFloorTransfer>>,
+        TError,
+        {data: CreateFloorTransferRequest},
+        TContext
+      > => {
+      return useMutation(getCreateFloorTransferMutationOptions(options), queryClient);
+    }
+
+export const cancelTransfer = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TransferView>(
+      {url: `/floor/transfers/${id}/cancel`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getCancelTransferMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelTransfer>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelTransfer>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['cancelTransfer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelTransfer>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  cancelTransfer(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelTransferMutationResult = NonNullable<Awaited<ReturnType<typeof cancelTransfer>>>
+
+    export type CancelTransferMutationError = ErrorBody
+
+    export const useCancelTransfer = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelTransfer>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelTransfer>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getCancelTransferMutationOptions(options), queryClient);
+    }
+
+export const fulfillTransfer = (
+    id: string,
+    fulfillTransferRequest: FulfillTransferRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TransferView>(
+      {url: `/floor/transfers/${id}/fulfill`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: fulfillTransferRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getFulfillTransferMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fulfillTransfer>>, TError,{id: string;data: FulfillTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof fulfillTransfer>>, TError,{id: string;data: FulfillTransferRequest}, TContext> => {
+
+const mutationKey = ['fulfillTransfer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof fulfillTransfer>>, {id: string;data: FulfillTransferRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  fulfillTransfer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FulfillTransferMutationResult = NonNullable<Awaited<ReturnType<typeof fulfillTransfer>>>
+    export type FulfillTransferMutationBody = FulfillTransferRequest
+    export type FulfillTransferMutationError = ErrorBody
+
+    export const useFulfillTransfer = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fulfillTransfer>>, TError,{id: string;data: FulfillTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof fulfillTransfer>>,
+        TError,
+        {id: string;data: FulfillTransferRequest},
+        TContext
+      > => {
+      return useMutation(getFulfillTransferMutationOptions(options), queryClient);
+    }
+
+export const listHeldOrders = (
+    params: ListHeldOrdersParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<HeldOrdersSyncResponse>(
+      {url: `/held-orders`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListHeldOrdersQueryKey = (params?: ListHeldOrdersParams,) => {
+    return [
+    `/held-orders`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListHeldOrdersQueryOptions = <TData = Awaited<ReturnType<typeof listHeldOrders>>, TError = ErrorBody>(params: ListHeldOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHeldOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListHeldOrdersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listHeldOrders>>> = ({ signal }) => listHeldOrders(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listHeldOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListHeldOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof listHeldOrders>>>
+export type ListHeldOrdersQueryError = ErrorBody
+
+
+export function useListHeldOrders<TData = Awaited<ReturnType<typeof listHeldOrders>>, TError = ErrorBody>(
+ params: ListHeldOrdersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHeldOrders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listHeldOrders>>,
+          TError,
+          Awaited<ReturnType<typeof listHeldOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListHeldOrders<TData = Awaited<ReturnType<typeof listHeldOrders>>, TError = ErrorBody>(
+ params: ListHeldOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHeldOrders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listHeldOrders>>,
+          TError,
+          Awaited<ReturnType<typeof listHeldOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListHeldOrders<TData = Awaited<ReturnType<typeof listHeldOrders>>, TError = ErrorBody>(
+ params: ListHeldOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHeldOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListHeldOrders<TData = Awaited<ReturnType<typeof listHeldOrders>>, TError = ErrorBody>(
+ params: ListHeldOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listHeldOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListHeldOrdersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const parkHeldOrder = (
+    parkHeldOrderRequest: ParkHeldOrderRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<HeldOrderParkResponse>(
+      {url: `/held-orders`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: parkHeldOrderRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getParkHeldOrderMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof parkHeldOrder>>, TError,{data: ParkHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof parkHeldOrder>>, TError,{data: ParkHeldOrderRequest}, TContext> => {
+
+const mutationKey = ['parkHeldOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof parkHeldOrder>>, {data: ParkHeldOrderRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  parkHeldOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ParkHeldOrderMutationResult = NonNullable<Awaited<ReturnType<typeof parkHeldOrder>>>
+    export type ParkHeldOrderMutationBody = ParkHeldOrderRequest
+    export type ParkHeldOrderMutationError = ErrorBody
+
+    export const useParkHeldOrder = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof parkHeldOrder>>, TError,{data: ParkHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof parkHeldOrder>>,
+        TError,
+        {data: ParkHeldOrderRequest},
+        TContext
+      > => {
+      return useMutation(getParkHeldOrderMutationOptions(options), queryClient);
+    }
+
+export const updateHeldOrder = (
+    id: string,
+    updateHeldOrderRequest: UpdateHeldOrderRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<HeldOrderView>(
+      {url: `/held-orders/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateHeldOrderRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getUpdateHeldOrderMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateHeldOrder>>, TError,{id: string;data: UpdateHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateHeldOrder>>, TError,{id: string;data: UpdateHeldOrderRequest}, TContext> => {
+
+const mutationKey = ['updateHeldOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateHeldOrder>>, {id: string;data: UpdateHeldOrderRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateHeldOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateHeldOrderMutationResult = NonNullable<Awaited<ReturnType<typeof updateHeldOrder>>>
+    export type UpdateHeldOrderMutationBody = UpdateHeldOrderRequest
+    export type UpdateHeldOrderMutationError = ErrorBody
+
+    export const useUpdateHeldOrder = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateHeldOrder>>, TError,{id: string;data: UpdateHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateHeldOrder>>,
+        TError,
+        {id: string;data: UpdateHeldOrderRequest},
+        TContext
+      > => {
+      return useMutation(getUpdateHeldOrderMutationOptions(options), queryClient);
+    }
+
+export const claimHeldOrder = (
+    id: string,
+    claimHeldOrderRequest: ClaimHeldOrderRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<HeldOrderView>(
+      {url: `/held-orders/${id}/claim`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: claimHeldOrderRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getClaimHeldOrderMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimHeldOrder>>, TError,{id: string;data: ClaimHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof claimHeldOrder>>, TError,{id: string;data: ClaimHeldOrderRequest}, TContext> => {
+
+const mutationKey = ['claimHeldOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof claimHeldOrder>>, {id: string;data: ClaimHeldOrderRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  claimHeldOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClaimHeldOrderMutationResult = NonNullable<Awaited<ReturnType<typeof claimHeldOrder>>>
+    export type ClaimHeldOrderMutationBody = ClaimHeldOrderRequest
+    export type ClaimHeldOrderMutationError = ErrorBody
+
+    export const useClaimHeldOrder = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimHeldOrder>>, TError,{id: string;data: ClaimHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof claimHeldOrder>>,
+        TError,
+        {id: string;data: ClaimHeldOrderRequest},
+        TContext
+      > => {
+      return useMutation(getClaimHeldOrderMutationOptions(options), queryClient);
+    }
+
+export const completeHeldOrder = (
+    id: string,
+    completeHeldOrderRequest: CompleteHeldOrderRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<HeldOrderView>(
+      {url: `/held-orders/${id}/complete`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: completeHeldOrderRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getCompleteHeldOrderMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeHeldOrder>>, TError,{id: string;data: CompleteHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeHeldOrder>>, TError,{id: string;data: CompleteHeldOrderRequest}, TContext> => {
+
+const mutationKey = ['completeHeldOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeHeldOrder>>, {id: string;data: CompleteHeldOrderRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  completeHeldOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteHeldOrderMutationResult = NonNullable<Awaited<ReturnType<typeof completeHeldOrder>>>
+    export type CompleteHeldOrderMutationBody = CompleteHeldOrderRequest
+    export type CompleteHeldOrderMutationError = ErrorBody
+
+    export const useCompleteHeldOrder = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeHeldOrder>>, TError,{id: string;data: CompleteHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof completeHeldOrder>>,
+        TError,
+        {id: string;data: CompleteHeldOrderRequest},
+        TContext
+      > => {
+      return useMutation(getCompleteHeldOrderMutationOptions(options), queryClient);
+    }
+
+export const discardHeldOrder = (
+    id: string,
+    discardHeldOrderRequest: DiscardHeldOrderRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<HeldOrderView>(
+      {url: `/held-orders/${id}/discard`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: discardHeldOrderRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getDiscardHeldOrderMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof discardHeldOrder>>, TError,{id: string;data: DiscardHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof discardHeldOrder>>, TError,{id: string;data: DiscardHeldOrderRequest}, TContext> => {
+
+const mutationKey = ['discardHeldOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof discardHeldOrder>>, {id: string;data: DiscardHeldOrderRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  discardHeldOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DiscardHeldOrderMutationResult = NonNullable<Awaited<ReturnType<typeof discardHeldOrder>>>
+    export type DiscardHeldOrderMutationBody = DiscardHeldOrderRequest
+    export type DiscardHeldOrderMutationError = ErrorBody
+
+    export const useDiscardHeldOrder = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof discardHeldOrder>>, TError,{id: string;data: DiscardHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof discardHeldOrder>>,
+        TError,
+        {id: string;data: DiscardHeldOrderRequest},
+        TContext
+      > => {
+      return useMutation(getDiscardHeldOrderMutationOptions(options), queryClient);
+    }
+
+export const releaseHeldOrder = (
+    id: string,
+    releaseHeldOrderRequest: ReleaseHeldOrderRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<HeldOrderView>(
+      {url: `/held-orders/${id}/release`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: releaseHeldOrderRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getReleaseHeldOrderMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof releaseHeldOrder>>, TError,{id: string;data: ReleaseHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof releaseHeldOrder>>, TError,{id: string;data: ReleaseHeldOrderRequest}, TContext> => {
+
+const mutationKey = ['releaseHeldOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof releaseHeldOrder>>, {id: string;data: ReleaseHeldOrderRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  releaseHeldOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReleaseHeldOrderMutationResult = NonNullable<Awaited<ReturnType<typeof releaseHeldOrder>>>
+    export type ReleaseHeldOrderMutationBody = ReleaseHeldOrderRequest
+    export type ReleaseHeldOrderMutationError = ErrorBody
+
+    export const useReleaseHeldOrder = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof releaseHeldOrder>>, TError,{id: string;data: ReleaseHeldOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof releaseHeldOrder>>,
+        TError,
+        {id: string;data: ReleaseHeldOrderRequest},
+        TContext
+      > => {
+      return useMutation(getReleaseHeldOrderMutationOptions(options), queryClient);
+    }
+
+export const assignHeldOrderTable = (
+    id: string,
+    assignTableRequest: AssignTableRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<HeldOrderView>(
+      {url: `/held-orders/${id}/table`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: assignTableRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getAssignHeldOrderTableMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignHeldOrderTable>>, TError,{id: string;data: AssignTableRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof assignHeldOrderTable>>, TError,{id: string;data: AssignTableRequest}, TContext> => {
+
+const mutationKey = ['assignHeldOrderTable'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assignHeldOrderTable>>, {id: string;data: AssignTableRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  assignHeldOrderTable(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AssignHeldOrderTableMutationResult = NonNullable<Awaited<ReturnType<typeof assignHeldOrderTable>>>
+    export type AssignHeldOrderTableMutationBody = AssignTableRequest
+    export type AssignHeldOrderTableMutationError = ErrorBody
+
+    export const useAssignHeldOrderTable = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignHeldOrderTable>>, TError,{id: string;data: AssignTableRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof assignHeldOrderTable>>,
+        TError,
+        {id: string;data: AssignTableRequest},
+        TContext
+      > => {
+      return useMutation(getAssignHeldOrderTableMutationOptions(options), queryClient);
     }
 
 export const marginWatch = (
@@ -7989,7 +8889,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 export const createTransfer = (
-    createTransferRequest: CreateTransferRequest,
+    createInventoryTransferRequest: CreateInventoryTransferRequest,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
@@ -7997,7 +8897,7 @@ export const createTransfer = (
       return customInstance<BranchInventoryTransfer>(
       {url: `/inventory/transfers`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: createTransferRequest, signal
+      data: createInventoryTransferRequest, signal
     },
       options);
     }
@@ -8006,8 +8906,8 @@ export const createTransfer = (
 
 
 export const getCreateTransferMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateTransferRequest}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateInventoryTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateInventoryTransferRequest}, TContext> => {
 
 const mutationKey = ['createTransfer'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -8019,7 +8919,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTransfer>>, {data: CreateTransferRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTransfer>>, {data: CreateInventoryTransferRequest}> = (props) => {
           const {data} = props ?? {};
 
           return  createTransfer(data,requestOptions)
@@ -8033,15 +8933,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateTransferMutationResult = NonNullable<Awaited<ReturnType<typeof createTransfer>>>
-    export type CreateTransferMutationBody = CreateTransferRequest
+    export type CreateTransferMutationBody = CreateInventoryTransferRequest
     export type CreateTransferMutationError = ErrorBody
 
     export const useCreateTransfer = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateInventoryTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createTransfer>>,
         TError,
-        {data: CreateTransferRequest},
+        {data: CreateInventoryTransferRequest},
         TContext
       > => {
       return useMutation(getCreateTransferMutationOptions(options), queryClient);
@@ -14712,240 +15612,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getOtpVerifyMutationOptions(options), queryClient);
     }
 
-export const createPublicBooking = (
-    publicCreateBookingRequest: PublicCreateBookingRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PublicBooking>(
-      {url: `/public/reservations`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: publicCreateBookingRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getCreatePublicBookingMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPublicBooking>>, TError,{data: PublicCreateBookingRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createPublicBooking>>, TError,{data: PublicCreateBookingRequest}, TContext> => {
-
-const mutationKey = ['createPublicBooking'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPublicBooking>>, {data: PublicCreateBookingRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  createPublicBooking(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreatePublicBookingMutationResult = NonNullable<Awaited<ReturnType<typeof createPublicBooking>>>
-    export type CreatePublicBookingMutationBody = PublicCreateBookingRequest
-    export type CreatePublicBookingMutationError = ErrorBody
-
-    export const useCreatePublicBooking = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPublicBooking>>, TError,{data: PublicCreateBookingRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createPublicBooking>>,
-        TError,
-        {data: PublicCreateBookingRequest},
-        TContext
-      > => {
-      return useMutation(getCreatePublicBookingMutationOptions(options), queryClient);
-    }
-
-export const listReservationPublicBranches = (
-    params: ListReservationPublicBranchesParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PublicBranch[]>(
-      {url: `/public/reservations/branches`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getListReservationPublicBranchesQueryKey = (params?: ListReservationPublicBranchesParams,) => {
-    return [
-    `/public/reservations/branches`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListReservationPublicBranchesQueryOptions = <TData = Awaited<ReturnType<typeof listReservationPublicBranches>>, TError = ErrorBody>(params: ListReservationPublicBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReservationPublicBranches>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListReservationPublicBranchesQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReservationPublicBranches>>> = ({ signal }) => listReservationPublicBranches(params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReservationPublicBranches>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListReservationPublicBranchesQueryResult = NonNullable<Awaited<ReturnType<typeof listReservationPublicBranches>>>
-export type ListReservationPublicBranchesQueryError = ErrorBody
-
-
-export function useListReservationPublicBranches<TData = Awaited<ReturnType<typeof listReservationPublicBranches>>, TError = ErrorBody>(
- params: ListReservationPublicBranchesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReservationPublicBranches>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listReservationPublicBranches>>,
-          TError,
-          Awaited<ReturnType<typeof listReservationPublicBranches>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListReservationPublicBranches<TData = Awaited<ReturnType<typeof listReservationPublicBranches>>, TError = ErrorBody>(
- params: ListReservationPublicBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReservationPublicBranches>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listReservationPublicBranches>>,
-          TError,
-          Awaited<ReturnType<typeof listReservationPublicBranches>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListReservationPublicBranches<TData = Awaited<ReturnType<typeof listReservationPublicBranches>>, TError = ErrorBody>(
- params: ListReservationPublicBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReservationPublicBranches>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListReservationPublicBranches<TData = Awaited<ReturnType<typeof listReservationPublicBranches>>, TError = ErrorBody>(
- params: ListReservationPublicBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listReservationPublicBranches>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListReservationPublicBranchesQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const trackPublicBooking = (
-    id: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PublicBooking>(
-      {url: `/public/reservations/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-
-
-
-
-export const getTrackPublicBookingQueryKey = (id: string,) => {
-    return [
-    `/public/reservations/${id}`
-    ] as const;
-    }
-
-
-export const getTrackPublicBookingQueryOptions = <TData = Awaited<ReturnType<typeof trackPublicBooking>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof trackPublicBooking>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getTrackPublicBookingQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof trackPublicBooking>>> = ({ signal }) => trackPublicBooking(id, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof trackPublicBooking>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type TrackPublicBookingQueryResult = NonNullable<Awaited<ReturnType<typeof trackPublicBooking>>>
-export type TrackPublicBookingQueryError = ErrorBody
-
-
-export function useTrackPublicBooking<TData = Awaited<ReturnType<typeof trackPublicBooking>>, TError = ErrorBody>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof trackPublicBooking>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof trackPublicBooking>>,
-          TError,
-          Awaited<ReturnType<typeof trackPublicBooking>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTrackPublicBooking<TData = Awaited<ReturnType<typeof trackPublicBooking>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof trackPublicBooking>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof trackPublicBooking>>,
-          TError,
-          Awaited<ReturnType<typeof trackPublicBooking>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTrackPublicBooking<TData = Awaited<ReturnType<typeof trackPublicBooking>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof trackPublicBooking>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useTrackPublicBooking<TData = Awaited<ReturnType<typeof trackPublicBooking>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof trackPublicBooking>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getTrackPublicBookingQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
 export const listPurchaseOrders = (
     branchId: string,
     params?: ListPurchaseOrdersParams,
@@ -18782,330 +19448,6 @@ export function useShiftSummary<TData = Awaited<ReturnType<typeof shiftSummary>>
 
 
 
-
-export const listBookings = (
-    params: ListBookingsParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<BookingView[]>(
-      {url: `/reservations`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getListBookingsQueryKey = (params?: ListBookingsParams,) => {
-    return [
-    `/reservations`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListBookingsQueryOptions = <TData = Awaited<ReturnType<typeof listBookings>>, TError = ErrorBody>(params: ListBookingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBookings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListBookingsQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBookings>>> = ({ signal }) => listBookings(params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBookings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListBookingsQueryResult = NonNullable<Awaited<ReturnType<typeof listBookings>>>
-export type ListBookingsQueryError = ErrorBody
-
-
-export function useListBookings<TData = Awaited<ReturnType<typeof listBookings>>, TError = ErrorBody>(
- params: ListBookingsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBookings>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listBookings>>,
-          TError,
-          Awaited<ReturnType<typeof listBookings>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListBookings<TData = Awaited<ReturnType<typeof listBookings>>, TError = ErrorBody>(
- params: ListBookingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBookings>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listBookings>>,
-          TError,
-          Awaited<ReturnType<typeof listBookings>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListBookings<TData = Awaited<ReturnType<typeof listBookings>>, TError = ErrorBody>(
- params: ListBookingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBookings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListBookings<TData = Awaited<ReturnType<typeof listBookings>>, TError = ErrorBody>(
- params: ListBookingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBookings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListBookingsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const createBooking = (
-    createBookingRequest: CreateBookingRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<BookingView>(
-      {url: `/reservations`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createBookingRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getCreateBookingMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBooking>>, TError,{data: CreateBookingRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createBooking>>, TError,{data: CreateBookingRequest}, TContext> => {
-
-const mutationKey = ['createBooking'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBooking>>, {data: CreateBookingRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  createBooking(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateBookingMutationResult = NonNullable<Awaited<ReturnType<typeof createBooking>>>
-    export type CreateBookingMutationBody = CreateBookingRequest
-    export type CreateBookingMutationError = ErrorBody
-
-    export const useCreateBooking = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBooking>>, TError,{data: CreateBookingRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createBooking>>,
-        TError,
-        {data: CreateBookingRequest},
-        TContext
-      > => {
-      return useMutation(getCreateBookingMutationOptions(options), queryClient);
-    }
-
-export const updateBooking = (
-    id: string,
-    updateBookingRequest: UpdateBookingRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<BookingView>(
-      {url: `/reservations/${id}`, method: 'PATCH',
-      headers: {'Content-Type': 'application/json', },
-      data: updateBookingRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getUpdateBookingMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBooking>>, TError,{id: string;data: UpdateBookingRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateBooking>>, TError,{id: string;data: UpdateBookingRequest}, TContext> => {
-
-const mutationKey = ['updateBooking'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateBooking>>, {id: string;data: UpdateBookingRequest}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  updateBooking(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateBookingMutationResult = NonNullable<Awaited<ReturnType<typeof updateBooking>>>
-    export type UpdateBookingMutationBody = UpdateBookingRequest
-    export type UpdateBookingMutationError = ErrorBody
-
-    export const useUpdateBooking = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBooking>>, TError,{id: string;data: UpdateBookingRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateBooking>>,
-        TError,
-        {id: string;data: UpdateBookingRequest},
-        TContext
-      > => {
-      return useMutation(getUpdateBookingMutationOptions(options), queryClient);
-    }
-
-export const assignTables = (
-    id: string,
-    assignTablesRequest: AssignTablesRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<BookingView>(
-      {url: `/reservations/${id}/assign`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: assignTablesRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getAssignTablesMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignTables>>, TError,{id: string;data: AssignTablesRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof assignTables>>, TError,{id: string;data: AssignTablesRequest}, TContext> => {
-
-const mutationKey = ['assignTables'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assignTables>>, {id: string;data: AssignTablesRequest}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  assignTables(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssignTablesMutationResult = NonNullable<Awaited<ReturnType<typeof assignTables>>>
-    export type AssignTablesMutationBody = AssignTablesRequest
-    export type AssignTablesMutationError = ErrorBody
-
-    export const useAssignTables = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignTables>>, TError,{id: string;data: AssignTablesRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof assignTables>>,
-        TError,
-        {id: string;data: AssignTablesRequest},
-        TContext
-      > => {
-      return useMutation(getAssignTablesMutationOptions(options), queryClient);
-    }
-
-export const notifyBooking = (
-    id: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<BookingView>(
-      {url: `/reservations/${id}/notify`, method: 'POST', signal
-    },
-      options);
-    }
-
-
-
-
-export const getNotifyBookingMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notifyBooking>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof notifyBooking>>, TError,{id: string}, TContext> => {
-
-const mutationKey = ['notifyBooking'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof notifyBooking>>, {id: string}> = (props) => {
-          const {id} = props ?? {};
-
-          return  notifyBooking(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type NotifyBookingMutationResult = NonNullable<Awaited<ReturnType<typeof notifyBooking>>>
-
-    export type NotifyBookingMutationError = ErrorBody
-
-    export const useNotifyBooking = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notifyBooking>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof notifyBooking>>,
-        TError,
-        {id: string},
-        TContext
-      > => {
-      return useMutation(getNotifyBookingMutationOptions(options), queryClient);
-    }
 
 export const listShifts = (
     branchId: string,

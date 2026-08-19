@@ -1183,3 +1183,176 @@ export const mockCreateDecision = (b: Record<string, unknown>) => {
   mockDecisions.unshift(decision);
   return decision;
 };
+// ── Floor plan ──────────────────────────────────────────────────────────────
+// A mutable in-memory room, so the floor editor's direct manipulation (drag,
+// nudge, save, status walk) is exercisable in mock mode. Seeded with a real
+// arrangement rather than a grid, including a table left `dirty` by a
+// checkout — the state the POS's bussing flow hands over.
+
+interface MockFloorSection {
+  id: string;
+  org_id: string;
+  branch_id: string;
+  name: string;
+  ordering: number;
+  canvas_w: number;
+  canvas_h: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface MockFloorTable {
+  id: string;
+  org_id: string;
+  branch_id: string;
+  section_id: string | null;
+  label: string;
+  seats: number;
+  shape: string;
+  pos_x: number;
+  pos_y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  status: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+const FLOOR_STAMP = "2026-08-01T09:00:00Z";
+let floorSeq = 0;
+const nextFloorId = (prefix: string) => `${prefix}_${++floorSeq}`;
+
+const mockSections: MockFloorSection[] = [
+  { id: "sec_indoor", org_id: MOCK_ORG_ID, branch_id: "br_zamalek", name: "Indoor", ordering: 0, canvas_w: 1000, canvas_h: 700, created_at: FLOOR_STAMP, updated_at: FLOOR_STAMP },
+  { id: "sec_terrace", org_id: MOCK_ORG_ID, branch_id: "br_zamalek", name: "Terrace", ordering: 1, canvas_w: 1000, canvas_h: 700, created_at: FLOOR_STAMP, updated_at: FLOOR_STAMP },
+];
+
+const table = (
+  id: string,
+  section_id: string | null,
+  label: string,
+  seats: number,
+  shape: string,
+  pos_x: number,
+  pos_y: number,
+  width: number,
+  height: number,
+  status: string,
+  rotation = 0,
+): MockFloorTable => ({
+  id, org_id: MOCK_ORG_ID, branch_id: "br_zamalek", section_id, label, seats, shape,
+  pos_x, pos_y, width, height, rotation, status, is_active: true,
+  created_at: FLOOR_STAMP, updated_at: FLOOR_STAMP,
+});
+
+const mockTables: MockFloorTable[] = [
+  table("tbl_1", "sec_indoor", "T1", 2, "circle", 100, 90, 90, 90, "seated"),
+  table("tbl_2", "sec_indoor", "T2", 4, "rect", 280, 80, 140, 100, "free"),
+  table("tbl_3", "sec_indoor", "T3", 4, "rect", 500, 80, 140, 100, "dirty"),
+  table("tbl_4", "sec_indoor", "T4", 6, "rect", 730, 70, 160, 120, "held"),
+  table("tbl_5", "sec_indoor", "T5", 2, "circle", 120, 300, 90, 90, "free"),
+  table("tbl_6", "sec_indoor", "T6", 8, "rect", 300, 290, 260, 120, "seated", 15),
+  table("tbl_7", "sec_indoor", "T7", 2, "circle", 690, 310, 90, 90, "dirty"),
+  table("tbl_8", "sec_indoor", "Bar 1", 1, "rect", 120, 520, 60, 60, "free"),
+  table("tbl_9", "sec_indoor", "Bar 2", 1, "rect", 200, 520, 60, 60, "seated"),
+  table("tbl_10", "sec_terrace", "P1", 4, "rect", 120, 120, 140, 100, "free"),
+  table("tbl_11", "sec_terrace", "P2", 4, "rect", 340, 120, 140, 100, "seated"),
+  table("tbl_12", "sec_terrace", "P3", 2, "circle", 560, 130, 90, 90, "free"),
+  // A QR-era row that belongs to no section — the "Unassigned" tab.
+  table("tbl_13", null, "QR-1", 2, "rect", 0, 0, 80, 80, "free"),
+];
+
+const mockReservationSettings: Record<string, Record<string, unknown>> = {};
+
+export const floorSections = (branchId: string) =>
+  mockSections.filter((s) => s.branch_id === branchId || branchId === ALL_BRANCHES_MOCK);
+
+export const floorTables = (branchId: string) =>
+  mockTables.filter((t) => t.branch_id === branchId || branchId === ALL_BRANCHES_MOCK);
+
+/** Mock-only sentinel so an unscoped read still shows the seeded room. */
+const ALL_BRANCHES_MOCK = "__all__";
+
+export const addFloorSection = (branchId: string, name: string) => {
+  const row: MockFloorSection = {
+    id: nextFloorId("sec"), org_id: MOCK_ORG_ID, branch_id: branchId, name,
+    ordering: mockSections.length, canvas_w: 1000, canvas_h: 700,
+    created_at: FLOOR_STAMP, updated_at: FLOOR_STAMP,
+  };
+  mockSections.push(row);
+  return row;
+};
+
+export const patchFloorSection = (id: string, patch: Record<string, unknown>) => {
+  const row = mockSections.find((s) => s.id === id);
+  if (!row) return null;
+  Object.assign(row, patch);
+  return row;
+};
+
+export const deleteFloorSection = (id: string) => {
+  const i = mockSections.findIndex((s) => s.id === id);
+  if (i >= 0) mockSections.splice(i, 1);
+  // Mirrors the server's ON DELETE SET NULL: tables survive, unassigned.
+  for (const t of mockTables) if (t.section_id === id) t.section_id = null;
+};
+
+export const addFloorTable = (body: Record<string, unknown>) => {
+  const row = table(
+    nextFloorId("tbl"),
+    (body.section_id as string | null) ?? null,
+    (body.label as string) ?? "New",
+    (body.seats as number) ?? 2,
+    (body.shape as string) ?? "rect",
+    (body.pos_x as number) ?? 40,
+    (body.pos_y as number) ?? 40,
+    (body.width as number) ?? 80,
+    (body.height as number) ?? 80,
+    "free",
+  );
+  row.branch_id = (body.branch_id as string) ?? "br_zamalek";
+  mockTables.push(row);
+  return row;
+};
+
+export const patchFloorTable = (id: string, patch: Record<string, unknown>) => {
+  const row = mockTables.find((t) => t.id === id);
+  if (!row) return null;
+  for (const [k, v] of Object.entries(patch)) {
+    if (v !== null && v !== undefined) (row as unknown as Record<string, unknown>)[k] = v;
+  }
+  return row;
+};
+
+export const deleteFloorTable = (id: string) => {
+  const i = mockTables.findIndex((t) => t.id === id);
+  if (i >= 0) mockTables.splice(i, 1);
+};
+
+export const saveFloorLayout = (branchId: string, tables: Record<string, unknown>[]) => {
+  for (const patch of tables) patchFloorTable(patch.id as string, patch);
+  return floorTables(branchId);
+};
+
+export const reservationSettings = (branchId: string) => ({
+  branch_id: branchId,
+  accepting_reservations: false,
+  accepting_waitlist: false,
+  lead_minutes: 30,
+  hold_lead_minutes: 120,
+  grace_minutes: 15,
+  max_party_size: null,
+  slot_minutes: 15,
+  updated_at: FLOOR_STAMP,
+  ...(mockReservationSettings[branchId] ?? {}),
+});
+
+export const putReservationSettings = (branchId: string, patch: Record<string, unknown>) => {
+  const clean = Object.fromEntries(
+    Object.entries(patch).filter(([, v]) => v !== null && v !== undefined),
+  );
+  mockReservationSettings[branchId] = { ...(mockReservationSettings[branchId] ?? {}), ...clean };
+  return reservationSettings(branchId);
+};

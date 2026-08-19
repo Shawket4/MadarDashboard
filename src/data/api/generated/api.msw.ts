@@ -29,7 +29,6 @@ import type {
   AiChatResponse,
   AnalyticsResponse,
   AuthPermissionsResponse,
-  BookingView,
   Branch,
   BranchAddonOverride,
   BranchDeliverySettings,
@@ -72,6 +71,9 @@ import type {
   GroupOptionOut,
   GroupOut,
   GuestSavedLocation,
+  HeldOrderParkResponse,
+  HeldOrderView,
+  HeldOrdersSyncResponse,
   InventoryValuationReport,
   ItemOptionOut,
   ItemSize,
@@ -112,7 +114,6 @@ import type {
   PermissionMatrix,
   PreviewIngredient,
   PriceOverrideOut,
-  PublicBooking,
   PublicBranch,
   PublicOrg,
   PurchaseOrder,
@@ -141,6 +142,8 @@ import type {
   TellerStats,
   Till,
   TimeseriesPoint,
+  TransferView,
+  TransfersSyncResponse,
   UploadResponse,
   UserBranch,
   UserPublic,
@@ -284,6 +287,30 @@ export const getCreateFloorTableResponseMock = (overrideResponse: Partial<Extrac
 export const getUpdateFloorTableResponseMock = (overrideResponse: Partial<Extract<FloorTable, object>> = {}): FloorTable => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', height: faker.number.float({fractionDigits: 2}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), label: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), pos_x: faker.number.float({fractionDigits: 2}), pos_y: faker.number.float({fractionDigits: 2}), rotation: faker.number.float({fractionDigits: 2}), seats: faker.number.int(), section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), shape: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', width: faker.number.float({fractionDigits: 2}), ...overrideResponse})
 
 export const getSetTableStatusResponseMock = (overrideResponse: Partial<Extract<FloorTable, object>> = {}): FloorTable => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', height: faker.number.float({fractionDigits: 2}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), label: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), pos_x: faker.number.float({fractionDigits: 2}), pos_y: faker.number.float({fractionDigits: 2}), rotation: faker.number.float({fractionDigits: 2}), seats: faker.number.int(), section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), shape: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', width: faker.number.float({fractionDigits: 2}), ...overrideResponse})
+
+export const getListFloorTransfersResponseMock = (overrideResponse: Partial<Extract<TransfersSyncResponse, object>> = {}): TransfersSyncResponse => ({server_time: faker.date.past().toISOString().slice(0, 19) + 'Z', transfers: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', from_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), fulfilled_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), occupant_id: faker.string.uuid(), occupant_kind: faker.string.alpha({length: {min: 10, max: 20}}), occupant_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), requested_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), resolved_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), target_section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), target_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})), ...overrideResponse})
+
+export const getCreateFloorTransferResponseMock = (overrideResponse: Partial<Extract<TransferView, object>> = {}): TransferView => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', from_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), fulfilled_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), occupant_id: faker.string.uuid(), occupant_kind: faker.string.alpha({length: {min: 10, max: 20}}), occupant_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), requested_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), resolved_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), target_section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), target_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getCancelTransferResponseMock = (overrideResponse: Partial<Extract<TransferView, object>> = {}): TransferView => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', from_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), fulfilled_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), occupant_id: faker.string.uuid(), occupant_kind: faker.string.alpha({length: {min: 10, max: 20}}), occupant_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), requested_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), resolved_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), target_section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), target_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getFulfillTransferResponseMock = (overrideResponse: Partial<Extract<TransferView, object>> = {}): TransferView => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', from_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), fulfilled_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), occupant_id: faker.string.uuid(), occupant_kind: faker.string.alpha({length: {min: 10, max: 20}}), occupant_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), requested_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), resolved_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), target_section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), target_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getListHeldOrdersResponseMock = (overrideResponse: Partial<Extract<HeldOrdersSyncResponse, object>> = {}): HeldOrdersSyncResponse => ({held_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})), server_time: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getParkHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderParkResponse, object>> = {}): HeldOrderParkResponse => ({held_order: {branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, table_conflict: faker.datatype.boolean(), ...overrideResponse})
+
+export const getUpdateHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getClaimHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getCompleteHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getDiscardHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getReleaseHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getAssignHeldOrderTableResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
 export const getMarginWatchResponseMock = (overrideResponse: Partial<Extract<MarginWatch, object>> = {}): MarginWatch => ({bottom: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), class: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), flags: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), link: faker.string.alpha({length: {min: 10, max: 20}}), params: {}})), item_name: faker.string.alpha({length: {min: 10, max: 20}}), margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), margin_share_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), menu_item_id: faker.string.uuid(), on_menu: faker.datatype.boolean(), popularity_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), prev_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), prev_quantity: faker.number.int(), quantity_sold: faker.number.int(), revenue: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})), branch_id: faker.string.uuid(), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), open_signals: faker.number.int(), rows_cost_unknown: faker.number.int(), target_pct: faker.number.float({fractionDigits: 2}), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), top: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), class: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), flags: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), link: faker.string.alpha({length: {min: 10, max: 20}}), params: {}})), item_name: faker.string.alpha({length: {min: 10, max: 20}}), margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), margin_share_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), menu_item_id: faker.string.uuid(), on_menu: faker.datatype.boolean(), popularity_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), prev_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), prev_quantity: faker.number.int(), quantity_sold: faker.number.int(), revenue: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})), totals: {below_target_gap: faker.number.int(), cost_known: faker.number.int(), margin_known: faker.number.int(), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), prev_margin_known: faker.number.int(), prev_revenue: faker.number.int(), revenue: faker.number.int(), revenue_cost_unknown: faker.number.int()}, ...overrideResponse})
 
@@ -497,12 +524,6 @@ export const getOtpRequestResponseMock = (overrideResponse: Partial<Extract<OtpR
 
 export const getOtpVerifyResponseMock = (overrideResponse: Partial<Extract<OtpVerifyResponse, object>> = {}): OtpVerifyResponse => ({device_token: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
-export const getCreatePublicBookingResponseMock = (overrideResponse: Partial<Extract<PublicBooking, object>> = {}): PublicBooking => ({eta_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), party_size: faker.number.int(), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), table_count: faker.number.int(), ...overrideResponse})
-
-export const getListReservationPublicBranchesResponseMock = (): PublicBranch[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({code: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), in_mall_enabled: faker.datatype.boolean(), in_mall_open_now: faker.datatype.boolean(), in_mall_require_location: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), otp_required: faker.datatype.boolean(), outside_enabled: faker.datatype.boolean(), outside_open_now: faker.datatype.boolean(), pickup_enabled: faker.datatype.boolean(), pickup_open_now: faker.datatype.boolean(), umbrella_enabled: faker.datatype.boolean(), umbrella_open_now: faker.datatype.boolean()})))
-
-export const getTrackPublicBookingResponseMock = (overrideResponse: Partial<Extract<PublicBooking, object>> = {}): PublicBooking => ({eta_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), party_size: faker.number.int(), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), table_count: faker.number.int(), ...overrideResponse})
-
 export const getListPurchaseOrdersResponseMock = (): PurchaseOrder[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.string.uuid(), expected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), received_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), received_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), reference: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
 
 export const getCreatePurchaseOrderResponseMock = (): PurchaseOrderFull => ({...{branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.string.uuid(), expected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), received_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), received_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), reference: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'},...{lines: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), org_ingredient_id: faker.string.uuid(), purchase_order_id: faker.string.uuid(), purchase_unit: faker.string.alpha({length: {min: 10, max: 20}}), quantity_ordered: faker.number.float({fractionDigits: 2}), quantity_received: faker.number.float({fractionDigits: 2}), unit: faker.string.alpha({length: {min: 10, max: 20}}), unit_cost: faker.number.int(), units_per_purchase_unit: faker.number.float({fractionDigits: 2})}))},})
@@ -586,16 +607,6 @@ export const getOrgWasteReportResponseMock = (): WasteReportRow[] => (Array.from
 export const getShiftDeductionsResponseMock = (): DeductionLogRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), inventory_item_id: faker.string.uuid(), item_name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), order_item_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), quantity_deducted: faker.number.float({fractionDigits: 2}), source: faker.string.alpha({length: {min: 10, max: 20}}), unit: faker.string.alpha({length: {min: 10, max: 20}})})))
 
 export const getShiftSummaryResponseMock = (overrideResponse: Partial<Extract<ShiftSummary, object>> = {}): ShiftSummary => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), cash_discrepancy: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), cash_tips: faker.helpers.arrayElement([faker.number.int(), undefined]), closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), closing_cash_declared: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closing_cash_system: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', opening_cash: faker.number.int(), revenue_by_method: {}, shift_id: faker.string.uuid(), status: faker.string.alpha({length: {min: 10, max: 20}}), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), total_discount: faker.number.int(), total_orders: faker.number.int(), total_revenue: faker.number.int(), total_tax: faker.number.int(), total_tips: faker.helpers.arrayElement([faker.number.int(), undefined]), voided_orders: faker.number.int(), ...overrideResponse})
-
-export const getListBookingsResponseMock = (): BookingView[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({arrived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), branch_id: faker.string.uuid(), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notified_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), party_size: faker.number.int(), quoted_ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
-
-export const getCreateBookingResponseMock = (overrideResponse: Partial<Extract<BookingView, object>> = {}): BookingView => ({arrived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), branch_id: faker.string.uuid(), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notified_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), party_size: faker.number.int(), quoted_ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
-
-export const getUpdateBookingResponseMock = (overrideResponse: Partial<Extract<BookingView, object>> = {}): BookingView => ({arrived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), branch_id: faker.string.uuid(), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notified_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), party_size: faker.number.int(), quoted_ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
-
-export const getAssignTablesResponseMock = (overrideResponse: Partial<Extract<BookingView, object>> = {}): BookingView => ({arrived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), branch_id: faker.string.uuid(), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notified_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), party_size: faker.number.int(), quoted_ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
-
-export const getNotifyBookingResponseMock = (overrideResponse: Partial<Extract<BookingView, object>> = {}): BookingView => ({arrived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), branch_id: faker.string.uuid(), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notified_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), party_size: faker.number.int(), quoted_ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
 export const getListShiftsResponseMock = (overrideResponse: Partial<Extract<PaginatedShifts, object>> = {}): PaginatedShifts => ({data: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cash_discrepancy: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), closed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), closing_cash_declared: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closing_cash_system: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), force_close_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), force_closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), force_closed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', opening_cash: faker.number.int(), opening_cash_edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), opening_cash_original: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), opening_cash_was_edited: faker.datatype.boolean(), status: faker.string.alpha({length: {min: 10, max: 20}}), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), till_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), till_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), page: faker.number.int(), per_page: faker.number.int(), total: faker.number.int(), total_pages: faker.number.int(), ...overrideResponse})
 
@@ -1558,6 +1569,16 @@ export const getCreateFloorTableMockHandler = (overrideResponse?: FloorTable | (
   }, options)
 }
 
+export const getSwapTablesMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.post('*/floor/tables/swap', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 200
+      })
+  }, options)
+}
+
 export const getDeleteFloorTableMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
   return http.delete('*/floor/tables/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
   if (typeof overrideResponse === 'function') {await overrideResponse(info); }
@@ -1580,6 +1601,16 @@ export const getUpdateFloorTableMockHandler = (overrideResponse?: FloorTable | (
   }, options)
 }
 
+export const getUpdateTableStateMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.patch('*/floor/tables/:id/state', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 200
+      })
+  }, options)
+}
+
 export const getSetTableStatusMockHandler = (overrideResponse?: FloorTable | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<FloorTable> | FloorTable), options?: RequestHandlerOptions) => {
   return http.patch('*/floor/tables/:id/status', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
 
@@ -1587,6 +1618,150 @@ export const getSetTableStatusMockHandler = (overrideResponse?: FloorTable | ((i
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getSetTableStatusResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListFloorTransfersMockHandler = (overrideResponse?: TransfersSyncResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TransfersSyncResponse> | TransfersSyncResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/floor/transfers', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListFloorTransfersResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateFloorTransferMockHandler = (overrideResponse?: TransferView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<TransferView> | TransferView), options?: RequestHandlerOptions) => {
+  return http.post('*/floor/transfers', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateFloorTransferResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCancelTransferMockHandler = (overrideResponse?: TransferView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<TransferView> | TransferView), options?: RequestHandlerOptions) => {
+  return http.post('*/floor/transfers/:id/cancel', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCancelTransferResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getFulfillTransferMockHandler = (overrideResponse?: TransferView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<TransferView> | TransferView), options?: RequestHandlerOptions) => {
+  return http.post('*/floor/transfers/:id/fulfill', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getFulfillTransferResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListHeldOrdersMockHandler = (overrideResponse?: HeldOrdersSyncResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<HeldOrdersSyncResponse> | HeldOrdersSyncResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/held-orders', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListHeldOrdersResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getParkHeldOrderMockHandler = (overrideResponse?: HeldOrderParkResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderParkResponse> | HeldOrderParkResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getParkHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getUpdateHeldOrderMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.patch('*/held-orders/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getUpdateHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getClaimHeldOrderMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders/:id/claim', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getClaimHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCompleteHeldOrderMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders/:id/complete', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCompleteHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDiscardHeldOrderMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders/:id/discard', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getDiscardHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getReleaseHeldOrderMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders/:id/release', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getReleaseHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getAssignHeldOrderTableMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders/:id/table', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAssignHeldOrderTableResponseMock(),
       { status: 200
       })
   }, options)
@@ -3026,42 +3201,6 @@ export const getOtpVerifyMockHandler = (overrideResponse?: OtpVerifyResponse | (
   }, options)
 }
 
-export const getCreatePublicBookingMockHandler = (overrideResponse?: PublicBooking | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PublicBooking> | PublicBooking), options?: RequestHandlerOptions) => {
-  return http.post('*/public/reservations', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getCreatePublicBookingResponseMock(),
-      { status: 201
-      })
-  }, options)
-}
-
-export const getListReservationPublicBranchesMockHandler = (overrideResponse?: PublicBranch[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PublicBranch[]> | PublicBranch[]), options?: RequestHandlerOptions) => {
-  return http.get('*/public/reservations/branches', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getListReservationPublicBranchesResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getTrackPublicBookingMockHandler = (overrideResponse?: PublicBooking | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PublicBooking> | PublicBooking), options?: RequestHandlerOptions) => {
-  return http.get('*/public/reservations/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getTrackPublicBookingResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
 export const getListPurchaseOrdersMockHandler = (overrideResponse?: PurchaseOrder[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PurchaseOrder[]> | PurchaseOrder[]), options?: RequestHandlerOptions) => {
   return http.get('*/purchasing/branches/:branchId/orders', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -3606,66 +3745,6 @@ export const getShiftSummaryMockHandler = (overrideResponse?: ShiftSummary | ((i
   }, options)
 }
 
-export const getListBookingsMockHandler = (overrideResponse?: BookingView[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<BookingView[]> | BookingView[]), options?: RequestHandlerOptions) => {
-  return http.get('*/reservations', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getListBookingsResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getCreateBookingMockHandler = (overrideResponse?: BookingView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<BookingView> | BookingView), options?: RequestHandlerOptions) => {
-  return http.post('*/reservations', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getCreateBookingResponseMock(),
-      { status: 201
-      })
-  }, options)
-}
-
-export const getUpdateBookingMockHandler = (overrideResponse?: BookingView | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<BookingView> | BookingView), options?: RequestHandlerOptions) => {
-  return http.patch('*/reservations/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getUpdateBookingResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getAssignTablesMockHandler = (overrideResponse?: BookingView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<BookingView> | BookingView), options?: RequestHandlerOptions) => {
-  return http.post('*/reservations/:id/assign', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getAssignTablesResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getNotifyBookingMockHandler = (overrideResponse?: BookingView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<BookingView> | BookingView), options?: RequestHandlerOptions) => {
-  return http.post('*/reservations/:id/notify', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getNotifyBookingResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
 export const getListShiftsMockHandler = (overrideResponse?: PaginatedShifts | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedShifts> | PaginatedShifts), options?: RequestHandlerOptions) => {
   return http.get('*/shifts/branches/:branchId', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -4153,9 +4232,23 @@ export const getMadarAPIMock = () => [
   getUpdateSectionMockHandler(),
   getListFloorTablesMockHandler(),
   getCreateFloorTableMockHandler(),
+  getSwapTablesMockHandler(),
   getDeleteFloorTableMockHandler(),
   getUpdateFloorTableMockHandler(),
+  getUpdateTableStateMockHandler(),
   getSetTableStatusMockHandler(),
+  getListFloorTransfersMockHandler(),
+  getCreateFloorTransferMockHandler(),
+  getCancelTransferMockHandler(),
+  getFulfillTransferMockHandler(),
+  getListHeldOrdersMockHandler(),
+  getParkHeldOrderMockHandler(),
+  getUpdateHeldOrderMockHandler(),
+  getClaimHeldOrderMockHandler(),
+  getCompleteHeldOrderMockHandler(),
+  getDiscardHeldOrderMockHandler(),
+  getReleaseHeldOrderMockHandler(),
+  getAssignHeldOrderTableMockHandler(),
   getMarginWatchMockHandler(),
   getMenuMarginLedgerMockHandler(),
   getRepricingMockHandler(),
@@ -4279,9 +4372,6 @@ export const getMadarAPIMock = () => [
   getListPublicOrgsMockHandler(),
   getOtpRequestMockHandler(),
   getOtpVerifyMockHandler(),
-  getCreatePublicBookingMockHandler(),
-  getListReservationPublicBranchesMockHandler(),
-  getTrackPublicBookingMockHandler(),
   getListPurchaseOrdersMockHandler(),
   getCreatePurchaseOrderMockHandler(),
   getReorderSuggestionsMockHandler(),
@@ -4328,11 +4418,6 @@ export const getMadarAPIMock = () => [
   getOrgWasteReportMockHandler(),
   getShiftDeductionsMockHandler(),
   getShiftSummaryMockHandler(),
-  getListBookingsMockHandler(),
-  getCreateBookingMockHandler(),
-  getUpdateBookingMockHandler(),
-  getAssignTablesMockHandler(),
-  getNotifyBookingMockHandler(),
   getListShiftsMockHandler(),
   getGetCurrentShiftMockHandler(),
   getOpenShiftMockHandler(),
