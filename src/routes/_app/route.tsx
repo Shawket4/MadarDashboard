@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppFooter } from "@/components/layout/app-footer";
 import { DemoBanner } from "@/components/app/demo-banner";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { requireAuth } from "@/lib/auth-guard";
@@ -94,6 +95,7 @@ function AppLayout() {
         <DemoBanner />
         <AppHeader />
         <Outlet />
+        <AppFooter />
       </SidebarInset>
     </SidebarProvider>
   );

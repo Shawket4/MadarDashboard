@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { LegalLinks } from "@/components/legal-links";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useTheme } from "@/lib/theme";
@@ -967,9 +968,12 @@ function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 px-4 sm:flex-row sm:px-6 lg:px-8">
         <Wordmark className="h-6 opacity-80" />
         <SocialLinks />
-        <p className="text-sm text-muted-foreground">
-          {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
-        </p>
+        <div className="flex flex-col items-center gap-1 sm:items-end">
+          <p className="text-sm text-muted-foreground">
+            {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
+          </p>
+          <LegalLinks />
+        </div>
       </div>
     </footer>
   );
