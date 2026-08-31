@@ -1816,7 +1816,10 @@
     "conflict": "This action conflicts with the current state.",
     "validation": "Please check the highlighted fields.",
     "server": "Server error — please try again later.",
-    "unknown": "An unexpected error occurred."
+    "unknown": "An unexpected error occurred.",
+    "boundaryTitle": "Something went wrong",
+    "boundaryDescription": "This screen hit an unexpected error. It has been reported — try again, and if it keeps happening reload the page.",
+    "boundaryRetry": "Try again"
   },
   "theme": {
     "light": "Light",

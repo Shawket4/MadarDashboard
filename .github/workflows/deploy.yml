@@ -23,6 +23,19 @@ jobs:
           # Dashboard talks to the dedicated API origin (cross-origin; CORS allows it).
           # The main madar-pos.cloud vhost no longer proxies /api.
           VITE_API_URL: https://api.madar-pos.cloud
+          # Self-hosted Sentry. The DSN is a public value (safe in the clear);
+          # session replay is recorded with all text/inputs masked and media
+          # blocked — see src/lib/sentry.ts.
+          VITE_SENTRY_DSN: https://f4aeabcb758c4cd1d1d12d5f5ee2a46c@sentry.madar-pos.cloud/2
+          VITE_SENTRY_ENVIRONMENT: production
+          # Source-map upload. Only runs when all three are present; add
+          # SENTRY_AUTH_TOKEN (org token with project:releases + project:write)
+          # as a repository secret, otherwise the build simply skips the upload
+          # and ships no source maps.
+          SENTRY_URL: https://sentry.madar-pos.cloud
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Build ordering app (separate, isolated bundle)
         run: npm run build:order

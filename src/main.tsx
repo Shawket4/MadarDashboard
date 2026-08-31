@@ -4,6 +4,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { MotionConfig } from "motion/react";
+import * as Sentry from "@sentry/react";
 
 // Self-hosted fonts (work offline in Tauri).
 import "@fontsource-variable/inter";
@@ -25,6 +26,8 @@ import "@/data/stores/app.store";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ConfirmProvider } from "@/components/app/confirm-dialog";
+import { AppErrorBoundary } from "@/components/app/app-error-boundary";
+import { initSentry } from "@/lib/sentry";
 import { queryClient } from "@/data/api/query";
 import { routeTree } from "./routeTree.gen";
 
@@ -38,19 +41,28 @@ const router = createRouter({
   defaultViewTransition: true,
 });
 
+// Error/performance monitoring + masked session replay. No-op without a DSN.
+initSentry(router);
+
 function render() {
-  createRoot(document.getElementById("root")!).render(
+  createRoot(document.getElementById("root")!, {
+    // React 19 root-level error hooks — forward what React catches to Sentry.
+    onUncaughtError: Sentry.reactErrorHandler(),
+    onCaughtError: Sentry.reactErrorHandler(),
+  }).render(
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <MotionConfig reducedMotion="user">
-          <TooltipProvider delayDuration={200}>
-            <ConfirmProvider>
-              <RouterProvider router={router} />
-            </ConfirmProvider>
-          </TooltipProvider>
-          {import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} /> : null}
-        </MotionConfig>
-      </QueryClientProvider>
+      <AppErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <MotionConfig reducedMotion="user">
+            <TooltipProvider delayDuration={200}>
+              <ConfirmProvider>
+                <RouterProvider router={router} />
+              </ConfirmProvider>
+            </TooltipProvider>
+            {import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} /> : null}
+          </MotionConfig>
+        </QueryClientProvider>
+      </AppErrorBoundary>
     </StrictMode>,
   );
 }

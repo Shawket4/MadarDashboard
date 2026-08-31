@@ -5,8 +5,28 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import path from "node:path";
 import compression from "vite-plugin-compression";
 import { constants as zlibConstants } from "node:zlib";
+import { readFileSync } from "node:fs";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
+
+const pkgVersion = (
+  JSON.parse(readFileSync(path.resolve(__dirname, "package.json"), "utf8")) as { version: string }
+).version;
+
+// Sentry release: shared by the runtime SDK (via the `__SENTRY_RELEASE__`
+// define below) and by the source-map upload, so stack traces resolve.
+const sentryRelease = process.env.VITE_SENTRY_RELEASE || `madar-dashboard@${pkgVersion}`;
+
+// Source maps are only built + uploaded when CI supplies Sentry credentials.
+// Locally (and for anyone building without them) the build stays map-free and
+// fast, exactly as before. See .env.example for the variable list.
+const sentryUpload = Boolean(
+  process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT,
+);
 
 export default defineConfig({
+  define: {
+    __SENTRY_RELEASE__: JSON.stringify(sentryRelease),
+  },
   plugins: [
     // Must precede the React plugin so generated routes are transformed.
     tanstackRouter({ target: "react", autoCodeSplitting: true }),
@@ -31,6 +51,23 @@ export default defineConfig({
       deleteOriginFile: false,
       compressionOptions: { level: 9 },
     }),
+    // Must stay last: it consumes the emitted bundle + maps.
+    ...(sentryUpload
+      ? [
+          sentryVitePlugin({
+            url: process.env.SENTRY_URL || "https://sentry.madar-pos.cloud",
+            org: process.env.SENTRY_ORG,
+            project: process.env.SENTRY_PROJECT,
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+            release: { name: sentryRelease },
+            sourcemaps: {
+              // Upload the maps, then delete them so they never ship to users.
+              filesToDeleteAfterUpload: ["./dist/**/*.map"],
+            },
+            telemetry: false,
+          }),
+        ]
+      : []),
   ],
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
@@ -53,13 +90,20 @@ export default defineConfig({
     ],
   },
   build: {
-    // No prod sourcemaps: smaller dist + faster build (dev server keeps inline maps).
-    sourcemap: false,
+    // No prod sourcemaps by default: smaller dist + faster build (the dev server
+    // keeps inline maps). When Sentry credentials are present we emit "hidden"
+    // maps — no `sourceMappingURL` comment in the JS — purely so the plugin can
+    // upload them and then delete them from dist.
+    sourcemap: sentryUpload ? "hidden" : false,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
+
+          // Sentry — checked before React because "@sentry/react/" also
+          // matches the "/react/" test further down.
+          if (id.includes("@sentry/")) return "sentry-vendor";
 
           // Charts
           if (id.includes("recharts") || id.includes("/d3-")) return "chart-vendor";
