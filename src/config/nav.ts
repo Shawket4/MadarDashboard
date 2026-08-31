@@ -25,7 +25,7 @@ import {
   Settings2,
   SlidersHorizontal,
   ShoppingCart,
-  MessagesSquare,
+  // MessagesSquare, // unused while AI analytics is disabled (see below)
   Store,
   Trash2,
   TrendingUp,
@@ -104,7 +104,11 @@ export const NAV: NavGroup[] = [
     labelKey: "nav.insights",
     fallback: "Insights",
     entries: [
-      { to: "/insights/ai-chat", labelKey: "nav.aiChat", fallback: "Ask", icon: MessagesSquare },
+      // AI analytics disabled 2026-08-31 pending rework. The backend returns 503
+      // ("AI analytics is not configured") once GEMINI_API_KEY/GROQ_API_KEY are
+      // unset, so this entry is hidden rather than leading users to an error.
+      // Re-enable by restoring this line and the keys in the backend .env.
+      // { to: "/insights/ai-chat", labelKey: "nav.aiChat", fallback: "Ask", icon: MessagesSquare },
       { to: "/insights/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
       { to: "/insights/profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
     ],

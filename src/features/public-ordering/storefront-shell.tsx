@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Languages, Moon, Sun } from "lucide-react";
 
 import { useOrderTheme } from "./use-order-theme";
+import { LegalLinks } from "@/components/legal-links";
 
 /** A circular, bordered header icon button — matches the ordering flow's chrome. */
 export function HeaderIcon({
@@ -71,6 +72,7 @@ export function StorefrontShell({ children }: { children: ReactNode }) {
               defaultValue: "© {{year}} {{name}}. All rights reserved.",
             })}
           </p>
+          <LegalLinks className="mt-1" />
         </footer>
       </main>
     </div>

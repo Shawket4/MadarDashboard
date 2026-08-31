@@ -24,6 +24,7 @@ import { useLogin } from "@/data/api/generated/api";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { getErrorMessage } from "@/data/api/errors";
 import { fadeInUp, riseIn, staggerContainer } from "@/lib/motion";
+import { LegalLinks } from "@/components/legal-links";
 
 type LoginValues = { email: string; password: string };
 
@@ -197,6 +198,7 @@ export function LoginPage() {
           <p className="mt-8 text-center text-xs text-muted-foreground">
             {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
           </p>
+          <LegalLinks className="mt-2" />
         </motion.div>
       </main>
     </div>

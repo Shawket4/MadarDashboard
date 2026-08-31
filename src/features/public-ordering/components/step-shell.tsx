@@ -7,6 +7,7 @@ import i18n from "@/i18n";
 
 import type { Step } from "../types";
 import { useOrderTheme } from "../use-order-theme";
+import { LegalLinks } from "@/components/legal-links";
 
 const PROGRESS_STEPS: Step[] = ["branch", "channel", "phone", "location", "menu", "checkout"];
 
@@ -210,6 +211,7 @@ export function StepShell({
                 defaultValue: "© {{year}} {{name}}. All rights reserved.",
               })}
             </p>
+            <LegalLinks className="mt-1" />
           </footer>
         )}
       </main>

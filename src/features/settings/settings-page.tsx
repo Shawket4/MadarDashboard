@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, Languages, MessageCircle, Monitor, Moon, Sun } from "lucide-react";
+import { ChevronRight, ExternalLink, Languages, MessageCircle, Monitor, Moon, Sun } from "lucide-react";
 
 import { Page } from "@/components/app/page";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { initials } from "@/lib/format";
 import { useTheme, type Theme } from "@/lib/theme";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useAppStore } from "@/data/stores/app.store";
+import { LEGAL_URLS } from "@/config/legal";
 
 const THEMES: { value: Theme; icon: typeof Sun; key: string; fallback: string }[] = [
   { value: "light", icon: Sun, key: "theme.light", fallback: "Light" },
@@ -82,6 +83,34 @@ export function SettingsPage() {
             </CardContent>
           </Card>
         ) : null}
+
+        {/* Legal documents live on their own static origin so they stay reachable
+            when this app or the API is not — they are cited in the app store
+            listings. Opened in a new tab to preserve any work in progress here. */}
+        <Card>
+          <CardContent className="p-0">
+            {[
+              { href: LEGAL_URLS.privacy, key: "legal.privacy", fallback: "Privacy Policy" },
+              { href: LEGAL_URLS.terms, key: "legal.terms", fallback: "Terms of Service" },
+              { href: LEGAL_URLS.retention, key: "legal.retention", fallback: "Data retention" },
+              { href: LEGAL_URLS.deleteAccount, key: "legal.deleteAccount", fallback: "Delete your account" },
+            ].map((item, i) => (
+              <a
+                key={item.key}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "flex items-center justify-between p-5 transition-colors hover:bg-muted/50",
+                  i > 0 && "border-t border-border/60",
+                )}
+              >
+                <p className="text-sm font-bold">{t(item.key, item.fallback)}</p>
+                <ExternalLink className="size-4 text-muted-foreground" />
+              </a>
+            ))}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardContent className="flex items-center gap-3 p-5">
