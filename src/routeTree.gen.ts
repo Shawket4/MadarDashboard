@@ -23,6 +23,7 @@ import { Route as AppOrgsRouteImport } from './routes/_app/orgs'
 import { Route as AppOrdersRouteImport } from './routes/_app/orders'
 import { Route as AppDiscountsRouteImport } from './routes/_app/discounts'
 import { Route as AppBranchesRouteImport } from './routes/_app/branches'
+import { Route as AppBasiraRouteImport } from './routes/_app/basira'
 import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
 import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/route'
 import { Route as AppMenuRouteRouteImport } from './routes/_app/menu/route'
@@ -61,7 +62,6 @@ import { Route as AppInventoryCountsRouteImport } from './routes/_app/inventory/
 import { Route as AppInsightsSalesRouteImport } from './routes/_app/insights/sales'
 import { Route as AppInsightsProfitabilityRouteImport } from './routes/_app/insights/profitability'
 import { Route as AppInsightsInventoryReportsRouteImport } from './routes/_app/insights/inventory-reports'
-import { Route as AppInsightsAiChatRouteImport } from './routes/_app/insights/ai-chat'
 import { Route as AppDeliveryZonesRouteImport } from './routes/_app/delivery/zones'
 import { Route as AppDeliverySettingsRouteImport } from './routes/_app/delivery/settings'
 import { Route as AppDeliveryChannelsRouteImport } from './routes/_app/delivery/channels'
@@ -136,6 +136,11 @@ const AppDiscountsRoute = AppDiscountsRouteImport.update({
 const AppBranchesRoute = AppBranchesRouteImport.update({
   id: '/branches',
   path: '/branches',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppBasiraRoute = AppBasiraRouteImport.update({
+  id: '/basira',
+  path: '/basira',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
@@ -331,11 +336,6 @@ const AppInsightsInventoryReportsRoute =
     path: '/insights/inventory-reports',
     getParentRoute: () => AppRouteRoute,
   } as any)
-const AppInsightsAiChatRoute = AppInsightsAiChatRouteImport.update({
-  id: '/insights/ai-chat',
-  path: '/insights/ai-chat',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppDeliveryZonesRoute = AppDeliveryZonesRouteImport.update({
   id: '/zones',
   path: '/zones',
@@ -377,6 +377,7 @@ export interface FileRoutesByFullPath {
   '/menu': typeof AppMenuRouteRouteWithChildren
   '/settings': typeof AppSettingsRouteRouteWithChildren
   '/analytics': typeof AppAnalyticsRoute
+  '/basira': typeof AppBasiraRoute
   '/branches': typeof AppBranchesRoute
   '/discounts': typeof AppDiscountsRoute
   '/orders': typeof AppOrdersRoute
@@ -392,7 +393,6 @@ export interface FileRoutesByFullPath {
   '/delivery/channels': typeof AppDeliveryChannelsRoute
   '/delivery/settings': typeof AppDeliverySettingsRoute
   '/delivery/zones': typeof AppDeliveryZonesRoute
-  '/insights/ai-chat': typeof AppInsightsAiChatRoute
   '/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
   '/insights/profitability': typeof AppInsightsProfitabilityRoute
   '/insights/sales': typeof AppInsightsSalesRoute
@@ -431,6 +431,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/analytics': typeof AppAnalyticsRoute
+  '/basira': typeof AppBasiraRoute
   '/branches': typeof AppBranchesRoute
   '/discounts': typeof AppDiscountsRoute
   '/orders': typeof AppOrdersRoute
@@ -447,7 +448,6 @@ export interface FileRoutesByTo {
   '/delivery/channels': typeof AppDeliveryChannelsRoute
   '/delivery/settings': typeof AppDeliverySettingsRoute
   '/delivery/zones': typeof AppDeliveryZonesRoute
-  '/insights/ai-chat': typeof AppInsightsAiChatRoute
   '/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
   '/insights/profitability': typeof AppInsightsProfitabilityRoute
   '/insights/sales': typeof AppInsightsSalesRoute
@@ -493,6 +493,7 @@ export interface FileRoutesById {
   '/_app/menu': typeof AppMenuRouteRouteWithChildren
   '/_app/settings': typeof AppSettingsRouteRouteWithChildren
   '/_app/analytics': typeof AppAnalyticsRoute
+  '/_app/basira': typeof AppBasiraRoute
   '/_app/branches': typeof AppBranchesRoute
   '/_app/discounts': typeof AppDiscountsRoute
   '/_app/orders': typeof AppOrdersRoute
@@ -509,7 +510,6 @@ export interface FileRoutesById {
   '/_app/delivery/channels': typeof AppDeliveryChannelsRoute
   '/_app/delivery/settings': typeof AppDeliverySettingsRoute
   '/_app/delivery/zones': typeof AppDeliveryZonesRoute
-  '/_app/insights/ai-chat': typeof AppInsightsAiChatRoute
   '/_app/insights/inventory-reports': typeof AppInsightsInventoryReportsRoute
   '/_app/insights/profitability': typeof AppInsightsProfitabilityRoute
   '/_app/insights/sales': typeof AppInsightsSalesRoute
@@ -556,6 +556,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/settings'
     | '/analytics'
+    | '/basira'
     | '/branches'
     | '/discounts'
     | '/orders'
@@ -571,7 +572,6 @@ export interface FileRouteTypes {
     | '/delivery/channels'
     | '/delivery/settings'
     | '/delivery/zones'
-    | '/insights/ai-chat'
     | '/insights/inventory-reports'
     | '/insights/profitability'
     | '/insights/sales'
@@ -610,6 +610,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/analytics'
+    | '/basira'
     | '/branches'
     | '/discounts'
     | '/orders'
@@ -626,7 +627,6 @@ export interface FileRouteTypes {
     | '/delivery/channels'
     | '/delivery/settings'
     | '/delivery/zones'
-    | '/insights/ai-chat'
     | '/insights/inventory-reports'
     | '/insights/profitability'
     | '/insights/sales'
@@ -671,6 +671,7 @@ export interface FileRouteTypes {
     | '/_app/menu'
     | '/_app/settings'
     | '/_app/analytics'
+    | '/_app/basira'
     | '/_app/branches'
     | '/_app/discounts'
     | '/_app/orders'
@@ -687,7 +688,6 @@ export interface FileRouteTypes {
     | '/_app/delivery/channels'
     | '/_app/delivery/settings'
     | '/_app/delivery/zones'
-    | '/_app/insights/ai-chat'
     | '/_app/insights/inventory-reports'
     | '/_app/insights/profitability'
     | '/_app/insights/sales'
@@ -827,6 +827,13 @@ declare module '@tanstack/react-router' {
       path: '/branches'
       fullPath: '/branches'
       preLoaderRoute: typeof AppBranchesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/basira': {
+      id: '/_app/basira'
+      path: '/basira'
+      fullPath: '/basira'
+      preLoaderRoute: typeof AppBasiraRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/analytics': {
@@ -1095,13 +1102,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInsightsInventoryReportsRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/insights/ai-chat': {
-      id: '/_app/insights/ai-chat'
-      path: '/insights/ai-chat'
-      fullPath: '/insights/ai-chat'
-      preLoaderRoute: typeof AppInsightsAiChatRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/delivery/zones': {
       id: '/_app/delivery/zones'
       path: '/zones'
@@ -1257,6 +1257,7 @@ interface AppRouteRouteChildren {
   AppMenuRouteRoute: typeof AppMenuRouteRouteWithChildren
   AppSettingsRouteRoute: typeof AppSettingsRouteRouteWithChildren
   AppAnalyticsRoute: typeof AppAnalyticsRoute
+  AppBasiraRoute: typeof AppBasiraRoute
   AppBranchesRoute: typeof AppBranchesRoute
   AppDiscountsRoute: typeof AppDiscountsRoute
   AppOrdersRoute: typeof AppOrdersRoute
@@ -1268,7 +1269,6 @@ interface AppRouteRouteChildren {
   AppTillsRoute: typeof AppTillsRoute
   AppUsersRoute: typeof AppUsersRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppInsightsAiChatRoute: typeof AppInsightsAiChatRoute
   AppInsightsInventoryReportsRoute: typeof AppInsightsInventoryReportsRoute
   AppInsightsProfitabilityRoute: typeof AppInsightsProfitabilityRoute
   AppInsightsSalesRoute: typeof AppInsightsSalesRoute
@@ -1288,6 +1288,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppMenuRouteRoute: AppMenuRouteRouteWithChildren,
   AppSettingsRouteRoute: AppSettingsRouteRouteWithChildren,
   AppAnalyticsRoute: AppAnalyticsRoute,
+  AppBasiraRoute: AppBasiraRoute,
   AppBranchesRoute: AppBranchesRoute,
   AppDiscountsRoute: AppDiscountsRoute,
   AppOrdersRoute: AppOrdersRoute,
@@ -1299,7 +1300,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppTillsRoute: AppTillsRoute,
   AppUsersRoute: AppUsersRoute,
   AppIndexRoute: AppIndexRoute,
-  AppInsightsAiChatRoute: AppInsightsAiChatRoute,
   AppInsightsInventoryReportsRoute: AppInsightsInventoryReportsRoute,
   AppInsightsProfitabilityRoute: AppInsightsProfitabilityRoute,
   AppInsightsSalesRoute: AppInsightsSalesRoute,

@@ -162,7 +162,9 @@
     "leave": "Leave",
     "payroll": "Payroll",
     "requests": "Requests",
-    "attendanceRules": "Rules"
+    "attendanceRules": "Rules",
+    "basira": "Basira",
+    "basiraAsk": "Ask"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -3721,5 +3723,36 @@
     "worked": "Worked",
     "workedDays": "{{n}} days worked",
     "workingDays": "Working days per month"
+  },
+  "basira": {
+    "title": "Basira",
+    "subtitle": "Ask about your business in plain language. Every answer shows the figures behind it.",
+    "newChat": "New conversation",
+    "noChats": "Your conversations will appear here.",
+    "placeholder": "Ask about sales, staff, stock…",
+    "send": "Send",
+    "disclaimer": "Reads your own business figures. Staff names are replaced with codes before anything leaves.",
+    "welcomeTitle": "What would you like to know?",
+    "welcomeBody": "Ask in English or Arabic. Answers come with the chart and the query behind them.",
+    "starters": {
+      "topProducts": "What sold best last month?",
+      "branchCompare": "Compare my branches this month",
+      "peakHours": "When are we busiest?",
+      "waste": "What am I wasting the most money on?"
+    },
+    "thinking": "Working on it…",
+    "rethinking": "Refining the query…",
+    "running": "Looking up {{what}}…",
+    "failed": "That question could not be answered",
+    "provenance": "What was queried",
+    "rows": "rows",
+    "allTime": "all time",
+    "noActivity": "No activity in this period",
+    "truncated": "Showing the first {{count}} rows.",
+    "unmatchedBranch": "No branch matched “{{name}}” — showing all branches",
+    "historyNote": "Charts are not stored — ask again for current figures.",
+    "renamePrompt": "Rename conversation",
+    "deleteTitle": "Delete this conversation?",
+    "deleteBody": "The questions and answers are removed. Your data is not affected."
   }
 }

@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Sparkle,
   ArrowLeftRight,
   Wallet,
   BadgePercent,
@@ -106,6 +107,13 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    labelKey: "nav.basira",
+    fallback: "Basira",
+    entries: [
+      { to: "/basira", labelKey: "nav.basiraAsk", fallback: "Ask", icon: Sparkle },
+    ],
+  },
+  {
     labelKey: "nav.insights",
     fallback: "Insights",
     entries: [
@@ -113,7 +121,6 @@ export const NAV: NavGroup[] = [
       // ("AI analytics is not configured") once GEMINI_API_KEY/GROQ_API_KEY are
       // unset, so this entry is hidden rather than leading users to an error.
       // Re-enable by restoring this line and the keys in the backend .env.
-      // { to: "/insights/ai-chat", labelKey: "nav.aiChat", fallback: "Ask", icon: MessagesSquare },
       { to: "/insights/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
       { to: "/insights/profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
     ],
