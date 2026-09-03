@@ -1,0 +1,1175 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/permissions/permissions-page.tsx",
+   "type": "file",
+   "name": "permissions-page.tsx",
+   "filePath": "src/features/permissions/permissions-page.tsx",
+   "summary": "Read-only roles and permissions matrix page showing which roles hold which permissions, grouped and ordered relative to the current user's role.",
+   "tags": [
+    "component",
+    "page",
+    "permissions",
+    "access-control"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/permissions/permissions-page.tsx:PermissionsPage",
+   "type": "function",
+   "name": "PermissionsPage",
+   "filePath": "src/features/permissions/permissions-page.tsx",
+   "lineRange": [
+    40,
+    167
+   ],
+   "summary": "Roles and permissions matrix page component.",
+   "tags": [
+    "component",
+    "page",
+    "permissions"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/reservations/floor-editor.tsx",
+   "type": "file",
+   "name": "floor-editor.tsx",
+   "filePath": "src/features/reservations/floor-editor.tsx",
+   "summary": "Interactive floor-plan editor for reservation tables and sections, supporting add/edit/delete of tables via TableDialog with confirmation.",
+   "tags": [
+    "component",
+    "reservations",
+    "editor",
+    "floor-plan"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/reservations/floor-editor.tsx:FloorEditor",
+   "type": "function",
+   "name": "FloorEditor",
+   "filePath": "src/features/reservations/floor-editor.tsx",
+   "lineRange": [
+    31,
+    338
+   ],
+   "summary": "Floor-plan table and section editor component.",
+   "tags": [
+    "component",
+    "reservations",
+    "editor"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/reservations/host-board.tsx",
+   "type": "file",
+   "name": "host-board.tsx",
+   "filePath": "src/features/reservations/host-board.tsx",
+   "summary": "Host board for the reservations desk listing today's bookings by status with seat/cancel actions and a seat-assignment dialog.",
+   "tags": [
+    "component",
+    "reservations",
+    "board",
+    "booking"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/reservations/host-board.tsx:HostBoard",
+   "type": "function",
+   "name": "HostBoard",
+   "filePath": "src/features/reservations/host-board.tsx",
+   "lineRange": [
+    44,
+    158
+   ],
+   "summary": "Booking host board component for a branch.",
+   "tags": [
+    "component",
+    "reservations",
+    "board"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/reservations/host-board.tsx:SeatDialog",
+   "type": "function",
+   "name": "SeatDialog",
+   "filePath": "src/features/reservations/host-board.tsx",
+   "lineRange": [
+    161,
+    225
+   ],
+   "summary": "Dialog assigning a booking to a floor table.",
+   "tags": [
+    "component",
+    "reservations",
+    "board"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/reservations/reservations-page.tsx",
+   "type": "file",
+   "name": "reservations-page.tsx",
+   "filePath": "src/features/reservations/reservations-page.tsx",
+   "summary": "Reservations page shell composing the host board, floor editor and settings form into tabs for the selected branch.",
+   "tags": [
+    "component",
+    "page",
+    "reservations",
+    "tabs"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/reservations/reservations-page.tsx:ReservationsPage",
+   "type": "function",
+   "name": "ReservationsPage",
+   "filePath": "src/features/reservations/reservations-page.tsx",
+   "lineRange": [
+    12,
+    48
+   ],
+   "summary": "Tabbed reservations page shell.",
+   "tags": [
+    "component",
+    "page",
+    "reservations"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/shifts/shifts-page.tsx",
+   "type": "file",
+   "name": "shifts-page.tsx",
+   "filePath": "src/features/shifts/shifts-page.tsx",
+   "summary": "Shifts page showing the current open shift with cash movement/close actions and a history table with report sheet, force-close, delete and export.",
+   "tags": [
+    "component",
+    "page",
+    "shifts",
+    "data-table"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/shifts/shifts-page.tsx:ShiftsPage",
+   "type": "function",
+   "name": "ShiftsPage",
+   "filePath": "src/features/shifts/shifts-page.tsx",
+   "lineRange": [
+    57,
+    329
+   ],
+   "summary": "Shifts management page component.",
+   "tags": [
+    "component",
+    "page",
+    "shifts"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/staff/attendance-page.tsx",
+   "type": "file",
+   "name": "attendance-page.tsx",
+   "filePath": "src/features/staff/attendance-page.tsx",
+   "summary": "Staff attendance page with summary stat cards, a filterable attendance records table, and dialogs for manual record entry and record correction.",
+   "tags": [
+    "component",
+    "page",
+    "staff",
+    "attendance"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/staff/attendance-page.tsx:AttendancePage",
+   "type": "function",
+   "name": "AttendancePage",
+   "filePath": "src/features/staff/attendance-page.tsx",
+   "lineRange": [
+    35,
+    241
+   ],
+   "summary": "Attendance records page component.",
+   "tags": [
+    "component",
+    "page",
+    "staff"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/staff/attendance-page.tsx:ManualRecordDialog",
+   "type": "function",
+   "name": "ManualRecordDialog",
+   "filePath": "src/features/staff/attendance-page.tsx",
+   "lineRange": [
+    244,
+    381
+   ],
+   "summary": "Dialog for manually recording an attendance entry.",
+   "tags": [
+    "component",
+    "page",
+    "staff"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/staff/attendance-page.tsx:CorrectRecordDialog",
+   "type": "function",
+   "name": "CorrectRecordDialog",
+   "filePath": "src/features/staff/attendance-page.tsx",
+   "lineRange": [
+    385,
+    505
+   ],
+   "summary": "Dialog for correcting an existing attendance record.",
+   "tags": [
+    "component",
+    "page",
+    "staff"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/tills/tills-page.tsx",
+   "type": "file",
+   "name": "tills-page.tsx",
+   "filePath": "src/features/tills/tills-page.tsx",
+   "summary": "CRUD page for branch tills (cash registers) with data table, till dialog and delete confirmation.",
+   "tags": [
+    "component",
+    "page",
+    "tills",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/tills/tills-page.tsx:TillsPage",
+   "type": "function",
+   "name": "TillsPage",
+   "filePath": "src/features/tills/tills-page.tsx",
+   "lineRange": [
+    20,
+    127
+   ],
+   "summary": "Tills CRUD page component.",
+   "tags": [
+    "component",
+    "page",
+    "tills"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/users/users-page.tsx",
+   "type": "file",
+   "name": "users-page.tsx",
+   "filePath": "src/features/users/users-page.tsx",
+   "summary": "User management page listing org users with role badges, stats, export, branch assignment and create/edit/delete dialogs.",
+   "tags": [
+    "component",
+    "page",
+    "users",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/users/users-page.tsx:UsersPage",
+   "type": "function",
+   "name": "UsersPage",
+   "filePath": "src/features/users/users-page.tsx",
+   "lineRange": [
+    38,
+    145
+   ],
+   "summary": "Users management page component.",
+   "tags": [
+    "component",
+    "page",
+    "users"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/hooks/use-org-id.ts",
+   "type": "file",
+   "name": "use-org-id.ts",
+   "filePath": "src/hooks/use-org-id.ts",
+   "summary": "Hook resolving the effective org id from the app store selection or the authenticated user.",
+   "tags": [
+    "hook",
+    "utility",
+    "org-scope"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/hooks/use-org-id.ts:useOrgId",
+   "type": "function",
+   "name": "useOrgId",
+   "filePath": "src/hooks/use-org-id.ts",
+   "lineRange": [
+    5,
+    10
+   ],
+   "summary": "Resolves the effective organization id.",
+   "tags": [
+    "hook",
+    "utility",
+    "org-scope"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "function:src/features/permissions/permissions-page.tsx:PermissionsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "function:src/features/permissions/permissions-page.tsx:PermissionsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/components/ui/scroll-area.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/data/scope/use-page-search.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/permissions/permissions-page.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/floor-editor.tsx",
+   "target": "function:src/features/reservations/floor-editor.tsx:FloorEditor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/reservations/floor-editor.tsx",
+   "target": "function:src/features/reservations/floor-editor.tsx:FloorEditor",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/reservations/floor-editor.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/floor-editor.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/floor-editor.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/floor-editor.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/floor-editor.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/floor-editor.tsx",
+   "target": "file:src/features/reservations/table-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/floor-editor.tsx",
+   "target": "file:src/features/reservations/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "function:src/features/reservations/host-board.tsx:HostBoard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "function:src/features/reservations/host-board.tsx:HostBoard",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "function:src/features/reservations/host-board.tsx:SeatDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "file:src/components/ui/dropdown-menu.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "file:src/features/reservations/booking-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/host-board.tsx",
+   "target": "file:src/features/reservations/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/reservations-page.tsx",
+   "target": "function:src/features/reservations/reservations-page.tsx:ReservationsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/reservations/reservations-page.tsx",
+   "target": "function:src/features/reservations/reservations-page.tsx:ReservationsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/reservations/reservations-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/reservations-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/reservations-page.tsx",
+   "target": "file:src/components/ui/tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/reservations-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/reservations-page.tsx",
+   "target": "file:src/features/reservations/floor-editor.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/reservations-page.tsx",
+   "target": "file:src/features/reservations/host-board.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/reservations-page.tsx",
+   "target": "file:src/features/reservations/settings-form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "function:src/features/shifts/shifts-page.tsx:ShiftsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "function:src/features/shifts/shifts-page.tsx:ShiftsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/components/app/data-table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/components/app/export-button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/components/ui/dropdown-menu.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/features/shifts/close-shift-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/features/shifts/open-shift-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/features/shifts/shift-report-sheet.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shifts-page.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "function:src/features/staff/attendance-page.tsx:AttendancePage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "function:src/features/staff/attendance-page.tsx:AttendancePage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "function:src/features/staff/attendance-page.tsx:ManualRecordDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "function:src/features/staff/attendance-page.tsx:CorrectRecordDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/components/app/data-table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/components/app/stat-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/features/staff/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "function:src/features/tills/tills-page.tsx:TillsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "function:src/features/tills/tills-page.tsx:TillsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "file:src/components/app/data-table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "file:src/features/tills/till-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/tills-page.tsx",
+   "target": "file:src/features/tills/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "function:src/features/users/users-page.tsx:UsersPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "function:src/features/users/users-page.tsx:UsersPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/components/app/data-table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/components/app/export-button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/components/app/stat-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/components/ui/avatar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/data/scope/use-page-search.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/features/users/branch-assign-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/features/users/user-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/features/users/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/users-page.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/hooks/use-org-id.ts",
+   "target": "function:src/hooks/use-org-id.ts:useOrgId",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/hooks/use-org-id.ts",
+   "target": "function:src/hooks/use-org-id.ts:useOrgId",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/hooks/use-org-id.ts",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/hooks/use-org-id.ts",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}

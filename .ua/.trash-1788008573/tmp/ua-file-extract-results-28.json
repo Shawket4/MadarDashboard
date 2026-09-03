@@ -1,0 +1,1185 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 12,
+  "filesSkipped": [
+    "src/styles/globals.css"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 12,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 9,
+      "failed": 0,
+      "skipped": 3
+    }
+  },
+  "results": [
+    {
+      "path": "src-tauri/src/lib.rs",
+      "language": "rust",
+      "fileCategory": "code",
+      "totalLines": 24,
+      "nonEmptyLines": 21,
+      "functions": [
+        {
+          "name": "ping",
+          "startLine": 8,
+          "endLine": 10,
+          "params": []
+        },
+        {
+          "name": "get_app_version",
+          "startLine": 13,
+          "endLine": 15,
+          "params": []
+        },
+        {
+          "name": "run",
+          "startLine": 18,
+          "endLine": 24,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "run",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_app_version",
+          "callee": "env!(\"CARGO_PKG_VERSION\").to_string",
+          "lineNumber": 14
+        },
+        {
+          "caller": "run",
+          "callee": "tauri::Builder::default()\n        .plugin(tauri_plugin_http::init())\n        .invoke_handler(tauri::generate_handler![ping, get_app_version])\n        .run(tauri::generate_context!()).expect",
+          "lineNumber": 19
+        },
+        {
+          "caller": "run",
+          "callee": "tauri::Builder::default()\n        .plugin(tauri_plugin_http::init())\n        .invoke_handler(tauri::generate_handler![ping, get_app_version]).run",
+          "lineNumber": 19
+        },
+        {
+          "caller": "run",
+          "callee": "tauri::Builder::default()\n        .plugin(tauri_plugin_http::init()).invoke_handler",
+          "lineNumber": 19
+        },
+        {
+          "caller": "run",
+          "callee": "tauri::Builder::default().plugin",
+          "lineNumber": 19
+        },
+        {
+          "caller": "run",
+          "callee": "tauri::Builder::default",
+          "lineNumber": 19
+        },
+        {
+          "caller": "run",
+          "callee": "tauri_plugin_http::init",
+          "lineNumber": 20
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src-tauri/src/main.rs",
+      "language": "rust",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "functions": [
+        {
+          "name": "main",
+          "startLine": 4,
+          "endLine": 6,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "main",
+          "callee": "madar_dashboard_lib::run",
+          "lineNumber": 5
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src-tauri/tauri.conf.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 39,
+      "nonEmptyLines": 39,
+      "sections": [
+        {
+          "heading": "$schema",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "productName",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "version",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "identifier",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "build",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "app",
+          "level": 1,
+          "line": 12
+        },
+        {
+          "heading": "bundle",
+          "level": 1,
+          "line": 28
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "src/features/qr/lib.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 2,
+      "nonEmptyLines": 2,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/fontsource.d.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 4,
+      "nonEmptyLines": 4,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/i18n/locales/ar.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 3820,
+      "nonEmptyLines": 3820,
+      "sections": [
+        {
+          "heading": "app",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "common",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "nav",
+          "level": 1,
+          "line": 95
+        },
+        {
+          "heading": "auth",
+          "level": 1,
+          "line": 167
+        },
+        {
+          "heading": "roles",
+          "level": 1,
+          "line": 193
+        },
+        {
+          "heading": "payments",
+          "level": 1,
+          "line": 201
+        },
+        {
+          "heading": "units",
+          "level": 1,
+          "line": 210
+        },
+        {
+          "heading": "shiftStatus",
+          "level": 1,
+          "line": 217
+        },
+        {
+          "heading": "orderStatus",
+          "level": 1,
+          "line": 222
+        },
+        {
+          "heading": "dashboard",
+          "level": 1,
+          "line": 96
+        },
+        {
+          "heading": "orgs",
+          "level": 1,
+          "line": 97
+        },
+        {
+          "heading": "branches",
+          "level": 1,
+          "line": 99
+        },
+        {
+          "heading": "users",
+          "level": 1,
+          "line": 98
+        },
+        {
+          "heading": "permissions",
+          "level": 1,
+          "line": 115
+        },
+        {
+          "heading": "menu",
+          "level": 1,
+          "line": 104
+        },
+        {
+          "heading": "recipes",
+          "level": 1,
+          "line": 106
+        },
+        {
+          "heading": "inventory",
+          "level": 1,
+          "line": 105
+        },
+        {
+          "heading": "reservations",
+          "level": 1,
+          "line": 110
+        },
+        {
+          "heading": "shifts",
+          "level": 1,
+          "line": 107
+        },
+        {
+          "heading": "orders",
+          "level": 1,
+          "line": 109
+        },
+        {
+          "heading": "ordersExport",
+          "level": 1,
+          "line": 1513
+        },
+        {
+          "heading": "analytics",
+          "level": 1,
+          "line": 108
+        },
+        {
+          "heading": "discounts",
+          "level": 1,
+          "line": 111
+        },
+        {
+          "heading": "bundles",
+          "level": 1,
+          "line": 112
+        },
+        {
+          "heading": "menuAdvisor",
+          "level": 1,
+          "line": 114
+        },
+        {
+          "heading": "timePicker",
+          "level": 1,
+          "line": 1790
+        },
+        {
+          "heading": "datePicker",
+          "level": 1,
+          "line": 1798
+        },
+        {
+          "heading": "excel",
+          "level": 1,
+          "line": 1813
+        },
+        {
+          "heading": "errors",
+          "level": 1,
+          "line": 186
+        },
+        {
+          "heading": "theme",
+          "level": 1,
+          "line": 1833
+        },
+        {
+          "heading": "uploader",
+          "level": 1,
+          "line": 1839
+        },
+        {
+          "heading": "settings",
+          "level": 1,
+          "line": 116
+        },
+        {
+          "heading": "meta",
+          "level": 1,
+          "line": 1892
+        },
+        {
+          "heading": "cover",
+          "level": 1,
+          "line": 1897
+        },
+        {
+          "heading": "pillars",
+          "level": 1,
+          "line": 1902
+        },
+        {
+          "heading": "problem",
+          "level": 1,
+          "line": 1932
+        },
+        {
+          "heading": "tellerHero",
+          "level": 1,
+          "line": 1958
+        },
+        {
+          "heading": "tellerDetail",
+          "level": 1,
+          "line": 1963
+        },
+        {
+          "heading": "featureMixedCheckout",
+          "level": 1,
+          "line": 1982
+        },
+        {
+          "heading": "featureCashMovement",
+          "level": 1,
+          "line": 2001
+        },
+        {
+          "heading": "featureOffline",
+          "level": 1,
+          "line": 2020
+        },
+        {
+          "heading": "featureRecipe",
+          "level": 1,
+          "line": 2039
+        },
+        {
+          "heading": "managementHero",
+          "level": 1,
+          "line": 2054
+        },
+        {
+          "heading": "managementDetail",
+          "level": 1,
+          "line": 2059
+        },
+        {
+          "heading": "operations",
+          "level": 1,
+          "line": 119
+        },
+        {
+          "heading": "featureExport",
+          "level": 1,
+          "line": 2097
+        },
+        {
+          "heading": "smartPricing",
+          "level": 1,
+          "line": 2116
+        },
+        {
+          "heading": "builtToFlex",
+          "level": 1,
+          "line": 2151
+        },
+        {
+          "heading": "pricing",
+          "level": 1,
+          "line": 437
+        },
+        {
+          "heading": "roadmap",
+          "level": 1,
+          "line": 2235
+        },
+        {
+          "heading": "backCover",
+          "level": 1,
+          "line": 2262
+        },
+        {
+          "heading": "footer",
+          "level": 1,
+          "line": 2269
+        },
+        {
+          "heading": "landing",
+          "level": 1,
+          "line": 2272
+        },
+        {
+          "heading": "demo",
+          "level": 1,
+          "line": 2500
+        },
+        {
+          "heading": "onboarding",
+          "level": 1,
+          "line": 2505
+        },
+        {
+          "heading": "scope",
+          "level": 1,
+          "line": 1112
+        },
+        {
+          "heading": "menuEngineering",
+          "level": 1,
+          "line": 2667
+        },
+        {
+          "heading": "grid",
+          "level": 1,
+          "line": 619
+        },
+        {
+          "heading": "language",
+          "level": 1,
+          "line": 127
+        },
+        {
+          "heading": "commandPalette",
+          "level": 1,
+          "line": 2731
+        },
+        {
+          "heading": "inventoryUnits",
+          "level": 1,
+          "line": 2734
+        },
+        {
+          "heading": "publicMenu",
+          "level": 1,
+          "line": 2741
+        },
+        {
+          "heading": "order",
+          "level": 1,
+          "line": 1087
+        },
+        {
+          "heading": "deliveryTimeline",
+          "level": 1,
+          "line": 3065
+        },
+        {
+          "heading": "delivery",
+          "level": 1,
+          "line": 138
+        },
+        {
+          "heading": "whatsapp",
+          "level": 1,
+          "line": 152
+        },
+        {
+          "heading": "qr",
+          "level": 1,
+          "line": 142
+        },
+        {
+          "heading": "ui",
+          "level": 1,
+          "line": 3234
+        },
+        {
+          "heading": "bilingualField",
+          "level": 1,
+          "line": 3246
+        },
+        {
+          "heading": "kitchen",
+          "level": 1,
+          "line": 101
+        },
+        {
+          "heading": "tills",
+          "level": 1,
+          "line": 100
+        },
+        {
+          "heading": "aiChat",
+          "level": 1,
+          "line": 146
+        },
+        {
+          "heading": "insights",
+          "level": 1,
+          "line": 144
+        },
+        {
+          "heading": "integrations",
+          "level": 1,
+          "line": 156
+        },
+        {
+          "heading": "staff",
+          "level": 1,
+          "line": 158
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 75
+      }
+    },
+    {
+      "path": "src/i18n/locales/en.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 3722,
+      "nonEmptyLines": 3722,
+      "sections": [
+        {
+          "heading": "app",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "common",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "nav",
+          "level": 1,
+          "line": 95
+        },
+        {
+          "heading": "auth",
+          "level": 1,
+          "line": 167
+        },
+        {
+          "heading": "roles",
+          "level": 1,
+          "line": 193
+        },
+        {
+          "heading": "payments",
+          "level": 1,
+          "line": 201
+        },
+        {
+          "heading": "units",
+          "level": 1,
+          "line": 210
+        },
+        {
+          "heading": "shiftStatus",
+          "level": 1,
+          "line": 217
+        },
+        {
+          "heading": "orderStatus",
+          "level": 1,
+          "line": 222
+        },
+        {
+          "heading": "dashboard",
+          "level": 1,
+          "line": 96
+        },
+        {
+          "heading": "orgs",
+          "level": 1,
+          "line": 97
+        },
+        {
+          "heading": "branches",
+          "level": 1,
+          "line": 99
+        },
+        {
+          "heading": "users",
+          "level": 1,
+          "line": 98
+        },
+        {
+          "heading": "permissions",
+          "level": 1,
+          "line": 115
+        },
+        {
+          "heading": "menu",
+          "level": 1,
+          "line": 104
+        },
+        {
+          "heading": "recipes",
+          "level": 1,
+          "line": 106
+        },
+        {
+          "heading": "inventory",
+          "level": 1,
+          "line": 105
+        },
+        {
+          "heading": "reservations",
+          "level": 1,
+          "line": 110
+        },
+        {
+          "heading": "shifts",
+          "level": 1,
+          "line": 107
+        },
+        {
+          "heading": "orders",
+          "level": 1,
+          "line": 109
+        },
+        {
+          "heading": "ordersExport",
+          "level": 1,
+          "line": 1514
+        },
+        {
+          "heading": "analytics",
+          "level": 1,
+          "line": 108
+        },
+        {
+          "heading": "discounts",
+          "level": 1,
+          "line": 111
+        },
+        {
+          "heading": "bundles",
+          "level": 1,
+          "line": 112
+        },
+        {
+          "heading": "menuAdvisor",
+          "level": 1,
+          "line": 114
+        },
+        {
+          "heading": "timePicker",
+          "level": 1,
+          "line": 1787
+        },
+        {
+          "heading": "datePicker",
+          "level": 1,
+          "line": 1795
+        },
+        {
+          "heading": "excel",
+          "level": 1,
+          "line": 1810
+        },
+        {
+          "heading": "errors",
+          "level": 1,
+          "line": 186
+        },
+        {
+          "heading": "theme",
+          "level": 1,
+          "line": 1830
+        },
+        {
+          "heading": "uploader",
+          "level": 1,
+          "line": 1836
+        },
+        {
+          "heading": "settings",
+          "level": 1,
+          "line": 116
+        },
+        {
+          "heading": "meta",
+          "level": 1,
+          "line": 1889
+        },
+        {
+          "heading": "cover",
+          "level": 1,
+          "line": 1894
+        },
+        {
+          "heading": "pillars",
+          "level": 1,
+          "line": 1899
+        },
+        {
+          "heading": "problem",
+          "level": 1,
+          "line": 1929
+        },
+        {
+          "heading": "tellerHero",
+          "level": 1,
+          "line": 1955
+        },
+        {
+          "heading": "tellerDetail",
+          "level": 1,
+          "line": 1960
+        },
+        {
+          "heading": "featureMixedCheckout",
+          "level": 1,
+          "line": 1979
+        },
+        {
+          "heading": "featureCashMovement",
+          "level": 1,
+          "line": 1998
+        },
+        {
+          "heading": "featureOffline",
+          "level": 1,
+          "line": 2017
+        },
+        {
+          "heading": "featureRecipe",
+          "level": 1,
+          "line": 2036
+        },
+        {
+          "heading": "managementHero",
+          "level": 1,
+          "line": 2051
+        },
+        {
+          "heading": "managementDetail",
+          "level": 1,
+          "line": 2056
+        },
+        {
+          "heading": "operations",
+          "level": 1,
+          "line": 119
+        },
+        {
+          "heading": "featureExport",
+          "level": 1,
+          "line": 2094
+        },
+        {
+          "heading": "smartPricing",
+          "level": 1,
+          "line": 2113
+        },
+        {
+          "heading": "builtToFlex",
+          "level": 1,
+          "line": 2148
+        },
+        {
+          "heading": "pricing",
+          "level": 1,
+          "line": 437
+        },
+        {
+          "heading": "roadmap",
+          "level": 1,
+          "line": 2232
+        },
+        {
+          "heading": "backCover",
+          "level": 1,
+          "line": 2259
+        },
+        {
+          "heading": "footer",
+          "level": 1,
+          "line": 2266
+        },
+        {
+          "heading": "landing",
+          "level": 1,
+          "line": 2269
+        },
+        {
+          "heading": "demo",
+          "level": 1,
+          "line": 2418
+        },
+        {
+          "heading": "onboarding",
+          "level": 1,
+          "line": 2423
+        },
+        {
+          "heading": "scope",
+          "level": 1,
+          "line": 1113
+        },
+        {
+          "heading": "menuEngineering",
+          "level": 1,
+          "line": 2585
+        },
+        {
+          "heading": "grid",
+          "level": 1,
+          "line": 619
+        },
+        {
+          "heading": "language",
+          "level": 1,
+          "line": 127
+        },
+        {
+          "heading": "commandPalette",
+          "level": 1,
+          "line": 2649
+        },
+        {
+          "heading": "inventoryUnits",
+          "level": 1,
+          "line": 2652
+        },
+        {
+          "heading": "publicMenu",
+          "level": 1,
+          "line": 2659
+        },
+        {
+          "heading": "order",
+          "level": 1,
+          "line": 1088
+        },
+        {
+          "heading": "deliveryTimeline",
+          "level": 1,
+          "line": 2983
+        },
+        {
+          "heading": "delivery",
+          "level": 1,
+          "line": 138
+        },
+        {
+          "heading": "whatsapp",
+          "level": 1,
+          "line": 152
+        },
+        {
+          "heading": "qr",
+          "level": 1,
+          "line": 142
+        },
+        {
+          "heading": "ui",
+          "level": 1,
+          "line": 3152
+        },
+        {
+          "heading": "bilingualField",
+          "level": 1,
+          "line": 3164
+        },
+        {
+          "heading": "kitchen",
+          "level": 1,
+          "line": 101
+        },
+        {
+          "heading": "tills",
+          "level": 1,
+          "line": 100
+        },
+        {
+          "heading": "aiChat",
+          "level": 1,
+          "line": 146
+        },
+        {
+          "heading": "insights",
+          "level": 1,
+          "line": 144
+        },
+        {
+          "heading": "integrations",
+          "level": 1,
+          "line": 156
+        },
+        {
+          "heading": "staff",
+          "level": 1,
+          "line": 158
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 75
+      }
+    },
+    {
+      "path": "src/test/setup.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 3,
+      "nonEmptyLines": 3,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "vite.config.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 116,
+      "nonEmptyLines": 104,
+      "callGraph": [
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 62
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 65
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 65
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 69
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 70
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 71
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 77
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 77
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 81
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 84
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 84
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 87
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 87
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 90
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 93
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 97
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 98
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 99
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 105
+        },
+        {
+          "caller": "manualChunks",
+          "callee": "id.includes",
+          "lineNumber": 109
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "vite.get.config.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 51,
+      "callGraph": [
+        {
+          "caller": "configureServer",
+          "callee": "server.middlewares.use",
+          "lineNumber": 21
+        },
+        {
+          "caller": "configureServer",
+          "callee": "req.headers.accept?.includes",
+          "lineNumber": 22
+        },
+        {
+          "caller": "configureServer",
+          "callee": "next",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "vite.order.config.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 51,
+      "callGraph": [
+        {
+          "caller": "configureServer",
+          "callee": "server.middlewares.use",
+          "lineNumber": 21
+        },
+        {
+          "caller": "configureServer",
+          "callee": "req.headers.accept?.includes",
+          "lineNumber": 22
+        },
+        {
+          "caller": "configureServer",
+          "callee": "next",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "vitest.config.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 9,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

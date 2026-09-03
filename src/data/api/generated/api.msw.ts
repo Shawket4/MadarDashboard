@@ -28,6 +28,9 @@ import type {
   AddonSlot,
   AiChatResponse,
   AnalyticsResponse,
+  AttendanceRecord,
+  AttendanceSettings,
+  AttendanceSummary,
   AuthPermissionsResponse,
   BookingView,
   Branch,
@@ -50,6 +53,7 @@ import type {
   ChannelMenuOverride,
   CloseShiftResponse,
   CombinedItemSalesRow,
+  ComputedPayslip,
   ConsumptionRow,
   CreateUserResponse,
   CredentialSummary,
@@ -62,8 +66,10 @@ import type {
   DeliverySalesReport,
   DeliveryTracking,
   DeliveryZone,
+  Department,
   Discount,
   DrinkRecipe,
+  Employee,
   ExportResponse,
   FinalizeResponse,
   FloorSection,
@@ -77,6 +83,8 @@ import type {
   ItemSize,
   KitchenStation,
   KitchenTicketView,
+  LeaveBalance,
+  LeaveType,
   LoginResponse,
   LowStockRow,
   MarginLedgerReport,
@@ -86,6 +94,7 @@ import type {
   MeResponse,
   MenuItem,
   MenuItemFull,
+  MyAttendanceToday,
   OfflineAuthBundle,
   OnboardingStatus,
   OpenTicketView,
@@ -107,6 +116,9 @@ import type {
   PaginatedMenuItems,
   PaginatedOrders,
   PaginatedShifts,
+  PayrollAdjustment,
+  PayrollPeriod,
+  Payslip,
   PeakHourPoint,
   Permission,
   PermissionMatrix,
@@ -124,8 +136,12 @@ import type {
   RepricingReport,
   ReservationSettings,
   ResolveBranchResponse,
+  ResolvedShift,
   RolePermission,
   RoutingModeResponse,
+  SalaryAdvance,
+  ScheduleAssignment,
+  ScheduleOverride,
   Shift,
   ShiftPreFill,
   ShiftReportResponse,
@@ -133,6 +149,8 @@ import type {
   ShrinkageRow,
   SizeCostOut,
   SkuCost,
+  StaffDocument,
+  StaffRequest,
   StationRoutes,
   Stocktake,
   StocktakeFull,
@@ -147,7 +165,8 @@ import type {
   VarianceReport,
   WaiterStatsReport,
   WasteReportRow,
-  WhatsappStatus
+  WhatsappStatus,
+  WorkShift
 } from './models';
 
 
@@ -616,6 +635,116 @@ export const getCloseShiftResponseMock = (overrideResponse: Partial<Extract<Clos
 export const getForceCloseShiftResponseMock = (overrideResponse: Partial<Extract<Shift, object>> = {}): Shift => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cash_discrepancy: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), closed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), closing_cash_declared: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closing_cash_system: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), force_close_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), force_closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), force_closed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', opening_cash: faker.number.int(), opening_cash_edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), opening_cash_original: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), opening_cash_was_edited: faker.datatype.boolean(), status: faker.string.alpha({length: {min: 10, max: 20}}), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), till_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), till_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
 
 export const getGetShiftReportResponseMock = (overrideResponse: Partial<Extract<ShiftReportResponse, object>> = {}): ShiftReportResponse => ({cash_movements: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', moved_by_name: faker.string.alpha({length: {min: 10, max: 20}}), note: faker.string.alpha({length: {min: 10, max: 20}})})), cash_movements_in: faker.number.int(), cash_movements_net: faker.number.int(), cash_movements_out: faker.number.int(), cash_tips: faker.number.int(), expected_cash: faker.number.int(), net_payments: faker.number.int(), non_cash_tips: faker.number.int(), payment_summary: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({is_cash: faker.datatype.boolean(), order_count: faker.number.int(), payment_method: faker.string.alpha({length: {min: 10, max: 20}}), total: faker.number.int()})), printed_at: faker.date.past().toISOString().slice(0, 19) + 'Z', shift: {branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cash_discrepancy: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), closed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), closing_cash_declared: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closing_cash_system: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), force_close_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), force_closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), force_closed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', opening_cash: faker.number.int(), opening_cash_edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), opening_cash_original: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), opening_cash_was_edited: faker.datatype.boolean(), status: faker.string.alpha({length: {min: 10, max: 20}}), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), till_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), till_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, total_payments: faker.number.int(), total_tips: faker.number.int(), voided_amount: faker.number.int(), ...overrideResponse})
+
+export const getListAttendanceResponseMock = (): AttendanceRecord[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int()})))
+
+export const getCreateManualRecordResponseMock = (overrideResponse: Partial<Extract<AttendanceRecord, object>> = {}): AttendanceRecord => ({branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int(), ...overrideResponse})
+
+export const getGetAttendanceSettingsResponseMock = (overrideResponse: Partial<Extract<AttendanceSettings, object>> = {}): AttendanceSettings => ({absence_deduction_days: faker.number.float({fractionDigits: 2}), auto_checkout_buffer_minutes: faker.number.int(), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', default_overtime_multiplier: faker.number.float({fractionDigits: 2}), excused_time_paid_default: faker.datatype.boolean(), id: faker.string.uuid(), late_deduction_tiers: {}, org_id: faker.string.uuid(), require_geofence: faker.datatype.boolean(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', weekend_days: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.number.int())), working_days_per_month: faker.number.float({fractionDigits: 2}), ...overrideResponse})
+
+export const getPutAttendanceSettingsResponseMock = (overrideResponse: Partial<Extract<AttendanceSettings, object>> = {}): AttendanceSettings => ({absence_deduction_days: faker.number.float({fractionDigits: 2}), auto_checkout_buffer_minutes: faker.number.int(), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', default_overtime_multiplier: faker.number.float({fractionDigits: 2}), excused_time_paid_default: faker.datatype.boolean(), id: faker.string.uuid(), late_deduction_tiers: {}, org_id: faker.string.uuid(), require_geofence: faker.datatype.boolean(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', weekend_days: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.number.int())), working_days_per_month: faker.number.float({fractionDigits: 2}), ...overrideResponse})
+
+export const getAttendanceSummaryResponseMock = (): AttendanceSummary[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({absent_days: faker.number.int(), half_days: faker.number.int(), late_days: faker.number.int(), leave_days: faker.number.int(), present_days: faker.number.int(), total_late_minutes: faker.number.int(), total_overtime_minutes: faker.number.int(), total_worked_minutes: faker.number.int(), user_id: faker.string.uuid(), user_name: faker.string.alpha({length: {min: 10, max: 20}})})))
+
+export const getCorrectRecordResponseMock = (overrideResponse: Partial<Extract<AttendanceRecord, object>> = {}): AttendanceRecord => ({branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int(), ...overrideResponse})
+
+export const getListDepartmentsResponseMock = (): Department[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', employee_count: faker.number.int(), id: faker.string.uuid(), manager_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), manager_user_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
+
+export const getCreateDepartmentResponseMock = (overrideResponse: Partial<Extract<Department, object>> = {}): Department => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', employee_count: faker.number.int(), id: faker.string.uuid(), manager_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), manager_user_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getUpdateDepartmentResponseMock = (overrideResponse: Partial<Extract<Department, object>> = {}): Department => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', employee_count: faker.number.int(), id: faker.string.uuid(), manager_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), manager_user_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getListEmployeesResponseMock = (): Employee[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({base_salary_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', department_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), department_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), emergency_contact_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), emergency_contact_phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), employee_code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), employment_status: faker.string.alpha({length: {min: 10, max: 20}}), hire_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), is_active: faker.datatype.boolean(), job_title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), national_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), photo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.string.alpha({length: {min: 10, max: 20}}), termination_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid()})))
+
+export const getGetEmployeeResponseMock = (overrideResponse: Partial<Extract<Employee, object>> = {}): Employee => ({base_salary_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', department_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), department_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), emergency_contact_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), emergency_contact_phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), employee_code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), employment_status: faker.string.alpha({length: {min: 10, max: 20}}), hire_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), is_active: faker.datatype.boolean(), job_title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), national_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), photo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.string.alpha({length: {min: 10, max: 20}}), termination_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), ...overrideResponse})
+
+export const getPutEmployeeResponseMock = (overrideResponse: Partial<Extract<Employee, object>> = {}): Employee => ({base_salary_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', department_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), department_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), emergency_contact_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), emergency_contact_phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), employee_code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), employment_status: faker.string.alpha({length: {min: 10, max: 20}}), hire_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), is_active: faker.datatype.boolean(), job_title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), national_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), photo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.string.alpha({length: {min: 10, max: 20}}), termination_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), ...overrideResponse})
+
+export const getListDocumentsResponseMock = (): StaffDocument[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', expires_on: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), file_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), title: faker.string.alpha({length: {min: 10, max: 20}}), uploaded_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), user_id: faker.string.uuid()})))
+
+export const getCreateDocumentResponseMock = (overrideResponse: Partial<Extract<StaffDocument, object>> = {}): StaffDocument => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', expires_on: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), file_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), title: faker.string.alpha({length: {min: 10, max: 20}}), uploaded_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), user_id: faker.string.uuid(), ...overrideResponse})
+
+export const getListBalancesResponseMock = (): LeaveBalance[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({carried_over_days: faker.number.float({fractionDigits: 2}), entitled_days: faker.number.float({fractionDigits: 2}), id: faker.string.uuid(), leave_type_id: faker.string.uuid(), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), remaining_days: faker.number.float({fractionDigits: 2}), used_days: faker.number.float({fractionDigits: 2}), user_id: faker.string.uuid(), year: faker.number.int()})))
+
+export const getPutBalanceResponseMock = (overrideResponse: Partial<Extract<LeaveBalance, object>> = {}): LeaveBalance => ({carried_over_days: faker.number.float({fractionDigits: 2}), entitled_days: faker.number.float({fractionDigits: 2}), id: faker.string.uuid(), leave_type_id: faker.string.uuid(), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), remaining_days: faker.number.float({fractionDigits: 2}), used_days: faker.number.float({fractionDigits: 2}), user_id: faker.string.uuid(), year: faker.number.int(), ...overrideResponse})
+
+export const getListLeaveTypesResponseMock = (): LeaveType[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({annual_quota_days: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), is_active: faker.datatype.boolean(), is_paid: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), requires_approval: faker.datatype.boolean(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
+
+export const getCreateLeaveTypeResponseMock = (overrideResponse: Partial<Extract<LeaveType, object>> = {}): LeaveType => ({annual_quota_days: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), is_active: faker.datatype.boolean(), is_paid: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), requires_approval: faker.datatype.boolean(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getUpdateLeaveTypeResponseMock = (overrideResponse: Partial<Extract<LeaveType, object>> = {}): LeaveType => ({annual_quota_days: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), is_active: faker.datatype.boolean(), is_paid: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), requires_approval: faker.datatype.boolean(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getMyAdvancesResponseMock = (): SalaryAdvance[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_piastres: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), installments: faker.number.int(), monthly_installment_piastres: faker.number.int(), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), remaining_piastres: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
+
+export const getCreateMyAdvanceResponseMock = (overrideResponse: Partial<Extract<SalaryAdvance, object>> = {}): SalaryAdvance => ({amount_piastres: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), installments: faker.number.int(), monthly_installment_piastres: faker.number.int(), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), remaining_piastres: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getMyAttendanceResponseMock = (): AttendanceRecord[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int()})))
+
+export const getCheckInResponseMock = (overrideResponse: Partial<Extract<AttendanceRecord, object>> = {}): AttendanceRecord => ({branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int(), ...overrideResponse})
+
+export const getCheckOutResponseMock = (overrideResponse: Partial<Extract<AttendanceRecord, object>> = {}): AttendanceRecord => ({branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int(), ...overrideResponse})
+
+export const getMyLeaveBalancesResponseMock = (): LeaveBalance[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({carried_over_days: faker.number.float({fractionDigits: 2}), entitled_days: faker.number.float({fractionDigits: 2}), id: faker.string.uuid(), leave_type_id: faker.string.uuid(), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), remaining_days: faker.number.float({fractionDigits: 2}), used_days: faker.number.float({fractionDigits: 2}), user_id: faker.string.uuid(), year: faker.number.int()})))
+
+export const getMyPayslipsResponseMock = (): Payslip[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({absent_days: faker.number.float({fractionDigits: 2}), advance_installment_piastres: faker.number.int(), base_salary_piastres: faker.number.int(), bonuses_piastres: faker.number.int(), breakdown: {}, deductions_piastres: faker.number.int(), generated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), late_minutes: faker.number.int(), leave_days: faker.number.float({fractionDigits: 2}), net_piastres: faker.number.int(), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), overtime_piastres: faker.number.int(), payroll_period_id: faker.string.uuid(), period_end: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), period_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), period_start: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_days: faker.number.float({fractionDigits: 2})})))
+
+export const getMyRequestsResponseMock = (): StaffRequest[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
+
+export const getCreateMyRequestResponseMock = (overrideResponse: Partial<Extract<StaffRequest, object>> = {}): StaffRequest => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getMyTodayResponseAttendanceRecordMock = (overrideResponse: Partial<AttendanceRecord> = {}): AttendanceRecord => ({...{branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int()}, ...overrideResponse});
+
+export const getMyTodayResponseMock = (overrideResponse: Partial<Extract<MyAttendanceToday, object>> = {}): MyAttendanceToday => ({blocked_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), business_date: faker.date.past().toISOString().slice(0, 10), can_check_in: faker.datatype.boolean(), can_check_out: faker.datatype.boolean(), closed_records: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int()})), open_record: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getMyTodayResponseAttendanceRecordMock()},]), undefined]), scheduled: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({break_minutes: faker.number.int(), checkin_window_minutes: faker.number.int(), grace_minutes: faker.number.int(), half_day_threshold_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), overtime_multiplier: faker.number.float({fractionDigits: 2}), overtime_threshold_minutes: faker.number.int(), paid_break: faker.datatype.boolean(), scheduled_end_at: faker.date.past().toISOString().slice(0, 19) + 'Z', scheduled_start_at: faker.date.past().toISOString().slice(0, 19) + 'Z', work_shift_id: faker.string.uuid()})), ...overrideResponse})
+
+export const getListAdvancesResponseMock = (): SalaryAdvance[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_piastres: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), installments: faker.number.int(), monthly_installment_piastres: faker.number.int(), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), remaining_piastres: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
+
+export const getCreateAdvanceAdminResponseMock = (overrideResponse: Partial<Extract<SalaryAdvance, object>> = {}): SalaryAdvance => ({amount_piastres: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), installments: faker.number.int(), monthly_installment_piastres: faker.number.int(), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), remaining_piastres: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getDecideAdvanceResponseMock = (overrideResponse: Partial<Extract<SalaryAdvance, object>> = {}): SalaryAdvance => ({amount_piastres: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), installments: faker.number.int(), monthly_installment_piastres: faker.number.int(), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), remaining_piastres: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getListBonusesResponseMock = (): PayrollAdjustment[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), effective_date: faker.date.past().toISOString().slice(0, 10), id: faker.string.uuid(), org_id: faker.string.uuid(), original_amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), overridden_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), override_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), percent_of_base: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), reason: faker.string.alpha({length: {min: 10, max: 20}}), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waive_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined])})))
+
+export const getCreateBonusResponseMock = (overrideResponse: Partial<Extract<PayrollAdjustment, object>> = {}): PayrollAdjustment => ({amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), effective_date: faker.date.past().toISOString().slice(0, 10), id: faker.string.uuid(), org_id: faker.string.uuid(), original_amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), overridden_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), override_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), percent_of_base: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), reason: faker.string.alpha({length: {min: 10, max: 20}}), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waive_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ...overrideResponse})
+
+export const getListDeductionsResponseMock = (): PayrollAdjustment[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), effective_date: faker.date.past().toISOString().slice(0, 10), id: faker.string.uuid(), org_id: faker.string.uuid(), original_amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), overridden_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), override_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), percent_of_base: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), reason: faker.string.alpha({length: {min: 10, max: 20}}), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waive_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined])})))
+
+export const getCreateDeductionResponseMock = (overrideResponse: Partial<Extract<PayrollAdjustment, object>> = {}): PayrollAdjustment => ({amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), effective_date: faker.date.past().toISOString().slice(0, 10), id: faker.string.uuid(), org_id: faker.string.uuid(), original_amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), overridden_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), override_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), percent_of_base: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), reason: faker.string.alpha({length: {min: 10, max: 20}}), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waive_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ...overrideResponse})
+
+export const getOverrideDeductionResponseMock = (overrideResponse: Partial<Extract<PayrollAdjustment, object>> = {}): PayrollAdjustment => ({amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), effective_date: faker.date.past().toISOString().slice(0, 10), id: faker.string.uuid(), org_id: faker.string.uuid(), original_amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), overridden_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), override_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), percent_of_base: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), reason: faker.string.alpha({length: {min: 10, max: 20}}), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waive_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ...overrideResponse})
+
+export const getWaiveDeductionResponseMock = (overrideResponse: Partial<Extract<PayrollAdjustment, object>> = {}): PayrollAdjustment => ({amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), effective_date: faker.date.past().toISOString().slice(0, 10), id: faker.string.uuid(), org_id: faker.string.uuid(), original_amount_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), overridden_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), override_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), percent_of_base: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), reason: faker.string.alpha({length: {min: 10, max: 20}}), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waive_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ...overrideResponse})
+
+export const getListPeriodsResponseMock = (): PayrollPeriod[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', employee_count: faker.number.int(), end_date: faker.date.past().toISOString().slice(0, 10), generated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), generated_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), paid_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), start_date: faker.date.past().toISOString().slice(0, 10), status: faker.string.alpha({length: {min: 10, max: 20}}), total_net_piastres: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
+
+export const getCreatePeriodResponseMock = (overrideResponse: Partial<Extract<PayrollPeriod, object>> = {}): PayrollPeriod => ({closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', employee_count: faker.number.int(), end_date: faker.date.past().toISOString().slice(0, 10), generated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), generated_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), paid_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), start_date: faker.date.past().toISOString().slice(0, 10), status: faker.string.alpha({length: {min: 10, max: 20}}), total_net_piastres: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getGeneratePeriodResponseMock = (): Payslip[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({absent_days: faker.number.float({fractionDigits: 2}), advance_installment_piastres: faker.number.int(), base_salary_piastres: faker.number.int(), bonuses_piastres: faker.number.int(), breakdown: {}, deductions_piastres: faker.number.int(), generated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), late_minutes: faker.number.int(), leave_days: faker.number.float({fractionDigits: 2}), net_piastres: faker.number.int(), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), overtime_piastres: faker.number.int(), payroll_period_id: faker.string.uuid(), period_end: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), period_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), period_start: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_days: faker.number.float({fractionDigits: 2})})))
+
+export const getListPayslipsResponseMock = (): Payslip[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({absent_days: faker.number.float({fractionDigits: 2}), advance_installment_piastres: faker.number.int(), base_salary_piastres: faker.number.int(), bonuses_piastres: faker.number.int(), breakdown: {}, deductions_piastres: faker.number.int(), generated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), late_minutes: faker.number.int(), leave_days: faker.number.float({fractionDigits: 2}), net_piastres: faker.number.int(), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), overtime_piastres: faker.number.int(), payroll_period_id: faker.string.uuid(), period_end: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), period_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), period_start: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_days: faker.number.float({fractionDigits: 2})})))
+
+export const getPreviewPeriodResponseMock = (): ComputedPayslip[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({absent_days: faker.number.float({fractionDigits: 2}), advance_installment_piastres: faker.number.int(), base_piastres: faker.number.int(), base_salary_piastres: faker.number.int(), bonuses_piastres: faker.number.int(), breakdown: {}, deductions_piastres: faker.number.int(), late_minutes: faker.number.int(), leave_days: faker.number.float({fractionDigits: 2}), name: faker.string.alpha({length: {min: 10, max: 20}}), net_piastres: faker.number.int(), overtime_minutes: faker.number.int(), overtime_piastres: faker.number.int(), user_id: faker.string.uuid(), worked_days: faker.number.float({fractionDigits: 2})})))
+
+export const getSetPeriodStatusResponseMock = (overrideResponse: Partial<Extract<PayrollPeriod, object>> = {}): PayrollPeriod => ({closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', employee_count: faker.number.int(), end_date: faker.date.past().toISOString().slice(0, 10), generated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), generated_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), paid_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), start_date: faker.date.past().toISOString().slice(0, 10), status: faker.string.alpha({length: {min: 10, max: 20}}), total_net_piastres: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getListRequestsResponseMock = (): StaffRequest[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
+
+export const getCreateRequestAdminResponseMock = (overrideResponse: Partial<Extract<StaffRequest, object>> = {}): StaffRequest => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getDecideRequestResponseMock = (overrideResponse: Partial<Extract<StaffRequest, object>> = {}): StaffRequest => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getListAssignmentsResponseMock = (): ScheduleAssignment[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', day_of_week: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), effective_from: faker.date.past().toISOString().slice(0, 10), effective_to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), id: faker.string.uuid(), org_id: faker.string.uuid(), user_id: faker.string.uuid(), work_shift_id: faker.string.uuid(), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
+
+export const getCreateAssignmentResponseMock = (overrideResponse: Partial<Extract<ScheduleAssignment, object>> = {}): ScheduleAssignment => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', day_of_week: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), effective_from: faker.date.past().toISOString().slice(0, 10), effective_to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), id: faker.string.uuid(), org_id: faker.string.uuid(), user_id: faker.string.uuid(), work_shift_id: faker.string.uuid(), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getGetScheduledDayResponseMock = (): ResolvedShift[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({break_minutes: faker.number.int(), checkin_window_minutes: faker.number.int(), grace_minutes: faker.number.int(), half_day_threshold_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), overtime_multiplier: faker.number.float({fractionDigits: 2}), overtime_threshold_minutes: faker.number.int(), paid_break: faker.datatype.boolean(), scheduled_end_at: faker.date.past().toISOString().slice(0, 19) + 'Z', scheduled_start_at: faker.date.past().toISOString().slice(0, 19) + 'Z', work_shift_id: faker.string.uuid()})))
+
+export const getPutOverrideResponseMock = (overrideResponse: Partial<Extract<ScheduleOverride, object>> = {}): ScheduleOverride => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), user_id: faker.string.uuid(), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getListWorkShiftsResponseMock = (): WorkShift[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), break_minutes: faker.number.int(), checkin_window_minutes: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', crosses_midnight: faker.datatype.boolean(), end_time: faker.string.alpha({length: {min: 10, max: 20}}), grace_minutes: faker.number.int(), half_day_threshold_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), overtime_multiplier: faker.number.float({fractionDigits: 2}), overtime_threshold_minutes: faker.number.int(), paid_break: faker.datatype.boolean(), start_time: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
+
+export const getCreateWorkShiftResponseMock = (overrideResponse: Partial<Extract<WorkShift, object>> = {}): WorkShift => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), break_minutes: faker.number.int(), checkin_window_minutes: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', crosses_midnight: faker.datatype.boolean(), end_time: faker.string.alpha({length: {min: 10, max: 20}}), grace_minutes: faker.number.int(), half_day_threshold_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), overtime_multiplier: faker.number.float({fractionDigits: 2}), overtime_threshold_minutes: faker.number.int(), paid_break: faker.datatype.boolean(), start_time: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getUpdateWorkShiftResponseMock = (overrideResponse: Partial<Extract<WorkShift, object>> = {}): WorkShift => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), break_minutes: faker.number.int(), checkin_window_minutes: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', crosses_midnight: faker.datatype.boolean(), end_time: faker.string.alpha({length: {min: 10, max: 20}}), grace_minutes: faker.number.int(), half_day_threshold_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), overtime_multiplier: faker.number.float({fractionDigits: 2}), overtime_threshold_minutes: faker.number.int(), paid_break: faker.datatype.boolean(), start_time: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
 export const getListStocktakesResponseMock = (): Stocktake[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', finalized_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), finalized_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), started_at: faker.date.past().toISOString().slice(0, 19) + 'Z', started_by: faker.string.uuid(), started_by_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}})})))
 
@@ -3784,6 +3913,764 @@ export const getGetShiftReportMockHandler = (overrideResponse?: ShiftReportRespo
   }, options)
 }
 
+export const getListAttendanceMockHandler = (overrideResponse?: AttendanceRecord[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AttendanceRecord[]> | AttendanceRecord[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/attendance', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListAttendanceResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateManualRecordMockHandler = (overrideResponse?: AttendanceRecord | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<AttendanceRecord> | AttendanceRecord), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/attendance', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateManualRecordResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getGetAttendanceSettingsMockHandler = (overrideResponse?: AttendanceSettings | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AttendanceSettings> | AttendanceSettings), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/attendance/settings', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetAttendanceSettingsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPutAttendanceSettingsMockHandler = (overrideResponse?: AttendanceSettings | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<AttendanceSettings> | AttendanceSettings), options?: RequestHandlerOptions) => {
+  return http.put('*/staff/attendance/settings', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutAttendanceSettingsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getAttendanceSummaryMockHandler = (overrideResponse?: AttendanceSummary[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AttendanceSummary[]> | AttendanceSummary[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/attendance/summary', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAttendanceSummaryResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDeleteRecordMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/attendance/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getCorrectRecordMockHandler = (overrideResponse?: AttendanceRecord | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<AttendanceRecord> | AttendanceRecord), options?: RequestHandlerOptions) => {
+  return http.patch('*/staff/attendance/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCorrectRecordResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListDepartmentsMockHandler = (overrideResponse?: Department[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Department[]> | Department[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/departments', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListDepartmentsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateDepartmentMockHandler = (overrideResponse?: Department | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<Department> | Department), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/departments', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateDepartmentResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getDeleteDepartmentMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/departments/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getUpdateDepartmentMockHandler = (overrideResponse?: Department | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<Department> | Department), options?: RequestHandlerOptions) => {
+  return http.patch('*/staff/departments/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getUpdateDepartmentResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDeleteDocumentMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/documents/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getListEmployeesMockHandler = (overrideResponse?: Employee[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Employee[]> | Employee[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/employees', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListEmployeesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getGetEmployeeMockHandler = (overrideResponse?: Employee | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Employee> | Employee), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/employees/:userId', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetEmployeeResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPutEmployeeMockHandler = (overrideResponse?: Employee | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<Employee> | Employee), options?: RequestHandlerOptions) => {
+  return http.put('*/staff/employees/:userId', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutEmployeeResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDeleteEmployeeMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/employees/:userId', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getListDocumentsMockHandler = (overrideResponse?: StaffDocument[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<StaffDocument[]> | StaffDocument[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/employees/:userId/documents', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListDocumentsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateDocumentMockHandler = (overrideResponse?: StaffDocument | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<StaffDocument> | StaffDocument), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/employees/:userId/documents', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateDocumentResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getListBalancesMockHandler = (overrideResponse?: LeaveBalance[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<LeaveBalance[]> | LeaveBalance[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/leave/balances', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListBalancesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPutBalanceMockHandler = (overrideResponse?: LeaveBalance | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<LeaveBalance> | LeaveBalance), options?: RequestHandlerOptions) => {
+  return http.put('*/staff/leave/balances', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutBalanceResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListLeaveTypesMockHandler = (overrideResponse?: LeaveType[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<LeaveType[]> | LeaveType[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/leave/types', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListLeaveTypesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateLeaveTypeMockHandler = (overrideResponse?: LeaveType | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<LeaveType> | LeaveType), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/leave/types', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateLeaveTypeResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getDeleteLeaveTypeMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/leave/types/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getUpdateLeaveTypeMockHandler = (overrideResponse?: LeaveType | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<LeaveType> | LeaveType), options?: RequestHandlerOptions) => {
+  return http.patch('*/staff/leave/types/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getUpdateLeaveTypeResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getMyAdvancesMockHandler = (overrideResponse?: SalaryAdvance[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SalaryAdvance[]> | SalaryAdvance[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/me/advances', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMyAdvancesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateMyAdvanceMockHandler = (overrideResponse?: SalaryAdvance | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SalaryAdvance> | SalaryAdvance), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/me/advances', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateMyAdvanceResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getMyAttendanceMockHandler = (overrideResponse?: AttendanceRecord[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AttendanceRecord[]> | AttendanceRecord[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/me/attendance', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMyAttendanceResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCheckInMockHandler = (overrideResponse?: AttendanceRecord | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<AttendanceRecord> | AttendanceRecord), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/me/check-in', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCheckInResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getCheckOutMockHandler = (overrideResponse?: AttendanceRecord | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<AttendanceRecord> | AttendanceRecord), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/me/check-out', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCheckOutResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getMyLeaveBalancesMockHandler = (overrideResponse?: LeaveBalance[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<LeaveBalance[]> | LeaveBalance[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/me/leave-balances', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMyLeaveBalancesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getMyPayslipsMockHandler = (overrideResponse?: Payslip[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Payslip[]> | Payslip[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/me/payslips', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMyPayslipsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getMyRequestsMockHandler = (overrideResponse?: StaffRequest[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<StaffRequest[]> | StaffRequest[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/me/requests', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMyRequestsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateMyRequestMockHandler = (overrideResponse?: StaffRequest | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<StaffRequest> | StaffRequest), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/me/requests', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateMyRequestResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getMyTodayMockHandler = (overrideResponse?: MyAttendanceToday | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MyAttendanceToday> | MyAttendanceToday), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/me/today', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMyTodayResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListAdvancesMockHandler = (overrideResponse?: SalaryAdvance[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SalaryAdvance[]> | SalaryAdvance[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/payroll/advances', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListAdvancesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateAdvanceAdminMockHandler = (overrideResponse?: SalaryAdvance | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SalaryAdvance> | SalaryAdvance), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/payroll/advances', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateAdvanceAdminResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getDecideAdvanceMockHandler = (overrideResponse?: SalaryAdvance | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<SalaryAdvance> | SalaryAdvance), options?: RequestHandlerOptions) => {
+  return http.patch('*/staff/payroll/advances/:id/decision', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getDecideAdvanceResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListBonusesMockHandler = (overrideResponse?: PayrollAdjustment[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PayrollAdjustment[]> | PayrollAdjustment[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/payroll/bonuses', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListBonusesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateBonusMockHandler = (overrideResponse?: PayrollAdjustment | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PayrollAdjustment> | PayrollAdjustment), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/payroll/bonuses', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateBonusResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getDeleteBonusMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/payroll/bonuses/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getListDeductionsMockHandler = (overrideResponse?: PayrollAdjustment[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PayrollAdjustment[]> | PayrollAdjustment[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/payroll/deductions', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListDeductionsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateDeductionMockHandler = (overrideResponse?: PayrollAdjustment | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PayrollAdjustment> | PayrollAdjustment), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/payroll/deductions', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateDeductionResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getDeleteDeductionMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/payroll/deductions/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getOverrideDeductionMockHandler = (overrideResponse?: PayrollAdjustment | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<PayrollAdjustment> | PayrollAdjustment), options?: RequestHandlerOptions) => {
+  return http.patch('*/staff/payroll/deductions/:id/override', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getOverrideDeductionResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getWaiveDeductionMockHandler = (overrideResponse?: PayrollAdjustment | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<PayrollAdjustment> | PayrollAdjustment), options?: RequestHandlerOptions) => {
+  return http.patch('*/staff/payroll/deductions/:id/waive', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getWaiveDeductionResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListPeriodsMockHandler = (overrideResponse?: PayrollPeriod[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PayrollPeriod[]> | PayrollPeriod[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/payroll/periods', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListPeriodsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreatePeriodMockHandler = (overrideResponse?: PayrollPeriod | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PayrollPeriod> | PayrollPeriod), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/payroll/periods', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreatePeriodResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getDeletePeriodMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/payroll/periods/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getGeneratePeriodMockHandler = (overrideResponse?: Payslip[] | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<Payslip[]> | Payslip[]), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/payroll/periods/:id/generate', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGeneratePeriodResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListPayslipsMockHandler = (overrideResponse?: Payslip[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Payslip[]> | Payslip[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/payroll/periods/:id/payslips', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListPayslipsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPreviewPeriodMockHandler = (overrideResponse?: ComputedPayslip[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ComputedPayslip[]> | ComputedPayslip[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/payroll/periods/:id/preview', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPreviewPeriodResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getSetPeriodStatusMockHandler = (overrideResponse?: PayrollPeriod | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<PayrollPeriod> | PayrollPeriod), options?: RequestHandlerOptions) => {
+  return http.patch('*/staff/payroll/periods/:id/status', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetPeriodStatusResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListRequestsMockHandler = (overrideResponse?: StaffRequest[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<StaffRequest[]> | StaffRequest[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/requests', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListRequestsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateRequestAdminMockHandler = (overrideResponse?: StaffRequest | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<StaffRequest> | StaffRequest), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/requests', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateRequestAdminResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getDecideRequestMockHandler = (overrideResponse?: StaffRequest | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<StaffRequest> | StaffRequest), options?: RequestHandlerOptions) => {
+  return http.patch('*/staff/requests/:id/decision', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getDecideRequestResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListAssignmentsMockHandler = (overrideResponse?: ScheduleAssignment[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ScheduleAssignment[]> | ScheduleAssignment[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/schedules', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListAssignmentsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateAssignmentMockHandler = (overrideResponse?: ScheduleAssignment | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ScheduleAssignment> | ScheduleAssignment), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/schedules', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateAssignmentResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getGetScheduledDayMockHandler = (overrideResponse?: ResolvedShift[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ResolvedShift[]> | ResolvedShift[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/schedules/day', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetScheduledDayResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPutOverrideMockHandler = (overrideResponse?: ScheduleOverride | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<ScheduleOverride> | ScheduleOverride), options?: RequestHandlerOptions) => {
+  return http.put('*/staff/schedules/overrides', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutOverrideResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDeleteOverrideMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/schedules/overrides/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getDeleteAssignmentMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/schedules/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getListWorkShiftsMockHandler = (overrideResponse?: WorkShift[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<WorkShift[]> | WorkShift[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/work-shifts', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListWorkShiftsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateWorkShiftMockHandler = (overrideResponse?: WorkShift | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<WorkShift> | WorkShift), options?: RequestHandlerOptions) => {
+  return http.post('*/staff/work-shifts', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateWorkShiftResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getDeleteWorkShiftMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/staff/work-shifts/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getUpdateWorkShiftMockHandler = (overrideResponse?: WorkShift | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<WorkShift> | WorkShift), options?: RequestHandlerOptions) => {
+  return http.patch('*/staff/work-shifts/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getUpdateWorkShiftResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getListStocktakesMockHandler = (overrideResponse?: Stocktake[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Stocktake[]> | Stocktake[]), options?: RequestHandlerOptions) => {
   return http.get('*/stocktakes/branches/:branchId', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -4343,6 +5230,71 @@ export const getMadarAPIMock = () => [
   getCloseShiftMockHandler(),
   getForceCloseShiftMockHandler(),
   getGetShiftReportMockHandler(),
+  getListAttendanceMockHandler(),
+  getCreateManualRecordMockHandler(),
+  getGetAttendanceSettingsMockHandler(),
+  getPutAttendanceSettingsMockHandler(),
+  getAttendanceSummaryMockHandler(),
+  getDeleteRecordMockHandler(),
+  getCorrectRecordMockHandler(),
+  getListDepartmentsMockHandler(),
+  getCreateDepartmentMockHandler(),
+  getDeleteDepartmentMockHandler(),
+  getUpdateDepartmentMockHandler(),
+  getDeleteDocumentMockHandler(),
+  getListEmployeesMockHandler(),
+  getGetEmployeeMockHandler(),
+  getPutEmployeeMockHandler(),
+  getDeleteEmployeeMockHandler(),
+  getListDocumentsMockHandler(),
+  getCreateDocumentMockHandler(),
+  getListBalancesMockHandler(),
+  getPutBalanceMockHandler(),
+  getListLeaveTypesMockHandler(),
+  getCreateLeaveTypeMockHandler(),
+  getDeleteLeaveTypeMockHandler(),
+  getUpdateLeaveTypeMockHandler(),
+  getMyAdvancesMockHandler(),
+  getCreateMyAdvanceMockHandler(),
+  getMyAttendanceMockHandler(),
+  getCheckInMockHandler(),
+  getCheckOutMockHandler(),
+  getMyLeaveBalancesMockHandler(),
+  getMyPayslipsMockHandler(),
+  getMyRequestsMockHandler(),
+  getCreateMyRequestMockHandler(),
+  getMyTodayMockHandler(),
+  getListAdvancesMockHandler(),
+  getCreateAdvanceAdminMockHandler(),
+  getDecideAdvanceMockHandler(),
+  getListBonusesMockHandler(),
+  getCreateBonusMockHandler(),
+  getDeleteBonusMockHandler(),
+  getListDeductionsMockHandler(),
+  getCreateDeductionMockHandler(),
+  getDeleteDeductionMockHandler(),
+  getOverrideDeductionMockHandler(),
+  getWaiveDeductionMockHandler(),
+  getListPeriodsMockHandler(),
+  getCreatePeriodMockHandler(),
+  getDeletePeriodMockHandler(),
+  getGeneratePeriodMockHandler(),
+  getListPayslipsMockHandler(),
+  getPreviewPeriodMockHandler(),
+  getSetPeriodStatusMockHandler(),
+  getListRequestsMockHandler(),
+  getCreateRequestAdminMockHandler(),
+  getDecideRequestMockHandler(),
+  getListAssignmentsMockHandler(),
+  getCreateAssignmentMockHandler(),
+  getGetScheduledDayMockHandler(),
+  getPutOverrideMockHandler(),
+  getDeleteOverrideMockHandler(),
+  getDeleteAssignmentMockHandler(),
+  getListWorkShiftsMockHandler(),
+  getCreateWorkShiftMockHandler(),
+  getDeleteWorkShiftMockHandler(),
+  getUpdateWorkShiftMockHandler(),
   getListStocktakesMockHandler(),
   getCreateStocktakeMockHandler(),
   getGetStocktakeMockHandler(),

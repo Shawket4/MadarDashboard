@@ -1,0 +1,1087 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/components/app/bilingual-field.tsx",
+   "type": "file",
+   "name": "bilingual-field.tsx",
+   "filePath": "src/components/app/bilingual-field.tsx",
+   "summary": "Reusable form field rendering paired English/Arabic inputs (or textareas) bound to React Hook Form, used by dialogs that edit bilingual names and descriptions.",
+   "tags": [
+    "component",
+    "form",
+    "i18n",
+    "bilingual"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/bilingual-field.tsx:BilingualField",
+   "type": "function",
+   "name": "BilingualField",
+   "filePath": "src/components/app/bilingual-field.tsx",
+   "lineRange": [
+    16,
+    56
+   ],
+   "summary": "Renders EN and AR inputs for a single bilingual form value using the shared Form primitives.",
+   "tags": [
+    "component",
+    "form",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/app/combobox.tsx",
+   "type": "file",
+   "name": "combobox.tsx",
+   "filePath": "src/components/app/combobox.tsx",
+   "summary": "Searchable single-select combobox built on Popover and Command primitives, used for picking items from long lists (timezones, suppliers, inventory items).",
+   "tags": [
+    "component",
+    "select",
+    "search",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/combobox.tsx:Combobox",
+   "type": "function",
+   "name": "Combobox",
+   "filePath": "src/components/app/combobox.tsx",
+   "lineRange": [
+    37,
+    89
+   ],
+   "summary": "Searchable popover-based selector with keyboard filtering and a controlled value.",
+   "tags": [
+    "component",
+    "select",
+    "search"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/components/app/editable-cards.tsx",
+   "type": "file",
+   "name": "editable-cards.tsx",
+   "filePath": "src/components/app/editable-cards.tsx",
+   "summary": "Generic editable card grid with inline cell editing, bulk paste-from-clipboard dialog, selection, filtering, and export; the shared editing surface for list-style feature pages.",
+   "tags": [
+    "component",
+    "data-grid",
+    "inline-editing",
+    "bulk-edit",
+    "export"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/components/app/editable-cards.tsx:InlineCell",
+   "type": "function",
+   "name": "InlineCell",
+   "filePath": "src/components/app/editable-cards.tsx",
+   "lineRange": [
+    45,
+    133
+   ],
+   "summary": "Inline editable cell that switches between display and input/select/switch modes by column type.",
+   "tags": [
+    "component",
+    "data-grid",
+    "inline-editing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/editable-cards.tsx:PasteDialog",
+   "type": "function",
+   "name": "PasteDialog",
+   "filePath": "src/components/app/editable-cards.tsx",
+   "lineRange": [
+    143,
+    257
+   ],
+   "summary": "Dialog that parses clipboard tabular text into rows and maps columns before bulk creation.",
+   "tags": [
+    "component",
+    "data-grid",
+    "inline-editing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/editable-cards.tsx:EditableCardItem",
+   "type": "function",
+   "name": "EditableCardItem",
+   "filePath": "src/components/app/editable-cards.tsx",
+   "lineRange": [
+    296,
+    354
+   ],
+   "summary": "Single card rendering one record with its editable fields, selection checkbox, and actions menu.",
+   "tags": [
+    "component",
+    "data-grid",
+    "inline-editing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/editable-cards.tsx:EditableCardGrid",
+   "type": "function",
+   "name": "EditableCardGrid",
+   "filePath": "src/components/app/editable-cards.tsx",
+   "lineRange": [
+    356,
+    488
+   ],
+   "summary": "Top-level grid orchestrating rows, selection, search, paste import, and per-cell save callbacks.",
+   "tags": [
+    "component",
+    "data-grid",
+    "inline-editing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/components/app/image-uploader.tsx",
+   "type": "file",
+   "name": "image-uploader.tsx",
+   "filePath": "src/components/app/image-uploader.tsx",
+   "summary": "Drag-and-drop / click-to-select image uploader with preview and removal, used by menu item and bundle dialogs.",
+   "tags": [
+    "component",
+    "upload",
+    "image",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/image-uploader.tsx:ImageUploader",
+   "type": "function",
+   "name": "ImageUploader",
+   "filePath": "src/components/app/image-uploader.tsx",
+   "lineRange": [
+    20,
+    157
+   ],
+   "summary": "Handles file selection, drag-drop, preview rendering and clearing for a single image value.",
+   "tags": [
+    "component",
+    "upload",
+    "image"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/components/app/time-picker.tsx",
+   "type": "file",
+   "name": "time-picker.tsx",
+   "filePath": "src/components/app/time-picker.tsx",
+   "summary": "Popover-based time picker producing HH:MM strings with hour/minute inputs and parsing helpers.",
+   "tags": [
+    "component",
+    "form",
+    "time",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/time-picker.tsx:parse",
+   "type": "function",
+   "name": "parse",
+   "filePath": "src/components/app/time-picker.tsx",
+   "lineRange": [
+    25,
+    32
+   ],
+   "summary": "Parses an HH:MM string into hour and minute numbers with validation.",
+   "tags": [
+    "component",
+    "form",
+    "time"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/app/time-picker.tsx:TimePicker",
+   "type": "function",
+   "name": "TimePicker",
+   "filePath": "src/components/app/time-picker.tsx",
+   "lineRange": [
+    40,
+    138
+   ],
+   "summary": "Popover time input that renders hour/minute controls and emits normalized HH:MM values.",
+   "tags": [
+    "component",
+    "form",
+    "time"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/components/app/timezone-select.tsx",
+   "type": "file",
+   "name": "timezone-select.tsx",
+   "filePath": "src/components/app/timezone-select.tsx",
+   "summary": "Thin wrapper around Combobox that lists IANA timezones from Intl.supportedValuesOf for branch settings.",
+   "tags": [
+    "component",
+    "select",
+    "timezone",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/app/timezone-select.tsx:TimezoneSelect",
+   "type": "function",
+   "name": "TimezoneSelect",
+   "filePath": "src/components/app/timezone-select.tsx",
+   "lineRange": [
+    18,
+    44
+   ],
+   "summary": "Combobox preloaded with the runtime's supported IANA timezone identifiers.",
+   "tags": [
+    "component",
+    "select",
+    "timezone"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/button.tsx",
+   "type": "file",
+   "name": "button.tsx",
+   "filePath": "src/components/ui/button.tsx",
+   "summary": "Shadcn-style Button primitive with class-variance-authority variants and sizes, optionally rendering as a Slot child.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "button",
+    "variants"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/button.tsx:Button",
+   "type": "function",
+   "name": "Button",
+   "filePath": "src/components/ui/button.tsx",
+   "lineRange": [
+    43,
+    78
+   ],
+   "summary": "Button component applying variant/size classes and supporting asChild composition.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "button"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/dialog.tsx",
+   "type": "file",
+   "name": "dialog.tsx",
+   "filePath": "src/components/ui/dialog.tsx",
+   "summary": "Radix Dialog wrappers (overlay, content, header, footer, title, description) styled with Tailwind for all modal dialogs in the dashboard.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "dialog",
+    "radix"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/dialog.tsx:DialogOverlay",
+   "type": "function",
+   "name": "DialogOverlay",
+   "filePath": "src/components/ui/dialog.tsx",
+   "lineRange": [
+    33,
+    47
+   ],
+   "summary": "Styled backdrop overlay for the modal.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "dialog"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dialog.tsx:DialogContent",
+   "type": "function",
+   "name": "DialogContent",
+   "filePath": "src/components/ui/dialog.tsx",
+   "lineRange": [
+    49,
+    82
+   ],
+   "summary": "Centered modal content wrapper with portal, overlay, animations and close button.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "dialog"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dialog.tsx:DialogHeader",
+   "type": "function",
+   "name": "DialogHeader",
+   "filePath": "src/components/ui/dialog.tsx",
+   "lineRange": [
+    84,
+    92
+   ],
+   "summary": "Layout wrapper for dialog title and description.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "dialog"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dialog.tsx:DialogFooter",
+   "type": "function",
+   "name": "DialogFooter",
+   "filePath": "src/components/ui/dialog.tsx",
+   "lineRange": [
+    94,
+    120
+   ],
+   "summary": "Responsive action row for dialog buttons.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "dialog"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dialog.tsx:DialogTitle",
+   "type": "function",
+   "name": "DialogTitle",
+   "filePath": "src/components/ui/dialog.tsx",
+   "lineRange": [
+    122,
+    133
+   ],
+   "summary": "Styled Radix dialog title.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "dialog"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dialog.tsx:DialogDescription",
+   "type": "function",
+   "name": "DialogDescription",
+   "filePath": "src/components/ui/dialog.tsx",
+   "lineRange": [
+    135,
+    146
+   ],
+   "summary": "Styled Radix dialog description text.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "dialog"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/form.tsx",
+   "type": "file",
+   "name": "form.tsx",
+   "filePath": "src/components/ui/form.tsx",
+   "summary": "React Hook Form integration primitives (FormField, FormItem, FormLabel, FormControl, FormMessage) with context-based field state and accessible ids.",
+   "tags": [
+    "ui-primitive",
+    "form",
+    "react-hook-form",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/form.tsx:FormField",
+   "type": "function",
+   "name": "FormField",
+   "filePath": "src/components/ui/form.tsx",
+   "lineRange": [
+    30,
+    41
+   ],
+   "summary": "Wraps a Controller and exposes the field name via context.",
+   "tags": [
+    "ui-primitive",
+    "form",
+    "react-hook-form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/form.tsx:useFormField",
+   "type": "function",
+   "name": "useFormField",
+   "filePath": "src/components/ui/form.tsx",
+   "lineRange": [
+    43,
+    64
+   ],
+   "summary": "Hook that resolves field state, ids and error from form/item contexts.",
+   "tags": [
+    "ui-primitive",
+    "form",
+    "react-hook-form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/form.tsx:FormItem",
+   "type": "function",
+   "name": "FormItem",
+   "filePath": "src/components/ui/form.tsx",
+   "lineRange": [
+    74,
+    86
+   ],
+   "summary": "Container that generates a unique id for a field group.",
+   "tags": [
+    "ui-primitive",
+    "form",
+    "react-hook-form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/form.tsx:FormLabel",
+   "type": "function",
+   "name": "FormLabel",
+   "filePath": "src/components/ui/form.tsx",
+   "lineRange": [
+    88,
+    103
+   ],
+   "summary": "Label that reflects the field's error state.",
+   "tags": [
+    "ui-primitive",
+    "form",
+    "react-hook-form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/form.tsx:FormControl",
+   "type": "function",
+   "name": "FormControl",
+   "filePath": "src/components/ui/form.tsx",
+   "lineRange": [
+    105,
+    121
+   ],
+   "summary": "Slot wiring aria attributes and ids onto the input.",
+   "tags": [
+    "ui-primitive",
+    "form",
+    "react-hook-form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/form.tsx:FormDescription",
+   "type": "function",
+   "name": "FormDescription",
+   "filePath": "src/components/ui/form.tsx",
+   "lineRange": [
+    123,
+    134
+   ],
+   "summary": "Helper text tied to the field's description id.",
+   "tags": [
+    "ui-primitive",
+    "form",
+    "react-hook-form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/form.tsx:FormMessage",
+   "type": "function",
+   "name": "FormMessage",
+   "filePath": "src/components/ui/form.tsx",
+   "lineRange": [
+    136,
+    154
+   ],
+   "summary": "Renders the field's validation error message when present.",
+   "tags": [
+    "ui-primitive",
+    "form",
+    "react-hook-form"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/components/app/bilingual-field.tsx",
+   "target": "function:src/components/app/bilingual-field.tsx:BilingualField",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/bilingual-field.tsx",
+   "target": "function:src/components/app/bilingual-field.tsx:BilingualField",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/bilingual-field.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/bilingual-field.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/bilingual-field.tsx",
+   "target": "file:src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/combobox.tsx",
+   "target": "function:src/components/app/combobox.tsx:Combobox",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/combobox.tsx",
+   "target": "function:src/components/app/combobox.tsx:Combobox",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/combobox.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/combobox.tsx",
+   "target": "file:src/components/ui/command.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/combobox.tsx",
+   "target": "file:src/components/ui/popover.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/combobox.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "function:src/components/app/editable-cards.tsx:InlineCell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "function:src/components/app/editable-cards.tsx:PasteDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "function:src/components/app/editable-cards.tsx:EditableCardItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "function:src/components/app/editable-cards.tsx:EditableCardGrid",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "function:src/components/app/editable-cards.tsx:EditableCardGrid",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/app/export-button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/checkbox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/dropdown-menu.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/lib/normalize.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/editable-cards.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/image-uploader.tsx",
+   "target": "function:src/components/app/image-uploader.tsx:ImageUploader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/image-uploader.tsx",
+   "target": "function:src/components/app/image-uploader.tsx:ImageUploader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/image-uploader.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/image-uploader.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/time-picker.tsx",
+   "target": "function:src/components/app/time-picker.tsx:parse",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/time-picker.tsx",
+   "target": "function:src/components/app/time-picker.tsx:TimePicker",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/time-picker.tsx",
+   "target": "function:src/components/app/time-picker.tsx:TimePicker",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/time-picker.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/time-picker.tsx",
+   "target": "file:src/components/ui/popover.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/time-picker.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/timezone-select.tsx",
+   "target": "function:src/components/app/timezone-select.tsx:TimezoneSelect",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/timezone-select.tsx",
+   "target": "function:src/components/app/timezone-select.tsx:TimezoneSelect",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/timezone-select.tsx",
+   "target": "file:src/components/app/combobox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/button.tsx",
+   "target": "function:src/components/ui/button.tsx:Button",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/button.tsx",
+   "target": "function:src/components/ui/button.tsx:Button",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/button.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogOverlay",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogOverlay",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogHeader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogHeader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogFooter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogFooter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogTitle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogTitle",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogDescription",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "function:src/components/ui/dialog.tsx:DialogDescription",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/dialog.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormField",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormField",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:useFormField",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:useFormField",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormLabel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormLabel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormControl",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormControl",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormDescription",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormDescription",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "function:src/components/ui/form.tsx:FormMessage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/form.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}

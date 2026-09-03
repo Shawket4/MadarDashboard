@@ -7,6 +7,8 @@ import {
   Boxes,
   Building2,
   CalendarCheck,
+  CalendarClock,
+  CalendarRange,
   ChefHat,
   ClipboardList,
   Clock,
@@ -14,6 +16,7 @@ import {
   CupSoda,
   FileBarChart,
   Home,
+  Inbox,
   Layers,
   LayoutDashboard,
   MessageCircle,
@@ -21,6 +24,7 @@ import {
   Plug,
   QrCode,
   Receipt,
+  Scale,
   Settings,
   Settings2,
   SlidersHorizontal,
@@ -30,6 +34,7 @@ import {
   Trash2,
   TrendingUp,
   Truck,
+  UserRound,
   Users,
   UtensilsCrossed,
 } from "lucide-react";
@@ -182,6 +187,29 @@ export const NAV: NavGroup[] = [
         superAdminOnly: true,
       },
       { to: "/settings", labelKey: "nav.settings", fallback: "General settings", icon: Settings },
+    ],
+  },
+  {
+    labelKey: "nav.team",
+    fallback: "Team",
+    entries: [
+      {
+        labelKey: "nav.staff",
+        fallback: "Staff",
+        icon: UserRound,
+        basePath: "/staff",
+        children: [
+          { to: "/staff/employees", labelKey: "nav.employees", fallback: "Employees", icon: UserRound },
+          { to: "/staff/attendance", labelKey: "nav.attendance", fallback: "Attendance", icon: CalendarClock },
+          // "Work shifts" deliberately, not "Shifts" — /shifts is the cash drawer.
+          { to: "/staff/shifts", labelKey: "nav.workShifts", fallback: "Work shifts", icon: CalendarRange },
+          { to: "/staff/requests", labelKey: "nav.requests", fallback: "Requests", icon: Inbox },
+          { to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
+          // Payroll deliberately absent: the RUN lives in the staff app, where a
+          // manager approves it with the team in front of them. Splitting it
+          // across two surfaces would mean two places to approve the same money.
+        ],
+      },
     ],
   },
   {

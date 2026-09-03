@@ -1,0 +1,1046 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/public-ordering/storefront-shell.tsx",
+   "type": "file",
+   "name": "storefront-shell.tsx",
+   "filePath": "src/features/public-ordering/storefront-shell.tsx",
+   "summary": "Storefront brand chrome shared by customer surfaces (tracking, scan-to-order): header with logo, language switch and order-theme toggle around page content.",
+   "tags": [
+    "component",
+    "layout",
+    "shell",
+    "public-ordering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/storefront-shell.tsx:HeaderIcon",
+   "type": "function",
+   "name": "HeaderIcon",
+   "filePath": "src/features/public-ordering/storefront-shell.tsx",
+   "lineRange": [
+    8,
+    27
+   ],
+   "summary": "Circular bordered header icon button matching the ordering flow chrome.",
+   "tags": [
+    "component",
+    "button"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/storefront-shell.tsx:StorefrontShell",
+   "type": "function",
+   "name": "StorefrontShell",
+   "filePath": "src/features/public-ordering/storefront-shell.tsx",
+   "lineRange": [
+    35,
+    78
+   ],
+   "summary": "Layout shell rendering the storefront header with language and theme controls.",
+   "tags": [
+    "component",
+    "layout"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/public-ordering/types.ts",
+   "type": "file",
+   "name": "types.ts",
+   "filePath": "src/features/public-ordering/types.ts",
+   "summary": "Type definitions for the public ordering flow: Channel, Step, cart lines, selected addons, guest profile and the FLAT_CHANNELS helper.",
+   "tags": [
+    "type-definition",
+    "public-ordering",
+    "cart"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/public-ordering/use-order-theme.ts",
+   "type": "file",
+   "name": "use-order-theme.ts",
+   "filePath": "src/features/public-ordering/use-order-theme.ts",
+   "summary": "Zustand store for the customer ordering theme, defaulting to light and persisted under its own key, with apply/restoreGlobal to scope it away from the dashboard theme.",
+   "tags": [
+    "hook",
+    "store",
+    "theme",
+    "zustand",
+    "public-ordering"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/public-ordering/utils.ts",
+   "type": "file",
+   "name": "utils.ts",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "summary": "Pure helpers for the ordering flow: cart pricing math, discount calculation, phone normalization/validation, and localStorage persistence of device token, guest phone and cart.",
+   "tags": [
+    "utility",
+    "cart",
+    "pricing",
+    "persistence",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:lineUnitPrice",
+   "type": "function",
+   "name": "lineUnitPrice",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    12,
+    16
+   ],
+   "summary": "Computes a cart line's unit price including selected addons.",
+   "tags": [
+    "pricing",
+    "cart"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:cartSubtotal",
+   "type": "function",
+   "name": "cartSubtotal",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    22,
+    23
+   ],
+   "summary": "Sums line totals across the cart.",
+   "tags": [
+    "pricing",
+    "cart"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:calcDiscount",
+   "type": "function",
+   "name": "calcDiscount",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    31,
+    41
+   ],
+   "summary": "Calculates a percentage or fixed discount amount against a subtotal.",
+   "tags": [
+    "pricing",
+    "discount"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:itemBasePrice",
+   "type": "function",
+   "name": "itemBasePrice",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    44,
+    50
+   ],
+   "summary": "Resolves an item's base price for a given size label.",
+   "tags": [
+    "pricing",
+    "menu"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:toCartLineInput",
+   "type": "function",
+   "name": "toCartLineInput",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    53,
+    60
+   ],
+   "summary": "Converts an internal CartLine into the API CartLineInput payload.",
+   "tags": [
+    "serialization",
+    "cart"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:normalizePhone",
+   "type": "function",
+   "name": "normalizePhone",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    72,
+    79
+   ],
+   "summary": "Normalizes an Egyptian mobile number to a canonical local format.",
+   "tags": [
+    "validation",
+    "phone"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:isValidPhone",
+   "type": "function",
+   "name": "isValidPhone",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    82,
+    83
+   ],
+   "summary": "Validates a normalized Egyptian mobile number.",
+   "tags": [
+    "validation",
+    "phone"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:getDeviceToken",
+   "type": "function",
+   "name": "getDeviceToken",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    88,
+    94
+   ],
+   "summary": "Reads the stored guest device token for a phone.",
+   "tags": [
+    "persistence",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:setDeviceToken",
+   "type": "function",
+   "name": "setDeviceToken",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    97,
+    103
+   ],
+   "summary": "Persists the guest device token for a phone.",
+   "tags": [
+    "persistence",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:getGuestPhone",
+   "type": "function",
+   "name": "getGuestPhone",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    108,
+    114
+   ],
+   "summary": "Reads the remembered guest phone for an org.",
+   "tags": [
+    "persistence",
+    "guest"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:setGuestPhone",
+   "type": "function",
+   "name": "setGuestPhone",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    117,
+    123
+   ],
+   "summary": "Stores the guest phone for an org.",
+   "tags": [
+    "persistence",
+    "guest"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:loadCart",
+   "type": "function",
+   "name": "loadCart",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    134,
+    143
+   ],
+   "summary": "Loads the persisted cart for an org/branch from localStorage.",
+   "tags": [
+    "persistence",
+    "cart"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:saveCart",
+   "type": "function",
+   "name": "saveCart",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    146,
+    153
+   ],
+   "summary": "Persists the cart for an org/branch to localStorage.",
+   "tags": [
+    "persistence",
+    "cart"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:clearCart",
+   "type": "function",
+   "name": "clearCart",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    156,
+    162
+   ],
+   "summary": "Removes the persisted cart for an org/branch.",
+   "tags": [
+    "persistence",
+    "cart"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:newUid",
+   "type": "function",
+   "name": "newUid",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    165,
+    171
+   ],
+   "summary": "Generates a unique id for a cart line.",
+   "tags": [
+    "utility",
+    "id"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/utils.ts:asChannel",
+   "type": "function",
+   "name": "asChannel",
+   "filePath": "src/features/public-ordering/utils.ts",
+   "lineRange": [
+    8,
+    9
+   ],
+   "summary": "Coerces a string into a supported Channel with a safe default.",
+   "tags": [
+    "utility",
+    "channel"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/shifts/shift-report-sheet.tsx",
+   "type": "file",
+   "name": "shift-report-sheet.tsx",
+   "filePath": "src/features/shifts/shift-report-sheet.tsx",
+   "summary": "Side sheet showing a closed shift's report: cash expected vs counted, sales breakdown and movements, with skeleton loading and print/export actions.",
+   "tags": [
+    "component",
+    "sheet",
+    "shifts",
+    "report"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/shifts/shift-report-sheet.tsx:ShiftReportSheet",
+   "type": "function",
+   "name": "ShiftReportSheet",
+   "filePath": "src/features/shifts/shift-report-sheet.tsx",
+   "lineRange": [
+    25,
+    200
+   ],
+   "summary": "Fetches the shift report for a shift id and renders its summary cards and breakdown inside a Sheet.",
+   "tags": [
+    "component",
+    "sheet",
+    "report"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/get/main.tsx",
+   "type": "file",
+   "name": "main.tsx",
+   "filePath": "src/get/main.tsx",
+   "summary": "Entry point for the standalone marketing landing bundle (get.madar-pos.cloud): loads fonts, global styles, i18n and theme, then renders LandingPage without a router or session.",
+   "tags": [
+    "entry-point",
+    "bootstrap",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/i18n/index.ts",
+   "type": "file",
+   "name": "index.ts",
+   "filePath": "src/i18n/index.ts",
+   "summary": "Initializes i18next with English and Arabic resources, browser language detection persisted under madar.lang, and exports applyHtmlDir to sync <html lang/dir>.",
+   "tags": [
+    "i18n",
+    "bootstrap",
+    "configuration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/i18n/index.ts:applyHtmlDir",
+   "type": "function",
+   "name": "applyHtmlDir",
+   "filePath": "src/i18n/index.ts",
+   "lineRange": [
+    31,
+    35
+   ],
+   "summary": "Sets the document's lang and dir attributes (rtl for Arabic) for the active language.",
+   "tags": [
+    "i18n",
+    "rtl",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/motion.ts",
+   "type": "file",
+   "name": "motion.ts",
+   "filePath": "src/lib/motion.ts",
+   "summary": "Shared motion vocabulary for motion/react: duration and easing tokens, transition presets and reusable variants (fadeIn, riseIn, listItem, staggerContainer, etc.).",
+   "tags": [
+    "utility",
+    "animation",
+    "design-tokens",
+    "motion"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/lib/motion.ts:staggerContainer",
+   "type": "function",
+   "name": "staggerContainer",
+   "filePath": "src/lib/motion.ts",
+   "lineRange": [
+    66,
+    69
+   ],
+   "summary": "Builds a container Variants object that staggers child animations by a given delay.",
+   "tags": [
+    "animation",
+    "factory"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/theme.ts",
+   "type": "file",
+   "name": "theme.ts",
+   "filePath": "src/lib/theme.ts",
+   "summary": "Zustand store for the dashboard theme (light/dark/system) persisted under madar.theme, resolving system preference and toggling the dark class on <html>.",
+   "tags": [
+    "store",
+    "theme",
+    "zustand",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/utils.ts",
+   "type": "file",
+   "name": "utils.ts",
+   "filePath": "src/lib/utils.ts",
+   "summary": "Exports cn, the clsx + tailwind-merge class name helper used by every UI component.",
+   "tags": [
+    "utility",
+    "styling",
+    "tailwind"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/utils.ts:cn",
+   "type": "function",
+   "name": "cn",
+   "filePath": "src/lib/utils.ts",
+   "lineRange": [
+    5,
+    5
+   ],
+   "summary": "Merges conditional class names and resolves Tailwind conflicts.",
+   "tags": [
+    "utility",
+    "styling"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/order/main.tsx",
+   "type": "file",
+   "name": "main.tsx",
+   "filePath": "src/order/main.tsx",
+   "summary": "Entry point for the customer order app bundle: sets up fonts, i18n, theme, React Query and a minimal router mapping /order/:orgId, /track/:id and the ScanToOrder fallback.",
+   "tags": [
+    "entry-point",
+    "bootstrap",
+    "routing",
+    "public-ordering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/order/main.tsx:render",
+   "type": "function",
+   "name": "render",
+   "filePath": "src/order/main.tsx",
+   "lineRange": [
+    161,
+    171
+   ],
+   "summary": "Mounts the app root with providers and renders the route matched from the current URL.",
+   "tags": [
+    "bootstrap",
+    "routing"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/public-ordering/storefront-shell.tsx",
+   "target": "file:src/features/public-ordering/use-order-theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/storefront-shell.tsx",
+   "target": "function:src/features/public-ordering/storefront-shell.tsx:HeaderIcon",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/storefront-shell.tsx",
+   "target": "function:src/features/public-ordering/storefront-shell.tsx:HeaderIcon",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/storefront-shell.tsx",
+   "target": "function:src/features/public-ordering/storefront-shell.tsx:StorefrontShell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/storefront-shell.tsx",
+   "target": "function:src/features/public-ordering/storefront-shell.tsx:StorefrontShell",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/storefront-shell.tsx:StorefrontShell",
+   "target": "file:src/features/public-ordering/use-order-theme.ts",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/features/public-ordering/use-order-theme.ts",
+   "target": "file:src/lib/theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/use-order-theme.ts",
+   "target": "file:src/lib/theme.ts",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "file:src/features/public-ordering/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:lineUnitPrice",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:lineUnitPrice",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:cartSubtotal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:cartSubtotal",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:calcDiscount",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:calcDiscount",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:itemBasePrice",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:itemBasePrice",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:toCartLineInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:toCartLineInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:normalizePhone",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:normalizePhone",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:isValidPhone",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:isValidPhone",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:getDeviceToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:getDeviceToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:setDeviceToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:setDeviceToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:getGuestPhone",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:getGuestPhone",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:setGuestPhone",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:setGuestPhone",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:loadCart",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:loadCart",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:saveCart",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:saveCart",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:clearCart",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:clearCart",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:newUid",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:newUid",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:asChannel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/utils.ts",
+   "target": "function:src/features/public-ordering/utils.ts:asChannel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/shifts/shift-report-sheet.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shift-report-sheet.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shift-report-sheet.tsx",
+   "target": "file:src/components/ui/sheet.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shift-report-sheet.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shift-report-sheet.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shift-report-sheet.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/shift-report-sheet.tsx",
+   "target": "function:src/features/shifts/shift-report-sheet.tsx:ShiftReportSheet",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/shifts/shift-report-sheet.tsx",
+   "target": "function:src/features/shifts/shift-report-sheet.tsx:ShiftReportSheet",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/shifts/shift-report-sheet.tsx:ShiftReportSheet",
+   "target": "function:src/lib/format.ts:fmtMoney",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/get/main.tsx",
+   "target": "file:src/features/landing/landing-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/get/main.tsx",
+   "target": "file:src/i18n/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/get/main.tsx",
+   "target": "file:src/lib/theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/get/main.tsx",
+   "target": "file:src/styles/globals.css",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/get/main.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:LandingPage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/i18n/index.ts",
+   "target": "file:src/i18n/locales/ar.json",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/i18n/index.ts",
+   "target": "file:src/i18n/locales/en.json",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/i18n/index.ts",
+   "target": "function:src/i18n/index.ts:applyHtmlDir",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/i18n/index.ts",
+   "target": "function:src/i18n/index.ts:applyHtmlDir",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/motion.ts",
+   "target": "function:src/lib/motion.ts:staggerContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/lib/motion.ts",
+   "target": "function:src/lib/motion.ts:staggerContainer",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/utils.ts",
+   "target": "function:src/lib/utils.ts:cn",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/lib/utils.ts",
+   "target": "function:src/lib/utils.ts:cn",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/order/main.tsx",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/order/main.tsx",
+   "target": "file:src/features/order-tracking/tracking-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/order/main.tsx",
+   "target": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/order/main.tsx",
+   "target": "file:src/features/public-ordering/scan-to-order.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/order/main.tsx",
+   "target": "file:src/i18n/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/order/main.tsx",
+   "target": "file:src/lib/theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/order/main.tsx",
+   "target": "file:src/styles/globals.css",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/order/main.tsx",
+   "target": "function:src/order/main.tsx:render",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "function:src/order/main.tsx:render",
+   "target": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/order/main.tsx:render",
+   "target": "function:src/features/public-ordering/scan-to-order.tsx:ScanToOrder",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/order/main.tsx:render",
+   "target": "function:src/features/order-tracking/tracking-page.tsx:OrderTrackingPage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

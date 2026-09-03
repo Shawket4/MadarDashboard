@@ -1,0 +1,979 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/inventory/settings-page.tsx",
+   "type": "file",
+   "name": "settings-page.tsx",
+   "filePath": "src/features/inventory/settings-page.tsx",
+   "summary": "Inventory settings page letting an org admin view and save org-wide inventory rules such as the stocktake variance threshold percentage.",
+   "tags": [
+    "component",
+    "page",
+    "inventory",
+    "settings",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/inventory/settings-page.tsx:SettingsPage",
+   "type": "function",
+   "name": "SettingsPage",
+   "filePath": "src/features/inventory/settings-page.tsx",
+   "lineRange": [
+    18,
+    94
+   ],
+   "summary": "Renders and saves the org's stocktake variance threshold.",
+   "tags": [
+    "component",
+    "component",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/inventory/supplier-dialog.tsx",
+   "type": "file",
+   "name": "supplier-dialog.tsx",
+   "filePath": "src/features/inventory/supplier-dialog.tsx",
+   "summary": "Create/edit dialog for an inventory supplier (name, contact, active flag) that invalidates inventory queries on save.",
+   "tags": [
+    "component",
+    "dialog",
+    "inventory",
+    "form",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/inventory/supplier-dialog.tsx:SupplierDialog",
+   "type": "function",
+   "name": "SupplierDialog",
+   "filePath": "src/features/inventory/supplier-dialog.tsx",
+   "lineRange": [
+    24,
+    108
+   ],
+   "summary": "Form dialog creating or updating a supplier record.",
+   "tags": [
+    "component",
+    "component",
+    "dialog"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/inventory/transfer-dialog.tsx",
+   "type": "file",
+   "name": "transfer-dialog.tsx",
+   "filePath": "src/features/inventory/transfer-dialog.tsx",
+   "summary": "Dialog for creating a stock transfer between two branches, selecting ingredient lines and quantities with unit-aware formatting.",
+   "tags": [
+    "component",
+    "dialog",
+    "inventory",
+    "form",
+    "transfer"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/inventory/transfer-dialog.tsx:TransferDialog",
+   "type": "function",
+   "name": "TransferDialog",
+   "filePath": "src/features/inventory/transfer-dialog.tsx",
+   "lineRange": [
+    29,
+    157
+   ],
+   "summary": "Form dialog composing a multi-line branch-to-branch stock transfer.",
+   "tags": [
+    "component",
+    "component",
+    "dialog"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/inventory/waste-dialog.tsx",
+   "type": "file",
+   "name": "waste-dialog.tsx",
+   "filePath": "src/features/inventory/waste-dialog.tsx",
+   "summary": "Dialog for logging ingredient waste at a branch with a reason code, quantity and optional note, optionally preset to an ingredient.",
+   "tags": [
+    "component",
+    "dialog",
+    "inventory",
+    "form",
+    "waste"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/inventory/waste-dialog.tsx:WasteDialog",
+   "type": "function",
+   "name": "WasteDialog",
+   "filePath": "src/features/inventory/waste-dialog.tsx",
+   "lineRange": [
+    29,
+    144
+   ],
+   "summary": "Form dialog recording a waste entry for a branch ingredient.",
+   "tags": [
+    "component",
+    "component",
+    "dialog"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "type": "file",
+   "name": "station-dialog.tsx",
+   "filePath": "src/features/kitchen-stations/station-dialog.tsx",
+   "summary": "Zod + React Hook Form dialog for creating or editing a kitchen station (name, printer/type settings, active flag) at a branch.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "validation",
+    "kitchen"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/kitchen-stations/station-dialog.tsx:StationDialog",
+   "type": "function",
+   "name": "StationDialog",
+   "filePath": "src/features/kitchen-stations/station-dialog.tsx",
+   "lineRange": [
+    31,
+    165
+   ],
+   "summary": "Validated form dialog for kitchen station create/update.",
+   "tags": [
+    "component",
+    "component",
+    "dialog"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/menu/addon-dialog.tsx",
+   "type": "file",
+   "name": "addon-dialog.tsx",
+   "filePath": "src/features/menu/addon-dialog.tsx",
+   "summary": "Create/edit dialog for a reusable menu add-on with bilingual name, type, price (EGP to piastres) and availability flag.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "menu",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/menu/addon-dialog.tsx:AddonDialog",
+   "type": "function",
+   "name": "AddonDialog",
+   "filePath": "src/features/menu/addon-dialog.tsx",
+   "lineRange": [
+    57,
+    235
+   ],
+   "summary": "Validated form dialog for add-on create/update with price conversion.",
+   "tags": [
+    "component",
+    "component",
+    "dialog"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/menu/addon-recipe-dialog.tsx",
+   "type": "file",
+   "name": "addon-recipe-dialog.tsx",
+   "filePath": "src/features/menu/addon-recipe-dialog.tsx",
+   "summary": "Dialog for editing a reusable add-on's single-size ingredient recipe via the shared RecipeBuilder, writing through putOptionRecipe.",
+   "tags": [
+    "component",
+    "dialog",
+    "menu",
+    "recipe",
+    "costing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/addon-recipe-dialog.tsx:AddonRecipeDialog",
+   "type": "function",
+   "name": "AddonRecipeDialog",
+   "filePath": "src/features/menu/addon-recipe-dialog.tsx",
+   "lineRange": [
+    38,
+    110
+   ],
+   "summary": "Wraps RecipeBuilder to edit an add-on's one-size recipe.",
+   "tags": [
+    "component",
+    "component",
+    "dialog"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "type": "file",
+   "name": "branch-addon-override-dialog.tsx",
+   "filePath": "src/features/menu/branch-addon-override-dialog.tsx",
+   "summary": "Dialog for setting a per-branch price/availability override on an add-on, showing the org default and allowing reset.",
+   "tags": [
+    "component",
+    "dialog",
+    "menu",
+    "branch-override",
+    "pricing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/branch-addon-override-dialog.tsx:BranchAddonOverrideDialog",
+   "type": "function",
+   "name": "BranchAddonOverrideDialog",
+   "filePath": "src/features/menu/branch-addon-override-dialog.tsx",
+   "lineRange": [
+    38,
+    175
+   ],
+   "summary": "Edits a branch-level add-on price/availability override.",
+   "tags": [
+    "component",
+    "component",
+    "dialog"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/menu/branch-availability-switch.tsx",
+   "type": "file",
+   "name": "branch-availability-switch.tsx",
+   "filePath": "src/features/menu/branch-availability-switch.tsx",
+   "summary": "Inline branch-scoped 'available at this branch' toggles for add-ons and menu items that write the merged menu-price-overrides table.",
+   "tags": [
+    "component",
+    "switch",
+    "menu",
+    "branch-override",
+    "availability"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/branch-availability-switch.tsx:BranchAddonAvailabilitySwitch",
+   "type": "function",
+   "name": "BranchAddonAvailabilitySwitch",
+   "filePath": "src/features/menu/branch-availability-switch.tsx",
+   "lineRange": [
+    39,
+    82
+   ],
+   "summary": "Toggles an add-on's availability for one branch via the override table.",
+   "tags": [
+    "component",
+    "component",
+    "switch"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/branch-availability-switch.tsx:BranchMenuItemAvailabilitySwitch",
+   "type": "function",
+   "name": "BranchMenuItemAvailabilitySwitch",
+   "filePath": "src/features/menu/branch-availability-switch.tsx",
+   "lineRange": [
+    84,
+    139
+   ],
+   "summary": "Toggles a menu item's per-size availability for one branch.",
+   "tags": [
+    "component",
+    "component",
+    "switch"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/branch-availability-switch.tsx:AvailabilityRow",
+   "type": "function",
+   "name": "AvailabilityRow",
+   "filePath": "src/features/menu/branch-availability-switch.tsx",
+   "lineRange": [
+    141,
+    158
+   ],
+   "summary": "Presentational labeled switch row.",
+   "tags": [
+    "component",
+    "component",
+    "switch"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "function:src/features/inventory/settings-page.tsx:SettingsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "function:src/features/inventory/settings-page.tsx:SettingsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "file:src/features/inventory/lib.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/settings-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/supplier-dialog.tsx",
+   "target": "function:src/features/inventory/supplier-dialog.tsx:SupplierDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/inventory/supplier-dialog.tsx",
+   "target": "function:src/features/inventory/supplier-dialog.tsx:SupplierDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/inventory/supplier-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/supplier-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/supplier-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/supplier-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/supplier-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/supplier-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/supplier-dialog.tsx",
+   "target": "file:src/features/inventory/lib.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "function:src/features/inventory/transfer-dialog.tsx:TransferDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "function:src/features/inventory/transfer-dialog.tsx:TransferDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "file:src/components/app/combobox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "file:src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "file:src/features/inventory/lib.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/transfer-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "function:src/features/inventory/waste-dialog.tsx:WasteDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "function:src/features/inventory/waste-dialog.tsx:WasteDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "file:src/components/app/combobox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "file:src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "file:src/features/inventory/lib.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/waste-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "target": "function:src/features/kitchen-stations/station-dialog.tsx:StationDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "target": "function:src/features/kitchen-stations/station-dialog.tsx:StationDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/kitchen-stations/station-dialog.tsx",
+   "target": "file:src/features/kitchen-stations/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "function:src/features/menu/addon-dialog.tsx:AddonDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "function:src/features/menu/addon-dialog.tsx:AddonDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "file:src/components/app/bilingual-field.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "file:src/features/menu/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-recipe-dialog.tsx",
+   "target": "function:src/features/menu/addon-recipe-dialog.tsx:AddonRecipeDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/addon-recipe-dialog.tsx",
+   "target": "function:src/features/menu/addon-recipe-dialog.tsx:AddonRecipeDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/addon-recipe-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-recipe-dialog.tsx",
+   "target": "file:src/components/ui/spinner.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-recipe-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-recipe-dialog.tsx",
+   "target": "file:src/features/menu/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/addon-recipe-dialog.tsx",
+   "target": "file:src/features/recipes/recipe-builder.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "target": "function:src/features/menu/branch-addon-override-dialog.tsx:BranchAddonOverrideDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "target": "function:src/features/menu/branch-addon-override-dialog.tsx:BranchAddonOverrideDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "target": "file:src/features/menu/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-addon-override-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-availability-switch.tsx",
+   "target": "function:src/features/menu/branch-availability-switch.tsx:BranchAddonAvailabilitySwitch",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/branch-availability-switch.tsx",
+   "target": "function:src/features/menu/branch-availability-switch.tsx:BranchAddonAvailabilitySwitch",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/branch-availability-switch.tsx",
+   "target": "function:src/features/menu/branch-availability-switch.tsx:BranchMenuItemAvailabilitySwitch",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/branch-availability-switch.tsx",
+   "target": "function:src/features/menu/branch-availability-switch.tsx:BranchMenuItemAvailabilitySwitch",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/branch-availability-switch.tsx",
+   "target": "function:src/features/menu/branch-availability-switch.tsx:AvailabilityRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/branch-availability-switch.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-availability-switch.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-availability-switch.tsx",
+   "target": "file:src/features/menu/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/branch-availability-switch.tsx",
+   "target": "function:src/features/menu/util.ts:invalidateCatalog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/addon-recipe-dialog.tsx",
+   "target": "function:src/features/recipes/recipe-builder.tsx:RecipeBuilder",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

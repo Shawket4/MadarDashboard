@@ -1,0 +1,160 @@
+{
+ "nodes": [
+  {
+   "id": "document:.github/skills/impeccable/reference/onboard.md",
+   "type": "document",
+   "name": "onboard.md",
+   "filePath": ".github/skills/impeccable/reference/onboard.md",
+   "summary": "Impeccable skill reference for the onboard command: a playbook for designing onboarding that gets users to first value quickly, covering assessment, progressive disclosure, empty states, and activation checkpoints.",
+   "tags": [
+    "documentation",
+    "design-guidance",
+    "onboarding",
+    "ux-playbook"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/optimize.md",
+   "type": "document",
+   "name": "optimize.md",
+   "filePath": ".github/skills/impeccable/reference/optimize.md",
+   "summary": "Impeccable skill reference for the optimize command: a frontend performance playbook covering Core Web Vitals measurement, bottleneck identification, bundle/image/runtime fixes, and verification.",
+   "tags": [
+    "documentation",
+    "design-guidance",
+    "performance",
+    "web-vitals"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/overdrive.md",
+   "type": "document",
+   "name": "overdrive.md",
+   "filePath": ".github/skills/impeccable/reference/overdrive.md",
+   "summary": "Impeccable skill reference for the overdrive command: guidance for pushing an interface past conventional limits with advanced browser capabilities, scoped by context so effects serve the task.",
+   "tags": [
+    "documentation",
+    "design-guidance",
+    "visual-effects",
+    "advanced-ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/polish.md",
+   "type": "document",
+   "name": "polish.md",
+   "filePath": ".github/skills/impeccable/reference/polish.md",
+   "summary": "Impeccable skill reference for the polish command: a meticulous final-pass checklist covering design-system alignment, spacing, states, typography, and browser-verified detail fixes before shipping.",
+   "tags": [
+    "documentation",
+    "design-guidance",
+    "qa-checklist",
+    "design-system"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/product.md",
+   "type": "document",
+   "name": "product.md",
+   "filePath": ".github/skills/impeccable/reference/product.md",
+   "summary": "Impeccable register reference for product surfaces (dashboards, admin UIs, tools): defines the product slop test and principles for quiet, trustworthy, task-serving interfaces.",
+   "tags": [
+    "documentation",
+    "design-guidance",
+    "product-register",
+    "dashboard-ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/quieter.md",
+   "type": "document",
+   "name": "quieter.md",
+   "filePath": ".github/skills/impeccable/reference/quieter.md",
+   "summary": "Impeccable skill reference for the quieter command: how to reduce visual intensity in loud designs (palette, whitespace, motion, noise) without losing personality, split by brand vs product register.",
+   "tags": [
+    "documentation",
+    "design-guidance",
+    "visual-restraint",
+    "refinement"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/shape.md",
+   "type": "document",
+   "name": "shape.md",
+   "filePath": ".github/skills/impeccable/reference/shape.md",
+   "summary": "Impeccable skill reference for the shape command: a design-planning workflow that produces a structured design brief (discovery, register, direction) before any code is written.",
+   "tags": [
+    "documentation",
+    "design-guidance",
+    "design-brief",
+    "planning"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/typeset.md",
+   "type": "document",
+   "name": "typeset.md",
+   "filePath": ".github/skills/impeccable/reference/typeset.md",
+   "summary": "Impeccable skill reference for the typeset command: a typography playbook covering font selection by register, type scales and ratios, hierarchy, line length, and replacing generic defaults.",
+   "tags": [
+    "documentation",
+    "design-guidance",
+    "typography",
+    "type-scale"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:.github/skills/impeccable/reference/shape.md",
+   "target": "document:.github/skills/impeccable/reference/product.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/quieter.md",
+   "target": "document:.github/skills/impeccable/reference/product.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/typeset.md",
+   "target": "document:.github/skills/impeccable/reference/product.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/polish.md",
+   "target": "document:.github/skills/impeccable/reference/product.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/overdrive.md",
+   "target": "document:.github/skills/impeccable/reference/product.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/polish.md",
+   "target": "document:.github/skills/impeccable/reference/optimize.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

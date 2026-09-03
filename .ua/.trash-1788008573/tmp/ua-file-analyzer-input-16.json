@@ -1,0 +1,1 @@
+{"projectRoot":"/Users/shawket/Desktop/MadarDashboard","batchFiles":[{"path":".github/workflows/deploy.yml","language":"yaml","sizeLines":97,"fileCategory":"infra"},{"path":".github/workflows/release.yml","language":"yaml","sizeLines":139,"fileCategory":"infra"}],"batchImportData":{".github/workflows/deploy.yml":[],".github/workflows/release.yml":[]}}

@@ -1,0 +1,1335 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "type": "file",
+   "name": "payment-method-dialog.tsx",
+   "filePath": "src/features/payment-methods/payment-method-dialog.tsx",
+   "summary": "Create/edit dialog for org payment methods (name, kind, icon/color, partner-order sharing toggle) using React Hook Form + Zod and Orval mutations.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "payment-methods"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/payment-methods/payment-method-dialog.tsx:PaymentMethodDialog",
+   "type": "function",
+   "name": "PaymentMethodDialog",
+   "filePath": "src/features/payment-methods/payment-method-dialog.tsx",
+   "lineRange": [
+    29,
+    179
+   ],
+   "summary": "Dialog component that creates or updates a payment method, invalidating the payment-methods queries on success.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/qr/qr-page.tsx",
+   "type": "file",
+   "name": "qr-page.tsx",
+   "filePath": "src/features/qr/qr-page.tsx",
+   "summary": "QR code generation page: lets admins render branded QR codes for table ordering / tracking links per branch with configurable render options, previews, and downloads.",
+   "tags": [
+    "component",
+    "page",
+    "qr",
+    "download"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/qr/qr-page.tsx:RenderOptions",
+   "type": "function",
+   "name": "RenderOptions",
+   "filePath": "src/features/qr/qr-page.tsx",
+   "lineRange": [
+    56,
+    92
+   ],
+   "summary": "Form controls for QR render options (size, colors, logo) bound to a RenderOpts value.",
+   "tags": [
+    "component",
+    "form",
+    "qr"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/qr/qr-page.tsx:QrResult",
+   "type": "function",
+   "name": "QrResult",
+   "filePath": "src/features/qr/qr-page.tsx",
+   "lineRange": [
+    96,
+    138
+   ],
+   "summary": "Card showing a generated QR image with download and preview actions.",
+   "tags": [
+    "component",
+    "qr",
+    "download"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/qr/qr-page.tsx:QrPage",
+   "type": "function",
+   "name": "QrPage",
+   "filePath": "src/features/qr/qr-page.tsx",
+   "lineRange": [
+    142,
+    429
+   ],
+   "summary": "Main QR page composing tabs for table/branch QR generation, scoped by org and branch.",
+   "tags": [
+    "component",
+    "page",
+    "entry-point"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/qr/qr-preview-dialog.tsx",
+   "type": "file",
+   "name": "qr-preview-dialog.tsx",
+   "filePath": "src/features/qr/qr-preview-dialog.tsx",
+   "summary": "Dialog that previews a generated QR code at full size with metadata badges and a download button.",
+   "tags": [
+    "component",
+    "dialog",
+    "qr",
+    "download"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/qr/qr-preview-dialog.tsx:QrPreviewDialog",
+   "type": "function",
+   "name": "QrPreviewDialog",
+   "filePath": "src/features/qr/qr-preview-dialog.tsx",
+   "lineRange": [
+    25,
+    112
+   ],
+   "summary": "Preview dialog for a rendered QR image with download action.",
+   "tags": [
+    "component",
+    "dialog",
+    "qr"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "type": "file",
+   "name": "create-ingredient-dialog.tsx",
+   "filePath": "src/features/recipes/create-ingredient-dialog.tsx",
+   "summary": "Quick-create dialog for a new inventory ingredient (name, unit, cost) invoked inline from the recipe builder.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "inventory"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/recipes/create-ingredient-dialog.tsx:CreateIngredientDialog",
+   "type": "function",
+   "name": "CreateIngredientDialog",
+   "filePath": "src/features/recipes/create-ingredient-dialog.tsx",
+   "lineRange": [
+    33,
+    107
+   ],
+   "summary": "Dialog creating an inventory ingredient and invalidating recipe/cost queries on success.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/recipes/recipe-builder.tsx",
+   "type": "file",
+   "name": "recipe-builder.tsx",
+   "filePath": "src/features/recipes/recipe-builder.tsx",
+   "summary": "Reusable recipe line editor: rows of ingredient combobox, quantity, unit and waste toggles with live cost totals; used by menu item and addon dialogs.",
+   "tags": [
+    "component",
+    "form",
+    "recipes",
+    "costing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/recipes/recipe-builder.tsx:RecipeBuilder",
+   "type": "function",
+   "name": "RecipeBuilder",
+   "filePath": "src/features/recipes/recipe-builder.tsx",
+   "lineRange": [
+    58,
+    385
+   ],
+   "summary": "Controlled editor for recipe ingredient rows with cost rollup and inline ingredient creation.",
+   "tags": [
+    "component",
+    "form",
+    "costing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/recipes/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/recipes/util.ts",
+   "summary": "Query invalidation helper covering recipe, menu-item, addon, costing and inventory query prefixes after recipe mutations.",
+   "tags": [
+    "utility",
+    "react-query",
+    "cache-invalidation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/recipes/util.ts:invalidateRecipes",
+   "type": "function",
+   "name": "invalidateRecipes",
+   "filePath": "src/features/recipes/util.ts",
+   "lineRange": [
+    14,
+    27
+   ],
+   "summary": "Invalidates all queries whose key starts with recipe/menu/costing/inventory prefixes.",
+   "tags": [
+    "utility",
+    "cache-invalidation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/reservations/booking-dialog.tsx",
+   "type": "file",
+   "name": "booking-dialog.tsx",
+   "filePath": "src/features/reservations/booking-dialog.tsx",
+   "summary": "Create/edit dialog for a reservation booking (guest, party size, time, notes) with Zod-validated form.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "reservations"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/reservations/booking-dialog.tsx:BookingDialog",
+   "type": "function",
+   "name": "BookingDialog",
+   "filePath": "src/features/reservations/booking-dialog.tsx",
+   "lineRange": [
+    26,
+    128
+   ],
+   "summary": "Dialog that creates or updates a booking and invalidates booking queries.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/reservations/settings-form.tsx",
+   "type": "file",
+   "name": "settings-form.tsx",
+   "filePath": "src/features/reservations/settings-form.tsx",
+   "summary": "Card-based form for per-branch reservation settings (slot length, lead time, hold duration, enabled toggle).",
+   "tags": [
+    "component",
+    "form",
+    "settings",
+    "reservations"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/reservations/settings-form.tsx:SettingsForm",
+   "type": "function",
+   "name": "SettingsForm",
+   "filePath": "src/features/reservations/settings-form.tsx",
+   "lineRange": [
+    18,
+    140
+   ],
+   "summary": "Loads and saves reservation settings with skeleton loading state.",
+   "tags": [
+    "component",
+    "form",
+    "settings"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/reservations/table-dialog.tsx",
+   "type": "file",
+   "name": "table-dialog.tsx",
+   "filePath": "src/features/reservations/table-dialog.tsx",
+   "summary": "Create/edit dialog for a floor table (name, seats, section, shape, active) used by the floor editor.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "reservations"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/reservations/table-dialog.tsx:TableDialog",
+   "type": "function",
+   "name": "TableDialog",
+   "filePath": "src/features/reservations/table-dialog.tsx",
+   "lineRange": [
+    32,
+    169
+   ],
+   "summary": "Dialog creating or updating a floor table and invalidating floor queries.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/reservations/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/reservations/util.ts",
+   "summary": "Reservation helpers: floor/booking query invalidators plus table-status color tokens and booking-status badge intents.",
+   "tags": [
+    "utility",
+    "cache-invalidation",
+    "reservations",
+    "constants"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/reservations/util.ts:invalidateFloor",
+   "type": "function",
+   "name": "invalidateFloor",
+   "filePath": "src/features/reservations/util.ts",
+   "lineRange": [
+    4,
+    8
+   ],
+   "summary": "Invalidates queries under the /floor prefix.",
+   "tags": [
+    "utility",
+    "cache-invalidation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/reservations/util.ts:invalidateBookings",
+   "type": "function",
+   "name": "invalidateBookings",
+   "filePath": "src/features/reservations/util.ts",
+   "lineRange": [
+    11,
+    15
+   ],
+   "summary": "Invalidates queries under the /reservations prefix.",
+   "tags": [
+    "utility",
+    "cache-invalidation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "type": "file",
+   "name": "cash-movement-dialog.tsx",
+   "filePath": "src/features/shifts/cash-movement-dialog.tsx",
+   "summary": "Dialog to record a cash-in/cash-out movement against an open shift with amount and reason.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "shifts"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/shifts/cash-movement-dialog.tsx:CashMovementDialog",
+   "type": "function",
+   "name": "CashMovementDialog",
+   "filePath": "src/features/shifts/cash-movement-dialog.tsx",
+   "lineRange": [
+    29,
+    114
+   ],
+   "summary": "Records a cash movement for a shift and refreshes shift queries.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/shifts/close-shift-dialog.tsx",
+   "type": "file",
+   "name": "close-shift-dialog.tsx",
+   "filePath": "src/features/shifts/close-shift-dialog.tsx",
+   "summary": "Dialog to close a shift by entering counted cash and notes, showing expected vs counted variance.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "shifts"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/shifts/close-shift-dialog.tsx:CloseShiftDialog",
+   "type": "function",
+   "name": "CloseShiftDialog",
+   "filePath": "src/features/shifts/close-shift-dialog.tsx",
+   "lineRange": [
+    29,
+    106
+   ],
+   "summary": "Closes a shift with counted cash and refreshes shift queries.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "function:src/features/payment-methods/payment-method-dialog.tsx:PaymentMethodDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "function:src/features/payment-methods/payment-method-dialog.tsx:PaymentMethodDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/payment-methods/payment-method-dialog.tsx:PaymentMethodDialog",
+   "target": "function:src/features/payment-methods/util.ts:invalidatePaymentMethods",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/payment-methods/payment-method-dialog.tsx:PaymentMethodDialog",
+   "target": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "file:src/components/ui/scroll-area.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "target": "file:src/features/payment-methods/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "function:src/features/qr/qr-page.tsx:RenderOptions",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "function:src/features/qr/qr-page.tsx:QrResult",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "function:src/features/qr/qr-page.tsx:QrResult",
+   "target": "function:src/lib/download.ts:downloadUrl",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "function:src/features/qr/qr-page.tsx:QrPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "function:src/features/qr/qr-page.tsx:QrPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/qr/qr-page.tsx:QrPage",
+   "target": "function:src/hooks/use-org-id.ts:useOrgId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/qr/qr-page.tsx:QrPage",
+   "target": "function:src/data/scope/use-scope.ts:useScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/qr/qr-page.tsx:QrPage",
+   "target": "function:src/features/qr/qr-preview-dialog.tsx:QrPreviewDialog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/components/ui/tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/features/qr/qr-preview-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-page.tsx",
+   "target": "file:src/lib/download.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-preview-dialog.tsx",
+   "target": "function:src/features/qr/qr-preview-dialog.tsx:QrPreviewDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/qr/qr-preview-dialog.tsx",
+   "target": "function:src/features/qr/qr-preview-dialog.tsx:QrPreviewDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/qr/qr-preview-dialog.tsx:QrPreviewDialog",
+   "target": "function:src/lib/download.ts:downloadUrl",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/qr/qr-preview-dialog.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-preview-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-preview-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/qr/qr-preview-dialog.tsx",
+   "target": "file:src/lib/download.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "target": "function:src/features/recipes/create-ingredient-dialog.tsx:CreateIngredientDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "target": "function:src/features/recipes/create-ingredient-dialog.tsx:CreateIngredientDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/recipes/create-ingredient-dialog.tsx:CreateIngredientDialog",
+   "target": "function:src/features/recipes/util.ts:invalidateRecipes",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/recipes/create-ingredient-dialog.tsx:CreateIngredientDialog",
+   "target": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "target": "file:src/features/recipes/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/recipe-builder.tsx",
+   "target": "function:src/features/recipes/recipe-builder.tsx:RecipeBuilder",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/recipes/recipe-builder.tsx",
+   "target": "function:src/features/recipes/recipe-builder.tsx:RecipeBuilder",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/recipes/recipe-builder.tsx:RecipeBuilder",
+   "target": "function:src/features/recipes/create-ingredient-dialog.tsx:CreateIngredientDialog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/recipes/recipe-builder.tsx:RecipeBuilder",
+   "target": "function:src/lib/format.ts:fmtMoney",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/recipes/recipe-builder.tsx",
+   "target": "file:src/components/app/combobox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/recipe-builder.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/recipe-builder.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/recipe-builder.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/recipe-builder.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/recipe-builder.tsx",
+   "target": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/recipe-builder.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/recipe-builder.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/recipes/util.ts",
+   "target": "function:src/features/recipes/util.ts:invalidateRecipes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/recipes/util.ts",
+   "target": "function:src/features/recipes/util.ts:invalidateRecipes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/recipes/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/booking-dialog.tsx",
+   "target": "function:src/features/reservations/booking-dialog.tsx:BookingDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/reservations/booking-dialog.tsx",
+   "target": "function:src/features/reservations/booking-dialog.tsx:BookingDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/reservations/booking-dialog.tsx:BookingDialog",
+   "target": "function:src/features/reservations/util.ts:invalidateBookings",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/reservations/booking-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/booking-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/booking-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/booking-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/booking-dialog.tsx",
+   "target": "file:src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/booking-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/booking-dialog.tsx",
+   "target": "file:src/features/reservations/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/settings-form.tsx",
+   "target": "function:src/features/reservations/settings-form.tsx:SettingsForm",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/reservations/settings-form.tsx",
+   "target": "function:src/features/reservations/settings-form.tsx:SettingsForm",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/reservations/settings-form.tsx:SettingsForm",
+   "target": "function:src/features/reservations/util.ts:invalidateBookings",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/reservations/settings-form.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/settings-form.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/settings-form.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/settings-form.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/settings-form.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/settings-form.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/settings-form.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/settings-form.tsx",
+   "target": "file:src/features/reservations/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/table-dialog.tsx",
+   "target": "function:src/features/reservations/table-dialog.tsx:TableDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/reservations/table-dialog.tsx",
+   "target": "function:src/features/reservations/table-dialog.tsx:TableDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/reservations/table-dialog.tsx:TableDialog",
+   "target": "function:src/features/reservations/util.ts:invalidateFloor",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/reservations/table-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/table-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/table-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/table-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/table-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/table-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/table-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/table-dialog.tsx",
+   "target": "file:src/features/reservations/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/reservations/util.ts",
+   "target": "function:src/features/reservations/util.ts:invalidateFloor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/reservations/util.ts",
+   "target": "function:src/features/reservations/util.ts:invalidateFloor",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/reservations/util.ts",
+   "target": "function:src/features/reservations/util.ts:invalidateBookings",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/reservations/util.ts",
+   "target": "function:src/features/reservations/util.ts:invalidateBookings",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/reservations/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "target": "function:src/features/shifts/cash-movement-dialog.tsx:CashMovementDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "target": "function:src/features/shifts/cash-movement-dialog.tsx:CashMovementDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/shifts/cash-movement-dialog.tsx:CashMovementDialog",
+   "target": "function:src/features/shifts/open-shift-dialog.tsx:invalidateShifts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "target": "file:src/features/shifts/open-shift-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/cash-movement-dialog.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/close-shift-dialog.tsx",
+   "target": "function:src/features/shifts/close-shift-dialog.tsx:CloseShiftDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/shifts/close-shift-dialog.tsx",
+   "target": "function:src/features/shifts/close-shift-dialog.tsx:CloseShiftDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/shifts/close-shift-dialog.tsx:CloseShiftDialog",
+   "target": "function:src/features/shifts/open-shift-dialog.tsx:invalidateShifts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/shifts/close-shift-dialog.tsx:CloseShiftDialog",
+   "target": "function:src/lib/format.ts:fmtMoney",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/shifts/close-shift-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/close-shift-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/close-shift-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/close-shift-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/close-shift-dialog.tsx",
+   "target": "file:src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/close-shift-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/close-shift-dialog.tsx",
+   "target": "file:src/features/shifts/open-shift-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/close-shift-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}

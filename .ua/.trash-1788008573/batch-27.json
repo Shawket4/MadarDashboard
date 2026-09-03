@@ -1,0 +1,866 @@
+{
+ "nodes": [
+  {
+   "id": "file:fix_frontend.py",
+   "type": "file",
+   "name": "fix_frontend.py",
+   "filePath": "fix_frontend.py",
+   "summary": "One-off codemod that injects useTranslation into the public-menu CategorySection component and appends translation fields to interfaces in src/shared/types/index.ts via regex.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "i18n",
+    "string-replace"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:fix_frontend.py:add_field",
+   "type": "function",
+   "name": "add_field",
+   "filePath": "fix_frontend.py",
+   "summary": "Regex-inserts a field into a named exported interface block in the shared types source.",
+   "tags": [
+    "codemod",
+    "regex",
+    "type-definition"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    23,
+    26
+   ]
+  },
+  {
+   "id": "file:fix_orders.py",
+   "type": "file",
+   "name": "fix_orders.py",
+   "filePath": "fix_orders.py",
+   "summary": "One-off codemod rewriting orders.tsx to render item, combo, addon and option names through getTranslatedName using the active i18n language.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "i18n",
+    "string-replace"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:fix_public_menu.py",
+   "type": "file",
+   "name": "fix_public_menu.py",
+   "filePath": "fix_public_menu.py",
+   "summary": "One-off codemod loosening translation-map types in public-menu.tsx and injecting useTranslation into ItemCard and ItemDetails.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "i18n",
+    "string-replace"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:fix_public_menu.py:add_usetranslation",
+   "type": "function",
+   "name": "add_usetranslation",
+   "filePath": "fix_public_menu.py",
+   "summary": "re.sub callback appending a useTranslation hook line after a matched component signature.",
+   "tags": [
+    "codemod",
+    "regex",
+    "hook"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    17,
+    18
+   ]
+  },
+  {
+   "id": "file:fix_tables.py",
+   "type": "file",
+   "name": "fix_tables.py",
+   "filePath": "fix_tables.py",
+   "summary": "One-off codemod patching menu.tsx table column definitions to show translated category, item and addon names and descriptions.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "i18n",
+    "string-replace"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:fix_tests.cjs",
+   "type": "file",
+   "name": "fix_tests.cjs",
+   "filePath": "fix_tests.cjs",
+   "summary": "Node script adding *_translations fields to analytics test fixtures and silencing an unused i18n variable in analytics.tsx.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "test",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:fix_types.py",
+   "type": "file",
+   "name": "fix_types.py",
+   "filePath": "fix_types.py",
+   "summary": "Codemod adding name_translations/description_translations fields to Category, AddonItem, MenuItem, Public* and Bundle interfaces in the shared types file.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "i18n",
+    "string-replace",
+    "type-definition"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:fix_types.py:insert_after",
+   "type": "function",
+   "name": "insert_after",
+   "filePath": "fix_types.py",
+   "summary": "Appends an insertion line after the first regex-captured group within the given text.",
+   "tags": [
+    "codemod",
+    "regex",
+    "utility"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    6,
+    7
+   ]
+  },
+  {
+   "id": "file:fix_types_2.py",
+   "type": "file",
+   "name": "fix_types_2.py",
+   "filePath": "fix_types_2.py",
+   "summary": "Follow-up codemod making translation fields optional and removing description_translations from the Category interface.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "i18n",
+    "string-replace",
+    "type-definition"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:fix_types_3.py",
+   "type": "file",
+   "name": "fix_types_3.py",
+   "filePath": "fix_types_3.py",
+   "summary": "Third iteration codemod that strips existing translation fields and re-adds them consistently across shared type interfaces.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "i18n",
+    "string-replace",
+    "type-definition"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:fix_types_3.py:insert_after",
+   "type": "function",
+   "name": "insert_after",
+   "filePath": "fix_types_3.py",
+   "summary": "Appends an insertion line after the first regex-captured group within the given text.",
+   "tags": [
+    "codemod",
+    "regex",
+    "utility"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    10,
+    11
+   ]
+  },
+  {
+   "id": "file:generate_frontend_prompts.py",
+   "type": "file",
+   "name": "generate_frontend_prompts.py",
+   "filePath": "generate_frontend_prompts.py",
+   "summary": "Generates per-page LLM prompt markdown files under frontend_agent_prompts/ instructing agents to build Vitest/RTL/MSW test infrastructure and page tests.",
+   "tags": [
+    "generator",
+    "one-off-script",
+    "test",
+    "prompt-template"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:merge_i18n.py",
+   "type": "file",
+   "name": "merge_i18n.py",
+   "filePath": "merge_i18n.py",
+   "summary": "Merges missing translation keys from an external madar-portfolio locale set into the dashboard's en.json and ar.json locale files.",
+   "tags": [
+    "i18n",
+    "one-off-script",
+    "merge",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:merge_i18n.py:merge",
+   "type": "function",
+   "name": "merge",
+   "filePath": "merge_i18n.py",
+   "summary": "Loads two JSON locale files and copies keys absent in the destination from the source, writing back with ensure_ascii=False.",
+   "tags": [
+    "i18n",
+    "merge",
+    "utility"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    3,
+    14
+   ]
+  },
+  {
+   "id": "file:orval.config.ts",
+   "type": "file",
+   "name": "orval.config.ts",
+   "filePath": "orval.config.ts",
+   "summary": "Orval configuration generating the split React Query + Axios client, MSW mocks and Zod schemas from the MadarRust backend's openapi.json into src/data/api/generated.",
+   "tags": [
+    "config",
+    "build-system",
+    "api-client",
+    "code-generation"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Uses a customInstance mutator so generated hooks route through the project's Axios/Tauri HTTP wrapper."
+  },
+  {
+   "id": "file:patch_analytics.py",
+   "type": "file",
+   "name": "patch_analytics.py",
+   "filePath": "patch_analytics.py",
+   "summary": "One-off codemod wiring getTranslatedName into analytics.tsx overview and items tab renderers.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "i18n",
+    "string-replace"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:patch_cta_i18n.py",
+   "type": "file",
+   "name": "patch_cta_i18n.py",
+   "filePath": "patch_cta_i18n.py",
+   "summary": "Script upserting landing.cta translation strings into the English and Arabic locale JSON files.",
+   "tags": [
+    "i18n",
+    "one-off-script",
+    "landing",
+    "locale-patch"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:patch_cta_i18n.py:update_json",
+   "type": "function",
+   "name": "update_json",
+   "filePath": "patch_cta_i18n.py",
+   "summary": "Ensures the landing.cta object exists in a locale file and merges the provided key/value updates.",
+   "tags": [
+    "i18n",
+    "utility",
+    "json"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    4,
+    17
+   ]
+  },
+  {
+   "id": "file:patch_exports.cjs",
+   "type": "file",
+   "name": "patch_exports.cjs",
+   "filePath": "patch_exports.cjs",
+   "summary": "Node codemod threading the i18n language through export-drawer.tsx into buildSheets so orders-export spreadsheets use translated names.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "i18n",
+    "string-replace"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:patch_nav_i18n.py",
+   "type": "file",
+   "name": "patch_nav_i18n.py",
+   "filePath": "patch_nav_i18n.py",
+   "summary": "Script upserting landing.nav translation strings into the English and Arabic locale JSON files.",
+   "tags": [
+    "i18n",
+    "one-off-script",
+    "landing",
+    "locale-patch"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:patch_nav_i18n.py:update_json",
+   "type": "function",
+   "name": "update_json",
+   "filePath": "patch_nav_i18n.py",
+   "summary": "Ensures the landing.nav object exists in a locale file and merges the provided key/value updates.",
+   "tags": [
+    "i18n",
+    "utility",
+    "json"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    3,
+    16
+   ]
+  },
+  {
+   "id": "file:patch_translations.py",
+   "type": "file",
+   "name": "patch_translations.py",
+   "filePath": "patch_translations.py",
+   "summary": "Batch codemod applying getTranslatedName across the discounts, recipes and menu pages so tables and Excel exports show localized names.",
+   "tags": [
+    "codemod",
+    "one-off-script",
+    "i18n",
+    "string-replace"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:patch_translations.py:process_discounts",
+   "type": "function",
+   "name": "process_discounts",
+   "filePath": "patch_translations.py",
+   "summary": "Patches discounts.tsx imports, hook destructuring, table cell and export accessor to use translated names.",
+   "tags": [
+    "codemod",
+    "i18n",
+    "discounts"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    4,
+    23
+   ]
+  },
+  {
+   "id": "function:patch_translations.py:process_recipes",
+   "type": "function",
+   "name": "process_recipes",
+   "filePath": "patch_translations.py",
+   "summary": "Patches recipes.tsx to render translated recipe and ingredient names.",
+   "tags": [
+    "codemod",
+    "i18n",
+    "recipes"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    25,
+    50
+   ]
+  },
+  {
+   "id": "function:patch_translations.py:process_menu",
+   "type": "function",
+   "name": "process_menu",
+   "filePath": "patch_translations.py",
+   "summary": "Patches menu.tsx for translated names in remaining cells.",
+   "tags": [
+    "codemod",
+    "i18n",
+    "menu"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    52,
+    64
+   ]
+  },
+  {
+   "id": "file:patch_trusted_i18n.py",
+   "type": "file",
+   "name": "patch_trusted_i18n.py",
+   "filePath": "patch_trusted_i18n.py",
+   "summary": "Script upserting landing.trustedBy translation strings into the English and Arabic locale JSON files.",
+   "tags": [
+    "i18n",
+    "one-off-script",
+    "landing",
+    "locale-patch"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:patch_trusted_i18n.py:update_json",
+   "type": "function",
+   "name": "update_json",
+   "filePath": "patch_trusted_i18n.py",
+   "summary": "Ensures the landing.trustedBy object exists in a locale file and merges the provided key/value updates.",
+   "tags": [
+    "i18n",
+    "utility",
+    "json"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    3,
+    16
+   ]
+  },
+  {
+   "id": "file:public/ShowTellerCup.lottie",
+   "type": "file",
+   "name": "ShowTellerCup.lottie",
+   "filePath": "public/ShowTellerCup.lottie",
+   "summary": "Binary dotLottie (zip) animation asset with a manifest.json, served statically for the Lottie player.",
+   "tags": [
+    "asset",
+    "animation",
+    "lottie",
+    "static"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:public/mockServiceWorker.js",
+   "type": "file",
+   "name": "mockServiceWorker.js",
+   "filePath": "public/mockServiceWorker.js",
+   "summary": "MSW-generated service worker that intercepts fetch requests from controlled clients and forwards them to in-page handlers for mocked responses.",
+   "tags": [
+    "mock",
+    "service-worker",
+    "generated",
+    "test",
+    "msw"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Auto-generated by msw; uses MessageChannel round-trips between the worker and the page to resolve mocked responses."
+  },
+  {
+   "id": "function:public/mockServiceWorker.js:handleRequest",
+   "type": "function",
+   "name": "handleRequest",
+   "filePath": "public/mockServiceWorker.js",
+   "summary": "Resolves the main client, asks it for a mocked response, and forwards response/error lifecycle events back.",
+   "tags": [
+    "service-worker",
+    "msw",
+    "mock"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    124,
+    167
+   ]
+  },
+  {
+   "id": "function:public/mockServiceWorker.js:resolveMainClient",
+   "type": "function",
+   "name": "resolveMainClient",
+   "filePath": "public/mockServiceWorker.js",
+   "summary": "Finds the active window client that controls the request, preferring the one matching the event's clientId.",
+   "tags": [
+    "service-worker",
+    "msw",
+    "mock"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    177,
+    202
+   ]
+  },
+  {
+   "id": "function:public/mockServiceWorker.js:getResponse",
+   "type": "function",
+   "name": "getResponse",
+   "filePath": "public/mockServiceWorker.js",
+   "summary": "Sends the serialized request to the client and returns a passthrough or mocked Response based on its reply.",
+   "tags": [
+    "service-worker",
+    "msw",
+    "mock"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    211,
+    280
+   ]
+  },
+  {
+   "id": "function:public/mockServiceWorker.js:sendToClient",
+   "type": "function",
+   "name": "sendToClient",
+   "filePath": "public/mockServiceWorker.js",
+   "summary": "Posts a message to a client over a MessageChannel and resolves with the reply.",
+   "tags": [
+    "service-worker",
+    "msw",
+    "mock"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    288,
+    305
+   ]
+  },
+  {
+   "id": "function:public/mockServiceWorker.js:respondWithMock",
+   "type": "function",
+   "name": "respondWithMock",
+   "filePath": "public/mockServiceWorker.js",
+   "summary": "Builds a Response from the mocked payload, handling status 0 and Response.error().",
+   "tags": [
+    "service-worker",
+    "msw",
+    "mock"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    311,
+    328
+   ]
+  },
+  {
+   "id": "function:public/mockServiceWorker.js:serializeRequest",
+   "type": "function",
+   "name": "serializeRequest",
+   "filePath": "public/mockServiceWorker.js",
+   "summary": "Converts a Request into a plain object with buffered body for postMessage.",
+   "tags": [
+    "service-worker",
+    "msw",
+    "mock"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    333,
+    349
+   ]
+  },
+  {
+   "id": "document:public/robots.txt",
+   "type": "document",
+   "name": "robots.txt",
+   "filePath": "public/robots.txt",
+   "summary": "Robots policy allowing all crawlers and pointing to the sitemap at get.madar-pos.cloud.",
+   "tags": [
+    "seo",
+    "static",
+    "crawler-policy"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:public/sitemap.xml",
+   "type": "config",
+   "name": "sitemap.xml",
+   "filePath": "public/sitemap.xml",
+   "summary": "XML sitemap listing only the landing root URL for get.madar-pos.cloud.",
+   "tags": [
+    "seo",
+    "static",
+    "sitemap"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:src-tauri/Cargo.toml",
+   "type": "config",
+   "name": "Cargo.toml",
+   "filePath": "src-tauri/Cargo.toml",
+   "summary": "Cargo manifest for the Tauri 2 desktop shell crate, depending on tauri, serde and tauri-plugin-http with a custom-protocol default feature.",
+   "tags": [
+    "configuration",
+    "tauri",
+    "rust",
+    "build-system"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src-tauri/build.rs",
+   "type": "file",
+   "name": "build.rs",
+   "filePath": "src-tauri/build.rs",
+   "summary": "Cargo build script invoking tauri_build::build() to generate Tauri resources at compile time.",
+   "tags": [
+    "build-system",
+    "tauri",
+    "rust",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:src-tauri/capabilities/default.json",
+   "type": "config",
+   "name": "default.json",
+   "filePath": "src-tauri/capabilities/default.json",
+   "summary": "Tauri capability set granting the main window core permissions and HTTP plugin access restricted to https://madar-pos.cloud/**.",
+   "tags": [
+    "configuration",
+    "tauri",
+    "security",
+    "permissions"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src-tauri/icons/icon.icns",
+   "type": "file",
+   "name": "icon.icns",
+   "filePath": "src-tauri/icons/icon.icns",
+   "summary": "macOS application icon bundle (binary ICNS) used for the Tauri desktop build.",
+   "tags": [
+    "asset",
+    "icon",
+    "binary",
+    "tauri"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:fix_frontend.py",
+   "target": "function:fix_frontend.py:add_field",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:fix_frontend.py",
+   "target": "function:fix_frontend.py:add_field",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:fix_public_menu.py",
+   "target": "function:fix_public_menu.py:add_usetranslation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:fix_public_menu.py",
+   "target": "function:fix_public_menu.py:add_usetranslation",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:fix_types.py",
+   "target": "function:fix_types.py:insert_after",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:fix_types.py",
+   "target": "function:fix_types.py:insert_after",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:fix_types_3.py",
+   "target": "function:fix_types_3.py:insert_after",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:fix_types_3.py",
+   "target": "function:fix_types_3.py:insert_after",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:merge_i18n.py",
+   "target": "function:merge_i18n.py:merge",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:merge_i18n.py",
+   "target": "function:merge_i18n.py:merge",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:patch_cta_i18n.py",
+   "target": "function:patch_cta_i18n.py:update_json",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:patch_cta_i18n.py",
+   "target": "function:patch_cta_i18n.py:update_json",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:patch_nav_i18n.py",
+   "target": "function:patch_nav_i18n.py:update_json",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:patch_nav_i18n.py",
+   "target": "function:patch_nav_i18n.py:update_json",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:patch_translations.py",
+   "target": "function:patch_translations.py:process_discounts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:patch_translations.py",
+   "target": "function:patch_translations.py:process_discounts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:patch_translations.py",
+   "target": "function:patch_translations.py:process_recipes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:patch_translations.py",
+   "target": "function:patch_translations.py:process_recipes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:patch_translations.py",
+   "target": "function:patch_translations.py:process_menu",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:patch_translations.py",
+   "target": "function:patch_translations.py:process_menu",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:patch_trusted_i18n.py",
+   "target": "function:patch_trusted_i18n.py:update_json",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:patch_trusted_i18n.py",
+   "target": "function:patch_trusted_i18n.py:update_json",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:public/mockServiceWorker.js",
+   "target": "function:public/mockServiceWorker.js:handleRequest",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:public/mockServiceWorker.js",
+   "target": "function:public/mockServiceWorker.js:resolveMainClient",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:public/mockServiceWorker.js",
+   "target": "function:public/mockServiceWorker.js:getResponse",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:public/mockServiceWorker.js",
+   "target": "function:public/mockServiceWorker.js:sendToClient",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:public/mockServiceWorker.js",
+   "target": "function:public/mockServiceWorker.js:respondWithMock",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:public/mockServiceWorker.js",
+   "target": "function:public/mockServiceWorker.js:serializeRequest",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "config:src-tauri/Cargo.toml",
+   "target": "file:src-tauri/build.rs",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:src-tauri/capabilities/default.json",
+   "target": "file:src-tauri/build.rs",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:public/robots.txt",
+   "target": "config:public/sitemap.xml",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

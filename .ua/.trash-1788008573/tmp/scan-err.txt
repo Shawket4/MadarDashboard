@@ -1,0 +1,2 @@
+Warning: scan-project: .claude/skills/remotion-best-practices — symbolic link skipped — file skipped from output
+scan-project: filesScanned=538 filteredByIgnore=841 complexity=very-large

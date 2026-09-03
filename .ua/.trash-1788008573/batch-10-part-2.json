@@ -1,0 +1,1474 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/components/ui/spinner.tsx",
+   "type": "file",
+   "name": "spinner.tsx",
+   "filePath": "src/components/ui/spinner.tsx",
+   "summary": "Tiny loading spinner wrapping the Lucide Loader icon with an animate-spin class.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "loading"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/spinner.tsx:Spinner",
+   "type": "function",
+   "name": "Spinner",
+   "filePath": "src/components/ui/spinner.tsx",
+   "lineRange": [
+    4,
+    6
+   ],
+   "summary": "Spinner component/helper in spinner.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/landing/contact.tsx",
+   "type": "file",
+   "name": "contact.tsx",
+   "filePath": "src/features/landing/contact.tsx",
+   "summary": "Landing-page contact surface: social link row and a contact dialog listing email, phone and WhatsApp rows.",
+   "tags": [
+    "component",
+    "landing",
+    "brand",
+    "contact"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/landing/contact.tsx:SocialLinks",
+   "type": "function",
+   "name": "SocialLinks",
+   "filePath": "src/features/landing/contact.tsx",
+   "lineRange": [
+    43,
+    60
+   ],
+   "summary": "Row of external social/profile icon links.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/contact.tsx:ContactRow",
+   "type": "function",
+   "name": "ContactRow",
+   "filePath": "src/features/landing/contact.tsx",
+   "lineRange": [
+    63,
+    90
+   ],
+   "summary": "Single labelled contact channel row with icon and href.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/contact.tsx:ContactDialog",
+   "type": "function",
+   "name": "ContactDialog",
+   "filePath": "src/features/landing/contact.tsx",
+   "lineRange": [
+    96,
+    128
+   ],
+   "summary": "Dialog presenting all contact channels.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/landing/frames.tsx",
+   "type": "file",
+   "name": "frames.tsx",
+   "filePath": "src/features/landing/frames.tsx",
+   "summary": "Scroll-reveal motion helpers and device mockup frames (browser, iPad, phone) used to present screenshots on the landing page.",
+   "tags": [
+    "component",
+    "landing",
+    "animation",
+    "device-frame"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/landing/frames.tsx:Reveal",
+   "type": "function",
+   "name": "Reveal",
+   "filePath": "src/features/landing/frames.tsx",
+   "lineRange": [
+    58,
+    92
+   ],
+   "summary": "In-view fade/rise wrapper honoring reduced motion.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/frames.tsx:RevealGroup",
+   "type": "function",
+   "name": "RevealGroup",
+   "filePath": "src/features/landing/frames.tsx",
+   "lineRange": [
+    95,
+    117
+   ],
+   "summary": "Staggered container for child reveals.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/frames.tsx:RevealItem",
+   "type": "function",
+   "name": "RevealItem",
+   "filePath": "src/features/landing/frames.tsx",
+   "lineRange": [
+    128,
+    148
+   ],
+   "summary": "Child item variant for RevealGroup.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/frames.tsx:GpuStaggerReveal",
+   "type": "function",
+   "name": "GpuStaggerReveal",
+   "filePath": "src/features/landing/frames.tsx",
+   "lineRange": [
+    164,
+    218
+   ],
+   "summary": "CSS-transition based staggered reveal avoiding rAF throttling.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/landing/frames.tsx:Screenshot",
+   "type": "function",
+   "name": "Screenshot",
+   "filePath": "src/features/landing/frames.tsx",
+   "lineRange": [
+    227,
+    288
+   ],
+   "summary": "Lazy image with placeholder and aspect ratio.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/landing/frames.tsx:BrowserFrame",
+   "type": "function",
+   "name": "BrowserFrame",
+   "filePath": "src/features/landing/frames.tsx",
+   "lineRange": [
+    297,
+    330
+   ],
+   "summary": "Browser chrome mockup around a screenshot.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/frames.tsx:IpadFrame",
+   "type": "function",
+   "name": "IpadFrame",
+   "filePath": "src/features/landing/frames.tsx",
+   "lineRange": [
+    338,
+    357
+   ],
+   "summary": "Tablet bezel mockup.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/frames.tsx:PhoneFrame",
+   "type": "function",
+   "name": "PhoneFrame",
+   "filePath": "src/features/landing/frames.tsx",
+   "lineRange": [
+    360,
+    378
+   ],
+   "summary": "Phone bezel mockup.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/landing/landing-page.tsx",
+   "type": "file",
+   "name": "landing-page.tsx",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "summary": "Public marketing landing page composed of hero, stat strip, dashboard/POS showcases, cost, inventory, bilingual, journey, pillars, FAQ, CTA and footer sections with image preloading and Lenis smooth scroll.",
+   "tags": [
+    "entry-point",
+    "landing",
+    "brand",
+    "marketing",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:preloadShots",
+   "type": "function",
+   "name": "preloadShots",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    57,
+    66
+   ],
+   "summary": "Kicks off preloading of screenshot assets.",
+   "tags": [
+    "utility",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:usePreloadImages",
+   "type": "function",
+   "name": "usePreloadImages",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    69,
+    99
+   ],
+   "summary": "Hook that preloads image URLs and reports readiness.",
+   "tags": [
+    "utility",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:LandingPage",
+   "type": "function",
+   "name": "LandingPage",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    126,
+    159
+   ],
+   "summary": "Root landing page composing all sections and smooth scroll.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:ScrollProgress",
+   "type": "function",
+   "name": "ScrollProgress",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    164,
+    175
+   ],
+   "summary": "Top scroll progress bar.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:Wordmark",
+   "type": "function",
+   "name": "Wordmark",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    184,
+    194
+   ],
+   "summary": "Madar logotype.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:LangToggle",
+   "type": "function",
+   "name": "LangToggle",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    197,
+    211
+   ],
+   "summary": "EN/AR language switch.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:Header",
+   "type": "function",
+   "name": "Header",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    215,
+    241
+   ],
+   "summary": "Sticky landing header with nav and CTA.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:Hero",
+   "type": "function",
+   "name": "Hero",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    245,
+    339
+   ],
+   "summary": "Above-the-fold hero with headline and framed screenshot.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:StatStrip",
+   "type": "function",
+   "name": "StatStrip",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    343,
+    366
+   ],
+   "summary": "Row of headline metrics.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:SectionHead",
+   "type": "function",
+   "name": "SectionHead",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    370,
+    399
+   ],
+   "summary": "Reusable eyebrow/title/lead heading block.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:DashboardShowcase",
+   "type": "function",
+   "name": "DashboardShowcase",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    403,
+    468
+   ],
+   "summary": "Dashboard feature showcase section.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:CostSpine",
+   "type": "function",
+   "name": "CostSpine",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    474,
+    536
+   ],
+   "summary": "Cost/recipe costing narrative section.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:InventorySection",
+   "type": "function",
+   "name": "InventorySection",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    540,
+    594
+   ],
+   "summary": "Inventory feature section.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:BilingualSection",
+   "type": "function",
+   "name": "BilingualSection",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    598,
+    643
+   ],
+   "summary": "EN/AR bilingual capability section.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:PosShowcase",
+   "type": "function",
+   "name": "PosShowcase",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    647,
+    726
+   ],
+   "summary": "POS app showcase with device frames.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:CustomerJourney",
+   "type": "function",
+   "name": "CustomerJourney",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    730,
+    777
+   ],
+   "summary": "Ordering-to-tracking customer journey section.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:Pillars",
+   "type": "function",
+   "name": "Pillars",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    781,
+    826
+   ],
+   "summary": "Product pillar cards.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:FaqSection",
+   "type": "function",
+   "name": "FaqSection",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    875,
+    903
+   ],
+   "summary": "Accordion-style FAQ.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:CtaBand",
+   "type": "function",
+   "name": "CtaBand",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    907,
+    958
+   ],
+   "summary": "Closing call-to-action band with contact.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/landing/landing-page.tsx:Footer",
+   "type": "function",
+   "name": "Footer",
+   "filePath": "src/features/landing/landing-page.tsx",
+   "lineRange": [
+    962,
+    976
+   ],
+   "summary": "Landing footer.",
+   "tags": [
+    "component",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/landing/use-lenis.ts",
+   "type": "file",
+   "name": "use-lenis.ts",
+   "filePath": "src/features/landing/use-lenis.ts",
+   "summary": "Hook that initializes Lenis smooth scrolling on mount and tears it down, respecting reduced-motion preferences.",
+   "tags": [
+    "hook",
+    "landing",
+    "scroll",
+    "animation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/landing/use-lenis.ts:useLenis",
+   "type": "function",
+   "name": "useLenis",
+   "filePath": "src/features/landing/use-lenis.ts",
+   "lineRange": [
+    10,
+    45
+   ],
+   "summary": "Creates and drives a Lenis instance via requestAnimationFrame.",
+   "tags": [
+    "utility",
+    "react",
+    "landing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "type": "file",
+   "name": "dashboard-mirror.tsx",
+   "filePath": "src/features/onboarding/dashboard-mirror.tsx",
+   "summary": "Decorative live 'mirror' of the dashboard shown during onboarding, with animated counts, coverage ring and sales tile reflecting setup progress.",
+   "tags": [
+    "component",
+    "onboarding",
+    "animation",
+    "preview"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/onboarding/dashboard-mirror.tsx:AnimatedCount",
+   "type": "function",
+   "name": "AnimatedCount",
+   "filePath": "src/features/onboarding/dashboard-mirror.tsx",
+   "lineRange": [
+    61,
+    87
+   ],
+   "summary": "Counts up a number over time.",
+   "tags": [
+    "component",
+    "react",
+    "onboarding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/onboarding/dashboard-mirror.tsx:Reveal",
+   "type": "function",
+   "name": "Reveal",
+   "filePath": "src/features/onboarding/dashboard-mirror.tsx",
+   "lineRange": [
+    92,
+    110
+   ],
+   "summary": "Fade-in wrapper for tiles.",
+   "tags": [
+    "component",
+    "react",
+    "onboarding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/onboarding/dashboard-mirror.tsx:MirrorTile",
+   "type": "function",
+   "name": "MirrorTile",
+   "filePath": "src/features/onboarding/dashboard-mirror.tsx",
+   "lineRange": [
+    112,
+    142
+   ],
+   "summary": "Generic small card tile.",
+   "tags": [
+    "component",
+    "react",
+    "onboarding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/onboarding/dashboard-mirror.tsx:CoverageRing",
+   "type": "function",
+   "name": "CoverageRing",
+   "filePath": "src/features/onboarding/dashboard-mirror.tsx",
+   "lineRange": [
+    145,
+    180
+   ],
+   "summary": "SVG ring showing setup coverage percent.",
+   "tags": [
+    "component",
+    "react",
+    "onboarding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/onboarding/dashboard-mirror.tsx:SalesTile",
+   "type": "function",
+   "name": "SalesTile",
+   "filePath": "src/features/onboarding/dashboard-mirror.tsx",
+   "lineRange": [
+    183,
+    216
+   ],
+   "summary": "Mock sales chart tile.",
+   "tags": [
+    "component",
+    "react",
+    "onboarding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/onboarding/dashboard-mirror.tsx:DashboardMirror",
+   "type": "function",
+   "name": "DashboardMirror",
+   "filePath": "src/features/onboarding/dashboard-mirror.tsx",
+   "lineRange": [
+    225,
+    258
+   ],
+   "summary": "Composes tiles into a dashboard preview from onboarding state.",
+   "tags": [
+    "component",
+    "react",
+    "onboarding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/order-tracking/tracking-page.tsx",
+   "type": "file",
+   "name": "tracking-page.tsx",
+   "filePath": "src/features/order-tracking/tracking-page.tsx",
+   "summary": "Customer-facing order tracking page rendering order status timeline, destination and items within the storefront shell.",
+   "tags": [
+    "entry-point",
+    "page",
+    "order-tracking",
+    "brand"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/order-tracking/tracking-page.tsx:OrderTrackingPage",
+   "type": "function",
+   "name": "OrderTrackingPage",
+   "filePath": "src/features/order-tracking/tracking-page.tsx",
+   "lineRange": [
+    53,
+    245
+   ],
+   "summary": "Fetches an order by id and renders its status steps and summary.",
+   "tags": [
+    "component",
+    "react",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/order-tracking/tracking-page.tsx:destination",
+   "type": "function",
+   "name": "destination",
+   "filePath": "src/features/order-tracking/tracking-page.tsx",
+   "lineRange": [
+    247,
+    256
+   ],
+   "summary": "Derives a human-readable destination label from the order.",
+   "tags": [
+    "utility",
+    "react",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/order-tracking/tracking-page.tsx:statusFallback",
+   "type": "function",
+   "name": "statusFallback",
+   "filePath": "src/features/order-tracking/tracking-page.tsx",
+   "lineRange": [
+    266,
+    287
+   ],
+   "summary": "Fallback status label for unknown statuses.",
+   "tags": [
+    "utility",
+    "react",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/order-tracking/tracking-page.tsx:stepFallback",
+   "type": "function",
+   "name": "stepFallback",
+   "filePath": "src/features/order-tracking/tracking-page.tsx",
+   "lineRange": [
+    289,
+    306
+   ],
+   "summary": "Fallback step labels for the timeline.",
+   "tags": [
+    "utility",
+    "react",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/public-ordering/components/branch-selector.tsx",
+   "type": "file",
+   "name": "branch-selector.tsx",
+   "filePath": "src/features/public-ordering/components/branch-selector.tsx",
+   "summary": "Dropdown that lets a customer switch the active branch in the public ordering storefront.",
+   "tags": [
+    "component",
+    "public-ordering",
+    "dropdown"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/branch-selector.tsx:BranchSelector",
+   "type": "function",
+   "name": "BranchSelector",
+   "filePath": "src/features/public-ordering/components/branch-selector.tsx",
+   "lineRange": [
+    22,
+    48
+   ],
+   "summary": "Dropdown menu listing branches with the current one highlighted.",
+   "tags": [
+    "component",
+    "react",
+    "public-ordering"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/components/ui/spinner.tsx",
+   "target": "function:src/components/ui/spinner.tsx:Spinner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/spinner.tsx",
+   "target": "function:src/components/ui/spinner.tsx:Spinner",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/spinner.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/contact.tsx",
+   "target": "function:src/features/landing/contact.tsx:SocialLinks",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/contact.tsx",
+   "target": "function:src/features/landing/contact.tsx:SocialLinks",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/contact.tsx",
+   "target": "function:src/features/landing/contact.tsx:ContactRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/contact.tsx",
+   "target": "function:src/features/landing/contact.tsx:ContactDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/contact.tsx",
+   "target": "function:src/features/landing/contact.tsx:ContactDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/contact.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/contact.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:Reveal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:Reveal",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:RevealGroup",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:RevealGroup",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:RevealItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:RevealItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:GpuStaggerReveal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:GpuStaggerReveal",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:Screenshot",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:Screenshot",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:BrowserFrame",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:BrowserFrame",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:IpadFrame",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:IpadFrame",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:PhoneFrame",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "function:src/features/landing/frames.tsx:PhoneFrame",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/frames.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:preloadShots",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:usePreloadImages",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:LandingPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:LandingPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:ScrollProgress",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:Wordmark",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:LangToggle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:Header",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:Hero",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:StatStrip",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:SectionHead",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:DashboardShowcase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:CostSpine",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:InventorySection",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:BilingualSection",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:PosShowcase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:CustomerJourney",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:Pillars",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:FaqSection",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:CtaBand",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "function:src/features/landing/landing-page.tsx:Footer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "file:src/components/layout/theme-toggle.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "file:src/data/config/env.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "file:src/features/landing/contact.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "file:src/features/landing/frames.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "file:src/features/landing/use-lenis.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "file:src/lib/theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/landing-page.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/landing/use-lenis.ts",
+   "target": "function:src/features/landing/use-lenis.ts:useLenis",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/landing/use-lenis.ts",
+   "target": "function:src/features/landing/use-lenis.ts:useLenis",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "function:src/features/onboarding/dashboard-mirror.tsx:AnimatedCount",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "function:src/features/onboarding/dashboard-mirror.tsx:Reveal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "function:src/features/onboarding/dashboard-mirror.tsx:MirrorTile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "function:src/features/onboarding/dashboard-mirror.tsx:CoverageRing",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "function:src/features/onboarding/dashboard-mirror.tsx:SalesTile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "function:src/features/onboarding/dashboard-mirror.tsx:DashboardMirror",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "function:src/features/onboarding/dashboard-mirror.tsx:DashboardMirror",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "file:src/components/app/stat-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "function:src/features/order-tracking/tracking-page.tsx:OrderTrackingPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "function:src/features/order-tracking/tracking-page.tsx:OrderTrackingPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "function:src/features/order-tracking/tracking-page.tsx:destination",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "function:src/features/order-tracking/tracking-page.tsx:statusFallback",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "function:src/features/order-tracking/tracking-page.tsx:stepFallback",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "file:src/features/public-ordering/components/cart-sheet.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "file:src/features/public-ordering/storefront-shell.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "file:src/features/public-ordering/use-order-theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/order-tracking/tracking-page.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/branch-selector.tsx",
+   "target": "function:src/features/public-ordering/components/branch-selector.tsx:BranchSelector",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/branch-selector.tsx",
+   "target": "function:src/features/public-ordering/components/branch-selector.tsx:BranchSelector",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/branch-selector.tsx",
+   "target": "file:src/components/ui/dropdown-menu.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/features/landing/landing-page.tsx:LandingPage",
+   "target": "function:src/features/landing/use-lenis.ts:useLenis",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/landing/landing-page.tsx:Header",
+   "target": "function:src/components/layout/theme-toggle.tsx:ThemeToggle",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/order-tracking/tracking-page.tsx:OrderTrackingPage",
+   "target": "function:src/features/public-ordering/storefront-shell.tsx:StorefrontShell",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

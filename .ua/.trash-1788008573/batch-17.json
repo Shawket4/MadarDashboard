@@ -1,0 +1,335 @@
+{
+ "nodes": [
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/3d.md",
+   "type": "document",
+   "name": "3d.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/3d.md",
+   "summary": "Guidance for rendering 3D content in Remotion using @remotion/three and React Three Fiber, including ThreeCanvas setup and frame-synced animation.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "3d",
+    "three-js"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/audio-visualization.md",
+   "type": "document",
+   "name": "audio-visualization.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/audio-visualization.md",
+   "summary": "Explains audio visualization in Remotion with @remotion/media-utils: useAudioData, visualizeAudio, and building waveform/spectrum bars.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "audio",
+    "visualization"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/audio.md",
+   "type": "document",
+   "name": "audio.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/audio.md",
+   "summary": "Covers adding, trimming, volume-controlling, and sequencing audio in Remotion compositions via the Audio component and staticFile.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "audio",
+    "media"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/calculate-metadata.md",
+   "type": "document",
+   "name": "calculate-metadata.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/calculate-metadata.md",
+   "summary": "Describes calculateMetadata for dynamically deriving composition duration, dimensions, and props from async data before rendering.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "metadata",
+    "composition"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/compositions.md",
+   "type": "document",
+   "name": "compositions.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/compositions.md",
+   "summary": "Explains defining Remotion compositions, Sequence usage, and organizing scenes in a Root component with typed props and Zod schemas.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "composition",
+    "structure"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/display-captions.md",
+   "type": "document",
+   "name": "display-captions.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/display-captions.md",
+   "summary": "Guide to rendering timed captions in Remotion using @remotion/captions, createTikTokStyleCaptions, and word-level highlighting.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "captions",
+    "subtitles"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/effects.md",
+   "type": "document",
+   "name": "effects.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/effects.md",
+   "summary": "Catalog of visual effects patterns for Remotion videos: transitions, blur, glow, parallax, and easing-based motion with interpolate and spring.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "effects",
+    "animation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/ffmpeg.md",
+   "type": "document",
+   "name": "ffmpeg.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/ffmpeg.md",
+   "summary": "Short note on using FFmpeg alongside Remotion for media pre/post-processing tasks not handled by the renderer.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "ffmpeg",
+    "media"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/get-audio-duration.md",
+   "type": "document",
+   "name": "get-audio-duration.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/get-audio-duration.md",
+   "summary": "Shows how to read an audio file's duration with getAudioDurationInSeconds to size compositions dynamically.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "audio",
+    "metadata"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/get-video-dimensions.md",
+   "type": "document",
+   "name": "get-video-dimensions.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/get-video-dimensions.md",
+   "summary": "Shows how to read a video's width and height with getVideoMetadata for responsive composition sizing.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "video",
+    "metadata"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/get-video-duration.md",
+   "type": "document",
+   "name": "get-video-duration.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/get-video-duration.md",
+   "summary": "Shows how to read a video's duration with getVideoMetadata and convert it to frames for calculateMetadata.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "video",
+    "metadata"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/gifs.md",
+   "type": "document",
+   "name": "gifs.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/gifs.md",
+   "summary": "Covers rendering GIFs inside compositions with @remotion/gif and exporting videos as GIFs with proper looping and frame sync.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "gif",
+    "media"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/google-fonts.md",
+   "type": "document",
+   "name": "google-fonts.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/google-fonts.md",
+   "summary": "Explains loading Google Fonts in Remotion via @remotion/google-fonts with loadFont and awaiting font readiness.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "fonts",
+    "typography"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/html-in-canvas.md",
+   "type": "document",
+   "name": "html-in-canvas.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/html-in-canvas.md",
+   "summary": "Describes drawing HTML/DOM content onto a canvas element in Remotion for effects requiring pixel access.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "canvas",
+    "rendering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/images.md",
+   "type": "document",
+   "name": "images.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/images.md",
+   "summary": "Guidance on using the Img component and staticFile for images in Remotion so renders wait for asset loading.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "images",
+    "assets"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/import-srt-captions.md",
+   "type": "document",
+   "name": "import-srt-captions.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/import-srt-captions.md",
+   "summary": "Shows parsing SRT subtitle files with parseSrt from @remotion/captions into caption objects for display.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "captions",
+    "srt"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/light-leaks.md",
+   "type": "document",
+   "name": "light-leaks.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/light-leaks.md",
+   "summary": "Describes adding light-leak overlay effects to Remotion videos using @remotion/light-leaks components and blend modes.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "effects",
+    "overlays"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/local-fonts.md",
+   "type": "document",
+   "name": "local-fonts.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/local-fonts.md",
+   "summary": "Explains loading locally bundled font files in Remotion with @remotion/fonts loadFont and staticFile.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "fonts",
+    "typography"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/lottie.md",
+   "type": "document",
+   "name": "lottie.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/lottie.md",
+   "summary": "Covers embedding Lottie animations in Remotion with @remotion/lottie, syncing playback to the timeline frame.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "lottie",
+    "animation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/maplibre.md",
+   "type": "document",
+   "name": "maplibre.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/maplibre.md",
+   "summary": "Extensive guide to rendering MapLibre GL maps in Remotion, including deterministic camera animation, tile loading, and frame synchronization.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "maplibre",
+    "maps"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/get-video-duration.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/calculate-metadata.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/get-audio-duration.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/calculate-metadata.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/get-video-dimensions.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/calculate-metadata.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/import-srt-captions.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/display-captions.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/audio-visualization.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/audio.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/local-fonts.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/google-fonts.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/light-leaks.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/effects.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

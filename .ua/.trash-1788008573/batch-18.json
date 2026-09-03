@@ -1,0 +1,447 @@
+{
+ "nodes": [
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/measuring-dom-nodes.md",
+   "type": "document",
+   "name": "measuring-dom-nodes.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/measuring-dom-nodes.md",
+   "summary": "Guide to measuring DOM element dimensions inside Remotion, correcting getBoundingClientRect() values for the player's scale() transform via useCurrentScale().",
+   "tags": [
+    "documentation",
+    "remotion",
+    "layout",
+    "measurement"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/measuring-text.md",
+   "type": "document",
+   "name": "measuring-text.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/measuring-text.md",
+   "summary": "Explains @remotion/layout-utils helpers (measureText, fitText, fillTextBox) for measuring text dimensions, fitting text to containers, and detecting overflow.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "typography",
+    "layout"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/parameters.md",
+   "type": "document",
+   "name": "parameters.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/parameters.md",
+   "summary": "Describes making a Remotion composition parametrizable by attaching a Zod schema, including package-manager-specific install steps and schema examples.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "zod",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/sequencing.md",
+   "type": "document",
+   "name": "sequencing.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/sequencing.md",
+   "summary": "Sequencing patterns using <Sequence> and <Series> to delay, trim, and limit the duration of timeline items in Remotion.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "timeline",
+    "sequencing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/sfx.md",
+   "type": "document",
+   "name": "sfx.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/sfx.md",
+   "summary": "Lists the sound effects available from remotion.media and shows how to include them with the <Audio> tag from @remotion/sfx.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "audio",
+    "sound-effects"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/silence-detection.md",
+   "type": "document",
+   "name": "silence-detection.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/silence-detection.md",
+   "summary": "Step-by-step recipe for adaptive silence detection using FFmpeg loudnorm and silencedetect to find and trim quiet segments.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "ffmpeg",
+    "audio-processing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/subtitles.md",
+   "type": "document",
+   "name": "subtitles.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/subtitles.md",
+   "summary": "Rules for handling captions as JSON using the @remotion/captions Caption type, pointing to transcription and display guides.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "captions",
+    "subtitles"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/tailwind.md",
+   "type": "document",
+   "name": "tailwind.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/tailwind.md",
+   "summary": "Short rule on using TailwindCSS in Remotion: allowed, but never use transition-* or animate-* classes; animate with useCurrentFrame().",
+   "tags": [
+    "documentation",
+    "remotion",
+    "tailwind",
+    "styling"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/text-animations.md",
+   "type": "document",
+   "name": "text-animations.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/text-animations.md",
+   "summary": "Typography animation patterns for Remotion such as the typewriter effect via string slicing driven by useCurrentFrame().",
+   "tags": [
+    "documentation",
+    "remotion",
+    "typography",
+    "animation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/timing.md",
+   "type": "document",
+   "name": "timing.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/timing.md",
+   "summary": "Interpolation and timing guidance: prefer interpolate() with Easing.bezier over spring(), with examples of frame-range driven motion.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "animation",
+    "easing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/transcribe-captions.md",
+   "type": "document",
+   "name": "transcribe-captions.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/transcribe-captions.md",
+   "summary": "Explains transcribing audio to captions with @remotion/install-whisper-cpp's transcribe() function and converting output to Caption JSON.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "captions",
+    "speech-to-text"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/transitions.md",
+   "type": "document",
+   "name": "transitions.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/transitions.md",
+   "summary": "Covers scene transitions and overlays with <TransitionSeries>, including fade, slide, wipe presentations and timing functions.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "transitions",
+    "scenes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/transparent-videos.md",
+   "type": "document",
+   "name": "transparent-videos.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/transparent-videos.md",
+   "summary": "Describes rendering transparent videos in Remotion as ProRes 4444 or VP9 WebM, via CLI flags and render config defaults.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "rendering",
+    "codec"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/trimming.md",
+   "type": "document",
+   "name": "trimming.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/trimming.md",
+   "summary": "Trimming patterns using negative <Sequence> from values and durationInFrames to cut the beginning or end of animations.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "timeline",
+    "trimming"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/video-layout.md",
+   "type": "document",
+   "name": "video-layout.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/video-layout.md",
+   "summary": "Video-first layout guidance: design each scene around one focal element, size text for the full frame, and favour quick comprehension over dense UI.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "layout",
+    "design-guidance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/videos.md",
+   "type": "document",
+   "name": "videos.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/videos.md",
+   "summary": "Guide to embedding videos with <Video> from @remotion/media: trimming, volume, playback speed, looping, and pitch control.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "video",
+    "media"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.agents/skills/remotion-best-practices/rules/voiceover.md",
+   "type": "document",
+   "name": "voiceover.md",
+   "filePath": ".agents/skills/remotion-best-practices/rules/voiceover.md",
+   "summary": "Recipe for adding ElevenLabs TTS voiceover per scene and using calculateMetadata to size the composition to the generated audio.",
+   "tags": [
+    "documentation",
+    "remotion",
+    "tts",
+    "audio"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/measuring-text.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/measuring-dom-nodes.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/measuring-text.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/video-layout.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/parameters.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/compositions.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/sequencing.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/trimming.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/sequencing.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/timing.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/sequencing.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/transitions.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/sfx.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/audio.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/silence-detection.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/ffmpeg.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/silence-detection.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/trimming.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/subtitles.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/transcribe-captions.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/subtitles.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/display-captions.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/subtitles.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/import-srt-captions.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/tailwind.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/timing.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/text-animations.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/timing.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/text-animations.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/measuring-text.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/timing.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/sequencing.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/transcribe-captions.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/subtitles.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/transcribe-captions.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/display-captions.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/transitions.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/sequencing.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/transitions.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/light-leaks.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/trimming.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/sequencing.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/video-layout.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/measuring-text.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/video-layout.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/text-animations.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/videos.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/audio.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/videos.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/trimming.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/videos.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/get-video-duration.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/voiceover.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/calculate-metadata.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/voiceover.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/audio.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.agents/skills/remotion-best-practices/rules/voiceover.md",
+   "target": "document:.agents/skills/remotion-best-practices/rules/sfx.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

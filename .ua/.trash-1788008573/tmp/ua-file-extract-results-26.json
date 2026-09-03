@@ -1,0 +1,1037 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 21,
+  "filesSkipped": [
+    ".tanstack/tmp/1abb91d5-2aba1398148aac7cf3cc184d21d43c34",
+    ".ua/.understandignore",
+    ".ua/tmp/readme.txt",
+    ".ua/tmp/scan-err.txt"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 21,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 13,
+      "failed": 0,
+      "skipped": 8
+    }
+  },
+  "results": [
+    {
+      "path": ".agents/skills/remotion-best-practices/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 364,
+      "nonEmptyLines": 243,
+      "sections": [
+        {
+          "heading": "When to use",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "New project setup",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "Designing a video",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "Starting preview",
+          "level": 2,
+          "line": 218
+        },
+        {
+          "heading": "Optional: one-frame render check",
+          "level": 2,
+          "line": 226
+        },
+        {
+          "heading": "Captions",
+          "level": 2,
+          "line": 237
+        },
+        {
+          "heading": "Using FFmpeg",
+          "level": 2,
+          "line": 241
+        },
+        {
+          "heading": "Silence detection",
+          "level": 2,
+          "line": 245
+        },
+        {
+          "heading": "Audio visualization",
+          "level": 2,
+          "line": 249
+        },
+        {
+          "heading": "Sound effects",
+          "level": 2,
+          "line": 253
+        },
+        {
+          "heading": "Visual and pixel effects",
+          "level": 2,
+          "line": 257
+        },
+        {
+          "heading": "3D content",
+          "level": 2,
+          "line": 265
+        },
+        {
+          "heading": "Advanced audio",
+          "level": 2,
+          "line": 269
+        },
+        {
+          "heading": "Dynamic duration, dimensions and data",
+          "level": 2,
+          "line": 273
+        },
+        {
+          "heading": "Advanced compositions",
+          "level": 2,
+          "line": 277
+        },
+        {
+          "heading": "Google Fonts",
+          "level": 2,
+          "line": 281
+        },
+        {
+          "heading": "Local fonts",
+          "level": 2,
+          "line": 285
+        },
+        {
+          "heading": "Getting audio duration",
+          "level": 2,
+          "line": 289
+        },
+        {
+          "heading": "Getting video dimensions",
+          "level": 2,
+          "line": 293
+        },
+        {
+          "heading": "Getting video duration",
+          "level": 2,
+          "line": 297
+        },
+        {
+          "heading": "GIFs",
+          "level": 2,
+          "line": 301
+        },
+        {
+          "heading": "Advanced Images",
+          "level": 2,
+          "line": 305
+        },
+        {
+          "heading": "Lottie animations",
+          "level": 2,
+          "line": 309
+        },
+        {
+          "heading": "Measuring DOM nodes",
+          "level": 2,
+          "line": 313
+        },
+        {
+          "heading": "Measuring text",
+          "level": 2,
+          "line": 317
+        },
+        {
+          "heading": "Advanced sequencing",
+          "level": 2,
+          "line": 321
+        },
+        {
+          "heading": "TailwindCSS",
+          "level": 2,
+          "line": 325
+        },
+        {
+          "heading": "Text animations",
+          "level": 2,
+          "line": 329
+        },
+        {
+          "heading": "Advanced timing",
+          "level": 2,
+          "line": 333
+        },
+        {
+          "heading": "Transitions",
+          "level": 2,
+          "line": 337
+        },
+        {
+          "heading": "Transparent videos",
+          "level": 2,
+          "line": 341
+        },
+        {
+          "heading": "Trimming",
+          "level": 2,
+          "line": 345
+        },
+        {
+          "heading": "Advanced Videos",
+          "level": 2,
+          "line": 349
+        },
+        {
+          "heading": "Parameterized videos",
+          "level": 2,
+          "line": 353
+        },
+        {
+          "heading": "Maps",
+          "level": 2,
+          "line": 357
+        },
+        {
+          "heading": "Voiceover",
+          "level": 2,
+          "line": 362
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 36
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/assets/charts-bar-chart.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 173,
+      "nonEmptyLines": 159,
+      "functions": [
+        {
+          "name": "Title",
+          "startLine": 14,
+          "endLine": 20,
+          "params": [
+            "{children}"
+          ]
+        },
+        {
+          "name": "YAxis",
+          "startLine": 22,
+          "endLine": 51,
+          "params": [
+            "{\n\tsteps,\n\theight,\n}"
+          ]
+        },
+        {
+          "name": "Bar",
+          "startLine": 53,
+          "endLine": 75,
+          "params": [
+            "{height, progress}"
+          ]
+        },
+        {
+          "name": "XAxis",
+          "startLine": 77,
+          "endLine": 119,
+          "params": [
+            "{children, labels, height}"
+          ]
+        },
+        {
+          "name": "MyAnimation",
+          "startLine": 121,
+          "endLine": 173,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "MyAnimation",
+          "line": 121,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "YAxis",
+          "callee": "steps\n\t\t\t.slice()\n\t\t\t.reverse()\n\t\t\t.map",
+          "lineNumber": 35
+        },
+        {
+          "caller": "YAxis",
+          "callee": "steps\n\t\t\t.slice()\n\t\t\t.reverse",
+          "lineNumber": 35
+        },
+        {
+          "caller": "YAxis",
+          "callee": "steps\n\t\t\t.slice",
+          "lineNumber": 35
+        },
+        {
+          "caller": "YAxis",
+          "callee": "step.toLocaleString",
+          "lineNumber": 47
+        },
+        {
+          "caller": "XAxis",
+          "callee": "labels.map",
+          "lineNumber": 104
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "useCurrentFrame",
+          "lineNumber": 122
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "useVideoConfig",
+          "lineNumber": 123
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "data.map",
+          "lineNumber": 154
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "data.map",
+          "lineNumber": 155
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "spring",
+          "lineNumber": 156
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/assets/text-animations-typewriter.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 100,
+      "nonEmptyLines": 90,
+      "functions": [
+        {
+          "name": "getTypedText",
+          "startLine": 20,
+          "endLine": 50,
+          "params": [
+            "{\n\tframe,\n\tfullText,\n\tpauseAfter,\n\tcharFrames,\n\tpauseFrames,\n}"
+          ]
+        },
+        {
+          "name": "Cursor",
+          "startLine": 52,
+          "endLine": 65,
+          "params": [
+            "{frame, blinkFrames, symbol = '\\u258C'}"
+          ]
+        },
+        {
+          "name": "MyAnimation",
+          "startLine": 67,
+          "endLine": 100,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "MyAnimation",
+          "line": 67,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getTypedText",
+          "callee": "fullText.indexOf",
+          "lineNumber": 33
+        },
+        {
+          "caller": "getTypedText",
+          "callee": "Math.floor",
+          "lineNumber": 39
+        },
+        {
+          "caller": "getTypedText",
+          "callee": "Math.min",
+          "lineNumber": 44
+        },
+        {
+          "caller": "getTypedText",
+          "callee": "Math.floor",
+          "lineNumber": 46
+        },
+        {
+          "caller": "getTypedText",
+          "callee": "fullText.slice",
+          "lineNumber": 49
+        },
+        {
+          "caller": "Cursor",
+          "callee": "interpolate",
+          "lineNumber": 57
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "useCurrentFrame",
+          "lineNumber": 68
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "useVideoConfig",
+          "lineNumber": 69
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "Math.round",
+          "lineNumber": 71
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "getTypedText",
+          "lineNumber": 73
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/assets/text-animations-word-highlight.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 103,
+      "nonEmptyLines": 94,
+      "functions": [
+        {
+          "name": "Highlight",
+          "startLine": 23,
+          "endLine": 60,
+          "params": [
+            "{word, color, delay, durationInFrames}"
+          ]
+        },
+        {
+          "name": "MyAnimation",
+          "startLine": 62,
+          "endLine": 103,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "MyAnimation",
+          "line": 62,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Highlight",
+          "callee": "useCurrentFrame",
+          "lineNumber": 29
+        },
+        {
+          "caller": "Highlight",
+          "callee": "useVideoConfig",
+          "lineNumber": 30
+        },
+        {
+          "caller": "Highlight",
+          "callee": "spring",
+          "lineNumber": 32
+        },
+        {
+          "caller": "Highlight",
+          "callee": "Math.max",
+          "lineNumber": 39
+        },
+        {
+          "caller": "Highlight",
+          "callee": "Math.min",
+          "lineNumber": 39
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "FULL_TEXT.indexOf",
+          "lineNumber": 63
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "FULL_TEXT.slice",
+          "lineNumber": 65
+        },
+        {
+          "caller": "MyAnimation",
+          "callee": "FULL_TEXT.slice",
+          "lineNumber": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": ".claude/launch.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 41,
+      "nonEmptyLines": 41,
+      "sections": [
+        {
+          "heading": "version",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "configurations",
+          "level": 1,
+          "line": 3
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 2
+      }
+    },
+    {
+      "path": ".claude/settings.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 5,
+      "nonEmptyLines": 5,
+      "sections": [
+        {
+          "heading": "enabledPlugins",
+          "level": 1,
+          "line": 2
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    },
+    {
+      "path": ".claude/skills/impeccable/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 168,
+      "nonEmptyLines": 125,
+      "sections": [
+        {
+          "heading": "Setup",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "Design guidance",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "General rules",
+          "level": 3,
+          "line": 28
+        },
+        {
+          "heading": "Color",
+          "level": 4,
+          "line": 30
+        },
+        {
+          "heading": "Typography",
+          "level": 4,
+          "line": 35
+        },
+        {
+          "heading": "Layout",
+          "level": 4,
+          "line": 43
+        },
+        {
+          "heading": "Motion",
+          "level": 4,
+          "line": 51
+        },
+        {
+          "heading": "Interaction",
+          "level": 4,
+          "line": 61
+        },
+        {
+          "heading": "New projects only (when no prior work exists)",
+          "level": 3,
+          "line": 65
+        },
+        {
+          "heading": "Color & Theme",
+          "level": 4,
+          "line": 67
+        },
+        {
+          "heading": "Absolute bans",
+          "level": 3,
+          "line": 79
+        },
+        {
+          "heading": "The AI slop test",
+          "level": 3,
+          "line": 92
+        },
+        {
+          "heading": "Commands",
+          "level": 2,
+          "line": 101
+        },
+        {
+          "heading": "Routing rules",
+          "level": 3,
+          "line": 131
+        },
+        {
+          "heading": "Pin / Unpin",
+          "level": 2,
+          "line": 156
+        },
+        {
+          "heading": "Hooks",
+          "level": 2,
+          "line": 166
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 16
+      }
+    },
+    {
+      "path": ".github/skills/impeccable/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 166,
+      "nonEmptyLines": 123,
+      "sections": [
+        {
+          "heading": "Setup",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "Design guidance",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "General rules",
+          "level": 3,
+          "line": 26
+        },
+        {
+          "heading": "Color",
+          "level": 4,
+          "line": 28
+        },
+        {
+          "heading": "Typography",
+          "level": 4,
+          "line": 33
+        },
+        {
+          "heading": "Layout",
+          "level": 4,
+          "line": 41
+        },
+        {
+          "heading": "Motion",
+          "level": 4,
+          "line": 49
+        },
+        {
+          "heading": "Interaction",
+          "level": 4,
+          "line": 59
+        },
+        {
+          "heading": "New projects only (when no prior work exists)",
+          "level": 3,
+          "line": 63
+        },
+        {
+          "heading": "Color & Theme",
+          "level": 4,
+          "line": 65
+        },
+        {
+          "heading": "Absolute bans",
+          "level": 3,
+          "line": 77
+        },
+        {
+          "heading": "The AI slop test",
+          "level": 3,
+          "line": 90
+        },
+        {
+          "heading": "Commands",
+          "level": 2,
+          "line": 99
+        },
+        {
+          "heading": "Routing rules",
+          "level": 3,
+          "line": 129
+        },
+        {
+          "heading": "Pin / Unpin",
+          "level": 2,
+          "line": 154
+        },
+        {
+          "heading": "Hooks",
+          "level": 2,
+          "line": 164
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 16
+      }
+    },
+    {
+      "path": ".impeccable/design.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 171,
+      "nonEmptyLines": 171,
+      "sections": [
+        {
+          "heading": "schemaVersion",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "generatedAt",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "title",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "extensions",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "components",
+          "level": 1,
+          "line": 74
+        },
+        {
+          "heading": "narrative",
+          "level": 1,
+          "line": 132
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": ".impeccable/live/config.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 6,
+      "nonEmptyLines": 6,
+      "sections": [
+        {
+          "heading": "files",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "insertBefore",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "commentSyntax",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "cspChecked",
+          "level": 1,
+          "line": 5
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": ".ua/config.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "sections": [
+        {
+          "heading": "outputLanguage",
+          "level": 1,
+          "line": 1
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    },
+    {
+      "path": "copy_components.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 43,
+      "nonEmptyLines": 33,
+      "functions": [
+        {
+          "name": "process_file",
+          "startLine": 14,
+          "endLine": 30,
+          "params": [
+            "src",
+            "dst"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "process_file",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "process_file",
+          "callee": "open",
+          "lineNumber": 15
+        },
+        {
+          "caller": "process_file",
+          "callee": "f.read",
+          "lineNumber": 16
+        },
+        {
+          "caller": "process_file",
+          "callee": "content.replace",
+          "lineNumber": 19
+        },
+        {
+          "caller": "process_file",
+          "callee": "src.endswith",
+          "lineNumber": 23
+        },
+        {
+          "caller": "process_file",
+          "callee": "re.sub",
+          "lineNumber": 26
+        },
+        {
+          "caller": "process_file",
+          "callee": "re.sub",
+          "lineNumber": 27
+        },
+        {
+          "caller": "process_file",
+          "callee": "open",
+          "lineNumber": 29
+        },
+        {
+          "caller": "process_file",
+          "callee": "f.write",
+          "lineNumber": 30
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "dashboard_patches/patch_branches.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 21,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "dashboard_patches/patch_dashboard.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 38,
+      "nonEmptyLines": 31,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "dashboard_patches/patch_inventory.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 18,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "dashboard_patches/patch_recipes.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 9,
+      "nonEmptyLines": 8,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "dashboard_patches/patch_shifts.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 57,
+      "nonEmptyLines": 51,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "dashboard_patches/patch_users.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 16,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "edit_public_menu.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 52,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "eslint.config.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 60,
+      "nonEmptyLines": 59,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "fix_analytics.cjs",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 38,
+      "nonEmptyLines": 31,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

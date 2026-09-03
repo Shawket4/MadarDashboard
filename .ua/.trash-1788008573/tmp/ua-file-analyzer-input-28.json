@@ -1,0 +1,15 @@
+{"projectRoot":"/Users/shawket/Desktop/MadarDashboard","batchFiles":[
+{"path":"src-tauri/src/lib.rs","language":"rust","sizeLines":24,"fileCategory":"code"},
+{"path":"src-tauri/src/main.rs","language":"rust","sizeLines":6,"fileCategory":"code"},
+{"path":"src-tauri/tauri.conf.json","language":"json","sizeLines":38,"fileCategory":"config"},
+{"path":"src/features/qr/lib.ts","language":"typescript","sizeLines":2,"fileCategory":"code"},
+{"path":"src/fontsource.d.ts","language":"typescript","sizeLines":4,"fileCategory":"code"},
+{"path":"src/i18n/locales/ar.json","language":"json","sizeLines":3819,"fileCategory":"config"},
+{"path":"src/i18n/locales/en.json","language":"json","sizeLines":3721,"fileCategory":"config"},
+{"path":"src/styles/globals.css","language":"css","sizeLines":405,"fileCategory":"markup"},
+{"path":"src/test/setup.ts","language":"typescript","sizeLines":3,"fileCategory":"code"},
+{"path":"vite.config.ts","language":"typescript","sizeLines":116,"fileCategory":"code"},
+{"path":"vite.get.config.ts","language":"typescript","sizeLines":52,"fileCategory":"code"},
+{"path":"vite.order.config.ts","language":"typescript","sizeLines":52,"fileCategory":"code"},
+{"path":"vitest.config.ts","language":"typescript","sizeLines":10,"fileCategory":"code"}],
+"batchImportData":{"src-tauri/src/lib.rs":[],"src-tauri/src/main.rs":[],"src-tauri/tauri.conf.json":[],"src/features/qr/lib.ts":[],"src/fontsource.d.ts":[],"src/i18n/locales/ar.json":[],"src/i18n/locales/en.json":[],"src/styles/globals.css":[],"src/test/setup.ts":[],"vite.config.ts":[],"vite.get.config.ts":[],"vite.order.config.ts":[],"vitest.config.ts":["vite.config.ts"]}}

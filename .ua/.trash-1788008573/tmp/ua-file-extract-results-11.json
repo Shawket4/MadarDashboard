@@ -1,0 +1,6048 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 23,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 23,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 23,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "src/features/payment-methods/payment-method-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 179,
+      "nonEmptyLines": 171,
+      "functions": [
+        {
+          "name": "PaymentMethodDialog",
+          "startLine": 29,
+          "endLine": 179,
+          "params": [
+            "{ method, open, onOpenChange }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PaymentMethodDialog",
+          "line": 29,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "useTranslation",
+          "lineNumber": 30
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "useState",
+          "lineNumber": 33
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "useMemo",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.object",
+          "lineNumber": 37
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string().min(1, t(\"common.requiredField\", \"This field is required\")).regex",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string().min",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 38
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string().min",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 39
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string().optional",
+          "lineNumber": 40
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string",
+          "lineNumber": 40
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string().min",
+          "lineNumber": 41
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string",
+          "lineNumber": 41
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string().min",
+          "lineNumber": 42
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.string",
+          "lineNumber": 42
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.boolean",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.boolean",
+          "lineNumber": 44
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "z.boolean",
+          "lineNumber": 45
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "useForm",
+          "lineNumber": 51
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "zodResolver",
+          "lineNumber": 52
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "useEffect",
+          "lineNumber": 56
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "form.reset",
+          "lineNumber": 59
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "method?.color?.startsWith",
+          "lineNumber": 64
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 75
+        },
+        {
+          "caller": "submit",
+          "callee": "updatePaymentMethod",
+          "lineNumber": 77
+        },
+        {
+          "caller": "submit",
+          "callee": "createPaymentMethod",
+          "lineNumber": 78
+        },
+        {
+          "caller": "submit",
+          "callee": "invalidatePaymentMethods",
+          "lineNumber": 79
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.success",
+          "lineNumber": 80
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 80
+        },
+        {
+          "caller": "submit",
+          "callee": "onOpenChange",
+          "lineNumber": 81
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.error",
+          "lineNumber": 83
+        },
+        {
+          "caller": "submit",
+          "callee": "getErrorMessage",
+          "lineNumber": 83
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 85
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 93
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 93
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 94
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "form.handleSubmit",
+          "lineNumber": 97
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 100
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "isSystemMethod",
+          "lineNumber": 101
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "field.onChange",
+          "lineNumber": 101
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "e.target.value.toLowerCase().replace",
+          "lineNumber": 101
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "e.target.value.toLowerCase",
+          "lineNumber": 101
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 102
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 102
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 108
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 111
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 116
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "PM_ICONS.map",
+          "lineNumber": 121
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 122
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 132
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "PM_COLORS.map",
+          "lineNumber": 135
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "field.onChange",
+          "lineNumber": 136
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 150
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 150
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 156
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 156
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 164
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 165
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 171
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 171
+        },
+        {
+          "caller": "PaymentMethodDialog",
+          "callee": "t",
+          "lineNumber": 172
+        }
+      ],
+      "metrics": {
+        "importCount": 9,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/qr/qr-page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 429,
+      "nonEmptyLines": 400,
+      "functions": [
+        {
+          "name": "RenderOptions",
+          "startLine": 56,
+          "endLine": 92,
+          "params": [
+            "{ opts, onChange }"
+          ]
+        },
+        {
+          "name": "QrResult",
+          "startLine": 96,
+          "endLine": 138,
+          "params": [
+            "{ qr, title, onPreview }"
+          ]
+        },
+        {
+          "name": "QrPage",
+          "startLine": 142,
+          "endLine": 429,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "QrPage",
+          "line": 142,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RenderOptions",
+          "callee": "useTranslation",
+          "lineNumber": 57
+        },
+        {
+          "caller": "RenderOptions",
+          "callee": "onChange",
+          "lineNumber": 64
+        },
+        {
+          "caller": "RenderOptions",
+          "callee": "t",
+          "lineNumber": 67
+        },
+        {
+          "caller": "RenderOptions",
+          "callee": "t",
+          "lineNumber": 73
+        },
+        {
+          "caller": "RenderOptions",
+          "callee": "String",
+          "lineNumber": 76
+        },
+        {
+          "caller": "RenderOptions",
+          "callee": "onChange",
+          "lineNumber": 77
+        },
+        {
+          "caller": "RenderOptions",
+          "callee": "Number",
+          "lineNumber": 77
+        },
+        {
+          "caller": "QrResult",
+          "callee": "useTranslation",
+          "lineNumber": 97
+        },
+        {
+          "caller": "QrResult",
+          "callee": "qr.qr_data_url.startsWith",
+          "lineNumber": 98
+        },
+        {
+          "caller": "download",
+          "callee": "downloadUrl",
+          "lineNumber": 101
+        },
+        {
+          "caller": "QrResult",
+          "callee": "t",
+          "lineNumber": 110
+        },
+        {
+          "caller": "QrResult",
+          "callee": "t",
+          "lineNumber": 116
+        },
+        {
+          "caller": "QrResult",
+          "callee": "t",
+          "lineNumber": 134
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useTranslation",
+          "lineNumber": 143
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useOrgId",
+          "lineNumber": 144
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useScope",
+          "lineNumber": 145
+        },
+        {
+          "caller": "QrPage",
+          "callee": "z.object",
+          "lineNumber": 148
+        },
+        {
+          "caller": "QrPage",
+          "callee": "z.string().min(1, t(\"common.requiredField\")).max",
+          "lineNumber": 149
+        },
+        {
+          "caller": "QrPage",
+          "callee": "z.string().min",
+          "lineNumber": 149
+        },
+        {
+          "caller": "QrPage",
+          "callee": "z.string",
+          "lineNumber": 149
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 149
+        },
+        {
+          "caller": "QrPage",
+          "callee": "z.string().min(1, t(\"common.requiredField\")).max",
+          "lineNumber": 150
+        },
+        {
+          "caller": "QrPage",
+          "callee": "z.string().min",
+          "lineNumber": 150
+        },
+        {
+          "caller": "QrPage",
+          "callee": "z.string",
+          "lineNumber": 150
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 150
+        },
+        {
+          "caller": "QrPage",
+          "callee": "z.string().min(1, t(\"common.requiredField\")).max",
+          "lineNumber": 151
+        },
+        {
+          "caller": "QrPage",
+          "callee": "z.string().min",
+          "lineNumber": 151
+        },
+        {
+          "caller": "QrPage",
+          "callee": "z.string",
+          "lineNumber": 151
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 151
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useState",
+          "lineNumber": 154
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useState",
+          "lineNumber": 157
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useState",
+          "lineNumber": 158
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useState",
+          "lineNumber": 161
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useState",
+          "lineNumber": 162
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useState",
+          "lineNumber": 165
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useState",
+          "lineNumber": 166
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useState",
+          "lineNumber": 169
+        },
+        {
+          "caller": "QrPage",
+          "callee": "useForm",
+          "lineNumber": 171
+        },
+        {
+          "caller": "QrPage",
+          "callee": "zodResolver",
+          "lineNumber": 172
+        },
+        {
+          "caller": "generateBranchQr",
+          "callee": "setBranchBusy",
+          "lineNumber": 183
+        },
+        {
+          "caller": "generateBranchQr",
+          "callee": "setBranchQrResult",
+          "lineNumber": 184
+        },
+        {
+          "caller": "generateBranchQr",
+          "callee": "branchQr",
+          "lineNumber": 186
+        },
+        {
+          "caller": "generateBranchQr",
+          "callee": "setBranchQrResult",
+          "lineNumber": 187
+        },
+        {
+          "caller": "generateBranchQr",
+          "callee": "toast.error",
+          "lineNumber": 189
+        },
+        {
+          "caller": "generateBranchQr",
+          "callee": "getErrorMessage",
+          "lineNumber": 189
+        },
+        {
+          "caller": "generateBranchQr",
+          "callee": "setBranchBusy",
+          "lineNumber": 191
+        },
+        {
+          "caller": "generateInMallQr",
+          "callee": "setInMallBusy",
+          "lineNumber": 197
+        },
+        {
+          "caller": "generateInMallQr",
+          "callee": "setInMallResult",
+          "lineNumber": 198
+        },
+        {
+          "caller": "generateInMallQr",
+          "callee": "branchQr",
+          "lineNumber": 200
+        },
+        {
+          "caller": "generateInMallQr",
+          "callee": "setInMallResult",
+          "lineNumber": 206
+        },
+        {
+          "caller": "generateInMallQr",
+          "callee": "toast.error",
+          "lineNumber": 208
+        },
+        {
+          "caller": "generateInMallQr",
+          "callee": "getErrorMessage",
+          "lineNumber": 208
+        },
+        {
+          "caller": "generateInMallQr",
+          "callee": "setInMallBusy",
+          "lineNumber": 210
+        },
+        {
+          "caller": "generateOrgQr",
+          "callee": "setOrgBusy",
+          "lineNumber": 216
+        },
+        {
+          "caller": "generateOrgQr",
+          "callee": "setOrgQrResult",
+          "lineNumber": 217
+        },
+        {
+          "caller": "generateOrgQr",
+          "callee": "orgQr",
+          "lineNumber": 219
+        },
+        {
+          "caller": "generateOrgQr",
+          "callee": "setOrgQrResult",
+          "lineNumber": 220
+        },
+        {
+          "caller": "generateOrgQr",
+          "callee": "toast.error",
+          "lineNumber": 222
+        },
+        {
+          "caller": "generateOrgQr",
+          "callee": "getErrorMessage",
+          "lineNumber": 222
+        },
+        {
+          "caller": "generateOrgQr",
+          "callee": "setOrgBusy",
+          "lineNumber": 224
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 231
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 232
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 240
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 241
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 250
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 253
+        },
+        {
+          "caller": "QrPage",
+          "callee": "generateOrgQr",
+          "lineNumber": 262
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 268
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 273
+        },
+        {
+          "caller": "QrPage",
+          "callee": "setPreview",
+          "lineNumber": 273
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 273
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 279
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 283
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 284
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 293
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 296
+        },
+        {
+          "caller": "QrPage",
+          "callee": "generateBranchQr",
+          "lineNumber": 306
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 315
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 322
+        },
+        {
+          "caller": "QrPage",
+          "callee": "setPreview",
+          "lineNumber": 323
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 323
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 337
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 340
+        },
+        {
+          "caller": "QrPage",
+          "callee": "inMallForm.handleSubmit",
+          "lineNumber": 349
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 359
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 361
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 372
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 374
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 385
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 387
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 401
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 408
+        },
+        {
+          "caller": "QrPage",
+          "callee": "setPreview",
+          "lineNumber": 409
+        },
+        {
+          "caller": "QrPage",
+          "callee": "t",
+          "lineNumber": 409
+        },
+        {
+          "caller": "QrPage",
+          "callee": "setPreview",
+          "lineNumber": 425
+        }
+      ],
+      "metrics": {
+        "importCount": 15,
+        "exportCount": 1,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/qr/qr-preview-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 112,
+      "nonEmptyLines": 101,
+      "functions": [
+        {
+          "name": "QrPreviewDialog",
+          "startLine": 25,
+          "endLine": 112,
+          "params": [
+            "{ qr, title, open, onOpenChange }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "QrPreviewDialog",
+          "line": 25,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "QrPreviewDialog",
+          "callee": "useTranslation",
+          "lineNumber": 26
+        },
+        {
+          "caller": "QrPreviewDialog",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "QrPreviewDialog",
+          "callee": "qr.qr_data_url.startsWith",
+          "lineNumber": 31
+        },
+        {
+          "caller": "handleCopy",
+          "callee": "navigator.clipboard.writeText",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handleCopy",
+          "callee": "setCopied",
+          "lineNumber": 36
+        },
+        {
+          "caller": "handleCopy",
+          "callee": "setTimeout",
+          "lineNumber": 37
+        },
+        {
+          "caller": "handleCopy",
+          "callee": "setCopied",
+          "lineNumber": 37
+        },
+        {
+          "caller": "handleCopy",
+          "callee": "toast.error",
+          "lineNumber": 39
+        },
+        {
+          "caller": "handleCopy",
+          "callee": "t",
+          "lineNumber": 39
+        },
+        {
+          "caller": "handleDownload",
+          "callee": "downloadUrl",
+          "lineNumber": 44
+        },
+        {
+          "caller": "QrPreviewDialog",
+          "callee": "t",
+          "lineNumber": 53
+        },
+        {
+          "caller": "QrPreviewDialog",
+          "callee": "t",
+          "lineNumber": 66
+        },
+        {
+          "caller": "QrPreviewDialog",
+          "callee": "t",
+          "lineNumber": 66
+        },
+        {
+          "caller": "QrPreviewDialog",
+          "callee": "t",
+          "lineNumber": 101
+        },
+        {
+          "caller": "QrPreviewDialog",
+          "callee": "t",
+          "lineNumber": 102
+        },
+        {
+          "caller": "QrPreviewDialog",
+          "callee": "t",
+          "lineNumber": 106
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/recipes/create-ingredient-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 107,
+      "nonEmptyLines": 100,
+      "functions": [
+        {
+          "name": "CreateIngredientDialog",
+          "startLine": 33,
+          "endLine": 107,
+          "params": [
+            "{ orgId, open, onOpenChange, onCreated }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CreateIngredientDialog",
+          "line": 33,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "useTranslation",
+          "lineNumber": 34
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "useState",
+          "lineNumber": 35
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "useState",
+          "lineNumber": 36
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "useState",
+          "lineNumber": 37
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "useState",
+          "lineNumber": 38
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "useState",
+          "lineNumber": 39
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "useListCatalog",
+          "lineNumber": 43
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "useMemo",
+          "lineNumber": 44
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "c.category?.trim",
+          "lineNumber": 48
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "seen.has",
+          "lineNumber": 49
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "seen.add",
+          "lineNumber": 49
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "extra.push",
+          "lineNumber": 49
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "extra.sort",
+          "lineNumber": 51
+        },
+        {
+          "caller": "submit",
+          "callee": "name.trim",
+          "lineNumber": 55
+        },
+        {
+          "caller": "submit",
+          "callee": "cost.trim",
+          "lineNumber": 56
+        },
+        {
+          "caller": "submit",
+          "callee": "egpToPiastres",
+          "lineNumber": 57
+        },
+        {
+          "caller": "submit",
+          "callee": "parseFloat",
+          "lineNumber": 57
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 58
+        },
+        {
+          "caller": "submit",
+          "callee": "createCatalogItem",
+          "lineNumber": 60
+        },
+        {
+          "caller": "submit",
+          "callee": "name.trim",
+          "lineNumber": 60
+        },
+        {
+          "caller": "submit",
+          "callee": "invalidateRecipes",
+          "lineNumber": 61
+        },
+        {
+          "caller": "submit",
+          "callee": "onCreated",
+          "lineNumber": 62
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.success",
+          "lineNumber": 63
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 63
+        },
+        {
+          "caller": "submit",
+          "callee": "onOpenChange",
+          "lineNumber": 64
+        },
+        {
+          "caller": "submit",
+          "callee": "setName",
+          "lineNumber": 65
+        },
+        {
+          "caller": "submit",
+          "callee": "setCost",
+          "lineNumber": 65
+        },
+        {
+          "caller": "submit",
+          "callee": "setCategory",
+          "lineNumber": 65
+        },
+        {
+          "caller": "submit",
+          "callee": "setUnit",
+          "lineNumber": 65
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.error",
+          "lineNumber": 67
+        },
+        {
+          "caller": "submit",
+          "callee": "getErrorMessage",
+          "lineNumber": 67
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 69
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "t",
+          "lineNumber": 77
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "t",
+          "lineNumber": 78
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "t",
+          "lineNumber": 81
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "setName",
+          "lineNumber": 81
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "t",
+          "lineNumber": 84
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "categories.map",
+          "lineNumber": 87
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "t",
+          "lineNumber": 87
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "t",
+          "lineNumber": 91
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "UNITS.map",
+          "lineNumber": 94
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "t",
+          "lineNumber": 94
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "t",
+          "lineNumber": 98
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "setCost",
+          "lineNumber": 98
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 101
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "t",
+          "lineNumber": 101
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "name.trim",
+          "lineNumber": 102
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "submit",
+          "lineNumber": 102
+        },
+        {
+          "caller": "CreateIngredientDialog",
+          "callee": "t",
+          "lineNumber": 102
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/recipes/recipe-builder.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 385,
+      "nonEmptyLines": 357,
+      "functions": [
+        {
+          "name": "rowKey",
+          "startLine": 56,
+          "endLine": 56,
+          "params": [
+            "r"
+          ]
+        },
+        {
+          "name": "RecipeBuilder",
+          "startLine": 58,
+          "endLine": 385,
+          "params": [
+            "{\n  orgId, sizes, initialRows, catalog, priceForSize, copySources = [], fetchCopyRows,\n  onSave, deferred, onRowsChange, allowCreateIngredient = true,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RecipeBuilder",
+          "line": 58,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useTranslation",
+          "lineNumber": 62
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useState",
+          "lineNumber": 63
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useState",
+          "lineNumber": 64
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useState",
+          "lineNumber": 65
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useState",
+          "lineNumber": 66
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useState",
+          "lineNumber": 67
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useForm",
+          "lineNumber": 69
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useFieldArray",
+          "lineNumber": 70
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useMemo",
+          "lineNumber": 72
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "initialRows.map((r) => `${rowKey(r)}=${r.quantity_used}`).sort().join",
+          "lineNumber": 72
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "initialRows.map((r) => `${rowKey(r)}=${r.quantity_used}`).sort",
+          "lineNumber": 72
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "initialRows.map",
+          "lineNumber": 72
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "rowKey",
+          "lineNumber": 72
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useEffect",
+          "lineNumber": 73
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "form.reset",
+          "lineNumber": 74
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "initialRows.map",
+          "lineNumber": 75
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "String",
+          "lineNumber": 80
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "form.watch",
+          "lineNumber": 86
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useMemo",
+          "lineNumber": 89
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "catalog.map",
+          "lineNumber": 89
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useMemo",
+          "lineNumber": 90
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "catalog.filter",
+          "lineNumber": 90
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useMemo",
+          "lineNumber": 91
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "activeCatalog.map",
+          "lineNumber": 92
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 92
+        },
+        {
+          "caller": "costOf",
+          "callee": "byId.get",
+          "lineNumber": 96
+        },
+        {
+          "caller": "cleanRows",
+          "callee": "raw\n      .map((r) => ({\n        size_label: r.size_label,\n        org_ingredient_id: r.org_ingredient_id,\n        ingredient_name: r.ingredient_name,\n        ingredient_unit: r.ingredient_unit,\n        quantity_used: parseFloat(r.quantity_used),\n      }))\n      .filter",
+          "lineNumber": 101
+        },
+        {
+          "caller": "cleanRows",
+          "callee": "raw\n      .map",
+          "lineNumber": 101
+        },
+        {
+          "caller": "cleanRows",
+          "callee": "parseFloat",
+          "lineNumber": 107
+        },
+        {
+          "caller": "cleanRows",
+          "callee": "Number.isFinite",
+          "lineNumber": 109
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "useEffect",
+          "lineNumber": 111
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "onRowsChange",
+          "lineNumber": 112
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "cleanRows",
+          "lineNumber": 112
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "JSON.stringify",
+          "lineNumber": 114
+        },
+        {
+          "caller": "rowsForSize",
+          "callee": "watchedRows.map((r, i) => ({ ...r, _index: i })).filter",
+          "lineNumber": 116
+        },
+        {
+          "caller": "rowsForSize",
+          "callee": "watchedRows.map",
+          "lineNumber": 116
+        },
+        {
+          "caller": "addRow",
+          "callee": "append",
+          "lineNumber": 117
+        },
+        {
+          "caller": "applyScaling",
+          "callee": "watchedRows.filter",
+          "lineNumber": 121
+        },
+        {
+          "caller": "applyScaling",
+          "callee": "sizes.slice",
+          "lineNumber": 123
+        },
+        {
+          "caller": "applyScaling",
+          "callee": "parseFloat",
+          "lineNumber": 124
+        },
+        {
+          "caller": "applyScaling",
+          "callee": "Number.isFinite",
+          "lineNumber": 125
+        },
+        {
+          "caller": "applyScaling",
+          "callee": "parseFloat",
+          "lineNumber": 127
+        },
+        {
+          "caller": "applyScaling",
+          "callee": "next.push",
+          "lineNumber": 128
+        },
+        {
+          "caller": "applyScaling",
+          "callee": "Number.isFinite",
+          "lineNumber": 128
+        },
+        {
+          "caller": "applyScaling",
+          "callee": "String",
+          "lineNumber": 128
+        },
+        {
+          "caller": "applyScaling",
+          "callee": "Math.round",
+          "lineNumber": 128
+        },
+        {
+          "caller": "applyScaling",
+          "callee": "replace",
+          "lineNumber": 131
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "setCopying",
+          "lineNumber": 136
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "fetchCopyRows",
+          "lineNumber": 138
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "src\n        .map((r) => ({\n          size_label: valid.has(r.size_label) ? r.size_label : sizes[0],\n          org_ingredient_id: r.org_ingredient_id ?? null,\n          ingredient_name: r.ingredient_name,\n          ingredient_unit: r.ingredient_unit,\n          quantity_used: String(r.quantity_used),\n        }))\n        .filter",
+          "lineNumber": 140
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "src\n        .map",
+          "lineNumber": 140
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "valid.has",
+          "lineNumber": 142
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "String",
+          "lineNumber": 146
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "arr.findIndex",
+          "lineNumber": 148
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "rowKey",
+          "lineNumber": 148
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "rowKey",
+          "lineNumber": 148
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "replace",
+          "lineNumber": 149
+        },
+        {
+          "caller": "copyFrom",
+          "callee": "setCopying",
+          "lineNumber": 151
+        },
+        {
+          "caller": "save",
+          "callee": "form.getValues",
+          "lineNumber": 157
+        },
+        {
+          "caller": "save",
+          "callee": "cleanRows",
+          "lineNumber": 158
+        },
+        {
+          "caller": "save",
+          "callee": "cleaned.map",
+          "lineNumber": 159
+        },
+        {
+          "caller": "save",
+          "callee": "initialRows.filter((r) => !currentKeys.has(rowKey(r))).map",
+          "lineNumber": 160
+        },
+        {
+          "caller": "save",
+          "callee": "initialRows.filter",
+          "lineNumber": 160
+        },
+        {
+          "caller": "save",
+          "callee": "currentKeys.has",
+          "lineNumber": 160
+        },
+        {
+          "caller": "save",
+          "callee": "rowKey",
+          "lineNumber": 160
+        },
+        {
+          "caller": "save",
+          "callee": "setSaving",
+          "lineNumber": 161
+        },
+        {
+          "caller": "save",
+          "callee": "onSave",
+          "lineNumber": 163
+        },
+        {
+          "caller": "save",
+          "callee": "form.reset",
+          "lineNumber": 164
+        },
+        {
+          "caller": "save",
+          "callee": "setSaving",
+          "lineNumber": 166
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "copySources.map",
+          "lineNumber": 180
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "copyFrom",
+          "lineNumber": 182
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 183
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "setNewIngredient",
+          "lineNumber": 189
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 190
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 200
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 209
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "sizes.slice(1).map",
+          "lineNumber": 212
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "sizes.slice",
+          "lineNumber": 212
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "setFactors",
+          "lineNumber": 223
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 230
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "sizes.map",
+          "lineNumber": 237
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "rowsForSize",
+          "lineNumber": 238
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "costOf",
+          "lineNumber": 241
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "parseFloat",
+          "lineNumber": 242
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "Number.isFinite",
+          "lineNumber": 243
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "priceForSize",
+          "lineNumber": 246
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 248
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 262
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "fmtMoney",
+          "lineNumber": 265
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 271
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "cn",
+          "lineNumber": 273
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "fmtPercent",
+          "lineNumber": 277
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "rows.map",
+          "lineNumber": 286
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "costOf",
+          "lineNumber": 287
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "parseFloat",
+          "lineNumber": 288
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "Number.isFinite",
+          "lineNumber": 289
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "fmtMoney",
+          "lineNumber": 289
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "byId.get",
+          "lineNumber": 300
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "form.setValue",
+          "lineNumber": 301
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "form.setValue",
+          "lineNumber": 303
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "form.setValue",
+          "lineNumber": 304
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 307
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "form.setValue",
+          "lineNumber": 318
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 322
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "cn",
+          "lineNumber": 327
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 340
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "remove",
+          "lineNumber": 341
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "addRow",
+          "lineNumber": 352
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 356
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 367
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "save",
+          "lineNumber": 369
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "t",
+          "lineNumber": 370
+        },
+        {
+          "caller": "RecipeBuilder",
+          "callee": "append",
+          "lineNumber": 380
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/recipes/util.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 27,
+      "nonEmptyLines": 26,
+      "functions": [
+        {
+          "name": "invalidateRecipes",
+          "startLine": 14,
+          "endLine": 27,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "invalidateRecipes",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "invalidateRecipes",
+          "callee": "queryClient.invalidateQueries",
+          "lineNumber": 15
+        },
+        {
+          "caller": "invalidateRecipes",
+          "callee": "k.startsWith",
+          "lineNumber": 20
+        },
+        {
+          "caller": "invalidateRecipes",
+          "callee": "k.startsWith",
+          "lineNumber": 21
+        },
+        {
+          "caller": "invalidateRecipes",
+          "callee": "k.startsWith",
+          "lineNumber": 22
+        },
+        {
+          "caller": "invalidateRecipes",
+          "callee": "k.startsWith",
+          "lineNumber": 23
+        },
+        {
+          "caller": "invalidateRecipes",
+          "callee": "k.startsWith",
+          "lineNumber": 24
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/reservations/booking-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 128,
+      "nonEmptyLines": 120,
+      "functions": [
+        {
+          "name": "BookingDialog",
+          "startLine": 26,
+          "endLine": 128,
+          "params": [
+            "{ branchId, open, onOpenChange }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "BookingDialog",
+          "line": 26,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "BookingDialog",
+          "callee": "useTranslation",
+          "lineNumber": 27
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "useMemo",
+          "lineNumber": 30
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.object",
+          "lineNumber": 32
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.string().min",
+          "lineNumber": 33
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.string",
+          "lineNumber": 33
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 33
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.string().min",
+          "lineNumber": 34
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.string",
+          "lineNumber": 34
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 34
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.coerce.number<number>().int().min(1).max",
+          "lineNumber": 35
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.coerce.number<number>().int().min",
+          "lineNumber": 35
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.coerce.number<number>().int",
+          "lineNumber": 35
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.coerce.number",
+          "lineNumber": 35
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.string().optional",
+          "lineNumber": 36
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.string",
+          "lineNumber": 36
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.string().optional",
+          "lineNumber": 37
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "z.string",
+          "lineNumber": 37
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "useForm",
+          "lineNumber": 43
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "zodResolver",
+          "lineNumber": 44
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "useEffect",
+          "lineNumber": 48
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "form.reset",
+          "lineNumber": 49
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 53
+        },
+        {
+          "caller": "submit",
+          "callee": "createBooking",
+          "lineNumber": 55
+        },
+        {
+          "caller": "submit",
+          "callee": "v.customer_name.trim",
+          "lineNumber": 57
+        },
+        {
+          "caller": "submit",
+          "callee": "v.customer_phone.trim",
+          "lineNumber": 58
+        },
+        {
+          "caller": "submit",
+          "callee": "new Date(v.reserved_for).toISOString",
+          "lineNumber": 61
+        },
+        {
+          "caller": "submit",
+          "callee": "v.notes?.trim",
+          "lineNumber": 62
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.success",
+          "lineNumber": 64
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 64
+        },
+        {
+          "caller": "submit",
+          "callee": "invalidateBookings",
+          "lineNumber": 65
+        },
+        {
+          "caller": "submit",
+          "callee": "onOpenChange",
+          "lineNumber": 66
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.error",
+          "lineNumber": 68
+        },
+        {
+          "caller": "submit",
+          "callee": "getErrorMessage",
+          "lineNumber": 68
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 70
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 78
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 79
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "form.handleSubmit",
+          "lineNumber": 82
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 85
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 93
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 100
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 108
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 110
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 115
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 120
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 120
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 121
+        },
+        {
+          "caller": "BookingDialog",
+          "callee": "t",
+          "lineNumber": 121
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/reservations/settings-form.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 140,
+      "nonEmptyLines": 132,
+      "functions": [
+        {
+          "name": "SettingsForm",
+          "startLine": 18,
+          "endLine": 140,
+          "params": [
+            "{ branchId }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsForm",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsForm",
+          "callee": "useTranslation",
+          "lineNumber": 19
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "useGetReservationSettings",
+          "lineNumber": 21
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "useMemo",
+          "lineNumber": 23
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.object",
+          "lineNumber": 25
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.boolean",
+          "lineNumber": 26
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.boolean",
+          "lineNumber": 27
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int().min(0).max",
+          "lineNumber": 28
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int().min",
+          "lineNumber": 28
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int",
+          "lineNumber": 28
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number",
+          "lineNumber": 28
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int().min(0).max",
+          "lineNumber": 29
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int().min",
+          "lineNumber": 29
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int",
+          "lineNumber": 29
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number",
+          "lineNumber": 29
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int().min(0).max",
+          "lineNumber": 30
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int().min",
+          "lineNumber": 30
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int",
+          "lineNumber": 30
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number",
+          "lineNumber": 30
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int().min(1).max",
+          "lineNumber": 31
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int().min",
+          "lineNumber": 31
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number<number>().int",
+          "lineNumber": 31
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "z.coerce.number",
+          "lineNumber": 31
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "useForm",
+          "lineNumber": 37
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "zodResolver",
+          "lineNumber": 38
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "useEffect",
+          "lineNumber": 45
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "form.reset",
+          "lineNumber": 48
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 60
+        },
+        {
+          "caller": "submit",
+          "callee": "putReservationSettings",
+          "lineNumber": 62
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.success",
+          "lineNumber": 63
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 63
+        },
+        {
+          "caller": "submit",
+          "callee": "invalidateFloor",
+          "lineNumber": 64
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.error",
+          "lineNumber": 66
+        },
+        {
+          "caller": "submit",
+          "callee": "getErrorMessage",
+          "lineNumber": 66
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 68
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 77
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 78
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "form.handleSubmit",
+          "lineNumber": 82
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 86
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 87
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 95
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 96
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 104
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 106
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 112
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 114
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 120
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 122
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 128
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 134
+        },
+        {
+          "caller": "SettingsForm",
+          "callee": "t",
+          "lineNumber": 134
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/reservations/table-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 169,
+      "nonEmptyLines": 161,
+      "functions": [
+        {
+          "name": "TableDialog",
+          "startLine": 32,
+          "endLine": 169,
+          "params": [
+            "{ branchId, sectionId, sections, table, open, onOpenChange }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TableDialog",
+          "line": 32,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TableDialog",
+          "callee": "useTranslation",
+          "lineNumber": 33
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "useState",
+          "lineNumber": 34
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "useMemo",
+          "lineNumber": 37
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.object",
+          "lineNumber": 39
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.string().min",
+          "lineNumber": 40
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.string",
+          "lineNumber": 40
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 40
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.coerce.number<number>().int().min(0).max",
+          "lineNumber": 41
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.coerce.number<number>().int().min",
+          "lineNumber": 41
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.coerce.number<number>().int",
+          "lineNumber": 41
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.coerce.number",
+          "lineNumber": 41
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.enum",
+          "lineNumber": 42
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.string().nullable",
+          "lineNumber": 43
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.string",
+          "lineNumber": 43
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "z.boolean",
+          "lineNumber": 44
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "useForm",
+          "lineNumber": 50
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "zodResolver",
+          "lineNumber": 51
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "useEffect",
+          "lineNumber": 55
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "form.reset",
+          "lineNumber": 57
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 68
+        },
+        {
+          "caller": "submit",
+          "callee": "updateFloorTable",
+          "lineNumber": 71
+        },
+        {
+          "caller": "submit",
+          "callee": "v.label.trim",
+          "lineNumber": 72
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.success",
+          "lineNumber": 78
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 78
+        },
+        {
+          "caller": "submit",
+          "callee": "createFloorTable",
+          "lineNumber": 80
+        },
+        {
+          "caller": "submit",
+          "callee": "v.label.trim",
+          "lineNumber": 82
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.success",
+          "lineNumber": 87
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 87
+        },
+        {
+          "caller": "submit",
+          "callee": "invalidateFloor",
+          "lineNumber": 89
+        },
+        {
+          "caller": "submit",
+          "callee": "onOpenChange",
+          "lineNumber": 90
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.error",
+          "lineNumber": 92
+        },
+        {
+          "caller": "submit",
+          "callee": "getErrorMessage",
+          "lineNumber": 92
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 94
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 102
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 102
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 103
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "form.handleSubmit",
+          "lineNumber": 106
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 109
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 117
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 124
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 128
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 129
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 137
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "field.onChange",
+          "lineNumber": 140
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 144
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "sections.map",
+          "lineNumber": 145
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 155
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 161
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 161
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 162
+        },
+        {
+          "caller": "TableDialog",
+          "callee": "t",
+          "lineNumber": 162
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/reservations/util.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "invalidateFloor",
+          "startLine": 4,
+          "endLine": 8,
+          "params": []
+        },
+        {
+          "name": "invalidateBookings",
+          "startLine": 11,
+          "endLine": 15,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "invalidateFloor",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "invalidateBookings",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "TABLE_STATUS_STYLE",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "BOOKING_STATUS_INTENT",
+          "line": 26,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "invalidateFloor",
+          "callee": "queryClient.invalidateQueries",
+          "lineNumber": 5
+        },
+        {
+          "caller": "invalidateFloor",
+          "callee": "(q.queryKey[0] as string).startsWith",
+          "lineNumber": 7
+        },
+        {
+          "caller": "invalidateBookings",
+          "callee": "queryClient.invalidateQueries",
+          "lineNumber": 12
+        },
+        {
+          "caller": "invalidateBookings",
+          "callee": "(q.queryKey[0] as string).startsWith",
+          "lineNumber": 14
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/shifts/cash-movement-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 114,
+      "nonEmptyLines": 107,
+      "functions": [
+        {
+          "name": "CashMovementDialog",
+          "startLine": 29,
+          "endLine": 114,
+          "params": [
+            "{ shiftId, open, onOpenChange }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CashMovementDialog",
+          "line": 29,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "CashMovementDialog",
+          "callee": "useTranslation",
+          "lineNumber": 30
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "useState",
+          "lineNumber": 33
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "useEffect",
+          "lineNumber": 35
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "setDirection",
+          "lineNumber": 37
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "setAmount",
+          "lineNumber": 38
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "setNote",
+          "lineNumber": 39
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "useAddCashMovement",
+          "lineNumber": 43
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "toast.success",
+          "lineNumber": 46
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 46
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "invalidateShifts",
+          "lineNumber": 47
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 48
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "toast.error",
+          "lineNumber": 50
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "getErrorMessage",
+          "lineNumber": 50
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "Number",
+          "lineNumber": 54
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "Number.isFinite",
+          "lineNumber": 55
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "note.trim",
+          "lineNumber": 55
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 61
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 62
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 65
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "cn",
+          "lineNumber": 70
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "setDirection",
+          "lineNumber": 71
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 74
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "cn",
+          "lineNumber": 80
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "setDirection",
+          "lineNumber": 81
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 84
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 88
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "setAmount",
+          "lineNumber": 89
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 92
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "setNote",
+          "lineNumber": 93
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 93
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 97
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 98
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "mutate",
+          "lineNumber": 105
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "egpToPiastres",
+          "lineNumber": 105
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "note.trim",
+          "lineNumber": 105
+        },
+        {
+          "caller": "CashMovementDialog",
+          "callee": "t",
+          "lineNumber": 108
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/shifts/close-shift-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 106,
+      "nonEmptyLines": 99,
+      "functions": [
+        {
+          "name": "CloseShiftDialog",
+          "startLine": 29,
+          "endLine": 106,
+          "params": [
+            "{ shift, open, onOpenChange }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CloseShiftDialog",
+          "line": 29,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "useTranslation",
+          "lineNumber": 30
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "useEffect",
+          "lineNumber": 34
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "setCash",
+          "lineNumber": 36
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "setNote",
+          "lineNumber": 37
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "useCloseShift",
+          "lineNumber": 41
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "toast.success",
+          "lineNumber": 44
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "t",
+          "lineNumber": 44
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "invalidateShifts",
+          "lineNumber": 45
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 46
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "toast.error",
+          "lineNumber": 48
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "getErrorMessage",
+          "lineNumber": 48
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "Number",
+          "lineNumber": 52
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "Number.isFinite",
+          "lineNumber": 53
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "t",
+          "lineNumber": 59
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "t",
+          "lineNumber": 60
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "t",
+          "lineNumber": 64
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "setCash",
+          "lineNumber": 72
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "t",
+          "lineNumber": 76
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "fmtMoney",
+          "lineNumber": 76
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "t",
+          "lineNumber": 81
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "setNote",
+          "lineNumber": 82
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 86
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "t",
+          "lineNumber": 87
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "mutate",
+          "lineNumber": 94
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "egpToPiastres",
+          "lineNumber": 96
+        },
+        {
+          "caller": "CloseShiftDialog",
+          "callee": "t",
+          "lineNumber": 100
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/shifts/open-shift-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 90,
+      "nonEmptyLines": 82,
+      "functions": [
+        {
+          "name": "invalidateShifts",
+          "startLine": 21,
+          "endLine": 24,
+          "params": []
+        },
+        {
+          "name": "OpenShiftDialog",
+          "startLine": 33,
+          "endLine": 90,
+          "params": [
+            "{ branchId, open, onOpenChange, suggestedCash }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "invalidateShifts",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "OpenShiftDialog",
+          "line": 33,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "invalidateShifts",
+          "callee": "queryClient.invalidateQueries",
+          "lineNumber": 22
+        },
+        {
+          "caller": "invalidateShifts",
+          "callee": "(q.queryKey[0] as string).startsWith",
+          "lineNumber": 23
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "useTranslation",
+          "lineNumber": 34
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "useState",
+          "lineNumber": 35
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "useEffect",
+          "lineNumber": 37
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "setCash",
+          "lineNumber": 38
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "String",
+          "lineNumber": 38
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "piastresToEgp",
+          "lineNumber": 38
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "useOpenShift",
+          "lineNumber": 41
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "toast.success",
+          "lineNumber": 44
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "t",
+          "lineNumber": 44
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "invalidateShifts",
+          "lineNumber": 45
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 46
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "toast.error",
+          "lineNumber": 48
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "getErrorMessage",
+          "lineNumber": 48
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "Number",
+          "lineNumber": 52
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "Number.isFinite",
+          "lineNumber": 53
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "t",
+          "lineNumber": 59
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "t",
+          "lineNumber": 60
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "t",
+          "lineNumber": 63
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "setCash",
+          "lineNumber": 71
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "t",
+          "lineNumber": 75
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "fmtMoney",
+          "lineNumber": 75
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 80
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "t",
+          "lineNumber": 81
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "mutate",
+          "lineNumber": 83
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "egpToPiastres",
+          "lineNumber": 83
+        },
+        {
+          "caller": "OpenShiftDialog",
+          "callee": "t",
+          "lineNumber": 84
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/staff/attendance-rules-page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 349,
+      "nonEmptyLines": 332,
+      "functions": [
+        {
+          "name": "AttendanceRulesPage",
+          "startLine": 40,
+          "endLine": 330,
+          "params": []
+        },
+        {
+          "name": "describeTier",
+          "startLine": 334,
+          "endLine": 349,
+          "params": [
+            "tier",
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "AttendanceRulesPage",
+          "line": 40,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useTranslation",
+          "lineNumber": 41
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useGetAttendanceSettings",
+          "lineNumber": 42
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useState",
+          "lineNumber": 43
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useState",
+          "lineNumber": 46
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useState",
+          "lineNumber": 47
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useState",
+          "lineNumber": 48
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useState",
+          "lineNumber": 49
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useState",
+          "lineNumber": 50
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useState",
+          "lineNumber": 51
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useState",
+          "lineNumber": 52
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useEffect",
+          "lineNumber": 54
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setTiers",
+          "lineNumber": 57
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setAbsenceDays",
+          "lineNumber": 58
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "String",
+          "lineNumber": 58
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setOtMultiplier",
+          "lineNumber": 59
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "String",
+          "lineNumber": 59
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setWorkingDays",
+          "lineNumber": 60
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "String",
+          "lineNumber": 60
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setAutoBuffer",
+          "lineNumber": 61
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "String",
+          "lineNumber": 61
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setRequireGeofence",
+          "lineNumber": 62
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setExcusedPaid",
+          "lineNumber": 63
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setWeekend",
+          "lineNumber": 64
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "useMemo",
+          "lineNumber": 72
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "[...tiers].sort",
+          "lineNumber": 73
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 76
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 78
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 80
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 82
+        },
+        {
+          "caller": "addTier",
+          "callee": "setTiers",
+          "lineNumber": 92
+        },
+        {
+          "caller": "patchTier",
+          "callee": "setTiers",
+          "lineNumber": 96
+        },
+        {
+          "caller": "patchTier",
+          "callee": "tiers.map",
+          "lineNumber": 96
+        },
+        {
+          "caller": "save",
+          "callee": "toast.error",
+          "lineNumber": 100
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 103
+        },
+        {
+          "caller": "save",
+          "callee": "putAttendanceSettings",
+          "lineNumber": 105
+        },
+        {
+          "caller": "save",
+          "callee": "Number",
+          "lineNumber": 107
+        },
+        {
+          "caller": "save",
+          "callee": "Number",
+          "lineNumber": 108
+        },
+        {
+          "caller": "save",
+          "callee": "Number",
+          "lineNumber": 109
+        },
+        {
+          "caller": "save",
+          "callee": "Number",
+          "lineNumber": 110
+        },
+        {
+          "caller": "save",
+          "callee": "toast.success",
+          "lineNumber": 115
+        },
+        {
+          "caller": "save",
+          "callee": "t",
+          "lineNumber": 115
+        },
+        {
+          "caller": "save",
+          "callee": "invalidateAttendance",
+          "lineNumber": 116
+        },
+        {
+          "caller": "save",
+          "callee": "toast.error",
+          "lineNumber": 118
+        },
+        {
+          "caller": "save",
+          "callee": "getErrorMessage",
+          "lineNumber": 118
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 120
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 129
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 130
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "save",
+          "lineNumber": 135
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 137
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 144
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 146
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 155
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "tiers.map",
+          "lineNumber": 158
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 162
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "patchTier",
+          "lineNumber": 168
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "Number",
+          "lineNumber": 168
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 172
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 177
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "patchTier",
+          "lineNumber": 180
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "Number",
+          "lineNumber": 181
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 187
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "patchTier",
+          "lineNumber": 190
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 194
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 195
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 196
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 201
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "piastresToEgp",
+          "lineNumber": 207
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "patchTier",
+          "lineNumber": 209
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "egpToPiastres",
+          "lineNumber": 212
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "Number",
+          "lineNumber": 212
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "Number",
+          "lineNumber": 213
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "describeTier",
+          "lineNumber": 219
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setTiers",
+          "lineNumber": 225
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "tiers.filter",
+          "lineNumber": 225
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 237
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 245
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 247
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 255
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setWorkingDays",
+          "lineNumber": 257
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 260
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setAbsenceDays",
+          "lineNumber": 262
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 265
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setOtMultiplier",
+          "lineNumber": 267
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 270
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setAutoBuffer",
+          "lineNumber": 272
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 279
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 284
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 286
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 293
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 295
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 304
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "WEEKDAYS.map",
+          "lineNumber": 306
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "weekend.includes",
+          "lineNumber": 307
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "setWeekend",
+          "lineNumber": 314
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "weekend.filter",
+          "lineNumber": 315
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "[...weekend, d.value].sort",
+          "lineNumber": 315
+        },
+        {
+          "caller": "AttendanceRulesPage",
+          "callee": "t",
+          "lineNumber": 319
+        },
+        {
+          "caller": "describeTier",
+          "callee": "t",
+          "lineNumber": 337
+        },
+        {
+          "caller": "describeTier",
+          "callee": "t",
+          "lineNumber": 338
+        },
+        {
+          "caller": "describeTier",
+          "callee": "t",
+          "lineNumber": 344
+        },
+        {
+          "caller": "describeTier",
+          "callee": "t",
+          "lineNumber": 346
+        },
+        {
+          "caller": "describeTier",
+          "callee": "fmtMoney",
+          "lineNumber": 347
+        }
+      ],
+      "metrics": {
+        "importCount": 12,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/staff/employee-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 310,
+      "nonEmptyLines": 300,
+      "functions": [
+        {
+          "name": "EmployeeDialog",
+          "startLine": 39,
+          "endLine": 310,
+          "params": [
+            "{\n  employee,\n  open,\n  onOpenChange,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "EmployeeDialog",
+          "line": 39,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "EmployeeDialog",
+          "callee": "useTranslation",
+          "lineNumber": 48
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "useState",
+          "lineNumber": 49
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "useListDepartments",
+          "lineNumber": 50
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "useMemo",
+          "lineNumber": 54
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z\n        .object({\n          department_id: z.string(),\n          employee_code: z.string().max(64),\n          job_title: z.string().max(120),\n          hire_date: z.string(),\n          employment_status: z.enum([\"active\", \"suspended\", \"terminated\"]),\n          termination_date: z.string(),\n          base_salary_egp: z.coerce.number<number>().min(0),\n          national_id: z.string().max(64),\n          emergency_contact_name: z.string().max(120),\n          emergency_contact_phone: z.string().max(40),\n          notes: z.string().max(2000),\n        })\n        // Mirrors the database CHECK: a terminated profile must say when, and a\n        // live one must not carry a termination date.\n        .refine",
+          "lineNumber": 56
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z\n        .object",
+          "lineNumber": 56
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string",
+          "lineNumber": 58
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string().max",
+          "lineNumber": 59
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string",
+          "lineNumber": 59
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string().max",
+          "lineNumber": 60
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string",
+          "lineNumber": 60
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string",
+          "lineNumber": 61
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.enum",
+          "lineNumber": 62
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string",
+          "lineNumber": 63
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.coerce.number<number>().min",
+          "lineNumber": 64
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.coerce.number",
+          "lineNumber": 64
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string().max",
+          "lineNumber": 65
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string",
+          "lineNumber": 65
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string().max",
+          "lineNumber": 66
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string",
+          "lineNumber": 66
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string().max",
+          "lineNumber": 67
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string",
+          "lineNumber": 67
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string().max",
+          "lineNumber": 68
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "z.string",
+          "lineNumber": 68
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 74
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "useForm",
+          "lineNumber": 80
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "zodResolver",
+          "lineNumber": 81
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "form.watch",
+          "lineNumber": 88
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "useEffect",
+          "lineNumber": 90
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "form.reset",
+          "lineNumber": 92
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "piastresToEgp",
+          "lineNumber": 99
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 109
+        },
+        {
+          "caller": "submit",
+          "callee": "putEmployee",
+          "lineNumber": 111
+        },
+        {
+          "caller": "submit",
+          "callee": "egpToPiastres",
+          "lineNumber": 120
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.success",
+          "lineNumber": 126
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 126
+        },
+        {
+          "caller": "submit",
+          "callee": "invalidateEmployees",
+          "lineNumber": 127
+        },
+        {
+          "caller": "submit",
+          "callee": "onOpenChange",
+          "lineNumber": 128
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.error",
+          "lineNumber": 130
+        },
+        {
+          "caller": "submit",
+          "callee": "getErrorMessage",
+          "lineNumber": 130
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 132
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 140
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 142
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "form.handleSubmit",
+          "lineNumber": 150
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 156
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 157
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 167
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 178
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 184
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "(departmentsQ.data ?? []).map",
+          "lineNumber": 185
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 199
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 210
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 216
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 217
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 218
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 222
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 234
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 247
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 259
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 270
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 281
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 292
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 300
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 301
+        },
+        {
+          "caller": "EmployeeDialog",
+          "callee": "t",
+          "lineNumber": 303
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/staff/requests-inbox.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 432,
+      "nonEmptyLines": 410,
+      "functions": [
+        {
+          "name": "kindMeta",
+          "startLine": 44,
+          "endLine": 44,
+          "params": [
+            "kind"
+          ]
+        },
+        {
+          "name": "RequestsInboxPage",
+          "startLine": 50,
+          "endLine": 180,
+          "params": []
+        },
+        {
+          "name": "describeWindow",
+          "startLine": 183,
+          "endLine": 207,
+          "params": [
+            "r",
+            "t"
+          ]
+        },
+        {
+          "name": "ApproveWithPayDialog",
+          "startLine": 210,
+          "endLine": 277,
+          "params": [
+            "{\n  request,\n  onOpenChange,\n}"
+          ]
+        },
+        {
+          "name": "NewRequestDialog",
+          "startLine": 280,
+          "endLine": 432,
+          "params": [
+            "{\n  open,\n  onOpenChange,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "RequestsInboxPage",
+          "line": 50,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "kindMeta",
+          "callee": "KINDS.find",
+          "lineNumber": 44
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "useTranslation",
+          "lineNumber": 51
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "useState",
+          "lineNumber": 52
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "useState",
+          "lineNumber": 53
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "useState",
+          "lineNumber": 54
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "useState",
+          "lineNumber": 55
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "useListRequests",
+          "lineNumber": 57
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "useMemo",
+          "lineNumber": 61
+        },
+        {
+          "caller": "quickDecide",
+          "callee": "setDeciding",
+          "lineNumber": 66
+        },
+        {
+          "caller": "quickDecide",
+          "callee": "decideRequest",
+          "lineNumber": 70
+        },
+        {
+          "caller": "quickDecide",
+          "callee": "toast.success",
+          "lineNumber": 71
+        },
+        {
+          "caller": "quickDecide",
+          "callee": "t",
+          "lineNumber": 71
+        },
+        {
+          "caller": "quickDecide",
+          "callee": "invalidateRequests",
+          "lineNumber": 72
+        },
+        {
+          "caller": "quickDecide",
+          "callee": "toast.error",
+          "lineNumber": 74
+        },
+        {
+          "caller": "quickDecide",
+          "callee": "getErrorMessage",
+          "lineNumber": 74
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 81
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 82
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "setAddOpen",
+          "lineNumber": 87
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 89
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 98
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 99
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 100
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 101
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 102
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 108
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "KINDS.map",
+          "lineNumber": 109
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 110
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "[0, 1, 2].map",
+          "lineNumber": 117
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 121
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 122
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "rows.map",
+          "lineNumber": 129
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "kindMeta",
+          "lineNumber": 130
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 141
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 146
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 149
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "describeWindow",
+          "lineNumber": 153
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "quickDecide",
+          "lineNumber": 160
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "t",
+          "lineNumber": 162
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "quickDecide",
+          "lineNumber": 164
+        },
+        {
+          "caller": "RequestsInboxPage",
+          "callee": "setDeciding",
+          "lineNumber": 177
+        },
+        {
+          "caller": "time",
+          "callee": "s.slice",
+          "lineNumber": 184
+        },
+        {
+          "caller": "describeWindow",
+          "callee": "t",
+          "lineNumber": 187
+        },
+        {
+          "caller": "describeWindow",
+          "callee": "time",
+          "lineNumber": 189
+        },
+        {
+          "caller": "describeWindow",
+          "callee": "t",
+          "lineNumber": 192
+        },
+        {
+          "caller": "describeWindow",
+          "callee": "time",
+          "lineNumber": 194
+        },
+        {
+          "caller": "describeWindow",
+          "callee": "t",
+          "lineNumber": 197
+        },
+        {
+          "caller": "describeWindow",
+          "callee": "time",
+          "lineNumber": 199
+        },
+        {
+          "caller": "describeWindow",
+          "callee": "time",
+          "lineNumber": 200
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "useTranslation",
+          "lineNumber": 217
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "useState",
+          "lineNumber": 218
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "useState",
+          "lineNumber": 219
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "useState",
+          "lineNumber": 220
+        },
+        {
+          "caller": "approve",
+          "callee": "setBusy",
+          "lineNumber": 224
+        },
+        {
+          "caller": "approve",
+          "callee": "decideRequest",
+          "lineNumber": 226
+        },
+        {
+          "caller": "approve",
+          "callee": "toast.success",
+          "lineNumber": 231
+        },
+        {
+          "caller": "approve",
+          "callee": "t",
+          "lineNumber": 231
+        },
+        {
+          "caller": "approve",
+          "callee": "invalidateRequests",
+          "lineNumber": 232
+        },
+        {
+          "caller": "approve",
+          "callee": "onOpenChange",
+          "lineNumber": 233
+        },
+        {
+          "caller": "approve",
+          "callee": "toast.error",
+          "lineNumber": 235
+        },
+        {
+          "caller": "approve",
+          "callee": "getErrorMessage",
+          "lineNumber": 235
+        },
+        {
+          "caller": "approve",
+          "callee": "setBusy",
+          "lineNumber": 237
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "t",
+          "lineNumber": 245
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "describeWindow",
+          "lineNumber": 247
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "t",
+          "lineNumber": 253
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "t",
+          "lineNumber": 255
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "t",
+          "lineNumber": 264
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "setNote",
+          "lineNumber": 265
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 269
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "t",
+          "lineNumber": 269
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "approve",
+          "lineNumber": 270
+        },
+        {
+          "caller": "ApproveWithPayDialog",
+          "callee": "t",
+          "lineNumber": 271
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useTranslation",
+          "lineNumber": 287
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useState",
+          "lineNumber": 288
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useState",
+          "lineNumber": 289
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useState",
+          "lineNumber": 290
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "todayIso",
+          "lineNumber": 290
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useState",
+          "lineNumber": 291
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "todayIso",
+          "lineNumber": 291
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useState",
+          "lineNumber": 292
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useState",
+          "lineNumber": 293
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useState",
+          "lineNumber": 294
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useState",
+          "lineNumber": 295
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useState",
+          "lineNumber": 296
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useState",
+          "lineNumber": 297
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useListEmployees",
+          "lineNumber": 299
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "useListLeaveTypes",
+          "lineNumber": 300
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 307
+        },
+        {
+          "caller": "save",
+          "callee": "createRequestAdmin",
+          "lineNumber": 309
+        },
+        {
+          "caller": "save",
+          "callee": "toast.success",
+          "lineNumber": 320
+        },
+        {
+          "caller": "save",
+          "callee": "t",
+          "lineNumber": 320
+        },
+        {
+          "caller": "save",
+          "callee": "invalidateRequests",
+          "lineNumber": 321
+        },
+        {
+          "caller": "save",
+          "callee": "onOpenChange",
+          "lineNumber": 322
+        },
+        {
+          "caller": "save",
+          "callee": "toast.error",
+          "lineNumber": 324
+        },
+        {
+          "caller": "save",
+          "callee": "getErrorMessage",
+          "lineNumber": 324
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 326
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 334
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 336
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 342
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "KINDS.map",
+          "lineNumber": 346
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 347
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 353
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 355
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "(employeesQ.data ?? []).map",
+          "lineNumber": 357
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 365
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 367
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "(typesQ.data ?? []).filter((x) => x.is_active).map",
+          "lineNumber": 369
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "(typesQ.data ?? []).filter",
+          "lineNumber": 369
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 378
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "setTitle",
+          "lineNumber": 379
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 384
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 384
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "setOnDate",
+          "lineNumber": 385
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 389
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "setEndDate",
+          "lineNumber": 390
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 397
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 398
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "setFromTime",
+          "lineNumber": 400
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 407
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 408
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "setToTime",
+          "lineNumber": 410
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 415
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "setReason",
+          "lineNumber": 416
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 421
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 421
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "save",
+          "lineNumber": 423
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "title.trim",
+          "lineNumber": 424
+        },
+        {
+          "caller": "NewRequestDialog",
+          "callee": "t",
+          "lineNumber": 426
+        }
+      ],
+      "metrics": {
+        "importCount": 13,
+        "exportCount": 1,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/tills/till-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 117,
+      "nonEmptyLines": 109,
+      "functions": [
+        {
+          "name": "TillDialog",
+          "startLine": 27,
+          "endLine": 117,
+          "params": [
+            "{ branchId, till, open, onOpenChange }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "TillDialog",
+          "line": 27,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "TillDialog",
+          "callee": "useTranslation",
+          "lineNumber": 28
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "useMemo",
+          "lineNumber": 32
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "z.object",
+          "lineNumber": 34
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "z.string().min",
+          "lineNumber": 35
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "z.string",
+          "lineNumber": 35
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 35
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "z.boolean",
+          "lineNumber": 36
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "z.boolean",
+          "lineNumber": 37
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "useForm",
+          "lineNumber": 43
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "zodResolver",
+          "lineNumber": 44
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "useEffect",
+          "lineNumber": 48
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "form.reset",
+          "lineNumber": 50
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 59
+        },
+        {
+          "caller": "submit",
+          "callee": "updateTill",
+          "lineNumber": 62
+        },
+        {
+          "caller": "submit",
+          "callee": "v.name.trim",
+          "lineNumber": 62
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.success",
+          "lineNumber": 63
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 63
+        },
+        {
+          "caller": "submit",
+          "callee": "createTill",
+          "lineNumber": 65
+        },
+        {
+          "caller": "submit",
+          "callee": "v.name.trim",
+          "lineNumber": 65
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.success",
+          "lineNumber": 66
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 66
+        },
+        {
+          "caller": "submit",
+          "callee": "invalidateTills",
+          "lineNumber": 68
+        },
+        {
+          "caller": "submit",
+          "callee": "onOpenChange",
+          "lineNumber": 69
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.error",
+          "lineNumber": 71
+        },
+        {
+          "caller": "submit",
+          "callee": "getErrorMessage",
+          "lineNumber": 71
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 73
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 81
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 81
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 82
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "form.handleSubmit",
+          "lineNumber": 85
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 88
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 96
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 97
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 104
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 109
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 109
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 110
+        },
+        {
+          "caller": "TillDialog",
+          "callee": "t",
+          "lineNumber": 110
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/users/branch-assign-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 77,
+      "nonEmptyLines": 71,
+      "functions": [
+        {
+          "name": "BranchAssignDialog",
+          "startLine": 23,
+          "endLine": 77,
+          "params": [
+            "{ user, open, onOpenChange }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "BranchAssignDialog",
+          "line": 23,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "useTranslation",
+          "lineNumber": 24
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "useListBranches",
+          "lineNumber": 27
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "useListUserBranches",
+          "lineNumber": 28
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "(assignedQ.data ?? []).map",
+          "lineNumber": 30
+        },
+        {
+          "caller": "toggle",
+          "callee": "unassignBranch",
+          "lineNumber": 35
+        },
+        {
+          "caller": "toggle",
+          "callee": "assignBranch",
+          "lineNumber": 36
+        },
+        {
+          "caller": "toggle",
+          "callee": "assignedQ.refetch",
+          "lineNumber": 37
+        },
+        {
+          "caller": "toggle",
+          "callee": "invalidateUsers",
+          "lineNumber": 38
+        },
+        {
+          "caller": "toggle",
+          "callee": "toast.error",
+          "lineNumber": 40
+        },
+        {
+          "caller": "toggle",
+          "callee": "getErrorMessage",
+          "lineNumber": 40
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "t",
+          "lineNumber": 48
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "t",
+          "lineNumber": 49
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "t",
+          "lineNumber": 55
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "branches.map",
+          "lineNumber": 57
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "assignedIds.has",
+          "lineNumber": 58
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "toggle",
+          "lineNumber": 65
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 72
+        },
+        {
+          "caller": "BranchAssignDialog",
+          "callee": "t",
+          "lineNumber": 72
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/users/user-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 232,
+      "nonEmptyLines": 216,
+      "functions": [
+        {
+          "name": "isPosRole",
+          "startLine": 28,
+          "endLine": 28,
+          "params": [
+            "r"
+          ]
+        },
+        {
+          "name": "UserDialog",
+          "startLine": 37,
+          "endLine": 232,
+          "params": [
+            "{ orgId, user, open, onOpenChange }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "UserDialog",
+          "line": 37,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isPosRole",
+          "callee": "POS_ROLES.includes",
+          "lineNumber": 28
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "useTranslation",
+          "lineNumber": 38
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "useState",
+          "lineNumber": 40
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "useAuthStore",
+          "lineNumber": 41
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "useListOrgs",
+          "lineNumber": 44
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "useMemo",
+          "lineNumber": 46
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "ALL_ROLES.filter",
+          "lineNumber": 47
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "useMemo",
+          "lineNumber": 51
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z\n        .object({\n          name: z.string().min(1, t(\"common.requiredField\", \"This field is required\")),\n          email: z.string().email(t(\"common.invalidEmail\", \"Invalid email\")).optional().or(z.literal(\"\")),\n          phone: z.string().optional(),\n          role: z.enum([\"super_admin\", \"org_admin\", \"branch_manager\", \"teller\", \"waiter\", \"kitchen\"]),\n          org_id: z.string().optional(),\n          pin: z.string().regex(/^\\d{4,6}$/, t(\"users.pinError\", \"PIN must be 4-6 digits\")).optional().or(z.literal(\"\")),\n          password: z.string().optional(),\n          is_active: z.boolean(),\n        })\n        // Require only the credential the selected role actually uses. On edit,\n        // a blank credential means \"keep the current one\", so it's not required.\n        .superRefine",
+          "lineNumber": 53
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z\n        .object",
+          "lineNumber": 53
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string().min",
+          "lineNumber": 55
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string",
+          "lineNumber": 55
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 55
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string().email(t(\"common.invalidEmail\", \"Invalid email\")).optional().or",
+          "lineNumber": 56
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string().email(t(\"common.invalidEmail\", \"Invalid email\")).optional",
+          "lineNumber": 56
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string().email",
+          "lineNumber": 56
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string",
+          "lineNumber": 56
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 56
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.literal",
+          "lineNumber": 56
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string().optional",
+          "lineNumber": 57
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string",
+          "lineNumber": 57
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.enum",
+          "lineNumber": 58
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string().optional",
+          "lineNumber": 59
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string",
+          "lineNumber": 59
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string().regex(/^\\d{4,6}$/, t(\"users.pinError\", \"PIN must be 4-6 digits\")).optional().or",
+          "lineNumber": 60
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string().regex(/^\\d{4,6}$/, t(\"users.pinError\", \"PIN must be 4-6 digits\")).optional",
+          "lineNumber": 60
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string().regex",
+          "lineNumber": 60
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string",
+          "lineNumber": 60
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 60
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.literal",
+          "lineNumber": 60
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string().optional",
+          "lineNumber": 61
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.string",
+          "lineNumber": 61
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "z.boolean",
+          "lineNumber": 62
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "isPosRole",
+          "lineNumber": 67
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "ctx.addIssue",
+          "lineNumber": 69
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 69
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "ctx.addIssue",
+          "lineNumber": 73
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 73
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "ctx.addIssue",
+          "lineNumber": 76
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 76
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "useForm",
+          "lineNumber": 84
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "zodResolver",
+          "lineNumber": 85
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "useEffect",
+          "lineNumber": 89
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "form.reset",
+          "lineNumber": 91
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 106
+        },
+        {
+          "caller": "submit",
+          "callee": "isPosRole",
+          "lineNumber": 109
+        },
+        {
+          "caller": "submit",
+          "callee": "updateUser",
+          "lineNumber": 120
+        },
+        {
+          "caller": "submit",
+          "callee": "createUser",
+          "lineNumber": 124
+        },
+        {
+          "caller": "submit",
+          "callee": "invalidateUsers",
+          "lineNumber": 129
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.success",
+          "lineNumber": 130
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 130
+        },
+        {
+          "caller": "submit",
+          "callee": "t",
+          "lineNumber": 130
+        },
+        {
+          "caller": "submit",
+          "callee": "onOpenChange",
+          "lineNumber": 131
+        },
+        {
+          "caller": "submit",
+          "callee": "toast.error",
+          "lineNumber": 133
+        },
+        {
+          "caller": "submit",
+          "callee": "getErrorMessage",
+          "lineNumber": 133
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 135
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "form.watch",
+          "lineNumber": 139
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "isPosRole",
+          "lineNumber": 140
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 146
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 146
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 147
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "form.handleSubmit",
+          "lineNumber": 150
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 152
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 159
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "availableRoles.map",
+          "lineNumber": 162
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 162
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 170
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "orgs.map",
+          "lineNumber": 173
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 180
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 186
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 194
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "field.onChange",
+          "lineNumber": 195
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "e.target.value.replace",
+          "lineNumber": 195
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 202
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 205
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 205
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 211
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 212
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 217
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 217
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 224
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 224
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 225
+        },
+        {
+          "caller": "UserDialog",
+          "callee": "t",
+          "lineNumber": 225
+        }
+      ],
+      "metrics": {
+        "importCount": 9,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/users/util.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "functions": [
+        {
+          "name": "invalidateUsers",
+          "startLine": 3,
+          "endLine": 6,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "invalidateUsers",
+          "line": 3,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "invalidateUsers",
+          "callee": "queryClient.invalidateQueries",
+          "lineNumber": 4
+        },
+        {
+          "caller": "invalidateUsers",
+          "callee": "(q.queryKey[0] as string).startsWith",
+          "lineNumber": 5
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/lib/bulk-runner.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 44,
+      "functions": [
+        {
+          "name": "runBulk",
+          "startLine": 18,
+          "endLine": 48,
+          "params": [
+            "rows",
+            "op",
+            "{ concurrency = 4, onProgress }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "runBulk",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "worker",
+          "callee": "op",
+          "lineNumber": 34
+        },
+        {
+          "caller": "worker",
+          "callee": "ok.push",
+          "lineNumber": 35
+        },
+        {
+          "caller": "worker",
+          "callee": "onProgress",
+          "lineNumber": 37
+        },
+        {
+          "caller": "worker",
+          "callee": "failed.push",
+          "lineNumber": 39
+        },
+        {
+          "caller": "worker",
+          "callee": "onProgress",
+          "lineNumber": 41
+        },
+        {
+          "caller": "runBulk",
+          "callee": "Promise.all",
+          "lineNumber": 46
+        },
+        {
+          "caller": "runBulk",
+          "callee": "Array.from",
+          "lineNumber": 46
+        },
+        {
+          "caller": "runBulk",
+          "callee": "Math.max",
+          "lineNumber": 46
+        },
+        {
+          "caller": "runBulk",
+          "callee": "Math.min",
+          "lineNumber": 46
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/lib/normalize.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 7,
+      "nonEmptyLines": 7,
+      "functions": [
+        {
+          "name": "normalize",
+          "startLine": 2,
+          "endLine": 7,
+          "params": [
+            "s"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "normalize",
+          "line": 2,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalize",
+          "callee": "s\n    .normalize(\"NFKD\")\n    .replace(/[̀-ًͯ-ْ]/g, \"\")\n    .toLowerCase()\n    .trim",
+          "lineNumber": 3
+        },
+        {
+          "caller": "normalize",
+          "callee": "s\n    .normalize(\"NFKD\")\n    .replace(/[̀-ًͯ-ْ]/g, \"\")\n    .toLowerCase",
+          "lineNumber": 3
+        },
+        {
+          "caller": "normalize",
+          "callee": "s\n    .normalize(\"NFKD\")\n    .replace",
+          "lineNumber": 3
+        },
+        {
+          "caller": "normalize",
+          "callee": "s\n    .normalize",
+          "lineNumber": 3
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/menu/items_.$itemId.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 14,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,1581 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/components/app/segmented-control.tsx",
+   "type": "file",
+   "name": "segmented-control.tsx",
+   "filePath": "src/components/app/segmented-control.tsx",
+   "summary": "Segmented control (button group) for switching between a small set of mutually exclusive options such as views or periods.",
+   "tags": [
+    "component",
+    "control",
+    "ui",
+    "selection"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/app/segmented-control.tsx:SegmentedControl",
+   "type": "function",
+   "name": "SegmentedControl",
+   "filePath": "src/components/app/segmented-control.tsx",
+   "lineRange": [
+    10,
+    40
+   ],
+   "summary": "Button group selecting one option from a list.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/components/app/stat-card.tsx",
+   "type": "file",
+   "name": "stat-card.tsx",
+   "filePath": "src/components/app/stat-card.tsx",
+   "summary": "KPI stat card that auto-fits a formatted value into size ladders, shows an accent icon, trend pill and hint, with skeleton loading and list-item motion.",
+   "tags": [
+    "component",
+    "kpi",
+    "stat-card",
+    "motion",
+    "formatting"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/stat-card.tsx:StatCard",
+   "type": "function",
+   "name": "StatCard",
+   "filePath": "src/components/app/stat-card.tsx",
+   "lineRange": [
+    49,
+    154
+   ],
+   "summary": "Auto-fitting KPI card with icon, trend pill and skeleton.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/components/ui/badge.tsx",
+   "type": "file",
+   "name": "badge.tsx",
+   "filePath": "src/components/ui/badge.tsx",
+   "summary": "shadcn-style Badge primitive with class-variance-authority variants for status labels.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "badge",
+    "cva"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/badge.tsx:Badge",
+   "type": "function",
+   "name": "Badge",
+   "filePath": "src/components/ui/badge.tsx",
+   "lineRange": [
+    29,
+    46
+   ],
+   "summary": "Variant-styled badge span.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/dropdown-menu.tsx",
+   "type": "file",
+   "name": "dropdown-menu.tsx",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "summary": "shadcn-style wrappers around Radix DropdownMenu primitives (content, items, checkbox/radio items, sub-menus, labels, shortcuts) styled with Tailwind.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "radix",
+    "dropdown-menu"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenu",
+   "type": "function",
+   "name": "DropdownMenu",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    7,
+    11
+   ],
+   "summary": "DropdownMenu in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuPortal",
+   "type": "function",
+   "name": "DropdownMenuPortal",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    13,
+    19
+   ],
+   "summary": "DropdownMenuPortal in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuTrigger",
+   "type": "function",
+   "name": "DropdownMenuTrigger",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    21,
+    30
+   ],
+   "summary": "DropdownMenuTrigger in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuContent",
+   "type": "function",
+   "name": "DropdownMenuContent",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    32,
+    50
+   ],
+   "summary": "DropdownMenuContent in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuGroup",
+   "type": "function",
+   "name": "DropdownMenuGroup",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    52,
+    58
+   ],
+   "summary": "DropdownMenuGroup in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuItem",
+   "type": "function",
+   "name": "DropdownMenuItem",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    60,
+    81
+   ],
+   "summary": "DropdownMenuItem in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuCheckboxItem",
+   "type": "function",
+   "name": "DropdownMenuCheckboxItem",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    83,
+    107
+   ],
+   "summary": "DropdownMenuCheckboxItem in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuRadioGroup",
+   "type": "function",
+   "name": "DropdownMenuRadioGroup",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    109,
+    118
+   ],
+   "summary": "DropdownMenuRadioGroup in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuRadioItem",
+   "type": "function",
+   "name": "DropdownMenuRadioItem",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    120,
+    142
+   ],
+   "summary": "DropdownMenuRadioItem in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuLabel",
+   "type": "function",
+   "name": "DropdownMenuLabel",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    144,
+    162
+   ],
+   "summary": "DropdownMenuLabel in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSeparator",
+   "type": "function",
+   "name": "DropdownMenuSeparator",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    164,
+    175
+   ],
+   "summary": "DropdownMenuSeparator in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuShortcut",
+   "type": "function",
+   "name": "DropdownMenuShortcut",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    177,
+    191
+   ],
+   "summary": "DropdownMenuShortcut in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSub",
+   "type": "function",
+   "name": "DropdownMenuSub",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    193,
+    197
+   ],
+   "summary": "DropdownMenuSub in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSubTrigger",
+   "type": "function",
+   "name": "DropdownMenuSubTrigger",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    199,
+    221
+   ],
+   "summary": "DropdownMenuSubTrigger in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSubContent",
+   "type": "function",
+   "name": "DropdownMenuSubContent",
+   "filePath": "src/components/ui/dropdown-menu.tsx",
+   "lineRange": [
+    223,
+    237
+   ],
+   "summary": "DropdownMenuSubContent in dropdown-menu.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/scroll-area.tsx",
+   "type": "file",
+   "name": "scroll-area.tsx",
+   "filePath": "src/components/ui/scroll-area.tsx",
+   "summary": "Radix ScrollArea and ScrollBar wrappers giving styled custom scrollbars.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "radix",
+    "scroll"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/scroll-area.tsx:ScrollArea",
+   "type": "function",
+   "name": "ScrollArea",
+   "filePath": "src/components/ui/scroll-area.tsx",
+   "lineRange": [
+    6,
+    27
+   ],
+   "summary": "Radix ScrollArea root with viewport.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/scroll-area.tsx:ScrollBar",
+   "type": "function",
+   "name": "ScrollBar",
+   "filePath": "src/components/ui/scroll-area.tsx",
+   "lineRange": [
+    29,
+    54
+   ],
+   "summary": "Styled Radix scrollbar thumb.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/skeleton.tsx",
+   "type": "file",
+   "name": "skeleton.tsx",
+   "filePath": "src/components/ui/skeleton.tsx",
+   "summary": "Pulsing Skeleton placeholder primitive for loading states.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "loading",
+    "skeleton"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/skeleton.tsx:Skeleton",
+   "type": "function",
+   "name": "Skeleton",
+   "filePath": "src/components/ui/skeleton.tsx",
+   "lineRange": [
+    3,
+    11
+   ],
+   "summary": "Pulsing placeholder div.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/table.tsx",
+   "type": "file",
+   "name": "table.tsx",
+   "filePath": "src/components/ui/table.tsx",
+   "summary": "Styled HTML table primitives (Table, TableHeader, TableBody, TableRow, TableHead, TableCell, etc.) used by DataTable and report views.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "table",
+    "presentation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/table.tsx:Table",
+   "type": "function",
+   "name": "Table",
+   "filePath": "src/components/ui/table.tsx",
+   "lineRange": [
+    7,
+    20
+   ],
+   "summary": "Table in table.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/table.tsx:TableHeader",
+   "type": "function",
+   "name": "TableHeader",
+   "filePath": "src/components/ui/table.tsx",
+   "lineRange": [
+    22,
+    30
+   ],
+   "summary": "TableHeader in table.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/table.tsx:TableBody",
+   "type": "function",
+   "name": "TableBody",
+   "filePath": "src/components/ui/table.tsx",
+   "lineRange": [
+    32,
+    40
+   ],
+   "summary": "TableBody in table.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/table.tsx:TableFooter",
+   "type": "function",
+   "name": "TableFooter",
+   "filePath": "src/components/ui/table.tsx",
+   "lineRange": [
+    42,
+    53
+   ],
+   "summary": "TableFooter in table.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/table.tsx:TableRow",
+   "type": "function",
+   "name": "TableRow",
+   "filePath": "src/components/ui/table.tsx",
+   "lineRange": [
+    55,
+    66
+   ],
+   "summary": "TableRow in table.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/table.tsx:TableHead",
+   "type": "function",
+   "name": "TableHead",
+   "filePath": "src/components/ui/table.tsx",
+   "lineRange": [
+    68,
+    79
+   ],
+   "summary": "TableHead in table.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/table.tsx:TableCell",
+   "type": "function",
+   "name": "TableCell",
+   "filePath": "src/components/ui/table.tsx",
+   "lineRange": [
+    81,
+    92
+   ],
+   "summary": "TableCell in table.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/table.tsx:TableCaption",
+   "type": "function",
+   "name": "TableCaption",
+   "filePath": "src/components/ui/table.tsx",
+   "lineRange": [
+    94,
+    105
+   ],
+   "summary": "TableCaption in table.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/tabs.tsx",
+   "type": "file",
+   "name": "tabs.tsx",
+   "filePath": "src/components/ui/tabs.tsx",
+   "summary": "Radix Tabs wrappers with cva list variants for line and pill tab styles.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "radix",
+    "tabs"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/tabs.tsx:Tabs",
+   "type": "function",
+   "name": "Tabs",
+   "filePath": "src/components/ui/tabs.tsx",
+   "lineRange": [
+    7,
+    24
+   ],
+   "summary": "Radix Tabs root wrapper.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/tabs.tsx:TabsList",
+   "type": "function",
+   "name": "TabsList",
+   "filePath": "src/components/ui/tabs.tsx",
+   "lineRange": [
+    41,
+    55
+   ],
+   "summary": "Tabs list with cva variants.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/tabs.tsx:TabsTrigger",
+   "type": "function",
+   "name": "TabsTrigger",
+   "filePath": "src/components/ui/tabs.tsx",
+   "lineRange": [
+    57,
+    74
+   ],
+   "summary": "Styled tab trigger.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/tabs.tsx:TabsContent",
+   "type": "function",
+   "name": "TabsContent",
+   "filePath": "src/components/ui/tabs.tsx",
+   "lineRange": [
+    76,
+    87
+   ],
+   "summary": "Tab panel wrapper.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/scope/presets.ts",
+   "type": "file",
+   "name": "presets.ts",
+   "filePath": "src/data/scope/presets.ts",
+   "summary": "Defines the date-range scope presets (today, yesterday, 7d, 30d, mtd) and rangeForPreset which resolves them to Cairo-calendar ISO bounds.",
+   "tags": [
+    "utility",
+    "date-range",
+    "scope",
+    "presets"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/scope/presets.ts:rangeForPreset",
+   "type": "function",
+   "name": "rangeForPreset",
+   "filePath": "src/data/scope/presets.ts",
+   "lineRange": [
+    11,
+    37
+   ],
+   "summary": "Resolves a preset to Cairo-calendar from/to ISO bounds.",
+   "tags": [
+    "utility",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/scope/use-page-search.ts",
+   "type": "file",
+   "name": "use-page-search.ts",
+   "filePath": "src/data/scope/use-page-search.ts",
+   "summary": "Hook for reading and merging a page's own URL search params via TanStack Router with history replace, used for tabs, filters and pagination.",
+   "tags": [
+    "hook",
+    "routing",
+    "search-params",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/scope/use-page-search.ts:usePageSearch",
+   "type": "function",
+   "name": "usePageSearch",
+   "filePath": "src/data/scope/use-page-search.ts",
+   "lineRange": [
+    14,
+    22
+   ],
+   "summary": "Returns current search params and a merging replace-navigate updater.",
+   "tags": [
+    "hook",
+    "exported"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/scope/use-scope.ts",
+   "type": "file",
+   "name": "use-scope.ts",
+   "filePath": "src/data/scope/use-scope.ts",
+   "summary": "useScope hook: the single source of truth for branch and period scope read from /_app URL search params, exposing the all-branches sentinel id and setters that navigate.",
+   "tags": [
+    "hook",
+    "scope",
+    "routing",
+    "state"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/data/scope/use-scope.ts:useScope",
+   "type": "function",
+   "name": "useScope",
+   "filePath": "src/data/scope/use-scope.ts",
+   "lineRange": [
+    43,
+    76
+   ],
+   "summary": "Reads scope search params and returns branch/period state with setters.",
+   "tags": [
+    "hook",
+    "exported"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/ai-chat/ai-result-view.tsx",
+   "type": "file",
+   "name": "ai-result-view.tsx",
+   "filePath": "src/features/ai-chat/ai-result-view.tsx",
+   "summary": "Renders an AI chat analytics response as tables and Recharts charts, formatting measure/dimension columns and supporting faceted multi-measure sections.",
+   "tags": [
+    "component",
+    "ai-chat",
+    "chart",
+    "analytics",
+    "formatting"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/ai-chat/ai-result-view.tsx:formatCell",
+   "type": "function",
+   "name": "formatCell",
+   "filePath": "src/features/ai-chat/ai-result-view.tsx",
+   "lineRange": [
+    39,
+    55
+   ],
+   "summary": "Formats a cell value according to its column type.",
+   "tags": [
+    "utility",
+    "internal"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/ai-chat/ai-result-view.tsx:AiResultView",
+   "type": "function",
+   "name": "AiResultView",
+   "filePath": "src/features/ai-chat/ai-result-view.tsx",
+   "lineRange": [
+    63,
+    156
+   ],
+   "summary": "Top-level renderer for an AiChatResponse: tables, charts and facets.",
+   "tags": [
+    "component",
+    "react",
+    "exported"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/ai-chat/ai-result-view.tsx:ResultSection",
+   "type": "function",
+   "name": "ResultSection",
+   "filePath": "src/features/ai-chat/ai-result-view.tsx",
+   "lineRange": [
+    159,
+    224
+   ],
+   "summary": "Renders one result section as table or chart.",
+   "tags": [
+    "component",
+    "react",
+    "internal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/ai-chat/ai-result-view.tsx:seriesFormatter",
+   "type": "function",
+   "name": "seriesFormatter",
+   "filePath": "src/features/ai-chat/ai-result-view.tsx",
+   "lineRange": [
+    227,
+    236
+   ],
+   "summary": "Returns a tooltip formatter for multiple measures.",
+   "tags": [
+    "utility",
+    "internal"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/ai-chat/ai-result-view.tsx:renderChart",
+   "type": "function",
+   "name": "renderChart",
+   "filePath": "src/features/ai-chat/ai-result-view.tsx",
+   "lineRange": [
+    238,
+    313
+   ],
+   "summary": "Builds the Recharts chart element for a section's rows and measures.",
+   "tags": [
+    "utility",
+    "internal"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/components/app/segmented-control.tsx",
+   "target": "function:src/components/app/segmented-control.tsx:SegmentedControl",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/segmented-control.tsx",
+   "target": "function:src/components/app/segmented-control.tsx:SegmentedControl",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/segmented-control.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/stat-card.tsx",
+   "target": "function:src/components/app/stat-card.tsx:StatCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/stat-card.tsx",
+   "target": "function:src/components/app/stat-card.tsx:StatCard",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/stat-card.tsx",
+   "target": "file:src/components/app/stat-value.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/stat-card.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/stat-card.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/stat-card.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/stat-card.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/stat-card.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/badge.tsx",
+   "target": "function:src/components/ui/badge.tsx:Badge",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/badge.tsx",
+   "target": "function:src/components/ui/badge.tsx:Badge",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/badge.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenu",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenu",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuPortal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuPortal",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuGroup",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuGroup",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuCheckboxItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuCheckboxItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuRadioGroup",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuRadioGroup",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuRadioItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuRadioItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuLabel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuLabel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSeparator",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSeparator",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuShortcut",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuShortcut",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSub",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSub",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSubTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSubTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSubContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "function:src/components/ui/dropdown-menu.tsx:DropdownMenuSubContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/dropdown-menu.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/scroll-area.tsx",
+   "target": "function:src/components/ui/scroll-area.tsx:ScrollArea",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/scroll-area.tsx",
+   "target": "function:src/components/ui/scroll-area.tsx:ScrollArea",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/scroll-area.tsx",
+   "target": "function:src/components/ui/scroll-area.tsx:ScrollBar",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/scroll-area.tsx",
+   "target": "function:src/components/ui/scroll-area.tsx:ScrollBar",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/scroll-area.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/skeleton.tsx",
+   "target": "function:src/components/ui/skeleton.tsx:Skeleton",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/skeleton.tsx",
+   "target": "function:src/components/ui/skeleton.tsx:Skeleton",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/skeleton.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:Table",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:Table",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableHeader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableHeader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableBody",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableBody",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableFooter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableFooter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableRow",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableHead",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableHead",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableCell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableCell",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableCaption",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "function:src/components/ui/table.tsx:TableCaption",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/table.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/tabs.tsx",
+   "target": "function:src/components/ui/tabs.tsx:Tabs",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/tabs.tsx",
+   "target": "function:src/components/ui/tabs.tsx:Tabs",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/tabs.tsx",
+   "target": "function:src/components/ui/tabs.tsx:TabsList",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/tabs.tsx",
+   "target": "function:src/components/ui/tabs.tsx:TabsList",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/tabs.tsx",
+   "target": "function:src/components/ui/tabs.tsx:TabsTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/tabs.tsx",
+   "target": "function:src/components/ui/tabs.tsx:TabsTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/tabs.tsx",
+   "target": "function:src/components/ui/tabs.tsx:TabsContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/tabs.tsx",
+   "target": "function:src/components/ui/tabs.tsx:TabsContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/tabs.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/scope/presets.ts",
+   "target": "function:src/data/scope/presets.ts:rangeForPreset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/scope/presets.ts",
+   "target": "function:src/data/scope/presets.ts:rangeForPreset",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/scope/presets.ts",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/scope/use-page-search.ts",
+   "target": "function:src/data/scope/use-page-search.ts:usePageSearch",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/scope/use-page-search.ts",
+   "target": "function:src/data/scope/use-page-search.ts:usePageSearch",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/scope/use-scope.ts",
+   "target": "function:src/data/scope/use-scope.ts:useScope",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/scope/use-scope.ts",
+   "target": "function:src/data/scope/use-scope.ts:useScope",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/scope/use-scope.ts",
+   "target": "file:src/data/scope/presets.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/scope/use-scope.ts",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/ai-chat/ai-result-view.tsx",
+   "target": "function:src/features/ai-chat/ai-result-view.tsx:formatCell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/ai-chat/ai-result-view.tsx",
+   "target": "function:src/features/ai-chat/ai-result-view.tsx:AiResultView",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/ai-chat/ai-result-view.tsx",
+   "target": "function:src/features/ai-chat/ai-result-view.tsx:AiResultView",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/ai-chat/ai-result-view.tsx",
+   "target": "function:src/features/ai-chat/ai-result-view.tsx:ResultSection",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/ai-chat/ai-result-view.tsx",
+   "target": "function:src/features/ai-chat/ai-result-view.tsx:seriesFormatter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/ai-chat/ai-result-view.tsx",
+   "target": "function:src/features/ai-chat/ai-result-view.tsx:renderChart",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/ai-chat/ai-result-view.tsx",
+   "target": "file:src/components/app/chart-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/ai-chat/ai-result-view.tsx",
+   "target": "file:src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/ai-chat/ai-result-view.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/data/scope/presets.ts:rangeForPreset",
+   "target": "function:src/lib/format.ts:cairoNow",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/data/scope/presets.ts:rangeForPreset",
+   "target": "function:src/lib/format.ts:cairoDateISO",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/data/scope/use-scope.ts:useScope",
+   "target": "function:src/data/scope/presets.ts:rangeForPreset",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/data/scope/use-scope.ts:useScope",
+   "target": "function:src/data/stores/app.store.ts:useAppStore",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/components/app/stat-card.tsx:StatCard",
+   "target": "function:src/components/app/stat-value.tsx:StatValue",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

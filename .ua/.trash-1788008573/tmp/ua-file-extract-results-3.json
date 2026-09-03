@@ -1,0 +1,1003 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 28,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 28,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 28,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "src/components/app/section-tabs.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 58,
+      "nonEmptyLines": 54,
+      "functions": [
+        {
+          "name": "keepScope",
+          "startLine": 15,
+          "endLine": 20,
+          "params": [
+            "prev"
+          ]
+        },
+        {
+          "name": "SectionTabs",
+          "startLine": 31,
+          "endLine": 58,
+          "params": [
+            "{ tabs }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SectionTabs",
+          "line": 31,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SectionTabs",
+          "callee": "useLocation",
+          "lineNumber": 32
+        },
+        {
+          "caller": "SectionTabs",
+          "callee": "tabs.map",
+          "lineNumber": 36
+        },
+        {
+          "caller": "SectionTabs",
+          "callee": "pathname.startsWith",
+          "lineNumber": 37
+        },
+        {
+          "caller": "SectionTabs",
+          "callee": "cn",
+          "lineNumber": 43
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/ui/sonner.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "Toaster",
+          "startLine": 12,
+          "endLine": 37,
+          "params": [
+            "{ ...props }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Toaster",
+          "line": 39,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Toaster",
+          "callee": "useTheme",
+          "lineNumber": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/ai-chat/ai-chat-page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 254,
+      "nonEmptyLines": 236,
+      "functions": [
+        {
+          "name": "AiChatPage",
+          "startLine": 26,
+          "endLine": 254,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "AiChatPage",
+          "line": 26,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AiChatPage",
+          "callee": "useTranslation",
+          "lineNumber": 27
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "useReducedMotion",
+          "lineNumber": 28
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "useChat",
+          "lineNumber": 29
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "useRef",
+          "lineNumber": 32
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "useRef",
+          "lineNumber": 33
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 37
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 38
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 39
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 40
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 41
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 42
+        },
+        {
+          "caller": "scrollToEnd",
+          "callee": "requestAnimationFrame",
+          "lineNumber": 46
+        },
+        {
+          "caller": "scrollToEnd",
+          "callee": "scrollRef.current?.scrollTo",
+          "lineNumber": 47
+        },
+        {
+          "caller": "send",
+          "callee": "question.trim",
+          "lineNumber": 51
+        },
+        {
+          "caller": "send",
+          "callee": "turns\n      .filter((turn) => turn.status === \"done\" && turn.response)\n      .slice(-6)\n      .map",
+          "lineNumber": 58
+        },
+        {
+          "caller": "send",
+          "callee": "turns\n      .filter((turn) => turn.status === \"done\" && turn.response)\n      .slice",
+          "lineNumber": 58
+        },
+        {
+          "caller": "send",
+          "callee": "turns\n      .filter",
+          "lineNumber": 58
+        },
+        {
+          "caller": "send",
+          "callee": "setTurns",
+          "lineNumber": 63
+        },
+        {
+          "caller": "send",
+          "callee": "setInput",
+          "lineNumber": 64
+        },
+        {
+          "caller": "send",
+          "callee": "scrollToEnd",
+          "lineNumber": 65
+        },
+        {
+          "caller": "send",
+          "callee": "chat.mutateAsync",
+          "lineNumber": 68
+        },
+        {
+          "caller": "send",
+          "callee": "setTurns",
+          "lineNumber": 76
+        },
+        {
+          "caller": "send",
+          "callee": "prev.map",
+          "lineNumber": 77
+        },
+        {
+          "caller": "send",
+          "callee": "setTurns",
+          "lineNumber": 80
+        },
+        {
+          "caller": "send",
+          "callee": "prev.map",
+          "lineNumber": 81
+        },
+        {
+          "caller": "send",
+          "callee": "getErrorMessage",
+          "lineNumber": 82
+        },
+        {
+          "caller": "send",
+          "callee": "scrollToEnd",
+          "lineNumber": 86
+        },
+        {
+          "caller": "onKeyDown",
+          "callee": "e.preventDefault",
+          "lineNumber": 92
+        },
+        {
+          "caller": "onKeyDown",
+          "callee": "send",
+          "lineNumber": 93
+        },
+        {
+          "caller": "hintChips",
+          "callee": "suggestions.map",
+          "lineNumber": 105
+        },
+        {
+          "caller": "hintChips",
+          "callee": "send",
+          "lineNumber": 109
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 127
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 131
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 132
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 136
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "staggerContainer",
+          "lineNumber": 149
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 158
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 161
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "hintChips",
+          "lineNumber": 165
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "turns.map",
+          "lineNumber": 170
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "hintChips",
+          "lineNumber": 219
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "setInput",
+          "lineNumber": 226
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 229
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "send",
+          "lineNumber": 233
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "input.trim",
+          "lineNumber": 234
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 237
+        },
+        {
+          "caller": "AiChatPage",
+          "callee": "t",
+          "lineNumber": 248
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/ai-chat/loading-keywords.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 44,
+      "functions": [
+        {
+          "name": "LoadingKeywords",
+          "startLine": 10,
+          "endLine": 47,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "LoadingKeywords",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LoadingKeywords",
+          "callee": "useTranslation",
+          "lineNumber": 11
+        },
+        {
+          "caller": "LoadingKeywords",
+          "callee": "useReducedMotion",
+          "lineNumber": 12
+        },
+        {
+          "caller": "LoadingKeywords",
+          "callee": "t",
+          "lineNumber": 13
+        },
+        {
+          "caller": "LoadingKeywords",
+          "callee": "Array.isArray",
+          "lineNumber": 14
+        },
+        {
+          "caller": "LoadingKeywords",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "LoadingKeywords",
+          "callee": "useEffect",
+          "lineNumber": 17
+        },
+        {
+          "caller": "LoadingKeywords",
+          "callee": "setInterval",
+          "lineNumber": 18
+        },
+        {
+          "caller": "LoadingKeywords",
+          "callee": "setI",
+          "lineNumber": 18
+        },
+        {
+          "caller": "LoadingKeywords",
+          "callee": "clearInterval",
+          "lineNumber": 19
+        },
+        {
+          "caller": "LoadingKeywords",
+          "callee": "[0, 1, 2].map",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routeTree.gen.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 1326,
+      "nonEmptyLines": 1300,
+      "exports": [
+        {
+          "name": "routeTree",
+          "line": 1324,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 60,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/__root.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 24,
+      "nonEmptyLines": 22,
+      "functions": [
+        {
+          "name": "RootLayout",
+          "startLine": 11,
+          "endLine": 24,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "Route",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "RootLayout",
+          "callee": "useTranslation",
+          "lineNumber": 12
+        },
+        {
+          "caller": "RootLayout",
+          "callee": "i18n.dir",
+          "lineNumber": 16
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/access/index.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/access/roles.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 11,
+      "nonEmptyLines": 10,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/access/route.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 29,
+      "nonEmptyLines": 26,
+      "functions": [
+        {
+          "name": "AccessLayout",
+          "startLine": 12,
+          "endLine": 25,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "Route",
+          "line": 27,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AccessLayout",
+          "callee": "useTranslation",
+          "lineNumber": 13
+        },
+        {
+          "caller": "AccessLayout",
+          "callee": "t",
+          "lineNumber": 18
+        },
+        {
+          "caller": "AccessLayout",
+          "callee": "t",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/access/users.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 12,
+      "nonEmptyLines": 11,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/analytics.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/branches.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 9,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/delivery/channels.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 9,
+      "nonEmptyLines": 8,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/delivery/index.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 7,
+      "nonEmptyLines": 6,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 3,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/delivery/route.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 12,
+      "nonEmptyLines": 10,
+      "functions": [
+        {
+          "name": "DeliveryLayout",
+          "startLine": 6,
+          "endLine": 8,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "Route",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/delivery/settings.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/delivery/zones.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/discounts.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 9,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/insights/ai-chat.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 6,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/insights/inventory-reports.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 9,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/insights/profitability.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/insights/sales.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 12,
+      "nonEmptyLines": 11,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/inventory/index.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 7,
+      "nonEmptyLines": 6,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 3,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/inventory/ingredients.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/inventory/items.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/inventory/purchasing.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/inventory/reports.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/inventory/route.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 3,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

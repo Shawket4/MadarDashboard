@@ -1,0 +1,1603 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/components/app/animated-number.tsx",
+   "type": "file",
+   "name": "animated-number.tsx",
+   "filePath": "src/components/app/animated-number.tsx",
+   "summary": "Animated numeric display that springs from the previous value to the new one using shared motion tokens, used for live stat counters.",
+   "tags": [
+    "component",
+    "animation",
+    "utility",
+    "stat-display"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/animated-number.tsx:AnimatedNumber",
+   "type": "function",
+   "name": "AnimatedNumber",
+   "filePath": "src/components/app/animated-number.tsx",
+   "lineRange": [
+    27,
+    68
+   ],
+   "summary": "Renders a number that tweens smoothly between values using the numberSpring motion config.",
+   "tags": [
+    "component",
+    "react",
+    "animation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/layout/theme-toggle.tsx",
+   "type": "file",
+   "name": "theme-toggle.tsx",
+   "filePath": "src/components/layout/theme-toggle.tsx",
+   "summary": "Header dropdown that switches between light, dark and system themes via the useTheme hook.",
+   "tags": [
+    "component",
+    "theme",
+    "layout",
+    "dropdown"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/layout/theme-toggle.tsx:ThemeToggle",
+   "type": "function",
+   "name": "ThemeToggle",
+   "filePath": "src/components/layout/theme-toggle.tsx",
+   "lineRange": [
+    19,
+    50
+   ],
+   "summary": "Dropdown-menu button offering light/dark/system theme choices.",
+   "tags": [
+    "component",
+    "react",
+    "theme"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/alert-dialog.tsx",
+   "type": "file",
+   "name": "alert-dialog.tsx",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "summary": "Radix AlertDialog wrapper exposing styled overlay, content, header/footer, media, action and cancel primitives for confirmation modals.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "radix",
+    "dialog"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialog",
+   "type": "function",
+   "name": "AlertDialog",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    9,
+    13
+   ],
+   "summary": "AlertDialog component/helper in alert-dialog.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogTrigger",
+   "type": "function",
+   "name": "AlertDialogTrigger",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    15,
+    21
+   ],
+   "summary": "AlertDialogTrigger component/helper in alert-dialog.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogPortal",
+   "type": "function",
+   "name": "AlertDialogPortal",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    23,
+    29
+   ],
+   "summary": "AlertDialogPortal component/helper in alert-dialog.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogOverlay",
+   "type": "function",
+   "name": "AlertDialogOverlay",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    31,
+    45
+   ],
+   "summary": "Backdrop overlay with fade animation.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogContent",
+   "type": "function",
+   "name": "AlertDialogContent",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    47,
+    68
+   ],
+   "summary": "Centered dialog panel rendered in a portal with overlay.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogHeader",
+   "type": "function",
+   "name": "AlertDialogHeader",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    70,
+    84
+   ],
+   "summary": "Header layout slot for title and description.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogFooter",
+   "type": "function",
+   "name": "AlertDialogFooter",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    86,
+    100
+   ],
+   "summary": "Footer layout slot for action buttons.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogTitle",
+   "type": "function",
+   "name": "AlertDialogTitle",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    102,
+    116
+   ],
+   "summary": "Styled dialog title primitive.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogDescription",
+   "type": "function",
+   "name": "AlertDialogDescription",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    118,
+    129
+   ],
+   "summary": "Styled muted description text.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogMedia",
+   "type": "function",
+   "name": "AlertDialogMedia",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    131,
+    145
+   ],
+   "summary": "Optional icon/illustration slot above the title.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogAction",
+   "type": "function",
+   "name": "AlertDialogAction",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    147,
+    163
+   ],
+   "summary": "Confirm button styled with buttonVariants.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert-dialog.tsx:AlertDialogCancel",
+   "type": "function",
+   "name": "AlertDialogCancel",
+   "filePath": "src/components/ui/alert-dialog.tsx",
+   "lineRange": [
+    165,
+    181
+   ],
+   "summary": "Cancel button styled as outline variant.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/alert.tsx",
+   "type": "file",
+   "name": "alert.tsx",
+   "filePath": "src/components/ui/alert.tsx",
+   "summary": "Inline Alert component with variant styling (default/destructive) plus title and description subcomponents.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "feedback",
+    "cva"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/alert.tsx:Alert",
+   "type": "function",
+   "name": "Alert",
+   "filePath": "src/components/ui/alert.tsx",
+   "lineRange": [
+    22,
+    35
+   ],
+   "summary": "Role=alert container with cva variants.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert.tsx:AlertTitle",
+   "type": "function",
+   "name": "AlertTitle",
+   "filePath": "src/components/ui/alert.tsx",
+   "lineRange": [
+    37,
+    48
+   ],
+   "summary": "Bold heading line for the alert.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/alert.tsx:AlertDescription",
+   "type": "function",
+   "name": "AlertDescription",
+   "filePath": "src/components/ui/alert.tsx",
+   "lineRange": [
+    50,
+    64
+   ],
+   "summary": "Muted body text for the alert.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/breadcrumb.tsx",
+   "type": "file",
+   "name": "breadcrumb.tsx",
+   "filePath": "src/components/ui/breadcrumb.tsx",
+   "summary": "Accessible breadcrumb navigation primitives (list, item, link, page, separator, ellipsis) styled with Tailwind.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "navigation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/breadcrumb.tsx:Breadcrumb",
+   "type": "function",
+   "name": "Breadcrumb",
+   "filePath": "src/components/ui/breadcrumb.tsx",
+   "lineRange": [
+    8,
+    10
+   ],
+   "summary": "Breadcrumb component/helper in breadcrumb.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/breadcrumb.tsx:BreadcrumbList",
+   "type": "function",
+   "name": "BreadcrumbList",
+   "filePath": "src/components/ui/breadcrumb.tsx",
+   "lineRange": [
+    12,
+    23
+   ],
+   "summary": "Ordered list wrapper with wrapping flex layout.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/breadcrumb.tsx:BreadcrumbItem",
+   "type": "function",
+   "name": "BreadcrumbItem",
+   "filePath": "src/components/ui/breadcrumb.tsx",
+   "lineRange": [
+    25,
+    33
+   ],
+   "summary": "BreadcrumbItem component/helper in breadcrumb.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/breadcrumb.tsx:BreadcrumbLink",
+   "type": "function",
+   "name": "BreadcrumbLink",
+   "filePath": "src/components/ui/breadcrumb.tsx",
+   "lineRange": [
+    35,
+    51
+   ],
+   "summary": "Link element supporting asChild composition.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/breadcrumb.tsx:BreadcrumbPage",
+   "type": "function",
+   "name": "BreadcrumbPage",
+   "filePath": "src/components/ui/breadcrumb.tsx",
+   "lineRange": [
+    53,
+    64
+   ],
+   "summary": "Current-page span with aria-current.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/breadcrumb.tsx:BreadcrumbSeparator",
+   "type": "function",
+   "name": "BreadcrumbSeparator",
+   "filePath": "src/components/ui/breadcrumb.tsx",
+   "lineRange": [
+    66,
+    82
+   ],
+   "summary": "Chevron separator that flips for RTL.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/breadcrumb.tsx:BreadcrumbEllipsis",
+   "type": "function",
+   "name": "BreadcrumbEllipsis",
+   "filePath": "src/components/ui/breadcrumb.tsx",
+   "lineRange": [
+    84,
+    101
+   ],
+   "summary": "Collapsed-items indicator with screen-reader label.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/calendar.tsx",
+   "type": "file",
+   "name": "calendar.tsx",
+   "filePath": "src/components/ui/calendar.tsx",
+   "summary": "react-day-picker based Calendar with extensive class overrides matching the design system, plus a custom day button.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "date-picker",
+    "forms"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/components/ui/calendar.tsx:Calendar",
+   "type": "function",
+   "name": "Calendar",
+   "filePath": "src/components/ui/calendar.tsx",
+   "lineRange": [
+    16,
+    179
+   ],
+   "summary": "Wraps DayPicker with themed classNames, navigation icons and range styling.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/calendar.tsx:CalendarDayButton",
+   "type": "function",
+   "name": "CalendarDayButton",
+   "filePath": "src/components/ui/calendar.tsx",
+   "lineRange": [
+    181,
+    217
+   ],
+   "summary": "Day cell button reflecting selected/range/today modifiers.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/drawer.tsx",
+   "type": "file",
+   "name": "drawer.tsx",
+   "filePath": "src/components/ui/drawer.tsx",
+   "summary": "Vaul-based bottom/side Drawer primitives (overlay, content with handle, header, footer, title, description).",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "drawer",
+    "mobile"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/drawer.tsx:Drawer",
+   "type": "function",
+   "name": "Drawer",
+   "filePath": "src/components/ui/drawer.tsx",
+   "lineRange": [
+    8,
+    12
+   ],
+   "summary": "Drawer component/helper in drawer.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/drawer.tsx:DrawerTrigger",
+   "type": "function",
+   "name": "DrawerTrigger",
+   "filePath": "src/components/ui/drawer.tsx",
+   "lineRange": [
+    14,
+    18
+   ],
+   "summary": "DrawerTrigger component/helper in drawer.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/drawer.tsx:DrawerPortal",
+   "type": "function",
+   "name": "DrawerPortal",
+   "filePath": "src/components/ui/drawer.tsx",
+   "lineRange": [
+    20,
+    24
+   ],
+   "summary": "DrawerPortal component/helper in drawer.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/drawer.tsx:DrawerClose",
+   "type": "function",
+   "name": "DrawerClose",
+   "filePath": "src/components/ui/drawer.tsx",
+   "lineRange": [
+    26,
+    30
+   ],
+   "summary": "DrawerClose component/helper in drawer.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/drawer.tsx:DrawerOverlay",
+   "type": "function",
+   "name": "DrawerOverlay",
+   "filePath": "src/components/ui/drawer.tsx",
+   "lineRange": [
+    32,
+    46
+   ],
+   "summary": "Dimmed backdrop for the drawer.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/drawer.tsx:DrawerContent",
+   "type": "function",
+   "name": "DrawerContent",
+   "filePath": "src/components/ui/drawer.tsx",
+   "lineRange": [
+    48,
+    76
+   ],
+   "summary": "Drawer panel with direction-aware positioning and grab handle.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/drawer.tsx:DrawerHeader",
+   "type": "function",
+   "name": "DrawerHeader",
+   "filePath": "src/components/ui/drawer.tsx",
+   "lineRange": [
+    78,
+    89
+   ],
+   "summary": "Header layout slot.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/drawer.tsx:DrawerFooter",
+   "type": "function",
+   "name": "DrawerFooter",
+   "filePath": "src/components/ui/drawer.tsx",
+   "lineRange": [
+    91,
+    99
+   ],
+   "summary": "DrawerFooter component/helper in drawer.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/drawer.tsx:DrawerTitle",
+   "type": "function",
+   "name": "DrawerTitle",
+   "filePath": "src/components/ui/drawer.tsx",
+   "lineRange": [
+    101,
+    112
+   ],
+   "summary": "Styled drawer title.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/drawer.tsx:DrawerDescription",
+   "type": "function",
+   "name": "DrawerDescription",
+   "filePath": "src/components/ui/drawer.tsx",
+   "lineRange": [
+    114,
+    125
+   ],
+   "summary": "Muted description text.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/sheet.tsx",
+   "type": "file",
+   "name": "sheet.tsx",
+   "filePath": "src/components/ui/sheet.tsx",
+   "summary": "Radix Dialog based side Sheet primitives sliding in from any edge, with close button and header/footer slots.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "sheet",
+    "radix"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/sheet.tsx:Sheet",
+   "type": "function",
+   "name": "Sheet",
+   "filePath": "src/components/ui/sheet.tsx",
+   "lineRange": [
+    10,
+    12
+   ],
+   "summary": "Sheet component/helper in sheet.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sheet.tsx:SheetTrigger",
+   "type": "function",
+   "name": "SheetTrigger",
+   "filePath": "src/components/ui/sheet.tsx",
+   "lineRange": [
+    14,
+    18
+   ],
+   "summary": "SheetTrigger component/helper in sheet.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sheet.tsx:SheetClose",
+   "type": "function",
+   "name": "SheetClose",
+   "filePath": "src/components/ui/sheet.tsx",
+   "lineRange": [
+    20,
+    24
+   ],
+   "summary": "SheetClose component/helper in sheet.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sheet.tsx:SheetOverlay",
+   "type": "function",
+   "name": "SheetOverlay",
+   "filePath": "src/components/ui/sheet.tsx",
+   "lineRange": [
+    32,
+    46
+   ],
+   "summary": "Fade-in backdrop overlay.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sheet.tsx:SheetContent",
+   "type": "function",
+   "name": "SheetContent",
+   "filePath": "src/components/ui/sheet.tsx",
+   "lineRange": [
+    48,
+    88
+   ],
+   "summary": "Side panel with slide animations per edge and built-in close button.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sheet.tsx:SheetHeader",
+   "type": "function",
+   "name": "SheetHeader",
+   "filePath": "src/components/ui/sheet.tsx",
+   "lineRange": [
+    90,
+    98
+   ],
+   "summary": "SheetHeader component/helper in sheet.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sheet.tsx:SheetFooter",
+   "type": "function",
+   "name": "SheetFooter",
+   "filePath": "src/components/ui/sheet.tsx",
+   "lineRange": [
+    100,
+    108
+   ],
+   "summary": "SheetFooter component/helper in sheet.tsx.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sheet.tsx:SheetTitle",
+   "type": "function",
+   "name": "SheetTitle",
+   "filePath": "src/components/ui/sheet.tsx",
+   "lineRange": [
+    110,
+    121
+   ],
+   "summary": "Styled sheet title.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sheet.tsx:SheetDescription",
+   "type": "function",
+   "name": "SheetDescription",
+   "filePath": "src/components/ui/sheet.tsx",
+   "lineRange": [
+    123,
+    134
+   ],
+   "summary": "Muted description text.",
+   "tags": [
+    "component",
+    "react",
+    "ui-primitive"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/components/app/animated-number.tsx",
+   "target": "function:src/components/app/animated-number.tsx:AnimatedNumber",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/animated-number.tsx",
+   "target": "function:src/components/app/animated-number.tsx:AnimatedNumber",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/animated-number.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/theme-toggle.tsx",
+   "target": "function:src/components/layout/theme-toggle.tsx:ThemeToggle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/layout/theme-toggle.tsx",
+   "target": "function:src/components/layout/theme-toggle.tsx:ThemeToggle",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/theme-toggle.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/theme-toggle.tsx",
+   "target": "file:src/components/ui/dropdown-menu.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/theme-toggle.tsx",
+   "target": "file:src/lib/theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/theme-toggle.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogPortal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogPortal",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogOverlay",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogOverlay",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogHeader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogHeader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogFooter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogFooter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogTitle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogTitle",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogDescription",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogDescription",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogMedia",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogMedia",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogAction",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogAction",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogCancel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "function:src/components/ui/alert-dialog.tsx:AlertDialogCancel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/alert-dialog.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/alert.tsx",
+   "target": "function:src/components/ui/alert.tsx:Alert",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert.tsx",
+   "target": "function:src/components/ui/alert.tsx:Alert",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert.tsx",
+   "target": "function:src/components/ui/alert.tsx:AlertTitle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert.tsx",
+   "target": "function:src/components/ui/alert.tsx:AlertTitle",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert.tsx",
+   "target": "function:src/components/ui/alert.tsx:AlertDescription",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/alert.tsx",
+   "target": "function:src/components/ui/alert.tsx:AlertDescription",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/alert.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:Breadcrumb",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:Breadcrumb",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbList",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbList",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbLink",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbLink",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbSeparator",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbSeparator",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbEllipsis",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "function:src/components/ui/breadcrumb.tsx:BreadcrumbEllipsis",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/breadcrumb.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/calendar.tsx",
+   "target": "function:src/components/ui/calendar.tsx:Calendar",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/calendar.tsx",
+   "target": "function:src/components/ui/calendar.tsx:Calendar",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/calendar.tsx",
+   "target": "function:src/components/ui/calendar.tsx:CalendarDayButton",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/calendar.tsx",
+   "target": "function:src/components/ui/calendar.tsx:CalendarDayButton",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/calendar.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/calendar.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:Drawer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:Drawer",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerPortal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerPortal",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerClose",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerClose",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerOverlay",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerOverlay",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerHeader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerHeader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerFooter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerFooter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerTitle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerTitle",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerDescription",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "function:src/components/ui/drawer.tsx:DrawerDescription",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/drawer.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:Sheet",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:Sheet",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetClose",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetClose",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetOverlay",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetHeader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetHeader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetFooter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetFooter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetTitle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetTitle",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetDescription",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "function:src/components/ui/sheet.tsx:SheetDescription",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sheet.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/components/layout/theme-toggle.tsx:ThemeToggle",
+   "target": "function:src/lib/theme.ts:useTheme",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

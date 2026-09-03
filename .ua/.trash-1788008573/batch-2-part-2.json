@@ -1,0 +1,1382 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/onboarding/step-navigator.tsx",
+   "type": "file",
+   "name": "step-navigator.tsx",
+   "filePath": "src/features/onboarding/step-navigator.tsx",
+   "summary": "Vertical step navigator listing onboarding stages and steps with completion state and current-step highlighting.",
+   "tags": [
+    "component",
+    "onboarding",
+    "navigation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/onboarding/step-navigator.tsx:StepNavigator",
+   "type": "function",
+   "name": "StepNavigator",
+   "filePath": "src/features/onboarding/step-navigator.tsx",
+   "lineRange": [
+    15,
+    87
+   ],
+   "summary": "Sidebar-style navigator over onboarding stages and steps.",
+   "tags": [
+    "function",
+    "component",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/orders/order-detail-sheet.tsx",
+   "type": "file",
+   "name": "order-detail-sheet.tsx",
+   "filePath": "src/features/orders/order-detail-sheet.tsx",
+   "summary": "Side sheet showing full details of a single order: line items, addons, payments, discounts and a delivery timeline.",
+   "tags": [
+    "component",
+    "orders",
+    "sheet",
+    "detail-view"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/orders/order-detail-sheet.tsx:OrderDetailSheet",
+   "type": "function",
+   "name": "OrderDetailSheet",
+   "filePath": "src/features/orders/order-detail-sheet.tsx",
+   "lineRange": [
+    41,
+    389
+   ],
+   "summary": "Sheet component fetching and rendering one order's full detail.",
+   "tags": [
+    "function",
+    "component",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/orders/order-detail-sheet.tsx:DeliveryTimeline",
+   "type": "function",
+   "name": "DeliveryTimeline",
+   "filePath": "src/features/orders/order-detail-sheet.tsx",
+   "lineRange": [
+    417,
+    462
+   ],
+   "summary": "Timeline of delivery status transitions for an order.",
+   "tags": [
+    "function",
+    "component",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/orders/orders-page.tsx",
+   "type": "file",
+   "name": "orders-page.tsx",
+   "filePath": "src/features/orders/orders-page.tsx",
+   "summary": "Orders list page with filtering, search, pagination, KPIs, export and void-order actions built on the shared DataTable.",
+   "tags": [
+    "page",
+    "component",
+    "orders",
+    "data-table"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/orders/orders-page.tsx:OrderStatusBadge",
+   "type": "function",
+   "name": "OrderStatusBadge",
+   "filePath": "src/features/orders/orders-page.tsx",
+   "lineRange": [
+    40,
+    53
+   ],
+   "summary": "Badge mapping order status to color and label.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/orders/orders-page.tsx:OrdersPage",
+   "type": "function",
+   "name": "OrdersPage",
+   "filePath": "src/features/orders/orders-page.tsx",
+   "lineRange": [
+    55,
+    382
+   ],
+   "summary": "Orders list page with filters, table, KPIs and dialogs.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/orgs/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/orgs/util.ts",
+   "summary": "Helper that invalidates organisation queries after mutations.",
+   "tags": [
+    "utility",
+    "react-query",
+    "cache-invalidation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/orgs/util.ts:invalidateOrgs",
+   "type": "function",
+   "name": "invalidateOrgs",
+   "filePath": "src/features/orgs/util.ts",
+   "lineRange": [
+    3,
+    6
+   ],
+   "summary": "invalidateOrgs function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/payment-methods/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/payment-methods/util.ts",
+   "summary": "Payment-method helpers: query invalidation, icon/color maps, system-method detection and label resolution.",
+   "tags": [
+    "utility",
+    "payment-methods",
+    "cache-invalidation",
+    "presentation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/payment-methods/util.ts:invalidatePaymentMethods",
+   "type": "function",
+   "name": "invalidatePaymentMethods",
+   "filePath": "src/features/payment-methods/util.ts",
+   "lineRange": [
+    6,
+    9
+   ],
+   "summary": "invalidatePaymentMethods function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/payment-methods/util.ts:isSystemMethod",
+   "type": "function",
+   "name": "isSystemMethod",
+   "filePath": "src/features/payment-methods/util.ts",
+   "lineRange": [
+    43,
+    43
+   ],
+   "summary": "isSystemMethod function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/payment-methods/util.ts:iconFor",
+   "type": "function",
+   "name": "iconFor",
+   "filePath": "src/features/payment-methods/util.ts",
+   "lineRange": [
+    45,
+    45
+   ],
+   "summary": "iconFor function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/payment-methods/util.ts:labelOf",
+   "type": "function",
+   "name": "labelOf",
+   "filePath": "src/features/payment-methods/util.ts",
+   "lineRange": [
+    48,
+    51
+   ],
+   "summary": "labelOf function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/settings/settings-page.tsx",
+   "type": "file",
+   "name": "settings-page.tsx",
+   "filePath": "src/features/settings/settings-page.tsx",
+   "summary": "Settings page showing the current user/org profile, theme toggle and app preferences.",
+   "tags": [
+    "page",
+    "component",
+    "settings"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/settings/settings-page.tsx:SettingsPage",
+   "type": "function",
+   "name": "SettingsPage",
+   "filePath": "src/features/settings/settings-page.tsx",
+   "lineRange": [
+    22,
+    96
+   ],
+   "summary": "Settings page component.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/tills/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/tills/util.ts",
+   "summary": "Helper that invalidates till queries after mutations.",
+   "tags": [
+    "utility",
+    "react-query",
+    "cache-invalidation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/tills/util.ts:invalidateTills",
+   "type": "function",
+   "name": "invalidateTills",
+   "filePath": "src/features/tills/util.ts",
+   "lineRange": [
+    3,
+    7
+   ],
+   "summary": "invalidateTills function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "type": "file",
+   "name": "whatsapp-page.tsx",
+   "filePath": "src/features/whatsapp/whatsapp-page.tsx",
+   "summary": "WhatsApp integration settings page: shows connection status, toggles notifications and surfaces setup notices.",
+   "tags": [
+    "page",
+    "component",
+    "whatsapp",
+    "integrations"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/whatsapp/whatsapp-page.tsx:WhatsappPage",
+   "type": "function",
+   "name": "WhatsappPage",
+   "filePath": "src/features/whatsapp/whatsapp-page.tsx",
+   "lineRange": [
+    37,
+    238
+   ],
+   "summary": "WhatsApp settings page component.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/whatsapp/whatsapp-page.tsx:StatusBadge",
+   "type": "function",
+   "name": "StatusBadge",
+   "filePath": "src/features/whatsapp/whatsapp-page.tsx",
+   "lineRange": [
+    242,
+    277
+   ],
+   "summary": "Badge showing WhatsApp connection status.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/whatsapp/whatsapp-page.tsx:Notice",
+   "type": "function",
+   "name": "Notice",
+   "filePath": "src/features/whatsapp/whatsapp-page.tsx",
+   "lineRange": [
+    279,
+    290
+   ],
+   "summary": "Inline notice block for setup guidance.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/hooks/use-mobile.ts",
+   "type": "file",
+   "name": "use-mobile.ts",
+   "filePath": "src/hooks/use-mobile.ts",
+   "summary": "Hook returning whether the viewport is below the mobile breakpoint via matchMedia.",
+   "tags": [
+    "hook",
+    "responsive",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/hooks/use-mobile.ts:useIsMobile",
+   "type": "function",
+   "name": "useIsMobile",
+   "filePath": "src/hooks/use-mobile.ts",
+   "lineRange": [
+    5,
+    19
+   ],
+   "summary": "Hook tracking mobile breakpoint via matchMedia.",
+   "tags": [
+    "function",
+    "hook",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/auth-guard.ts",
+   "type": "file",
+   "name": "auth-guard.ts",
+   "filePath": "src/lib/auth-guard.ts",
+   "summary": "Route guard that checks JWT expiry from the auth store and redirects unauthenticated users to login.",
+   "tags": [
+    "auth",
+    "routing",
+    "guard",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/auth-guard.ts:tokenExpMs",
+   "type": "function",
+   "name": "tokenExpMs",
+   "filePath": "src/lib/auth-guard.ts",
+   "lineRange": [
+    8,
+    19
+   ],
+   "summary": "Decodes JWT payload and returns expiry in milliseconds.",
+   "tags": [
+    "function",
+    "auth",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/auth-guard.ts:requireAuth",
+   "type": "function",
+   "name": "requireAuth",
+   "filePath": "src/lib/auth-guard.ts",
+   "lineRange": [
+    32,
+    43
+   ],
+   "summary": "Throws a redirect to login when no valid token is present.",
+   "tags": [
+    "function",
+    "auth",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/use-debounced.ts",
+   "type": "file",
+   "name": "use-debounced.ts",
+   "filePath": "src/lib/use-debounced.ts",
+   "summary": "Hook that debounces a value by a delay for search inputs.",
+   "tags": [
+    "hook",
+    "utility",
+    "debounce"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/use-debounced.ts:useDebounced",
+   "type": "function",
+   "name": "useDebounced",
+   "filePath": "src/lib/use-debounced.ts",
+   "lineRange": [
+    4,
+    11
+   ],
+   "summary": "useDebounced function.",
+   "tags": [
+    "function",
+    "hook",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/main.tsx",
+   "type": "file",
+   "name": "main.tsx",
+   "filePath": "src/main.tsx",
+   "summary": "Application entry point: initializes i18n, theme, query client, providers and mounts the TanStack router into the DOM.",
+   "tags": [
+    "entry-point",
+    "bootstrap",
+    "providers"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/main.tsx:render",
+   "type": "function",
+   "name": "render",
+   "filePath": "src/main.tsx",
+   "lineRange": [
+    41,
+    56
+   ],
+   "summary": "Mounts the React tree with providers into the root element.",
+   "tags": [
+    "function",
+    "entry-point",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/routes/_app/menu/pricing.tsx",
+   "type": "file",
+   "name": "pricing.tsx",
+   "filePath": "src/routes/_app/menu/pricing.tsx",
+   "summary": "Route definition mounting the pricing/availability page under the app layout.",
+   "tags": [
+    "route",
+    "menu",
+    "pricing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/routes/_app/route.tsx",
+   "type": "file",
+   "name": "route.tsx",
+   "filePath": "src/routes/_app/route.tsx",
+   "summary": "Authenticated app layout route: enforces auth guard, onboarding redirect for fresh org admins, and renders sidebar, header and demo banner.",
+   "tags": [
+    "route",
+    "layout",
+    "auth",
+    "entry-point"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/routes/_app/route.tsx:AppLayout",
+   "type": "function",
+   "name": "AppLayout",
+   "filePath": "src/routes/_app/route.tsx",
+   "lineRange": [
+    35,
+    100
+   ],
+   "summary": "Authenticated shell layout with sidebar, header and outlet.",
+   "tags": [
+    "function",
+    "route",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/routes/onboarding.tsx",
+   "type": "file",
+   "name": "onboarding.tsx",
+   "filePath": "src/routes/onboarding.tsx",
+   "summary": "Route definition for the standalone onboarding page, protected by the auth guard.",
+   "tags": [
+    "route",
+    "onboarding"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/onboarding/step-navigator.tsx",
+   "target": "function:src/features/onboarding/step-navigator.tsx:StepNavigator",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/onboarding/step-navigator.tsx",
+   "target": "function:src/features/onboarding/step-navigator.tsx:StepNavigator",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/onboarding/step-navigator.tsx",
+   "target": "file:src/features/onboarding/config.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-navigator.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "function:src/features/orders/order-detail-sheet.tsx:OrderDetailSheet",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "function:src/features/orders/order-detail-sheet.tsx:OrderDetailSheet",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "function:src/features/orders/order-detail-sheet.tsx:DeliveryTimeline",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "file:src/components/ui/sheet.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-detail-sheet.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "function:src/features/orders/orders-page.tsx:OrderStatusBadge",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "function:src/features/orders/orders-page.tsx:OrdersPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "function:src/features/orders/orders-page.tsx:OrdersPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/app/data-table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/app/delivery-kpis.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/app/exclude-items-control.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/app/export-button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/app/ledger-strip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/ui/dropdown-menu.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/features/orders/order-detail-sheet.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/features/orders/order-export-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/features/orders/void-order-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/lib/use-debounced.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/orders-page.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/util.ts",
+   "target": "function:src/features/orgs/util.ts:invalidateOrgs",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/orgs/util.ts",
+   "target": "function:src/features/orgs/util.ts:invalidateOrgs",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orgs/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/payment-methods/util.ts",
+   "target": "function:src/features/payment-methods/util.ts:invalidatePaymentMethods",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/payment-methods/util.ts",
+   "target": "function:src/features/payment-methods/util.ts:invalidatePaymentMethods",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/payment-methods/util.ts",
+   "target": "function:src/features/payment-methods/util.ts:isSystemMethod",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/payment-methods/util.ts",
+   "target": "function:src/features/payment-methods/util.ts:isSystemMethod",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/payment-methods/util.ts",
+   "target": "function:src/features/payment-methods/util.ts:iconFor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/payment-methods/util.ts",
+   "target": "function:src/features/payment-methods/util.ts:iconFor",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/payment-methods/util.ts",
+   "target": "function:src/features/payment-methods/util.ts:labelOf",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/payment-methods/util.ts",
+   "target": "function:src/features/payment-methods/util.ts:labelOf",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/payment-methods/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "function:src/features/settings/settings-page.tsx:SettingsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "function:src/features/settings/settings-page.tsx:SettingsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "file:src/components/ui/avatar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "file:src/lib/theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/settings/settings-page.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/util.ts",
+   "target": "function:src/features/tills/util.ts:invalidateTills",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/tills/util.ts",
+   "target": "function:src/features/tills/util.ts:invalidateTills",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/tills/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "function:src/features/whatsapp/whatsapp-page.tsx:WhatsappPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "function:src/features/whatsapp/whatsapp-page.tsx:WhatsappPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "function:src/features/whatsapp/whatsapp-page.tsx:StatusBadge",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "function:src/features/whatsapp/whatsapp-page.tsx:Notice",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/hooks/use-mobile.ts",
+   "target": "function:src/hooks/use-mobile.ts:useIsMobile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/hooks/use-mobile.ts",
+   "target": "function:src/hooks/use-mobile.ts:useIsMobile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/auth-guard.ts",
+   "target": "function:src/lib/auth-guard.ts:tokenExpMs",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/lib/auth-guard.ts",
+   "target": "function:src/lib/auth-guard.ts:requireAuth",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/lib/auth-guard.ts",
+   "target": "function:src/lib/auth-guard.ts:requireAuth",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/auth-guard.ts",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/lib/use-debounced.ts",
+   "target": "function:src/lib/use-debounced.ts:useDebounced",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/lib/use-debounced.ts",
+   "target": "function:src/lib/use-debounced.ts:useDebounced",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/main.tsx",
+   "target": "function:src/main.tsx:render",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/main.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/main.tsx",
+   "target": "file:src/components/ui/tooltip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/main.tsx",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/main.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/main.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/main.tsx",
+   "target": "file:src/i18n/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/main.tsx",
+   "target": "file:src/lib/theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/main.tsx",
+   "target": "file:src/routeTree.gen.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/main.tsx",
+   "target": "file:src/styles/globals.css",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/menu/pricing.tsx",
+   "target": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "function:src/routes/_app/route.tsx:AppLayout",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "file:src/components/app/demo-banner.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "file:src/components/layout/app-header.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "file:src/components/layout/app-sidebar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "file:src/components/ui/sidebar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "file:src/data/scope/use-timezone.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "file:src/features/onboarding/config.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/route.tsx",
+   "target": "file:src/lib/auth-guard.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/onboarding.tsx",
+   "target": "file:src/features/onboarding/onboarding-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/onboarding.tsx",
+   "target": "file:src/lib/auth-guard.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/routes/_app/route.tsx:AppLayout",
+   "target": "function:src/lib/auth-guard.ts:requireAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/routes/onboarding.tsx",
+   "target": "function:src/lib/auth-guard.ts:requireAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/routes/_app/route.tsx:AppLayout",
+   "target": "function:src/data/scope/use-timezone.ts:useSyncTimezone",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

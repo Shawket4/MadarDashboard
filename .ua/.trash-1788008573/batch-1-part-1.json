@@ -1,0 +1,1402 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/components/app/date-picker.tsx",
+   "type": "file",
+   "name": "date-picker.tsx",
+   "filePath": "src/components/app/date-picker.tsx",
+   "summary": "Single-date picker popover with a custom month calendar grid, localized via i18n and formatted with project date helpers.",
+   "tags": [
+    "component",
+    "date",
+    "form-control",
+    "popover"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Hand-rolled calendar grid rather than a library; uses the app timezone from constants for day boundaries."
+  },
+  {
+   "id": "function:src/components/app/date-picker.tsx:DatePicker",
+   "type": "function",
+   "name": "DatePicker",
+   "filePath": "src/components/app/date-picker.tsx",
+   "lineRange": [
+    51,
+    193
+   ],
+   "summary": "Popover date picker rendering a navigable month grid and returning the selected ISO date.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/components/app/date-range-picker.tsx",
+   "type": "file",
+   "name": "date-range-picker.tsx",
+   "filePath": "src/components/app/date-range-picker.tsx",
+   "summary": "Date-range picker popover with a two-endpoint calendar selection and formatted range display, used by the global scope bar.",
+   "tags": [
+    "component",
+    "date",
+    "form-control",
+    "popover"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/components/app/date-range-picker.tsx:DateRangePicker",
+   "type": "function",
+   "name": "DateRangePicker",
+   "filePath": "src/components/app/date-range-picker.tsx",
+   "lineRange": [
+    47,
+    253
+   ],
+   "summary": "Popover range picker handling start/end selection across months with a formatted summary trigger.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/components/app/demo-banner.tsx",
+   "type": "file",
+   "name": "demo-banner.tsx",
+   "filePath": "src/components/app/demo-banner.tsx",
+   "summary": "Banner shown in public demo mode explaining the throwaway sandbox org and offering a reset action via the demo bootstrap module.",
+   "tags": [
+    "component",
+    "demo",
+    "banner"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/app/demo-banner.tsx:DemoBanner",
+   "type": "function",
+   "name": "DemoBanner",
+   "filePath": "src/components/app/demo-banner.tsx",
+   "lineRange": [
+    27,
+    54
+   ],
+   "summary": "Renders the demo-mode notice with a reset-sandbox button.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/app/exclude-items-control.tsx",
+   "type": "file",
+   "name": "exclude-items-control.tsx",
+   "filePath": "src/components/app/exclude-items-control.tsx",
+   "summary": "Command-palette style multi-select for excluding menu items from analytics/orders queries; exposes a useExcludedItems hook and a query-param serializer.",
+   "tags": [
+    "component",
+    "hook",
+    "filter",
+    "analytics"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/exclude-items-control.tsx:useExcludedItems",
+   "type": "function",
+   "name": "useExcludedItems",
+   "filePath": "src/components/app/exclude-items-control.tsx",
+   "lineRange": [
+    27,
+    57
+   ],
+   "summary": "Hook managing the set of excluded menu item IDs for the current org.",
+   "tags": [
+    "hook",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/app/exclude-items-control.tsx:excludeItemsParam",
+   "type": "function",
+   "name": "excludeItemsParam",
+   "filePath": "src/components/app/exclude-items-control.tsx",
+   "lineRange": [
+    60,
+    62
+   ],
+   "summary": "Serializes excluded item IDs into an API query parameter.",
+   "tags": [
+    "utility",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/app/exclude-items-control.tsx:ExcludeItemsControl",
+   "type": "function",
+   "name": "ExcludeItemsControl",
+   "filePath": "src/components/app/exclude-items-control.tsx",
+   "lineRange": [
+    68,
+    153
+   ],
+   "summary": "Popover command list for searching and toggling excluded items.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/components/app/stat-value.tsx",
+   "type": "file",
+   "name": "stat-value.tsx",
+   "filePath": "src/components/app/stat-value.tsx",
+   "summary": "Slot-aware KPI figure that measures available width, picks the richest money/number/percent representation that fits, counts up on reveal, and exposes the exact value in a popover when compacted.",
+   "tags": [
+    "component",
+    "kpi",
+    "formatting",
+    "animation"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Uses ResizeObserver-style measurement plus motion's animate/useInView and respects prefers-reduced-motion."
+  },
+  {
+   "id": "function:src/components/app/stat-value.tsx:StatValue",
+   "type": "function",
+   "name": "StatValue",
+   "filePath": "src/components/app/stat-value.tsx",
+   "lineRange": [
+    40,
+    164
+   ],
+   "summary": "Measures its slot and renders the best-fitting formatted figure with count-up animation and exact-value popover.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/components/layout/app-header.tsx",
+   "type": "file",
+   "name": "app-header.tsx",
+   "filePath": "src/components/layout/app-header.tsx",
+   "summary": "Top application header composing the sidebar trigger, scope bar, command palette, language/theme toggles and user menu.",
+   "tags": [
+    "component",
+    "layout",
+    "header"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/layout/app-header.tsx:AppHeader",
+   "type": "function",
+   "name": "AppHeader",
+   "filePath": "src/components/layout/app-header.tsx",
+   "lineRange": [
+    8,
+    28
+   ],
+   "summary": "Composes header controls into the top bar.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/layout/app-sidebar.tsx",
+   "type": "file",
+   "name": "app-sidebar.tsx",
+   "filePath": "src/components/layout/app-sidebar.tsx",
+   "summary": "Main navigation sidebar rendering NAV groups with role filtering, collapsible parents, active-route detection and route prefetch on hover.",
+   "tags": [
+    "component",
+    "layout",
+    "navigation",
+    "sidebar"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/layout/app-sidebar.tsx:useIsActive",
+   "type": "function",
+   "name": "useIsActive",
+   "filePath": "src/components/layout/app-sidebar.tsx",
+   "lineRange": [
+    36,
+    48
+   ],
+   "summary": "Determines whether a nav path matches the current location.",
+   "tags": [
+    "hook",
+    "internal",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/layout/app-sidebar.tsx:AppSidebar",
+   "type": "function",
+   "name": "AppSidebar",
+   "filePath": "src/components/layout/app-sidebar.tsx",
+   "lineRange": [
+    50,
+    168
+   ],
+   "summary": "Renders role-filtered navigation groups with collapsible parents.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/components/layout/command-palette.tsx",
+   "type": "file",
+   "name": "command-palette.tsx",
+   "filePath": "src/components/layout/command-palette.tsx",
+   "summary": "Keyboard-driven (Cmd/Ctrl+K) command palette that searches NAV entries filtered by role and navigates with prefetch.",
+   "tags": [
+    "component",
+    "navigation",
+    "command-palette",
+    "keyboard"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/layout/command-palette.tsx:CommandPalette",
+   "type": "function",
+   "name": "CommandPalette",
+   "filePath": "src/components/layout/command-palette.tsx",
+   "lineRange": [
+    19,
+    98
+   ],
+   "summary": "Global keyboard-triggered search over navigation entries.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/components/layout/language-toggle.tsx",
+   "type": "file",
+   "name": "language-toggle.tsx",
+   "filePath": "src/components/layout/language-toggle.tsx",
+   "summary": "Button toggling the UI language between English and Arabic via the app store.",
+   "tags": [
+    "component",
+    "i18n",
+    "toggle"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/layout/language-toggle.tsx:LanguageToggle",
+   "type": "function",
+   "name": "LanguageToggle",
+   "filePath": "src/components/layout/language-toggle.tsx",
+   "lineRange": [
+    6,
+    23
+   ],
+   "summary": "Switches between EN and AR.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/layout/scope-bar.tsx",
+   "type": "file",
+   "name": "scope-bar.tsx",
+   "filePath": "src/components/layout/scope-bar.tsx",
+   "summary": "Global scope controls (branch selector and date preset/range picker) driving the shared analytics scope, in desktop and mobile variants.",
+   "tags": [
+    "component",
+    "layout",
+    "filter",
+    "scope"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/layout/scope-bar.tsx:ScopeControls",
+   "type": "function",
+   "name": "ScopeControls",
+   "filePath": "src/components/layout/scope-bar.tsx",
+   "lineRange": [
+    33,
+    112
+   ],
+   "summary": "Branch select plus date preset/range controls bound to the scope store.",
+   "tags": [
+    "component",
+    "internal",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/layout/scope-bar.tsx:ScopeBar",
+   "type": "function",
+   "name": "ScopeBar",
+   "filePath": "src/components/layout/scope-bar.tsx",
+   "lineRange": [
+    115,
+    117
+   ],
+   "summary": "Desktop wrapper for ScopeControls.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/layout/scope-bar.tsx:ScopeBarMobile",
+   "type": "function",
+   "name": "ScopeBarMobile",
+   "filePath": "src/components/layout/scope-bar.tsx",
+   "lineRange": [
+    120,
+    134
+   ],
+   "summary": "Mobile popover wrapper for ScopeControls.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/layout/user-menu.tsx",
+   "type": "file",
+   "name": "user-menu.tsx",
+   "filePath": "src/components/layout/user-menu.tsx",
+   "summary": "Avatar dropdown showing the signed-in user with initials and a sign-out action from the auth store.",
+   "tags": [
+    "component",
+    "auth",
+    "dropdown",
+    "layout"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/layout/user-menu.tsx:UserMenu",
+   "type": "function",
+   "name": "UserMenu",
+   "filePath": "src/components/layout/user-menu.tsx",
+   "lineRange": [
+    18,
+    61
+   ],
+   "summary": "Avatar dropdown with user info and sign-out.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/components/ui/avatar.tsx",
+   "type": "file",
+   "name": "avatar.tsx",
+   "filePath": "src/components/ui/avatar.tsx",
+   "summary": "Radix-based Avatar primitives (image, fallback, badge, group and overflow count) styled with Tailwind.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "avatar",
+    "radix"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/avatar.tsx:Avatar",
+   "type": "function",
+   "name": "Avatar",
+   "filePath": "src/components/ui/avatar.tsx",
+   "lineRange": [
+    8,
+    26
+   ],
+   "summary": "Root avatar container.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/avatar.tsx:AvatarImage",
+   "type": "function",
+   "name": "AvatarImage",
+   "filePath": "src/components/ui/avatar.tsx",
+   "lineRange": [
+    28,
+    39
+   ],
+   "summary": "Avatar image slot.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/avatar.tsx:AvatarFallback",
+   "type": "function",
+   "name": "AvatarFallback",
+   "filePath": "src/components/ui/avatar.tsx",
+   "lineRange": [
+    41,
+    55
+   ],
+   "summary": "Fallback initials slot.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/avatar.tsx:AvatarBadge",
+   "type": "function",
+   "name": "AvatarBadge",
+   "filePath": "src/components/ui/avatar.tsx",
+   "lineRange": [
+    57,
+    71
+   ],
+   "summary": "Status badge overlay.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/avatar.tsx:AvatarGroup",
+   "type": "function",
+   "name": "AvatarGroup",
+   "filePath": "src/components/ui/avatar.tsx",
+   "lineRange": [
+    73,
+    84
+   ],
+   "summary": "Overlapping avatar stack.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/avatar.tsx:AvatarGroupCount",
+   "type": "function",
+   "name": "AvatarGroupCount",
+   "filePath": "src/components/ui/avatar.tsx",
+   "lineRange": [
+    86,
+    100
+   ],
+   "summary": "Overflow count bubble.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/collapsible.tsx",
+   "type": "file",
+   "name": "collapsible.tsx",
+   "filePath": "src/components/ui/collapsible.tsx",
+   "summary": "Thin wrappers around Radix Collapsible primitives with data-slot attributes.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "radix"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/collapsible.tsx:Collapsible",
+   "type": "function",
+   "name": "Collapsible",
+   "filePath": "src/components/ui/collapsible.tsx",
+   "lineRange": [
+    3,
+    7
+   ],
+   "summary": "Collapsible root.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/collapsible.tsx:CollapsibleTrigger",
+   "type": "function",
+   "name": "CollapsibleTrigger",
+   "filePath": "src/components/ui/collapsible.tsx",
+   "lineRange": [
+    9,
+    18
+   ],
+   "summary": "Collapsible trigger.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/collapsible.tsx:CollapsibleContent",
+   "type": "function",
+   "name": "CollapsibleContent",
+   "filePath": "src/components/ui/collapsible.tsx",
+   "lineRange": [
+    20,
+    29
+   ],
+   "summary": "Collapsible content.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/components/app/date-picker.tsx",
+   "target": "function:src/components/app/date-picker.tsx:DatePicker",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/date-picker.tsx",
+   "target": "function:src/components/app/date-picker.tsx:DatePicker",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/date-picker.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/date-picker.tsx",
+   "target": "file:src/components/ui/popover.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/date-picker.tsx",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/date-picker.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/date-picker.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/date-range-picker.tsx",
+   "target": "function:src/components/app/date-range-picker.tsx:DateRangePicker",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/date-range-picker.tsx",
+   "target": "function:src/components/app/date-range-picker.tsx:DateRangePicker",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/date-range-picker.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/date-range-picker.tsx",
+   "target": "file:src/components/ui/popover.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/date-range-picker.tsx",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/date-range-picker.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/date-range-picker.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/demo-banner.tsx",
+   "target": "function:src/components/app/demo-banner.tsx:DemoBanner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/demo-banner.tsx",
+   "target": "function:src/components/app/demo-banner.tsx:DemoBanner",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/demo-banner.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/demo-banner.tsx",
+   "target": "file:src/data/api/demo/enable.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "function:src/components/app/exclude-items-control.tsx:useExcludedItems",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "function:src/components/app/exclude-items-control.tsx:useExcludedItems",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "function:src/components/app/exclude-items-control.tsx:excludeItemsParam",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "function:src/components/app/exclude-items-control.tsx:excludeItemsParam",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "function:src/components/app/exclude-items-control.tsx:ExcludeItemsControl",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "function:src/components/app/exclude-items-control.tsx:ExcludeItemsControl",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "file:src/components/ui/command.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "file:src/components/ui/popover.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/stat-value.tsx",
+   "target": "function:src/components/app/stat-value.tsx:StatValue",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/app/stat-value.tsx",
+   "target": "function:src/components/app/stat-value.tsx:StatValue",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/stat-value.tsx",
+   "target": "file:src/components/ui/popover.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/stat-value.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/stat-value.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-header.tsx",
+   "target": "function:src/components/layout/app-header.tsx:AppHeader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/layout/app-header.tsx",
+   "target": "function:src/components/layout/app-header.tsx:AppHeader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/app-header.tsx",
+   "target": "file:src/components/layout/command-palette.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-header.tsx",
+   "target": "file:src/components/layout/language-toggle.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-header.tsx",
+   "target": "file:src/components/layout/scope-bar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-header.tsx",
+   "target": "file:src/components/layout/theme-toggle.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-header.tsx",
+   "target": "file:src/components/layout/user-menu.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-header.tsx",
+   "target": "file:src/components/ui/sidebar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "function:src/components/layout/app-sidebar.tsx:useIsActive",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "function:src/components/layout/app-sidebar.tsx:AppSidebar",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "function:src/components/layout/app-sidebar.tsx:AppSidebar",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "file:src/components/ui/collapsible.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "file:src/components/ui/sidebar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "file:src/config/nav.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "file:src/hooks/use-route-prefetch.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/command-palette.tsx",
+   "target": "function:src/components/layout/command-palette.tsx:CommandPalette",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/layout/command-palette.tsx",
+   "target": "function:src/components/layout/command-palette.tsx:CommandPalette",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/command-palette.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/command-palette.tsx",
+   "target": "file:src/components/ui/command.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/command-palette.tsx",
+   "target": "file:src/config/nav.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/command-palette.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/command-palette.tsx",
+   "target": "file:src/hooks/use-route-prefetch.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/language-toggle.tsx",
+   "target": "function:src/components/layout/language-toggle.tsx:LanguageToggle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/layout/language-toggle.tsx",
+   "target": "function:src/components/layout/language-toggle.tsx:LanguageToggle",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/language-toggle.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/language-toggle.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "function:src/components/layout/scope-bar.tsx:ScopeControls",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "function:src/components/layout/scope-bar.tsx:ScopeBar",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "function:src/components/layout/scope-bar.tsx:ScopeBar",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "function:src/components/layout/scope-bar.tsx:ScopeBarMobile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "function:src/components/layout/scope-bar.tsx:ScopeBarMobile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "file:src/components/app/date-range-picker.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "file:src/components/ui/popover.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "file:src/data/scope/presets.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/user-menu.tsx",
+   "target": "function:src/components/layout/user-menu.tsx:UserMenu",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/layout/user-menu.tsx",
+   "target": "function:src/components/layout/user-menu.tsx:UserMenu",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/user-menu.tsx",
+   "target": "file:src/components/ui/avatar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/user-menu.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/user-menu.tsx",
+   "target": "file:src/components/ui/dropdown-menu.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/user-menu.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/layout/user-menu.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/app/demo-banner.tsx",
+   "target": "function:src/data/api/demo/enable.ts:resetDemo",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "function:src/config/nav.ts:isParent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/command-palette.tsx",
+   "target": "function:src/config/nav.ts:isParent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:useSidebar",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/app-header.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarTrigger",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/user-menu.tsx",
+   "target": "function:src/lib/format.ts:initials",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/stat-value.tsx",
+   "target": "function:src/lib/format.ts:fmtMoney",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "function:src/data/scope/use-scope.ts:useScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/scope-bar.tsx",
+   "target": "function:src/data/scope/presets.ts:rangeForPreset",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/layout/app-sidebar.tsx",
+   "target": "function:src/hooks/use-route-prefetch.ts:useRoutePrefetch",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/app/exclude-items-control.tsx",
+   "target": "function:src/hooks/use-org-id.ts:useOrgId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:Avatar",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:Avatar",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:AvatarImage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:AvatarImage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:AvatarFallback",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:AvatarFallback",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:AvatarBadge",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:AvatarBadge",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:AvatarGroup",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:AvatarGroup",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:AvatarGroupCount",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "function:src/components/ui/avatar.tsx:AvatarGroupCount",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/avatar.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/collapsible.tsx",
+   "target": "function:src/components/ui/collapsible.tsx:Collapsible",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/collapsible.tsx",
+   "target": "function:src/components/ui/collapsible.tsx:Collapsible",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/collapsible.tsx",
+   "target": "function:src/components/ui/collapsible.tsx:CollapsibleTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/collapsible.tsx",
+   "target": "function:src/components/ui/collapsible.tsx:CollapsibleTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/collapsible.tsx",
+   "target": "function:src/components/ui/collapsible.tsx:CollapsibleContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/collapsible.tsx",
+   "target": "function:src/components/ui/collapsible.tsx:CollapsibleContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

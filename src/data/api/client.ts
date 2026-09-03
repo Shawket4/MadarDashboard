@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
 import { env } from "@/data/config/env";
 import { LS_KEYS } from "@/data/config/constants";
+import { reportApiError } from "@/lib/report-error";
 
 /**
  * Ambient context held outside React. The auth store writes to this on sign in/out;
@@ -67,6 +68,14 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 apiClient.interceptors.response.use(
   (res) => res,
   (err) => {
+    // The ERROR FUNNEL. Every API failure in this app passes through here on
+    // its way to `getErrorMessage` and a toast, so this is the one place that
+    // can see them all — and until now none of them were reported anywhere.
+    // `reportApiError` decides what is worth an issue (5xx and unreachable, not
+    // ordinary 4xx); it is deliberately called before the 401 branch so an
+    // early return can never skip it.
+    reportApiError(err);
+
     if (err?.response?.status === 401) {
       // Only treat a 401 as DASHBOARD session-expiry when this request actually
       // carried our Bearer token AND targeted an authenticated endpoint. Without

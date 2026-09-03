@@ -1,0 +1,925 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/data/api/demo/enable.ts",
+   "type": "file",
+   "name": "enable.ts",
+   "filePath": "src/data/api/demo/enable.ts",
+   "summary": "Public demo bootstrap: provisions a throwaway org via POST /demo/session, caches the session in localStorage, signs the visitor in and supports reset.",
+   "tags": [
+    "demo",
+    "bootstrap",
+    "auth",
+    "service"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/data/api/demo/enable.ts:requestedVariant",
+   "type": "function",
+   "name": "requestedVariant",
+   "filePath": "src/data/api/demo/enable.ts",
+   "lineRange": [
+    26,
+    28
+   ],
+   "summary": "Reads demo variant from the URL.",
+   "tags": [
+    "utility",
+    "exported",
+    "demo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/demo/enable.ts:getDemoSession",
+   "type": "function",
+   "name": "getDemoSession",
+   "filePath": "src/data/api/demo/enable.ts",
+   "lineRange": [
+    30,
+    41
+   ],
+   "summary": "Loads an unexpired cached demo session.",
+   "tags": [
+    "utility",
+    "exported",
+    "demo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/demo/enable.ts:enableDemo",
+   "type": "function",
+   "name": "enableDemo",
+   "filePath": "src/data/api/demo/enable.ts",
+   "lineRange": [
+    60,
+    77
+   ],
+   "summary": "Provisions or reuses a demo session and signs in.",
+   "tags": [
+    "utility",
+    "exported",
+    "demo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/demo/enable.ts:resetDemo",
+   "type": "function",
+   "name": "resetDemo",
+   "filePath": "src/data/api/demo/enable.ts",
+   "lineRange": [
+    80,
+    88
+   ],
+   "summary": "Clears the demo session and reloads.",
+   "tags": [
+    "utility",
+    "exported",
+    "demo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/api/mock/adapter.ts",
+   "type": "file",
+   "name": "adapter.ts",
+   "filePath": "src/data/api/mock/adapter.ts",
+   "summary": "Dev-only axios adapter that answers curated API routes from mock data without a service worker, used for headless screenshot previews.",
+   "tags": [
+    "mock",
+    "dev-tooling",
+    "api-client",
+    "adapter"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/data/api/mock/adapter.ts:installMockAdapter",
+   "type": "function",
+   "name": "installMockAdapter",
+   "filePath": "src/data/api/mock/adapter.ts",
+   "lineRange": [
+    129,
+    144
+   ],
+   "summary": "Overrides apiClient adapter with rule-based mock responses.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/api/mock/browser.ts",
+   "type": "file",
+   "name": "browser.ts",
+   "filePath": "src/data/api/mock/browser.ts",
+   "summary": "Creates the MSW browser worker from the mock handlers.",
+   "tags": [
+    "mock",
+    "msw",
+    "dev-tooling"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/api/mock/data.ts",
+   "type": "file",
+   "name": "data.ts",
+   "filePath": "src/data/api/mock/data.ts",
+   "summary": "Large fixture module of mock org, branches, menu, orders, inventory, shifts, users, insights and margin data plus helper builders for paginated and computed mock responses.",
+   "tags": [
+    "mock",
+    "fixtures",
+    "dev-tooling",
+    "data-model"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:bundlesPage",
+   "type": "function",
+   "name": "bundlesPage",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    723,
+    726
+   ],
+   "summary": "Paginated bundles response.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:shiftsPage",
+   "type": "function",
+   "name": "shiftsPage",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    783,
+    786
+   ],
+   "summary": "Paginated shifts response.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:shiftReport",
+   "type": "function",
+   "name": "shiftReport",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    795,
+    825
+   ],
+   "summary": "Builds a mock shift report.",
+   "tags": [
+    "utility",
+    "internal",
+    "mock"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:permissionMatrix",
+   "type": "function",
+   "name": "permissionMatrix",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    865,
+    876
+   ],
+   "summary": "Builds the mock permission matrix.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:qrResponse",
+   "type": "function",
+   "name": "qrResponse",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    887,
+    896
+   ],
+   "summary": "Builds mock QR payload.",
+   "tags": [
+    "utility",
+    "internal",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:mockMarginTargets",
+   "type": "function",
+   "name": "mockMarginTargets",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    986,
+    990
+   ],
+   "summary": "Returns margin targets.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:mockPutMarginTarget",
+   "type": "function",
+   "name": "mockPutMarginTarget",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    992,
+    996
+   ],
+   "summary": "Upserts a margin target.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:buildLedgerRows",
+   "type": "function",
+   "name": "buildLedgerRows",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    998,
+    1051
+   ],
+   "summary": "Computes mock ledger rows per item.",
+   "tags": [
+    "utility",
+    "internal",
+    "mock"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:buildLedgerTotals",
+   "type": "function",
+   "name": "buildLedgerTotals",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    1053,
+    1075
+   ],
+   "summary": "Aggregates ledger totals.",
+   "tags": [
+    "utility",
+    "internal",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:mockMenuMargin",
+   "type": "function",
+   "name": "mockMenuMargin",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    1078,
+    1091
+   ],
+   "summary": "Builds mock menu margin report.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:mockMarginWatch",
+   "type": "function",
+   "name": "mockMarginWatch",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    1094,
+    1108
+   ],
+   "summary": "Builds margin watch alerts.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:skuWindow",
+   "type": "function",
+   "name": "skuWindow",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    1110,
+    1123
+   ],
+   "summary": "Builds SKU time window data.",
+   "tags": [
+    "utility",
+    "internal",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/data.ts:mockCreateDecision",
+   "type": "function",
+   "name": "mockCreateDecision",
+   "filePath": "src/data/api/mock/data.ts",
+   "lineRange": [
+    1162,
+    1185
+   ],
+   "summary": "Creates a mock insight decision.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/api/mock/enable-public.ts",
+   "type": "file",
+   "name": "enable-public.ts",
+   "filePath": "src/data/api/mock/enable-public.ts",
+   "summary": "Starts the MSW worker for the unauthenticated public ordering/landing apps without seeding an admin session.",
+   "tags": [
+    "mock",
+    "msw",
+    "bootstrap"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/enable-public.ts:enablePublicMocks",
+   "type": "function",
+   "name": "enablePublicMocks",
+   "filePath": "src/data/api/mock/enable-public.ts",
+   "lineRange": [
+    9,
+    15
+   ],
+   "summary": "Starts MSW for public apps.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/api/mock/enable.ts",
+   "type": "file",
+   "name": "enable.ts",
+   "filePath": "src/data/api/mock/enable.ts",
+   "summary": "Starts the MSW worker for the admin dashboard and seeds a mock signed-in session into the auth/app stores.",
+   "tags": [
+    "mock",
+    "msw",
+    "bootstrap",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/mock/enable.ts:enableMocks",
+   "type": "function",
+   "name": "enableMocks",
+   "filePath": "src/data/api/mock/enable.ts",
+   "lineRange": [
+    13,
+    26
+   ],
+   "summary": "Starts MSW and seeds admin session.",
+   "tags": [
+    "utility",
+    "exported",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/api/mock/handlers.ts",
+   "type": "file",
+   "name": "handlers.ts",
+   "filePath": "src/data/api/mock/handlers.ts",
+   "summary": "MSW request handlers covering auth, onboarding, orgs, menu, inventory, orders, shifts, insights and demo endpoints backed by the mock fixtures.",
+   "tags": [
+    "mock",
+    "msw",
+    "api-handler",
+    "dev-tooling"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/data/api/mock/handlers.ts:onboardingStatus",
+   "type": "function",
+   "name": "onboardingStatus",
+   "filePath": "src/data/api/mock/handlers.ts",
+   "lineRange": [
+    205,
+    223
+   ],
+   "summary": "Computes mock onboarding completion status.",
+   "tags": [
+    "utility",
+    "internal",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/api/query.ts",
+   "type": "file",
+   "name": "query.ts",
+   "filePath": "src/data/api/query.ts",
+   "summary": "Shared TanStack QueryClient with stale/gc timings and a retry policy that skips auth and client errors.",
+   "tags": [
+    "config",
+    "react-query",
+    "singleton"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/config/constants.ts",
+   "type": "file",
+   "name": "constants.ts",
+   "filePath": "src/data/config/constants.ts",
+   "summary": "App-wide constants: timezone, currency, locales, localStorage keys, enum lists (roles, payment methods, statuses, units) and query keys.",
+   "tags": [
+    "config",
+    "constants",
+    "enums"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/data/config/env.ts",
+   "type": "file",
+   "name": "env.ts",
+   "filePath": "src/data/config/env.ts",
+   "summary": "Zod-validated Vite environment variables (API URL, app name, dashboard URL) that fail fast when invalid.",
+   "tags": [
+    "config",
+    "environment",
+    "validation"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "function:src/data/api/demo/enable.ts:requestedVariant",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "function:src/data/api/demo/enable.ts:requestedVariant",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "function:src/data/api/demo/enable.ts:getDemoSession",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "function:src/data/api/demo/enable.ts:getDemoSession",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "function:src/data/api/demo/enable.ts:enableDemo",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "function:src/data/api/demo/enable.ts:enableDemo",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "function:src/data/api/demo/enable.ts:resetDemo",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "function:src/data/api/demo/enable.ts:resetDemo",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "file:src/data/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/demo/enable.ts",
+   "target": "file:src/data/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/adapter.ts",
+   "target": "function:src/data/api/mock/adapter.ts:installMockAdapter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/adapter.ts",
+   "target": "function:src/data/api/mock/adapter.ts:installMockAdapter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/adapter.ts",
+   "target": "file:src/data/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/adapter.ts",
+   "target": "file:src/data/api/mock/data.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/browser.ts",
+   "target": "file:src/data/api/mock/handlers.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:bundlesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:bundlesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:shiftsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:shiftsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:shiftReport",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:permissionMatrix",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:permissionMatrix",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:qrResponse",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:mockMarginTargets",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:mockMarginTargets",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:mockPutMarginTarget",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:mockPutMarginTarget",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:buildLedgerRows",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:buildLedgerTotals",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:mockMenuMargin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:mockMenuMargin",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:mockMarginWatch",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:mockMarginWatch",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:skuWindow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:mockCreateDecision",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "function:src/data/api/mock/data.ts:mockCreateDecision",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/data.ts",
+   "target": "file:src/data/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/enable-public.ts",
+   "target": "function:src/data/api/mock/enable-public.ts:enablePublicMocks",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/enable-public.ts",
+   "target": "function:src/data/api/mock/enable-public.ts:enablePublicMocks",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/enable-public.ts",
+   "target": "file:src/data/api/mock/browser.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/enable.ts",
+   "target": "function:src/data/api/mock/enable.ts:enableMocks",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/enable.ts",
+   "target": "function:src/data/api/mock/enable.ts:enableMocks",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/enable.ts",
+   "target": "file:src/data/api/mock/browser.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/enable.ts",
+   "target": "file:src/data/api/mock/data.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/enable.ts",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/enable.ts",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/enable.ts",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/handlers.ts",
+   "target": "function:src/data/api/mock/handlers.ts:onboardingStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/mock/handlers.ts",
+   "target": "file:src/data/api/mock/data.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/handlers.ts",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/mock/handlers.ts",
+   "target": "function:src/data/api/mock/data.ts:shiftReport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/handlers.ts",
+   "target": "function:src/data/api/mock/data.ts:permissionMatrix",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/handlers.ts",
+   "target": "function:src/data/api/mock/data.ts:mockMenuMargin",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/handlers.ts",
+   "target": "function:src/data/api/mock/data.ts:mockCreateDecision",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/mock/enable.ts",
+   "target": "file:src/data/api/mock/browser.ts",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/data/api/mock/enable-public.ts",
+   "target": "file:src/data/api/mock/browser.ts",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/data/api/mock/adapter.ts",
+   "target": "file:src/data/api/client.ts",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  }
+ ]
+}

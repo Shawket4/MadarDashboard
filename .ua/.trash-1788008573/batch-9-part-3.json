@@ -1,0 +1,1149 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/hooks/use-route-prefetch.ts",
+   "type": "file",
+   "name": "use-route-prefetch.ts",
+   "filePath": "src/hooks/use-route-prefetch.ts",
+   "summary": "Hook returning a callback that prefetches route data via prefetchRoute using the current org, branch and date scope.",
+   "tags": [
+    "hook",
+    "prefetch",
+    "performance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/hooks/use-route-prefetch.ts:useRoutePrefetch",
+   "type": "function",
+   "name": "useRoutePrefetch",
+   "filePath": "src/hooks/use-route-prefetch.ts",
+   "lineRange": [
+    20,
+    33
+   ],
+   "summary": "Returns a scoped route prefetch callback.",
+   "tags": [
+    "hook",
+    "prefetch",
+    "performance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/excel.ts",
+   "type": "file",
+   "name": "excel.ts",
+   "filePath": "src/lib/excel.ts",
+   "summary": "Excel export engine building styled multi-sheet workbooks (typed columns, stats, logo) from config objects and triggering a download.",
+   "tags": [
+    "utility",
+    "excel",
+    "export",
+    "serialization"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/lib/excel.ts:numFmt",
+   "type": "function",
+   "name": "numFmt",
+   "filePath": "src/lib/excel.ts",
+   "lineRange": [
+    63,
+    81
+   ],
+   "summary": "Returns the Excel number format string for a column type.",
+   "tags": [
+    "utility",
+    "excel",
+    "export"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/excel.ts:toExcelDateSerial",
+   "type": "function",
+   "name": "toExcelDateSerial",
+   "filePath": "src/lib/excel.ts",
+   "lineRange": [
+    94,
+    101
+   ],
+   "summary": "Converts a Date to an Excel serial number in a timezone.",
+   "tags": [
+    "utility",
+    "excel",
+    "export"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/excel.ts:coerce",
+   "type": "function",
+   "name": "coerce",
+   "filePath": "src/lib/excel.ts",
+   "lineRange": [
+    103,
+    124
+   ],
+   "summary": "Coerces a raw cell value according to the column type.",
+   "tags": [
+    "utility",
+    "excel",
+    "export"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/excel.ts:fitBox",
+   "type": "function",
+   "name": "fitBox",
+   "filePath": "src/lib/excel.ts",
+   "lineRange": [
+    139,
+    148
+   ],
+   "summary": "Scales an image to fit within max bounds preserving aspect ratio.",
+   "tags": [
+    "utility",
+    "excel",
+    "export"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/excel.ts:loadLogo",
+   "type": "function",
+   "name": "loadLogo",
+   "filePath": "src/lib/excel.ts",
+   "lineRange": [
+    151,
+    187
+   ],
+   "summary": "Fetches and decodes the org logo for embedding in the workbook.",
+   "tags": [
+    "utility",
+    "excel",
+    "export"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/excel.ts:buildSheet",
+   "type": "function",
+   "name": "buildSheet",
+   "filePath": "src/lib/excel.ts",
+   "lineRange": [
+    189,
+    296
+   ],
+   "summary": "Builds a styled worksheet with header, stats and typed columns.",
+   "tags": [
+    "utility",
+    "excel",
+    "export"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/lib/excel.ts:exportToExcel",
+   "type": "function",
+   "name": "exportToExcel",
+   "filePath": "src/lib/excel.ts",
+   "lineRange": [
+    298,
+    343
+   ],
+   "summary": "Builds the workbook from config and triggers a file download.",
+   "tags": [
+    "utility",
+    "excel",
+    "export"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/format.ts",
+   "type": "file",
+   "name": "format.ts",
+   "filePath": "src/lib/format.ts",
+   "summary": "Locale- and timezone-aware formatting helpers for money (piastres/EGP), numbers, dates, durations and periods used throughout the dashboard.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n",
+    "dates"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/lib/format.ts:getActiveTz",
+   "type": "function",
+   "name": "getActiveTz",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    18,
+    18
+   ],
+   "summary": "getActiveTz formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:piastresToEgp",
+   "type": "function",
+   "name": "piastresToEgp",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    31,
+    31
+   ],
+   "summary": "piastresToEgp formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:egpToPiastres",
+   "type": "function",
+   "name": "egpToPiastres",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    36,
+    36
+   ],
+   "summary": "egpToPiastres formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtMoney",
+   "type": "function",
+   "name": "fmtMoney",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    42,
+    57
+   ],
+   "summary": "Formats piastres as localized currency, em-dash for unknown.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtMoneyCompact",
+   "type": "function",
+   "name": "fmtMoneyCompact",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    60,
+    69
+   ],
+   "summary": "Compact currency formatting for large amounts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtNumber",
+   "type": "function",
+   "name": "fmtNumber",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    72,
+    73
+   ],
+   "summary": "fmtNumber formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtNumberCompact",
+   "type": "function",
+   "name": "fmtNumberCompact",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    78,
+    79
+   ],
+   "summary": "fmtNumberCompact formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtPercent",
+   "type": "function",
+   "name": "fmtPercent",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    82,
+    83
+   ],
+   "summary": "fmtPercent formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtShare",
+   "type": "function",
+   "name": "fmtShare",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    86,
+    89
+   ],
+   "summary": "fmtShare formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtDate",
+   "type": "function",
+   "name": "fmtDate",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    93,
+    99
+   ],
+   "summary": "fmtDate formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtTime",
+   "type": "function",
+   "name": "fmtTime",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    101,
+    107
+   ],
+   "summary": "fmtTime formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtDateTime",
+   "type": "function",
+   "name": "fmtDateTime",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    109,
+    115
+   ],
+   "summary": "fmtDateTime formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtDateTimeFull",
+   "type": "function",
+   "name": "fmtDateTimeFull",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    117,
+    129
+   ],
+   "summary": "Full localized date-time formatting in the active timezone.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtDuration",
+   "type": "function",
+   "name": "fmtDuration",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    131,
+    138
+   ],
+   "summary": "fmtDuration formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:cairoNow",
+   "type": "function",
+   "name": "cairoNow",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    145,
+    145
+   ],
+   "summary": "cairoNow formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:cairoDateISO",
+   "type": "function",
+   "name": "cairoDateISO",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    148,
+    160
+   ],
+   "summary": "Builds an ISO timestamp for a calendar date in the active timezone.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:cairoParts",
+   "type": "function",
+   "name": "cairoParts",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    163,
+    166
+   ],
+   "summary": "cairoParts formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtPeriod",
+   "type": "function",
+   "name": "fmtPeriod",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    169,
+    178
+   ],
+   "summary": "Formats a period label by granularity for charts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtHour",
+   "type": "function",
+   "name": "fmtHour",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    181,
+    185
+   ],
+   "summary": "fmtHour formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:initials",
+   "type": "function",
+   "name": "initials",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    189,
+    195
+   ],
+   "summary": "initials formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/format.ts:fmtUnit",
+   "type": "function",
+   "name": "fmtUnit",
+   "filePath": "src/lib/format.ts",
+   "lineRange": [
+    197,
+    200
+   ],
+   "summary": "fmtUnit formatting helper in format.ts.",
+   "tags": [
+    "utility",
+    "formatting",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/route-prefetch.ts",
+   "type": "file",
+   "name": "route-prefetch.ts",
+   "filePath": "src/lib/route-prefetch.ts",
+   "summary": "Maps app routes to the React Query option sets they need and prefetches them for the given org/branch/date scope.",
+   "tags": [
+    "utility",
+    "prefetch",
+    "performance",
+    "routing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/lib/route-prefetch.ts:prefetchRoute",
+   "type": "function",
+   "name": "prefetchRoute",
+   "filePath": "src/lib/route-prefetch.ts",
+   "lineRange": [
+    59,
+    218
+   ],
+   "summary": "Prefetches all query options associated with a route path.",
+   "tags": [
+    "utility",
+    "prefetch",
+    "performance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/routes/_app/index.tsx",
+   "type": "file",
+   "name": "index.tsx",
+   "filePath": "src/routes/_app/index.tsx",
+   "summary": "Route definition for the dashboard home page.",
+   "tags": [
+    "route",
+    "entry-point",
+    "dashboard"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/routes/_app/inventory/counts.tsx",
+   "type": "file",
+   "name": "counts.tsx",
+   "filePath": "src/routes/_app/inventory/counts.tsx",
+   "summary": "Route definition mounting the inventory stock counts page.",
+   "tags": [
+    "route",
+    "inventory",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/routes/_app/menu/bundles.tsx",
+   "type": "file",
+   "name": "bundles.tsx",
+   "filePath": "src/routes/_app/menu/bundles.tsx",
+   "summary": "Route definition mounting the menu bundles page.",
+   "tags": [
+    "route",
+    "menu",
+    "page"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/hooks/use-route-prefetch.ts",
+   "target": "function:src/hooks/use-route-prefetch.ts:useRoutePrefetch",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/hooks/use-route-prefetch.ts",
+   "target": "function:src/hooks/use-route-prefetch.ts:useRoutePrefetch",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/hooks/use-route-prefetch.ts",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/hooks/use-route-prefetch.ts",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/hooks/use-route-prefetch.ts",
+   "target": "file:src/lib/route-prefetch.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "function:src/lib/excel.ts:numFmt",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "function:src/lib/excel.ts:toExcelDateSerial",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "function:src/lib/excel.ts:toExcelDateSerial",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "function:src/lib/excel.ts:coerce",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "function:src/lib/excel.ts:fitBox",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "function:src/lib/excel.ts:loadLogo",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "function:src/lib/excel.ts:buildSheet",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "function:src/lib/excel.ts:exportToExcel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "function:src/lib/excel.ts:exportToExcel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "file:src/i18n/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "file:src/lib/download.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/lib/excel.ts",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:getActiveTz",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:getActiveTz",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:piastresToEgp",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:piastresToEgp",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:egpToPiastres",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:egpToPiastres",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtMoney",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtMoney",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtMoneyCompact",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtMoneyCompact",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtNumber",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtNumber",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtNumberCompact",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtNumberCompact",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtPercent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtPercent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtShare",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtShare",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtDate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtDate",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtTime",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtTime",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtDateTime",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtDateTime",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtDateTimeFull",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtDateTimeFull",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtDuration",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtDuration",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:cairoNow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:cairoNow",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:cairoDateISO",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:cairoDateISO",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:cairoParts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:cairoParts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtPeriod",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtPeriod",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtHour",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtHour",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:initials",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:initials",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtUnit",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "function:src/lib/format.ts:fmtUnit",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/lib/format.ts",
+   "target": "file:src/i18n/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/lib/route-prefetch.ts",
+   "target": "function:src/lib/route-prefetch.ts:prefetchRoute",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/route-prefetch.ts",
+   "target": "function:src/lib/route-prefetch.ts:prefetchRoute",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/route-prefetch.ts",
+   "target": "file:src/data/scope/presets.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/lib/route-prefetch.ts",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/index.tsx",
+   "target": "file:src/features/dashboard/dashboard-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/inventory/counts.tsx",
+   "target": "file:src/features/inventory/counts-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/menu/bundles.tsx",
+   "target": "file:src/features/bundles/bundles-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/hooks/use-route-prefetch.ts:useRoutePrefetch",
+   "target": "function:src/lib/route-prefetch.ts:prefetchRoute",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/hooks/use-route-prefetch.ts:useRoutePrefetch",
+   "target": "function:src/hooks/use-org-id.ts:useOrgId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/lib/excel.ts:exportToExcel",
+   "target": "function:src/lib/excel.ts:buildSheet",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/lib/excel.ts:exportToExcel",
+   "target": "function:src/lib/excel.ts:loadLogo",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/lib/excel.ts:buildSheet",
+   "target": "function:src/lib/excel.ts:coerce",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/lib/excel.ts:buildSheet",
+   "target": "function:src/lib/excel.ts:numFmt",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/lib/excel.ts:coerce",
+   "target": "function:src/lib/excel.ts:toExcelDateSerial",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/lib/excel.ts:loadLogo",
+   "target": "function:src/lib/excel.ts:fitBox",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

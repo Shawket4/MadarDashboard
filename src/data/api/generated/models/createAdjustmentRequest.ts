@@ -2,8 +2,14 @@
 // @ts-nocheck
 
 export interface CreateAdjustmentRequest {
-  adjustment_type: string;
-  branch_inventory_id: string;
-  note: string;
-  quantity: number;
+  /**
+     * Exactly one of `amount_piastres` or `percent_of_base`.
+     * @nullable
+     */
+  amount_piastres?: number | null;
+  effective_date: string;
+  /** @nullable */
+  percent_of_base?: number | null;
+  reason: string;
+  user_id: string;
 }

@@ -1,0 +1,7 @@
+{"projectRoot":"/Users/shawket/Desktop/MadarDashboard","batchFiles":[
+{"path":"src/features/integrations/handoff-content.ts","language":"typescript","sizeLines":232,"fileCategory":"code"},
+{"path":"src/features/integrations/handoff-zip.ts","language":"typescript","sizeLines":61,"fileCategory":"code"},
+{"path":"src/features/integrations/passphrase.ts","language":"typescript","sizeLines":74,"fileCategory":"code"},
+{"path":"src/features/integrations/use-credential-handoff.ts","language":"typescript","sizeLines":103,"fileCategory":"code"},
+{"path":"src/lib/download.ts","language":"typescript","sizeLines":39,"fileCategory":"code"}],
+"batchImportData":{"src/features/integrations/handoff-content.ts":["src/features/integrations/util.ts"],"src/features/integrations/handoff-zip.ts":["src/features/integrations/handoff-content.ts"],"src/features/integrations/passphrase.ts":[],"src/features/integrations/use-credential-handoff.ts":["src/features/integrations/handoff-content.ts","src/features/integrations/handoff-zip.ts","src/features/integrations/passphrase.ts","src/lib/download.ts"],"src/lib/download.ts":[]}}

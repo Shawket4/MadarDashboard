@@ -1,0 +1,1996 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 12,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 12,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 12,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "src/components/ui/checkbox.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 30,
+      "nonEmptyLines": 27,
+      "functions": [
+        {
+          "name": "Checkbox",
+          "startLine": 7,
+          "endLine": 28,
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Checkbox",
+          "line": 30,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Checkbox",
+          "callee": "cn",
+          "lineNumber": 14
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/delivery/channel-overrides-export.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 132,
+      "nonEmptyLines": 116,
+      "functions": [
+        {
+          "name": "asSheet",
+          "startLine": 15,
+          "endLine": 15,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "exportChannelOverrides",
+          "startLine": 47,
+          "endLine": 132,
+          "params": [
+            "ctx"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "exportChannelOverrides",
+          "line": 47,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "Promise.all",
+          "lineNumber": 50
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "fetchAllMenuCatalog",
+          "lineNumber": 51
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "fetchAllAddonCatalog",
+          "lineNumber": 52
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "items.map",
+          "lineNumber": 54
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "addons.map",
+          "lineNumber": 55
+        },
+        {
+          "caller": "avail",
+          "callee": "t",
+          "lineNumber": 59
+        },
+        {
+          "caller": "avail",
+          "callee": "t",
+          "lineNumber": 61
+        },
+        {
+          "caller": "avail",
+          "callee": "t",
+          "lineNumber": 62
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 66
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 68
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 70
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 71
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "itemOverrides\n    .map((o) => {\n      const it = itemById.get(o.menu_item_id);\n      return {\n        name: it ? getTranslatedName(it, lang) : o.menu_item_id,\n        orgPrice: it?.base_price ?? 0,\n        channelPrice: o.price_override ?? null,\n        availability: avail(o.is_available),\n      };\n    })\n    .sort",
+          "lineNumber": 73
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "itemOverrides\n    .map",
+          "lineNumber": 73
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "itemById.get",
+          "lineNumber": 75
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "getTranslatedName",
+          "lineNumber": 77
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "avail",
+          "lineNumber": 80
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "a.name.localeCompare",
+          "lineNumber": 83
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "addonOverrides\n    .map((o) => {\n      const a = addonById.get(o.addon_item_id);\n      return {\n        name: a ? getTranslatedName(a, lang) : o.addon_item_id,\n        orgPrice: a?.default_price ?? 0,\n        channelPrice: o.price_override ?? null,\n        availability: avail(o.is_available),\n      };\n    })\n    .sort",
+          "lineNumber": 85
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "addonOverrides\n    .map",
+          "lineNumber": 85
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "addonById.get",
+          "lineNumber": 87
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "getTranslatedName",
+          "lineNumber": 89
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "avail",
+          "lineNumber": 92
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "a.name.localeCompare",
+          "lineNumber": 95
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 98
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 99
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 100
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 101
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 106
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "exportToExcel",
+          "lineNumber": 112
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "`Madar-Channel-Overrides-${branchName}-${channel}`.replace",
+          "lineNumber": 113
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "asSheet",
+          "lineNumber": 116
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 117
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 118
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "asSheet",
+          "lineNumber": 123
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 124
+        },
+        {
+          "caller": "exportChannelOverrides",
+          "callee": "t",
+          "lineNumber": 125
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/menu/overrides-export.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 137,
+      "nonEmptyLines": 123,
+      "functions": [
+        {
+          "name": "asSheet",
+          "startLine": 15,
+          "endLine": 15,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "exportBranchOverrides",
+          "startLine": 52,
+          "endLine": 137,
+          "params": [
+            "ctx"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "exportBranchOverrides",
+          "line": 52,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "Promise.all",
+          "lineNumber": 55
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "fetchAllMenuCatalog",
+          "lineNumber": 56
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "fetchAllAddonCatalog",
+          "lineNumber": 57
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "items.map",
+          "lineNumber": 59
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "addons.map",
+          "lineNumber": 60
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "categories.map",
+          "lineNumber": 61
+        },
+        {
+          "caller": "avail",
+          "callee": "t",
+          "lineNumber": 63
+        },
+        {
+          "caller": "avail",
+          "callee": "t",
+          "lineNumber": 63
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "itemOverrides\n    .map((o) => {\n      const it = itemById.get(o.menu_item_id);\n      const cat = it?.category_id ? catById.get(it.category_id) : undefined;\n      const sizes = (o.sizes ?? [])\n        .map((s) => `${s.size_label}: ${piastresToEgp(s.price_override).toFixed(2)}`)\n        .join(\", \");\n      return {\n        category: cat ? getTranslatedName(cat, lang) : \"—\",\n        name: it ? getTranslatedName(it, lang) : o.menu_item_id,\n        orgPrice: it?.base_price ?? 0,\n        branchPrice: o.price_override ?? null,\n        availability: avail(o.is_available),\n        sizes,\n        updated: o.updated_at,\n      };\n    })\n    .sort",
+          "lineNumber": 65
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "itemOverrides\n    .map",
+          "lineNumber": 65
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "itemById.get",
+          "lineNumber": 67
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "catById.get",
+          "lineNumber": 68
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "(o.sizes ?? [])\n        .map((s) => `${s.size_label}: ${piastresToEgp(s.price_override).toFixed(2)}`)\n        .join",
+          "lineNumber": 69
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "(o.sizes ?? [])\n        .map",
+          "lineNumber": 69
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "piastresToEgp(s.price_override).toFixed",
+          "lineNumber": 70
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "piastresToEgp",
+          "lineNumber": 70
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "getTranslatedName",
+          "lineNumber": 73
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "getTranslatedName",
+          "lineNumber": 74
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "avail",
+          "lineNumber": 77
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "a.name.localeCompare",
+          "lineNumber": 82
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "addonOverrides\n    .map((o) => {\n      const a = addonById.get(o.addon_item_id);\n      return {\n        name: a ? getTranslatedName(a, lang) : o.addon_item_id,\n        orgPrice: a?.default_price ?? 0,\n        branchPrice: o.price_override ?? null,\n        availability: avail(o.is_available),\n        updated: o.updated_at,\n      };\n    })\n    .sort",
+          "lineNumber": 84
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "addonOverrides\n    .map",
+          "lineNumber": 84
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "addonById.get",
+          "lineNumber": 86
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "getTranslatedName",
+          "lineNumber": 88
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "avail",
+          "lineNumber": 91
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "a.name.localeCompare",
+          "lineNumber": 95
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 98
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 99
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 100
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 101
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 102
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 103
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 104
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 108
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 109
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 110
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 111
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 112
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 115
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "exportToExcel",
+          "lineNumber": 117
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "`Madar-Branch-Overrides-${branchName}`.replace",
+          "lineNumber": 118
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "asSheet",
+          "lineNumber": 121
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 122
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 123
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "asSheet",
+          "lineNumber": 128
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 129
+        },
+        {
+          "caller": "exportBranchOverrides",
+          "callee": "t",
+          "lineNumber": 130
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/orders/export/build-filename.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 18,
+      "functions": [
+        {
+          "name": "slugify",
+          "startLine": 3,
+          "endLine": 7,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "buildFilename",
+          "startLine": 9,
+          "endLine": 20,
+          "params": [
+            "args"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "buildFilename",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "slugify",
+          "callee": "s\n    .toLowerCase()\n    .replace(/[^a-z0-9]+/g, \"-\")\n    .replace",
+          "lineNumber": 4
+        },
+        {
+          "caller": "slugify",
+          "callee": "s\n    .toLowerCase()\n    .replace",
+          "lineNumber": 4
+        },
+        {
+          "caller": "slugify",
+          "callee": "s\n    .toLowerCase",
+          "lineNumber": 4
+        },
+        {
+          "caller": "buildFilename",
+          "callee": "args.from.slice",
+          "lineNumber": 17
+        },
+        {
+          "caller": "buildFilename",
+          "callee": "args.to.slice",
+          "lineNumber": 17
+        },
+        {
+          "caller": "buildFilename",
+          "callee": "new Date().toISOString().slice",
+          "lineNumber": 18
+        },
+        {
+          "caller": "buildFilename",
+          "callee": "new Date().toISOString",
+          "lineNumber": 18
+        },
+        {
+          "caller": "buildFilename",
+          "callee": "slugify",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/orders/export/build-meta.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 19,
+      "nonEmptyLines": 18,
+      "functions": [
+        {
+          "name": "buildMeta",
+          "startLine": 4,
+          "endLine": 19,
+          "params": [
+            "args"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "buildMeta",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buildMeta",
+          "callee": "parts.push",
+          "lineNumber": 13
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "args.t",
+          "lineNumber": 13
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "parts.push",
+          "lineNumber": 14
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "fmtDate",
+          "lineNumber": 14
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "fmtDate",
+          "lineNumber": 14
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "parts.push",
+          "lineNumber": 15
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "args.t",
+          "lineNumber": 15
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "parts.push",
+          "lineNumber": 16
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "args.t",
+          "lineNumber": 16
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "parts.push",
+          "lineNumber": 17
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "args.t",
+          "lineNumber": 17
+        },
+        {
+          "caller": "buildMeta",
+          "callee": "parts.join",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/orders/export/build-sheets.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 150,
+      "nonEmptyLines": 141,
+      "functions": [
+        {
+          "name": "asSheet",
+          "startLine": 18,
+          "endLine": 18,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "buildSheets",
+          "startLine": 28,
+          "endLine": 150,
+          "params": [
+            "orders",
+            "grains",
+            "t",
+            "lang"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "buildSheets",
+          "line": 28,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "buildSheets",
+          "callee": "grains.includes",
+          "lineNumber": 31
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "sheets.push",
+          "lineNumber": 32
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "asSheet",
+          "lineNumber": 33
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "t",
+          "lineNumber": 34
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "t",
+          "lineNumber": 35
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "orderColumns",
+          "lineNumber": 36
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "grains.includes",
+          "lineNumber": 43
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "orders.flatMap",
+          "lineNumber": 44
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "(o.items ?? []).map",
+          "lineNumber": 45
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "getTranslatedName",
+          "lineNumber": 50
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "(it.addons || [])\n          .map(\n            (a) =>\n              `+ ${getTranslatedName({ name: a.addon_name, name_translations: a.name_translations }, lang)}${a.quantity > 1 ? ` ×${a.quantity}` : \"\"}`,\n          )\n          .join",
+          "lineNumber": 56
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "(it.addons || [])\n          .map",
+          "lineNumber": 56
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "getTranslatedName",
+          "lineNumber": 59
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "(it.optionals || [])\n          .map((opt) => getTranslatedName({ name: opt.field_name, name_translations: opt.name_translations }, lang))\n          .join",
+          "lineNumber": 62
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "(it.optionals || [])\n          .map",
+          "lineNumber": 62
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "getTranslatedName",
+          "lineNumber": 63
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "sheets.push",
+          "lineNumber": 68
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "asSheet",
+          "lineNumber": 69
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "t",
+          "lineNumber": 70
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "t",
+          "lineNumber": 71
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "lineItemColumns",
+          "lineNumber": 72
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "grains.includes",
+          "lineNumber": 79
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "orders.flatMap",
+          "lineNumber": 80
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "(o.payments || []).map",
+          "lineNumber": 81
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "sheets.push",
+          "lineNumber": 90
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "asSheet",
+          "lineNumber": 91
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "t",
+          "lineNumber": 92
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "t",
+          "lineNumber": 93
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "paymentColumns",
+          "lineNumber": 94
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "grains.includes",
+          "lineNumber": 101
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "orders.flatMap",
+          "lineNumber": 102
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "(o.items ?? []).flatMap",
+          "lineNumber": 103
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "Array.isArray",
+          "lineNumber": 104
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "snaps.map",
+          "lineNumber": 105
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "getTranslatedName",
+          "lineNumber": 108
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "sheets.push",
+          "lineNumber": 117
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "asSheet",
+          "lineNumber": 118
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "t",
+          "lineNumber": 119
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "t",
+          "lineNumber": 120
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "deductionColumns",
+          "lineNumber": 121
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "agg.get",
+          "lineNumber": 130
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "agg.set",
+          "lineNumber": 135
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "sheets.push",
+          "lineNumber": 138
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "asSheet",
+          "lineNumber": 139
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "t",
+          "lineNumber": 140
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "t",
+          "lineNumber": 141
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "deductionAggColumns",
+          "lineNumber": 142
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "Array.from(agg.values()).sort",
+          "lineNumber": 143
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "Array.from",
+          "lineNumber": 143
+        },
+        {
+          "caller": "buildSheets",
+          "callee": "agg.values",
+          "lineNumber": 143
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/orders/export/columns.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 147,
+      "nonEmptyLines": 138,
+      "functions": [
+        {
+          "name": "orderColumns",
+          "startLine": 5,
+          "endLine": 49,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "lineItemColumns",
+          "startLine": 67,
+          "endLine": 87,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "paymentColumns",
+          "startLine": 98,
+          "endLine": 111,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "deductionColumns",
+          "startLine": 124,
+          "endLine": 133,
+          "params": [
+            "t"
+          ]
+        },
+        {
+          "name": "deductionAggColumns",
+          "startLine": 142,
+          "endLine": 147,
+          "params": [
+            "t"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "orderColumns",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "lineItemColumns",
+          "line": 67,
+          "isDefault": false
+        },
+        {
+          "name": "paymentColumns",
+          "line": 98,
+          "isDefault": false
+        },
+        {
+          "name": "deductionColumns",
+          "line": 124,
+          "isDefault": false
+        },
+        {
+          "name": "deductionAggColumns",
+          "line": 142,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 6
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 7
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 8
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 9
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 10
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 13
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 14
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 18
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 19
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 20
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 21
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 22
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 23
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 26
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 27
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 27
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 33
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 41
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 41
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 44
+        },
+        {
+          "caller": "orderColumns",
+          "callee": "t",
+          "lineNumber": 45
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 68
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 69
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 72
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 73
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 77
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 78
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 79
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 80
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 81
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 82
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 83
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 84
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 85
+        },
+        {
+          "caller": "lineItemColumns",
+          "callee": "t",
+          "lineNumber": 86
+        },
+        {
+          "caller": "paymentColumns",
+          "callee": "t",
+          "lineNumber": 99
+        },
+        {
+          "caller": "paymentColumns",
+          "callee": "t",
+          "lineNumber": 100
+        },
+        {
+          "caller": "paymentColumns",
+          "callee": "t",
+          "lineNumber": 101
+        },
+        {
+          "caller": "paymentColumns",
+          "callee": "t",
+          "lineNumber": 104
+        },
+        {
+          "caller": "paymentColumns",
+          "callee": "t",
+          "lineNumber": 105
+        },
+        {
+          "caller": "paymentColumns",
+          "callee": "t",
+          "lineNumber": 109
+        },
+        {
+          "caller": "paymentColumns",
+          "callee": "t",
+          "lineNumber": 110
+        },
+        {
+          "caller": "deductionColumns",
+          "callee": "t",
+          "lineNumber": 125
+        },
+        {
+          "caller": "deductionColumns",
+          "callee": "t",
+          "lineNumber": 126
+        },
+        {
+          "caller": "deductionColumns",
+          "callee": "t",
+          "lineNumber": 127
+        },
+        {
+          "caller": "deductionColumns",
+          "callee": "t",
+          "lineNumber": 128
+        },
+        {
+          "caller": "deductionColumns",
+          "callee": "t",
+          "lineNumber": 129
+        },
+        {
+          "caller": "deductionColumns",
+          "callee": "t",
+          "lineNumber": 130
+        },
+        {
+          "caller": "deductionColumns",
+          "callee": "t",
+          "lineNumber": 130
+        },
+        {
+          "caller": "deductionColumns",
+          "callee": "t",
+          "lineNumber": 131
+        },
+        {
+          "caller": "deductionColumns",
+          "callee": "t",
+          "lineNumber": 132
+        },
+        {
+          "caller": "deductionAggColumns",
+          "callee": "t",
+          "lineNumber": 143
+        },
+        {
+          "caller": "deductionAggColumns",
+          "callee": "t",
+          "lineNumber": 144
+        },
+        {
+          "caller": "deductionAggColumns",
+          "callee": "t",
+          "lineNumber": 145
+        },
+        {
+          "caller": "deductionAggColumns",
+          "callee": "t",
+          "lineNumber": 145
+        },
+        {
+          "caller": "deductionAggColumns",
+          "callee": "t",
+          "lineNumber": 146
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/orders/export/presets.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 56,
+      "nonEmptyLines": 54,
+      "exports": [
+        {
+          "name": "PRESETS",
+          "line": 15,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/orders/export/types.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/orders/order-export-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 299,
+      "nonEmptyLines": 278,
+      "functions": [
+        {
+          "name": "OrderExportDialog",
+          "startLine": 42,
+          "endLine": 290,
+          "params": [
+            "{ open, onOpenChange, filters, totalApprox = 0 }"
+          ]
+        },
+        {
+          "name": "SummaryItem",
+          "startLine": 292,
+          "endLine": 299,
+          "params": [
+            "{ label, value }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "OrderExportDialog",
+          "line": 42,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useTranslation",
+          "lineNumber": 43
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "i18n.dir",
+          "lineNumber": 44
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useAppStore",
+          "lineNumber": 45
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useGetBranch",
+          "lineNumber": 47
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useState",
+          "lineNumber": 52
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useState",
+          "lineNumber": 53
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useState",
+          "lineNumber": 54
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useState",
+          "lineNumber": 55
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useState",
+          "lineNumber": 56
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useEffect",
+          "lineNumber": 58
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "setPreset",
+          "lineNumber": 60
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "setGrains",
+          "lineNumber": 61
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "setCustomFilename",
+          "lineNumber": 62
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "setBusy",
+          "lineNumber": 63
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "setCustomizeExpanded",
+          "lineNumber": 64
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useMemo",
+          "lineNumber": 68
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "PRESETS.find",
+          "lineNumber": 68
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "useMemo",
+          "lineNumber": 69
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "branchName.toLowerCase().replace(/[^a-z0-9]+/g, \"-\").replace",
+          "lineNumber": 75
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "branchName.toLowerCase().replace",
+          "lineNumber": 75
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "branchName.toLowerCase",
+          "lineNumber": 75
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "buildFilename",
+          "lineNumber": 77
+        },
+        {
+          "caller": "handlePreset",
+          "callee": "setPreset",
+          "lineNumber": 85
+        },
+        {
+          "caller": "handlePreset",
+          "callee": "PRESETS.find",
+          "lineNumber": 86
+        },
+        {
+          "caller": "handlePreset",
+          "callee": "setGrains",
+          "lineNumber": 87
+        },
+        {
+          "caller": "toggleGrain",
+          "callee": "setGrains",
+          "lineNumber": 91
+        },
+        {
+          "caller": "toggleGrain",
+          "callee": "prev.includes",
+          "lineNumber": 91
+        },
+        {
+          "caller": "toggleGrain",
+          "callee": "prev.filter",
+          "lineNumber": 91
+        },
+        {
+          "caller": "handleExport",
+          "callee": "toast.error",
+          "lineNumber": 95
+        },
+        {
+          "caller": "handleExport",
+          "callee": "t",
+          "lineNumber": 95
+        },
+        {
+          "caller": "handleExport",
+          "callee": "toast.error",
+          "lineNumber": 99
+        },
+        {
+          "caller": "handleExport",
+          "callee": "t",
+          "lineNumber": 99
+        },
+        {
+          "caller": "handleExport",
+          "callee": "setBusy",
+          "lineNumber": 102
+        },
+        {
+          "caller": "handleExport",
+          "callee": "exportOrders",
+          "lineNumber": 104
+        },
+        {
+          "caller": "handleExport",
+          "callee": "toast.error",
+          "lineNumber": 106
+        },
+        {
+          "caller": "handleExport",
+          "callee": "t",
+          "lineNumber": 106
+        },
+        {
+          "caller": "handleExport",
+          "callee": "buildSheets",
+          "lineNumber": 109
+        },
+        {
+          "caller": "handleExport",
+          "callee": "buildMeta",
+          "lineNumber": 110
+        },
+        {
+          "caller": "handleExport",
+          "callee": "exportToExcel",
+          "lineNumber": 118
+        },
+        {
+          "caller": "handleExport",
+          "callee": "onOpenChange",
+          "lineNumber": 124
+        },
+        {
+          "caller": "handleExport",
+          "callee": "toast.error",
+          "lineNumber": 126
+        },
+        {
+          "caller": "handleExport",
+          "callee": "getErrorMessage",
+          "lineNumber": 126
+        },
+        {
+          "caller": "handleExport",
+          "callee": "setBusy",
+          "lineNumber": 128
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 133
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 137
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 138
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 141
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 151
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "PRESETS.map",
+          "lineNumber": 154
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "handlePreset",
+          "lineNumber": 161
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "cn",
+          "lineNumber": 162
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "cn",
+          "lineNumber": 168
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 176
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 177
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "setCustomizeExpanded",
+          "lineNumber": 189
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 192
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "ALL_GRAINS.map",
+          "lineNumber": 199
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "cn",
+          "lineNumber": 202
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "grains.includes",
+          "lineNumber": 208
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "toggleGrain",
+          "lineNumber": 209
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 212
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 219
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 231
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 234
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 236
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "mergedFilters.from.slice",
+          "lineNumber": 239
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "mergedFilters.to.slice",
+          "lineNumber": 239
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 240
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 244
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 247
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 248
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 252
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 255
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 256
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 265
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "setCustomFilename",
+          "lineNumber": 269
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 272
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 277
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 279
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 280
+        },
+        {
+          "caller": "OrderExportDialog",
+          "callee": "t",
+          "lineNumber": 283
+        }
+      ],
+      "metrics": {
+        "importCount": 15,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/lib/catalog-fetch.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 51,
+      "nonEmptyLines": 47,
+      "functions": [
+        {
+          "name": "fetchAllMenuCatalog",
+          "startLine": 22,
+          "endLine": 35,
+          "params": [
+            "qc",
+            "params"
+          ]
+        },
+        {
+          "name": "fetchAllAddonCatalog",
+          "startLine": 38,
+          "endLine": 51,
+          "params": [
+            "qc",
+            "params"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "fetchAllMenuCatalog",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "fetchAllAddonCatalog",
+          "line": 38,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "fetchAllMenuCatalog",
+          "callee": "qc.fetchQuery",
+          "lineNumber": 29
+        },
+        {
+          "caller": "fetchAllMenuCatalog",
+          "callee": "getListMenuCatalogQueryOptions",
+          "lineNumber": 29
+        },
+        {
+          "caller": "fetchAllMenuCatalog",
+          "callee": "out.push",
+          "lineNumber": 30
+        },
+        {
+          "caller": "fetchAllAddonCatalog",
+          "callee": "qc.fetchQuery",
+          "lineNumber": 45
+        },
+        {
+          "caller": "fetchAllAddonCatalog",
+          "callee": "getListAddonCatalogQueryOptions",
+          "lineNumber": 45
+        },
+        {
+          "caller": "fetchAllAddonCatalog",
+          "callee": "out.push",
+          "lineNumber": 46
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/lib/translation.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 20,
+      "functions": [
+        {
+          "name": "getTranslatedName",
+          "startLine": 2,
+          "endLine": 10,
+          "params": [
+            "item",
+            "lang"
+          ]
+        },
+        {
+          "name": "getTranslatedDescription",
+          "startLine": 13,
+          "endLine": 21,
+          "params": [
+            "item",
+            "lang"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getTranslatedName",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "getTranslatedDescription",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getTranslatedName",
+          "callee": "lang.startsWith",
+          "lineNumber": 8
+        },
+        {
+          "caller": "getTranslatedDescription",
+          "callee": "lang.startsWith",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

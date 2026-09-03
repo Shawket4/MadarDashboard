@@ -1,0 +1,5728 @@
+{
+  "name": "madar-dashboard",
+  "description": "Internal management dashboard for Madar: a React 19 + TypeScript + Vite web app, packaged for desktop with Tauri, built around the Madar Rust backend. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
+  "languages": [
+    "config",
+    "css",
+    "html",
+    "icns",
+    "javascript",
+    "json",
+    "lottie",
+    "markdown",
+    "python",
+    "rust",
+    "shell",
+    "toml",
+    "txt",
+    "typescript",
+    "unknown",
+    "xml",
+    "yaml"
+  ],
+  "frameworks": [
+    "React",
+    "Vite",
+    "Vitest",
+    "Tauri",
+    "TanStack Router",
+    "TanStack Query",
+    "TanStack Table",
+    "Zustand",
+    "Tailwind CSS",
+    "Radix UI",
+    "React Hook Form",
+    "Zod",
+    "i18next",
+    "Recharts",
+    "Orval",
+    "MSW",
+    "Playwright",
+    "Axios"
+  ],
+  "files": [
+    {
+      "path": ".agents/skills/remotion-best-practices/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 364,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/3d.md",
+      "language": "markdown",
+      "sizeLines": 86,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/assets/charts-bar-chart.tsx",
+      "language": "typescript",
+      "sizeLines": 173,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/assets/text-animations-typewriter.tsx",
+      "language": "typescript",
+      "sizeLines": 100,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/assets/text-animations-word-highlight.tsx",
+      "language": "typescript",
+      "sizeLines": 103,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/audio-visualization.md",
+      "language": "markdown",
+      "sizeLines": 198,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/audio.md",
+      "language": "markdown",
+      "sizeLines": 169,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/calculate-metadata.md",
+      "language": "markdown",
+      "sizeLines": 134,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/compositions.md",
+      "language": "markdown",
+      "sizeLines": 133,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/display-captions.md",
+      "language": "markdown",
+      "sizeLines": 184,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/effects.md",
+      "language": "markdown",
+      "sizeLines": 235,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/ffmpeg.md",
+      "language": "markdown",
+      "sizeLines": 34,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/get-audio-duration.md",
+      "language": "markdown",
+      "sizeLines": 58,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/get-video-dimensions.md",
+      "language": "markdown",
+      "sizeLines": 68,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/get-video-duration.md",
+      "language": "markdown",
+      "sizeLines": 60,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/gifs.md",
+      "language": "markdown",
+      "sizeLines": 141,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/google-fonts.md",
+      "language": "markdown",
+      "sizeLines": 72,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/html-in-canvas.md",
+      "language": "markdown",
+      "sizeLines": 122,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/images.md",
+      "language": "markdown",
+      "sizeLines": 71,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/import-srt-captions.md",
+      "language": "markdown",
+      "sizeLines": 69,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/light-leaks.md",
+      "language": "markdown",
+      "sizeLines": 73,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/local-fonts.md",
+      "language": "markdown",
+      "sizeLines": 65,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/lottie.md",
+      "language": "markdown",
+      "sizeLines": 70,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/maplibre.md",
+      "language": "markdown",
+      "sizeLines": 458,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/measuring-dom-nodes.md",
+      "language": "markdown",
+      "sizeLines": 34,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/measuring-text.md",
+      "language": "markdown",
+      "sizeLines": 140,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/parameters.md",
+      "language": "markdown",
+      "sizeLines": 109,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/sequencing.md",
+      "language": "markdown",
+      "sizeLines": 144,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/sfx.md",
+      "language": "markdown",
+      "sizeLines": 51,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/silence-detection.md",
+      "language": "markdown",
+      "sizeLines": 71,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/subtitles.md",
+      "language": "markdown",
+      "sizeLines": 36,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/tailwind.md",
+      "language": "markdown",
+      "sizeLines": 11,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/text-animations.md",
+      "language": "markdown",
+      "sizeLines": 20,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/timing.md",
+      "language": "markdown",
+      "sizeLines": 162,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/transcribe-captions.md",
+      "language": "markdown",
+      "sizeLines": 70,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/transitions.md",
+      "language": "markdown",
+      "sizeLines": 197,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/transparent-videos.md",
+      "language": "markdown",
+      "sizeLines": 106,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/trimming.md",
+      "language": "markdown",
+      "sizeLines": 51,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/video-layout.md",
+      "language": "markdown",
+      "sizeLines": 68,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/videos.md",
+      "language": "markdown",
+      "sizeLines": 171,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/voiceover.md",
+      "language": "markdown",
+      "sizeLines": 99,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/launch.json",
+      "language": "json",
+      "sizeLines": 41,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".claude/settings.json",
+      "language": "json",
+      "sizeLines": 5,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".claude/skills/impeccable/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 167,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/adapt.md",
+      "language": "markdown",
+      "sizeLines": 311,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/animate.md",
+      "language": "markdown",
+      "sizeLines": 201,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/audit.md",
+      "language": "markdown",
+      "sizeLines": 133,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/bolder.md",
+      "language": "markdown",
+      "sizeLines": 113,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/brand.md",
+      "language": "markdown",
+      "sizeLines": 108,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/clarify.md",
+      "language": "markdown",
+      "sizeLines": 288,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/codex.md",
+      "language": "markdown",
+      "sizeLines": 105,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/colorize.md",
+      "language": "markdown",
+      "sizeLines": 257,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/craft.md",
+      "language": "markdown",
+      "sizeLines": 123,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/critique.md",
+      "language": "markdown",
+      "sizeLines": 767,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/delight.md",
+      "language": "markdown",
+      "sizeLines": 302,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/distill.md",
+      "language": "markdown",
+      "sizeLines": 111,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/document.md",
+      "language": "markdown",
+      "sizeLines": 429,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/extract.md",
+      "language": "markdown",
+      "sizeLines": 69,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/harden.md",
+      "language": "markdown",
+      "sizeLines": 347,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/hooks.md",
+      "language": "markdown",
+      "sizeLines": 90,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/init.md",
+      "language": "markdown",
+      "sizeLines": 172,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/interaction-design.md",
+      "language": "markdown",
+      "sizeLines": 189,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/layout.md",
+      "language": "markdown",
+      "sizeLines": 161,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/live.md",
+      "language": "markdown",
+      "sizeLines": 718,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/onboard.md",
+      "language": "markdown",
+      "sizeLines": 234,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/optimize.md",
+      "language": "markdown",
+      "sizeLines": 258,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/overdrive.md",
+      "language": "markdown",
+      "sizeLines": 130,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/polish.md",
+      "language": "markdown",
+      "sizeLines": 241,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/product.md",
+      "language": "markdown",
+      "sizeLines": 60,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/quieter.md",
+      "language": "markdown",
+      "sizeLines": 99,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/shape.md",
+      "language": "markdown",
+      "sizeLines": 165,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".claude/skills/impeccable/reference/typeset.md",
+      "language": "markdown",
+      "sizeLines": 279,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".env",
+      "language": "config",
+      "sizeLines": 2,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".env.example",
+      "language": "config",
+      "sizeLines": 8,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".env.production",
+      "language": "config",
+      "sizeLines": 6,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".github/skills/impeccable/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 165,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/adapt.md",
+      "language": "markdown",
+      "sizeLines": 311,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/animate.md",
+      "language": "markdown",
+      "sizeLines": 201,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/audit.md",
+      "language": "markdown",
+      "sizeLines": 133,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/bolder.md",
+      "language": "markdown",
+      "sizeLines": 113,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/brand.md",
+      "language": "markdown",
+      "sizeLines": 108,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/clarify.md",
+      "language": "markdown",
+      "sizeLines": 288,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/codex.md",
+      "language": "markdown",
+      "sizeLines": 105,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/colorize.md",
+      "language": "markdown",
+      "sizeLines": 257,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/craft.md",
+      "language": "markdown",
+      "sizeLines": 123,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/critique.md",
+      "language": "markdown",
+      "sizeLines": 767,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/delight.md",
+      "language": "markdown",
+      "sizeLines": 302,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/distill.md",
+      "language": "markdown",
+      "sizeLines": 111,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/document.md",
+      "language": "markdown",
+      "sizeLines": 429,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/extract.md",
+      "language": "markdown",
+      "sizeLines": 69,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/harden.md",
+      "language": "markdown",
+      "sizeLines": 347,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/hooks.md",
+      "language": "markdown",
+      "sizeLines": 90,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/init.md",
+      "language": "markdown",
+      "sizeLines": 172,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/interaction-design.md",
+      "language": "markdown",
+      "sizeLines": 189,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/layout.md",
+      "language": "markdown",
+      "sizeLines": 161,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/live.md",
+      "language": "markdown",
+      "sizeLines": 718,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/onboard.md",
+      "language": "markdown",
+      "sizeLines": 234,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/optimize.md",
+      "language": "markdown",
+      "sizeLines": 258,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/overdrive.md",
+      "language": "markdown",
+      "sizeLines": 130,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/polish.md",
+      "language": "markdown",
+      "sizeLines": 241,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/product.md",
+      "language": "markdown",
+      "sizeLines": 60,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/quieter.md",
+      "language": "markdown",
+      "sizeLines": 99,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/shape.md",
+      "language": "markdown",
+      "sizeLines": 165,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/skills/impeccable/reference/typeset.md",
+      "language": "markdown",
+      "sizeLines": 279,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".github/workflows/deploy.yml",
+      "language": "yaml",
+      "sizeLines": 97,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "language": "yaml",
+      "sizeLines": 139,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".impeccable/design.json",
+      "language": "json",
+      "sizeLines": 171,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".impeccable/live/config.json",
+      "language": "json",
+      "sizeLines": 6,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".tanstack/tmp/1abb91d5-2aba1398148aac7cf3cc184d21d43c34",
+      "language": "unknown",
+      "sizeLines": 784,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".ua/.understandignore",
+      "language": "unknown",
+      "sizeLines": 111,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".ua/config.json",
+      "language": "json",
+      "sizeLines": 1,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/tmp/readme.txt",
+      "language": "txt",
+      "sizeLines": 55,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".ua/tmp/scan-err.txt",
+      "language": "txt",
+      "sizeLines": 1,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "AUDIT_REPORT.md",
+      "language": "markdown",
+      "sizeLines": 30,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "BUNDLES_UI_NOTES.md",
+      "language": "markdown",
+      "sizeLines": 338,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "sizeLines": 49,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "DESIGN.md",
+      "language": "markdown",
+      "sizeLines": 240,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "HANDOFF_UI_REBUILD.md",
+      "language": "markdown",
+      "sizeLines": 102,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "IA_REORG_REPORT.md",
+      "language": "markdown",
+      "sizeLines": 165,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "INVENTORY_FRONTEND_HANDOFF.md",
+      "language": "markdown",
+      "sizeLines": 170,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "INVENTORY_OVERHAUL_FRONTEND_SYNC.md",
+      "language": "markdown",
+      "sizeLines": 232,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "PRODUCT.md",
+      "language": "markdown",
+      "sizeLines": 70,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 79,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "SHIFT_AUTH_FIX_HANDOFF.md",
+      "language": "markdown",
+      "sizeLines": 64,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "UNIT_RULES_FRONTEND_PROMPT.md",
+      "language": "markdown",
+      "sizeLines": 53,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "backfill_nested_translations.sh",
+      "language": "shell",
+      "sizeLines": 100,
+      "fileCategory": "script"
+    },
+    {
+      "path": "components.json",
+      "language": "json",
+      "sizeLines": 21,
+      "fileCategory": "config"
+    },
+    {
+      "path": "copy_components.py",
+      "language": "python",
+      "sizeLines": 43,
+      "fileCategory": "code"
+    },
+    {
+      "path": "dashboard_patches/patch_branches.py",
+      "language": "python",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "dashboard_patches/patch_dashboard.py",
+      "language": "python",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "dashboard_patches/patch_inventory.py",
+      "language": "python",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "dashboard_patches/patch_recipes.py",
+      "language": "python",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "dashboard_patches/patch_shifts.py",
+      "language": "python",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "dashboard_patches/patch_users.py",
+      "language": "python",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "debug.txt",
+      "language": "txt",
+      "sizeLines": 375,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "edit_public_menu.py",
+      "language": "python",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "eslint.config.js",
+      "language": "javascript",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fix_analytics.cjs",
+      "language": "javascript",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fix_frontend.py",
+      "language": "python",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fix_orders.py",
+      "language": "python",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fix_public_menu.py",
+      "language": "python",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fix_tables.py",
+      "language": "python",
+      "sizeLines": 43,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fix_tests.cjs",
+      "language": "javascript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fix_types.py",
+      "language": "python",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fix_types_2.py",
+      "language": "python",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "fix_types_3.py",
+      "language": "python",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend_advisor_code.txt",
+      "language": "txt",
+      "sizeLines": 423,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/00_setup_infrastructure.md",
+      "language": "markdown",
+      "sizeLines": 19,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/01_test_auth.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/02_test_dashboard.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/03_test_orgs.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/04_test_branches.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/05_test_users.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/06_test_permissions.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/07_test_menu.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/08_test_inventory.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/09_test_recipes.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/10_test_bundles.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/11_test_discounts.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/12_test_orders.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/13_test_shifts.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/14_test_settings.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/15_test_analytics.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/16_test_public-menu.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "frontend_agent_prompts/17_test_menu-advisor.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "generate_frontend_prompts.py",
+      "language": "python",
+      "sizeLines": 67,
+      "fileCategory": "code"
+    },
+    {
+      "path": "get.html",
+      "language": "html",
+      "sizeLines": 162,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "index.html",
+      "language": "html",
+      "sizeLines": 21,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "merge_i18n.py",
+      "language": "python",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "order.html",
+      "language": "html",
+      "sizeLines": 18,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "orval.config.ts",
+      "language": "typescript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "overhaul_prompt.md",
+      "language": "markdown",
+      "sizeLines": 604,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "sizeLines": 121,
+      "fileCategory": "config"
+    },
+    {
+      "path": "patch_analytics.py",
+      "language": "python",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "patch_cta_i18n.py",
+      "language": "python",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "patch_exports.cjs",
+      "language": "javascript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "patch_nav_i18n.py",
+      "language": "python",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "patch_translations.py",
+      "language": "python",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "patch_trusted_i18n.py",
+      "language": "python",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "public/ShowTellerCup.lottie",
+      "language": "lottie",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "public/mockServiceWorker.js",
+      "language": "javascript",
+      "sizeLines": 349,
+      "fileCategory": "code"
+    },
+    {
+      "path": "public/robots.txt",
+      "language": "txt",
+      "sizeLines": 4,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "public/sitemap.xml",
+      "language": "xml",
+      "sizeLines": 8,
+      "fileCategory": "config"
+    },
+    {
+      "path": "skills-lock.json",
+      "language": "json",
+      "sizeLines": 11,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src-tauri/Cargo.toml",
+      "language": "toml",
+      "sizeLines": 24,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src-tauri/build.rs",
+      "language": "rust",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src-tauri/capabilities/default.json",
+      "language": "json",
+      "sizeLines": 21,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src-tauri/icons/icon.icns",
+      "language": "icns",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src-tauri/src/lib.rs",
+      "language": "rust",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src-tauri/src/main.rs",
+      "language": "rust",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src-tauri/tauri.conf.json",
+      "language": "json",
+      "sizeLines": 38,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/components/app/animated-number.tsx",
+      "language": "typescript",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/bilingual-field.tsx",
+      "language": "typescript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/chart-card.tsx",
+      "language": "typescript",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/chart-tooltip.tsx",
+      "language": "typescript",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/combobox.tsx",
+      "language": "typescript",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/coming-soon.tsx",
+      "language": "typescript",
+      "sizeLines": 30,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/confirm-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 80,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/cost-cells.tsx",
+      "language": "typescript",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/data-table.tsx",
+      "language": "typescript",
+      "sizeLines": 295,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/date-picker.tsx",
+      "language": "typescript",
+      "sizeLines": 193,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/date-range-picker.tsx",
+      "language": "typescript",
+      "sizeLines": 253,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/delivery-kpis.tsx",
+      "language": "typescript",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/demo-banner.tsx",
+      "language": "typescript",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/editable-cards.tsx",
+      "language": "typescript",
+      "sizeLines": 488,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/empty-state.tsx",
+      "language": "typescript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/exclude-items-control.tsx",
+      "language": "typescript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/export-button.tsx",
+      "language": "typescript",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/image-uploader.tsx",
+      "language": "typescript",
+      "sizeLines": 157,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/ledger-strip.tsx",
+      "language": "typescript",
+      "sizeLines": 115,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/page-tabs.tsx",
+      "language": "typescript",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/page.tsx",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/progress-bar.tsx",
+      "language": "typescript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/section-tabs.tsx",
+      "language": "typescript",
+      "sizeLines": 58,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/segmented-control.tsx",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/stat-card.tsx",
+      "language": "typescript",
+      "sizeLines": 154,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/stat-value.tsx",
+      "language": "typescript",
+      "sizeLines": 164,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/suggestion-card.tsx",
+      "language": "typescript",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/time-picker.tsx",
+      "language": "typescript",
+      "sizeLines": 138,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/app/timezone-select.tsx",
+      "language": "typescript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/layout/app-header.tsx",
+      "language": "typescript",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/layout/app-sidebar.tsx",
+      "language": "typescript",
+      "sizeLines": 168,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/layout/command-palette.tsx",
+      "language": "typescript",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/layout/language-toggle.tsx",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/layout/scope-bar.tsx",
+      "language": "typescript",
+      "sizeLines": 134,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/layout/theme-toggle.tsx",
+      "language": "typescript",
+      "sizeLines": 50,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/layout/user-menu.tsx",
+      "language": "typescript",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/alert-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 196,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/alert.tsx",
+      "language": "typescript",
+      "sizeLines": 66,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/avatar.tsx",
+      "language": "typescript",
+      "sizeLines": 109,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/badge.tsx",
+      "language": "typescript",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/breadcrumb.tsx",
+      "language": "typescript",
+      "sizeLines": 111,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/button.tsx",
+      "language": "typescript",
+      "sizeLines": 80,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/calendar.tsx",
+      "language": "typescript",
+      "sizeLines": 219,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/card.tsx",
+      "language": "typescript",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/checkbox.tsx",
+      "language": "typescript",
+      "sizeLines": 30,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/collapsible.tsx",
+      "language": "typescript",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/command.tsx",
+      "language": "typescript",
+      "sizeLines": 188,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 159,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/drawer.tsx",
+      "language": "typescript",
+      "sizeLines": 138,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/dropdown-menu.tsx",
+      "language": "typescript",
+      "sizeLines": 255,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/form.tsx",
+      "language": "typescript",
+      "sizeLines": 165,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/input.tsx",
+      "language": "typescript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/label.tsx",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/popover.tsx",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/scroll-area.tsx",
+      "language": "typescript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/select.tsx",
+      "language": "typescript",
+      "sizeLines": 190,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/separator.tsx",
+      "language": "typescript",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/sheet.tsx",
+      "language": "typescript",
+      "sizeLines": 145,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/sidebar.tsx",
+      "language": "typescript",
+      "sizeLines": 740,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/skeleton.tsx",
+      "language": "typescript",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/sonner.tsx",
+      "language": "typescript",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/spinner.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/switch.tsx",
+      "language": "typescript",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/table.tsx",
+      "language": "typescript",
+      "sizeLines": 116,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/tabs.tsx",
+      "language": "typescript",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/textarea.tsx",
+      "language": "typescript",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ui/tooltip.tsx",
+      "language": "typescript",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/config/nav.ts",
+      "language": "typescript",
+      "sizeLines": 220,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/client.ts",
+      "language": "typescript",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/custom-instance.ts",
+      "language": "typescript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/demo/enable.ts",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/errors.ts",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/mock/adapter.ts",
+      "language": "typescript",
+      "sizeLines": 144,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/mock/browser.ts",
+      "language": "typescript",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/mock/data.ts",
+      "language": "typescript",
+      "sizeLines": 1185,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/mock/enable-public.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/mock/enable.ts",
+      "language": "typescript",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/mock/handlers.ts",
+      "language": "typescript",
+      "sizeLines": 493,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/api/query.ts",
+      "language": "typescript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/config/constants.ts",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/config/env.ts",
+      "language": "typescript",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/scope/presets.ts",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/scope/use-page-search.ts",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/scope/use-scope.ts",
+      "language": "typescript",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/scope/use-timezone.ts",
+      "language": "typescript",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/stores/app.store.ts",
+      "language": "typescript",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/stores/auth.store.ts",
+      "language": "typescript",
+      "sizeLines": 104,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/types.ts",
+      "language": "typescript",
+      "sizeLines": 588,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/ai-chat/ai-chat-page.tsx",
+      "language": "typescript",
+      "sizeLines": 254,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/ai-chat/ai-result-view.tsx",
+      "language": "typescript",
+      "sizeLines": 313,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/ai-chat/loading-keywords.tsx",
+      "language": "typescript",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/analytics/analytics-page.tsx",
+      "language": "typescript",
+      "sizeLines": 722,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/analytics/lib.ts",
+      "language": "typescript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/auth/login-page.tsx",
+      "language": "typescript",
+      "sizeLines": 204,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/branches/branch-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 202,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/branches/branches-page.tsx",
+      "language": "typescript",
+      "sizeLines": 133,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/branches/util.ts",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/bundles/bundle-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 301,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/bundles/bundles-page.tsx",
+      "language": "typescript",
+      "sizeLines": 244,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/bundles/performance-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/bundles/util.ts",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/dashboard/dashboard-page.tsx",
+      "language": "typescript",
+      "sizeLines": 386,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/delivery/channel-overrides-export.ts",
+      "language": "typescript",
+      "sizeLines": 132,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/delivery/settings-page.tsx",
+      "language": "typescript",
+      "sizeLines": 437,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/delivery/util.ts",
+      "language": "typescript",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/delivery/zone-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 180,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/delivery/zones-page.tsx",
+      "language": "typescript",
+      "sizeLines": 191,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/discounts/discount-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/discounts/discounts-page.tsx",
+      "language": "typescript",
+      "sizeLines": 156,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/discounts/util.ts",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/insights/decisions-tab.tsx",
+      "language": "typescript",
+      "sizeLines": 198,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/insights/flag-chip.tsx",
+      "language": "typescript",
+      "sizeLines": 72,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/insights/margin-watch-card.tsx",
+      "language": "typescript",
+      "sizeLines": 178,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/insights/profitability-page.tsx",
+      "language": "typescript",
+      "sizeLines": 460,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/insights/repricing-tab.tsx",
+      "language": "typescript",
+      "sizeLines": 117,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/insights/signals.ts",
+      "language": "typescript",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/insights/target-editor.tsx",
+      "language": "typescript",
+      "sizeLines": 165,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/insights/util.ts",
+      "language": "typescript",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/integrations/credential-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 194,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/integrations/handoff-content.ts",
+      "language": "typescript",
+      "sizeLines": 232,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/integrations/handoff-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 169,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/integrations/handoff-zip.ts",
+      "language": "typescript",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/integrations/integrations-page.tsx",
+      "language": "typescript",
+      "sizeLines": 227,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/integrations/passphrase.ts",
+      "language": "typescript",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/integrations/use-credential-handoff.ts",
+      "language": "typescript",
+      "sizeLines": 103,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/integrations/util.ts",
+      "language": "typescript",
+      "sizeLines": 79,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/count-editor.tsx",
+      "language": "typescript",
+      "sizeLines": 280,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/counts-page.tsx",
+      "language": "typescript",
+      "sizeLines": 225,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/item-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 283,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/item-drawer.tsx",
+      "language": "typescript",
+      "sizeLines": 180,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/items-page.tsx",
+      "language": "typescript",
+      "sizeLines": 204,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/lib.ts",
+      "language": "typescript",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/purchase-order-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 231,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/purchasing-page.tsx",
+      "language": "typescript",
+      "sizeLines": 405,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/receive-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 195,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/reports-page.tsx",
+      "language": "typescript",
+      "sizeLines": 302,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/settings-page.tsx",
+      "language": "typescript",
+      "sizeLines": 94,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/supplier-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 108,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/today-page.tsx",
+      "language": "typescript",
+      "sizeLines": 288,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/transfer-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 157,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/transfers-page.tsx",
+      "language": "typescript",
+      "sizeLines": 224,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/variance-report-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/waste-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 144,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/inventory/waste-page.tsx",
+      "language": "typescript",
+      "sizeLines": 163,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/kitchen-stations/routing-page.tsx",
+      "language": "typescript",
+      "sizeLines": 179,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/kitchen-stations/station-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 165,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/kitchen-stations/stations-page.tsx",
+      "language": "typescript",
+      "sizeLines": 138,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/kitchen-stations/util.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/landing/contact.tsx",
+      "language": "typescript",
+      "sizeLines": 128,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/landing/frames.tsx",
+      "language": "typescript",
+      "sizeLines": 378,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/landing/landing-page.tsx",
+      "language": "typescript",
+      "sizeLines": 976,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/landing/use-lenis.ts",
+      "language": "typescript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/addon-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 235,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/addon-recipe-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 110,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/branch-addon-override-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 175,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/branch-availability-switch.tsx",
+      "language": "typescript",
+      "sizeLines": 158,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/branch-override-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 216,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/category-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 133,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/costing.ts",
+      "language": "typescript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/menu-item-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 586,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/menu-items-page.tsx",
+      "language": "typescript",
+      "sizeLines": 553,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/overrides-export.ts",
+      "language": "typescript",
+      "sizeLines": 137,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/pricing/pricing-availability-page.tsx",
+      "language": "typescript",
+      "sizeLines": 1489,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/pricing/util.ts",
+      "language": "typescript",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/studio/fix-cost-popover.tsx",
+      "language": "typescript",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/studio/menu-studio-page.tsx",
+      "language": "typescript",
+      "sizeLines": 653,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/studio/section-item.tsx",
+      "language": "typescript",
+      "sizeLines": 137,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/studio/section-modifiers.tsx",
+      "language": "typescript",
+      "sizeLines": 217,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/studio/section-options.tsx",
+      "language": "typescript",
+      "sizeLines": 143,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/studio/section-sizes.tsx",
+      "language": "typescript",
+      "sizeLines": 287,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/studio/util.ts",
+      "language": "typescript",
+      "sizeLines": 223,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/menu/util.ts",
+      "language": "typescript",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/onboarding/celebration.tsx",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/onboarding/config.ts",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/onboarding/dashboard-mirror.tsx",
+      "language": "typescript",
+      "sizeLines": 258,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/onboarding/keep-building-card.tsx",
+      "language": "typescript",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/onboarding/onboarding-page.tsx",
+      "language": "typescript",
+      "sizeLines": 178,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/onboarding/step-navigator.tsx",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/onboarding/step-panel.tsx",
+      "language": "typescript",
+      "sizeLines": 366,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/order-tracking/tracking-page.tsx",
+      "language": "typescript",
+      "sizeLines": 306,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orders/export/build-filename.ts",
+      "language": "typescript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orders/export/build-meta.ts",
+      "language": "typescript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orders/export/build-sheets.ts",
+      "language": "typescript",
+      "sizeLines": 150,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orders/export/columns.ts",
+      "language": "typescript",
+      "sizeLines": 147,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orders/export/presets.ts",
+      "language": "typescript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orders/export/types.ts",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orders/order-detail-sheet.tsx",
+      "language": "typescript",
+      "sizeLines": 462,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orders/order-export-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 299,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orders/orders-page.tsx",
+      "language": "typescript",
+      "sizeLines": 382,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orders/void-order-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 113,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orgs/org-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 200,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orgs/orgs-page.tsx",
+      "language": "typescript",
+      "sizeLines": 120,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/orgs/util.ts",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/payment-methods/payment-method-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 179,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/payment-methods/payment-methods-page.tsx",
+      "language": "typescript",
+      "sizeLines": 144,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/payment-methods/util.ts",
+      "language": "typescript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/permissions/permissions-page.tsx",
+      "language": "typescript",
+      "sizeLines": 167,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/branch-selector.tsx",
+      "language": "typescript",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/branch-step.tsx",
+      "language": "typescript",
+      "sizeLines": 192,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/cart-sheet.tsx",
+      "language": "typescript",
+      "sizeLines": 345,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/channel-closed.tsx",
+      "language": "typescript",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/channel-step.tsx",
+      "language": "typescript",
+      "sizeLines": 158,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/checkout-channel-sheet.tsx",
+      "language": "typescript",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/checkout-step.tsx",
+      "language": "typescript",
+      "sizeLines": 434,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/confirmation-step.tsx",
+      "language": "typescript",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/delivery-map.tsx",
+      "language": "typescript",
+      "sizeLines": 250,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/item-customizer.tsx",
+      "language": "typescript",
+      "sizeLines": 787,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/location-step.tsx",
+      "language": "typescript",
+      "sizeLines": 457,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/menu-step.tsx",
+      "language": "typescript",
+      "sizeLines": 429,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/order-history-drawer.tsx",
+      "language": "typescript",
+      "sizeLines": 208,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/otp-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 162,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/phone-step.tsx",
+      "language": "typescript",
+      "sizeLines": 347,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/components/step-shell.tsx",
+      "language": "typescript",
+      "sizeLines": 230,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/limits.ts",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/public-ordering-page.tsx",
+      "language": "typescript",
+      "sizeLines": 957,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/scan-to-order.tsx",
+      "language": "typescript",
+      "sizeLines": 83,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/storefront-shell.tsx",
+      "language": "typescript",
+      "sizeLines": 78,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/types.ts",
+      "language": "typescript",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/use-order-theme.ts",
+      "language": "typescript",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/public-ordering/utils.ts",
+      "language": "typescript",
+      "sizeLines": 171,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/qr/lib.ts",
+      "language": "typescript",
+      "sizeLines": 2,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/qr/qr-page.tsx",
+      "language": "typescript",
+      "sizeLines": 429,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/qr/qr-preview-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/recipes/create-ingredient-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 107,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/recipes/recipe-builder.tsx",
+      "language": "typescript",
+      "sizeLines": 385,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/recipes/util.ts",
+      "language": "typescript",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/reservations/booking-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 128,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/reservations/floor-editor.tsx",
+      "language": "typescript",
+      "sizeLines": 338,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/reservations/host-board.tsx",
+      "language": "typescript",
+      "sizeLines": 225,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/reservations/reservations-page.tsx",
+      "language": "typescript",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/reservations/settings-form.tsx",
+      "language": "typescript",
+      "sizeLines": 140,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/reservations/table-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 169,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/reservations/util.ts",
+      "language": "typescript",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/settings/settings-page.tsx",
+      "language": "typescript",
+      "sizeLines": 96,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/shifts/cash-movement-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 114,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/shifts/close-shift-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 106,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/shifts/open-shift-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/shifts/shift-report-sheet.tsx",
+      "language": "typescript",
+      "sizeLines": 209,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/shifts/shifts-page.tsx",
+      "language": "typescript",
+      "sizeLines": 329,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/staff/attendance-page.tsx",
+      "language": "typescript",
+      "sizeLines": 505,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/staff/attendance-rules-page.tsx",
+      "language": "typescript",
+      "sizeLines": 349,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/staff/employee-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 310,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/staff/employees-page.tsx",
+      "language": "typescript",
+      "sizeLines": 311,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/staff/requests-inbox.tsx",
+      "language": "typescript",
+      "sizeLines": 432,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/staff/schedule-grid.tsx",
+      "language": "typescript",
+      "sizeLines": 240,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/staff/util.ts",
+      "language": "typescript",
+      "sizeLines": 114,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/staff/work-shifts-page.tsx",
+      "language": "typescript",
+      "sizeLines": 329,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/tills/till-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 117,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/tills/tills-page.tsx",
+      "language": "typescript",
+      "sizeLines": 127,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/tills/util.ts",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/users/branch-assign-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/users/user-dialog.tsx",
+      "language": "typescript",
+      "sizeLines": 232,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/users/users-page.tsx",
+      "language": "typescript",
+      "sizeLines": 145,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/users/util.ts",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/features/whatsapp/whatsapp-page.tsx",
+      "language": "typescript",
+      "sizeLines": 290,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/fontsource.d.ts",
+      "language": "typescript",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/get/main.tsx",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/hooks/use-mobile.ts",
+      "language": "typescript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/hooks/use-org-id.ts",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/hooks/use-route-prefetch.ts",
+      "language": "typescript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/i18n/index.ts",
+      "language": "typescript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/i18n/locales/ar.json",
+      "language": "json",
+      "sizeLines": 3819,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/i18n/locales/en.json",
+      "language": "json",
+      "sizeLines": 3721,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/lib/auth-guard.ts",
+      "language": "typescript",
+      "sizeLines": 43,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/bulk-runner.ts",
+      "language": "typescript",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/catalog-fetch.ts",
+      "language": "typescript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/download.ts",
+      "language": "typescript",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/excel.ts",
+      "language": "typescript",
+      "sizeLines": 343,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/format.ts",
+      "language": "typescript",
+      "sizeLines": 200,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/motion.ts",
+      "language": "typescript",
+      "sizeLines": 102,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/normalize.ts",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/route-prefetch.ts",
+      "language": "typescript",
+      "sizeLines": 218,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/theme.ts",
+      "language": "typescript",
+      "sizeLines": 67,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/translation.ts",
+      "language": "typescript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/use-debounced.ts",
+      "language": "typescript",
+      "sizeLines": 11,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/main.tsx",
+      "language": "typescript",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/order/main.tsx",
+      "language": "typescript",
+      "sizeLines": 182,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routeTree.gen.ts",
+      "language": "typescript",
+      "sizeLines": 1326,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/__root.tsx",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/access/index.tsx",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/access/roles.tsx",
+      "language": "typescript",
+      "sizeLines": 11,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/access/route.tsx",
+      "language": "typescript",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/access/users.tsx",
+      "language": "typescript",
+      "sizeLines": 12,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/analytics.tsx",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/branches.tsx",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/delivery/channels.tsx",
+      "language": "typescript",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/delivery/index.tsx",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/delivery/route.tsx",
+      "language": "typescript",
+      "sizeLines": 12,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/delivery/settings.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/delivery/zones.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/discounts.tsx",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/index.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/insights/ai-chat.tsx",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/insights/inventory-reports.tsx",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/insights/profitability.tsx",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/insights/sales.tsx",
+      "language": "typescript",
+      "sizeLines": 12,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/counts.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/index.tsx",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/ingredients.tsx",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/items.tsx",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/purchasing.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/reports.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/route.tsx",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/settings.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/today.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/transfers.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/inventory/waste.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/kitchen/routing.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/kitchen/stations.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/menu/bundles.tsx",
+      "language": "typescript",
+      "sizeLines": 11,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/menu/index.tsx",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/menu/items.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/menu/items_.$itemId.tsx",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/menu/overrides.tsx",
+      "language": "typescript",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/menu/pricing.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/menu/recipes.tsx",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/menu/route.tsx",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/orders.tsx",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/orgs.tsx",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/permissions.tsx",
+      "language": "typescript",
+      "sizeLines": 12,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/qr.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/reservations.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/route.tsx",
+      "language": "typescript",
+      "sizeLines": 100,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/settings/index.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/settings/integrations.tsx",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/settings/payment-methods.tsx",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/settings/route.tsx",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/settings/whatsapp.tsx",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/shifts.tsx",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/staff/attendance.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/staff/employees.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/staff/requests.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/staff/rules.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/staff/shifts.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/tills.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/_app/users.tsx",
+      "language": "typescript",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/login.tsx",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/routes/onboarding.tsx",
+      "language": "typescript",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/styles/globals.css",
+      "language": "css",
+      "sizeLines": 405,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/test/setup.ts",
+      "language": "typescript",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "sizeLines": 27,
+      "fileCategory": "config"
+    },
+    {
+      "path": "tsconfig.node.json",
+      "language": "json",
+      "sizeLines": 11,
+      "fileCategory": "config"
+    },
+    {
+      "path": "vite.config.ts",
+      "language": "typescript",
+      "sizeLines": 116,
+      "fileCategory": "code"
+    },
+    {
+      "path": "vite.get.config.ts",
+      "language": "typescript",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "vite.order.config.ts",
+      "language": "typescript",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "vitest.config.ts",
+      "language": "typescript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    }
+  ],
+  "totalFiles": 538,
+  "filteredByIgnore": 841,
+  "estimatedComplexity": "very-large",
+  "importMap": {
+    ".agents/skills/remotion-best-practices/SKILL.md": [],
+    ".agents/skills/remotion-best-practices/rules/3d.md": [],
+    ".agents/skills/remotion-best-practices/rules/assets/charts-bar-chart.tsx": [],
+    ".agents/skills/remotion-best-practices/rules/assets/text-animations-typewriter.tsx": [],
+    ".agents/skills/remotion-best-practices/rules/assets/text-animations-word-highlight.tsx": [],
+    ".agents/skills/remotion-best-practices/rules/audio-visualization.md": [],
+    ".agents/skills/remotion-best-practices/rules/audio.md": [],
+    ".agents/skills/remotion-best-practices/rules/calculate-metadata.md": [],
+    ".agents/skills/remotion-best-practices/rules/compositions.md": [],
+    ".agents/skills/remotion-best-practices/rules/display-captions.md": [],
+    ".agents/skills/remotion-best-practices/rules/effects.md": [],
+    ".agents/skills/remotion-best-practices/rules/ffmpeg.md": [],
+    ".agents/skills/remotion-best-practices/rules/get-audio-duration.md": [],
+    ".agents/skills/remotion-best-practices/rules/get-video-dimensions.md": [],
+    ".agents/skills/remotion-best-practices/rules/get-video-duration.md": [],
+    ".agents/skills/remotion-best-practices/rules/gifs.md": [],
+    ".agents/skills/remotion-best-practices/rules/google-fonts.md": [],
+    ".agents/skills/remotion-best-practices/rules/html-in-canvas.md": [],
+    ".agents/skills/remotion-best-practices/rules/images.md": [],
+    ".agents/skills/remotion-best-practices/rules/import-srt-captions.md": [],
+    ".agents/skills/remotion-best-practices/rules/light-leaks.md": [],
+    ".agents/skills/remotion-best-practices/rules/local-fonts.md": [],
+    ".agents/skills/remotion-best-practices/rules/lottie.md": [],
+    ".agents/skills/remotion-best-practices/rules/maplibre.md": [],
+    ".agents/skills/remotion-best-practices/rules/measuring-dom-nodes.md": [],
+    ".agents/skills/remotion-best-practices/rules/measuring-text.md": [],
+    ".agents/skills/remotion-best-practices/rules/parameters.md": [],
+    ".agents/skills/remotion-best-practices/rules/sequencing.md": [],
+    ".agents/skills/remotion-best-practices/rules/sfx.md": [],
+    ".agents/skills/remotion-best-practices/rules/silence-detection.md": [],
+    ".agents/skills/remotion-best-practices/rules/subtitles.md": [],
+    ".agents/skills/remotion-best-practices/rules/tailwind.md": [],
+    ".agents/skills/remotion-best-practices/rules/text-animations.md": [],
+    ".agents/skills/remotion-best-practices/rules/timing.md": [],
+    ".agents/skills/remotion-best-practices/rules/transcribe-captions.md": [],
+    ".agents/skills/remotion-best-practices/rules/transitions.md": [],
+    ".agents/skills/remotion-best-practices/rules/transparent-videos.md": [],
+    ".agents/skills/remotion-best-practices/rules/trimming.md": [],
+    ".agents/skills/remotion-best-practices/rules/video-layout.md": [],
+    ".agents/skills/remotion-best-practices/rules/videos.md": [],
+    ".agents/skills/remotion-best-practices/rules/voiceover.md": [],
+    ".claude/launch.json": [],
+    ".claude/settings.json": [],
+    ".claude/skills/impeccable/SKILL.md": [],
+    ".claude/skills/impeccable/reference/adapt.md": [],
+    ".claude/skills/impeccable/reference/animate.md": [],
+    ".claude/skills/impeccable/reference/audit.md": [],
+    ".claude/skills/impeccable/reference/bolder.md": [],
+    ".claude/skills/impeccable/reference/brand.md": [],
+    ".claude/skills/impeccable/reference/clarify.md": [],
+    ".claude/skills/impeccable/reference/codex.md": [],
+    ".claude/skills/impeccable/reference/colorize.md": [],
+    ".claude/skills/impeccable/reference/craft.md": [],
+    ".claude/skills/impeccable/reference/critique.md": [],
+    ".claude/skills/impeccable/reference/delight.md": [],
+    ".claude/skills/impeccable/reference/distill.md": [],
+    ".claude/skills/impeccable/reference/document.md": [],
+    ".claude/skills/impeccable/reference/extract.md": [],
+    ".claude/skills/impeccable/reference/harden.md": [],
+    ".claude/skills/impeccable/reference/hooks.md": [],
+    ".claude/skills/impeccable/reference/init.md": [],
+    ".claude/skills/impeccable/reference/interaction-design.md": [],
+    ".claude/skills/impeccable/reference/layout.md": [],
+    ".claude/skills/impeccable/reference/live.md": [],
+    ".claude/skills/impeccable/reference/onboard.md": [],
+    ".claude/skills/impeccable/reference/optimize.md": [],
+    ".claude/skills/impeccable/reference/overdrive.md": [],
+    ".claude/skills/impeccable/reference/polish.md": [],
+    ".claude/skills/impeccable/reference/product.md": [],
+    ".claude/skills/impeccable/reference/quieter.md": [],
+    ".claude/skills/impeccable/reference/shape.md": [],
+    ".claude/skills/impeccable/reference/typeset.md": [],
+    ".env": [],
+    ".env.example": [],
+    ".env.production": [],
+    ".github/skills/impeccable/SKILL.md": [],
+    ".github/skills/impeccable/reference/adapt.md": [],
+    ".github/skills/impeccable/reference/animate.md": [],
+    ".github/skills/impeccable/reference/audit.md": [],
+    ".github/skills/impeccable/reference/bolder.md": [],
+    ".github/skills/impeccable/reference/brand.md": [],
+    ".github/skills/impeccable/reference/clarify.md": [],
+    ".github/skills/impeccable/reference/codex.md": [],
+    ".github/skills/impeccable/reference/colorize.md": [],
+    ".github/skills/impeccable/reference/craft.md": [],
+    ".github/skills/impeccable/reference/critique.md": [],
+    ".github/skills/impeccable/reference/delight.md": [],
+    ".github/skills/impeccable/reference/distill.md": [],
+    ".github/skills/impeccable/reference/document.md": [],
+    ".github/skills/impeccable/reference/extract.md": [],
+    ".github/skills/impeccable/reference/harden.md": [],
+    ".github/skills/impeccable/reference/hooks.md": [],
+    ".github/skills/impeccable/reference/init.md": [],
+    ".github/skills/impeccable/reference/interaction-design.md": [],
+    ".github/skills/impeccable/reference/layout.md": [],
+    ".github/skills/impeccable/reference/live.md": [],
+    ".github/skills/impeccable/reference/onboard.md": [],
+    ".github/skills/impeccable/reference/optimize.md": [],
+    ".github/skills/impeccable/reference/overdrive.md": [],
+    ".github/skills/impeccable/reference/polish.md": [],
+    ".github/skills/impeccable/reference/product.md": [],
+    ".github/skills/impeccable/reference/quieter.md": [],
+    ".github/skills/impeccable/reference/shape.md": [],
+    ".github/skills/impeccable/reference/typeset.md": [],
+    ".github/workflows/deploy.yml": [],
+    ".github/workflows/release.yml": [],
+    ".impeccable/design.json": [],
+    ".impeccable/live/config.json": [],
+    ".tanstack/tmp/1abb91d5-2aba1398148aac7cf3cc184d21d43c34": [],
+    ".ua/.understandignore": [],
+    ".ua/config.json": [],
+    ".ua/tmp/readme.txt": [],
+    ".ua/tmp/scan-err.txt": [],
+    "AUDIT_REPORT.md": [],
+    "BUNDLES_UI_NOTES.md": [],
+    "CLAUDE.md": [],
+    "DESIGN.md": [],
+    "HANDOFF_UI_REBUILD.md": [],
+    "IA_REORG_REPORT.md": [],
+    "INVENTORY_FRONTEND_HANDOFF.md": [],
+    "INVENTORY_OVERHAUL_FRONTEND_SYNC.md": [],
+    "PRODUCT.md": [],
+    "README.md": [],
+    "SHIFT_AUTH_FIX_HANDOFF.md": [],
+    "UNIT_RULES_FRONTEND_PROMPT.md": [],
+    "backfill_nested_translations.sh": [],
+    "components.json": [],
+    "copy_components.py": [],
+    "dashboard_patches/patch_branches.py": [],
+    "dashboard_patches/patch_dashboard.py": [],
+    "dashboard_patches/patch_inventory.py": [],
+    "dashboard_patches/patch_recipes.py": [],
+    "dashboard_patches/patch_shifts.py": [],
+    "dashboard_patches/patch_users.py": [],
+    "debug.txt": [],
+    "edit_public_menu.py": [],
+    "eslint.config.js": [],
+    "fix_analytics.cjs": [],
+    "fix_frontend.py": [],
+    "fix_orders.py": [],
+    "fix_public_menu.py": [],
+    "fix_tables.py": [],
+    "fix_tests.cjs": [],
+    "fix_types.py": [],
+    "fix_types_2.py": [],
+    "fix_types_3.py": [],
+    "frontend_advisor_code.txt": [],
+    "frontend_agent_prompts/00_setup_infrastructure.md": [],
+    "frontend_agent_prompts/01_test_auth.md": [],
+    "frontend_agent_prompts/02_test_dashboard.md": [],
+    "frontend_agent_prompts/03_test_orgs.md": [],
+    "frontend_agent_prompts/04_test_branches.md": [],
+    "frontend_agent_prompts/05_test_users.md": [],
+    "frontend_agent_prompts/06_test_permissions.md": [],
+    "frontend_agent_prompts/07_test_menu.md": [],
+    "frontend_agent_prompts/08_test_inventory.md": [],
+    "frontend_agent_prompts/09_test_recipes.md": [],
+    "frontend_agent_prompts/10_test_bundles.md": [],
+    "frontend_agent_prompts/11_test_discounts.md": [],
+    "frontend_agent_prompts/12_test_orders.md": [],
+    "frontend_agent_prompts/13_test_shifts.md": [],
+    "frontend_agent_prompts/14_test_settings.md": [],
+    "frontend_agent_prompts/15_test_analytics.md": [],
+    "frontend_agent_prompts/16_test_public-menu.md": [],
+    "frontend_agent_prompts/17_test_menu-advisor.md": [],
+    "generate_frontend_prompts.py": [],
+    "get.html": [],
+    "index.html": [],
+    "merge_i18n.py": [],
+    "order.html": [],
+    "orval.config.ts": [],
+    "overhaul_prompt.md": [],
+    "package.json": [],
+    "patch_analytics.py": [],
+    "patch_cta_i18n.py": [],
+    "patch_exports.cjs": [],
+    "patch_nav_i18n.py": [],
+    "patch_translations.py": [],
+    "patch_trusted_i18n.py": [],
+    "public/ShowTellerCup.lottie": [],
+    "public/mockServiceWorker.js": [],
+    "public/robots.txt": [],
+    "public/sitemap.xml": [],
+    "skills-lock.json": [],
+    "src-tauri/Cargo.toml": [],
+    "src-tauri/build.rs": [],
+    "src-tauri/capabilities/default.json": [],
+    "src-tauri/icons/icon.icns": [],
+    "src-tauri/src/lib.rs": [],
+    "src-tauri/src/main.rs": [],
+    "src-tauri/tauri.conf.json": [],
+    "src/components/app/animated-number.tsx": [
+      "src/lib/motion.ts"
+    ],
+    "src/components/app/bilingual-field.tsx": [
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/textarea.tsx"
+    ],
+    "src/components/app/chart-card.tsx": [
+      "src/components/ui/card.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/chart-tooltip.tsx": [],
+    "src/components/app/combobox.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/command.tsx",
+      "src/components/ui/popover.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/coming-soon.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx"
+    ],
+    "src/components/app/confirm-dialog.tsx": [
+      "src/components/ui/alert-dialog.tsx",
+      "src/components/ui/button.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/cost-cells.tsx": [
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/data-table.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/table.tsx",
+      "src/hooks/use-mobile.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/date-picker.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/popover.tsx",
+      "src/data/config/constants.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/date-range-picker.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/popover.tsx",
+      "src/data/config/constants.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/delivery-kpis.tsx": [
+      "src/components/app/ledger-strip.tsx",
+      "src/components/app/progress-bar.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/demo-banner.tsx": [
+      "src/components/ui/button.tsx",
+      "src/data/api/demo/enable.ts"
+    ],
+    "src/components/app/editable-cards.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/checkbox.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/switch.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/lib/format.ts",
+      "src/lib/normalize.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/empty-state.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/exclude-items-control.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/command.tsx",
+      "src/components/ui/popover.tsx",
+      "src/hooks/use-org-id.ts",
+      "src/lib/translation.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/export-button.tsx": [
+      "src/components/ui/button.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/image-uploader.tsx": [
+      "src/components/ui/button.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/ledger-strip.tsx": [
+      "src/components/app/stat-card.tsx",
+      "src/components/ui/popover.tsx",
+      "src/hooks/use-mobile.ts",
+      "src/lib/motion.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/page-tabs.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/page.tsx": [
+      "src/lib/motion.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/progress-bar.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/section-tabs.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/segmented-control.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/stat-card.tsx": [
+      "src/components/app/stat-value.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/lib/format.ts",
+      "src/lib/motion.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/stat-value.tsx": [
+      "src/components/ui/popover.tsx",
+      "src/lib/format.ts",
+      "src/lib/motion.ts"
+    ],
+    "src/components/app/suggestion-card.tsx": [
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/time-picker.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/popover.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/app/timezone-select.tsx": [
+      "src/components/app/combobox.tsx"
+    ],
+    "src/components/layout/app-header.tsx": [
+      "src/components/layout/command-palette.tsx",
+      "src/components/layout/language-toggle.tsx",
+      "src/components/layout/scope-bar.tsx",
+      "src/components/layout/theme-toggle.tsx",
+      "src/components/layout/user-menu.tsx",
+      "src/components/ui/sidebar.tsx"
+    ],
+    "src/components/layout/app-sidebar.tsx": [
+      "src/components/ui/collapsible.tsx",
+      "src/components/ui/sidebar.tsx",
+      "src/config/nav.ts",
+      "src/data/stores/auth.store.ts",
+      "src/hooks/use-route-prefetch.ts"
+    ],
+    "src/components/layout/command-palette.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/command.tsx",
+      "src/config/nav.ts",
+      "src/data/stores/auth.store.ts",
+      "src/hooks/use-route-prefetch.ts"
+    ],
+    "src/components/layout/language-toggle.tsx": [
+      "src/components/ui/button.tsx",
+      "src/data/stores/app.store.ts"
+    ],
+    "src/components/layout/scope-bar.tsx": [
+      "src/components/app/date-range-picker.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/popover.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/scope/presets.ts",
+      "src/data/scope/use-scope.ts",
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/layout/theme-toggle.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/lib/theme.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/layout/user-menu.tsx": [
+      "src/components/ui/avatar.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/data/stores/auth.store.ts",
+      "src/lib/format.ts"
+    ],
+    "src/components/ui/alert-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/alert.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/avatar.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/badge.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/breadcrumb.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/button.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/calendar.tsx": [
+      "src/components/ui/button.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/card.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/checkbox.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/collapsible.tsx": [],
+    "src/components/ui/command.tsx": [
+      "src/components/ui/dialog.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/drawer.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/dropdown-menu.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/form.tsx": [
+      "src/components/ui/label.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/input.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/label.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/popover.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/scroll-area.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/select.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/separator.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/sheet.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/sidebar.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/separator.tsx",
+      "src/components/ui/sheet.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/tooltip.tsx",
+      "src/hooks/use-mobile.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/skeleton.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/sonner.tsx": [
+      "src/lib/theme.ts"
+    ],
+    "src/components/ui/spinner.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/switch.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/table.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/tabs.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/textarea.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/components/ui/tooltip.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/config/nav.ts": [],
+    "src/data/api/client.ts": [
+      "src/data/config/constants.ts",
+      "src/data/config/env.ts"
+    ],
+    "src/data/api/custom-instance.ts": [
+      "src/data/api/client.ts"
+    ],
+    "src/data/api/demo/enable.ts": [
+      "src/data/api/client.ts",
+      "src/data/config/constants.ts",
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts",
+      "src/data/types.ts"
+    ],
+    "src/data/api/errors.ts": [
+      "src/i18n/index.ts"
+    ],
+    "src/data/api/mock/adapter.ts": [
+      "src/data/api/client.ts",
+      "src/data/api/mock/data.ts"
+    ],
+    "src/data/api/mock/browser.ts": [
+      "src/data/api/mock/handlers.ts"
+    ],
+    "src/data/api/mock/data.ts": [
+      "src/data/scope/use-scope.ts",
+      "src/data/types.ts"
+    ],
+    "src/data/api/mock/enable-public.ts": [
+      "src/data/api/mock/browser.ts"
+    ],
+    "src/data/api/mock/enable.ts": [
+      "src/data/api/mock/browser.ts",
+      "src/data/api/mock/data.ts",
+      "src/data/config/constants.ts",
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts"
+    ],
+    "src/data/api/mock/handlers.ts": [
+      "src/data/api/mock/data.ts",
+      "src/data/scope/use-scope.ts"
+    ],
+    "src/data/api/query.ts": [],
+    "src/data/config/constants.ts": [],
+    "src/data/config/env.ts": [],
+    "src/data/scope/presets.ts": [
+      "src/lib/format.ts"
+    ],
+    "src/data/scope/use-page-search.ts": [],
+    "src/data/scope/use-scope.ts": [
+      "src/data/scope/presets.ts",
+      "src/data/stores/app.store.ts"
+    ],
+    "src/data/scope/use-timezone.ts": [
+      "src/data/config/constants.ts",
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts"
+    ],
+    "src/data/stores/app.store.ts": [
+      "src/data/api/client.ts",
+      "src/data/config/constants.ts",
+      "src/i18n/index.ts"
+    ],
+    "src/data/stores/auth.store.ts": [
+      "src/data/api/client.ts",
+      "src/data/api/query.ts",
+      "src/data/config/constants.ts",
+      "src/data/stores/app.store.ts",
+      "src/data/types.ts"
+    ],
+    "src/data/types.ts": [
+      "src/data/config/constants.ts"
+    ],
+    "src/features/ai-chat/ai-chat-page.tsx": [
+      "src/components/app/page.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/data/api/errors.ts",
+      "src/features/ai-chat/ai-result-view.tsx",
+      "src/features/ai-chat/loading-keywords.tsx",
+      "src/lib/motion.ts"
+    ],
+    "src/features/ai-chat/ai-result-view.tsx": [
+      "src/components/app/chart-card.tsx",
+      "src/components/ui/table.tsx",
+      "src/lib/format.ts"
+    ],
+    "src/features/ai-chat/loading-keywords.tsx": [],
+    "src/features/analytics/analytics-page.tsx": [
+      "src/components/app/chart-card.tsx",
+      "src/components/app/chart-tooltip.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/exclude-items-control.tsx",
+      "src/components/app/ledger-strip.tsx",
+      "src/components/app/page-tabs.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/tabs.tsx",
+      "src/data/config/constants.ts",
+      "src/data/scope/use-page-search.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/analytics/lib.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/format.ts",
+      "src/lib/motion.ts"
+    ],
+    "src/features/analytics/lib.ts": [],
+    "src/features/auth/login-page.tsx": [
+      "src/components/layout/language-toggle.tsx",
+      "src/components/layout/theme-toggle.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/data/api/errors.ts",
+      "src/data/stores/auth.store.ts",
+      "src/lib/motion.ts"
+    ],
+    "src/features/branches/branch-dialog.tsx": [
+      "src/components/app/timezone-select.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/branches/util.ts"
+    ],
+    "src/features/branches/branches-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/stat-card.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-page-search.ts",
+      "src/features/branches/branch-dialog.tsx",
+      "src/features/branches/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts"
+    ],
+    "src/features/branches/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/bundles/bundle-dialog.tsx": [
+      "src/components/app/bilingual-field.tsx",
+      "src/components/app/combobox.tsx",
+      "src/components/app/image-uploader.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/checkbox.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/data/api/errors.ts",
+      "src/features/bundles/util.ts",
+      "src/lib/format.ts",
+      "src/lib/translation.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/bundles/bundles-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/ledger-strip.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-page-search.ts",
+      "src/features/bundles/bundle-dialog.tsx",
+      "src/features/bundles/performance-dialog.tsx",
+      "src/features/bundles/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts",
+      "src/lib/format.ts",
+      "src/lib/translation.ts",
+      "src/lib/use-debounced.ts"
+    ],
+    "src/features/bundles/performance-dialog.tsx": [
+      "src/components/app/ledger-strip.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/skeleton.tsx"
+    ],
+    "src/features/bundles/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/dashboard/dashboard-page.tsx": [
+      "src/components/app/chart-card.tsx",
+      "src/components/app/chart-tooltip.tsx",
+      "src/components/app/delivery-kpis.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/ledger-strip.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/progress-bar.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/data/config/constants.ts",
+      "src/data/scope/use-scope.ts",
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts",
+      "src/features/insights/margin-watch-card.tsx",
+      "src/features/onboarding/keep-building-card.tsx",
+      "src/lib/format.ts",
+      "src/lib/motion.ts"
+    ],
+    "src/features/delivery/channel-overrides-export.ts": [
+      "src/lib/catalog-fetch.ts",
+      "src/lib/excel.ts",
+      "src/lib/translation.ts"
+    ],
+    "src/features/delivery/settings-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/time-picker.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/delivery/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/format.ts",
+      "src/lib/translation.ts"
+    ],
+    "src/features/delivery/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/delivery/zone-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/delivery/zones-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/delivery/util.ts",
+      "src/features/delivery/zone-dialog.tsx",
+      "src/lib/format.ts"
+    ],
+    "src/features/discounts/discount-dialog.tsx": [
+      "src/components/app/bilingual-field.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/discounts/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/discounts/discounts-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/stat-card.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-page-search.ts",
+      "src/features/discounts/discount-dialog.tsx",
+      "src/features/discounts/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts",
+      "src/lib/format.ts",
+      "src/lib/translation.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/discounts/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/insights/decisions-tab.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/table.tsx",
+      "src/features/insights/signals.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/insights/flag-chip.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/popover.tsx",
+      "src/features/insights/signals.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/insights/margin-watch-card.tsx": [
+      "src/components/app/chart-card.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/data/scope/use-scope.ts",
+      "src/features/insights/signals.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/insights/profitability-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/ledger-strip.tsx",
+      "src/components/app/page-tabs.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/segmented-control.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/switch.tsx",
+      "src/components/ui/table.tsx",
+      "src/components/ui/tabs.tsx",
+      "src/components/ui/tooltip.tsx",
+      "src/data/scope/use-scope.ts",
+      "src/features/insights/decisions-tab.tsx",
+      "src/features/insights/flag-chip.tsx",
+      "src/features/insights/repricing-tab.tsx",
+      "src/features/insights/target-editor.tsx",
+      "src/features/insights/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/insights/repricing-tab.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/table.tsx",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/insights/signals.ts": [
+      "src/lib/format.ts"
+    ],
+    "src/features/insights/target-editor.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/popover.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/features/insights/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/insights/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/integrations/credential-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/api/errors.ts",
+      "src/features/integrations/passphrase.ts",
+      "src/features/integrations/util.ts"
+    ],
+    "src/features/integrations/handoff-content.ts": [
+      "src/features/integrations/util.ts"
+    ],
+    "src/features/integrations/handoff-dialog.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/data/api/errors.ts",
+      "src/features/integrations/use-credential-handoff.ts"
+    ],
+    "src/features/integrations/handoff-zip.ts": [
+      "src/features/integrations/handoff-content.ts"
+    ],
+    "src/features/integrations/integrations-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/stat-card.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-page-search.ts",
+      "src/features/integrations/credential-dialog.tsx",
+      "src/features/integrations/handoff-dialog.tsx",
+      "src/features/integrations/passphrase.ts",
+      "src/features/integrations/use-credential-handoff.ts",
+      "src/features/integrations/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/integrations/passphrase.ts": [],
+    "src/features/integrations/use-credential-handoff.ts": [
+      "src/features/integrations/handoff-content.ts",
+      "src/features/integrations/handoff-zip.ts",
+      "src/features/integrations/passphrase.ts",
+      "src/lib/download.ts"
+    ],
+    "src/features/integrations/util.ts": [
+      "src/data/api/query.ts",
+      "src/data/config/env.ts"
+    ],
+    "src/features/inventory/count-editor.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/table.tsx",
+      "src/data/api/errors.ts",
+      "src/features/inventory/lib.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/inventory/counts-page.tsx": [
+      "src/components/app/combobox.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/inventory/count-editor.tsx",
+      "src/features/inventory/lib.ts",
+      "src/features/inventory/variance-report-dialog.tsx",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/inventory/item-dialog.tsx": [
+      "src/components/app/combobox.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/collapsible.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/data/api/errors.ts",
+      "src/features/inventory/lib.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/inventory/item-drawer.tsx": [
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/scroll-area.tsx",
+      "src/components/ui/sheet.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/data/api/errors.ts",
+      "src/features/inventory/lib.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/inventory/items-page.tsx": [
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/segmented-control.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/data/scope/use-scope.ts",
+      "src/features/inventory/item-dialog.tsx",
+      "src/features/inventory/item-drawer.tsx",
+      "src/features/inventory/waste-dialog.tsx",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/inventory/lib.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/inventory/purchase-order-dialog.tsx": [
+      "src/components/app/combobox.tsx",
+      "src/components/app/date-picker.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/separator.tsx",
+      "src/data/api/errors.ts",
+      "src/features/inventory/lib.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/inventory/purchasing-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page-tabs.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/table.tsx",
+      "src/components/ui/tabs.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/inventory/lib.ts",
+      "src/features/inventory/purchase-order-dialog.tsx",
+      "src/features/inventory/receive-dialog.tsx",
+      "src/features/inventory/supplier-dialog.tsx",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/inventory/receive-dialog.tsx": [
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/table.tsx",
+      "src/components/ui/tabs.tsx",
+      "src/data/api/errors.ts",
+      "src/features/inventory/lib.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/inventory/reports-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/ledger-strip.tsx",
+      "src/components/app/page-tabs.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/progress-bar.tsx",
+      "src/components/app/segmented-control.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/table.tsx",
+      "src/components/ui/tabs.tsx",
+      "src/data/scope/use-scope.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/inventory/settings-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/data/api/errors.ts",
+      "src/features/inventory/lib.ts",
+      "src/hooks/use-org-id.ts"
+    ],
+    "src/features/inventory/supplier-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/inventory/lib.ts"
+    ],
+    "src/features/inventory/today-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/ledger-strip.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/table.tsx",
+      "src/data/scope/use-scope.ts",
+      "src/features/inventory/purchase-order-dialog.tsx",
+      "src/features/inventory/receive-dialog.tsx",
+      "src/features/inventory/waste-dialog.tsx",
+      "src/hooks/use-org-id.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/inventory/transfer-dialog.tsx": [
+      "src/components/app/combobox.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/data/api/errors.ts",
+      "src/features/inventory/lib.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/inventory/transfers-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/segmented-control.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/inventory/lib.ts",
+      "src/features/inventory/transfer-dialog.tsx",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/inventory/variance-report-dialog.tsx": [
+      "src/components/app/ledger-strip.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/table.tsx",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/inventory/waste-dialog.tsx": [
+      "src/components/app/combobox.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/data/api/errors.ts",
+      "src/features/inventory/lib.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/inventory/waste-page.tsx": [
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/separator.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/data/scope/use-scope.ts",
+      "src/features/inventory/waste-dialog.tsx",
+      "src/lib/excel.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/kitchen-stations/routing-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page-tabs.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/tabs.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/kitchen-stations/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/translation.ts",
+      "src/lib/use-debounced.ts"
+    ],
+    "src/features/kitchen-stations/station-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/kitchen-stations/util.ts"
+    ],
+    "src/features/kitchen-stations/stations-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/kitchen-stations/station-dialog.tsx",
+      "src/features/kitchen-stations/util.ts"
+    ],
+    "src/features/kitchen-stations/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/landing/contact.tsx": [
+      "src/components/ui/dialog.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/features/landing/frames.tsx": [
+      "src/lib/motion.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/landing/landing-page.tsx": [
+      "src/components/layout/theme-toggle.tsx",
+      "src/components/ui/button.tsx",
+      "src/data/config/env.ts",
+      "src/features/landing/contact.tsx",
+      "src/features/landing/frames.tsx",
+      "src/features/landing/use-lenis.ts",
+      "src/lib/theme.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/landing/use-lenis.ts": [],
+    "src/features/menu/addon-dialog.tsx": [
+      "src/components/app/bilingual-field.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/menu/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/menu/addon-recipe-dialog.tsx": [
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/spinner.tsx",
+      "src/data/api/errors.ts",
+      "src/features/menu/util.ts",
+      "src/features/recipes/recipe-builder.tsx"
+    ],
+    "src/features/menu/branch-addon-override-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/menu/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/menu/branch-availability-switch.tsx": [
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/menu/util.ts"
+    ],
+    "src/features/menu/branch-override-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/menu/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/menu/category-dialog.tsx": [
+      "src/components/app/bilingual-field.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/menu/util.ts"
+    ],
+    "src/features/menu/costing.ts": [],
+    "src/features/menu/menu-item-dialog.tsx": [
+      "src/components/app/bilingual-field.tsx",
+      "src/components/app/image-uploader.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/menu/category-dialog.tsx",
+      "src/features/menu/util.ts",
+      "src/features/recipes/recipe-builder.tsx",
+      "src/features/recipes/util.ts",
+      "src/lib/format.ts",
+      "src/lib/translation.ts"
+    ],
+    "src/features/menu/menu-items-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/cost-cells.tsx",
+      "src/components/app/editable-cards.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page-tabs.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/tabs.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/menu/addon-dialog.tsx",
+      "src/features/menu/addon-recipe-dialog.tsx",
+      "src/features/menu/branch-availability-switch.tsx",
+      "src/features/menu/category-dialog.tsx",
+      "src/features/menu/costing.ts",
+      "src/features/menu/menu-item-dialog.tsx",
+      "src/features/menu/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/bulk-runner.ts",
+      "src/lib/excel.ts",
+      "src/lib/translation.ts",
+      "src/lib/use-debounced.ts"
+    ],
+    "src/features/menu/overrides-export.ts": [
+      "src/lib/catalog-fetch.ts",
+      "src/lib/excel.ts",
+      "src/lib/format.ts",
+      "src/lib/translation.ts"
+    ],
+    "src/features/menu/pricing/pricing-availability-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page-tabs.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/tabs.tsx",
+      "src/components/ui/tooltip.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/menu/pricing/util.ts",
+      "src/hooks/use-mobile.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/format.ts",
+      "src/lib/translation.ts",
+      "src/lib/use-debounced.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/menu/pricing/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/menu/studio/fix-cost-popover.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/popover.tsx",
+      "src/data/api/errors.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/menu/studio/menu-studio-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/tooltip.tsx",
+      "src/data/api/errors.ts",
+      "src/features/menu/studio/section-item.tsx",
+      "src/features/menu/studio/section-modifiers.tsx",
+      "src/features/menu/studio/section-options.tsx",
+      "src/features/menu/studio/section-sizes.tsx",
+      "src/features/menu/studio/util.ts",
+      "src/features/menu/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/format.ts",
+      "src/lib/translation.ts"
+    ],
+    "src/features/menu/studio/section-item.tsx": [
+      "src/components/app/bilingual-field.tsx",
+      "src/components/app/combobox.tsx",
+      "src/components/app/image-uploader.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/switch.tsx",
+      "src/features/menu/category-dialog.tsx",
+      "src/features/menu/studio/util.ts",
+      "src/lib/translation.ts"
+    ],
+    "src/features/menu/studio/section-modifiers.tsx": [
+      "src/components/app/combobox.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/switch.tsx",
+      "src/features/menu/addon-dialog.tsx",
+      "src/features/menu/studio/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/menu/studio/section-options.tsx": [
+      "src/components/app/combobox.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/switch.tsx",
+      "src/features/menu/studio/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/menu/studio/section-sizes.tsx": [
+      "src/components/app/combobox.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/features/menu/studio/fix-cost-popover.tsx",
+      "src/features/menu/studio/util.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/menu/studio/util.ts": [
+      "src/data/api/query.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/menu/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/onboarding/celebration.tsx": [
+      "src/lib/utils.ts"
+    ],
+    "src/features/onboarding/config.ts": [],
+    "src/features/onboarding/dashboard-mirror.tsx": [
+      "src/components/app/stat-card.tsx",
+      "src/components/ui/card.tsx",
+      "src/lib/motion.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/onboarding/keep-building-card.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/data/stores/auth.store.ts",
+      "src/features/onboarding/config.ts",
+      "src/hooks/use-org-id.ts"
+    ],
+    "src/features/onboarding/onboarding-page.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/data/api/errors.ts",
+      "src/data/api/query.ts",
+      "src/features/onboarding/celebration.tsx",
+      "src/features/onboarding/config.ts",
+      "src/features/onboarding/dashboard-mirror.tsx",
+      "src/features/onboarding/step-navigator.tsx",
+      "src/features/onboarding/step-panel.tsx",
+      "src/hooks/use-org-id.ts"
+    ],
+    "src/features/onboarding/step-navigator.tsx": [
+      "src/features/onboarding/config.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/onboarding/step-panel.tsx": [
+      "src/components/app/image-uploader.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/api/errors.ts",
+      "src/data/stores/app.store.ts",
+      "src/features/branches/branch-dialog.tsx",
+      "src/features/menu/addon-dialog.tsx",
+      "src/features/menu/category-dialog.tsx",
+      "src/features/menu/menu-item-dialog.tsx",
+      "src/features/onboarding/config.ts",
+      "src/features/payment-methods/payment-method-dialog.tsx",
+      "src/features/recipes/create-ingredient-dialog.tsx",
+      "src/features/users/user-dialog.tsx",
+      "src/lib/translation.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/order-tracking/tracking-page.tsx": [
+      "src/components/ui/button.tsx",
+      "src/features/public-ordering/components/cart-sheet.tsx",
+      "src/features/public-ordering/storefront-shell.tsx",
+      "src/features/public-ordering/use-order-theme.ts",
+      "src/lib/format.ts",
+      "src/lib/motion.ts"
+    ],
+    "src/features/orders/export/build-filename.ts": [
+      "src/features/orders/export/types.ts"
+    ],
+    "src/features/orders/export/build-meta.ts": [
+      "src/lib/format.ts"
+    ],
+    "src/features/orders/export/build-sheets.ts": [
+      "src/features/orders/export/columns.ts",
+      "src/features/orders/export/types.ts",
+      "src/lib/excel.ts",
+      "src/lib/translation.ts"
+    ],
+    "src/features/orders/export/columns.ts": [
+      "src/lib/excel.ts"
+    ],
+    "src/features/orders/export/presets.ts": [
+      "src/features/orders/export/types.ts"
+    ],
+    "src/features/orders/export/types.ts": [],
+    "src/features/orders/order-detail-sheet.tsx": [
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/sheet.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts",
+      "src/lib/format.ts",
+      "src/lib/translation.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/orders/order-export-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/checkbox.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/sheet.tsx",
+      "src/data/api/errors.ts",
+      "src/data/stores/app.store.ts",
+      "src/features/orders/export/build-filename.ts",
+      "src/features/orders/export/build-meta.ts",
+      "src/features/orders/export/build-sheets.ts",
+      "src/features/orders/export/presets.ts",
+      "src/features/orders/export/types.ts",
+      "src/lib/excel.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/orders/orders-page.tsx": [
+      "src/components/app/data-table.tsx",
+      "src/components/app/delivery-kpis.tsx",
+      "src/components/app/exclude-items-control.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/ledger-strip.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/api/query.ts",
+      "src/data/config/constants.ts",
+      "src/data/scope/use-scope.ts",
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts",
+      "src/features/orders/order-detail-sheet.tsx",
+      "src/features/orders/order-export-dialog.tsx",
+      "src/features/orders/void-order-dialog.tsx",
+      "src/lib/format.ts",
+      "src/lib/use-debounced.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/orders/void-order-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/data/api/errors.ts",
+      "src/data/api/query.ts"
+    ],
+    "src/features/orgs/org-dialog.tsx": [
+      "src/components/app/image-uploader.tsx",
+      "src/components/app/timezone-select.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/data/stores/app.store.ts",
+      "src/features/orgs/util.ts"
+    ],
+    "src/features/orgs/orgs-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/stat-card.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-page-search.ts",
+      "src/features/orgs/org-dialog.tsx",
+      "src/features/orgs/util.ts",
+      "src/lib/excel.ts"
+    ],
+    "src/features/orgs/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/payment-methods/payment-method-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/scroll-area.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/payment-methods/util.ts"
+    ],
+    "src/features/payment-methods/payment-methods-page.tsx": [
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/stat-card.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-page-search.ts",
+      "src/features/payment-methods/payment-method-dialog.tsx",
+      "src/features/payment-methods/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts"
+    ],
+    "src/features/payment-methods/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/permissions/permissions-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/scroll-area.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/data/api/errors.ts",
+      "src/data/api/query.ts",
+      "src/data/scope/use-page-search.ts",
+      "src/data/stores/auth.store.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/branch-selector.tsx": [
+      "src/components/ui/dropdown-menu.tsx"
+    ],
+    "src/features/public-ordering/components/branch-step.tsx": [
+      "src/components/ui/skeleton.tsx",
+      "src/lib/motion.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/cart-sheet.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/drawer.tsx",
+      "src/features/public-ordering/types.ts",
+      "src/features/public-ordering/utils.ts",
+      "src/i18n/index.ts",
+      "src/lib/format.ts",
+      "src/lib/motion.ts",
+      "src/lib/translation.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/channel-closed.tsx": [
+      "src/components/ui/button.tsx",
+      "src/features/public-ordering/types.ts"
+    ],
+    "src/features/public-ordering/components/channel-step.tsx": [
+      "src/components/ui/button.tsx",
+      "src/features/public-ordering/types.ts",
+      "src/lib/motion.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/checkout-channel-sheet.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/drawer.tsx",
+      "src/features/public-ordering/components/channel-step.tsx",
+      "src/features/public-ordering/types.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/public-ordering/components/checkout-step.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/features/public-ordering/components/cart-sheet.tsx",
+      "src/features/public-ordering/limits.ts",
+      "src/features/public-ordering/types.ts",
+      "src/features/public-ordering/utils.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/confirmation-step.tsx": [
+      "src/components/ui/button.tsx",
+      "src/features/public-ordering/components/cart-sheet.tsx",
+      "src/lib/format.ts",
+      "src/lib/motion.ts"
+    ],
+    "src/features/public-ordering/components/delivery-map.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx"
+    ],
+    "src/features/public-ordering/components/item-customizer.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/drawer.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/features/public-ordering/limits.ts",
+      "src/features/public-ordering/types.ts",
+      "src/features/public-ordering/utils.ts",
+      "src/i18n/index.ts",
+      "src/lib/format.ts",
+      "src/lib/translation.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/location-step.tsx": [
+      "src/components/ui/button.tsx",
+      "src/features/public-ordering/components/delivery-map.tsx",
+      "src/features/public-ordering/types.ts",
+      "src/lib/format.ts",
+      "src/lib/motion.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/menu-step.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/features/public-ordering/components/item-customizer.tsx",
+      "src/features/public-ordering/types.ts",
+      "src/i18n/index.ts",
+      "src/lib/format.ts",
+      "src/lib/motion.ts",
+      "src/lib/translation.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/order-history-drawer.tsx": [
+      "src/components/ui/sheet.tsx",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/otp-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/phone-step.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/features/public-ordering/utils.ts",
+      "src/lib/motion.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/components/step-shell.tsx": [
+      "src/features/public-ordering/types.ts",
+      "src/features/public-ordering/use-order-theme.ts",
+      "src/i18n/index.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/public-ordering/limits.ts": [],
+    "src/features/public-ordering/public-ordering-page.tsx": [
+      "src/components/ui/input.tsx",
+      "src/features/public-ordering/components/branch-selector.tsx",
+      "src/features/public-ordering/components/branch-step.tsx",
+      "src/features/public-ordering/components/cart-sheet.tsx",
+      "src/features/public-ordering/components/channel-closed.tsx",
+      "src/features/public-ordering/components/channel-step.tsx",
+      "src/features/public-ordering/components/checkout-channel-sheet.tsx",
+      "src/features/public-ordering/components/checkout-step.tsx",
+      "src/features/public-ordering/components/delivery-map.tsx",
+      "src/features/public-ordering/components/item-customizer.tsx",
+      "src/features/public-ordering/components/location-step.tsx",
+      "src/features/public-ordering/components/menu-step.tsx",
+      "src/features/public-ordering/components/order-history-drawer.tsx",
+      "src/features/public-ordering/components/otp-dialog.tsx",
+      "src/features/public-ordering/components/phone-step.tsx",
+      "src/features/public-ordering/components/step-shell.tsx",
+      "src/features/public-ordering/limits.ts",
+      "src/features/public-ordering/types.ts",
+      "src/features/public-ordering/use-order-theme.ts",
+      "src/features/public-ordering/utils.ts",
+      "src/lib/format.ts",
+      "src/lib/motion.ts"
+    ],
+    "src/features/public-ordering/scan-to-order.tsx": [
+      "src/features/public-ordering/storefront-shell.tsx",
+      "src/features/public-ordering/use-order-theme.ts"
+    ],
+    "src/features/public-ordering/storefront-shell.tsx": [
+      "src/features/public-ordering/use-order-theme.ts"
+    ],
+    "src/features/public-ordering/types.ts": [],
+    "src/features/public-ordering/use-order-theme.ts": [
+      "src/lib/theme.ts"
+    ],
+    "src/features/public-ordering/utils.ts": [
+      "src/features/public-ordering/types.ts"
+    ],
+    "src/features/qr/lib.ts": [],
+    "src/features/qr/qr-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/components/ui/tabs.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/qr/qr-preview-dialog.tsx",
+      "src/hooks/use-org-id.ts",
+      "src/lib/download.ts"
+    ],
+    "src/features/qr/qr-preview-dialog.tsx": [
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/lib/download.ts"
+    ],
+    "src/features/recipes/create-ingredient-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/api/errors.ts",
+      "src/features/recipes/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/recipes/recipe-builder.tsx": [
+      "src/components/app/combobox.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/switch.tsx",
+      "src/features/recipes/create-ingredient-dialog.tsx",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/recipes/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/reservations/booking-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/data/api/errors.ts",
+      "src/features/reservations/util.ts"
+    ],
+    "src/features/reservations/floor-editor.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/data/api/errors.ts",
+      "src/features/reservations/table-dialog.tsx",
+      "src/features/reservations/util.ts"
+    ],
+    "src/features/reservations/host-board.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/data/api/errors.ts",
+      "src/features/reservations/booking-dialog.tsx",
+      "src/features/reservations/util.ts"
+    ],
+    "src/features/reservations/reservations-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/tabs.tsx",
+      "src/data/scope/use-scope.ts",
+      "src/features/reservations/floor-editor.tsx",
+      "src/features/reservations/host-board.tsx",
+      "src/features/reservations/settings-form.tsx"
+    ],
+    "src/features/reservations/settings-form.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/reservations/util.ts"
+    ],
+    "src/features/reservations/table-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/reservations/util.ts"
+    ],
+    "src/features/reservations/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/settings/settings-page.tsx": [
+      "src/components/app/page.tsx",
+      "src/components/ui/avatar.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts",
+      "src/lib/format.ts",
+      "src/lib/theme.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/shifts/cash-movement-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/data/api/errors.ts",
+      "src/features/shifts/open-shift-dialog.tsx",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/shifts/close-shift-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/textarea.tsx",
+      "src/data/api/errors.ts",
+      "src/features/shifts/open-shift-dialog.tsx",
+      "src/lib/format.ts"
+    ],
+    "src/features/shifts/open-shift-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/data/api/errors.ts",
+      "src/data/api/query.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/shifts/shift-report-sheet.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/sheet.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/shifts/shifts-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/data/api/errors.ts",
+      "src/data/api/query.ts",
+      "src/data/scope/use-scope.ts",
+      "src/data/stores/auth.store.ts",
+      "src/features/shifts/cash-movement-dialog.tsx",
+      "src/features/shifts/close-shift-dialog.tsx",
+      "src/features/shifts/open-shift-dialog.tsx",
+      "src/features/shifts/shift-report-sheet.tsx",
+      "src/lib/excel.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/staff/attendance-page.tsx": [
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/stat-card.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/staff/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/staff/attendance-rules-page.tsx": [
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/staff/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/staff/employee-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/api/errors.ts",
+      "src/features/staff/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/staff/employees-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/data/api/errors.ts",
+      "src/features/staff/employee-dialog.tsx",
+      "src/features/staff/util.ts",
+      "src/lib/format.ts"
+    ],
+    "src/features/staff/requests-inbox.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/staff/util.ts"
+    ],
+    "src/features/staff/schedule-grid.tsx": [
+      "src/components/ui/card.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/data/api/errors.ts",
+      "src/features/staff/util.ts"
+    ],
+    "src/features/staff/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/staff/work-shifts-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/staff/schedule-grid.tsx",
+      "src/features/staff/util.ts"
+    ],
+    "src/features/tills/till-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/tills/util.ts"
+    ],
+    "src/features/tills/tills-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-scope.ts",
+      "src/features/tills/till-dialog.tsx",
+      "src/features/tills/util.ts"
+    ],
+    "src/features/tills/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/users/branch-assign-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/features/users/util.ts"
+    ],
+    "src/features/users/user-dialog.tsx": [
+      "src/components/ui/button.tsx",
+      "src/components/ui/dialog.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/data/stores/auth.store.ts",
+      "src/features/users/util.ts"
+    ],
+    "src/features/users/users-page.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/app/data-table.tsx",
+      "src/components/app/empty-state.tsx",
+      "src/components/app/export-button.tsx",
+      "src/components/app/page.tsx",
+      "src/components/app/stat-card.tsx",
+      "src/components/ui/avatar.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/data/api/errors.ts",
+      "src/data/scope/use-page-search.ts",
+      "src/features/users/branch-assign-dialog.tsx",
+      "src/features/users/user-dialog.tsx",
+      "src/features/users/util.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/excel.ts",
+      "src/lib/format.ts",
+      "src/lib/utils.ts"
+    ],
+    "src/features/users/util.ts": [
+      "src/data/api/query.ts"
+    ],
+    "src/features/whatsapp/whatsapp-page.tsx": [
+      "src/components/app/empty-state.tsx",
+      "src/components/app/page.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/card.tsx",
+      "src/components/ui/switch.tsx",
+      "src/data/api/errors.ts",
+      "src/data/api/query.ts",
+      "src/data/stores/auth.store.ts"
+    ],
+    "src/fontsource.d.ts": [],
+    "src/get/main.tsx": [
+      "src/features/landing/landing-page.tsx",
+      "src/i18n/index.ts",
+      "src/lib/theme.ts",
+      "src/styles/globals.css"
+    ],
+    "src/hooks/use-mobile.ts": [],
+    "src/hooks/use-org-id.ts": [
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts"
+    ],
+    "src/hooks/use-route-prefetch.ts": [
+      "src/data/scope/use-scope.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/route-prefetch.ts"
+    ],
+    "src/i18n/index.ts": [
+      "src/i18n/locales/ar.json",
+      "src/i18n/locales/en.json"
+    ],
+    "src/i18n/locales/ar.json": [],
+    "src/i18n/locales/en.json": [],
+    "src/lib/auth-guard.ts": [
+      "src/data/stores/auth.store.ts"
+    ],
+    "src/lib/bulk-runner.ts": [],
+    "src/lib/catalog-fetch.ts": [],
+    "src/lib/download.ts": [],
+    "src/lib/excel.ts": [
+      "src/i18n/index.ts",
+      "src/lib/download.ts",
+      "src/lib/format.ts"
+    ],
+    "src/lib/format.ts": [
+      "src/data/config/constants.ts",
+      "src/data/stores/app.store.ts",
+      "src/i18n/index.ts"
+    ],
+    "src/lib/motion.ts": [],
+    "src/lib/normalize.ts": [],
+    "src/lib/route-prefetch.ts": [
+      "src/data/scope/presets.ts",
+      "src/data/scope/use-scope.ts"
+    ],
+    "src/lib/theme.ts": [],
+    "src/lib/translation.ts": [],
+    "src/lib/use-debounced.ts": [],
+    "src/lib/utils.ts": [],
+    "src/main.tsx": [
+      "src/components/app/confirm-dialog.tsx",
+      "src/components/ui/tooltip.tsx",
+      "src/data/api/query.ts",
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts",
+      "src/i18n/index.ts",
+      "src/lib/theme.ts",
+      "src/routeTree.gen.ts",
+      "src/styles/globals.css"
+    ],
+    "src/order/main.tsx": [
+      "src/data/api/query.ts",
+      "src/features/order-tracking/tracking-page.tsx",
+      "src/features/public-ordering/public-ordering-page.tsx",
+      "src/features/public-ordering/scan-to-order.tsx",
+      "src/i18n/index.ts",
+      "src/lib/theme.ts",
+      "src/styles/globals.css"
+    ],
+    "src/routeTree.gen.ts": [
+      "src/routes/__root.tsx",
+      "src/routes/_app/access/index.tsx",
+      "src/routes/_app/access/roles.tsx",
+      "src/routes/_app/access/route.tsx",
+      "src/routes/_app/access/users.tsx",
+      "src/routes/_app/analytics.tsx",
+      "src/routes/_app/branches.tsx",
+      "src/routes/_app/delivery/channels.tsx",
+      "src/routes/_app/delivery/index.tsx",
+      "src/routes/_app/delivery/route.tsx",
+      "src/routes/_app/delivery/settings.tsx",
+      "src/routes/_app/delivery/zones.tsx",
+      "src/routes/_app/discounts.tsx",
+      "src/routes/_app/index.tsx",
+      "src/routes/_app/insights/ai-chat.tsx",
+      "src/routes/_app/insights/inventory-reports.tsx",
+      "src/routes/_app/insights/profitability.tsx",
+      "src/routes/_app/insights/sales.tsx",
+      "src/routes/_app/inventory/counts.tsx",
+      "src/routes/_app/inventory/index.tsx",
+      "src/routes/_app/inventory/ingredients.tsx",
+      "src/routes/_app/inventory/items.tsx",
+      "src/routes/_app/inventory/purchasing.tsx",
+      "src/routes/_app/inventory/reports.tsx",
+      "src/routes/_app/inventory/route.tsx",
+      "src/routes/_app/inventory/settings.tsx",
+      "src/routes/_app/inventory/today.tsx",
+      "src/routes/_app/inventory/transfers.tsx",
+      "src/routes/_app/inventory/waste.tsx",
+      "src/routes/_app/kitchen/routing.tsx",
+      "src/routes/_app/kitchen/stations.tsx",
+      "src/routes/_app/menu/bundles.tsx",
+      "src/routes/_app/menu/index.tsx",
+      "src/routes/_app/menu/items.tsx",
+      "src/routes/_app/menu/items_.$itemId.tsx",
+      "src/routes/_app/menu/overrides.tsx",
+      "src/routes/_app/menu/pricing.tsx",
+      "src/routes/_app/menu/recipes.tsx",
+      "src/routes/_app/menu/route.tsx",
+      "src/routes/_app/orders.tsx",
+      "src/routes/_app/orgs.tsx",
+      "src/routes/_app/permissions.tsx",
+      "src/routes/_app/qr.tsx",
+      "src/routes/_app/reservations.tsx",
+      "src/routes/_app/route.tsx",
+      "src/routes/_app/settings/index.tsx",
+      "src/routes/_app/settings/integrations.tsx",
+      "src/routes/_app/settings/payment-methods.tsx",
+      "src/routes/_app/settings/route.tsx",
+      "src/routes/_app/settings/whatsapp.tsx",
+      "src/routes/_app/shifts.tsx",
+      "src/routes/_app/staff/attendance.tsx",
+      "src/routes/_app/staff/employees.tsx",
+      "src/routes/_app/staff/requests.tsx",
+      "src/routes/_app/staff/rules.tsx",
+      "src/routes/_app/staff/shifts.tsx",
+      "src/routes/_app/tills.tsx",
+      "src/routes/_app/users.tsx",
+      "src/routes/login.tsx",
+      "src/routes/onboarding.tsx"
+    ],
+    "src/routes/__root.tsx": [
+      "src/components/ui/sonner.tsx"
+    ],
+    "src/routes/_app/access/index.tsx": [],
+    "src/routes/_app/access/roles.tsx": [
+      "src/features/permissions/permissions-page.tsx"
+    ],
+    "src/routes/_app/access/route.tsx": [
+      "src/components/app/section-tabs.tsx"
+    ],
+    "src/routes/_app/access/users.tsx": [
+      "src/features/users/users-page.tsx"
+    ],
+    "src/routes/_app/analytics.tsx": [],
+    "src/routes/_app/branches.tsx": [
+      "src/features/branches/branches-page.tsx"
+    ],
+    "src/routes/_app/delivery/channels.tsx": [],
+    "src/routes/_app/delivery/index.tsx": [],
+    "src/routes/_app/delivery/route.tsx": [],
+    "src/routes/_app/delivery/settings.tsx": [
+      "src/features/delivery/settings-page.tsx"
+    ],
+    "src/routes/_app/delivery/zones.tsx": [
+      "src/features/delivery/zones-page.tsx"
+    ],
+    "src/routes/_app/discounts.tsx": [
+      "src/features/discounts/discounts-page.tsx"
+    ],
+    "src/routes/_app/index.tsx": [
+      "src/features/dashboard/dashboard-page.tsx"
+    ],
+    "src/routes/_app/insights/ai-chat.tsx": [
+      "src/features/ai-chat/ai-chat-page.tsx"
+    ],
+    "src/routes/_app/insights/inventory-reports.tsx": [],
+    "src/routes/_app/insights/profitability.tsx": [
+      "src/features/insights/profitability-page.tsx"
+    ],
+    "src/routes/_app/insights/sales.tsx": [
+      "src/features/analytics/analytics-page.tsx"
+    ],
+    "src/routes/_app/inventory/counts.tsx": [
+      "src/features/inventory/counts-page.tsx"
+    ],
+    "src/routes/_app/inventory/index.tsx": [],
+    "src/routes/_app/inventory/ingredients.tsx": [
+      "src/features/inventory/items-page.tsx"
+    ],
+    "src/routes/_app/inventory/items.tsx": [],
+    "src/routes/_app/inventory/purchasing.tsx": [
+      "src/features/inventory/purchasing-page.tsx"
+    ],
+    "src/routes/_app/inventory/reports.tsx": [
+      "src/features/inventory/reports-page.tsx"
+    ],
+    "src/routes/_app/inventory/route.tsx": [],
+    "src/routes/_app/inventory/settings.tsx": [
+      "src/features/inventory/settings-page.tsx"
+    ],
+    "src/routes/_app/inventory/today.tsx": [
+      "src/features/inventory/today-page.tsx"
+    ],
+    "src/routes/_app/inventory/transfers.tsx": [
+      "src/features/inventory/transfers-page.tsx"
+    ],
+    "src/routes/_app/inventory/waste.tsx": [
+      "src/features/inventory/waste-page.tsx"
+    ],
+    "src/routes/_app/kitchen/routing.tsx": [
+      "src/features/kitchen-stations/routing-page.tsx"
+    ],
+    "src/routes/_app/kitchen/stations.tsx": [
+      "src/features/kitchen-stations/stations-page.tsx"
+    ],
+    "src/routes/_app/menu/bundles.tsx": [
+      "src/features/bundles/bundles-page.tsx"
+    ],
+    "src/routes/_app/menu/index.tsx": [],
+    "src/routes/_app/menu/items.tsx": [
+      "src/features/menu/menu-items-page.tsx"
+    ],
+    "src/routes/_app/menu/items_.$itemId.tsx": [
+      "src/features/menu/studio/menu-studio-page.tsx"
+    ],
+    "src/routes/_app/menu/overrides.tsx": [],
+    "src/routes/_app/menu/pricing.tsx": [
+      "src/features/menu/pricing/pricing-availability-page.tsx"
+    ],
+    "src/routes/_app/menu/recipes.tsx": [],
+    "src/routes/_app/menu/route.tsx": [],
+    "src/routes/_app/orders.tsx": [
+      "src/features/orders/orders-page.tsx"
+    ],
+    "src/routes/_app/orgs.tsx": [
+      "src/features/orgs/orgs-page.tsx"
+    ],
+    "src/routes/_app/permissions.tsx": [],
+    "src/routes/_app/qr.tsx": [
+      "src/features/qr/qr-page.tsx"
+    ],
+    "src/routes/_app/reservations.tsx": [
+      "src/features/reservations/reservations-page.tsx"
+    ],
+    "src/routes/_app/route.tsx": [
+      "src/components/app/demo-banner.tsx",
+      "src/components/layout/app-header.tsx",
+      "src/components/layout/app-sidebar.tsx",
+      "src/components/ui/sidebar.tsx",
+      "src/data/scope/use-timezone.ts",
+      "src/data/stores/app.store.ts",
+      "src/data/stores/auth.store.ts",
+      "src/features/onboarding/config.ts",
+      "src/hooks/use-org-id.ts",
+      "src/lib/auth-guard.ts"
+    ],
+    "src/routes/_app/settings/index.tsx": [
+      "src/features/settings/settings-page.tsx"
+    ],
+    "src/routes/_app/settings/integrations.tsx": [
+      "src/features/integrations/integrations-page.tsx"
+    ],
+    "src/routes/_app/settings/payment-methods.tsx": [
+      "src/features/payment-methods/payment-methods-page.tsx"
+    ],
+    "src/routes/_app/settings/route.tsx": [],
+    "src/routes/_app/settings/whatsapp.tsx": [
+      "src/features/whatsapp/whatsapp-page.tsx"
+    ],
+    "src/routes/_app/shifts.tsx": [
+      "src/features/shifts/shifts-page.tsx"
+    ],
+    "src/routes/_app/staff/attendance.tsx": [
+      "src/features/staff/attendance-page.tsx"
+    ],
+    "src/routes/_app/staff/employees.tsx": [
+      "src/features/staff/employees-page.tsx"
+    ],
+    "src/routes/_app/staff/requests.tsx": [
+      "src/features/staff/requests-inbox.tsx"
+    ],
+    "src/routes/_app/staff/rules.tsx": [
+      "src/features/staff/attendance-rules-page.tsx"
+    ],
+    "src/routes/_app/staff/shifts.tsx": [
+      "src/features/staff/work-shifts-page.tsx"
+    ],
+    "src/routes/_app/tills.tsx": [
+      "src/features/tills/tills-page.tsx"
+    ],
+    "src/routes/_app/users.tsx": [],
+    "src/routes/login.tsx": [
+      "src/data/stores/auth.store.ts",
+      "src/features/auth/login-page.tsx"
+    ],
+    "src/routes/onboarding.tsx": [
+      "src/features/onboarding/onboarding-page.tsx",
+      "src/lib/auth-guard.ts"
+    ],
+    "src/styles/globals.css": [],
+    "src/test/setup.ts": [],
+    "tsconfig.json": [],
+    "tsconfig.node.json": [],
+    "vite.config.ts": [],
+    "vite.get.config.ts": [],
+    "vite.order.config.ts": [],
+    "vitest.config.ts": [
+      "vite.config.ts"
+    ]
+  }
+}

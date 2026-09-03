@@ -1,0 +1,60 @@
+{
+  "nodes": [
+    {
+      "id": "pipeline:.github/workflows/deploy.yml",
+      "type": "pipeline",
+      "name": "deploy.yml",
+      "filePath": ".github/workflows/deploy.yml",
+      "summary": "GitHub Actions workflow that, on push to main, builds four isolated Vite bundles (dashboard, ordering app, landing app, demo dashboard) each with its own VITE_API_URL, SCPs them to /var/www/* on the VPS, and reloads Nginx.",
+      "tags": ["ci-cd", "deployment", "github-actions", "vps", "multi-bundle"],
+      "complexity": "moderate",
+      "languageNotes": "Single job with sequential build steps; per-bundle env vars point each app at a different API origin (api/order/get/demo-api subdomains)."
+    },
+    {
+      "id": "step:.github/workflows/deploy.yml:deploy",
+      "type": "step",
+      "name": "deploy",
+      "filePath": ".github/workflows/deploy.yml",
+      "summary": "Single ubuntu job: npm ci, run build/build:order/build:get/build:demo, scp each dist folder to the VPS via appleboy/scp-action, then reload nginx over SSH.",
+      "tags": ["ci-cd", "deployment", "build-system"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "pipeline:.github/workflows/release.yml",
+      "type": "pipeline",
+      "name": "release.yml",
+      "filePath": ".github/workflows/release.yml",
+      "summary": "GitHub Actions release workflow triggered by v*.*.* tags: a platform matrix builds Tauri desktop installers (macOS arm64/x64, Linux, Windows) via tauri-action, and a parallel job builds a signed Android APK and attaches it to the same GitHub release.",
+      "tags": ["ci-cd", "release", "tauri", "github-actions", "android"],
+      "complexity": "moderate",
+      "languageNotes": "Uses fail-fast: false matrix; macOS uses ad-hoc signing (APPLE_SIGNING_IDENTITY=-). Android keystore is decoded from a base64 secret into src-tauri/gen/android."
+    },
+    {
+      "id": "step:.github/workflows/release.yml:build-and-release",
+      "type": "step",
+      "name": "build-and-release",
+      "filePath": ".github/workflows/release.yml",
+      "summary": "Matrix job over four Rust targets that installs Node, Rust and Linux WebKit deps, then runs tauri-apps/tauri-action to build installers and publish them to the tagged GitHub release.",
+      "tags": ["ci-cd", "tauri", "desktop", "release"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "step:.github/workflows/release.yml:build-android",
+      "type": "step",
+      "name": "build-android",
+      "filePath": ".github/workflows/release.yml",
+      "summary": "Ubuntu job that sets up Java 17, Android Rust targets and NDK r26b, writes the release keystore and key.properties from secrets, builds the APK with tauri android build, and uploads it via action-gh-release.",
+      "tags": ["ci-cd", "android", "tauri", "release", "signing"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {"source": "pipeline:.github/workflows/deploy.yml", "target": "step:.github/workflows/deploy.yml:deploy", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "pipeline:.github/workflows/release.yml", "target": "step:.github/workflows/release.yml:build-and-release", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "pipeline:.github/workflows/release.yml", "target": "step:.github/workflows/release.yml:build-android", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "pipeline:.github/workflows/deploy.yml", "target": "config:package.json", "type": "depends_on", "direction": "forward", "weight": 0.6},
+    {"source": "pipeline:.github/workflows/release.yml", "target": "config:package.json", "type": "depends_on", "direction": "forward", "weight": 0.6},
+    {"source": "pipeline:.github/workflows/deploy.yml", "target": "config:vite.config.ts", "type": "depends_on", "direction": "forward", "weight": 0.6},
+    {"source": "pipeline:.github/workflows/release.yml", "target": "config:src-tauri/tauri.conf.json", "type": "deploys", "direction": "forward", "weight": 0.7}
+  ]
+}

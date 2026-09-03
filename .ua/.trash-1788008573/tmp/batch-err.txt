@@ -1,0 +1,14 @@
+Loaded 538 files (380 code).
+Warning: compute-batches: community size 45 > max 35 — splitting via alphabetical chunking — modularity may decrease
+Warning: compute-batches: community size 73 > max 35 — splitting via alphabetical chunking — modularity may decrease
+Warning: compute-batches: community size 75 > max 35 — splitting via alphabetical chunking — modularity may decrease
+Warning: compute-batches: community size 61 > max 35 — splitting via alphabetical chunking — modularity may decrease
+Warning: compute-batches: community size 56 > max 35 — splitting via alphabetical chunking — modularity may decrease
+Info: compute-batches: merged 57 small batches (63 files) into 3 misc batches — singletons and orphans consolidated
+Warning: compute-batches: neighborMap for src/routeTree.gen.ts has high 1-hop degree 61 — exceeds soft cap of 50 — keeping top 38 cross-batch entries (0 dropped by degree sort)
+Warning: compute-batches: neighborMap for src/components/ui/button.tsx has high 1-hop degree 123 — exceeds soft cap of 50 — keeping top 50 cross-batch entries (58 dropped by degree sort)
+Warning: compute-batches: neighborMap for src/components/ui/input.tsx has high 1-hop degree 63 — exceeds soft cap of 50 — keeping top 50 cross-batch entries (2 dropped by degree sort)
+Warning: compute-batches: neighborMap for src/data/api/errors.ts has high 1-hop degree 74 — exceeds soft cap of 50 — keeping top 50 cross-batch entries (14 dropped by degree sort)
+Warning: compute-batches: neighborMap for src/lib/format.ts has high 1-hop degree 82 — exceeds soft cap of 50 — keeping top 50 cross-batch entries (24 dropped by degree sort)
+Warning: compute-batches: neighborMap for src/lib/utils.ts has high 1-hop degree 97 — exceeds soft cap of 50 — keeping top 50 cross-batch entries (39 dropped by degree sort)
+Wrote 28 batches (sizes: max=31, min=2) to /Users/shawket/Desktop/MadarDashboard/.ua/intermediate/batches.json

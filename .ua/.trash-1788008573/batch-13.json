@@ -1,0 +1,1028 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/components/ui/checkbox.tsx",
+   "type": "file",
+   "name": "checkbox.tsx",
+   "filePath": "src/components/ui/checkbox.tsx",
+   "summary": "Radix-based Checkbox UI primitive styled with Tailwind via cn, used by forms and dialogs across the dashboard.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "radix",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/checkbox.tsx:Checkbox",
+   "type": "function",
+   "name": "Checkbox",
+   "filePath": "src/components/ui/checkbox.tsx",
+   "lineRange": [
+    7,
+    28
+   ],
+   "summary": "Wraps Radix Checkbox root and indicator with the dashboard's Tailwind styling and merged className.",
+   "tags": [
+    "component",
+    "radix",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/delivery/channel-overrides-export.ts",
+   "type": "file",
+   "name": "channel-overrides-export.ts",
+   "filePath": "src/features/delivery/channel-overrides-export.ts",
+   "summary": "Builds and downloads an Excel workbook of a delivery channel's per-branch menu item and addon price/availability overrides, resolving names from the full catalog.",
+   "tags": [
+    "export",
+    "excel",
+    "delivery",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/delivery/channel-overrides-export.ts:exportChannelOverrides",
+   "type": "function",
+   "name": "exportChannelOverrides",
+   "filePath": "src/features/delivery/channel-overrides-export.ts",
+   "lineRange": [
+    47,
+    132
+   ],
+   "summary": "Fetches the full menu and addon catalogs, joins them with channel overrides into translated, sorted rows and calls exportToExcel with two sheets.",
+   "tags": [
+    "export",
+    "excel",
+    "delivery"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/menu/overrides-export.ts",
+   "type": "file",
+   "name": "overrides-export.ts",
+   "filePath": "src/features/menu/overrides-export.ts",
+   "summary": "Builds and downloads an Excel workbook of a branch's menu item and addon overrides, covering prices, sizes and availability with category and translated names.",
+   "tags": [
+    "export",
+    "excel",
+    "menu",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/overrides-export.ts:exportBranchOverrides",
+   "type": "function",
+   "name": "exportBranchOverrides",
+   "filePath": "src/features/menu/overrides-export.ts",
+   "lineRange": [
+    52,
+    137
+   ],
+   "summary": "Fetches catalogs, maps branch item/addon overrides to localized rows including size price strings, and writes a two-sheet Excel file.",
+   "tags": [
+    "export",
+    "excel",
+    "menu"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/orders/export/build-filename.ts",
+   "type": "file",
+   "name": "build-filename.ts",
+   "filePath": "src/features/orders/export/build-filename.ts",
+   "summary": "Derives a slugified Excel filename for an orders export from preset, branch and date range.",
+   "tags": [
+    "utility",
+    "export",
+    "filename"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/orders/export/build-filename.ts:buildFilename",
+   "type": "function",
+   "name": "buildFilename",
+   "filePath": "src/features/orders/export/build-filename.ts",
+   "lineRange": [
+    9,
+    20
+   ],
+   "summary": "Composes a slugified filename from preset id, branch slug, from/to dates and current date.",
+   "tags": [
+    "utility",
+    "export"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/orders/export/build-meta.ts",
+   "type": "file",
+   "name": "build-meta.ts",
+   "filePath": "src/features/orders/export/build-meta.ts",
+   "summary": "Builds the human-readable metadata header line (branch, date range, filters) placed on orders export sheets.",
+   "tags": [
+    "utility",
+    "export",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/orders/export/build-meta.ts:buildMeta",
+   "type": "function",
+   "name": "buildMeta",
+   "filePath": "src/features/orders/export/build-meta.ts",
+   "lineRange": [
+    4,
+    19
+   ],
+   "summary": "Joins translated filter descriptions into a single metadata string for the export header.",
+   "tags": [
+    "utility",
+    "export"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/orders/export/build-sheets.ts",
+   "type": "file",
+   "name": "build-sheets.ts",
+   "filePath": "src/features/orders/export/build-sheets.ts",
+   "summary": "Turns exported orders into Excel sheet definitions per selected grain: orders, line items, payments, and raw plus aggregated ingredient deductions.",
+   "tags": [
+    "export",
+    "excel",
+    "orders",
+    "data-transform"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Uses a generic asSheet cast to erase per-row types so heterogeneous sheets can share one array."
+  },
+  {
+   "id": "function:src/features/orders/export/build-sheets.ts:buildSheets",
+   "type": "function",
+   "name": "buildSheets",
+   "filePath": "src/features/orders/export/build-sheets.ts",
+   "lineRange": [
+    28,
+    150
+   ],
+   "summary": "Flattens orders into per-grain row sets (order, line item, payment, deduction, aggregated deduction) with translated names and returns ExcelSheet objects.",
+   "tags": [
+    "export",
+    "excel",
+    "orders"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/orders/export/columns.ts",
+   "type": "file",
+   "name": "columns.ts",
+   "filePath": "src/features/orders/export/columns.ts",
+   "summary": "Declares translated Excel column definitions for each orders export grain: orders, line items, payments, deductions and aggregated deductions.",
+   "tags": [
+    "export",
+    "excel",
+    "columns",
+    "i18n"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/orders/export/columns.ts:orderColumns",
+   "type": "function",
+   "name": "orderColumns",
+   "filePath": "src/features/orders/export/columns.ts",
+   "lineRange": [
+    5,
+    49
+   ],
+   "summary": "Returns the ExcelColumn list for order-level rows (ids, timestamps, status, totals, payment method).",
+   "tags": [
+    "export",
+    "columns"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/orders/export/columns.ts:lineItemColumns",
+   "type": "function",
+   "name": "lineItemColumns",
+   "filePath": "src/features/orders/export/columns.ts",
+   "lineRange": [
+    67,
+    87
+   ],
+   "summary": "Returns column definitions for line item rows including addons and optionals.",
+   "tags": [
+    "export",
+    "columns"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/orders/export/columns.ts:paymentColumns",
+   "type": "function",
+   "name": "paymentColumns",
+   "filePath": "src/features/orders/export/columns.ts",
+   "lineRange": [
+    98,
+    111
+   ],
+   "summary": "Returns column definitions for payment leg rows.",
+   "tags": [
+    "export",
+    "columns"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/orders/export/columns.ts:deductionColumns",
+   "type": "function",
+   "name": "deductionColumns",
+   "filePath": "src/features/orders/export/columns.ts",
+   "lineRange": [
+    124,
+    133
+   ],
+   "summary": "Returns column definitions for per-order ingredient deduction rows.",
+   "tags": [
+    "export",
+    "columns"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/orders/export/columns.ts:deductionAggColumns",
+   "type": "function",
+   "name": "deductionAggColumns",
+   "filePath": "src/features/orders/export/columns.ts",
+   "lineRange": [
+    142,
+    147
+   ],
+   "summary": "Returns column definitions for ingredient deductions aggregated across orders.",
+   "tags": [
+    "export",
+    "columns"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/orders/export/presets.ts",
+   "type": "file",
+   "name": "presets.ts",
+   "filePath": "src/features/orders/export/presets.ts",
+   "summary": "Defines the PRESETS list of orders export presets (accountant daily, Talabat reconcile, shift handoff, ingredient consumption, custom) with grains, icons and filter overrides.",
+   "tags": [
+    "export",
+    "presets",
+    "config",
+    "orders"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/orders/export/types.ts",
+   "type": "file",
+   "name": "types.ts",
+   "filePath": "src/features/orders/export/types.ts",
+   "summary": "Type aliases for orders export grains and preset identifiers.",
+   "tags": [
+    "type-definition",
+    "export",
+    "orders"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/orders/order-export-dialog.tsx",
+   "type": "file",
+   "name": "order-export-dialog.tsx",
+   "filePath": "src/features/orders/order-export-dialog.tsx",
+   "summary": "Sheet-based dialog for exporting orders to Excel: choose a preset, customize grains and filename, fetch orders via the API and write the workbook.",
+   "tags": [
+    "component",
+    "dialog",
+    "export",
+    "orders",
+    "excel"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/orders/order-export-dialog.tsx:OrderExportDialog",
+   "type": "function",
+   "name": "OrderExportDialog",
+   "filePath": "src/features/orders/order-export-dialog.tsx",
+   "lineRange": [
+    42,
+    290
+   ],
+   "summary": "Manages preset/grain/filename state, merges preset filter overrides, fetches export orders and drives buildSheets/buildMeta/exportToExcel with toast error handling.",
+   "tags": [
+    "component",
+    "dialog",
+    "export"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/lib/catalog-fetch.ts",
+   "type": "file",
+   "name": "catalog-fetch.ts",
+   "filePath": "src/lib/catalog-fetch.ts",
+   "summary": "Paginates through every page of the menu and addon catalog endpoints via the React Query cache so exports can resolve full item sets.",
+   "tags": [
+    "utility",
+    "api-client",
+    "pagination",
+    "react-query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/catalog-fetch.ts:fetchAllMenuCatalog",
+   "type": "function",
+   "name": "fetchAllMenuCatalog",
+   "filePath": "src/lib/catalog-fetch.ts",
+   "lineRange": [
+    22,
+    35
+   ],
+   "summary": "Loops over catalog pages with qc.fetchQuery until all MenuItemWithCosts are collected.",
+   "tags": [
+    "utility",
+    "pagination"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/catalog-fetch.ts:fetchAllAddonCatalog",
+   "type": "function",
+   "name": "fetchAllAddonCatalog",
+   "filePath": "src/lib/catalog-fetch.ts",
+   "lineRange": [
+    38,
+    51
+   ],
+   "summary": "Loops over addon catalog pages with qc.fetchQuery until all AddonItems are collected.",
+   "tags": [
+    "utility",
+    "pagination"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/translation.ts",
+   "type": "file",
+   "name": "translation.ts",
+   "filePath": "src/lib/translation.ts",
+   "summary": "Helpers that pick the Arabic name or description from an entity's translations map when the active language is Arabic.",
+   "tags": [
+    "utility",
+    "i18n",
+    "translation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/translation.ts:getTranslatedName",
+   "type": "function",
+   "name": "getTranslatedName",
+   "filePath": "src/lib/translation.ts",
+   "lineRange": [
+    2,
+    10
+   ],
+   "summary": "Returns the Arabic name translation when lang starts with ar, otherwise the base name.",
+   "tags": [
+    "utility",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/translation.ts:getTranslatedDescription",
+   "type": "function",
+   "name": "getTranslatedDescription",
+   "filePath": "src/lib/translation.ts",
+   "lineRange": [
+    13,
+    21
+   ],
+   "summary": "Returns the Arabic description translation when available, otherwise the base description or null.",
+   "tags": [
+    "utility",
+    "i18n"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/components/ui/checkbox.tsx",
+   "target": "function:src/components/ui/checkbox.tsx:Checkbox",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/components/ui/checkbox.tsx",
+   "target": "function:src/components/ui/checkbox.tsx:Checkbox",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/delivery/channel-overrides-export.ts",
+   "target": "function:src/features/delivery/channel-overrides-export.ts:exportChannelOverrides",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/delivery/channel-overrides-export.ts",
+   "target": "function:src/features/delivery/channel-overrides-export.ts:exportChannelOverrides",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/overrides-export.ts",
+   "target": "function:src/features/menu/overrides-export.ts:exportBranchOverrides",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/overrides-export.ts",
+   "target": "function:src/features/menu/overrides-export.ts:exportBranchOverrides",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/export/build-filename.ts",
+   "target": "function:src/features/orders/export/build-filename.ts:buildFilename",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orders/export/build-filename.ts",
+   "target": "function:src/features/orders/export/build-filename.ts:buildFilename",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/export/build-meta.ts",
+   "target": "function:src/features/orders/export/build-meta.ts:buildMeta",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orders/export/build-meta.ts",
+   "target": "function:src/features/orders/export/build-meta.ts:buildMeta",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/export/build-sheets.ts",
+   "target": "function:src/features/orders/export/build-sheets.ts:buildSheets",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orders/export/build-sheets.ts",
+   "target": "function:src/features/orders/export/build-sheets.ts:buildSheets",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "function:src/features/orders/export/columns.ts:orderColumns",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "function:src/features/orders/export/columns.ts:orderColumns",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "function:src/features/orders/export/columns.ts:lineItemColumns",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "function:src/features/orders/export/columns.ts:lineItemColumns",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "function:src/features/orders/export/columns.ts:paymentColumns",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "function:src/features/orders/export/columns.ts:paymentColumns",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "function:src/features/orders/export/columns.ts:deductionColumns",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "function:src/features/orders/export/columns.ts:deductionColumns",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "function:src/features/orders/export/columns.ts:deductionAggColumns",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "function:src/features/orders/export/columns.ts:deductionAggColumns",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "function:src/features/orders/order-export-dialog.tsx:OrderExportDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "function:src/features/orders/order-export-dialog.tsx:OrderExportDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/catalog-fetch.ts",
+   "target": "function:src/lib/catalog-fetch.ts:fetchAllMenuCatalog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/catalog-fetch.ts",
+   "target": "function:src/lib/catalog-fetch.ts:fetchAllMenuCatalog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/catalog-fetch.ts",
+   "target": "function:src/lib/catalog-fetch.ts:fetchAllAddonCatalog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/catalog-fetch.ts",
+   "target": "function:src/lib/catalog-fetch.ts:fetchAllAddonCatalog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/translation.ts",
+   "target": "function:src/lib/translation.ts:getTranslatedName",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/translation.ts",
+   "target": "function:src/lib/translation.ts:getTranslatedName",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/lib/translation.ts",
+   "target": "function:src/lib/translation.ts:getTranslatedDescription",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/lib/translation.ts",
+   "target": "function:src/lib/translation.ts:getTranslatedDescription",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/checkbox.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/channel-overrides-export.ts",
+   "target": "file:src/lib/catalog-fetch.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/channel-overrides-export.ts",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/channel-overrides-export.ts",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/overrides-export.ts",
+   "target": "file:src/lib/catalog-fetch.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/overrides-export.ts",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/overrides-export.ts",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/overrides-export.ts",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/export/build-filename.ts",
+   "target": "file:src/features/orders/export/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/export/build-meta.ts",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/export/build-sheets.ts",
+   "target": "file:src/features/orders/export/columns.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/export/build-sheets.ts",
+   "target": "file:src/features/orders/export/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/export/build-sheets.ts",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/export/build-sheets.ts",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/export/columns.ts",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/export/presets.ts",
+   "target": "file:src/features/orders/export/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/components/ui/checkbox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/components/ui/sheet.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/features/orders/export/build-filename.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/features/orders/export/build-meta.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/features/orders/export/build-sheets.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/features/orders/export/presets.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/features/orders/export/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/order-export-dialog.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/features/delivery/channel-overrides-export.ts:exportChannelOverrides",
+   "target": "function:src/lib/catalog-fetch.ts:fetchAllMenuCatalog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/delivery/channel-overrides-export.ts:exportChannelOverrides",
+   "target": "function:src/lib/catalog-fetch.ts:fetchAllAddonCatalog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/delivery/channel-overrides-export.ts:exportChannelOverrides",
+   "target": "function:src/lib/translation.ts:getTranslatedName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/delivery/channel-overrides-export.ts:exportChannelOverrides",
+   "target": "function:src/lib/excel.ts:exportToExcel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/menu/overrides-export.ts:exportBranchOverrides",
+   "target": "function:src/lib/catalog-fetch.ts:fetchAllMenuCatalog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/menu/overrides-export.ts:exportBranchOverrides",
+   "target": "function:src/lib/catalog-fetch.ts:fetchAllAddonCatalog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/menu/overrides-export.ts:exportBranchOverrides",
+   "target": "function:src/lib/translation.ts:getTranslatedName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/menu/overrides-export.ts:exportBranchOverrides",
+   "target": "function:src/lib/excel.ts:exportToExcel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/menu/overrides-export.ts:exportBranchOverrides",
+   "target": "function:src/lib/format.ts:piastresToEgp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/export/build-meta.ts:buildMeta",
+   "target": "function:src/lib/format.ts:fmtDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/export/build-sheets.ts:buildSheets",
+   "target": "function:src/lib/translation.ts:getTranslatedName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/export/build-sheets.ts:buildSheets",
+   "target": "function:src/features/orders/export/columns.ts:orderColumns",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/export/build-sheets.ts:buildSheets",
+   "target": "function:src/features/orders/export/columns.ts:lineItemColumns",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/export/build-sheets.ts:buildSheets",
+   "target": "function:src/features/orders/export/columns.ts:paymentColumns",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/export/build-sheets.ts:buildSheets",
+   "target": "function:src/features/orders/export/columns.ts:deductionColumns",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/export/build-sheets.ts:buildSheets",
+   "target": "function:src/features/orders/export/columns.ts:deductionAggColumns",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/order-export-dialog.tsx:OrderExportDialog",
+   "target": "function:src/features/orders/export/build-filename.ts:buildFilename",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/order-export-dialog.tsx:OrderExportDialog",
+   "target": "function:src/features/orders/export/build-sheets.ts:buildSheets",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/order-export-dialog.tsx:OrderExportDialog",
+   "target": "function:src/features/orders/export/build-meta.ts:buildMeta",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/order-export-dialog.tsx:OrderExportDialog",
+   "target": "function:src/lib/excel.ts:exportToExcel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/orders/order-export-dialog.tsx:OrderExportDialog",
+   "target": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/components/ui/checkbox.tsx:Checkbox",
+   "target": "function:src/lib/utils.ts:cn",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

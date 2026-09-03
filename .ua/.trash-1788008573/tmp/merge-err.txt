@@ -1,0 +1,65 @@
+Found 44 batch files (28 logical batches, 10 multi-part):
+  batch-1-part-1.json: 38 nodes, 113 edges
+  batch-1-part-2.json: 55 nodes, 111 edges
+  batch-1-part-3.json: 31 nodes, 61 edges
+  batch-2-part-1.json: 51 nodes, 111 edges
+  batch-2-part-2.json: 36 nodes, 117 edges
+  batch-3.json: 34 nodes, 114 edges
+  batch-4.json: 28 nodes, 43 edges
+  batch-5-part-1.json: 33 nodes, 78 edges
+  batch-5-part-2.json: 24 nodes, 69 edges
+  batch-5-part-3.json: 15 nodes, 84 edges
+  batch-6-part-1.json: 36 nodes, 84 edges
+  batch-6-part-2.json: 53 nodes, 102 edges
+  batch-7-part-1.json: 27 nodes, 128 edges
+  batch-7-part-2.json: 24 nodes, 108 edges
+  batch-7-part-3.json: 17 nodes, 114 edges
+  batch-8-part-1.json: 20 nodes, 93 edges
+  batch-8-part-2.json: 20 nodes, 120 edges
+  batch-8-part-3.json: 35 nodes, 101 edges
+  batch-9-part-1.json: 19 nodes, 125 edges
+  batch-9-part-2.json: 21 nodes, 120 edges
+  batch-9-part-3.json: 37 nodes, 77 edges
+  batch-10-part-1.json: 53 nodes, 103 edges
+  batch-10-part-2.json: 52 nodes, 87 edges
+  batch-10-part-3.json: 27 nodes, 69 edges
+  batch-11-part-1.json: 27 nodes, 130 edges
+  batch-11-part-2.json: 24 nodes, 93 edges
+  batch-12-part-1.json: 40 nodes, 149 edges
+  batch-12-part-2.json: 34 nodes, 74 edges
+  batch-13.json: 28 nodes, 85 edges
+  batch-14.json: 36 nodes, 106 edges
+  batch-15.json: 16 nodes, 36 edges
+  batch-16.json: 5 nodes, 7 edges
+  batch-17.json: 20 nodes, 7 edges
+  batch-18.json: 17 nodes, 29 edges
+  batch-19.json: 20 nodes, 6 edges
+  batch-20.json: 8 nodes, 6 edges
+  batch-21.json: 21 nodes, 25 edges
+  batch-22.json: 7 nodes, 9 edges
+  batch-23.json: 20 nodes, 12 edges
+  batch-24.json: 8 nodes, 6 edges
+  batch-25.json: 18 nodes, 18 edges
+  batch-26.json: 35 nodes, 22 edges
+  batch-27.json: 42 nodes, 31 edges
+  batch-28.json: 14 nodes, 15 edges
+
+Input: 1226 nodes, 3198 edges
+
+Could not fix (8 issues — needs agent review):
+  - Edge function:src/components/ui/sonner.tsx:Toaster → function:src/lib/theme.ts:useTheme (calls): dropped, missing target 'function:src/lib/theme.ts:useTheme'
+  - Edge function:src/data/scope/use-scope.ts:useScope → function:src/data/stores/app.store.ts:useAppStore (calls): dropped, missing target 'function:src/data/stores/app.store.ts:useAppStore'
+  - Edge function:src/components/layout/theme-toggle.tsx:ThemeToggle → function:src/lib/theme.ts:useTheme (calls): dropped, missing target 'function:src/lib/theme.ts:useTheme'
+  - Edge function:src/features/users/branch-assign-dialog.tsx:BranchAssignDialog → function:src/features/users/util.ts:invalidateUsers (calls): dropped, missing target 'function:src/features/users/util.ts:invalidateUsers'
+  - Edge function:src/features/users/user-dialog.tsx:UserDialog → function:src/features/users/util.ts:invalidateUsers (calls): dropped, missing target 'function:src/features/users/util.ts:invalidateUsers'
+  - Edge file:src/i18n/index.ts → file:src/i18n/locales/ar.json (imports): dropped, missing target 'file:src/i18n/locales/ar.json'
+  - Edge file:src/i18n/index.ts → file:src/i18n/locales/en.json (imports): dropped, missing target 'file:src/i18n/locales/en.json'
+  - Edge pipeline:.github/workflows/deploy.yml → config:vite.config.ts (depends_on): dropped, missing target 'config:vite.config.ts'
+
+Output: 1226 nodes, 3190 edges
+
+Imports edge recovery:
+  Recovered 0 `imports` edges from importMap (538 entries scanned)
+  Skipped 2 importMap target paths with no `file:` node in graph
+
+Written to /Users/shawket/Desktop/MadarDashboard/.ua/intermediate/assembled-graph.json (1223 KB)

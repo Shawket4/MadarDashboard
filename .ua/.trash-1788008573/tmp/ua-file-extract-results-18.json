@@ -1,0 +1,671 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 17,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 17,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 17
+    }
+  },
+  "results": [
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/measuring-dom-nodes.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 34,
+      "nonEmptyLines": 27,
+      "sections": [
+        {
+          "heading": "Measuring DOM nodes in Remotion",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "Measuring element dimensions",
+          "level": 2,
+          "line": 12
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 2
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/measuring-text.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 140,
+      "nonEmptyLines": 108,
+      "sections": [
+        {
+          "heading": "Measuring text in Remotion",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "Prerequisites",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "Measuring text dimensions",
+          "level": 2,
+          "line": 18
+        },
+        {
+          "heading": "Fitting text to a width",
+          "level": 2,
+          "line": 35
+        },
+        {
+          "heading": "Checking text overflow",
+          "level": 2,
+          "line": 62
+        },
+        {
+          "heading": "Best practices",
+          "level": 2,
+          "line": 85
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/parameters.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 109,
+      "nonEmptyLines": 80,
+      "sections": [
+        {
+          "heading": "Color picker",
+          "level": 2,
+          "line": 84
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/sequencing.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 144,
+      "nonEmptyLines": 114,
+      "sections": [
+        {
+          "heading": "Premounting",
+          "level": 2,
+          "line": 58
+        },
+        {
+          "heading": "Series",
+          "level": 2,
+          "line": 69
+        },
+        {
+          "heading": "Series with overlaps",
+          "level": 3,
+          "line": 91
+        },
+        {
+          "heading": "Frame References Inside Sequences",
+          "level": 2,
+          "line": 107
+        },
+        {
+          "heading": "Nested Sequences",
+          "level": 2,
+          "line": 118
+        },
+        {
+          "heading": "Nesting compositions within another",
+          "level": 2,
+          "line": 134
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/sfx.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 51,
+      "nonEmptyLines": 45,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 0
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/silence-detection.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 71,
+      "nonEmptyLines": 49,
+      "sections": [
+        {
+          "heading": "Adaptive Silence Detection",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "Step 1: Measure loudness with `loudnorm`",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "Step 2: Detect silences using adaptive threshold",
+          "level": 2,
+          "line": 26
+        },
+        {
+          "heading": "Interpreting the output",
+          "level": 2,
+          "line": 38
+        },
+        {
+          "heading": "Identifying leading and trailing silence",
+          "level": 2,
+          "line": 49
+        },
+        {
+          "heading": "Using with Remotion's `<Video>` component",
+          "level": 2,
+          "line": 56
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/subtitles.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 36,
+      "nonEmptyLines": 26,
+      "sections": [
+        {
+          "heading": "Generating captions",
+          "level": 2,
+          "line": 26
+        },
+        {
+          "heading": "Displaying captions",
+          "level": 2,
+          "line": 30
+        },
+        {
+          "heading": "Importing captions",
+          "level": 2,
+          "line": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/tailwind.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 11,
+      "nonEmptyLines": 8,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 0
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/text-animations.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 20,
+      "nonEmptyLines": 13,
+      "sections": [
+        {
+          "heading": "Text animations",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "Typewriter Effect",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "Word Highlighting",
+          "level": 2,
+          "line": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/timing.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 162,
+      "nonEmptyLines": 122,
+      "sections": [
+        {
+          "heading": "Studio-editable animation patterns",
+          "level": 2,
+          "line": 28
+        },
+        {
+          "heading": "Bézier easing",
+          "level": 2,
+          "line": 52
+        },
+        {
+          "heading": "Examples (copy-paste curves)",
+          "level": 3,
+          "line": 66
+        },
+        {
+          "heading": "Preset easings (`Easing.in` / `Easing.out` / named curves)",
+          "level": 2,
+          "line": 98
+        },
+        {
+          "heading": "Easing direction for enter/exit animations",
+          "level": 3,
+          "line": 127
+        },
+        {
+          "heading": "Composing interpolations",
+          "level": 2,
+          "line": 131
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/transcribe-captions.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 70,
+      "nonEmptyLines": 53,
+      "sections": [
+        {
+          "heading": "Transcribing audio",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "Prerequisites",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "Transcribing",
+          "level": 2,
+          "line": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/transitions.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 197,
+      "nonEmptyLines": 146,
+      "sections": [
+        {
+          "heading": "TransitionSeries",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "Prerequisites",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "Transition example",
+          "level": 2,
+          "line": 23
+        },
+        {
+          "heading": "Overlay example",
+          "level": 2,
+          "line": 43
+        },
+        {
+          "heading": "Mixing transitions and overlays",
+          "level": 2,
+          "line": 64
+        },
+        {
+          "heading": "Transition props",
+          "level": 2,
+          "line": 93
+        },
+        {
+          "heading": "Overlay props",
+          "level": 2,
+          "line": 100
+        },
+        {
+          "heading": "Available transition types",
+          "level": 2,
+          "line": 107
+        },
+        {
+          "heading": "Slide transition with direction",
+          "level": 2,
+          "line": 119
+        },
+        {
+          "heading": "Timing options",
+          "level": 2,
+          "line": 132
+        },
+        {
+          "heading": "Duration calculation",
+          "level": 2,
+          "line": 144
+        },
+        {
+          "heading": "Getting the duration of a transition",
+          "level": 3,
+          "line": 155
+        },
+        {
+          "heading": "Calculating total composition duration",
+          "level": 3,
+          "line": 175
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 13
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/transparent-videos.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 106,
+      "nonEmptyLines": 82,
+      "sections": [
+        {
+          "heading": "Rendering Transparent Videos",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "Transparent ProRes",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "Transparent WebM (VP9)",
+          "level": 2,
+          "line": 61
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/trimming.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 51,
+      "nonEmptyLines": 36,
+      "sections": [
+        {
+          "heading": "Trim the Beginning",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "Trim the End",
+          "level": 2,
+          "line": 27
+        },
+        {
+          "heading": "Trim and Delay",
+          "level": 2,
+          "line": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/video-layout.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 68,
+      "nonEmptyLines": 51,
+      "sections": [
+        {
+          "heading": "Video layout",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "Start from the frame",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "Default scene structure",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "Prevent overlap by construction",
+          "level": 2,
+          "line": 30
+        },
+        {
+          "heading": "Text in video",
+          "level": 2,
+          "line": 40
+        },
+        {
+          "heading": "Solve crowding with time",
+          "level": 2,
+          "line": 53
+        },
+        {
+          "heading": "Pre-render check",
+          "level": 2,
+          "line": 61
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/videos.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 171,
+      "nonEmptyLines": 126,
+      "sections": [
+        {
+          "heading": "Using videos in Remotion",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "Prerequisites",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "Trimming",
+          "level": 2,
+          "line": 39
+        },
+        {
+          "heading": "Delaying",
+          "level": 2,
+          "line": 55
+        },
+        {
+          "heading": "Sizing and Position",
+          "level": 2,
+          "line": 74
+        },
+        {
+          "heading": "Volume",
+          "level": 2,
+          "line": 92
+        },
+        {
+          "heading": "Speed",
+          "level": 2,
+          "line": 123
+        },
+        {
+          "heading": "Looping",
+          "level": 2,
+          "line": 134
+        },
+        {
+          "heading": "Pitch",
+          "level": 2,
+          "line": 156
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 9
+      }
+    },
+    {
+      "path": ".agents/skills/remotion-best-practices/rules/voiceover.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 99,
+      "nonEmptyLines": 73,
+      "sections": [
+        {
+          "heading": "Adding AI voiceover to a Remotion composition",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "Prerequisites",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "Generating audio with ElevenLabs",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "Dynamic composition duration with calculateMetadata",
+          "level": 2,
+          "line": 56
+        },
+        {
+          "heading": "Rendering audio in the component",
+          "level": 2,
+          "line": 93
+        },
+        {
+          "heading": "Delaying audio start",
+          "level": 2,
+          "line": 97
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    }
+  ]
+}

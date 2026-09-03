@@ -1,0 +1,871 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/components/ui/input.tsx",
+   "type": "file",
+   "name": "input.tsx",
+   "filePath": "src/components/ui/input.tsx",
+   "summary": "Styled text Input primitive forwarding native input props.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "input",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/input.tsx:Input",
+   "type": "function",
+   "name": "Input",
+   "filePath": "src/components/ui/input.tsx",
+   "lineRange": [
+    5,
+    19
+   ],
+   "summary": "Tailwind-styled native input wrapper.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "input"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/label.tsx",
+   "type": "file",
+   "name": "label.tsx",
+   "filePath": "src/components/ui/label.tsx",
+   "summary": "Radix Label wrapper with consistent typography and disabled styling.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "label",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/label.tsx:Label",
+   "type": "function",
+   "name": "Label",
+   "filePath": "src/components/ui/label.tsx",
+   "lineRange": [
+    6,
+    20
+   ],
+   "summary": "Styled Radix label component.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "label"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/select.tsx",
+   "type": "file",
+   "name": "select.tsx",
+   "filePath": "src/components/ui/select.tsx",
+   "summary": "Radix Select wrappers (trigger, content, item, scroll buttons) styled with Tailwind for dropdown selects across forms.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "select",
+    "radix"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/select.tsx:SelectTrigger",
+   "type": "function",
+   "name": "SelectTrigger",
+   "filePath": "src/components/ui/select.tsx",
+   "lineRange": [
+    27,
+    51
+   ],
+   "summary": "Styled select trigger with chevron icon.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "select"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/select.tsx:SelectContent",
+   "type": "function",
+   "name": "SelectContent",
+   "filePath": "src/components/ui/select.tsx",
+   "lineRange": [
+    53,
+    88
+   ],
+   "summary": "Portal-rendered dropdown list with positioning and scroll buttons.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "select"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/select.tsx:SelectLabel",
+   "type": "function",
+   "name": "SelectLabel",
+   "filePath": "src/components/ui/select.tsx",
+   "lineRange": [
+    90,
+    101
+   ],
+   "summary": "Group label inside the dropdown.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "select"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/select.tsx:SelectItem",
+   "type": "function",
+   "name": "SelectItem",
+   "filePath": "src/components/ui/select.tsx",
+   "lineRange": [
+    103,
+    128
+   ],
+   "summary": "Selectable option row with check indicator.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "select"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/select.tsx:SelectSeparator",
+   "type": "function",
+   "name": "SelectSeparator",
+   "filePath": "src/components/ui/select.tsx",
+   "lineRange": [
+    130,
+    141
+   ],
+   "summary": "Visual separator between option groups.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "select"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/select.tsx:SelectScrollUpButton",
+   "type": "function",
+   "name": "SelectScrollUpButton",
+   "filePath": "src/components/ui/select.tsx",
+   "lineRange": [
+    143,
+    159
+   ],
+   "summary": "Scroll-up affordance inside long lists.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "select"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/select.tsx:SelectScrollDownButton",
+   "type": "function",
+   "name": "SelectScrollDownButton",
+   "filePath": "src/components/ui/select.tsx",
+   "lineRange": [
+    161,
+    177
+   ],
+   "summary": "Scroll-down affordance inside long lists.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "select"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/switch.tsx",
+   "type": "file",
+   "name": "switch.tsx",
+   "filePath": "src/components/ui/switch.tsx",
+   "summary": "Radix Switch toggle primitive styled as a pill with thumb animation.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "toggle",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/switch.tsx:Switch",
+   "type": "function",
+   "name": "Switch",
+   "filePath": "src/components/ui/switch.tsx",
+   "lineRange": [
+    8,
+    33
+   ],
+   "summary": "Styled Radix switch with animated thumb.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "toggle"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/textarea.tsx",
+   "type": "file",
+   "name": "textarea.tsx",
+   "filePath": "src/components/ui/textarea.tsx",
+   "summary": "Styled Textarea primitive forwarding native textarea props.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "textarea",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/textarea.tsx:Textarea",
+   "type": "function",
+   "name": "Textarea",
+   "filePath": "src/components/ui/textarea.tsx",
+   "lineRange": [
+    5,
+    16
+   ],
+   "summary": "Tailwind-styled native textarea wrapper.",
+   "tags": [
+    "ui-primitive",
+    "component",
+    "textarea"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/api/errors.ts",
+   "type": "file",
+   "name": "errors.ts",
+   "filePath": "src/data/api/errors.ts",
+   "summary": "Normalizes Axios/API errors into a localized, user-facing message string using the i18n instance; shared by every mutation error toast.",
+   "tags": [
+    "utility",
+    "error-handling",
+    "api",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "function",
+   "name": "getErrorMessage",
+   "filePath": "src/data/api/errors.ts",
+   "lineRange": [
+    5,
+    37
+   ],
+   "summary": "Extracts a readable message from an unknown error (Axios response body, network failure, generic Error) and localizes it.",
+   "tags": [
+    "utility",
+    "error-handling",
+    "api"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/auth/login-page.tsx",
+   "type": "file",
+   "name": "login-page.tsx",
+   "filePath": "src/features/auth/login-page.tsx",
+   "summary": "Login screen with a Zod-validated email/password form, auth store sign-in, error display, and theme/language toggles with motion animations.",
+   "tags": [
+    "page",
+    "auth",
+    "form",
+    "entry-point"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/auth/login-page.tsx:LoginPage",
+   "type": "function",
+   "name": "LoginPage",
+   "filePath": "src/features/auth/login-page.tsx",
+   "lineRange": [
+    36,
+    204
+   ],
+   "summary": "Renders the login form, submits credentials to the auth store, and shows localized errors.",
+   "tags": [
+    "page",
+    "auth",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/branches/branch-dialog.tsx",
+   "type": "file",
+   "name": "branch-dialog.tsx",
+   "filePath": "src/features/branches/branch-dialog.tsx",
+   "summary": "Create/edit dialog for organization branches including address, timezone, coordinates and active flag, wired to generated React Query mutations.",
+   "tags": [
+    "dialog",
+    "form",
+    "branches",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/branches/branch-dialog.tsx:BranchDialog",
+   "type": "function",
+   "name": "BranchDialog",
+   "filePath": "src/features/branches/branch-dialog.tsx",
+   "lineRange": [
+    32,
+    202
+   ],
+   "summary": "Form dialog that creates or updates a branch and reports API errors.",
+   "tags": [
+    "dialog",
+    "form",
+    "branches"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/bundles/bundle-dialog.tsx",
+   "type": "file",
+   "name": "bundle-dialog.tsx",
+   "filePath": "src/features/bundles/bundle-dialog.tsx",
+   "summary": "Create/edit dialog for menu bundles with bilingual name, image upload, pricing, and selection of included menu items.",
+   "tags": [
+    "dialog",
+    "form",
+    "bundles",
+    "crud",
+    "i18n"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/bundles/bundle-dialog.tsx:BundleDialog",
+   "type": "function",
+   "name": "BundleDialog",
+   "filePath": "src/features/bundles/bundle-dialog.tsx",
+   "lineRange": [
+    46,
+    301
+   ],
+   "summary": "Form dialog managing bundle fields, item selection and image upload, submitting via generated mutations.",
+   "tags": [
+    "dialog",
+    "form",
+    "bundles"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/components/ui/input.tsx",
+   "target": "function:src/components/ui/input.tsx:Input",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/input.tsx",
+   "target": "function:src/components/ui/input.tsx:Input",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/input.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/label.tsx",
+   "target": "function:src/components/ui/label.tsx:Label",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/label.tsx",
+   "target": "function:src/components/ui/label.tsx:Label",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/label.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectLabel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectLabel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectSeparator",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectSeparator",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectScrollUpButton",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectScrollUpButton",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectScrollDownButton",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "function:src/components/ui/select.tsx:SelectScrollDownButton",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/select.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/switch.tsx",
+   "target": "function:src/components/ui/switch.tsx:Switch",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/switch.tsx",
+   "target": "function:src/components/ui/switch.tsx:Switch",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/switch.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/textarea.tsx",
+   "target": "function:src/components/ui/textarea.tsx:Textarea",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/textarea.tsx",
+   "target": "function:src/components/ui/textarea.tsx:Textarea",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/textarea.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/errors.ts",
+   "target": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/errors.ts",
+   "target": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/errors.ts",
+   "target": "file:src/i18n/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/auth/login-page.tsx",
+   "target": "function:src/features/auth/login-page.tsx:LoginPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/auth/login-page.tsx",
+   "target": "function:src/features/auth/login-page.tsx:LoginPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/auth/login-page.tsx",
+   "target": "file:src/components/layout/language-toggle.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/auth/login-page.tsx",
+   "target": "file:src/components/layout/theme-toggle.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/auth/login-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/auth/login-page.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/auth/login-page.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/auth/login-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/auth/login-page.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/auth/login-page.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "function:src/features/branches/branch-dialog.tsx:BranchDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "function:src/features/branches/branch-dialog.tsx:BranchDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "file:src/components/app/timezone-select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branch-dialog.tsx",
+   "target": "file:src/features/branches/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "function:src/features/bundles/bundle-dialog.tsx:BundleDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "function:src/features/bundles/bundle-dialog.tsx:BundleDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/components/app/bilingual-field.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/components/app/combobox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/components/app/image-uploader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/components/ui/checkbox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/features/bundles/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundle-dialog.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/features/auth/login-page.tsx:LoginPage",
+   "target": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/branches/branch-dialog.tsx:BranchDialog",
+   "target": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/bundles/bundle-dialog.tsx:BundleDialog",
+   "target": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

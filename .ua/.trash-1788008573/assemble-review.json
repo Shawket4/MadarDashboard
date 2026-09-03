@@ -1,0 +1,14 @@
+{
+  "fixedSectionOk": true,
+  "nodesRecovered": 3,
+  "edgesRestored": 8,
+  "crossBatchEdgesAdded": 0,
+  "typesRemapped": 0,
+  "complexityRemapped": 0,
+  "notes": [
+    "Fixed section reported no ID/complexity corrections; types and complexity all valid.",
+    "3 exported functions (useTheme, useAppStore, invalidateUsers) were never emitted as nodes by their batches; recreated with defaults plus contains edges.",
+    "i18n locale JSONs and vite.config.ts exist as config:/file: nodes; dropped edges retargeted to those IDs.",
+    "Import map fully covered by existing imports edges; only the 2 locale JSON entries lacked file: nodes (they are config: nodes)."
+  ]
+}

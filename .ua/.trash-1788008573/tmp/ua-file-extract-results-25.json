@@ -1,0 +1,751 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 18,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 18,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 18
+    }
+  },
+  "results": [
+    {
+      "path": "frontend_agent_prompts/00_setup_infrastructure.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 19,
+      "nonEmptyLines": 16,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Architecture to Build",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 16
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/01_test_auth.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/02_test_dashboard.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/03_test_orgs.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/04_test_branches.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/05_test_users.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/06_test_permissions.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/07_test_menu.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/08_test_inventory.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/09_test_recipes.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/10_test_bundles.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/11_test_discounts.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/12_test_orders.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/13_test_shifts.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/14_test_settings.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/15_test_analytics.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/16_test_public-menu.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "frontend_agent_prompts/17_test_menu-advisor.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Role",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "Context to Gather First",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "Guidelines for Writing Tests",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "Execution Loop",
+          "level": 1,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    }
+  ]
+}

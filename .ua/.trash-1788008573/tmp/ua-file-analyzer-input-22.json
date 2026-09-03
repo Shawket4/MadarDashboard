@@ -1,0 +1,9 @@
+{"projectRoot":"/Users/shawket/Desktop/MadarDashboard","batchFiles":[
+{"path":"index.html","language":"html","sizeLines":21,"fileCategory":"markup"},
+{"path":"order.html","language":"html","sizeLines":18,"fileCategory":"markup"},
+{"path":"overhaul_prompt.md","language":"markdown","sizeLines":604,"fileCategory":"docs"},
+{"path":"package.json","language":"json","sizeLines":121,"fileCategory":"config"},
+{"path":"skills-lock.json","language":"json","sizeLines":11,"fileCategory":"config"},
+{"path":"tsconfig.json","language":"json","sizeLines":27,"fileCategory":"config"},
+{"path":"tsconfig.node.json","language":"json","sizeLines":11,"fileCategory":"config"}],
+"batchImportData":{"index.html":[],"order.html":[],"overhaul_prompt.md":[],"package.json":[],"skills-lock.json":[],"tsconfig.json":[],"tsconfig.node.json":[]}}

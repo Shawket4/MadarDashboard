@@ -1,0 +1,1288 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/menu/studio/section-options.tsx",
+   "type": "file",
+   "name": "section-options.tsx",
+   "filePath": "src/features/menu/studio/section-options.tsx",
+   "summary": "Menu Studio section editing option rows (ingredient-linked choices) with price and availability per row.",
+   "tags": [
+    "component",
+    "menu-studio",
+    "options",
+    "section"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/studio/section-options.tsx:SectionOptions",
+   "type": "function",
+   "name": "SectionOptions",
+   "filePath": "src/features/menu/studio/section-options.tsx",
+   "lineRange": [
+    25,
+    143
+   ],
+   "summary": "Studio section editing option rows.",
+   "tags": [
+    "component",
+    "component",
+    "menu-studio"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/menu/studio/section-sizes.tsx",
+   "type": "file",
+   "name": "section-sizes.tsx",
+   "filePath": "src/features/menu/studio/section-sizes.tsx",
+   "summary": "Menu Studio section managing size blocks with prices and per-size recipe lines, computing live cost estimates from the ingredient catalog.",
+   "tags": [
+    "component",
+    "menu-studio",
+    "sizes",
+    "recipe",
+    "costing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/menu/studio/section-sizes.tsx:estimateFor",
+   "type": "function",
+   "name": "estimateFor",
+   "filePath": "src/features/menu/studio/section-sizes.tsx",
+   "lineRange": [
+    33,
+    49
+   ],
+   "summary": "Sums estimated cost for recipe lines from catalog unit costs.",
+   "tags": [
+    "utility",
+    "component",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/section-sizes.tsx:SectionSizes",
+   "type": "function",
+   "name": "SectionSizes",
+   "filePath": "src/features/menu/studio/section-sizes.tsx",
+   "lineRange": [
+    57,
+    287
+   ],
+   "summary": "Studio section managing size blocks, prices and recipe lines with cost estimates.",
+   "tags": [
+    "component",
+    "component",
+    "menu-studio"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/menu/studio/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/menu/studio/util.ts",
+   "summary": "Menu Studio helpers: query invalidation, draft types, converters from the StudioAggregate to editable drafts and signature functions for dirty detection.",
+   "tags": [
+    "utility",
+    "menu-studio",
+    "type-definition",
+    "state-management"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:invalidateStudio",
+   "type": "function",
+   "name": "invalidateStudio",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    16,
+    32
+   ],
+   "summary": "Invalidates studio aggregate, item cost and catalog list queries for an item.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:invalidateIngredientCosts",
+   "type": "function",
+   "name": "invalidateIngredientCosts",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    40,
+    43
+   ],
+   "summary": "invalidateIngredientCosts helper in util.ts.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:arOf",
+   "type": "function",
+   "name": "arOf",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    46,
+    49
+   ],
+   "summary": "arOf helper in util.ts.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:newBlockKey",
+   "type": "function",
+   "name": "newBlockKey",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    118,
+    118
+   ],
+   "summary": "newBlockKey helper in util.ts.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:toItemValues",
+   "type": "function",
+   "name": "toItemValues",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    122,
+    131
+   ],
+   "summary": "Converts StudioAggregate to item draft values.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:toSizeBlocks",
+   "type": "function",
+   "name": "toSizeBlocks",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    133,
+    153
+   ],
+   "summary": "Converts StudioAggregate sizes into editable size blocks.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:toAttachDraft",
+   "type": "function",
+   "name": "toAttachDraft",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    155,
+    170
+   ],
+   "summary": "Converts a ModifierGroupOut into an attachment draft.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:toAttachDrafts",
+   "type": "function",
+   "name": "toAttachDrafts",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    172,
+    173
+   ],
+   "summary": "toAttachDrafts helper in util.ts.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:toOptionRows",
+   "type": "function",
+   "name": "toOptionRows",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    175,
+    187
+   ],
+   "summary": "Converts StudioAggregate options into option row drafts.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:itemSig",
+   "type": "function",
+   "name": "itemSig",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    191,
+    192
+   ],
+   "summary": "itemSig helper in util.ts.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:sizesSig",
+   "type": "function",
+   "name": "sizesSig",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    194,
+    195
+   ],
+   "summary": "sizesSig helper in util.ts.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:recipeSig",
+   "type": "function",
+   "name": "recipeSig",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    197,
+    198
+   ],
+   "summary": "recipeSig helper in util.ts.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:modifiersSig",
+   "type": "function",
+   "name": "modifiersSig",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    200,
+    209
+   ],
+   "summary": "Builds a stable signature string for modifier attachments.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/studio/util.ts:optionsSig",
+   "type": "function",
+   "name": "optionsSig",
+   "filePath": "src/features/menu/studio/util.ts",
+   "lineRange": [
+    211,
+    212
+   ],
+   "summary": "optionsSig helper in util.ts.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu-studio"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/menu/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/menu/util.ts",
+   "summary": "Small menu helpers: invalidate all catalog-related React Query caches and read the Arabic translation from a translations object.",
+   "tags": [
+    "utility",
+    "menu",
+    "cache-invalidation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/util.ts:invalidateCatalog",
+   "type": "function",
+   "name": "invalidateCatalog",
+   "filePath": "src/features/menu/util.ts",
+   "lineRange": [
+    4,
+    19
+   ],
+   "summary": "Invalidates every catalog-related query by key prefix.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/util.ts:arOf",
+   "type": "function",
+   "name": "arOf",
+   "filePath": "src/features/menu/util.ts",
+   "lineRange": [
+    22,
+    25
+   ],
+   "summary": "arOf helper in util.ts.",
+   "tags": [
+    "utility",
+    "utility",
+    "menu"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/onboarding/step-panel.tsx",
+   "type": "file",
+   "name": "step-panel.tsx",
+   "filePath": "src/features/onboarding/step-panel.tsx",
+   "summary": "Onboarding step panel rendering per-stage bodies (org identity, branches, menu items, recipes, go-live) that reuse the real create dialogs.",
+   "tags": [
+    "component",
+    "onboarding",
+    "wizard",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/onboarding/step-panel.tsx:StepPanel",
+   "type": "function",
+   "name": "StepPanel",
+   "filePath": "src/features/onboarding/step-panel.tsx",
+   "lineRange": [
+    50,
+    78
+   ],
+   "summary": "Chooses and renders the body for the active onboarding step.",
+   "tags": [
+    "component",
+    "component",
+    "onboarding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/onboarding/step-panel.tsx:StepBody",
+   "type": "function",
+   "name": "StepBody",
+   "filePath": "src/features/onboarding/step-panel.tsx",
+   "lineRange": [
+    80,
+    132
+   ],
+   "summary": "Dispatches per-step content and counts.",
+   "tags": [
+    "component",
+    "component",
+    "onboarding"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/onboarding/step-panel.tsx:AddViaDialog",
+   "type": "function",
+   "name": "AddViaDialog",
+   "filePath": "src/features/onboarding/step-panel.tsx",
+   "lineRange": [
+    136,
+    177
+   ],
+   "summary": "Generic step body opening a create dialog and refreshing counts.",
+   "tags": [
+    "component",
+    "component",
+    "onboarding"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/onboarding/step-panel.tsx:OrgIdentityBody",
+   "type": "function",
+   "name": "OrgIdentityBody",
+   "filePath": "src/features/onboarding/step-panel.tsx",
+   "lineRange": [
+    181,
+    252
+   ],
+   "summary": "Step editing org name, logo and currency.",
+   "tags": [
+    "component",
+    "component",
+    "onboarding"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/onboarding/step-panel.tsx:MenuItemsBody",
+   "type": "function",
+   "name": "MenuItemsBody",
+   "filePath": "src/features/onboarding/step-panel.tsx",
+   "lineRange": [
+    256,
+    291
+   ],
+   "summary": "Step for adding first menu items via MenuItemDialog.",
+   "tags": [
+    "component",
+    "component",
+    "onboarding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/onboarding/step-panel.tsx:RecipesBody",
+   "type": "function",
+   "name": "RecipesBody",
+   "filePath": "src/features/onboarding/step-panel.tsx",
+   "lineRange": [
+    295,
+    338
+   ],
+   "summary": "Step for creating ingredients and recipes.",
+   "tags": [
+    "component",
+    "component",
+    "onboarding"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/onboarding/step-panel.tsx:GoLiveBody",
+   "type": "function",
+   "name": "GoLiveBody",
+   "filePath": "src/features/onboarding/step-panel.tsx",
+   "lineRange": [
+    342,
+    362
+   ],
+   "summary": "Final step completing onboarding.",
+   "tags": [
+    "component",
+    "component",
+    "onboarding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/orders/void-order-dialog.tsx",
+   "type": "file",
+   "name": "void-order-dialog.tsx",
+   "filePath": "src/features/orders/void-order-dialog.tsx",
+   "summary": "Dialog to void an order with a reason code, optional note (required for 'other') and a restore-stock toggle.",
+   "tags": [
+    "component",
+    "dialog",
+    "orders",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/orders/void-order-dialog.tsx:VoidOrderDialog",
+   "type": "function",
+   "name": "VoidOrderDialog",
+   "filePath": "src/features/orders/void-order-dialog.tsx",
+   "lineRange": [
+    31,
+    113
+   ],
+   "summary": "Dialog voiding an order with reason, note and stock restore.",
+   "tags": [
+    "component",
+    "component",
+    "dialog"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/orgs/org-dialog.tsx",
+   "type": "file",
+   "name": "org-dialog.tsx",
+   "filePath": "src/features/orgs/org-dialog.tsx",
+   "summary": "Zod + React Hook Form dialog for creating or editing an organization with slug generation, logo upload, timezone and active flag.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "orgs",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/orgs/org-dialog.tsx:OrgDialog",
+   "type": "function",
+   "name": "OrgDialog",
+   "filePath": "src/features/orgs/org-dialog.tsx",
+   "lineRange": [
+    31,
+    200
+   ],
+   "summary": "Validated form dialog for organization create/update.",
+   "tags": [
+    "component",
+    "component",
+    "dialog"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/menu/studio/section-options.tsx",
+   "target": "function:src/features/menu/studio/section-options.tsx:SectionOptions",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/section-options.tsx",
+   "target": "function:src/features/menu/studio/section-options.tsx:SectionOptions",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/section-options.tsx",
+   "target": "file:src/components/app/combobox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-options.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-options.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-options.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-options.tsx",
+   "target": "file:src/features/menu/studio/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-options.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "function:src/features/menu/studio/section-sizes.tsx:estimateFor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "function:src/features/menu/studio/section-sizes.tsx:SectionSizes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "function:src/features/menu/studio/section-sizes.tsx:SectionSizes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "file:src/components/app/combobox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "file:src/features/menu/studio/fix-cost-popover.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "file:src/features/menu/studio/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:invalidateStudio",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:invalidateStudio",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:invalidateIngredientCosts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:invalidateIngredientCosts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:arOf",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:arOf",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:newBlockKey",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:newBlockKey",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:toItemValues",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:toItemValues",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:toSizeBlocks",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:toSizeBlocks",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:toAttachDraft",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:toAttachDraft",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:toAttachDrafts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:toAttachDrafts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:toOptionRows",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:toOptionRows",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:itemSig",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:itemSig",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:sizesSig",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:sizesSig",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:recipeSig",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:recipeSig",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:modifiersSig",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:modifiersSig",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:optionsSig",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "function:src/features/menu/studio/util.ts:optionsSig",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/util.ts",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/util.ts",
+   "target": "function:src/features/menu/util.ts:invalidateCatalog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/util.ts",
+   "target": "function:src/features/menu/util.ts:invalidateCatalog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/util.ts",
+   "target": "function:src/features/menu/util.ts:arOf",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/menu/util.ts",
+   "target": "function:src/features/menu/util.ts:arOf",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "function:src/features/onboarding/step-panel.tsx:StepPanel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "function:src/features/onboarding/step-panel.tsx:StepPanel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "function:src/features/onboarding/step-panel.tsx:StepBody",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "function:src/features/onboarding/step-panel.tsx:AddViaDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "function:src/features/onboarding/step-panel.tsx:OrgIdentityBody",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "function:src/features/onboarding/step-panel.tsx:MenuItemsBody",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "function:src/features/onboarding/step-panel.tsx:RecipesBody",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "function:src/features/onboarding/step-panel.tsx:GoLiveBody",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/components/app/image-uploader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/features/branches/branch-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/features/menu/addon-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/features/menu/category-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/features/menu/menu-item-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/features/onboarding/config.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/features/payment-methods/payment-method-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/features/recipes/create-ingredient-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/features/users/user-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/step-panel.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/void-order-dialog.tsx",
+   "target": "function:src/features/orders/void-order-dialog.tsx:VoidOrderDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orders/void-order-dialog.tsx",
+   "target": "function:src/features/orders/void-order-dialog.tsx:VoidOrderDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orders/void-order-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/void-order-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/void-order-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/void-order-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/void-order-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/void-order-dialog.tsx",
+   "target": "file:src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/void-order-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orders/void-order-dialog.tsx",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "function:src/features/orgs/org-dialog.tsx:OrgDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "function:src/features/orgs/org-dialog.tsx:OrgDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "file:src/components/app/image-uploader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "file:src/components/app/timezone-select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/orgs/org-dialog.tsx",
+   "target": "file:src/features/orgs/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/studio/section-sizes.tsx",
+   "target": "function:src/features/menu/studio/fix-cost-popover.tsx:FixCostPopover",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

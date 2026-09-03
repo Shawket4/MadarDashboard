@@ -1,0 +1,370 @@
+{
+ "nodes": [
+  {
+   "id": "document:.github/skills/impeccable/reference/adapt.md",
+   "type": "document",
+   "name": "adapt.md",
+   "filePath": ".github/skills/impeccable/reference/adapt.md",
+   "summary": "Reference for the /impeccable adapt command: rethinking a design for a new screen size, device, or platform instead of merely scaling it.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "responsive",
+    "adaptation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/animate.md",
+   "type": "document",
+   "name": "animate.md",
+   "filePath": ".github/skills/impeccable/reference/animate.md",
+   "summary": "Reference for the /impeccable animate command: adding motion that conveys state and feedback while cutting decorative animation and respecting performance and reduced-motion.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "animation",
+    "motion"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/audit.md",
+   "type": "document",
+   "name": "audit.md",
+   "filePath": ".github/skills/impeccable/reference/audit.md",
+   "summary": "Reference for the /impeccable audit command: a code-level technical quality scan producing a report of measurable issues without fixing them.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "audit",
+    "quality-assurance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/bolder.md",
+   "type": "document",
+   "name": "bolder.md",
+   "filePath": ".github/skills/impeccable/reference/bolder.md",
+   "summary": "Reference for the /impeccable bolder command: increasing visual impact via hierarchy, scale, and decisive type while rejecting cliche gradient/glassmorphism tricks.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "visual-hierarchy",
+    "typography"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/brand.md",
+   "type": "document",
+   "name": "brand.md",
+   "filePath": ".github/skills/impeccable/reference/brand.md",
+   "summary": "Defines the brand register, where design is the product (landing, marketing, portfolio pages), with genre-spanning guidance and slop tests.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "brand",
+    "register"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/clarify.md",
+   "type": "document",
+   "name": "clarify.md",
+   "filePath": ".github/skills/impeccable/reference/clarify.md",
+   "summary": "Reference for the /impeccable clarify command: finding and rewriting vague or confusing interface copy into specific, task-completing text.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "ux-copy",
+    "clarity"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/codex.md",
+   "type": "document",
+   "name": "codex.md",
+   "filePath": ".github/skills/impeccable/reference/codex.md",
+   "summary": "Codex-only companion for the craft flow covering visual direction and raster asset production via native image generation.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "image-generation",
+    "assets"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/colorize.md",
+   "type": "document",
+   "name": "colorize.md",
+   "filePath": ".github/skills/impeccable/reference/colorize.md",
+   "summary": "Reference for the /impeccable colorize command: choosing a color strategy and hue family and applying a palette with intent rather than adding more color.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "color",
+    "palette"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/craft.md",
+   "type": "document",
+   "name": "craft.md",
+   "filePath": ".github/skills/impeccable/reference/craft.md",
+   "summary": "Describes the craft flow: shape the design, land visual direction, build production code, and iterate in-browser to a studio-quality bar.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "workflow",
+    "implementation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/critique.md",
+   "type": "document",
+   "name": "critique.md",
+   "filePath": ".github/skills/impeccable/reference/critique.md",
+   "summary": "Detailed critique workflow: resolve a stable target, run two independent assessments, synthesize a design critique, persist a snapshot, and prompt for next improvements.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "critique",
+    "workflow"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/delight.md",
+   "type": "document",
+   "name": "delight.md",
+   "filePath": ".github/skills/impeccable/reference/delight.md",
+   "summary": "Reference for the /impeccable delight command: finding the moments where personality and unexpected polish are earned, without turning delight into noise.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "micro-interactions",
+    "personality"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/distill.md",
+   "type": "document",
+   "name": "distill.md",
+   "filePath": ".github/skills/impeccable/reference/distill.md",
+   "summary": "Reference for the /impeccable distill command: stripping a design to its essence by removing redundant, decorative, or cosmetically complex elements.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "simplification",
+    "minimalism"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/document.md",
+   "type": "document",
+   "name": "document.md",
+   "filePath": ".github/skills/impeccable/reference/document.md",
+   "summary": "Reference for the /impeccable document command: generating a DESIGN.md in the Google Stitch format with YAML token frontmatter and six fixed sections.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "design-system",
+    "design-tokens"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/extract.md",
+   "type": "document",
+   "name": "extract.md",
+   "filePath": ".github/skills/impeccable/reference/extract.md",
+   "summary": "Describes the extract flow: discovering the design system and consolidating reusable patterns, components, and tokens into it.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "design-system",
+    "refactoring"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/harden.md",
+   "type": "document",
+   "name": "harden.md",
+   "filePath": ".github/skills/impeccable/reference/harden.md",
+   "summary": "Reference for the /impeccable harden command: making interfaces robust against real-world data, errors, languages, and network conditions.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "edge-cases",
+    "resilience"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/hooks.md",
+   "type": "document",
+   "name": "hooks.md",
+   "filePath": ".github/skills/impeccable/reference/hooks.md",
+   "summary": "Documents the /impeccable hooks command that manages the design-detector PostToolUse hook on design-relevant file edits.",
+   "tags": [
+    "documentation",
+    "tooling",
+    "hooks",
+    "developer-workflow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/init.md",
+   "type": "document",
+   "name": "init.md",
+   "filePath": ".github/skills/impeccable/reference/init.md",
+   "summary": "Describes the init flow: a single codebase crawl that writes PRODUCT.md (strategic) and DESIGN.md (visual) for a project.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "setup",
+    "workflow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/interaction-design.md",
+   "type": "document",
+   "name": "interaction-design.md",
+   "filePath": ".github/skills/impeccable/reference/interaction-design.md",
+   "summary": "Interaction design reference covering the eight interactive states, feedback timing, and affordance rules every element must satisfy.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "interaction-states",
+    "accessibility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/layout.md",
+   "type": "document",
+   "name": "layout.md",
+   "filePath": ".github/skills/impeccable/reference/layout.md",
+   "summary": "Reference for the /impeccable layout command: diagnosing structural spacing and hierarchy problems and fixing structure rather than surface.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "layout",
+    "spacing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.github/skills/impeccable/reference/live.md",
+   "type": "document",
+   "name": "live.md",
+   "filePath": ".github/skills/impeccable/reference/live.md",
+   "summary": "Describes live variant mode: selecting browser elements, picking a design action, and hot-swapping AI-generated HTML+CSS variants through dev-server HMR.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "live-editing",
+    "hmr"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:.github/skills/impeccable/reference/craft.md",
+   "target": "document:.github/skills/impeccable/reference/codex.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/craft.md",
+   "target": "document:.github/skills/impeccable/reference/brand.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/craft.md",
+   "target": "document:.github/skills/impeccable/reference/interaction-design.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/init.md",
+   "target": "document:.github/skills/impeccable/reference/document.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/bolder.md",
+   "target": "document:.github/skills/impeccable/reference/brand.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/colorize.md",
+   "target": "document:.github/skills/impeccable/reference/document.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/extract.md",
+   "target": "document:.github/skills/impeccable/reference/document.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/layout.md",
+   "target": "document:.github/skills/impeccable/reference/distill.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/delight.md",
+   "target": "document:.github/skills/impeccable/reference/animate.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/harden.md",
+   "target": "document:.github/skills/impeccable/reference/interaction-design.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/critique.md",
+   "target": "document:.github/skills/impeccable/reference/audit.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.github/skills/impeccable/reference/live.md",
+   "target": "document:.github/skills/impeccable/reference/craft.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

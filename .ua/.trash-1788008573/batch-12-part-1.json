@@ -1,0 +1,1690 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/public-ordering/components/delivery-map.tsx",
+   "type": "file",
+   "name": "delivery-map.tsx",
+   "filePath": "src/features/public-ordering/components/delivery-map.tsx",
+   "summary": "Leaflet-based delivery map component letting the customer pick a delivery pin, with geolocation control, recentering and an address search box.",
+   "tags": [
+    "component",
+    "map",
+    "geolocation",
+    "public-ordering"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Uses react-leaflet hooks (useMap) inside child components to imperatively drive the map."
+  },
+  {
+   "id": "function:src/features/public-ordering/components/delivery-map.tsx:Recenter",
+   "type": "function",
+   "name": "Recenter",
+   "filePath": "src/features/public-ordering/components/delivery-map.tsx",
+   "lineRange": [
+    36,
+    47
+   ],
+   "summary": "Effect-only child that flies the Leaflet map to a new center when coordinates change.",
+   "tags": [
+    "component",
+    "map",
+    "effect"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/delivery-map.tsx:LocateControl",
+   "type": "function",
+   "name": "LocateControl",
+   "filePath": "src/features/public-ordering/components/delivery-map.tsx",
+   "lineRange": [
+    60,
+    75
+   ],
+   "summary": "Map control button that requests the browser's geolocation and pans to the user's position.",
+   "tags": [
+    "component",
+    "geolocation",
+    "control"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/delivery-map.tsx:MapSearch",
+   "type": "function",
+   "name": "MapSearch",
+   "filePath": "src/features/public-ordering/components/delivery-map.tsx",
+   "lineRange": [
+    85,
+    187
+   ],
+   "summary": "Address search overlay that geocodes free-text queries and moves the pin to a chosen result.",
+   "tags": [
+    "component",
+    "search",
+    "geocoding"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/delivery-map.tsx:DeliveryMap",
+   "type": "function",
+   "name": "DeliveryMap",
+   "filePath": "src/features/public-ordering/components/delivery-map.tsx",
+   "lineRange": [
+    205,
+    250
+   ],
+   "summary": "Exported map wrapper composing the tile layer, draggable pin, locate control and search into one delivery location picker.",
+   "tags": [
+    "component",
+    "map",
+    "entry"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "type": "file",
+   "name": "item-customizer.tsx",
+   "filePath": "src/features/public-ordering/components/item-customizer.tsx",
+   "summary": "Bottom drawer for configuring a menu item before adding it to the cart: size selection, addon groups with quantities, per-line notes and quantity, with price computed live.",
+   "tags": [
+    "component",
+    "drawer",
+    "cart",
+    "customization",
+    "public-ordering"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/item-customizer.tsx:ItemCustomizer",
+   "type": "function",
+   "name": "ItemCustomizer",
+   "filePath": "src/features/public-ordering/components/item-customizer.tsx",
+   "lineRange": [
+    51,
+    541
+   ],
+   "summary": "Main customizer drawer managing size, addon selections, quantity and notes state, validating group min/max rules and emitting a configured cart line.",
+   "tags": [
+    "component",
+    "form",
+    "cart",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/item-customizer.tsx:AddonGroupSection",
+   "type": "function",
+   "name": "AddonGroupSection",
+   "filePath": "src/features/public-ordering/components/item-customizer.tsx",
+   "lineRange": [
+    545,
+    612
+   ],
+   "summary": "Renders one addon group with its options honoring single/multi select and min/max constraints.",
+   "tags": [
+    "component",
+    "addons"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/item-customizer.tsx:AddonQtyRow",
+   "type": "function",
+   "name": "AddonQtyRow",
+   "filePath": "src/features/public-ordering/components/item-customizer.tsx",
+   "lineRange": [
+    614,
+    685
+   ],
+   "summary": "Row for a quantity-based addon with increment/decrement controls bounded by FIELD_LIMITS.addonQty.",
+   "tags": [
+    "component",
+    "addons",
+    "quantity"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/item-customizer.tsx:OptionRow",
+   "type": "function",
+   "name": "OptionRow",
+   "filePath": "src/features/public-ordering/components/item-customizer.tsx",
+   "lineRange": [
+    687,
+    722
+   ],
+   "summary": "Selectable option row showing name, price delta and selected state.",
+   "tags": [
+    "component",
+    "option"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/item-customizer.tsx:Section",
+   "type": "function",
+   "name": "Section",
+   "filePath": "src/features/public-ordering/components/item-customizer.tsx",
+   "lineRange": [
+    724,
+    752
+   ],
+   "summary": "Labeled section wrapper with optional required/limit hint used inside the customizer.",
+   "tags": [
+    "component",
+    "layout"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/item-customizer.tsx:Chip",
+   "type": "function",
+   "name": "Chip",
+   "filePath": "src/features/public-ordering/components/item-customizer.tsx",
+   "lineRange": [
+    754,
+    781
+   ],
+   "summary": "Small toggle chip used for size selection.",
+   "tags": [
+    "component",
+    "chip"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/public-ordering/components/location-step.tsx",
+   "type": "file",
+   "name": "location-step.tsx",
+   "filePath": "src/features/public-ordering/components/location-step.tsx",
+   "summary": "Delivery location step: lets the guest choose a saved location or drop a pin on the DeliveryMap, fills address fields, and shows the live delivery-fee quote status.",
+   "tags": [
+    "component",
+    "step",
+    "delivery",
+    "form",
+    "public-ordering"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/location-step.tsx:LocationStep",
+   "type": "function",
+   "name": "LocationStep",
+   "filePath": "src/features/public-ordering/components/location-step.tsx",
+   "lineRange": [
+    40,
+    335
+   ],
+   "summary": "Step component orchestrating saved-location selection, map pin placement, address form fields and quote requests before continuing to the menu.",
+   "tags": [
+    "component",
+    "step",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/location-step.tsx:SavedLocationRow",
+   "type": "function",
+   "name": "SavedLocationRow",
+   "filePath": "src/features/public-ordering/components/location-step.tsx",
+   "lineRange": [
+    337,
+    363
+   ],
+   "summary": "Selectable row for a previously saved guest location.",
+   "tags": [
+    "component",
+    "list-item"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/location-step.tsx:distanceText",
+   "type": "function",
+   "name": "distanceText",
+   "filePath": "src/features/public-ordering/components/location-step.tsx",
+   "lineRange": [
+    366,
+    377
+   ],
+   "summary": "Formats a distance in meters into a localized km/m label.",
+   "tags": [
+    "utility",
+    "formatting"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/location-step.tsx:QuoteStatus",
+   "type": "function",
+   "name": "QuoteStatus",
+   "filePath": "src/features/public-ordering/components/location-step.tsx",
+   "lineRange": [
+    379,
+    430
+   ],
+   "summary": "Displays the delivery quote state: loading, out-of-range error, or fee and ETA.",
+   "tags": [
+    "component",
+    "status"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/location-step.tsx:Banner",
+   "type": "function",
+   "name": "Banner",
+   "filePath": "src/features/public-ordering/components/location-step.tsx",
+   "lineRange": [
+    432,
+    457
+   ],
+   "summary": "Inline informational or warning banner used within the step.",
+   "tags": [
+    "component",
+    "banner"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/public-ordering/components/menu-step.tsx",
+   "type": "file",
+   "name": "menu-step.tsx",
+   "filePath": "src/features/public-ordering/components/menu-step.tsx",
+   "summary": "Menu browsing step with category tabs, search, item cards and skeleton loading; opens the ItemCustomizer to add items to the cart.",
+   "tags": [
+    "component",
+    "step",
+    "menu",
+    "search",
+    "public-ordering"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/menu-step.tsx:MenuStep",
+   "type": "function",
+   "name": "MenuStep",
+   "filePath": "src/features/public-ordering/components/menu-step.tsx",
+   "lineRange": [
+    45,
+    315
+   ],
+   "summary": "Renders the grouped menu with category navigation and search, tracks the item being customized and forwards cart additions.",
+   "tags": [
+    "component",
+    "step",
+    "menu"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/menu-step.tsx:MenuCard",
+   "type": "function",
+   "name": "MenuCard",
+   "filePath": "src/features/public-ordering/components/menu-step.tsx",
+   "lineRange": [
+    317,
+    382
+   ],
+   "summary": "Card for a single menu item showing image, translated name, description and starting price.",
+   "tags": [
+    "component",
+    "card"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/menu-step.tsx:Empty",
+   "type": "function",
+   "name": "Empty",
+   "filePath": "src/features/public-ordering/components/menu-step.tsx",
+   "lineRange": [
+    384,
+    394
+   ],
+   "summary": "Empty state shown when search yields no items.",
+   "tags": [
+    "component",
+    "empty-state"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/menu-step.tsx:buildGroups",
+   "type": "function",
+   "name": "buildGroups",
+   "filePath": "src/features/public-ordering/components/menu-step.tsx",
+   "lineRange": [
+    396,
+    429
+   ],
+   "summary": "Groups and filters menu items by category and search query into ordered sections.",
+   "tags": [
+    "utility",
+    "grouping",
+    "search"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/public-ordering/components/order-history-drawer.tsx",
+   "type": "file",
+   "name": "order-history-drawer.tsx",
+   "filePath": "src/features/public-ordering/components/order-history-drawer.tsx",
+   "summary": "Side sheet listing a guest's previous orders with status, items and totals, offering a reorder action.",
+   "tags": [
+    "component",
+    "sheet",
+    "order-history",
+    "public-ordering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/order-history-drawer.tsx:OrderHistoryDrawer",
+   "type": "function",
+   "name": "OrderHistoryDrawer",
+   "filePath": "src/features/public-ordering/components/order-history-drawer.tsx",
+   "lineRange": [
+    23,
+    55
+   ],
+   "summary": "Sheet wrapper rendering the list of past orders or an empty message.",
+   "tags": [
+    "component",
+    "sheet"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/order-history-drawer.tsx:OrderCard",
+   "type": "function",
+   "name": "OrderCard",
+   "filePath": "src/features/public-ordering/components/order-history-drawer.tsx",
+   "lineRange": [
+    57,
+    208
+   ],
+   "summary": "Card summarizing one past order: date, status badge, item lines, total and reorder button.",
+   "tags": [
+    "component",
+    "card",
+    "order"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/public-ordering/components/otp-dialog.tsx",
+   "type": "file",
+   "name": "otp-dialog.tsx",
+   "filePath": "src/features/public-ordering/components/otp-dialog.tsx",
+   "summary": "Dialog for entering the SMS one-time code sent to the guest's phone, with auto-advance digit inputs, resend countdown and error display.",
+   "tags": [
+    "component",
+    "dialog",
+    "otp",
+    "auth",
+    "public-ordering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/otp-dialog.tsx:OtpDialog",
+   "type": "function",
+   "name": "OtpDialog",
+   "filePath": "src/features/public-ordering/components/otp-dialog.tsx",
+   "lineRange": [
+    28,
+    162
+   ],
+   "summary": "Manages the OTP digit inputs, resend timer and verification submission.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/public-ordering/components/phone-step.tsx",
+   "type": "file",
+   "name": "phone-step.tsx",
+   "filePath": "src/features/public-ordering/components/phone-step.tsx",
+   "summary": "Phone number step: validates and normalizes an Egyptian mobile number, remembers returning guests via device token and triggers OTP verification.",
+   "tags": [
+    "component",
+    "step",
+    "phone",
+    "validation",
+    "public-ordering"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/phone-step.tsx:PhoneStep",
+   "type": "function",
+   "name": "PhoneStep",
+   "filePath": "src/features/public-ordering/components/phone-step.tsx",
+   "lineRange": [
+    33,
+    347
+   ],
+   "summary": "Phone entry form with normalization, validation feedback, returning-guest lookup and continue handling.",
+   "tags": [
+    "component",
+    "step",
+    "form",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/public-ordering/components/step-shell.tsx",
+   "type": "file",
+   "name": "step-shell.tsx",
+   "filePath": "src/features/public-ordering/components/step-shell.tsx",
+   "summary": "Shared page chrome for each ordering step: header with back button, brand/branch name, language and theme toggles, cart button and progress indicator.",
+   "tags": [
+    "component",
+    "layout",
+    "shell",
+    "public-ordering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/step-shell.tsx:HeaderIcon",
+   "type": "function",
+   "name": "HeaderIcon",
+   "filePath": "src/features/public-ordering/components/step-shell.tsx",
+   "lineRange": [
+    38,
+    57
+   ],
+   "summary": "Round header icon button used for back, language, theme and cart actions.",
+   "tags": [
+    "component",
+    "button"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/components/step-shell.tsx:StepShell",
+   "type": "function",
+   "name": "StepShell",
+   "filePath": "src/features/public-ordering/components/step-shell.tsx",
+   "lineRange": [
+    65,
+    230
+   ],
+   "summary": "Layout wrapper rendering the step header, progress dots and scrollable content area.",
+   "tags": [
+    "component",
+    "layout"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/public-ordering/limits.ts",
+   "type": "file",
+   "name": "limits.ts",
+   "filePath": "src/features/public-ordering/limits.ts",
+   "summary": "FIELD_LIMITS constants mirroring the backend's public-ordering field caps (name, address, notes, cart size, quantities) for client-side guarding.",
+   "tags": [
+    "constants",
+    "validation",
+    "limits",
+    "public-ordering"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "type": "file",
+   "name": "public-ordering-page.tsx",
+   "filePath": "src/features/public-ordering/public-ordering-page.tsx",
+   "summary": "Top-level customer ordering page: drives the branch \u2192 channel \u2192 phone \u2192 location \u2192 menu \u2192 checkout \u2192 done step machine, holds cart and guest state, wires all step components and submits the order.",
+   "tags": [
+    "entry-point",
+    "page",
+    "state-machine",
+    "cart",
+    "public-ordering"
+   ],
+   "complexity": "complex",
+   "languageNotes": "A single very large component (\u2248840 lines) coordinating many step sub-components and localStorage-persisted state."
+  },
+  {
+   "id": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "type": "function",
+   "name": "PublicOrderingPage",
+   "filePath": "src/features/public-ordering/public-ordering-page.tsx",
+   "lineRange": [
+    74,
+    916
+   ],
+   "summary": "Main page component owning step navigation, cart, guest profile, delivery quote and order submission, rendering the current step inside StepShell.",
+   "tags": [
+    "component",
+    "page",
+    "state-machine"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/public-ordering/public-ordering-page.tsx:channelOpenNow",
+   "type": "function",
+   "name": "channelOpenNow",
+   "filePath": "src/features/public-ordering/public-ordering-page.tsx",
+   "lineRange": [
+    919,
+    931
+   ],
+   "summary": "Checks whether a delivery channel is currently open based on its schedule.",
+   "tags": [
+    "utility",
+    "schedule"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/public-ordering/public-ordering-page.tsx:stepHeaders",
+   "type": "function",
+   "name": "stepHeaders",
+   "filePath": "src/features/public-ordering/public-ordering-page.tsx",
+   "lineRange": [
+    933,
+    957
+   ],
+   "summary": "Builds the translated title/subtitle for each step of the flow.",
+   "tags": [
+    "utility",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/public-ordering/scan-to-order.tsx",
+   "type": "file",
+   "name": "scan-to-order.tsx",
+   "filePath": "src/features/public-ordering/scan-to-order.tsx",
+   "summary": "Landing/empty state of the order app root prompting the customer to scan a table QR code; applies the storefront theme and renders inside StorefrontShell.",
+   "tags": [
+    "component",
+    "page",
+    "empty-state",
+    "public-ordering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/public-ordering/scan-to-order.tsx:ScanToOrder",
+   "type": "function",
+   "name": "ScanToOrder",
+   "filePath": "src/features/public-ordering/scan-to-order.tsx",
+   "lineRange": [
+    16,
+    83
+   ],
+   "summary": "Animated bilingual prompt to scan a QR code, scoped to the light storefront theme.",
+   "tags": [
+    "component",
+    "page"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/public-ordering/components/delivery-map.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/delivery-map.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/delivery-map.tsx",
+   "target": "function:src/features/public-ordering/components/delivery-map.tsx:Recenter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/delivery-map.tsx",
+   "target": "function:src/features/public-ordering/components/delivery-map.tsx:LocateControl",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/delivery-map.tsx",
+   "target": "function:src/features/public-ordering/components/delivery-map.tsx:MapSearch",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/delivery-map.tsx",
+   "target": "function:src/features/public-ordering/components/delivery-map.tsx:DeliveryMap",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/delivery-map.tsx",
+   "target": "function:src/features/public-ordering/components/delivery-map.tsx:DeliveryMap",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/components/ui/drawer.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/features/public-ordering/limits.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/features/public-ordering/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/features/public-ordering/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/i18n/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "function:src/features/public-ordering/components/item-customizer.tsx:ItemCustomizer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "function:src/features/public-ordering/components/item-customizer.tsx:ItemCustomizer",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "function:src/features/public-ordering/components/item-customizer.tsx:AddonGroupSection",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "function:src/features/public-ordering/components/item-customizer.tsx:AddonQtyRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "function:src/features/public-ordering/components/item-customizer.tsx:OptionRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "function:src/features/public-ordering/components/item-customizer.tsx:Section",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "target": "function:src/features/public-ordering/components/item-customizer.tsx:Chip",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "function:src/features/public-ordering/components/item-customizer.tsx:ItemCustomizer",
+   "target": "function:src/features/public-ordering/utils.ts:itemBasePrice",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/components/item-customizer.tsx:ItemCustomizer",
+   "target": "function:src/features/public-ordering/utils.ts:newUid",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/components/item-customizer.tsx:ItemCustomizer",
+   "target": "function:src/lib/translation.ts:getTranslatedName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/components/item-customizer.tsx:ItemCustomizer",
+   "target": "function:src/lib/format.ts:fmtMoney",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "file:src/features/public-ordering/components/delivery-map.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "file:src/features/public-ordering/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "function:src/features/public-ordering/components/location-step.tsx:LocationStep",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "function:src/features/public-ordering/components/location-step.tsx:LocationStep",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "function:src/features/public-ordering/components/location-step.tsx:SavedLocationRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "function:src/features/public-ordering/components/location-step.tsx:distanceText",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "function:src/features/public-ordering/components/location-step.tsx:QuoteStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/location-step.tsx",
+   "target": "function:src/features/public-ordering/components/location-step.tsx:Banner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "function:src/features/public-ordering/components/location-step.tsx:LocationStep",
+   "target": "function:src/features/public-ordering/components/delivery-map.tsx:DeliveryMap",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/components/location-step.tsx:QuoteStatus",
+   "target": "function:src/lib/format.ts:fmtMoney",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "file:src/features/public-ordering/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "file:src/i18n/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "function:src/features/public-ordering/components/menu-step.tsx:MenuStep",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "function:src/features/public-ordering/components/menu-step.tsx:MenuStep",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "function:src/features/public-ordering/components/menu-step.tsx:MenuCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "function:src/features/public-ordering/components/menu-step.tsx:Empty",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/menu-step.tsx",
+   "target": "function:src/features/public-ordering/components/menu-step.tsx:buildGroups",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "function:src/features/public-ordering/components/menu-step.tsx:MenuStep",
+   "target": "function:src/features/public-ordering/components/item-customizer.tsx:ItemCustomizer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/components/menu-step.tsx:MenuCard",
+   "target": "function:src/lib/translation.ts:getTranslatedName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/components/menu-step.tsx:MenuCard",
+   "target": "function:src/lib/format.ts:fmtMoney",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/order-history-drawer.tsx",
+   "target": "file:src/components/ui/sheet.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/order-history-drawer.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/order-history-drawer.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/order-history-drawer.tsx",
+   "target": "function:src/features/public-ordering/components/order-history-drawer.tsx:OrderHistoryDrawer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/order-history-drawer.tsx",
+   "target": "function:src/features/public-ordering/components/order-history-drawer.tsx:OrderHistoryDrawer",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/order-history-drawer.tsx",
+   "target": "function:src/features/public-ordering/components/order-history-drawer.tsx:OrderCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "function:src/features/public-ordering/components/order-history-drawer.tsx:OrderCard",
+   "target": "function:src/lib/format.ts:fmtMoney",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/components/order-history-drawer.tsx:OrderCard",
+   "target": "function:src/lib/format.ts:fmtDateTime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/otp-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/otp-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/otp-dialog.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/otp-dialog.tsx",
+   "target": "function:src/features/public-ordering/components/otp-dialog.tsx:OtpDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/otp-dialog.tsx",
+   "target": "function:src/features/public-ordering/components/otp-dialog.tsx:OtpDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/phone-step.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/phone-step.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/phone-step.tsx",
+   "target": "file:src/features/public-ordering/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/phone-step.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/phone-step.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/phone-step.tsx",
+   "target": "function:src/features/public-ordering/components/phone-step.tsx:PhoneStep",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/phone-step.tsx",
+   "target": "function:src/features/public-ordering/components/phone-step.tsx:PhoneStep",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/components/phone-step.tsx:PhoneStep",
+   "target": "function:src/features/public-ordering/utils.ts:normalizePhone",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/components/phone-step.tsx:PhoneStep",
+   "target": "function:src/features/public-ordering/utils.ts:isValidPhone",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/components/step-shell.tsx",
+   "target": "file:src/features/public-ordering/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/step-shell.tsx",
+   "target": "file:src/features/public-ordering/use-order-theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/step-shell.tsx",
+   "target": "file:src/i18n/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/step-shell.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/components/step-shell.tsx",
+   "target": "function:src/features/public-ordering/components/step-shell.tsx:HeaderIcon",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/step-shell.tsx",
+   "target": "function:src/features/public-ordering/components/step-shell.tsx:StepShell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/components/step-shell.tsx",
+   "target": "function:src/features/public-ordering/components/step-shell.tsx:StepShell",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/components/step-shell.tsx:StepShell",
+   "target": "file:src/features/public-ordering/use-order-theme.ts",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/branch-selector.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/branch-step.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/cart-sheet.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/channel-closed.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/channel-step.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/checkout-channel-sheet.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/checkout-step.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/delivery-map.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/item-customizer.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/location-step.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/menu-step.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/order-history-drawer.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/otp-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/phone-step.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/components/step-shell.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/limits.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/use-order-theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/features/public-ordering/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "function:src/features/public-ordering/public-ordering-page.tsx:channelOpenNow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/public-ordering-page.tsx",
+   "target": "function:src/features/public-ordering/public-ordering-page.tsx:stepHeaders",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/branch-selector.tsx:BranchSelector",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/branch-step.tsx:BranchStep",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/cart-sheet.tsx:CartSheet",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/channel-closed.tsx:ChannelClosed",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/channel-step.tsx:ChannelStep",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/checkout-channel-sheet.tsx:CheckoutChannelSheet",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/checkout-step.tsx:CheckoutStep",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/location-step.tsx:LocationStep",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/menu-step.tsx:MenuStep",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/order-history-drawer.tsx:OrderHistoryDrawer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/otp-dialog.tsx:OtpDialog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/phone-step.tsx:PhoneStep",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/step-shell.tsx:StepShell",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/item-customizer.tsx:ItemCustomizer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/components/delivery-map.tsx:DeliveryMap",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/utils.ts:loadCart",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/utils.ts:saveCart",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/utils.ts:clearCart",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/utils.ts:cartSubtotal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/utils.ts:toCartLineInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/utils.ts:getGuestPhone",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/utils.ts:setGuestPhone",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/utils.ts:getDeviceToken",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/utils.ts:setDeviceToken",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "function:src/features/public-ordering/utils.ts:asChannel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/public-ordering-page.tsx:PublicOrderingPage",
+   "target": "file:src/features/public-ordering/use-order-theme.ts",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/features/public-ordering/scan-to-order.tsx",
+   "target": "file:src/features/public-ordering/storefront-shell.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/scan-to-order.tsx",
+   "target": "file:src/features/public-ordering/use-order-theme.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/public-ordering/scan-to-order.tsx",
+   "target": "function:src/features/public-ordering/scan-to-order.tsx:ScanToOrder",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/public-ordering/scan-to-order.tsx",
+   "target": "function:src/features/public-ordering/scan-to-order.tsx:ScanToOrder",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/scan-to-order.tsx:ScanToOrder",
+   "target": "function:src/features/public-ordering/storefront-shell.tsx:StorefrontShell",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/public-ordering/scan-to-order.tsx:ScanToOrder",
+   "target": "file:src/features/public-ordering/use-order-theme.ts",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  }
+ ]
+}

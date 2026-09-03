@@ -34,6 +34,11 @@ import { Route as AppMenuIndexRouteImport } from './routes/_app/menu/index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app/inventory/index'
 import { Route as AppDeliveryIndexRouteImport } from './routes/_app/delivery/index'
 import { Route as AppAccessIndexRouteImport } from './routes/_app/access/index'
+import { Route as AppStaffShiftsRouteImport } from './routes/_app/staff/shifts'
+import { Route as AppStaffRulesRouteImport } from './routes/_app/staff/rules'
+import { Route as AppStaffRequestsRouteImport } from './routes/_app/staff/requests'
+import { Route as AppStaffEmployeesRouteImport } from './routes/_app/staff/employees'
+import { Route as AppStaffAttendanceRouteImport } from './routes/_app/staff/attendance'
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppSettingsIntegrationsRouteImport } from './routes/_app/settings/integrations'
@@ -187,6 +192,31 @@ const AppAccessIndexRoute = AppAccessIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppAccessRouteRoute,
+} as any)
+const AppStaffShiftsRoute = AppStaffShiftsRouteImport.update({
+  id: '/staff/shifts',
+  path: '/staff/shifts',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppStaffRulesRoute = AppStaffRulesRouteImport.update({
+  id: '/staff/rules',
+  path: '/staff/rules',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppStaffRequestsRoute = AppStaffRequestsRouteImport.update({
+  id: '/staff/requests',
+  path: '/staff/requests',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppStaffEmployeesRoute = AppStaffEmployeesRouteImport.update({
+  id: '/staff/employees',
+  path: '/staff/employees',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppStaffAttendanceRoute = AppStaffAttendanceRouteImport.update({
+  id: '/staff/attendance',
+  path: '/staff/attendance',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSettingsWhatsappRoute = AppSettingsWhatsappRouteImport.update({
   id: '/whatsapp',
@@ -385,6 +415,11 @@ export interface FileRoutesByFullPath {
   '/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/staff/attendance': typeof AppStaffAttendanceRoute
+  '/staff/employees': typeof AppStaffEmployeesRoute
+  '/staff/requests': typeof AppStaffRequestsRoute
+  '/staff/rules': typeof AppStaffRulesRoute
+  '/staff/shifts': typeof AppStaffShiftsRoute
   '/access/': typeof AppAccessIndexRoute
   '/delivery/': typeof AppDeliveryIndexRoute
   '/inventory/': typeof AppInventoryIndexRoute
@@ -435,6 +470,11 @@ export interface FileRoutesByTo {
   '/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/staff/attendance': typeof AppStaffAttendanceRoute
+  '/staff/employees': typeof AppStaffEmployeesRoute
+  '/staff/requests': typeof AppStaffRequestsRoute
+  '/staff/rules': typeof AppStaffRulesRoute
+  '/staff/shifts': typeof AppStaffShiftsRoute
   '/access': typeof AppAccessIndexRoute
   '/delivery': typeof AppDeliveryIndexRoute
   '/inventory': typeof AppInventoryIndexRoute
@@ -492,6 +532,11 @@ export interface FileRoutesById {
   '/_app/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/_app/staff/attendance': typeof AppStaffAttendanceRoute
+  '/_app/staff/employees': typeof AppStaffEmployeesRoute
+  '/_app/staff/requests': typeof AppStaffRequestsRoute
+  '/_app/staff/rules': typeof AppStaffRulesRoute
+  '/_app/staff/shifts': typeof AppStaffShiftsRoute
   '/_app/access/': typeof AppAccessIndexRoute
   '/_app/delivery/': typeof AppDeliveryIndexRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
@@ -549,6 +594,11 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/settings/payment-methods'
     | '/settings/whatsapp'
+    | '/staff/attendance'
+    | '/staff/employees'
+    | '/staff/requests'
+    | '/staff/rules'
+    | '/staff/shifts'
     | '/access/'
     | '/delivery/'
     | '/inventory/'
@@ -599,6 +649,11 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/settings/payment-methods'
     | '/settings/whatsapp'
+    | '/staff/attendance'
+    | '/staff/employees'
+    | '/staff/requests'
+    | '/staff/rules'
+    | '/staff/shifts'
     | '/access'
     | '/delivery'
     | '/inventory'
@@ -655,6 +710,11 @@ export interface FileRouteTypes {
     | '/_app/settings/integrations'
     | '/_app/settings/payment-methods'
     | '/_app/settings/whatsapp'
+    | '/_app/staff/attendance'
+    | '/_app/staff/employees'
+    | '/_app/staff/requests'
+    | '/_app/staff/rules'
+    | '/_app/staff/shifts'
     | '/_app/access/'
     | '/_app/delivery/'
     | '/_app/inventory/'
@@ -845,6 +905,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/access/'
       preLoaderRoute: typeof AppAccessIndexRouteImport
       parentRoute: typeof AppAccessRouteRoute
+    }
+    '/_app/staff/shifts': {
+      id: '/_app/staff/shifts'
+      path: '/staff/shifts'
+      fullPath: '/staff/shifts'
+      preLoaderRoute: typeof AppStaffShiftsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/staff/rules': {
+      id: '/_app/staff/rules'
+      path: '/staff/rules'
+      fullPath: '/staff/rules'
+      preLoaderRoute: typeof AppStaffRulesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/staff/requests': {
+      id: '/_app/staff/requests'
+      path: '/staff/requests'
+      fullPath: '/staff/requests'
+      preLoaderRoute: typeof AppStaffRequestsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/staff/employees': {
+      id: '/_app/staff/employees'
+      path: '/staff/employees'
+      fullPath: '/staff/employees'
+      preLoaderRoute: typeof AppStaffEmployeesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/staff/attendance': {
+      id: '/_app/staff/attendance'
+      path: '/staff/attendance'
+      fullPath: '/staff/attendance'
+      preLoaderRoute: typeof AppStaffAttendanceRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/settings/whatsapp': {
       id: '/_app/settings/whatsapp'
@@ -1179,6 +1274,11 @@ interface AppRouteRouteChildren {
   AppInsightsSalesRoute: typeof AppInsightsSalesRoute
   AppKitchenRoutingRoute: typeof AppKitchenRoutingRoute
   AppKitchenStationsRoute: typeof AppKitchenStationsRoute
+  AppStaffAttendanceRoute: typeof AppStaffAttendanceRoute
+  AppStaffEmployeesRoute: typeof AppStaffEmployeesRoute
+  AppStaffRequestsRoute: typeof AppStaffRequestsRoute
+  AppStaffRulesRoute: typeof AppStaffRulesRoute
+  AppStaffShiftsRoute: typeof AppStaffShiftsRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -1205,6 +1305,11 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppInsightsSalesRoute: AppInsightsSalesRoute,
   AppKitchenRoutingRoute: AppKitchenRoutingRoute,
   AppKitchenStationsRoute: AppKitchenStationsRoute,
+  AppStaffAttendanceRoute: AppStaffAttendanceRoute,
+  AppStaffEmployeesRoute: AppStaffEmployeesRoute,
+  AppStaffRequestsRoute: AppStaffRequestsRoute,
+  AppStaffRulesRoute: AppStaffRulesRoute,
+  AppStaffShiftsRoute: AppStaffShiftsRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

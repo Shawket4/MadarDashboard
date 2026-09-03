@@ -1,0 +1,1335 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/analytics/analytics-page.tsx",
+   "type": "file",
+   "name": "analytics-page.tsx",
+   "filePath": "src/features/analytics/analytics-page.tsx",
+   "summary": "Tabbed sales analytics page (overview, revenue, items, tellers, waiters, branches) rendering Recharts charts over scoped report data with excluded-item filtering.",
+   "tags": [
+    "component",
+    "page",
+    "analytics",
+    "charts",
+    "reporting"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/analytics/analytics-page.tsx:OverviewTab",
+   "type": "function",
+   "name": "OverviewTab",
+   "filePath": "src/features/analytics/analytics-page.tsx",
+   "lineRange": [
+    56,
+    191
+   ],
+   "summary": "Overview tab showing revenue/orders ledger strip and trend chart across the selected period.",
+   "tags": [
+    "component",
+    "react",
+    "analytics"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/analytics/analytics-page.tsx:PeakHoursTooltip",
+   "type": "function",
+   "name": "PeakHoursTooltip",
+   "filePath": "src/features/analytics/analytics-page.tsx",
+   "lineRange": [
+    194,
+    223
+   ],
+   "summary": "Custom Recharts tooltip rendering hourly order and revenue breakdown.",
+   "tags": [
+    "component",
+    "react",
+    "analytics"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/analytics/analytics-page.tsx:RevenueSplitTooltip",
+   "type": "function",
+   "name": "RevenueSplitTooltip",
+   "filePath": "src/features/analytics/analytics-page.tsx",
+   "lineRange": [
+    226,
+    254
+   ],
+   "summary": "Custom tooltip showing revenue split by payment method.",
+   "tags": [
+    "component",
+    "react",
+    "analytics"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/analytics/analytics-page.tsx:RevenueTab",
+   "type": "function",
+   "name": "RevenueTab",
+   "filePath": "src/features/analytics/analytics-page.tsx",
+   "lineRange": [
+    257,
+    377
+   ],
+   "summary": "Revenue tab with granularity switching (peak hours, daily, monthly) and payment-method split charts.",
+   "tags": [
+    "component",
+    "react",
+    "analytics"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/analytics/analytics-page.tsx:ItemsTab",
+   "type": "function",
+   "name": "ItemsTab",
+   "filePath": "src/features/analytics/analytics-page.tsx",
+   "lineRange": [
+    380,
+    453
+   ],
+   "summary": "Ranks menu items by quantity and revenue with bilingual item names.",
+   "tags": [
+    "component",
+    "react",
+    "analytics"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/analytics/analytics-page.tsx:TellersTab",
+   "type": "function",
+   "name": "TellersTab",
+   "filePath": "src/features/analytics/analytics-page.tsx",
+   "lineRange": [
+    456,
+    526
+   ],
+   "summary": "Per-teller sales performance table and chart.",
+   "tags": [
+    "component",
+    "react",
+    "analytics"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/analytics/analytics-page.tsx:WaitersTab",
+   "type": "function",
+   "name": "WaitersTab",
+   "filePath": "src/features/analytics/analytics-page.tsx",
+   "lineRange": [
+    529,
+    610
+   ],
+   "summary": "Per-waiter sales performance breakdown with tips.",
+   "tags": [
+    "component",
+    "react",
+    "analytics"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/analytics/analytics-page.tsx:BranchesTab",
+   "type": "function",
+   "name": "BranchesTab",
+   "filePath": "src/features/analytics/analytics-page.tsx",
+   "lineRange": [
+    613,
+    679
+   ],
+   "summary": "Cross-branch revenue comparison chart and table.",
+   "tags": [
+    "component",
+    "react",
+    "analytics"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/analytics/analytics-page.tsx:AnalyticsPage",
+   "type": "function",
+   "name": "AnalyticsPage",
+   "filePath": "src/features/analytics/analytics-page.tsx",
+   "lineRange": [
+    685,
+    722
+   ],
+   "summary": "Page shell composing the analytics tabs with scope and page-search integration.",
+   "tags": [
+    "component",
+    "react",
+    "analytics"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/analytics/lib.ts",
+   "type": "file",
+   "name": "lib.ts",
+   "filePath": "src/features/analytics/lib.ts",
+   "summary": "Small helpers for the analytics page: summing payment-method maps, bilingual row names, and the granularity list.",
+   "tags": [
+    "utility",
+    "analytics",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/analytics/lib.ts:sumMethodMaps",
+   "type": "function",
+   "name": "sumMethodMaps",
+   "filePath": "src/features/analytics/lib.ts",
+   "lineRange": [
+    3,
+    7
+   ],
+   "summary": "Sums several payment-method amount maps into one aggregate map.",
+   "tags": [
+    "utility",
+    "typescript",
+    "analytics"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/analytics/lib.ts:tName",
+   "type": "function",
+   "name": "tName",
+   "filePath": "src/features/analytics/lib.ts",
+   "lineRange": [
+    10,
+    16
+   ],
+   "summary": "Returns the Arabic translation of a report row name when the active language is Arabic.",
+   "tags": [
+    "utility",
+    "typescript",
+    "analytics"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/branches/branches-page.tsx",
+   "type": "file",
+   "name": "branches-page.tsx",
+   "filePath": "src/features/branches/branches-page.tsx",
+   "summary": "Branches management page listing org branches in a data table with create/edit dialog, delete confirmation, and Excel export.",
+   "tags": [
+    "component",
+    "page",
+    "crud",
+    "branches"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/branches/branches-page.tsx:BranchesPage",
+   "type": "function",
+   "name": "BranchesPage",
+   "filePath": "src/features/branches/branches-page.tsx",
+   "lineRange": [
+    24,
+    133
+   ],
+   "summary": "Renders branch list, stat cards, and wires create/edit/delete mutations.",
+   "tags": [
+    "component",
+    "react",
+    "branches"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/bundles/bundles-page.tsx",
+   "type": "file",
+   "name": "bundles-page.tsx",
+   "filePath": "src/features/bundles/bundles-page.tsx",
+   "summary": "Menu bundles management page with debounced search, status filter, create/edit dialog, performance dialog, and export.",
+   "tags": [
+    "component",
+    "page",
+    "crud",
+    "menu",
+    "bundles"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/bundles/bundles-page.tsx:BundlesPage",
+   "type": "function",
+   "name": "BundlesPage",
+   "filePath": "src/features/bundles/bundles-page.tsx",
+   "lineRange": [
+    34,
+    244
+   ],
+   "summary": "Lists bundles with filtering, opens bundle and performance dialogs, handles delete.",
+   "tags": [
+    "component",
+    "react",
+    "bundles"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/bundles/performance-dialog.tsx",
+   "type": "file",
+   "name": "performance-dialog.tsx",
+   "filePath": "src/features/bundles/performance-dialog.tsx",
+   "summary": "Dialog showing sales performance metrics for a single bundle in a ledger strip.",
+   "tags": [
+    "component",
+    "dialog",
+    "bundles",
+    "analytics"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/bundles/performance-dialog.tsx:PerformanceDialog",
+   "type": "function",
+   "name": "PerformanceDialog",
+   "filePath": "src/features/bundles/performance-dialog.tsx",
+   "lineRange": [
+    15,
+    91
+   ],
+   "summary": "Fetches and displays bundle performance stats with skeleton loading state.",
+   "tags": [
+    "component",
+    "react",
+    "bundles"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/bundles/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/bundles/util.ts",
+   "summary": "Query-cache invalidation helper for bundle queries.",
+   "tags": [
+    "utility",
+    "react-query",
+    "bundles"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/bundles/util.ts:invalidateBundles",
+   "type": "function",
+   "name": "invalidateBundles",
+   "filePath": "src/features/bundles/util.ts",
+   "lineRange": [
+    4,
+    7
+   ],
+   "summary": "Invalidates bundle-related React Query caches.",
+   "tags": [
+    "utility",
+    "typescript",
+    "bundles"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/dashboard/dashboard-page.tsx",
+   "type": "file",
+   "name": "dashboard-page.tsx",
+   "filePath": "src/features/dashboard/dashboard-page.tsx",
+   "summary": "Home dashboard page aggregating today's revenue, orders, payment splits, delivery KPIs, margin watch and onboarding progress with animated charts.",
+   "tags": [
+    "component",
+    "page",
+    "dashboard",
+    "charts",
+    "entry-point"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/dashboard/dashboard-page.tsx:DashboardPage",
+   "type": "function",
+   "name": "DashboardPage",
+   "filePath": "src/features/dashboard/dashboard-page.tsx",
+   "lineRange": [
+    60,
+    386
+   ],
+   "summary": "Composes KPI ledger, charts, delivery KPIs, margin watch and keep-building cards for the current scope.",
+   "tags": [
+    "component",
+    "react",
+    "dashboard"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/delivery/zones-page.tsx",
+   "type": "file",
+   "name": "zones-page.tsx",
+   "filePath": "src/features/delivery/zones-page.tsx",
+   "summary": "Delivery zones page listing zones per branch with fee display, zone dialog for create/edit, and delete confirmation.",
+   "tags": [
+    "component",
+    "page",
+    "crud",
+    "delivery"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/delivery/zones-page.tsx:ZonesPage",
+   "type": "function",
+   "name": "ZonesPage",
+   "filePath": "src/features/delivery/zones-page.tsx",
+   "lineRange": [
+    24,
+    191
+   ],
+   "summary": "Renders delivery zone table and manages zone CRUD mutations.",
+   "tags": [
+    "component",
+    "react",
+    "delivery"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/discounts/discounts-page.tsx",
+   "type": "file",
+   "name": "discounts-page.tsx",
+   "filePath": "src/features/discounts/discounts-page.tsx",
+   "summary": "Discounts management page with data table, stat cards, discount dialog and Excel export.",
+   "tags": [
+    "component",
+    "page",
+    "crud",
+    "discounts"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/discounts/discounts-page.tsx:DiscountsPage",
+   "type": "function",
+   "name": "DiscountsPage",
+   "filePath": "src/features/discounts/discounts-page.tsx",
+   "lineRange": [
+    27,
+    156
+   ],
+   "summary": "Lists discounts with type/value badges and wires create/edit/delete.",
+   "tags": [
+    "component",
+    "react",
+    "discounts"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/analytics-page.tsx:OverviewTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/analytics-page.tsx:PeakHoursTooltip",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/analytics-page.tsx:RevenueSplitTooltip",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/analytics-page.tsx:RevenueTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/analytics-page.tsx:ItemsTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/analytics-page.tsx:TellersTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/analytics-page.tsx:WaitersTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/analytics-page.tsx:BranchesTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/analytics-page.tsx:AnalyticsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/analytics-page.tsx:AnalyticsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/components/app/chart-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/components/app/chart-tooltip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/components/app/exclude-items-control.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/components/app/ledger-strip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/components/app/page-tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/components/ui/tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/data/scope/use-page-search.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/features/analytics/lib.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/lib.ts",
+   "target": "function:src/features/analytics/lib.ts:sumMethodMaps",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/lib.ts",
+   "target": "function:src/features/analytics/lib.ts:sumMethodMaps",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/analytics/lib.ts",
+   "target": "function:src/features/analytics/lib.ts:tName",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/analytics/lib.ts",
+   "target": "function:src/features/analytics/lib.ts:tName",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "function:src/features/branches/branches-page.tsx:BranchesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "function:src/features/branches/branches-page.tsx:BranchesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/components/app/data-table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/components/app/export-button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/components/app/stat-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/data/scope/use-page-search.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/features/branches/branch-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/features/branches/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/branches-page.tsx",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "function:src/features/bundles/bundles-page.tsx:BundlesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "function:src/features/bundles/bundles-page.tsx:BundlesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/components/app/data-table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/components/app/export-button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/components/app/ledger-strip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/data/scope/use-page-search.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/features/bundles/bundle-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/features/bundles/performance-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/features/bundles/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/bundles-page.tsx",
+   "target": "file:src/lib/use-debounced.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/performance-dialog.tsx",
+   "target": "function:src/features/bundles/performance-dialog.tsx:PerformanceDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/bundles/performance-dialog.tsx",
+   "target": "function:src/features/bundles/performance-dialog.tsx:PerformanceDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/bundles/performance-dialog.tsx",
+   "target": "file:src/components/app/ledger-strip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/performance-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/performance-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/performance-dialog.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/bundles/util.ts",
+   "target": "function:src/features/bundles/util.ts:invalidateBundles",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/bundles/util.ts",
+   "target": "function:src/features/bundles/util.ts:invalidateBundles",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/bundles/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "function:src/features/dashboard/dashboard-page.tsx:DashboardPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "function:src/features/dashboard/dashboard-page.tsx:DashboardPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/components/app/chart-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/components/app/chart-tooltip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/components/app/delivery-kpis.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/components/app/ledger-strip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/components/app/progress-bar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/features/insights/margin-watch-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/features/onboarding/keep-building-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/dashboard/dashboard-page.tsx",
+   "target": "file:src/lib/motion.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "function:src/features/delivery/zones-page.tsx:ZonesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "function:src/features/delivery/zones-page.tsx:ZonesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/components/app/data-table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/features/delivery/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/features/delivery/zone-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zones-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "function:src/features/discounts/discounts-page.tsx:DiscountsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "function:src/features/discounts/discounts-page.tsx:DiscountsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/components/app/data-table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/components/app/export-button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/components/app/stat-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/data/scope/use-page-search.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/features/discounts/discount-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/features/discounts/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discounts-page.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/analytics/analytics-page.tsx",
+   "target": "function:src/features/analytics/lib.ts:tName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

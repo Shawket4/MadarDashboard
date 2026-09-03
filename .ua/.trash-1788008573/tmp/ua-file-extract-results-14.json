@@ -1,0 +1,1815 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 8,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 8,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 8,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "src/components/app/suggestion-card.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 61,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "SuggestionCard",
+          "startLine": 31,
+          "endLine": 61,
+          "params": [
+            "{ title, subtitle, tags = [], content, onAccept, onReject, onIgnore, pending, decision, className }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SuggestionCard",
+          "line": 31,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SuggestionCard",
+          "callee": "useTranslation",
+          "lineNumber": 32
+        },
+        {
+          "caller": "SuggestionCard",
+          "callee": "cn",
+          "lineNumber": 36
+        },
+        {
+          "caller": "SuggestionCard",
+          "callee": "tags.map",
+          "lineNumber": 42
+        },
+        {
+          "caller": "SuggestionCard",
+          "callee": "cn",
+          "lineNumber": 43
+        },
+        {
+          "caller": "SuggestionCard",
+          "callee": "cn",
+          "lineNumber": 48
+        },
+        {
+          "caller": "SuggestionCard",
+          "callee": "t",
+          "lineNumber": 54
+        },
+        {
+          "caller": "SuggestionCard",
+          "callee": "t",
+          "lineNumber": 55
+        },
+        {
+          "caller": "SuggestionCard",
+          "callee": "t",
+          "lineNumber": 56
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/ui/card.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 98,
+      "nonEmptyLines": 89,
+      "functions": [
+        {
+          "name": "Card",
+          "startLine": 5,
+          "endLine": 16,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "CardHeader",
+          "startLine": 18,
+          "endLine": 29,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "CardTitle",
+          "startLine": 31,
+          "endLine": 45,
+          "params": [
+            "{\n  className,\n  as: Comp = \"h2\",\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "CardDescription",
+          "startLine": 47,
+          "endLine": 55,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "CardAction",
+          "startLine": 57,
+          "endLine": 68,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "CardContent",
+          "startLine": 70,
+          "endLine": 78,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "CardFooter",
+          "startLine": 80,
+          "endLine": 88,
+          "params": [
+            "{ className, ...props }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Card",
+          "line": 90,
+          "isDefault": false
+        },
+        {
+          "name": "CardHeader",
+          "line": 90,
+          "isDefault": false
+        },
+        {
+          "name": "CardFooter",
+          "line": 90,
+          "isDefault": false
+        },
+        {
+          "name": "CardTitle",
+          "line": 90,
+          "isDefault": false
+        },
+        {
+          "name": "CardAction",
+          "line": 90,
+          "isDefault": false
+        },
+        {
+          "name": "CardDescription",
+          "line": 90,
+          "isDefault": false
+        },
+        {
+          "name": "CardContent",
+          "line": 90,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Card",
+          "callee": "cn",
+          "lineNumber": 9
+        },
+        {
+          "caller": "CardHeader",
+          "callee": "cn",
+          "lineNumber": 22
+        },
+        {
+          "caller": "CardTitle",
+          "callee": "cn",
+          "lineNumber": 41
+        },
+        {
+          "caller": "CardDescription",
+          "callee": "cn",
+          "lineNumber": 51
+        },
+        {
+          "caller": "CardAction",
+          "callee": "cn",
+          "lineNumber": 61
+        },
+        {
+          "caller": "CardContent",
+          "callee": "cn",
+          "lineNumber": 74
+        },
+        {
+          "caller": "CardFooter",
+          "callee": "cn",
+          "lineNumber": 84
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 7,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/staff/employees-page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 311,
+      "nonEmptyLines": 292,
+      "functions": [
+        {
+          "name": "EmployeesPage",
+          "startLine": 33,
+          "endLine": 213,
+          "params": []
+        },
+        {
+          "name": "DepartmentsDialog",
+          "startLine": 215,
+          "endLine": 311,
+          "params": [
+            "{\n  open,\n  onOpenChange,\n  departments,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "EmployeesPage",
+          "line": 33,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "EmployeesPage",
+          "callee": "useTranslation",
+          "lineNumber": 34
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "useState",
+          "lineNumber": 35
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "useState",
+          "lineNumber": 36
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "useState",
+          "lineNumber": 37
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "useState",
+          "lineNumber": 38
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "useConfirm",
+          "lineNumber": 39
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "useListEmployees",
+          "lineNumber": 41
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "useListDepartments",
+          "lineNumber": 45
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "useMemo",
+          "lineNumber": 46
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "employees.some",
+          "lineNumber": 50
+        },
+        {
+          "caller": "remove",
+          "callee": "confirm",
+          "lineNumber": 55
+        },
+        {
+          "caller": "remove",
+          "callee": "t",
+          "lineNumber": 56
+        },
+        {
+          "caller": "remove",
+          "callee": "t",
+          "lineNumber": 57
+        },
+        {
+          "caller": "remove",
+          "callee": "t",
+          "lineNumber": 61
+        },
+        {
+          "caller": "remove",
+          "callee": "deleteEmployee",
+          "lineNumber": 66
+        },
+        {
+          "caller": "remove",
+          "callee": "toast.success",
+          "lineNumber": 67
+        },
+        {
+          "caller": "remove",
+          "callee": "t",
+          "lineNumber": 67
+        },
+        {
+          "caller": "remove",
+          "callee": "invalidateEmployees",
+          "lineNumber": 68
+        },
+        {
+          "caller": "remove",
+          "callee": "toast.error",
+          "lineNumber": 70
+        },
+        {
+          "caller": "remove",
+          "callee": "getErrorMessage",
+          "lineNumber": 70
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "useMemo",
+          "lineNumber": 74
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 78
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 83
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 90
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 95
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 100
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 105
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 111
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "base.push",
+          "lineNumber": 117
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 119
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "fmtMoney",
+          "lineNumber": 120
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "base.push",
+          "lineNumber": 123
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 130
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "e.stopPropagation",
+          "lineNumber": 132
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "remove",
+          "lineNumber": 133
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 149
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 150
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "setDeptOpen",
+          "lineNumber": 155
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 157
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "setEditing",
+          "lineNumber": 167
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 168
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 174
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 175
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 176
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 177
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 183
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "(departmentsQ.data ?? []).map",
+          "lineNumber": 184
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 194
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "t",
+          "lineNumber": 195
+        },
+        {
+          "caller": "EmployeesPage",
+          "callee": "setEditing",
+          "lineNumber": 203
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "useTranslation",
+          "lineNumber": 224
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "useState",
+          "lineNumber": 225
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "useState",
+          "lineNumber": 226
+        },
+        {
+          "caller": "add",
+          "callee": "name.trim",
+          "lineNumber": 229
+        },
+        {
+          "caller": "add",
+          "callee": "setBusy",
+          "lineNumber": 230
+        },
+        {
+          "caller": "add",
+          "callee": "createDepartment",
+          "lineNumber": 232
+        },
+        {
+          "caller": "add",
+          "callee": "name.trim",
+          "lineNumber": 232
+        },
+        {
+          "caller": "add",
+          "callee": "setName",
+          "lineNumber": 233
+        },
+        {
+          "caller": "add",
+          "callee": "invalidateDepartments",
+          "lineNumber": 234
+        },
+        {
+          "caller": "add",
+          "callee": "toast.error",
+          "lineNumber": 236
+        },
+        {
+          "caller": "add",
+          "callee": "getErrorMessage",
+          "lineNumber": 236
+        },
+        {
+          "caller": "add",
+          "callee": "setBusy",
+          "lineNumber": 238
+        },
+        {
+          "caller": "remove",
+          "callee": "deleteDepartment",
+          "lineNumber": 244
+        },
+        {
+          "caller": "remove",
+          "callee": "invalidateDepartments",
+          "lineNumber": 245
+        },
+        {
+          "caller": "remove",
+          "callee": "toast.error",
+          "lineNumber": 249
+        },
+        {
+          "caller": "remove",
+          "callee": "getErrorMessage",
+          "lineNumber": 249
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "t",
+          "lineNumber": 257
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "setName",
+          "lineNumber": 263
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "t",
+          "lineNumber": 264
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "add",
+          "lineNumber": 266
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "add",
+          "lineNumber": 269
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "name.trim",
+          "lineNumber": 269
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "t",
+          "lineNumber": 277
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "departments.map",
+          "lineNumber": 280
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "t",
+          "lineNumber": 286
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "remove",
+          "lineNumber": 288
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "t",
+          "lineNumber": 295
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 304
+        },
+        {
+          "caller": "DepartmentsDialog",
+          "callee": "t",
+          "lineNumber": 305
+        }
+      ],
+      "metrics": {
+        "importCount": 14,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/staff/schedule-grid.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 240,
+      "nonEmptyLines": 232,
+      "functions": [
+        {
+          "name": "ScheduleGrid",
+          "startLine": 29,
+          "endLine": 174,
+          "params": [
+            "{ shifts }"
+          ]
+        },
+        {
+          "name": "Cell",
+          "startLine": 176,
+          "endLine": 240,
+          "params": [
+            "{\n  assignment,\n  inherited,\n  shifts,\n  busy,\n  onPick,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ScheduleGrid",
+          "line": 29,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ScheduleGrid",
+          "callee": "useTranslation",
+          "lineNumber": 30
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "useListEmployees",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "useListAssignments",
+          "lineNumber": 33
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "useState",
+          "lineNumber": 34
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "useMemo",
+          "lineNumber": 36
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "shifts.filter",
+          "lineNumber": 36
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "useMemo",
+          "lineNumber": 42
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "map.get",
+          "lineNumber": 49
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "new Array<ScheduleAssignment | undefined>(7).fill",
+          "lineNumber": 50
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "map.set",
+          "lineNumber": 57
+        },
+        {
+          "caller": "setCell",
+          "callee": "setBusyCell",
+          "lineNumber": 72
+        },
+        {
+          "caller": "setCell",
+          "callee": "deleteAssignment",
+          "lineNumber": 74
+        },
+        {
+          "caller": "setCell",
+          "callee": "createAssignment",
+          "lineNumber": 76
+        },
+        {
+          "caller": "setCell",
+          "callee": "invalidateSchedules",
+          "lineNumber": 82
+        },
+        {
+          "caller": "setCell",
+          "callee": "toast.error",
+          "lineNumber": 84
+        },
+        {
+          "caller": "setCell",
+          "callee": "getErrorMessage",
+          "lineNumber": 84
+        },
+        {
+          "caller": "setCell",
+          "callee": "setBusyCell",
+          "lineNumber": 86
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "t",
+          "lineNumber": 95
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "t",
+          "lineNumber": 98
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "t",
+          "lineNumber": 109
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "t",
+          "lineNumber": 113
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "t",
+          "lineNumber": 121
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "t",
+          "lineNumber": 126
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "WEEKDAYS.map",
+          "lineNumber": 129
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "t",
+          "lineNumber": 131
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "employees.map",
+          "lineNumber": 137
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "roster.get",
+          "lineNumber": 138
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "setCell",
+          "lineNumber": 149
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "WEEKDAYS.map",
+          "lineNumber": 152
+        },
+        {
+          "caller": "ScheduleGrid",
+          "callee": "setCell",
+          "lineNumber": 160
+        },
+        {
+          "caller": "Cell",
+          "callee": "useTranslation",
+          "lineNumber": 190
+        },
+        {
+          "caller": "Cell",
+          "callee": "[\n              \"w-full truncate rounded-md border px-2 py-1.5 text-xs transition-colors\",\n              \"hover:bg-accent hover:text-accent-foreground\",\n              assignment\n                ? \"border-primary/30 bg-primary/10 font-medium\"\n                : effective\n                  ? \"border-dashed text-muted-foreground\"\n                  : \"border-dashed text-muted-foreground/60\",\n            ].join",
+          "lineNumber": 200
+        },
+        {
+          "caller": "Cell",
+          "callee": "t",
+          "lineNumber": 213
+        },
+        {
+          "caller": "Cell",
+          "callee": "t",
+          "lineNumber": 218
+        },
+        {
+          "caller": "Cell",
+          "callee": "shifts.map",
+          "lineNumber": 219
+        },
+        {
+          "caller": "Cell",
+          "callee": "onPick",
+          "lineNumber": 220
+        },
+        {
+          "caller": "Cell",
+          "callee": "s.start_time.slice",
+          "lineNumber": 223
+        },
+        {
+          "caller": "Cell",
+          "callee": "s.end_time.slice",
+          "lineNumber": 223
+        },
+        {
+          "caller": "Cell",
+          "callee": "onPick",
+          "lineNumber": 232
+        },
+        {
+          "caller": "Cell",
+          "callee": "t",
+          "lineNumber": 234
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/staff/util.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 114,
+      "nonEmptyLines": 102,
+      "functions": [
+        {
+          "name": "invalidatePrefix",
+          "startLine": 9,
+          "endLine": 13,
+          "params": [
+            "prefix"
+          ]
+        },
+        {
+          "name": "invalidateStaff",
+          "startLine": 17,
+          "endLine": 17,
+          "params": []
+        },
+        {
+          "name": "invalidateEmployees",
+          "startLine": 19,
+          "endLine": 19,
+          "params": []
+        },
+        {
+          "name": "invalidateDepartments",
+          "startLine": 20,
+          "endLine": 20,
+          "params": []
+        },
+        {
+          "name": "invalidateWorkShifts",
+          "startLine": 21,
+          "endLine": 21,
+          "params": []
+        },
+        {
+          "name": "invalidateSchedules",
+          "startLine": 22,
+          "endLine": 22,
+          "params": []
+        },
+        {
+          "name": "invalidateAttendance",
+          "startLine": 23,
+          "endLine": 23,
+          "params": []
+        },
+        {
+          "name": "invalidateLeave",
+          "startLine": 24,
+          "endLine": 24,
+          "params": []
+        },
+        {
+          "name": "invalidateRequests",
+          "startLine": 27,
+          "endLine": 30,
+          "params": []
+        },
+        {
+          "name": "invalidatePayroll",
+          "startLine": 31,
+          "endLine": 31,
+          "params": []
+        },
+        {
+          "name": "fmtMinutes",
+          "startLine": 83,
+          "endLine": 91,
+          "params": [
+            "minutes"
+          ]
+        },
+        {
+          "name": "isoDaysFromToday",
+          "startLine": 94,
+          "endLine": 98,
+          "params": [
+            "n"
+          ]
+        },
+        {
+          "name": "todayIso",
+          "startLine": 100,
+          "endLine": 100,
+          "params": []
+        },
+        {
+          "name": "currentMonthRange",
+          "startLine": 103,
+          "endLine": 114,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "invalidateStaff",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "invalidateEmployees",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "invalidateDepartments",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "invalidateWorkShifts",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "invalidateSchedules",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "invalidateAttendance",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "invalidateLeave",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "invalidateRequests",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "invalidatePayroll",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "ATTENDANCE_STATUS_CLASS",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "REQUEST_STATUS_CLASS",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "PERIOD_STATUS_CLASS",
+          "line": 53,
+          "isDefault": false
+        },
+        {
+          "name": "EMPLOYMENT_STATUS_CLASS",
+          "line": 60,
+          "isDefault": false
+        },
+        {
+          "name": "WEEKDAYS",
+          "line": 71,
+          "isDefault": false
+        },
+        {
+          "name": "fmtMinutes",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "isoDaysFromToday",
+          "line": 94,
+          "isDefault": false
+        },
+        {
+          "name": "todayIso",
+          "line": 100,
+          "isDefault": false
+        },
+        {
+          "name": "currentMonthRange",
+          "line": 103,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "invalidatePrefix",
+          "callee": "queryClient.invalidateQueries",
+          "lineNumber": 10
+        },
+        {
+          "caller": "invalidatePrefix",
+          "callee": "(q.queryKey[0] as string).startsWith",
+          "lineNumber": 12
+        },
+        {
+          "caller": "invalidateStaff",
+          "callee": "invalidatePrefix",
+          "lineNumber": 17
+        },
+        {
+          "caller": "invalidateEmployees",
+          "callee": "invalidatePrefix",
+          "lineNumber": 19
+        },
+        {
+          "caller": "invalidateDepartments",
+          "callee": "invalidatePrefix",
+          "lineNumber": 20
+        },
+        {
+          "caller": "invalidateWorkShifts",
+          "callee": "invalidatePrefix",
+          "lineNumber": 21
+        },
+        {
+          "caller": "invalidateSchedules",
+          "callee": "invalidatePrefix",
+          "lineNumber": 22
+        },
+        {
+          "caller": "invalidateAttendance",
+          "callee": "invalidatePrefix",
+          "lineNumber": 23
+        },
+        {
+          "caller": "invalidateLeave",
+          "callee": "invalidatePrefix",
+          "lineNumber": 24
+        },
+        {
+          "caller": "invalidateRequests",
+          "callee": "invalidatePrefix",
+          "lineNumber": 28
+        },
+        {
+          "caller": "invalidateRequests",
+          "callee": "invalidatePrefix",
+          "lineNumber": 29
+        },
+        {
+          "caller": "invalidatePayroll",
+          "callee": "invalidatePrefix",
+          "lineNumber": 31
+        },
+        {
+          "caller": "fmtMinutes",
+          "callee": "Math.abs",
+          "lineNumber": 87
+        },
+        {
+          "caller": "fmtMinutes",
+          "callee": "Math.floor",
+          "lineNumber": 88
+        },
+        {
+          "caller": "isoDaysFromToday",
+          "callee": "d.setDate",
+          "lineNumber": 96
+        },
+        {
+          "caller": "isoDaysFromToday",
+          "callee": "d.getDate",
+          "lineNumber": 96
+        },
+        {
+          "caller": "isoDaysFromToday",
+          "callee": "d.toISOString().slice",
+          "lineNumber": 97
+        },
+        {
+          "caller": "isoDaysFromToday",
+          "callee": "d.toISOString",
+          "lineNumber": 97
+        },
+        {
+          "caller": "todayIso",
+          "callee": "new Date().toISOString().slice",
+          "lineNumber": 100
+        },
+        {
+          "caller": "todayIso",
+          "callee": "new Date().toISOString",
+          "lineNumber": 100
+        },
+        {
+          "caller": "currentMonthRange",
+          "callee": "now.getFullYear",
+          "lineNumber": 105
+        },
+        {
+          "caller": "currentMonthRange",
+          "callee": "now.getMonth",
+          "lineNumber": 105
+        },
+        {
+          "caller": "currentMonthRange",
+          "callee": "now.getFullYear",
+          "lineNumber": 106
+        },
+        {
+          "caller": "currentMonthRange",
+          "callee": "now.getMonth",
+          "lineNumber": 106
+        },
+        {
+          "caller": "iso",
+          "callee": "d.getFullYear",
+          "lineNumber": 108
+        },
+        {
+          "caller": "iso",
+          "callee": "String(d.getMonth() + 1).padStart",
+          "lineNumber": 108
+        },
+        {
+          "caller": "iso",
+          "callee": "String",
+          "lineNumber": 108
+        },
+        {
+          "caller": "iso",
+          "callee": "d.getMonth",
+          "lineNumber": 108
+        },
+        {
+          "caller": "iso",
+          "callee": "String(d.getDate()).padStart",
+          "lineNumber": 108
+        },
+        {
+          "caller": "iso",
+          "callee": "String",
+          "lineNumber": 108
+        },
+        {
+          "caller": "iso",
+          "callee": "d.getDate",
+          "lineNumber": 108
+        },
+        {
+          "caller": "currentMonthRange",
+          "callee": "iso",
+          "lineNumber": 110
+        },
+        {
+          "caller": "currentMonthRange",
+          "callee": "iso",
+          "lineNumber": 111
+        },
+        {
+          "caller": "currentMonthRange",
+          "callee": "now.toLocaleDateString",
+          "lineNumber": 112
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 18,
+        "functionCount": 14,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/staff/work-shifts-page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 329,
+      "nonEmptyLines": 315,
+      "functions": [
+        {
+          "name": "WorkShiftsPage",
+          "startLine": 27,
+          "endLine": 148,
+          "params": []
+        },
+        {
+          "name": "ShiftDialog",
+          "startLine": 150,
+          "endLine": 329,
+          "params": [
+            "{\n  shift,\n  open,\n  onOpenChange,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "WorkShiftsPage",
+          "line": 27,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "useTranslation",
+          "lineNumber": 28
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "useConfirm",
+          "lineNumber": 29
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "useListWorkShifts",
+          "lineNumber": 30
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "useMemo",
+          "lineNumber": 34
+        },
+        {
+          "caller": "removeShift",
+          "callee": "confirm",
+          "lineNumber": 37
+        },
+        {
+          "caller": "removeShift",
+          "callee": "t",
+          "lineNumber": 38
+        },
+        {
+          "caller": "removeShift",
+          "callee": "t",
+          "lineNumber": 39
+        },
+        {
+          "caller": "removeShift",
+          "callee": "t",
+          "lineNumber": 43
+        },
+        {
+          "caller": "removeShift",
+          "callee": "deleteWorkShift",
+          "lineNumber": 48
+        },
+        {
+          "caller": "removeShift",
+          "callee": "toast.success",
+          "lineNumber": 49
+        },
+        {
+          "caller": "removeShift",
+          "callee": "t",
+          "lineNumber": 49
+        },
+        {
+          "caller": "removeShift",
+          "callee": "invalidateWorkShifts",
+          "lineNumber": 50
+        },
+        {
+          "caller": "removeShift",
+          "callee": "toast.error",
+          "lineNumber": 52
+        },
+        {
+          "caller": "removeShift",
+          "callee": "getErrorMessage",
+          "lineNumber": 52
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 59
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 60
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "setCreating",
+          "lineNumber": 65
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 67
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "[0, 1, 2].map",
+          "lineNumber": 74
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 79
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 80
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "setCreating",
+          "lineNumber": 84
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 84
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "shifts.map",
+          "lineNumber": 88
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 98
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "s.start_time.slice",
+          "lineNumber": 103
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "s.end_time.slice",
+          "lineNumber": 103
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "removeShift",
+          "lineNumber": 106
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 114
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 117
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 121
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "setEditing",
+          "lineNumber": 125
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "t",
+          "lineNumber": 126
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "setCreating",
+          "lineNumber": 141
+        },
+        {
+          "caller": "WorkShiftsPage",
+          "callee": "setEditing",
+          "lineNumber": 142
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "useTranslation",
+          "lineNumber": 159
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "useState",
+          "lineNumber": 160
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "useState",
+          "lineNumber": 165
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "useState",
+          "lineNumber": 166
+        },
+        {
+          "caller": "num",
+          "callee": "data.get",
+          "lineNumber": 171
+        },
+        {
+          "caller": "num",
+          "callee": "Number",
+          "lineNumber": 172
+        },
+        {
+          "caller": "save",
+          "callee": "String(data.get(\"name\") ?? \"\").trim",
+          "lineNumber": 175
+        },
+        {
+          "caller": "save",
+          "callee": "String",
+          "lineNumber": 175
+        },
+        {
+          "caller": "save",
+          "callee": "data.get",
+          "lineNumber": 175
+        },
+        {
+          "caller": "save",
+          "callee": "String",
+          "lineNumber": 176
+        },
+        {
+          "caller": "save",
+          "callee": "data.get",
+          "lineNumber": 176
+        },
+        {
+          "caller": "save",
+          "callee": "String",
+          "lineNumber": 177
+        },
+        {
+          "caller": "save",
+          "callee": "data.get",
+          "lineNumber": 177
+        },
+        {
+          "caller": "save",
+          "callee": "num",
+          "lineNumber": 178
+        },
+        {
+          "caller": "save",
+          "callee": "num",
+          "lineNumber": 179
+        },
+        {
+          "caller": "save",
+          "callee": "num",
+          "lineNumber": 181
+        },
+        {
+          "caller": "save",
+          "callee": "num",
+          "lineNumber": 182
+        },
+        {
+          "caller": "save",
+          "callee": "num",
+          "lineNumber": 183
+        },
+        {
+          "caller": "save",
+          "callee": "num",
+          "lineNumber": 184
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 187
+        },
+        {
+          "caller": "save",
+          "callee": "updateWorkShift",
+          "lineNumber": 189
+        },
+        {
+          "caller": "save",
+          "callee": "createWorkShift",
+          "lineNumber": 190
+        },
+        {
+          "caller": "save",
+          "callee": "toast.success",
+          "lineNumber": 191
+        },
+        {
+          "caller": "save",
+          "callee": "t",
+          "lineNumber": 191
+        },
+        {
+          "caller": "save",
+          "callee": "invalidateWorkShifts",
+          "lineNumber": 192
+        },
+        {
+          "caller": "save",
+          "callee": "onOpenChange",
+          "lineNumber": 193
+        },
+        {
+          "caller": "save",
+          "callee": "toast.error",
+          "lineNumber": 195
+        },
+        {
+          "caller": "save",
+          "callee": "getErrorMessage",
+          "lineNumber": 195
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 197
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "setIsActive",
+          "lineNumber": 206
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "setPaidBreak",
+          "lineNumber": 207
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 209
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 215
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 215
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 218
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "e.preventDefault",
+          "lineNumber": 228
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "save",
+          "lineNumber": 229
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 234
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 238
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "shift?.start_time.slice",
+          "lineNumber": 243
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 248
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "shift?.end_time.slice",
+          "lineNumber": 253
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 258
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 262
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 266
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 276
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 287
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 294
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 298
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 309
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 311
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 317
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "onOpenChange",
+          "lineNumber": 323
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 323
+        },
+        {
+          "caller": "ShiftDialog",
+          "callee": "t",
+          "lineNumber": 324
+        }
+      ],
+      "metrics": {
+        "importCount": 14,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/staff/employees.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/routes/_app/staff/shifts.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 5,
+      "exports": [
+        {
+          "name": "Route",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

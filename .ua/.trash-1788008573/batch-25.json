@@ -1,0 +1,402 @@
+{
+ "nodes": [
+  {
+   "id": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "document",
+   "name": "00_setup_infrastructure.md",
+   "filePath": "frontend_agent_prompts/00_setup_infrastructure.md",
+   "summary": "Agent prompt instructing a testing engineer to build the Vitest/RTL/MSW testing infrastructure: jsdom config, src/test/setup.ts with matchMedia and ResizeObserver mocks, a provider-wrapping custom render, and an MSW server.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "test-infrastructure",
+    "msw"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/01_test_auth.md",
+   "type": "document",
+   "name": "01_test_auth.md",
+   "filePath": "frontend_agent_prompts/01_test_auth.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `auth` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/02_test_dashboard.md",
+   "type": "document",
+   "name": "02_test_dashboard.md",
+   "filePath": "frontend_agent_prompts/02_test_dashboard.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `dashboard` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "dashboard"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/03_test_orgs.md",
+   "type": "document",
+   "name": "03_test_orgs.md",
+   "filePath": "frontend_agent_prompts/03_test_orgs.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `orgs` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "orgs"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/04_test_branches.md",
+   "type": "document",
+   "name": "04_test_branches.md",
+   "filePath": "frontend_agent_prompts/04_test_branches.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `branches` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "branches"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/05_test_users.md",
+   "type": "document",
+   "name": "05_test_users.md",
+   "filePath": "frontend_agent_prompts/05_test_users.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `users` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "users"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/06_test_permissions.md",
+   "type": "document",
+   "name": "06_test_permissions.md",
+   "filePath": "frontend_agent_prompts/06_test_permissions.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `permissions` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "permissions"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/07_test_menu.md",
+   "type": "document",
+   "name": "07_test_menu.md",
+   "filePath": "frontend_agent_prompts/07_test_menu.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `menu` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "menu"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/08_test_inventory.md",
+   "type": "document",
+   "name": "08_test_inventory.md",
+   "filePath": "frontend_agent_prompts/08_test_inventory.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `inventory` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "inventory"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/09_test_recipes.md",
+   "type": "document",
+   "name": "09_test_recipes.md",
+   "filePath": "frontend_agent_prompts/09_test_recipes.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `recipes` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "recipes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/10_test_bundles.md",
+   "type": "document",
+   "name": "10_test_bundles.md",
+   "filePath": "frontend_agent_prompts/10_test_bundles.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `bundles` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "bundles"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/11_test_discounts.md",
+   "type": "document",
+   "name": "11_test_discounts.md",
+   "filePath": "frontend_agent_prompts/11_test_discounts.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `discounts` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "discounts"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/12_test_orders.md",
+   "type": "document",
+   "name": "12_test_orders.md",
+   "filePath": "frontend_agent_prompts/12_test_orders.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `orders` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "orders"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/13_test_shifts.md",
+   "type": "document",
+   "name": "13_test_shifts.md",
+   "filePath": "frontend_agent_prompts/13_test_shifts.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `shifts` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "shifts"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/14_test_settings.md",
+   "type": "document",
+   "name": "14_test_settings.md",
+   "filePath": "frontend_agent_prompts/14_test_settings.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `settings` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "settings"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/15_test_analytics.md",
+   "type": "document",
+   "name": "15_test_analytics.md",
+   "filePath": "frontend_agent_prompts/15_test_analytics.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `analytics` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "analytics"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/16_test_public-menu.md",
+   "type": "document",
+   "name": "16_test_public-menu.md",
+   "filePath": "frontend_agent_prompts/16_test_public-menu.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `public-menu` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "public-menu"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:frontend_agent_prompts/17_test_menu-advisor.md",
+   "type": "document",
+   "name": "17_test_menu-advisor.md",
+   "filePath": "frontend_agent_prompts/17_test_menu-advisor.md",
+   "summary": "Agent prompt directing an engineer to write intensive Vitest/RTL/MSW integration tests for the `menu-advisor` page module, covering API mocking, form validation, loading/error states, and user interactions, with an execution loop until tests pass.",
+   "tags": [
+    "documentation",
+    "agent-prompt",
+    "testing",
+    "integration-tests",
+    "menu-advisor"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "target": "file:src/test/setup.ts",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:frontend_agent_prompts/01_test_auth.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/02_test_dashboard.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/03_test_orgs.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/04_test_branches.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/05_test_users.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/06_test_permissions.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/07_test_menu.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/08_test_inventory.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/09_test_recipes.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/10_test_bundles.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/11_test_discounts.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/12_test_orders.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/13_test_shifts.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/14_test_settings.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/15_test_analytics.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/16_test_public-menu.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:frontend_agent_prompts/17_test_menu-advisor.md",
+   "target": "document:frontend_agent_prompts/00_setup_infrastructure.md",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  }
+ ]
+}

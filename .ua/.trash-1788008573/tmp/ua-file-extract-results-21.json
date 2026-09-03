@@ -1,0 +1,1009 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 17,
+  "filesSkipped": [
+    "debug.txt",
+    "frontend_advisor_code.txt",
+    "get.html"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 17,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 17
+    }
+  },
+  "results": [
+    {
+      "path": ".env",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 2,
+      "nonEmptyLines": 2,
+      "definitions": [
+        {
+          "name": "VITE_API_URL",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 1,
+          "endLine": 1
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 1
+      }
+    },
+    {
+      "path": ".env.example",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "definitions": [
+        {
+          "name": "VITE_API_URL",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 4,
+          "endLine": 4
+        },
+        {
+          "name": "VITE_DASHBOARD_URL",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 8,
+          "endLine": 8
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 2
+      }
+    },
+    {
+      "path": ".env.production",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 6,
+      "nonEmptyLines": 6,
+      "definitions": [
+        {
+          "name": "VITE_API_URL",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 5,
+          "endLine": 5
+        },
+        {
+          "name": "VITE_DASHBOARD_URL",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 6,
+          "endLine": 6
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 2
+      }
+    },
+    {
+      "path": "AUDIT_REPORT.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 30,
+      "nonEmptyLines": 21,
+      "sections": [
+        {
+          "heading": "Madar Dashboard — Overnight Audit Report",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Fixed",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Tax visibility (feature, on request)",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "Findings reviewed but NOT changed (and why)",
+          "level": 2,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "BUNDLES_UI_NOTES.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 338,
+      "nonEmptyLines": 274,
+      "sections": [
+        {
+          "heading": "Madar POS React Dashboard — Bundles Management UI Blueprint",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Architectural Alignment & Layering",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "2. API Surface & Type Definitions",
+          "level": 2,
+          "line": 31
+        },
+        {
+          "heading": "3. API Client Definitions (`src/entities/bundle/api.ts`)",
+          "level": 2,
+          "line": 118
+        },
+        {
+          "heading": "4. TanStack Query v5 Hook Conventions (`src/entities/bundle/queries.ts`)",
+          "level": 2,
+          "line": 211
+        },
+        {
+          "heading": "5. Zod Form Validation (`src/entities/bundle/schemas.ts`)",
+          "level": 2,
+          "line": 252
+        },
+        {
+          "heading": "6. Shared Component Reuse Strategy",
+          "level": 2,
+          "line": 303
+        },
+        {
+          "heading": "7. Role Gating & Permissions",
+          "level": 2,
+          "line": 313
+        },
+        {
+          "heading": "8. Advisor Gating & URL Synchronized Entry-points",
+          "level": 2,
+          "line": 324
+        },
+        {
+          "heading": "Conclusion",
+          "level": 2,
+          "line": 336
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 10
+      }
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 49,
+      "nonEmptyLines": 41,
+      "sections": [
+        {
+          "heading": "Claude Code Conventions: Madar Dashboard",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Project Overview",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Core Technology Stack",
+          "level": 2,
+          "line": 6
+        },
+        {
+          "heading": "UI & Styling",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "Internationalization (i18n)",
+          "level": 2,
+          "line": 21
+        },
+        {
+          "heading": "Development Commands",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "Architecture Guidelines",
+          "level": 2,
+          "line": 33
+        },
+        {
+          "heading": "Related Projects (Ecosystem)",
+          "level": 2,
+          "line": 38
+        },
+        {
+          "heading": "Design Context",
+          "level": 2,
+          "line": 44
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 9
+      }
+    },
+    {
+      "path": "DESIGN.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 240,
+      "nonEmptyLines": 203,
+      "sections": [
+        {
+          "heading": "Design System: Madar Dashboard",
+          "level": 1,
+          "line": 104
+        },
+        {
+          "heading": "1. Overview",
+          "level": 2,
+          "line": 106
+        },
+        {
+          "heading": "2. Colors",
+          "level": 2,
+          "line": 123
+        },
+        {
+          "heading": "Primary",
+          "level": 3,
+          "line": 127
+        },
+        {
+          "heading": "Secondary",
+          "level": 3,
+          "line": 130
+        },
+        {
+          "heading": "Tertiary",
+          "level": 3,
+          "line": 133
+        },
+        {
+          "heading": "Neutral",
+          "level": 3,
+          "line": 136
+        },
+        {
+          "heading": "Status",
+          "level": 3,
+          "line": 143
+        },
+        {
+          "heading": "Named Rules",
+          "level": 3,
+          "line": 148
+        },
+        {
+          "heading": "3. Typography",
+          "level": 2,
+          "line": 155
+        },
+        {
+          "heading": "Hierarchy",
+          "level": 3,
+          "line": 163
+        },
+        {
+          "heading": "Named Rules",
+          "level": 3,
+          "line": 171
+        },
+        {
+          "heading": "4. Elevation",
+          "level": 2,
+          "line": 176
+        },
+        {
+          "heading": "Shadow Vocabulary",
+          "level": 3,
+          "line": 180
+        },
+        {
+          "heading": "Named Rules",
+          "level": 3,
+          "line": 186
+        },
+        {
+          "heading": "5. Components",
+          "level": 2,
+          "line": 189
+        },
+        {
+          "heading": "Buttons",
+          "level": 3,
+          "line": 193
+        },
+        {
+          "heading": "Cards / Containers",
+          "level": 3,
+          "line": 200
+        },
+        {
+          "heading": "Inputs / Fields",
+          "level": 3,
+          "line": 207
+        },
+        {
+          "heading": "Navigation (App Sidebar)",
+          "level": 3,
+          "line": 212
+        },
+        {
+          "heading": "StatCard (signature component)",
+          "level": 3,
+          "line": 217
+        },
+        {
+          "heading": "6. Do's and Don'ts",
+          "level": 2,
+          "line": 220
+        },
+        {
+          "heading": "Do:",
+          "level": 3,
+          "line": 222
+        },
+        {
+          "heading": "Don't:",
+          "level": 3,
+          "line": 232
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 24
+      }
+    },
+    {
+      "path": "HANDOFF_UI_REBUILD.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 102,
+      "nonEmptyLines": 75,
+      "sections": [
+        {
+          "heading": "UI Rebuild — Handoff",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. The goal",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "2. What's done (and verified)",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "3. Shared components you must reuse (don't reinvent)",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "Pattern: a new surface's KPIs",
+          "level": 3,
+          "line": 31
+        },
+        {
+          "heading": "4. The mock preview harness (how you'll screenshot authenticated screens)",
+          "level": 2,
+          "line": 40
+        },
+        {
+          "heading": "⚠️ Preview gotchas (learned the hard way — don't repeat the debugging)",
+          "level": 3,
+          "line": 48
+        },
+        {
+          "heading": "5. Verification checklist (apply to EVERY surface)",
+          "level": 2,
+          "line": 54
+        },
+        {
+          "heading": "6. Backend changes (when a surface needs data that isn't exposed)",
+          "level": 2,
+          "line": 64
+        },
+        {
+          "heading": "7. Remaining surfaces (roughly priority order)",
+          "level": 2,
+          "line": 74
+        },
+        {
+          "heading": "8. Guardrails / things the user cares about",
+          "level": 2,
+          "line": 87
+        },
+        {
+          "heading": "9. Commit status",
+          "level": 2,
+          "line": 94
+        },
+        {
+          "heading": "10. Memory",
+          "level": 2,
+          "line": 100
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 13
+      }
+    },
+    {
+      "path": "IA_REORG_REPORT.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 165,
+      "nonEmptyLines": 134,
+      "sections": [
+        {
+          "heading": "MadarDashboard — Information Architecture Re-org Report",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. New `src/config/nav.ts` structure (7 groups, in sidebar order)",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "`NavLeaf` type extended",
+          "level": 3,
+          "line": 28
+        },
+        {
+          "heading": "2. Files ADDED",
+          "level": 2,
+          "line": 45
+        },
+        {
+          "heading": "3. Files MODIFIED",
+          "level": 2,
+          "line": 68
+        },
+        {
+          "heading": "4. Redirects added (all via `beforeLoad: () => { throw redirect({...}) }`)",
+          "level": 2,
+          "line": 85
+        },
+        {
+          "heading": "5. i18n keys added (both en + ar)",
+          "level": 2,
+          "line": 103
+        },
+        {
+          "heading": "6. Sub-nav standard applied",
+          "level": 2,
+          "line": 125
+        },
+        {
+          "heading": "7. Intentional shells / secondary surfaces left for later",
+          "level": 2,
+          "line": 136
+        },
+        {
+          "heading": "8. Pre-existing build errors found but NOT caused by this work",
+          "level": 2,
+          "line": 150
+        },
+        {
+          "heading": "Note on the route tree regeneration",
+          "level": 2,
+          "line": 158
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 11
+      }
+    },
+    {
+      "path": "INVENTORY_FRONTEND_HANDOFF.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 170,
+      "nonEmptyLines": 139,
+      "sections": [
+        {
+          "heading": "Inventory Module — Frontend Build Handoff",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "0. First steps",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "1. Information architecture (manager language, never engineering terms)",
+          "level": 2,
+          "line": 33
+        },
+        {
+          "heading": "2. What's new/changed in this pass (since `BACKEND_HANDOFF_inventory_overhaul.md`)",
+          "level": 2,
+          "line": 60
+        },
+        {
+          "heading": "Stock-count variance guardrail (the headline)",
+          "level": 3,
+          "line": 65
+        },
+        {
+          "heading": "Shrinkage is single-source (no double counting)",
+          "level": 3,
+          "line": 82
+        },
+        {
+          "heading": "Ingredient → supplier link (G2)",
+          "level": 3,
+          "line": 88
+        },
+        {
+          "heading": "Partial multi-shipment receiving (G1)",
+          "level": 3,
+          "line": 94
+        },
+        {
+          "heading": "Low-stock noise fixed (G3)",
+          "level": 3,
+          "line": 101
+        },
+        {
+          "heading": "\"Counts due\" signal (G4)",
+          "level": 3,
+          "line": 105
+        },
+        {
+          "heading": "Org-wide rollups + PO list (G5, G7)",
+          "level": 3,
+          "line": 110
+        },
+        {
+          "heading": "Permissions (G9)",
+          "level": 3,
+          "line": 118
+        },
+        {
+          "heading": "3. Screen → endpoint map",
+          "level": 2,
+          "line": 127
+        },
+        {
+          "heading": "4. Behaviors to get right",
+          "level": 2,
+          "line": 150
+        },
+        {
+          "heading": "5. Reference",
+          "level": 2,
+          "line": 167
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 15
+      }
+    },
+    {
+      "path": "INVENTORY_OVERHAUL_FRONTEND_SYNC.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 232,
+      "nonEmptyLines": 193,
+      "sections": [
+        {
+          "heading": "Inventory Overhaul — Frontend Dashboard Sync Note",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Per-branch costing (BIGGEST change — affects every cost display)",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "2. Stocktakes — reconcile-to-live + cycle counts",
+          "level": 2,
+          "line": 50
+        },
+        {
+          "heading": "3. Catalog depth — pack sizes + par levels",
+          "level": 2,
+          "line": 77
+        },
+        {
+          "heading": "4. Recipe depth — yield + density (applied at SAVE time)",
+          "level": 2,
+          "line": 96
+        },
+        {
+          "heading": "5. Purchasing — lifecycle, guards, price variance, reorder",
+          "level": 2,
+          "line": 116
+        },
+        {
+          "heading": "6. POS impact (Madar POS)",
+          "level": 2,
+          "line": 149
+        },
+        {
+          "heading": "7. Migrations added (run order on prod, all additive except the adjustments DROP)",
+          "level": 2,
+          "line": 171
+        },
+        {
+          "heading": "8. Follow-up round — now DONE (was deferred)",
+          "level": 2,
+          "line": 190
+        },
+        {
+          "heading": "9. BREAKING — manual stock adjustments REMOVED",
+          "level": 2,
+          "line": 204
+        },
+        {
+          "heading": "10. Deliberately NOT done (with rationale)",
+          "level": 2,
+          "line": 219
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 11
+      }
+    },
+    {
+      "path": "PRODUCT.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 70,
+      "nonEmptyLines": 44,
+      "sections": [
+        {
+          "heading": "Product",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Register",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Users",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "Product Purpose",
+          "level": 2,
+          "line": 25
+        },
+        {
+          "heading": "Brand Personality",
+          "level": 2,
+          "line": 35
+        },
+        {
+          "heading": "Anti-references",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "Design Principles",
+          "level": 2,
+          "line": 53
+        },
+        {
+          "heading": "Accessibility & Inclusion",
+          "level": 2,
+          "line": 61
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 79,
+      "nonEmptyLines": 54,
+      "sections": [
+        {
+          "heading": "Madar Dashboard",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Stack (locked versions in `package.json`)",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Setup",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "Scripts",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "Architecture — Feature-Sliced Design",
+          "level": 2,
+          "line": 30
+        },
+        {
+          "heading": "Single source of truth",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "i18n (English + real Arabic)",
+          "level": 2,
+          "line": 50
+        },
+        {
+          "heading": "Excel exports",
+          "level": 2,
+          "line": 54
+        },
+        {
+          "heading": "Backend contract — immutable rules",
+          "level": 2,
+          "line": 60
+        },
+        {
+          "heading": "Testing the build",
+          "level": 2,
+          "line": 70
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 10
+      }
+    },
+    {
+      "path": "SHIFT_AUTH_FIX_HANDOFF.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 64,
+      "nonEmptyLines": 52,
+      "sections": [
+        {
+          "heading": "Dashboard Handoff — Teller Shift / Login Race Fix",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "What changed in the backend (behavior, not shapes)",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "What the dashboard must do",
+          "level": 2,
+          "line": 26
+        },
+        {
+          "heading": "A. The operational unblock (most important — this is new responsibility)",
+          "level": 3,
+          "line": 28
+        },
+        {
+          "heading": "B. Handle the new error responses gracefully",
+          "level": 3,
+          "line": 46
+        },
+        {
+          "heading": "C. Reports / shift attribution are now trustworthy",
+          "level": 3,
+          "line": 51
+        },
+        {
+          "heading": "What the dashboard does NOT need",
+          "level": 2,
+          "line": 55
+        },
+        {
+          "heading": "Cross-references",
+          "level": 2,
+          "line": 60
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    },
+    {
+      "path": "UNIT_RULES_FRONTEND_PROMPT.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 53,
+      "nonEmptyLines": 46,
+      "sections": [
+        {
+          "heading": "Agent prompt — enforce unit rules in the inventory UI (dashboard)",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Context",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "1. Ingredient catalog — editing the base `unit`",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "2. Purchase orders — line `purchase_unit`",
+          "level": 2,
+          "line": 35
+        },
+        {
+          "heading": "Acceptance",
+          "level": 2,
+          "line": 49
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "backfill_nested_translations.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "totalLines": 100,
+      "nonEmptyLines": 86,
+      "functions": [
+        {
+          "name": "translate_text",
+          "startLine": 19,
+          "endLine": 53,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "components.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 21,
+      "nonEmptyLines": 21,
+      "sections": [
+        {
+          "heading": "$schema",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "style",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "rsc",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "tsx",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "tailwind",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "iconLibrary",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "aliases",
+          "level": 1,
+          "line": 14
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    }
+  ]
+}

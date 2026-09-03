@@ -1,0 +1,702 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/routes/_app/inventory/settings.tsx",
+   "type": "file",
+   "name": "settings.tsx",
+   "filePath": "src/routes/_app/inventory/settings.tsx",
+   "summary": "TanStack route for /inventory/settings rendering the inventory SettingsPage feature component.",
+   "tags": [
+    "route",
+    "inventory",
+    "settings"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/inventory/today.tsx",
+   "type": "file",
+   "name": "today.tsx",
+   "filePath": "src/routes/_app/inventory/today.tsx",
+   "summary": "TanStack route for /inventory/today rendering the inventory TodayPage feature component.",
+   "tags": [
+    "route",
+    "inventory",
+    "daily-stock"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/inventory/transfers.tsx",
+   "type": "file",
+   "name": "transfers.tsx",
+   "filePath": "src/routes/_app/inventory/transfers.tsx",
+   "summary": "TanStack route for /inventory/transfers rendering the stock TransfersPage feature component.",
+   "tags": [
+    "route",
+    "inventory",
+    "transfers"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/inventory/waste.tsx",
+   "type": "file",
+   "name": "waste.tsx",
+   "filePath": "src/routes/_app/inventory/waste.tsx",
+   "summary": "TanStack route for /inventory/waste rendering the WastePage feature component.",
+   "tags": [
+    "route",
+    "inventory",
+    "waste"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/kitchen/routing.tsx",
+   "type": "file",
+   "name": "routing.tsx",
+   "filePath": "src/routes/_app/kitchen/routing.tsx",
+   "summary": "TanStack route for /kitchen/routing rendering the kitchen-station RoutingPage.",
+   "tags": [
+    "route",
+    "kitchen",
+    "routing"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/kitchen/stations.tsx",
+   "type": "file",
+   "name": "stations.tsx",
+   "filePath": "src/routes/_app/kitchen/stations.tsx",
+   "summary": "TanStack route for /kitchen/stations rendering the kitchen StationsPage.",
+   "tags": [
+    "route",
+    "kitchen",
+    "stations"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/menu/index.tsx",
+   "type": "file",
+   "name": "index.tsx",
+   "filePath": "src/routes/_app/menu/index.tsx",
+   "summary": "Index route for /menu that redirects to /menu/items in beforeLoad.",
+   "tags": [
+    "route",
+    "redirect",
+    "menu"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/menu/items.tsx",
+   "type": "file",
+   "name": "items.tsx",
+   "filePath": "src/routes/_app/menu/items.tsx",
+   "summary": "TanStack route for /menu/items rendering the MenuItemsPage feature component.",
+   "tags": [
+    "route",
+    "menu",
+    "items"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/menu/overrides.tsx",
+   "type": "file",
+   "name": "overrides.tsx",
+   "filePath": "src/routes/_app/menu/overrides.tsx",
+   "summary": "Retired /menu/overrides route that redirects to the merged /menu/pricing screen.",
+   "tags": [
+    "route",
+    "redirect",
+    "legacy",
+    "menu"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/menu/recipes.tsx",
+   "type": "file",
+   "name": "recipes.tsx",
+   "filePath": "src/routes/_app/menu/recipes.tsx",
+   "summary": "Retired /menu/recipes route that redirects old deep links to /menu/items.",
+   "tags": [
+    "route",
+    "redirect",
+    "legacy",
+    "menu"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/menu/route.tsx",
+   "type": "file",
+   "name": "route.tsx",
+   "filePath": "src/routes/_app/menu/route.tsx",
+   "summary": "Layout route for the /menu section that renders a bare Outlet for child routes.",
+   "tags": [
+    "route",
+    "layout",
+    "menu"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/orders.tsx",
+   "type": "file",
+   "name": "orders.tsx",
+   "filePath": "src/routes/_app/orders.tsx",
+   "summary": "TanStack route for /orders rendering OrdersPage, with validateSearch parsing an ?order deep-link param.",
+   "tags": [
+    "route",
+    "orders",
+    "search-params"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/orgs.tsx",
+   "type": "file",
+   "name": "orgs.tsx",
+   "filePath": "src/routes/_app/orgs.tsx",
+   "summary": "TanStack route for /orgs rendering the OrgsPage organization management feature.",
+   "tags": [
+    "route",
+    "orgs",
+    "admin"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/permissions.tsx",
+   "type": "file",
+   "name": "permissions.tsx",
+   "filePath": "src/routes/_app/permissions.tsx",
+   "summary": "Legacy /permissions route redirecting to /access/roles while preserving the ?user search param.",
+   "tags": [
+    "route",
+    "redirect",
+    "legacy",
+    "permissions"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/qr.tsx",
+   "type": "file",
+   "name": "qr.tsx",
+   "filePath": "src/routes/_app/qr.tsx",
+   "summary": "TanStack route for /qr rendering the QrPage feature component.",
+   "tags": [
+    "route",
+    "qr",
+    "ordering"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/reservations.tsx",
+   "type": "file",
+   "name": "reservations.tsx",
+   "filePath": "src/routes/_app/reservations.tsx",
+   "summary": "TanStack route for /reservations rendering the ReservationsPage feature component.",
+   "tags": [
+    "route",
+    "reservations"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/settings/index.tsx",
+   "type": "file",
+   "name": "index.tsx",
+   "filePath": "src/routes/_app/settings/index.tsx",
+   "summary": "Index route for /settings rendering the general SettingsPage feature component.",
+   "tags": [
+    "route",
+    "settings"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/settings/integrations.tsx",
+   "type": "file",
+   "name": "integrations.tsx",
+   "filePath": "src/routes/_app/settings/integrations.tsx",
+   "summary": "TanStack route for /settings/integrations rendering the IntegrationsPage feature component.",
+   "tags": [
+    "route",
+    "settings",
+    "integrations"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/settings/payment-methods.tsx",
+   "type": "file",
+   "name": "payment-methods.tsx",
+   "filePath": "src/routes/_app/settings/payment-methods.tsx",
+   "summary": "TanStack route for /settings/payment-methods rendering the PaymentMethodsPage feature component.",
+   "tags": [
+    "route",
+    "settings",
+    "payment-methods"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/settings/route.tsx",
+   "type": "file",
+   "name": "route.tsx",
+   "filePath": "src/routes/_app/settings/route.tsx",
+   "summary": "Layout route for the /settings section that renders a bare Outlet for child routes.",
+   "tags": [
+    "route",
+    "layout",
+    "settings"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/settings/whatsapp.tsx",
+   "type": "file",
+   "name": "whatsapp.tsx",
+   "filePath": "src/routes/_app/settings/whatsapp.tsx",
+   "summary": "TanStack route for /settings/whatsapp rendering the WhatsappPage feature component.",
+   "tags": [
+    "route",
+    "settings",
+    "whatsapp"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/shifts.tsx",
+   "type": "file",
+   "name": "shifts.tsx",
+   "filePath": "src/routes/_app/shifts.tsx",
+   "summary": "TanStack route for /shifts rendering the ShiftsPage feature component.",
+   "tags": [
+    "route",
+    "shifts",
+    "staff"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/staff/attendance.tsx",
+   "type": "file",
+   "name": "attendance.tsx",
+   "filePath": "src/routes/_app/staff/attendance.tsx",
+   "summary": "TanStack route for /staff/attendance rendering the AttendancePage feature component.",
+   "tags": [
+    "route",
+    "staff",
+    "attendance"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/staff/requests.tsx",
+   "type": "file",
+   "name": "requests.tsx",
+   "filePath": "src/routes/_app/staff/requests.tsx",
+   "summary": "TanStack route for /staff/requests rendering the RequestsInboxPage feature component.",
+   "tags": [
+    "route",
+    "staff",
+    "requests"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/staff/rules.tsx",
+   "type": "file",
+   "name": "rules.tsx",
+   "filePath": "src/routes/_app/staff/rules.tsx",
+   "summary": "TanStack route for /staff/rules rendering the AttendanceRulesPage feature component.",
+   "tags": [
+    "route",
+    "staff",
+    "attendance-rules"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/tills.tsx",
+   "type": "file",
+   "name": "tills.tsx",
+   "filePath": "src/routes/_app/tills.tsx",
+   "summary": "TanStack route for /tills rendering the TillsPage feature component.",
+   "tags": [
+    "route",
+    "tills",
+    "cash"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/_app/users.tsx",
+   "type": "file",
+   "name": "users.tsx",
+   "filePath": "src/routes/_app/users.tsx",
+   "summary": "Legacy /users route redirecting to /access/users while preserving ?edit and ?branches deep-link params.",
+   "tags": [
+    "route",
+    "redirect",
+    "legacy",
+    "users"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  },
+  {
+   "id": "file:src/routes/login.tsx",
+   "type": "file",
+   "name": "login.tsx",
+   "filePath": "src/routes/login.tsx",
+   "summary": "Public /login route rendering LoginPage; validates a ?redirect param with Zod and bounces already-authenticated users to /.",
+   "tags": [
+    "route",
+    "auth",
+    "entry-point",
+    "login"
+   ],
+   "complexity": "simple",
+   "languageNotes": "TanStack Router file-based route exporting a `Route` constant via createFileRoute."
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/routes/_app/inventory/settings.tsx",
+   "target": "file:src/features/inventory/settings-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/inventory/settings.tsx",
+   "target": "file:src/features/inventory/settings-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/inventory/today.tsx",
+   "target": "file:src/features/inventory/today-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/inventory/today.tsx",
+   "target": "file:src/features/inventory/today-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/inventory/transfers.tsx",
+   "target": "file:src/features/inventory/transfers-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/inventory/transfers.tsx",
+   "target": "file:src/features/inventory/transfers-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/inventory/waste.tsx",
+   "target": "file:src/features/inventory/waste-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/inventory/waste.tsx",
+   "target": "file:src/features/inventory/waste-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/kitchen/routing.tsx",
+   "target": "file:src/features/kitchen-stations/routing-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/kitchen/routing.tsx",
+   "target": "file:src/features/kitchen-stations/routing-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/kitchen/stations.tsx",
+   "target": "file:src/features/kitchen-stations/stations-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/kitchen/stations.tsx",
+   "target": "file:src/features/kitchen-stations/stations-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/menu/items.tsx",
+   "target": "file:src/features/menu/menu-items-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/menu/items.tsx",
+   "target": "file:src/features/menu/menu-items-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/orders.tsx",
+   "target": "file:src/features/orders/orders-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/orders.tsx",
+   "target": "file:src/features/orders/orders-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/orgs.tsx",
+   "target": "file:src/features/orgs/orgs-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/orgs.tsx",
+   "target": "file:src/features/orgs/orgs-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/qr.tsx",
+   "target": "file:src/features/qr/qr-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/qr.tsx",
+   "target": "file:src/features/qr/qr-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/reservations.tsx",
+   "target": "file:src/features/reservations/reservations-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/reservations.tsx",
+   "target": "file:src/features/reservations/reservations-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/settings/index.tsx",
+   "target": "file:src/features/settings/settings-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/settings/index.tsx",
+   "target": "file:src/features/settings/settings-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/settings/integrations.tsx",
+   "target": "file:src/features/integrations/integrations-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/settings/integrations.tsx",
+   "target": "file:src/features/integrations/integrations-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/settings/payment-methods.tsx",
+   "target": "file:src/features/payment-methods/payment-methods-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/settings/payment-methods.tsx",
+   "target": "file:src/features/payment-methods/payment-methods-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/settings/whatsapp.tsx",
+   "target": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/settings/whatsapp.tsx",
+   "target": "file:src/features/whatsapp/whatsapp-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/shifts.tsx",
+   "target": "file:src/features/shifts/shifts-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/shifts.tsx",
+   "target": "file:src/features/shifts/shifts-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/staff/attendance.tsx",
+   "target": "file:src/features/staff/attendance-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/staff/attendance.tsx",
+   "target": "file:src/features/staff/attendance-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/staff/requests.tsx",
+   "target": "file:src/features/staff/requests-inbox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/staff/requests.tsx",
+   "target": "file:src/features/staff/requests-inbox.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/staff/rules.tsx",
+   "target": "file:src/features/staff/attendance-rules-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/staff/rules.tsx",
+   "target": "file:src/features/staff/attendance-rules-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/_app/tills.tsx",
+   "target": "file:src/features/tills/tills-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/_app/tills.tsx",
+   "target": "file:src/features/tills/tills-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:src/routes/login.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/login.tsx",
+   "target": "file:src/features/auth/login-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/routes/login.tsx",
+   "target": "file:src/features/auth/login-page.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  }
+ ]
+}

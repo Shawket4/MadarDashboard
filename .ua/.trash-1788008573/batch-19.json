@@ -1,0 +1,328 @@
+{
+ "nodes": [
+  {
+   "id": "document:.claude/skills/impeccable/reference/adapt.md",
+   "type": "document",
+   "name": "adapt.md",
+   "filePath": ".claude/skills/impeccable/reference/adapt.md",
+   "summary": "Guide for adapting an existing design to a new screen size, device, platform, or use case, framing adaptation as rethinking the experience rather than scaling it.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "responsive",
+    "adaptation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/animate.md",
+   "type": "document",
+   "name": "animate.md",
+   "filePath": ".claude/skills/impeccable/reference/animate.md",
+   "summary": "Reference for adding purposeful motion that conveys state, feedback, and hierarchy, with register-specific guidance and a bias toward cutting decorative animation.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "animation",
+    "motion"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/audit.md",
+   "type": "document",
+   "name": "audit.md",
+   "filePath": ".claude/skills/impeccable/reference/audit.md",
+   "summary": "Technical quality audit procedure scoring an implementation across five measurable dimensions (0-4) and producing a report without fixing issues.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "audit",
+    "quality"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/bolder.md",
+   "type": "document",
+   "name": "bolder.md",
+   "filePath": ".claude/skills/impeccable/reference/bolder.md",
+   "summary": "Guide for increasing visual impact through stronger hierarchy, committed scale, and decisive type, explicitly rejecting gradient/glassmorphism/neon cliches.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "visual-hierarchy",
+    "typography"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/brand.md",
+   "type": "document",
+   "name": "brand.md",
+   "filePath": ".claude/skills/impeccable/reference/brand.md",
+   "summary": "Defines the brand register, where design is the product (landing pages, marketing, portfolios), including genre-spanning principles and font selection procedure.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "brand",
+    "register"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/clarify.md",
+   "type": "document",
+   "name": "clarify.md",
+   "filePath": ".claude/skills/impeccable/reference/clarify.md",
+   "summary": "Procedure for finding and rewriting vague or confusing interface copy into specific, task-completing text tailored to audience and mental state.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "ux-copy",
+    "clarity"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/codex.md",
+   "type": "document",
+   "name": "codex.md",
+   "filePath": ".claude/skills/impeccable/reference/codex.md",
+   "summary": "Visual direction and raster asset production steps for the craft flow when the harness supports native image generation (Codex image_gen).",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "image-generation",
+    "assets"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/colorize.md",
+   "type": "document",
+   "name": "colorize.md",
+   "filePath": ".claude/skills/impeccable/reference/colorize.md",
+   "summary": "Guide for replacing timid grayscale or single-accent palettes with a strategic color strategy and hue family applied with intent.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "color",
+    "palette"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/craft.md",
+   "type": "document",
+   "name": "craft.md",
+   "filePath": ".claude/skills/impeccable/reference/craft.md",
+   "summary": "Craft flow: build a feature to studio quality by shaping the design, landing visual direction, writing production code, and iterating in-browser; requires PRODUCT.md and a register reference.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "workflow",
+    "implementation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/critique.md",
+   "type": "document",
+   "name": "critique.md",
+   "filePath": ".claude/skills/impeccable/reference/critique.md",
+   "summary": "Design critique procedure combining an independent design review and detector/browser evidence into a synthesized critique with a persisted snapshot and follow-up prompt.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "critique",
+    "review-process"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/delight.md",
+   "type": "document",
+   "name": "delight.md",
+   "filePath": ".claude/skills/impeccable/reference/delight.md",
+   "summary": "Guide for adding personality and unexpected polish only at moments that earn it, with domain-appropriate tone (playful, professional, elegant).",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "micro-interactions",
+    "personality"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/distill.md",
+   "type": "document",
+   "name": "distill.md",
+   "filePath": ".claude/skills/impeccable/reference/distill.md",
+   "summary": "Procedure for stripping a design to its essence by removing redundant elements, repeated information, and decorative noise.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "simplification",
+    "minimalism"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/document.md",
+   "type": "document",
+   "name": "document.md",
+   "filePath": ".claude/skills/impeccable/reference/document.md",
+   "summary": "Instructions for generating a DESIGN.md in the Google Stitch format: YAML token frontmatter plus six fixed markdown sections capturing the visual system.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "design-tokens",
+    "design-system"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/extract.md",
+   "type": "document",
+   "name": "extract.md",
+   "filePath": ".claude/skills/impeccable/reference/extract.md",
+   "summary": "Extract flow for identifying reusable patterns, components, and tokens and consolidating them into the project's design system.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "design-system",
+    "refactoring"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/harden.md",
+   "type": "document",
+   "name": "harden.md",
+   "filePath": ".claude/skills/impeccable/reference/harden.md",
+   "summary": "Guide for hardening interfaces against extreme inputs, errors, long/RTL text, and poor network conditions so designs survive real-world data.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "edge-cases",
+    "resilience"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/hooks.md",
+   "type": "document",
+   "name": "hooks.md",
+   "filePath": ".claude/skills/impeccable/reference/hooks.md",
+   "summary": "Documents the /impeccable hooks command that installs or manages the PostToolUse design-detector hook on design-relevant file edits.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "hooks",
+    "tooling"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/init.md",
+   "type": "document",
+   "name": "init.md",
+   "filePath": ".claude/skills/impeccable/reference/init.md",
+   "summary": "Init flow that crawls the codebase once to write PRODUCT.md (strategy/register) and DESIGN.md (visual system) for the project.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "setup",
+    "workflow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/interaction-design.md",
+   "type": "document",
+   "name": "interaction-design.md",
+   "filePath": ".claude/skills/impeccable/reference/interaction-design.md",
+   "summary": "Reference on interaction design covering the eight interactive states every element needs and their visual treatments.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "interaction-states",
+    "accessibility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/layout.md",
+   "type": "document",
+   "name": "layout.md",
+   "filePath": ".claude/skills/impeccable/reference/layout.md",
+   "summary": "Guide for fixing layout structure (monotone spacing, weak hierarchy, identical grids) through rhythm, asymmetry, and fluid spacing per register.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "layout",
+    "spacing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:.claude/skills/impeccable/reference/live.md",
+   "type": "document",
+   "name": "live.md",
+   "filePath": ".claude/skills/impeccable/reference/live.md",
+   "summary": "Documents the interactive live variant mode: selecting elements in the browser, choosing a design action, and hot-swapping AI-generated HTML+CSS variants via HMR.",
+   "tags": [
+    "documentation",
+    "design-guide",
+    "live-editing",
+    "hmr"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:.claude/skills/impeccable/reference/craft.md",
+   "target": "document:.claude/skills/impeccable/reference/codex.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.claude/skills/impeccable/reference/craft.md",
+   "target": "document:.claude/skills/impeccable/reference/brand.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.claude/skills/impeccable/reference/layout.md",
+   "target": "document:.claude/skills/impeccable/reference/brand.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.claude/skills/impeccable/reference/init.md",
+   "target": "document:.claude/skills/impeccable/reference/document.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.claude/skills/impeccable/reference/critique.md",
+   "target": "document:.claude/skills/impeccable/reference/audit.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:.claude/skills/impeccable/reference/live.md",
+   "target": "document:.claude/skills/impeccable/reference/hooks.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

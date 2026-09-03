@@ -1,0 +1,2769 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 25,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 25,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "src/components/app/chart-card.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "chartColor",
+          "startLine": 15,
+          "endLine": 15,
+          "params": [
+            "i"
+          ]
+        },
+        {
+          "name": "ChartCard",
+          "startLine": 26,
+          "endLine": 39,
+          "params": [
+            "{ title, description, actions, children, className, contentClassName }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CHART_COLORS",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "chartColor",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "ChartCard",
+          "line": 26,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ChartCard",
+          "callee": "cn",
+          "lineNumber": 28
+        },
+        {
+          "caller": "ChartCard",
+          "callee": "cn",
+          "lineNumber": 36
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/chart-tooltip.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 44,
+      "functions": [
+        {
+          "name": "ChartTooltipContent",
+          "startLine": 19,
+          "endLine": 47,
+          "params": [
+            "{\n  active,\n  payload,\n  label,\n  formatter,\n  labelFormatter,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ChartTooltipContent",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ChartTooltipContent",
+          "callee": "labelFormatter",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ChartTooltipContent",
+          "callee": "payload.map",
+          "lineNumber": 35
+        },
+        {
+          "caller": "ChartTooltipContent",
+          "callee": "formatter",
+          "lineNumber": 40
+        },
+        {
+          "caller": "ChartTooltipContent",
+          "callee": "Number",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/coming-soon.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 30,
+      "nonEmptyLines": 28,
+      "functions": [
+        {
+          "name": "ComingSoon",
+          "startLine": 7,
+          "endLine": 22,
+          "params": [
+            "{ title, description }"
+          ]
+        },
+        {
+          "name": "makeComingSoon",
+          "startLine": 25,
+          "endLine": 30,
+          "params": [
+            "titleKey",
+            "fallback"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ComingSoon",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "makeComingSoon",
+          "line": 25,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ComingSoon",
+          "callee": "useTranslation",
+          "lineNumber": 8
+        },
+        {
+          "caller": "ComingSoon",
+          "callee": "t",
+          "lineNumber": 14
+        },
+        {
+          "caller": "ComingSoon",
+          "callee": "t",
+          "lineNumber": 15
+        },
+        {
+          "caller": "makeComingSoon",
+          "callee": "useTranslation",
+          "lineNumber": 27
+        },
+        {
+          "caller": "makeComingSoon",
+          "callee": "t",
+          "lineNumber": 28
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/confirm-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 80,
+      "nonEmptyLines": 71,
+      "functions": [
+        {
+          "name": "ConfirmProvider",
+          "startLine": 30,
+          "endLine": 74,
+          "params": [
+            "{ children }"
+          ]
+        },
+        {
+          "name": "useConfirm",
+          "startLine": 76,
+          "endLine": 80,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ConfirmProvider",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "useConfirm",
+          "line": 76,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ConfirmProvider",
+          "callee": "useTranslation",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "useState",
+          "lineNumber": 33
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "useRef",
+          "lineNumber": 34
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "useCallback",
+          "lineNumber": 36
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "setOpts",
+          "lineNumber": 37
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "setOpen",
+          "lineNumber": 38
+        },
+        {
+          "caller": "settle",
+          "callee": "setOpen",
+          "lineNumber": 45
+        },
+        {
+          "caller": "settle",
+          "callee": "resolver.current",
+          "lineNumber": 46
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "settle",
+          "lineNumber": 53
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "settle",
+          "lineNumber": 60
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "t",
+          "lineNumber": 61
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "settle",
+          "lineNumber": 64
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "cn",
+          "lineNumber": 65
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "buttonVariants",
+          "lineNumber": 65
+        },
+        {
+          "caller": "ConfirmProvider",
+          "callee": "t",
+          "lineNumber": 67
+        },
+        {
+          "caller": "useConfirm",
+          "callee": "useContext",
+          "lineNumber": 77
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/cost-cells.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 69,
+      "nonEmptyLines": 65,
+      "functions": [
+        {
+          "name": "FoodCostChip",
+          "startLine": 9,
+          "endLine": 22,
+          "params": [
+            "{ pct }"
+          ]
+        },
+        {
+          "name": "CostMissingLink",
+          "startLine": 25,
+          "endLine": 39,
+          "params": [
+            "{ itemId, addonId }"
+          ]
+        },
+        {
+          "name": "ItemCostCell",
+          "startLine": 42,
+          "endLine": 56,
+          "params": [
+            "{ skus }"
+          ]
+        },
+        {
+          "name": "AddonCostCell",
+          "startLine": 59,
+          "endLine": 69,
+          "params": [
+            "{ cost }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "FoodCostChip",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "CostMissingLink",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "ItemCostCell",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "AddonCostCell",
+          "line": 59,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "FoodCostChip",
+          "callee": "cn",
+          "lineNumber": 13
+        },
+        {
+          "caller": "FoodCostChip",
+          "callee": "fmtPercent",
+          "lineNumber": 19
+        },
+        {
+          "caller": "CostMissingLink",
+          "callee": "useTranslation",
+          "lineNumber": 26
+        },
+        {
+          "caller": "CostMissingLink",
+          "callee": "e.stopPropagation",
+          "lineNumber": 32
+        },
+        {
+          "caller": "CostMissingLink",
+          "callee": "t",
+          "lineNumber": 33
+        },
+        {
+          "caller": "ItemCostCell",
+          "callee": "skus.map",
+          "lineNumber": 46
+        },
+        {
+          "caller": "ItemCostCell",
+          "callee": "fmtMoney",
+          "lineNumber": 49
+        },
+        {
+          "caller": "AddonCostCell",
+          "callee": "fmtMoney",
+          "lineNumber": 64
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/data-table.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 295,
+      "nonEmptyLines": 285,
+      "functions": [
+        {
+          "name": "DataTable",
+          "startLine": 65,
+          "endLine": 264,
+          "params": [
+            "{\n  columns,\n  data,\n  loading,\n  emptyState,\n  onRowClick,\n  getRowId,\n  toolbar,\n  searchPlaceholder,\n  renderMobileCard,\n  onRowPrefetch,\n  onPrefetchNext,\n  pageSize = 10,\n  manualPagination,\n  pageCount,\n  pagination,\n  onPaginationChange,\n}"
+          ]
+        },
+        {
+          "name": "DataTableColumnHeader",
+          "startLine": 267,
+          "endLine": 295,
+          "params": [
+            "{\n  column,\n  title,\n  className,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DataTable",
+          "line": 65,
+          "isDefault": false
+        },
+        {
+          "name": "DataTableColumnHeader",
+          "line": 267,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DataTable",
+          "callee": "useTranslation",
+          "lineNumber": 83
+        },
+        {
+          "caller": "DataTable",
+          "callee": "useIsMobile",
+          "lineNumber": 84
+        },
+        {
+          "caller": "DataTable",
+          "callee": "useState",
+          "lineNumber": 85
+        },
+        {
+          "caller": "DataTable",
+          "callee": "useState",
+          "lineNumber": 86
+        },
+        {
+          "caller": "DataTable",
+          "callee": "useState",
+          "lineNumber": 87
+        },
+        {
+          "caller": "DataTable",
+          "callee": "useState",
+          "lineNumber": 88
+        },
+        {
+          "caller": "DataTable",
+          "callee": "useState",
+          "lineNumber": 89
+        },
+        {
+          "caller": "DataTable",
+          "callee": "useReactTable",
+          "lineNumber": 91
+        },
+        {
+          "caller": "DataTable",
+          "callee": "getCoreRowModel",
+          "lineNumber": 107
+        },
+        {
+          "caller": "DataTable",
+          "callee": "getSortedRowModel",
+          "lineNumber": 108
+        },
+        {
+          "caller": "DataTable",
+          "callee": "getFilteredRowModel",
+          "lineNumber": 109
+        },
+        {
+          "caller": "DataTable",
+          "callee": "getPaginationRowModel",
+          "lineNumber": 110
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.getRowModel",
+          "lineNumber": 115
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.getAllLeafColumns",
+          "lineNumber": 116
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.getAllColumns().filter",
+          "lineNumber": 117
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.getAllColumns",
+          "lineNumber": 117
+        },
+        {
+          "caller": "DataTable",
+          "callee": "c.getCanHide",
+          "lineNumber": 117
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.getState",
+          "lineNumber": 119
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.getPageCount",
+          "lineNumber": 120
+        },
+        {
+          "caller": "DataTable",
+          "callee": "setGlobalFilter",
+          "lineNumber": 132
+        },
+        {
+          "caller": "DataTable",
+          "callee": "t",
+          "lineNumber": 145
+        },
+        {
+          "caller": "DataTable",
+          "callee": "hideableColumns.map",
+          "lineNumber": 149
+        },
+        {
+          "caller": "DataTable",
+          "callee": "column.getIsVisible",
+          "lineNumber": 152
+        },
+        {
+          "caller": "DataTable",
+          "callee": "column.toggleVisibility",
+          "lineNumber": 153
+        },
+        {
+          "caller": "DataTable",
+          "callee": "Array.from({ length: 6 }).map",
+          "lineNumber": 168
+        },
+        {
+          "caller": "DataTable",
+          "callee": "Array.from",
+          "lineNumber": 168
+        },
+        {
+          "caller": "DataTable",
+          "callee": "t",
+          "lineNumber": 173
+        },
+        {
+          "caller": "DataTable",
+          "callee": "rows.map",
+          "lineNumber": 176
+        },
+        {
+          "caller": "DataTable",
+          "callee": "onRowClick",
+          "lineNumber": 181
+        },
+        {
+          "caller": "DataTable",
+          "callee": "onRowPrefetch",
+          "lineNumber": 182
+        },
+        {
+          "caller": "DataTable",
+          "callee": "onRowPrefetch",
+          "lineNumber": 183
+        },
+        {
+          "caller": "DataTable",
+          "callee": "renderMobileCard",
+          "lineNumber": 186
+        },
+        {
+          "caller": "DataTable",
+          "callee": "onRowPrefetch",
+          "lineNumber": 189
+        },
+        {
+          "caller": "DataTable",
+          "callee": "renderMobileCard",
+          "lineNumber": 190
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.getHeaderGroups().map",
+          "lineNumber": 199
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.getHeaderGroups",
+          "lineNumber": 199
+        },
+        {
+          "caller": "DataTable",
+          "callee": "hg.headers.map",
+          "lineNumber": 201
+        },
+        {
+          "caller": "DataTable",
+          "callee": "flexRender",
+          "lineNumber": 205
+        },
+        {
+          "caller": "DataTable",
+          "callee": "header.getContext",
+          "lineNumber": 205
+        },
+        {
+          "caller": "DataTable",
+          "callee": "rows.map",
+          "lineNumber": 212
+        },
+        {
+          "caller": "DataTable",
+          "callee": "row.getIsSelected",
+          "lineNumber": 215
+        },
+        {
+          "caller": "DataTable",
+          "callee": "onRowClick",
+          "lineNumber": 216
+        },
+        {
+          "caller": "DataTable",
+          "callee": "onRowPrefetch",
+          "lineNumber": 217
+        },
+        {
+          "caller": "DataTable",
+          "callee": "cn",
+          "lineNumber": 218
+        },
+        {
+          "caller": "DataTable",
+          "callee": "row.getVisibleCells().map",
+          "lineNumber": 220
+        },
+        {
+          "caller": "DataTable",
+          "callee": "row.getVisibleCells",
+          "lineNumber": 220
+        },
+        {
+          "caller": "DataTable",
+          "callee": "flexRender",
+          "lineNumber": 222
+        },
+        {
+          "caller": "DataTable",
+          "callee": "cell.getContext",
+          "lineNumber": 222
+        },
+        {
+          "caller": "DataTable",
+          "callee": "t",
+          "lineNumber": 236
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.previousPage",
+          "lineNumber": 242
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.getCanPreviousPage",
+          "lineNumber": 243
+        },
+        {
+          "caller": "DataTable",
+          "callee": "t",
+          "lineNumber": 244
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.nextPage",
+          "lineNumber": 251
+        },
+        {
+          "caller": "DataTable",
+          "callee": "onPrefetchNext",
+          "lineNumber": 252
+        },
+        {
+          "caller": "DataTable",
+          "callee": "onPrefetchNext",
+          "lineNumber": 253
+        },
+        {
+          "caller": "DataTable",
+          "callee": "table.getCanNextPage",
+          "lineNumber": 254
+        },
+        {
+          "caller": "DataTable",
+          "callee": "t",
+          "lineNumber": 255
+        },
+        {
+          "caller": "DataTableColumnHeader",
+          "callee": "import",
+          "lineNumber": 272
+        },
+        {
+          "caller": "DataTableColumnHeader",
+          "callee": "column.getCanSort",
+          "lineNumber": 276
+        },
+        {
+          "caller": "DataTableColumnHeader",
+          "callee": "column.getIsSorted",
+          "lineNumber": 277
+        },
+        {
+          "caller": "DataTableColumnHeader",
+          "callee": "cn",
+          "lineNumber": 282
+        },
+        {
+          "caller": "DataTableColumnHeader",
+          "callee": "column.toggleSorting",
+          "lineNumber": 283
+        }
+      ],
+      "metrics": {
+        "importCount": 8,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/delivery-kpis.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 112,
+      "nonEmptyLines": 101,
+      "functions": [
+        {
+          "name": "DeliveryKpis",
+          "startLine": 27,
+          "endLine": 112,
+          "params": [
+            "{\n  data,\n  loading,\n  className,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DeliveryKpis",
+          "line": 27,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DeliveryKpis",
+          "callee": "useTranslation",
+          "lineNumber": 36
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "t",
+          "lineNumber": 41
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "t",
+          "lineNumber": 42
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "t",
+          "lineNumber": 43
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "t",
+          "lineNumber": 44
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "Math.max",
+          "lineNumber": 48
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "channels.map",
+          "lineNumber": 48
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "cn",
+          "lineNumber": 51
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "(loading ? [{ channel: \"in_mall\" }, { channel: \"outside\" }] : channels).map",
+          "lineNumber": 56
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "Math.round",
+          "lineNumber": 59
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "cn",
+          "lineNumber": 63
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "t",
+          "lineNumber": 67
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "fmtNumber",
+          "lineNumber": 69
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "t(\"delivery.deliveredOrders\", \"Delivered orders\").toLowerCase",
+          "lineNumber": 69
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "t",
+          "lineNumber": 69
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "fmtMoney",
+          "lineNumber": 79
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "fmtMoneyCompact",
+          "lineNumber": 79
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "Math.max",
+          "lineNumber": 85
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "t",
+          "lineNumber": 88
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "t",
+          "lineNumber": 97
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "fmtMoney",
+          "lineNumber": 97
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "fmtNumber",
+          "lineNumber": 101
+        },
+        {
+          "caller": "DeliveryKpis",
+          "callee": "t",
+          "lineNumber": 101
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/empty-state.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "EmptyState",
+          "startLine": 13,
+          "endLine": 33,
+          "params": [
+            "{ icon: Icon, title, description, action, className }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "EmptyState",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "EmptyState",
+          "callee": "cn",
+          "lineNumber": 16
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/export-button.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 22,
+      "functions": [
+        {
+          "name": "ExportButton",
+          "startLine": 17,
+          "endLine": 25,
+          "params": [
+            "{ onExport, label, loading, disabled, size = \"default\", className }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ExportButton",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ExportButton",
+          "callee": "useTranslation",
+          "lineNumber": 18
+        },
+        {
+          "caller": "ExportButton",
+          "callee": "cn",
+          "lineNumber": 20
+        },
+        {
+          "caller": "ExportButton",
+          "callee": "onExport",
+          "lineNumber": 20
+        },
+        {
+          "caller": "ExportButton",
+          "callee": "t",
+          "lineNumber": 22
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/ledger-strip.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 115,
+      "nonEmptyLines": 109,
+      "functions": [
+        {
+          "name": "LedgerStrip",
+          "startLine": 45,
+          "endLine": 81,
+          "params": [
+            "{\n  items,\n  className,\n  dense,\n}"
+          ]
+        },
+        {
+          "name": "ConciseValue",
+          "startLine": 88,
+          "endLine": 115,
+          "params": [
+            "{\n  full,\n  compact,\n  forceCompact,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "LedgerStrip",
+          "line": 45,
+          "isDefault": false
+        },
+        {
+          "name": "ConciseValue",
+          "line": 88,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LedgerStrip",
+          "callee": "staggerContainer",
+          "lineNumber": 61
+        },
+        {
+          "caller": "LedgerStrip",
+          "callee": "cn",
+          "lineNumber": 62
+        },
+        {
+          "caller": "LedgerStrip",
+          "callee": "items.map",
+          "lineNumber": 64
+        },
+        {
+          "caller": "ConciseValue",
+          "callee": "useIsMobile",
+          "lineNumber": 98
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/page-tabs.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 57,
+      "nonEmptyLines": 54,
+      "functions": [
+        {
+          "name": "PageTabsList",
+          "startLine": 12,
+          "endLine": 24,
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "PageTabsTrigger",
+          "startLine": 30,
+          "endLine": 57,
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PageTabsList",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "PageTabsTrigger",
+          "line": 30,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PageTabsList",
+          "callee": "cn",
+          "lineNumber": 17
+        },
+        {
+          "caller": "PageTabsTrigger",
+          "callee": "cn",
+          "lineNumber": 37
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 34,
+      "functions": [
+        {
+          "name": "Page",
+          "startLine": 7,
+          "endLine": 18,
+          "params": [
+            "{ children, className }"
+          ]
+        },
+        {
+          "name": "PageHeader",
+          "startLine": 27,
+          "endLine": 37,
+          "params": [
+            "{ title, description, actions, className }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Page",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "PageHeader",
+          "line": 27,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Page",
+          "callee": "cn",
+          "lineNumber": 13
+        },
+        {
+          "caller": "PageHeader",
+          "callee": "cn",
+          "lineNumber": 29
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/progress-bar.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 44,
+      "nonEmptyLines": 40,
+      "functions": [
+        {
+          "name": "ProgressBar",
+          "startLine": 25,
+          "endLine": 44,
+          "params": [
+            "{ value, max = 100, ariaLabel, accent = \"primary\", className }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ProgressBar",
+          "line": 25,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ProgressBar",
+          "callee": "Math.min",
+          "lineNumber": 27
+        },
+        {
+          "caller": "ProgressBar",
+          "callee": "Math.max",
+          "lineNumber": 27
+        },
+        {
+          "caller": "ProgressBar",
+          "callee": "Math.round",
+          "lineNumber": 32
+        },
+        {
+          "caller": "ProgressBar",
+          "callee": "Math.round",
+          "lineNumber": 34
+        },
+        {
+          "caller": "ProgressBar",
+          "callee": "cn",
+          "lineNumber": 36
+        },
+        {
+          "caller": "ProgressBar",
+          "callee": "cn",
+          "lineNumber": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/segmented-control.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 38,
+      "functions": [
+        {
+          "name": "SegmentedControl",
+          "startLine": 10,
+          "endLine": 40,
+          "params": [
+            "{\n  value,\n  onChange,\n  options,\n  className,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SegmentedControl",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SegmentedControl",
+          "callee": "cn",
+          "lineNumber": 22
+        },
+        {
+          "caller": "SegmentedControl",
+          "callee": "options.map",
+          "lineNumber": 23
+        },
+        {
+          "caller": "SegmentedControl",
+          "callee": "onChange",
+          "lineNumber": 29
+        },
+        {
+          "caller": "SegmentedControl",
+          "callee": "cn",
+          "lineNumber": 30
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/app/stat-card.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 154,
+      "nonEmptyLines": 143,
+      "functions": [
+        {
+          "name": "StatCard",
+          "startLine": 49,
+          "endLine": 154,
+          "params": [
+            "{\n  label,\n  value,\n  formatType,\n  icon: Icon,\n  accent = \"neutral\",\n  trend,\n  hint,\n  loading,\n  dense = false,\n  action,\n  onClick,\n  className,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "StatCard",
+          "line": 49,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "StatCard",
+          "callee": "cn",
+          "lineNumber": 72
+        },
+        {
+          "caller": "StatCard",
+          "callee": "cn",
+          "lineNumber": 75
+        },
+        {
+          "caller": "StatCard",
+          "callee": "cn",
+          "lineNumber": 91
+        },
+        {
+          "caller": "StatCard",
+          "callee": "e.preventDefault",
+          "lineNumber": 109
+        },
+        {
+          "caller": "StatCard",
+          "callee": "onClick",
+          "lineNumber": 110
+        },
+        {
+          "caller": "StatCard",
+          "callee": "cn",
+          "lineNumber": 115
+        },
+        {
+          "caller": "StatCard",
+          "callee": "cn",
+          "lineNumber": 128
+        },
+        {
+          "caller": "StatCard",
+          "callee": "cn",
+          "lineNumber": 139
+        },
+        {
+          "caller": "StatCard",
+          "callee": "fmtPercent",
+          "lineNumber": 145
+        },
+        {
+          "caller": "StatCard",
+          "callee": "Math.abs",
+          "lineNumber": 145
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/ui/badge.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 43,
+      "functions": [
+        {
+          "name": "Badge",
+          "startLine": 29,
+          "endLine": 46,
+          "params": [
+            "{\n  className,\n  variant = \"default\",\n  asChild = false,\n  ...props\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Badge",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "badgeVariants",
+          "line": 48,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Badge",
+          "callee": "cn",
+          "lineNumber": 42
+        },
+        {
+          "caller": "Badge",
+          "callee": "badgeVariants",
+          "lineNumber": 42
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/ui/dropdown-menu.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 255,
+      "nonEmptyLines": 238,
+      "functions": [
+        {
+          "name": "DropdownMenu",
+          "startLine": 7,
+          "endLine": 11,
+          "params": [
+            "{\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuPortal",
+          "startLine": 13,
+          "endLine": 19,
+          "params": [
+            "{\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuTrigger",
+          "startLine": 21,
+          "endLine": 30,
+          "params": [
+            "{\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuContent",
+          "startLine": 32,
+          "endLine": 50,
+          "params": [
+            "{\n  className,\n  sideOffset = 4,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuGroup",
+          "startLine": 52,
+          "endLine": 58,
+          "params": [
+            "{\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuItem",
+          "startLine": 60,
+          "endLine": 81,
+          "params": [
+            "{\n  className,\n  inset,\n  variant = \"default\",\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuCheckboxItem",
+          "startLine": 83,
+          "endLine": 107,
+          "params": [
+            "{\n  className,\n  children,\n  checked,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuRadioGroup",
+          "startLine": 109,
+          "endLine": 118,
+          "params": [
+            "{\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuRadioItem",
+          "startLine": 120,
+          "endLine": 142,
+          "params": [
+            "{\n  className,\n  children,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuLabel",
+          "startLine": 144,
+          "endLine": 162,
+          "params": [
+            "{\n  className,\n  inset,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuSeparator",
+          "startLine": 164,
+          "endLine": 175,
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuShortcut",
+          "startLine": 177,
+          "endLine": 191,
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuSub",
+          "startLine": 193,
+          "endLine": 197,
+          "params": [
+            "{\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuSubTrigger",
+          "startLine": 199,
+          "endLine": 221,
+          "params": [
+            "{\n  className,\n  inset,\n  children,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "DropdownMenuSubContent",
+          "startLine": 223,
+          "endLine": 237,
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DropdownMenu",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuPortal",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuTrigger",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuContent",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuGroup",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuLabel",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuItem",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuCheckboxItem",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuRadioGroup",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuRadioItem",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuSeparator",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuShortcut",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuSub",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuSubTrigger",
+          "line": 239,
+          "isDefault": false
+        },
+        {
+          "name": "DropdownMenuSubContent",
+          "line": 239,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DropdownMenuContent",
+          "callee": "cn",
+          "lineNumber": 42
+        },
+        {
+          "caller": "DropdownMenuItem",
+          "callee": "cn",
+          "lineNumber": 74
+        },
+        {
+          "caller": "DropdownMenuCheckboxItem",
+          "callee": "cn",
+          "lineNumber": 92
+        },
+        {
+          "caller": "DropdownMenuRadioItem",
+          "callee": "cn",
+          "lineNumber": 128
+        },
+        {
+          "caller": "DropdownMenuLabel",
+          "callee": "cn",
+          "lineNumber": 155
+        },
+        {
+          "caller": "DropdownMenuSeparator",
+          "callee": "cn",
+          "lineNumber": 171
+        },
+        {
+          "caller": "DropdownMenuShortcut",
+          "callee": "cn",
+          "lineNumber": 184
+        },
+        {
+          "caller": "DropdownMenuSubTrigger",
+          "callee": "cn",
+          "lineNumber": 211
+        },
+        {
+          "caller": "DropdownMenuSubContent",
+          "callee": "cn",
+          "lineNumber": 230
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 15,
+        "functionCount": 15,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/ui/scroll-area.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 56,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "ScrollArea",
+          "startLine": 6,
+          "endLine": 27,
+          "params": [
+            "{\n  className,\n  children,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "ScrollBar",
+          "startLine": 29,
+          "endLine": 54,
+          "params": [
+            "{\n  className,\n  orientation = \"vertical\",\n  ...props\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ScrollArea",
+          "line": 56,
+          "isDefault": false
+        },
+        {
+          "name": "ScrollBar",
+          "line": 56,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ScrollArea",
+          "callee": "cn",
+          "lineNumber": 14
+        },
+        {
+          "caller": "ScrollBar",
+          "callee": "cn",
+          "lineNumber": 38
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/ui/skeleton.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 13,
+      "nonEmptyLines": 11,
+      "functions": [
+        {
+          "name": "Skeleton",
+          "startLine": 3,
+          "endLine": 11,
+          "params": [
+            "{ className, ...props }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Skeleton",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Skeleton",
+          "callee": "cn",
+          "lineNumber": 7
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/ui/table.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 116,
+      "nonEmptyLines": 105,
+      "functions": [
+        {
+          "name": "Table",
+          "startLine": 7,
+          "endLine": 20,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "TableHeader",
+          "startLine": 22,
+          "endLine": 30,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "TableBody",
+          "startLine": 32,
+          "endLine": 40,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "TableFooter",
+          "startLine": 42,
+          "endLine": 53,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "TableRow",
+          "startLine": 55,
+          "endLine": 66,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "TableHead",
+          "startLine": 68,
+          "endLine": 79,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "TableCell",
+          "startLine": 81,
+          "endLine": 92,
+          "params": [
+            "{ className, ...props }"
+          ]
+        },
+        {
+          "name": "TableCaption",
+          "startLine": 94,
+          "endLine": 105,
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Table",
+          "line": 107,
+          "isDefault": false
+        },
+        {
+          "name": "TableHeader",
+          "line": 107,
+          "isDefault": false
+        },
+        {
+          "name": "TableBody",
+          "line": 107,
+          "isDefault": false
+        },
+        {
+          "name": "TableFooter",
+          "line": 107,
+          "isDefault": false
+        },
+        {
+          "name": "TableHead",
+          "line": 107,
+          "isDefault": false
+        },
+        {
+          "name": "TableRow",
+          "line": 107,
+          "isDefault": false
+        },
+        {
+          "name": "TableCell",
+          "line": 107,
+          "isDefault": false
+        },
+        {
+          "name": "TableCaption",
+          "line": 107,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Table",
+          "callee": "cn",
+          "lineNumber": 15
+        },
+        {
+          "caller": "TableHeader",
+          "callee": "cn",
+          "lineNumber": 26
+        },
+        {
+          "caller": "TableBody",
+          "callee": "cn",
+          "lineNumber": 36
+        },
+        {
+          "caller": "TableFooter",
+          "callee": "cn",
+          "lineNumber": 46
+        },
+        {
+          "caller": "TableRow",
+          "callee": "cn",
+          "lineNumber": 59
+        },
+        {
+          "caller": "TableHead",
+          "callee": "cn",
+          "lineNumber": 72
+        },
+        {
+          "caller": "TableCell",
+          "callee": "cn",
+          "lineNumber": 85
+        },
+        {
+          "caller": "TableCaption",
+          "callee": "cn",
+          "lineNumber": 101
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 8,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/ui/tabs.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 89,
+      "nonEmptyLines": 82,
+      "functions": [
+        {
+          "name": "Tabs",
+          "startLine": 7,
+          "endLine": 24,
+          "params": [
+            "{\n  className,\n  orientation = \"horizontal\",\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "TabsList",
+          "startLine": 41,
+          "endLine": 55,
+          "params": [
+            "{\n  className,\n  variant = \"default\",\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "TabsTrigger",
+          "startLine": 57,
+          "endLine": 74,
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ]
+        },
+        {
+          "name": "TabsContent",
+          "startLine": 76,
+          "endLine": 87,
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Tabs",
+          "line": 89,
+          "isDefault": false
+        },
+        {
+          "name": "TabsList",
+          "line": 89,
+          "isDefault": false
+        },
+        {
+          "name": "TabsTrigger",
+          "line": 89,
+          "isDefault": false
+        },
+        {
+          "name": "TabsContent",
+          "line": 89,
+          "isDefault": false
+        },
+        {
+          "name": "tabsListVariants",
+          "line": 89,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Tabs",
+          "callee": "cn",
+          "lineNumber": 17
+        },
+        {
+          "caller": "TabsList",
+          "callee": "cn",
+          "lineNumber": 51
+        },
+        {
+          "caller": "TabsList",
+          "callee": "tabsListVariants",
+          "lineNumber": 51
+        },
+        {
+          "caller": "TabsTrigger",
+          "callee": "cn",
+          "lineNumber": 64
+        },
+        {
+          "caller": "TabsContent",
+          "callee": "cn",
+          "lineNumber": 83
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 5,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/data/scope/presets.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 33,
+      "functions": [
+        {
+          "name": "rangeForPreset",
+          "startLine": 11,
+          "endLine": 37,
+          "params": [
+            "preset"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SCOPE_PRESETS",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "DEFAULT_PRESET",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "rangeForPreset",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoNow",
+          "lineNumber": 12
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "now.getFullYear",
+          "lineNumber": 13
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "now.getMonth",
+          "lineNumber": 14
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "now.getDate",
+          "lineNumber": 15
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoDateISO",
+          "lineNumber": 18
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoDateISO",
+          "lineNumber": 18
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "subDays",
+          "lineNumber": 20
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoDateISO",
+          "lineNumber": 22
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getFullYear",
+          "lineNumber": 22
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getMonth",
+          "lineNumber": 22
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getDate",
+          "lineNumber": 22
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoDateISO",
+          "lineNumber": 23
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getFullYear",
+          "lineNumber": 23
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getMonth",
+          "lineNumber": 23
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getDate",
+          "lineNumber": 23
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "subDays",
+          "lineNumber": 27
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoDateISO",
+          "lineNumber": 28
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getFullYear",
+          "lineNumber": 28
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getMonth",
+          "lineNumber": 28
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getDate",
+          "lineNumber": 28
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoDateISO",
+          "lineNumber": 28
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "subDays",
+          "lineNumber": 31
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoDateISO",
+          "lineNumber": 32
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getFullYear",
+          "lineNumber": 32
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getMonth",
+          "lineNumber": 32
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "p.getDate",
+          "lineNumber": 32
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoDateISO",
+          "lineNumber": 32
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoDateISO",
+          "lineNumber": 35
+        },
+        {
+          "caller": "rangeForPreset",
+          "callee": "cairoDateISO",
+          "lineNumber": 35
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/data/scope/use-page-search.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 21,
+      "functions": [
+        {
+          "name": "usePageSearch",
+          "startLine": 14,
+          "endLine": 22,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "usePageSearch",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "usePageSearch",
+          "callee": "useSearch",
+          "lineNumber": 15
+        },
+        {
+          "caller": "usePageSearch",
+          "callee": "useNavigate",
+          "lineNumber": 16
+        },
+        {
+          "caller": "usePageSearch",
+          "callee": "useCallback",
+          "lineNumber": 17
+        },
+        {
+          "caller": "usePageSearch",
+          "callee": "navigate",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/data/scope/use-scope.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 76,
+      "nonEmptyLines": 69,
+      "functions": [
+        {
+          "name": "useScope",
+          "startLine": 43,
+          "endLine": 76,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ALL_BRANCHES_ID",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "useScope",
+          "line": 43,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "useScope",
+          "callee": "useSearch",
+          "lineNumber": 44
+        },
+        {
+          "caller": "useScope",
+          "callee": "useNavigate",
+          "lineNumber": 45
+        },
+        {
+          "caller": "useScope",
+          "callee": "rangeForPreset",
+          "lineNumber": 51
+        },
+        {
+          "caller": "update",
+          "callee": "navigate",
+          "lineNumber": 54
+        },
+        {
+          "caller": "useScope",
+          "callee": "useAppStore.getState().setSelectedBranch",
+          "lineNumber": 64
+        },
+        {
+          "caller": "useScope",
+          "callee": "useAppStore.getState",
+          "lineNumber": 64
+        },
+        {
+          "caller": "useScope",
+          "callee": "update",
+          "lineNumber": 65
+        },
+        {
+          "caller": "useScope",
+          "callee": "useAppStore.getState().setScopePreset",
+          "lineNumber": 68
+        },
+        {
+          "caller": "useScope",
+          "callee": "useAppStore.getState",
+          "lineNumber": 68
+        },
+        {
+          "caller": "useScope",
+          "callee": "update",
+          "lineNumber": 69
+        },
+        {
+          "caller": "useScope",
+          "callee": "useAppStore.getState().setScopePreset",
+          "lineNumber": 72
+        },
+        {
+          "caller": "useScope",
+          "callee": "useAppStore.getState",
+          "lineNumber": 72
+        },
+        {
+          "caller": "useScope",
+          "callee": "update",
+          "lineNumber": 73
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/ai-chat/ai-result-view.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 313,
+      "nonEmptyLines": 292,
+      "functions": [
+        {
+          "name": "isMeasure",
+          "startLine": 35,
+          "endLine": 35,
+          "params": [
+            "c"
+          ]
+        },
+        {
+          "name": "isDimension",
+          "startLine": 36,
+          "endLine": 36,
+          "params": [
+            "c"
+          ]
+        },
+        {
+          "name": "formatCell",
+          "startLine": 39,
+          "endLine": 55,
+          "params": [
+            "col",
+            "value"
+          ]
+        },
+        {
+          "name": "measureFormatter",
+          "startLine": 58,
+          "endLine": 61,
+          "params": [
+            "col"
+          ]
+        },
+        {
+          "name": "AiResultView",
+          "startLine": 63,
+          "endLine": 156,
+          "params": [
+            "{ res }"
+          ]
+        },
+        {
+          "name": "ResultSection",
+          "startLine": 159,
+          "endLine": 224,
+          "params": [
+            "{\n  columns,\n  rows,\n  chart,\n  reduce,\n}"
+          ]
+        },
+        {
+          "name": "seriesFormatter",
+          "startLine": 227,
+          "endLine": 236,
+          "params": [
+            "measures"
+          ]
+        },
+        {
+          "name": "renderChart",
+          "startLine": 238,
+          "endLine": 313,
+          "params": [
+            "chart",
+            "rows",
+            "dimension",
+            "measures",
+            "reduce"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "AiResultView",
+          "line": 63,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatCell",
+          "callee": "fmtMoney",
+          "lineNumber": 43
+        },
+        {
+          "caller": "formatCell",
+          "callee": "Number",
+          "lineNumber": 43
+        },
+        {
+          "caller": "formatCell",
+          "callee": "fmtNumber",
+          "lineNumber": 45
+        },
+        {
+          "caller": "formatCell",
+          "callee": "Number",
+          "lineNumber": 45
+        },
+        {
+          "caller": "formatCell",
+          "callee": "fmtNumber",
+          "lineNumber": 47
+        },
+        {
+          "caller": "formatCell",
+          "callee": "Number",
+          "lineNumber": 47
+        },
+        {
+          "caller": "formatCell",
+          "callee": "col.key.includes",
+          "lineNumber": 48
+        },
+        {
+          "caller": "formatCell",
+          "callee": "fmtDate",
+          "lineNumber": 51
+        },
+        {
+          "caller": "formatCell",
+          "callee": "String",
+          "lineNumber": 51
+        },
+        {
+          "caller": "formatCell",
+          "callee": "String",
+          "lineNumber": 53
+        },
+        {
+          "caller": "measureFormatter",
+          "callee": "fmtMoneyCompact",
+          "lineNumber": 59
+        },
+        {
+          "caller": "measureFormatter",
+          "callee": "fmtNumberCompact",
+          "lineNumber": 60
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "useTranslation",
+          "lineNumber": 64
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "useReducedMotion",
+          "lineNumber": 65
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "t",
+          "lineNumber": 73
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "t",
+          "lineNumber": 74
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "scope.branches.join",
+          "lineNumber": 75
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "res.columns.filter",
+          "lineNumber": 79
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "useMemo",
+          "lineNumber": 82
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "String",
+          "lineNumber": 86
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "map.get",
+          "lineNumber": 87
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "arr.push",
+          "lineNumber": 88
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "map.set",
+          "lineNumber": 89
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "Array.from",
+          "lineNumber": 91
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "t",
+          "lineNumber": 105
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "t",
+          "lineNumber": 110
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "t",
+          "lineNumber": 120
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "groups.map",
+          "lineNumber": 128
+        },
+        {
+          "caller": "AiResultView",
+          "callee": "t",
+          "lineNumber": 151
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "useTranslation",
+          "lineNumber": 170
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "columns.find",
+          "lineNumber": 171
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "columns.filter",
+          "lineNumber": 172
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "renderChart",
+          "lineNumber": 181
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "columns.map",
+          "lineNumber": 191
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "isMeasure",
+          "lineNumber": 194
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "t",
+          "lineNumber": 205
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "rows.map",
+          "lineNumber": 209
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "columns.map",
+          "lineNumber": 211
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "isMeasure",
+          "lineNumber": 212
+        },
+        {
+          "caller": "ResultSection",
+          "callee": "formatCell",
+          "lineNumber": 213
+        },
+        {
+          "caller": "seriesFormatter",
+          "callee": "measures.find",
+          "lineNumber": 233
+        },
+        {
+          "caller": "seriesFormatter",
+          "callee": "measureFormatter(col)",
+          "lineNumber": 234
+        },
+        {
+          "caller": "seriesFormatter",
+          "callee": "measureFormatter",
+          "lineNumber": 234
+        },
+        {
+          "caller": "seriesFormatter",
+          "callee": "Number",
+          "lineNumber": 234
+        },
+        {
+          "caller": "renderChart",
+          "callee": "measureFormatter",
+          "lineNumber": 242
+        },
+        {
+          "caller": "renderChart",
+          "callee": "seriesFormatter",
+          "lineNumber": 243
+        },
+        {
+          "caller": "renderChart",
+          "callee": "rows.map",
+          "lineNumber": 260
+        },
+        {
+          "caller": "renderChart",
+          "callee": "chartColor",
+          "lineNumber": 261
+        },
+        {
+          "caller": "renderChart",
+          "callee": "measureFormatter(m)",
+          "lineNumber": 264
+        },
+        {
+          "caller": "renderChart",
+          "callee": "measureFormatter",
+          "lineNumber": 264
+        },
+        {
+          "caller": "renderChart",
+          "callee": "Number",
+          "lineNumber": 264
+        },
+        {
+          "caller": "renderChart",
+          "callee": "measures.map",
+          "lineNumber": 278
+        },
+        {
+          "caller": "renderChart",
+          "callee": "chartColor",
+          "lineNumber": 284
+        },
+        {
+          "caller": "renderChart",
+          "callee": "measures.map",
+          "lineNumber": 301
+        },
+        {
+          "caller": "renderChart",
+          "callee": "chartColor",
+          "lineNumber": 306
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    }
+  ]
+}

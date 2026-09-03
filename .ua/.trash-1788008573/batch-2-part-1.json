@@ -1,0 +1,1602 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/data/scope/use-timezone.ts",
+   "type": "file",
+   "name": "use-timezone.ts",
+   "filePath": "src/data/scope/use-timezone.ts",
+   "summary": "Hook that syncs the active org/branch timezone into the app store so all date formatting uses the correct zone.",
+   "tags": [
+    "hook",
+    "timezone",
+    "state-sync",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/scope/use-timezone.ts:useSyncTimezone",
+   "type": "function",
+   "name": "useSyncTimezone",
+   "filePath": "src/data/scope/use-timezone.ts",
+   "lineRange": [
+    21,
+    52
+   ],
+   "summary": "Effect hook that resolves the timezone for the current scope and writes it into the app store.",
+   "tags": [
+    "function",
+    "hook",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/stores/app.store.ts",
+   "type": "file",
+   "name": "app.store.ts",
+   "filePath": "src/data/stores/app.store.ts",
+   "summary": "Zustand store for app-level UI state: language, theme, selected branch scope and timezone, persisted to localStorage and mirrored into the API client context.",
+   "tags": [
+    "state-management",
+    "zustand",
+    "store",
+    "i18n"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/data/stores/auth.store.ts",
+   "type": "file",
+   "name": "auth.store.ts",
+   "filePath": "src/data/stores/auth.store.ts",
+   "summary": "Zustand auth store holding the JWT token, current user and org, with login/logout actions that update the API client context and reset the query cache.",
+   "tags": [
+    "state-management",
+    "zustand",
+    "auth",
+    "store"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/data/stores/auth.store.ts:updateApiContext",
+   "type": "function",
+   "name": "updateApiContext",
+   "filePath": "src/data/stores/auth.store.ts",
+   "lineRange": [
+    80,
+    97
+   ],
+   "summary": "Pushes token and org/branch IDs from the auth store into the shared API client context.",
+   "tags": [
+    "function",
+    "state-management",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/types.ts",
+   "type": "file",
+   "name": "types.ts",
+   "filePath": "src/data/types.ts",
+   "summary": "Central hand-written TypeScript domain types (users, orgs, branches, reports, inventory, shifts, menu) mirroring the backend API payloads.",
+   "tags": [
+    "type-definition",
+    "data-model",
+    "domain-types"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/branches/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/branches/util.ts",
+   "summary": "Tiny helper that invalidates branch-related React Query caches after mutations.",
+   "tags": [
+    "utility",
+    "react-query",
+    "cache-invalidation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/branches/util.ts:invalidateBranches",
+   "type": "function",
+   "name": "invalidateBranches",
+   "filePath": "src/features/branches/util.ts",
+   "lineRange": [
+    3,
+    6
+   ],
+   "summary": "invalidateBranches function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/delivery/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/delivery/util.ts",
+   "summary": "Query-invalidation helpers for delivery zones, branch delivery settings and channel overrides.",
+   "tags": [
+    "utility",
+    "react-query",
+    "cache-invalidation",
+    "delivery"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/delivery/util.ts:invalidateZones",
+   "type": "function",
+   "name": "invalidateZones",
+   "filePath": "src/features/delivery/util.ts",
+   "lineRange": [
+    4,
+    9
+   ],
+   "summary": "invalidateZones function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/delivery/util.ts:invalidateBranchSettings",
+   "type": "function",
+   "name": "invalidateBranchSettings",
+   "filePath": "src/features/delivery/util.ts",
+   "lineRange": [
+    12,
+    17
+   ],
+   "summary": "invalidateBranchSettings function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/delivery/util.ts:invalidateChannelOverrides",
+   "type": "function",
+   "name": "invalidateChannelOverrides",
+   "filePath": "src/features/delivery/util.ts",
+   "lineRange": [
+    25,
+    35
+   ],
+   "summary": "Invalidates delivery channel override queries for a branch.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/discounts/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/discounts/util.ts",
+   "summary": "Helper that invalidates discount queries after create/update/delete mutations.",
+   "tags": [
+    "utility",
+    "react-query",
+    "cache-invalidation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/discounts/util.ts:invalidateDiscounts",
+   "type": "function",
+   "name": "invalidateDiscounts",
+   "filePath": "src/features/discounts/util.ts",
+   "lineRange": [
+    3,
+    6
+   ],
+   "summary": "invalidateDiscounts function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/insights/flag-chip.tsx",
+   "type": "file",
+   "name": "flag-chip.tsx",
+   "filePath": "src/features/insights/flag-chip.tsx",
+   "summary": "Small popover chip that renders an insight signal with tone-based styling and an explanatory reason on click.",
+   "tags": [
+    "component",
+    "insights",
+    "popover",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/insights/flag-chip.tsx:FlagChip",
+   "type": "function",
+   "name": "FlagChip",
+   "filePath": "src/features/insights/flag-chip.tsx",
+   "lineRange": [
+    18,
+    72
+   ],
+   "summary": "Renders an insight signal chip with a popover explaining the reason.",
+   "tags": [
+    "function",
+    "component",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/integrations/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/integrations/util.ts",
+   "summary": "Helpers for the integrations feature: credential cache invalidation, revocation checks, analytics URL building, Basic-auth header encoding and random partner username generation.",
+   "tags": [
+    "utility",
+    "integrations",
+    "auth",
+    "cache-invalidation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/integrations/util.ts:invalidateCredentials",
+   "type": "function",
+   "name": "invalidateCredentials",
+   "filePath": "src/features/integrations/util.ts",
+   "lineRange": [
+    6,
+    11
+   ],
+   "summary": "invalidateCredentials function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/integrations/util.ts:isRevoked",
+   "type": "function",
+   "name": "isRevoked",
+   "filePath": "src/features/integrations/util.ts",
+   "lineRange": [
+    13,
+    13
+   ],
+   "summary": "isRevoked function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/integrations/util.ts:analyticsUrl",
+   "type": "function",
+   "name": "analyticsUrl",
+   "filePath": "src/features/integrations/util.ts",
+   "lineRange": [
+    22,
+    25
+   ],
+   "summary": "analyticsUrl function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/integrations/util.ts:basicAuthHeader",
+   "type": "function",
+   "name": "basicAuthHeader",
+   "filePath": "src/features/integrations/util.ts",
+   "lineRange": [
+    34,
+    41
+   ],
+   "summary": "basicAuthHeader function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/integrations/util.ts:randomUsernameSuffix",
+   "type": "function",
+   "name": "randomUsernameSuffix",
+   "filePath": "src/features/integrations/util.ts",
+   "lineRange": [
+    58,
+    62
+   ],
+   "summary": "randomUsernameSuffix function.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/integrations/util.ts:buildUsername",
+   "type": "function",
+   "name": "buildUsername",
+   "filePath": "src/features/integrations/util.ts",
+   "lineRange": [
+    70,
+    79
+   ],
+   "summary": "Builds a partner integration username from org slug plus random suffix.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "type": "file",
+   "name": "pricing-availability-page.tsx",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "summary": "Large branch pricing and availability matrix page: lets admins override item/size/addon prices and availability per branch, tracking dirty cells and batch-saving overrides, with a responsive mobile card layout.",
+   "tags": [
+    "page",
+    "component",
+    "pricing",
+    "menu",
+    "mutation-batching"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Heavy use of local dirty-cell tracking hooks (useDirtyCells, useItemSizeTargets) to batch many overrides into a single save."
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:colLabel",
+   "type": "function",
+   "name": "colLabel",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    85,
+    103
+   ],
+   "summary": "Returns the display label for a matrix column (size or branch).",
+   "tags": [
+    "function",
+    "page",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:resolveCell",
+   "type": "function",
+   "name": "resolveCell",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    146,
+    171
+   ],
+   "summary": "Resolves the effective price/availability of a cell from base and override data.",
+   "tags": [
+    "function",
+    "page",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:useDirtyCells",
+   "type": "function",
+   "name": "useDirtyCells",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    229,
+    268
+   ],
+   "summary": "Hook tracking edited cells and exposing set/reset helpers for batch save.",
+   "tags": [
+    "function",
+    "page",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:planCell",
+   "type": "function",
+   "name": "planCell",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    278,
+    308
+   ],
+   "summary": "Computes the override mutation needed for one edited cell.",
+   "tags": [
+    "function",
+    "page",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:PricingControl",
+   "type": "function",
+   "name": "PricingControl",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    331,
+    450
+   ],
+   "summary": "Editable price/availability control for a single matrix cell.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:PricingCell",
+   "type": "function",
+   "name": "PricingCell",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    455,
+    472
+   ],
+   "summary": "Table cell wrapper rendering a PricingControl.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:TargetCells",
+   "type": "function",
+   "name": "TargetCells",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    505,
+    541
+   ],
+   "summary": "Renders the target-scope cells for an item size row.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:collectPending",
+   "type": "function",
+   "name": "collectPending",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    544,
+    569
+   ],
+   "summary": "Collects all pending override mutations from dirty cells.",
+   "tags": [
+    "function",
+    "page",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:useItemSizeTargets",
+   "type": "function",
+   "name": "useItemSizeTargets",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    577,
+    629
+   ],
+   "summary": "Hook computing per-item-size targets across branches.",
+   "tags": [
+    "function",
+    "page",
+    "helper"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:ItemRow",
+   "type": "function",
+   "name": "ItemRow",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    633,
+    748
+   ],
+   "summary": "Matrix row for a menu item and its sizes.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:AddonRow",
+   "type": "function",
+   "name": "AddonRow",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    752,
+    781
+   ],
+   "summary": "Matrix row for an addon item.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:MatrixHead",
+   "type": "function",
+   "name": "MatrixHead",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    785,
+    815
+   ],
+   "summary": "Table header for the pricing matrix.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:Matrix",
+   "type": "function",
+   "name": "Matrix",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    819,
+    828
+   ],
+   "summary": "Desktop table layout combining head and rows.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:TargetScopeList",
+   "type": "function",
+   "name": "TargetScopeList",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    836,
+    890
+   ],
+   "summary": "List of branch scopes for mobile card layout.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:AddonCard",
+   "type": "function",
+   "name": "AddonCard",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    893,
+    920
+   ],
+   "summary": "Mobile card layout for an addon.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:ItemCard",
+   "type": "function",
+   "name": "ItemCard",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    924,
+    1010
+   ],
+   "summary": "Mobile card layout for a menu item.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:PricingAvailabilityPage",
+   "type": "function",
+   "name": "PricingAvailabilityPage",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    1023,
+    1470
+   ],
+   "summary": "Top-level page composing data loading, tabs, search, matrix/cards and batch save.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/menu/pricing/pricing-availability-page.tsx:PricingHeader",
+   "type": "function",
+   "name": "PricingHeader",
+   "filePath": "src/features/menu/pricing/pricing-availability-page.tsx",
+   "lineRange": [
+    1474,
+    1489
+   ],
+   "summary": "Page header with title and save action.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/menu/pricing/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/menu/pricing/util.ts",
+   "summary": "Invalidates branch menu and addon pricing-override queries after a save.",
+   "tags": [
+    "utility",
+    "react-query",
+    "cache-invalidation",
+    "pricing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/menu/pricing/util.ts:invalidatePricingOverrides",
+   "type": "function",
+   "name": "invalidatePricingOverrides",
+   "filePath": "src/features/menu/pricing/util.ts",
+   "lineRange": [
+    17,
+    27
+   ],
+   "summary": "Invalidates branch pricing override queries.",
+   "tags": [
+    "function",
+    "utility",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/onboarding/celebration.tsx",
+   "type": "file",
+   "name": "celebration.tsx",
+   "filePath": "src/features/onboarding/celebration.tsx",
+   "summary": "Lightweight confetti-style celebration overlay shown when onboarding completes, respecting reduced-motion.",
+   "tags": [
+    "component",
+    "onboarding",
+    "animation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/onboarding/celebration.tsx:Celebration",
+   "type": "function",
+   "name": "Celebration",
+   "filePath": "src/features/onboarding/celebration.tsx",
+   "lineRange": [
+    13,
+    37
+   ],
+   "summary": "Animated celebration overlay component.",
+   "tags": [
+    "function",
+    "component",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/onboarding/config.ts",
+   "type": "file",
+   "name": "config.ts",
+   "filePath": "src/features/onboarding/config.ts",
+   "summary": "Static configuration for the onboarding flow: stages, steps, dashboard-mirror tiles and localStorage keys for skip/nudge dismissal.",
+   "tags": [
+    "config",
+    "onboarding",
+    "constants"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/onboarding/keep-building-card.tsx",
+   "type": "file",
+   "name": "keep-building-card.tsx",
+   "filePath": "src/features/onboarding/keep-building-card.tsx",
+   "summary": "Dashboard card nudging org admins to finish remaining onboarding steps, dismissible via localStorage.",
+   "tags": [
+    "component",
+    "onboarding",
+    "dashboard",
+    "card"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/onboarding/keep-building-card.tsx:KeepBuildingCard",
+   "type": "function",
+   "name": "KeepBuildingCard",
+   "filePath": "src/features/onboarding/keep-building-card.tsx",
+   "lineRange": [
+    19,
+    74
+   ],
+   "summary": "Dismissible dashboard card linking to unfinished onboarding steps.",
+   "tags": [
+    "function",
+    "component",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/onboarding/onboarding-page.tsx",
+   "type": "file",
+   "name": "onboarding-page.tsx",
+   "filePath": "src/features/onboarding/onboarding-page.tsx",
+   "summary": "Full-screen onboarding page that derives step completion from live backend data and drives the step navigator, step panel and dashboard mirror.",
+   "tags": [
+    "page",
+    "component",
+    "onboarding",
+    "entry-point"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/onboarding/onboarding-page.tsx:OnboardingPage",
+   "type": "function",
+   "name": "OnboardingPage",
+   "filePath": "src/features/onboarding/onboarding-page.tsx",
+   "lineRange": [
+    26,
+    178
+   ],
+   "summary": "Main onboarding page component deriving step status from backend queries.",
+   "tags": [
+    "function",
+    "page",
+    "component"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/data/scope/use-timezone.ts",
+   "target": "function:src/data/scope/use-timezone.ts:useSyncTimezone",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/scope/use-timezone.ts",
+   "target": "function:src/data/scope/use-timezone.ts:useSyncTimezone",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/scope/use-timezone.ts",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/scope/use-timezone.ts",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/scope/use-timezone.ts",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/stores/app.store.ts",
+   "target": "file:src/data/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/stores/app.store.ts",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/stores/app.store.ts",
+   "target": "file:src/i18n/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/stores/auth.store.ts",
+   "target": "function:src/data/stores/auth.store.ts:updateApiContext",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/stores/auth.store.ts",
+   "target": "file:src/data/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/stores/auth.store.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/stores/auth.store.ts",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/stores/auth.store.ts",
+   "target": "file:src/data/stores/app.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/stores/auth.store.ts",
+   "target": "file:src/data/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/types.ts",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/branches/util.ts",
+   "target": "function:src/features/branches/util.ts:invalidateBranches",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/branches/util.ts",
+   "target": "function:src/features/branches/util.ts:invalidateBranches",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/branches/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/util.ts",
+   "target": "function:src/features/delivery/util.ts:invalidateZones",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/delivery/util.ts",
+   "target": "function:src/features/delivery/util.ts:invalidateZones",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/delivery/util.ts",
+   "target": "function:src/features/delivery/util.ts:invalidateBranchSettings",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/delivery/util.ts",
+   "target": "function:src/features/delivery/util.ts:invalidateBranchSettings",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/delivery/util.ts",
+   "target": "function:src/features/delivery/util.ts:invalidateChannelOverrides",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/delivery/util.ts",
+   "target": "function:src/features/delivery/util.ts:invalidateChannelOverrides",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/delivery/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/util.ts",
+   "target": "function:src/features/discounts/util.ts:invalidateDiscounts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/discounts/util.ts",
+   "target": "function:src/features/discounts/util.ts:invalidateDiscounts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/discounts/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/flag-chip.tsx",
+   "target": "function:src/features/insights/flag-chip.tsx:FlagChip",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/flag-chip.tsx",
+   "target": "function:src/features/insights/flag-chip.tsx:FlagChip",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/insights/flag-chip.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/flag-chip.tsx",
+   "target": "file:src/components/ui/popover.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/flag-chip.tsx",
+   "target": "file:src/features/insights/signals.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/flag-chip.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:invalidateCredentials",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:invalidateCredentials",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:isRevoked",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:isRevoked",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:analyticsUrl",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:analyticsUrl",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:basicAuthHeader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:basicAuthHeader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:randomUsernameSuffix",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:randomUsernameSuffix",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:buildUsername",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "function:src/features/integrations/util.ts:buildUsername",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/util.ts",
+   "target": "file:src/data/config/env.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:colLabel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:resolveCell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:useDirtyCells",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:planCell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:PricingControl",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:PricingCell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:TargetCells",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:collectPending",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:useItemSizeTargets",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:ItemRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:AddonRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:MatrixHead",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:Matrix",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:TargetScopeList",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:AddonCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:ItemCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:PricingAvailabilityPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:PricingAvailabilityPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "function:src/features/menu/pricing/pricing-availability-page.tsx:PricingHeader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/components/app/page-tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/components/ui/tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/components/ui/tooltip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/features/menu/pricing/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/hooks/use-mobile.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/lib/use-debounced.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/pricing-availability-page.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/menu/pricing/util.ts",
+   "target": "function:src/features/menu/pricing/util.ts:invalidatePricingOverrides",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/menu/pricing/util.ts",
+   "target": "function:src/features/menu/pricing/util.ts:invalidatePricingOverrides",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/menu/pricing/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/celebration.tsx",
+   "target": "function:src/features/onboarding/celebration.tsx:Celebration",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/onboarding/celebration.tsx",
+   "target": "function:src/features/onboarding/celebration.tsx:Celebration",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/onboarding/celebration.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/keep-building-card.tsx",
+   "target": "function:src/features/onboarding/keep-building-card.tsx:KeepBuildingCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/onboarding/keep-building-card.tsx",
+   "target": "function:src/features/onboarding/keep-building-card.tsx:KeepBuildingCard",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/onboarding/keep-building-card.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/keep-building-card.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/keep-building-card.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/keep-building-card.tsx",
+   "target": "file:src/features/onboarding/config.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/keep-building-card.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "function:src/features/onboarding/onboarding-page.tsx:OnboardingPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "function:src/features/onboarding/onboarding-page.tsx:OnboardingPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "file:src/features/onboarding/celebration.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "file:src/features/onboarding/config.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "file:src/features/onboarding/dashboard-mirror.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "file:src/features/onboarding/step-navigator.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "file:src/features/onboarding/step-panel.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/onboarding/onboarding-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/features/menu/pricing/pricing-availability-page.tsx:PricingAvailabilityPage",
+   "target": "function:src/features/menu/pricing/util.ts:invalidatePricingOverrides",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/insights/flag-chip.tsx:FlagChip",
+   "target": "function:src/features/insights/signals.ts:signalReason",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

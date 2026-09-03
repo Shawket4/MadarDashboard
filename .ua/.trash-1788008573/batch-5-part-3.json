@@ -1,0 +1,828 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/delivery/settings-page.tsx",
+   "type": "file",
+   "name": "settings-page.tsx",
+   "filePath": "src/features/delivery/settings-page.tsx",
+   "summary": "Per-branch delivery settings page: delivery hours, fees, minimum order, radius and enablement, edited via a form card per branch.",
+   "tags": [
+    "page",
+    "delivery",
+    "settings",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/delivery/settings-page.tsx:BranchSettingsCard",
+   "type": "function",
+   "name": "BranchSettingsCard",
+   "filePath": "src/features/delivery/settings-page.tsx",
+   "lineRange": [
+    37,
+    414
+   ],
+   "summary": "Form card editing one branch's delivery configuration and saving through the API.",
+   "tags": [
+    "page",
+    "delivery",
+    "settings"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/delivery/settings-page.tsx:DeliverySettingsPage",
+   "type": "function",
+   "name": "DeliverySettingsPage",
+   "filePath": "src/features/delivery/settings-page.tsx",
+   "lineRange": [
+    416,
+    437
+   ],
+   "summary": "Lists scoped branches and renders a BranchSettingsCard for each.",
+   "tags": [
+    "page",
+    "delivery",
+    "settings"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/delivery/zone-dialog.tsx",
+   "type": "file",
+   "name": "zone-dialog.tsx",
+   "filePath": "src/features/delivery/zone-dialog.tsx",
+   "summary": "Create/edit dialog for delivery zones with radius (km/m conversion), fee, minimum order and active flag.",
+   "tags": [
+    "dialog",
+    "form",
+    "delivery",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/delivery/zone-dialog.tsx:ZoneDialog",
+   "type": "function",
+   "name": "ZoneDialog",
+   "filePath": "src/features/delivery/zone-dialog.tsx",
+   "lineRange": [
+    37,
+    180
+   ],
+   "summary": "Form dialog for delivery zone fields with unit conversion and mutation submit.",
+   "tags": [
+    "dialog",
+    "form",
+    "delivery"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/discounts/discount-dialog.tsx",
+   "type": "file",
+   "name": "discount-dialog.tsx",
+   "filePath": "src/features/discounts/discount-dialog.tsx",
+   "summary": "Create/edit dialog for discounts with bilingual name, percentage/fixed type, value and active flag.",
+   "tags": [
+    "dialog",
+    "form",
+    "discounts",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/discounts/discount-dialog.tsx:DiscountDialog",
+   "type": "function",
+   "name": "DiscountDialog",
+   "filePath": "src/features/discounts/discount-dialog.tsx",
+   "lineRange": [
+    36,
+    135
+   ],
+   "summary": "Form dialog creating or updating a discount definition.",
+   "tags": [
+    "dialog",
+    "form",
+    "discounts"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/integrations/credential-dialog.tsx",
+   "type": "file",
+   "name": "credential-dialog.tsx",
+   "filePath": "src/features/integrations/credential-dialog.tsx",
+   "summary": "Dialog for entering third-party integration credentials, encrypting them with a passphrase before submission.",
+   "tags": [
+    "dialog",
+    "form",
+    "integrations",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/integrations/credential-dialog.tsx:CredentialDialog",
+   "type": "function",
+   "name": "CredentialDialog",
+   "filePath": "src/features/integrations/credential-dialog.tsx",
+   "lineRange": [
+    33,
+    194
+   ],
+   "summary": "Collects provider credentials and a passphrase, encrypts and submits them via the integrations API.",
+   "tags": [
+    "dialog",
+    "form",
+    "integrations"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/integrations/handoff-dialog.tsx",
+   "type": "file",
+   "name": "handoff-dialog.tsx",
+   "filePath": "src/features/integrations/handoff-dialog.tsx",
+   "summary": "Dialog driving the encrypted credential handoff flow to a partner, with confirmation and status feedback.",
+   "tags": [
+    "dialog",
+    "integrations",
+    "security",
+    "workflow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/integrations/handoff-dialog.tsx:HandoffDialog",
+   "type": "function",
+   "name": "HandoffDialog",
+   "filePath": "src/features/integrations/handoff-dialog.tsx",
+   "lineRange": [
+    27,
+    169
+   ],
+   "summary": "Orchestrates the credential handoff steps using the use-credential-handoff hook and a confirm dialog.",
+   "tags": [
+    "dialog",
+    "integrations",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/inventory/item-dialog.tsx",
+   "type": "file",
+   "name": "item-dialog.tsx",
+   "filePath": "src/features/inventory/item-dialog.tsx",
+   "summary": "Create/edit dialog for inventory items including unit, category, supplier combobox, cost, reorder thresholds and optional advanced fields.",
+   "tags": [
+    "dialog",
+    "form",
+    "inventory",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/inventory/item-dialog.tsx:ItemDialog",
+   "type": "function",
+   "name": "ItemDialog",
+   "filePath": "src/features/inventory/item-dialog.tsx",
+   "lineRange": [
+    38,
+    283
+   ],
+   "summary": "Form dialog managing inventory item fields and submitting through generated mutations.",
+   "tags": [
+    "dialog",
+    "form",
+    "inventory"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "type": "file",
+   "name": "purchase-order-dialog.tsx",
+   "filePath": "src/features/inventory/purchase-order-dialog.tsx",
+   "summary": "Dialog for composing a purchase order: supplier selection, expected date, and dynamic line items with quantities and costs.",
+   "tags": [
+    "dialog",
+    "form",
+    "inventory",
+    "purchasing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/inventory/purchase-order-dialog.tsx:PurchaseOrderDialog",
+   "type": "function",
+   "name": "PurchaseOrderDialog",
+   "filePath": "src/features/inventory/purchase-order-dialog.tsx",
+   "lineRange": [
+    47,
+    231
+   ],
+   "summary": "Builds purchase order lines with item comboboxes and totals, then submits the order.",
+   "tags": [
+    "dialog",
+    "form",
+    "inventory"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "function:src/features/delivery/settings-page.tsx:BranchSettingsCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "function:src/features/delivery/settings-page.tsx:DeliverySettingsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "function:src/features/delivery/settings-page.tsx:DeliverySettingsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/components/app/time-picker.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/features/delivery/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/settings-page.tsx",
+   "target": "file:src/lib/translation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zone-dialog.tsx",
+   "target": "function:src/features/delivery/zone-dialog.tsx:ZoneDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/delivery/zone-dialog.tsx",
+   "target": "function:src/features/delivery/zone-dialog.tsx:ZoneDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/delivery/zone-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zone-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zone-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zone-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zone-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zone-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/delivery/zone-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "function:src/features/discounts/discount-dialog.tsx:DiscountDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "function:src/features/discounts/discount-dialog.tsx:DiscountDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "file:src/components/app/bilingual-field.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "file:src/features/discounts/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/discounts/discount-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/credential-dialog.tsx",
+   "target": "function:src/features/integrations/credential-dialog.tsx:CredentialDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/integrations/credential-dialog.tsx",
+   "target": "function:src/features/integrations/credential-dialog.tsx:CredentialDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/integrations/credential-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/credential-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/credential-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/credential-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/credential-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/credential-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/credential-dialog.tsx",
+   "target": "file:src/features/integrations/passphrase.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/credential-dialog.tsx",
+   "target": "file:src/features/integrations/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/handoff-dialog.tsx",
+   "target": "function:src/features/integrations/handoff-dialog.tsx:HandoffDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/integrations/handoff-dialog.tsx",
+   "target": "function:src/features/integrations/handoff-dialog.tsx:HandoffDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/integrations/handoff-dialog.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/handoff-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/handoff-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/handoff-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/handoff-dialog.tsx",
+   "target": "file:src/features/integrations/use-credential-handoff.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "function:src/features/inventory/item-dialog.tsx:ItemDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "function:src/features/inventory/item-dialog.tsx:ItemDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/components/app/combobox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/components/ui/collapsible.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/features/inventory/lib.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/item-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "function:src/features/inventory/purchase-order-dialog.tsx:PurchaseOrderDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "function:src/features/inventory/purchase-order-dialog.tsx:PurchaseOrderDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/components/app/combobox.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/components/app/date-picker.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/components/ui/separator.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/features/inventory/lib.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/purchase-order-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/features/delivery/zone-dialog.tsx:ZoneDialog",
+   "target": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/inventory/item-dialog.tsx:ItemDialog",
+   "target": "function:src/data/api/errors.ts:getErrorMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

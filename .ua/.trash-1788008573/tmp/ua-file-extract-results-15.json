@@ -1,0 +1,634 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 5,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 5,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "src/features/integrations/handoff-content.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 232,
+      "nonEmptyLines": 222,
+      "functions": [
+        {
+          "name": "crlf",
+          "startLine": 31,
+          "endLine": 31,
+          "params": [
+            "lines"
+          ]
+        },
+        {
+          "name": "isoDate",
+          "startLine": 33,
+          "endLine": 33,
+          "params": [
+            "d"
+          ]
+        },
+        {
+          "name": "slug",
+          "startLine": 36,
+          "endLine": 42,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "handoffFilename",
+          "startLine": 44,
+          "endLine": 47,
+          "params": [
+            "username",
+            "issuedAt"
+          ]
+        },
+        {
+          "name": "credentialsText",
+          "startLine": 49,
+          "endLine": 79,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "readmeText",
+          "startLine": 81,
+          "endLine": 225,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "buildHandoffFiles",
+          "startLine": 227,
+          "endLine": 232,
+          "params": [
+            "input"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "handoffFilename",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "buildHandoffFiles",
+          "line": 227,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "crlf",
+          "callee": "lines.join",
+          "lineNumber": 31
+        },
+        {
+          "caller": "isoDate",
+          "callee": "d.toISOString().slice",
+          "lineNumber": 33
+        },
+        {
+          "caller": "isoDate",
+          "callee": "d.toISOString",
+          "lineNumber": 33
+        },
+        {
+          "caller": "slug",
+          "callee": "raw\n    .toLowerCase()\n    .normalize(\"NFKD\")\n    .replace(/[^a-z0-9]+/g, \"-\")\n    .replace(/^-+|-+$/g, \"\")\n    .slice",
+          "lineNumber": 37
+        },
+        {
+          "caller": "slug",
+          "callee": "raw\n    .toLowerCase()\n    .normalize(\"NFKD\")\n    .replace(/[^a-z0-9]+/g, \"-\")\n    .replace",
+          "lineNumber": 37
+        },
+        {
+          "caller": "slug",
+          "callee": "raw\n    .toLowerCase()\n    .normalize(\"NFKD\")\n    .replace",
+          "lineNumber": 37
+        },
+        {
+          "caller": "slug",
+          "callee": "raw\n    .toLowerCase()\n    .normalize",
+          "lineNumber": 37
+        },
+        {
+          "caller": "slug",
+          "callee": "raw\n    .toLowerCase",
+          "lineNumber": 37
+        },
+        {
+          "caller": "handoffFilename",
+          "callee": "slug",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handoffFilename",
+          "callee": "isoDate",
+          "lineNumber": 46
+        },
+        {
+          "caller": "credentialsText",
+          "callee": "analyticsUrl",
+          "lineNumber": 50
+        },
+        {
+          "caller": "credentialsText",
+          "callee": "crlf",
+          "lineNumber": 51
+        },
+        {
+          "caller": "credentialsText",
+          "callee": "input.issuedAt.toISOString",
+          "lineNumber": 57
+        },
+        {
+          "caller": "credentialsText",
+          "callee": "basicAuthHeader",
+          "lineNumber": 70
+        },
+        {
+          "caller": "credentialsText",
+          "callee": "endpoint.replace",
+          "lineNumber": 75
+        },
+        {
+          "caller": "readmeText",
+          "callee": "analyticsUrl",
+          "lineNumber": 82
+        },
+        {
+          "caller": "readmeText",
+          "callee": "crlf",
+          "lineNumber": 83
+        },
+        {
+          "caller": "readmeText",
+          "callee": "endpoint.split",
+          "lineNumber": 99
+        },
+        {
+          "caller": "readmeText",
+          "callee": "endpoint.replace(/YYYY-MM-DD/g, \"2026-06-01\").replace",
+          "lineNumber": 122
+        },
+        {
+          "caller": "readmeText",
+          "callee": "endpoint.replace",
+          "lineNumber": 122
+        },
+        {
+          "caller": "buildHandoffFiles",
+          "callee": "readmeText",
+          "lineNumber": 229
+        },
+        {
+          "caller": "buildHandoffFiles",
+          "callee": "credentialsText",
+          "lineNumber": 230
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/integrations/handoff-zip.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 61,
+      "nonEmptyLines": 54,
+      "functions": [
+        {
+          "name": "zipCore",
+          "startLine": 29,
+          "endLine": 35,
+          "params": []
+        },
+        {
+          "name": "buildEncryptedHandoffZip",
+          "startLine": 41,
+          "endLine": 61,
+          "params": [
+            "files",
+            "passphrase"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "handoffFilename",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "buildEncryptedHandoffZip",
+          "line": 41,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "zipCore",
+          "callee": "import",
+          "lineNumber": 32
+        },
+        {
+          "caller": "zipCore",
+          "callee": "core.configure",
+          "lineNumber": 33
+        },
+        {
+          "caller": "buildEncryptedHandoffZip",
+          "callee": "zipCore",
+          "lineNumber": 45
+        },
+        {
+          "caller": "buildEncryptedHandoffZip",
+          "callee": "writer.add",
+          "lineNumber": 57
+        },
+        {
+          "caller": "buildEncryptedHandoffZip",
+          "callee": "writer.close",
+          "lineNumber": 60
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/features/integrations/passphrase.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 74,
+      "nonEmptyLines": 64,
+      "functions": [
+        {
+          "name": "hasSecureRandom",
+          "startLine": 42,
+          "endLine": 44,
+          "params": []
+        },
+        {
+          "name": "secureRandomBytes",
+          "startLine": 46,
+          "endLine": 49,
+          "params": [
+            "out"
+          ]
+        },
+        {
+          "name": "generatePassphrase",
+          "startLine": 56,
+          "endLine": 74,
+          "params": [
+            "randomBytes"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "InsecureRandomError",
+          "startLine": 26,
+          "endLine": 31,
+          "methods": [
+            "constructor"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "PASSPHRASE_ALPHABET",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "InsecureRandomError",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "hasSecureRandom",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "generatePassphrase",
+          "line": 56,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "constructor",
+          "callee": "super",
+          "lineNumber": 28
+        },
+        {
+          "caller": "secureRandomBytes",
+          "callee": "hasSecureRandom",
+          "lineNumber": 47
+        },
+        {
+          "caller": "secureRandomBytes",
+          "callee": "globalThis.crypto.getRandomValues",
+          "lineNumber": 48
+        },
+        {
+          "caller": "generatePassphrase",
+          "callee": "randomBytes",
+          "lineNumber": 61
+        },
+        {
+          "caller": "generatePassphrase",
+          "callee": "symbols.push",
+          "lineNumber": 64
+        },
+        {
+          "caller": "generatePassphrase",
+          "callee": "groups.push",
+          "lineNumber": 71
+        },
+        {
+          "caller": "generatePassphrase",
+          "callee": "symbols.slice(g * GROUP_LENGTH, (g + 1) * GROUP_LENGTH).join",
+          "lineNumber": 71
+        },
+        {
+          "caller": "generatePassphrase",
+          "callee": "symbols.slice",
+          "lineNumber": 71
+        },
+        {
+          "caller": "generatePassphrase",
+          "callee": "groups.join",
+          "lineNumber": 73
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 3,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "src/features/integrations/use-credential-handoff.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 103,
+      "nonEmptyLines": 90,
+      "functions": [
+        {
+          "name": "useCredentialHandoff",
+          "startLine": 33,
+          "endLine": 103,
+          "params": [
+            "issued"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "useCredentialHandoff",
+          "line": 33,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "useState",
+          "lineNumber": 38
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "generatePassphrase",
+          "lineNumber": 40
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "useState",
+          "lineNumber": 46
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "useState",
+          "lineNumber": 47
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "useState",
+          "lineNumber": 48
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "useRef",
+          "lineNumber": 51
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "useRef",
+          "lineNumber": 52
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "useCallback",
+          "lineNumber": 54
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "setStatus",
+          "lineNumber": 55
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "setError",
+          "lineNumber": 56
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "buildHandoffFiles",
+          "lineNumber": 61
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "buildEncryptedHandoffZip",
+          "lineNumber": 70
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "handoffFilename",
+          "lineNumber": 72
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "downloadBlob",
+          "lineNumber": 74
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "setDownloadCount",
+          "lineNumber": 75
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "setStatus",
+          "lineNumber": 76
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "setError",
+          "lineNumber": 79
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "setStatus",
+          "lineNumber": 80
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "useEffect",
+          "lineNumber": 84
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "build",
+          "lineNumber": 85
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "useCallback",
+          "lineNumber": 88
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "downloadBlob",
+          "lineNumber": 90
+        },
+        {
+          "caller": "useCredentialHandoff",
+          "callee": "setDownloadCount",
+          "lineNumber": 91
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/lib/download.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 36,
+      "functions": [
+        {
+          "name": "downloadUrl",
+          "startLine": 23,
+          "endLine": 32,
+          "params": [
+            "href",
+            "filename"
+          ]
+        },
+        {
+          "name": "downloadBlob",
+          "startLine": 35,
+          "endLine": 39,
+          "params": [
+            "blob",
+            "filename"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "downloadUrl",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "downloadBlob",
+          "line": 35,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "downloadUrl",
+          "callee": "document.createElement",
+          "lineNumber": 24
+        },
+        {
+          "caller": "downloadUrl",
+          "callee": "document.body.appendChild",
+          "lineNumber": 29
+        },
+        {
+          "caller": "downloadUrl",
+          "callee": "a.click",
+          "lineNumber": 30
+        },
+        {
+          "caller": "downloadUrl",
+          "callee": "a.remove",
+          "lineNumber": 31
+        },
+        {
+          "caller": "downloadBlob",
+          "callee": "URL.createObjectURL",
+          "lineNumber": 36
+        },
+        {
+          "caller": "downloadBlob",
+          "callee": "downloadUrl",
+          "lineNumber": 37
+        },
+        {
+          "caller": "downloadBlob",
+          "callee": "setTimeout",
+          "lineNumber": 38
+        },
+        {
+          "caller": "downloadBlob",
+          "callee": "URL.revokeObjectURL",
+          "lineNumber": 38
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,1026 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/shifts/open-shift-dialog.tsx",
+   "type": "file",
+   "name": "open-shift-dialog.tsx",
+   "filePath": "src/features/shifts/open-shift-dialog.tsx",
+   "summary": "Dialog to open a new till shift with an opening float; also exports the shared shift query invalidator.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "shifts"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/shifts/open-shift-dialog.tsx:invalidateShifts",
+   "type": "function",
+   "name": "invalidateShifts",
+   "filePath": "src/features/shifts/open-shift-dialog.tsx",
+   "lineRange": [
+    21,
+    24
+   ],
+   "summary": "Invalidates shift-related queries.",
+   "tags": [
+    "utility",
+    "cache-invalidation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/shifts/open-shift-dialog.tsx:OpenShiftDialog",
+   "type": "function",
+   "name": "OpenShiftDialog",
+   "filePath": "src/features/shifts/open-shift-dialog.tsx",
+   "lineRange": [
+    33,
+    90
+   ],
+   "summary": "Opens a shift with an opening cash amount.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/staff/attendance-rules-page.tsx",
+   "type": "file",
+   "name": "attendance-rules-page.tsx",
+   "filePath": "src/features/staff/attendance-rules-page.tsx",
+   "summary": "Attendance rules settings page: grace periods, late deduction tiers, overtime and rounding configuration per org.",
+   "tags": [
+    "component",
+    "page",
+    "settings",
+    "staff"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/staff/attendance-rules-page.tsx:AttendanceRulesPage",
+   "type": "function",
+   "name": "AttendanceRulesPage",
+   "filePath": "src/features/staff/attendance-rules-page.tsx",
+   "lineRange": [
+    40,
+    330
+   ],
+   "summary": "Loads attendance settings, edits late tiers and toggles, and saves them.",
+   "tags": [
+    "component",
+    "page",
+    "settings"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/staff/attendance-rules-page.tsx:describeTier",
+   "type": "function",
+   "name": "describeTier",
+   "filePath": "src/features/staff/attendance-rules-page.tsx",
+   "lineRange": [
+    334,
+    349
+   ],
+   "summary": "Produces a translated human-readable description of a late-deduction tier.",
+   "tags": [
+    "utility",
+    "i18n",
+    "formatting"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/staff/employee-dialog.tsx",
+   "type": "file",
+   "name": "employee-dialog.tsx",
+   "filePath": "src/features/staff/employee-dialog.tsx",
+   "summary": "Create/edit dialog for an employee record (personal info, department, work shift, pay, employment status).",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "staff"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/staff/employee-dialog.tsx:EmployeeDialog",
+   "type": "function",
+   "name": "EmployeeDialog",
+   "filePath": "src/features/staff/employee-dialog.tsx",
+   "lineRange": [
+    39,
+    310
+   ],
+   "summary": "Large form dialog creating or updating an employee and invalidating employee queries.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/staff/requests-inbox.tsx",
+   "type": "file",
+   "name": "requests-inbox.tsx",
+   "filePath": "src/features/staff/requests-inbox.tsx",
+   "summary": "Staff requests inbox page listing leave/advance/late-pass/mission requests with filters, approve/reject actions, and creation dialog.",
+   "tags": [
+    "component",
+    "page",
+    "staff",
+    "approval-workflow"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/staff/requests-inbox.tsx:RequestsInboxPage",
+   "type": "function",
+   "name": "RequestsInboxPage",
+   "filePath": "src/features/staff/requests-inbox.tsx",
+   "lineRange": [
+    50,
+    180
+   ],
+   "summary": "Filterable inbox of staff requests with decision actions.",
+   "tags": [
+    "component",
+    "page",
+    "entry-point"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/staff/requests-inbox.tsx:describeWindow",
+   "type": "function",
+   "name": "describeWindow",
+   "filePath": "src/features/staff/requests-inbox.tsx",
+   "lineRange": [
+    183,
+    207
+   ],
+   "summary": "Formats a request's date/time window as a translated string.",
+   "tags": [
+    "utility",
+    "i18n",
+    "formatting"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/staff/requests-inbox.tsx:ApproveWithPayDialog",
+   "type": "function",
+   "name": "ApproveWithPayDialog",
+   "filePath": "src/features/staff/requests-inbox.tsx",
+   "lineRange": [
+    210,
+    277
+   ],
+   "summary": "Dialog to approve an advance request with a repayment/pay decision.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/staff/requests-inbox.tsx:NewRequestDialog",
+   "type": "function",
+   "name": "NewRequestDialog",
+   "filePath": "src/features/staff/requests-inbox.tsx",
+   "lineRange": [
+    280,
+    432
+   ],
+   "summary": "Dialog creating a new staff request of a chosen kind on an employee's behalf.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/tills/till-dialog.tsx",
+   "type": "file",
+   "name": "till-dialog.tsx",
+   "filePath": "src/features/tills/till-dialog.tsx",
+   "summary": "Create/edit dialog for a branch till (name, active flag) with Zod form.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "tills"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/tills/till-dialog.tsx:TillDialog",
+   "type": "function",
+   "name": "TillDialog",
+   "filePath": "src/features/tills/till-dialog.tsx",
+   "lineRange": [
+    27,
+    117
+   ],
+   "summary": "Creates or updates a till and invalidates till queries.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/users/branch-assign-dialog.tsx",
+   "type": "file",
+   "name": "branch-assign-dialog.tsx",
+   "filePath": "src/features/users/branch-assign-dialog.tsx",
+   "summary": "Dialog to toggle which branches a user is assigned to using switches per branch.",
+   "tags": [
+    "component",
+    "dialog",
+    "users",
+    "branches"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/users/branch-assign-dialog.tsx:BranchAssignDialog",
+   "type": "function",
+   "name": "BranchAssignDialog",
+   "filePath": "src/features/users/branch-assign-dialog.tsx",
+   "lineRange": [
+    23,
+    77
+   ],
+   "summary": "Assigns/unassigns branches for a user and invalidates user queries.",
+   "tags": [
+    "component",
+    "dialog"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/users/user-dialog.tsx",
+   "type": "file",
+   "name": "user-dialog.tsx",
+   "filePath": "src/features/users/user-dialog.tsx",
+   "summary": "Create/edit dialog for a dashboard/POS user with role selection, PIN handling for POS roles, and role visibility gated by the current auth role.",
+   "tags": [
+    "component",
+    "dialog",
+    "form",
+    "users",
+    "auth"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/users/user-dialog.tsx:UserDialog",
+   "type": "function",
+   "name": "UserDialog",
+   "filePath": "src/features/users/user-dialog.tsx",
+   "lineRange": [
+    37,
+    232
+   ],
+   "summary": "Creates or updates a user with role-aware fields and query invalidation.",
+   "tags": [
+    "component",
+    "dialog",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/users/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/users/util.ts",
+   "summary": "Query invalidator for all /users-prefixed queries.",
+   "tags": [
+    "utility",
+    "cache-invalidation",
+    "users"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/bulk-runner.ts",
+   "type": "file",
+   "name": "bulk-runner.ts",
+   "filePath": "src/lib/bulk-runner.ts",
+   "summary": "Generic bounded-concurrency bulk mutation runner that separates successes from failures and reports progress.",
+   "tags": [
+    "utility",
+    "concurrency",
+    "bulk-operations"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/lib/bulk-runner.ts:runBulk",
+   "type": "function",
+   "name": "runBulk",
+   "filePath": "src/lib/bulk-runner.ts",
+   "lineRange": [
+    18,
+    48
+   ],
+   "summary": "Runs an async op over rows with a worker pool of bounded concurrency, collecting ok/failed results.",
+   "tags": [
+    "utility",
+    "concurrency"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/lib/normalize.ts",
+   "type": "file",
+   "name": "normalize.ts",
+   "filePath": "src/lib/normalize.ts",
+   "summary": "String normalizer stripping diacritics (Latin and Arabic tashkeel) and lowercasing for accent-insensitive search.",
+   "tags": [
+    "utility",
+    "search",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/routes/_app/menu/items_.$itemId.tsx",
+   "type": "file",
+   "name": "items_.$itemId.tsx",
+   "filePath": "src/routes/_app/menu/items_.$itemId.tsx",
+   "summary": "TanStack Router route definition for the menu item studio page at /menu/items/:itemId.",
+   "tags": [
+    "route",
+    "entry-point",
+    "menu"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "function:src/features/shifts/open-shift-dialog.tsx:invalidateShifts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "function:src/features/shifts/open-shift-dialog.tsx:invalidateShifts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "function:src/features/shifts/open-shift-dialog.tsx:OpenShiftDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "function:src/features/shifts/open-shift-dialog.tsx:OpenShiftDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/shifts/open-shift-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "function:src/features/staff/attendance-rules-page.tsx:AttendanceRulesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "function:src/features/staff/attendance-rules-page.tsx:AttendanceRulesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/staff/attendance-rules-page.tsx:AttendanceRulesPage",
+   "target": "function:src/features/staff/util.ts:invalidateAttendance",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/staff/attendance-rules-page.tsx:AttendanceRulesPage",
+   "target": "function:src/features/staff/util.ts:fmtMinutes",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "function:src/features/staff/attendance-rules-page.tsx:describeTier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/features/staff/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/attendance-rules-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/employee-dialog.tsx",
+   "target": "function:src/features/staff/employee-dialog.tsx:EmployeeDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/staff/employee-dialog.tsx",
+   "target": "function:src/features/staff/employee-dialog.tsx:EmployeeDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/staff/employee-dialog.tsx:EmployeeDialog",
+   "target": "function:src/features/staff/util.ts:invalidateEmployees",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/staff/employee-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/employee-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/employee-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/employee-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/employee-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/employee-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/employee-dialog.tsx",
+   "target": "file:src/features/staff/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/employee-dialog.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "function:src/features/staff/requests-inbox.tsx:RequestsInboxPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "function:src/features/staff/requests-inbox.tsx:RequestsInboxPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/staff/requests-inbox.tsx:RequestsInboxPage",
+   "target": "function:src/features/staff/util.ts:invalidateRequests",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "function:src/features/staff/requests-inbox.tsx:describeWindow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "function:src/features/staff/requests-inbox.tsx:ApproveWithPayDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "function:src/features/staff/requests-inbox.tsx:NewRequestDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/staff/requests-inbox.tsx",
+   "target": "file:src/features/staff/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/till-dialog.tsx",
+   "target": "function:src/features/tills/till-dialog.tsx:TillDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/tills/till-dialog.tsx",
+   "target": "function:src/features/tills/till-dialog.tsx:TillDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/tills/till-dialog.tsx:TillDialog",
+   "target": "function:src/features/tills/util.ts:invalidateTills",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/tills/till-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/till-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/till-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/till-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/till-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/till-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/tills/till-dialog.tsx",
+   "target": "file:src/features/tills/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/branch-assign-dialog.tsx",
+   "target": "function:src/features/users/branch-assign-dialog.tsx:BranchAssignDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/users/branch-assign-dialog.tsx",
+   "target": "function:src/features/users/branch-assign-dialog.tsx:BranchAssignDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/users/branch-assign-dialog.tsx:BranchAssignDialog",
+   "target": "function:src/features/users/util.ts:invalidateUsers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/users/branch-assign-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/branch-assign-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/branch-assign-dialog.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/branch-assign-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/branch-assign-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/branch-assign-dialog.tsx",
+   "target": "file:src/features/users/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "function:src/features/users/user-dialog.tsx:UserDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "function:src/features/users/user-dialog.tsx:UserDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/features/users/user-dialog.tsx:UserDialog",
+   "target": "function:src/features/users/util.ts:invalidateUsers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "file:src/components/ui/form.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "file:src/data/stores/auth.store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/user-dialog.tsx",
+   "target": "file:src/features/users/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/users/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/lib/bulk-runner.ts",
+   "target": "function:src/lib/bulk-runner.ts:runBulk",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/lib/bulk-runner.ts",
+   "target": "function:src/lib/bulk-runner.ts:runBulk",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/routes/_app/menu/items_.$itemId.tsx",
+   "target": "file:src/features/menu/studio/menu-studio-page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}

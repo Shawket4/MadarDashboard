@@ -1,0 +1,1695 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/components/ui/command.tsx",
+   "type": "file",
+   "name": "command.tsx",
+   "filePath": "src/components/ui/command.tsx",
+   "summary": "cmdk-based command menu primitives (dialog, input, list, groups, items, shortcuts) styled for the dashboard.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "command-palette",
+    "radix"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/command.tsx:Command",
+   "type": "function",
+   "name": "Command",
+   "filePath": "src/components/ui/command.tsx",
+   "lineRange": [
+    17,
+    31
+   ],
+   "summary": "cmdk root.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/command.tsx:CommandDialog",
+   "type": "function",
+   "name": "CommandDialog",
+   "filePath": "src/components/ui/command.tsx",
+   "lineRange": [
+    33,
+    65
+   ],
+   "summary": "Command menu inside a Dialog.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/command.tsx:CommandInput",
+   "type": "function",
+   "name": "CommandInput",
+   "filePath": "src/components/ui/command.tsx",
+   "lineRange": [
+    67,
+    87
+   ],
+   "summary": "Search input row.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/command.tsx:CommandList",
+   "type": "function",
+   "name": "CommandList",
+   "filePath": "src/components/ui/command.tsx",
+   "lineRange": [
+    89,
+    103
+   ],
+   "summary": "Scrollable results list.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/command.tsx:CommandEmpty",
+   "type": "function",
+   "name": "CommandEmpty",
+   "filePath": "src/components/ui/command.tsx",
+   "lineRange": [
+    105,
+    115
+   ],
+   "summary": "Empty state.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/command.tsx:CommandGroup",
+   "type": "function",
+   "name": "CommandGroup",
+   "filePath": "src/components/ui/command.tsx",
+   "lineRange": [
+    117,
+    131
+   ],
+   "summary": "Grouped items with heading.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/command.tsx:CommandSeparator",
+   "type": "function",
+   "name": "CommandSeparator",
+   "filePath": "src/components/ui/command.tsx",
+   "lineRange": [
+    133,
+    144
+   ],
+   "summary": "Group separator.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/command.tsx:CommandItem",
+   "type": "function",
+   "name": "CommandItem",
+   "filePath": "src/components/ui/command.tsx",
+   "lineRange": [
+    146,
+    160
+   ],
+   "summary": "Selectable item.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/command.tsx:CommandShortcut",
+   "type": "function",
+   "name": "CommandShortcut",
+   "filePath": "src/components/ui/command.tsx",
+   "lineRange": [
+    162,
+    176
+   ],
+   "summary": "Keyboard hint.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/popover.tsx",
+   "type": "file",
+   "name": "popover.tsx",
+   "filePath": "src/components/ui/popover.tsx",
+   "summary": "Radix Popover wrappers with animated content, anchor, header, title and description slots.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "popover",
+    "radix"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/popover.tsx:Popover",
+   "type": "function",
+   "name": "Popover",
+   "filePath": "src/components/ui/popover.tsx",
+   "lineRange": [
+    6,
+    10
+   ],
+   "summary": "Popover root.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/popover.tsx:PopoverTrigger",
+   "type": "function",
+   "name": "PopoverTrigger",
+   "filePath": "src/components/ui/popover.tsx",
+   "lineRange": [
+    12,
+    16
+   ],
+   "summary": "Popover trigger.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/popover.tsx:PopoverContent",
+   "type": "function",
+   "name": "PopoverContent",
+   "filePath": "src/components/ui/popover.tsx",
+   "lineRange": [
+    18,
+    38
+   ],
+   "summary": "Portaled animated content.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/popover.tsx:PopoverAnchor",
+   "type": "function",
+   "name": "PopoverAnchor",
+   "filePath": "src/components/ui/popover.tsx",
+   "lineRange": [
+    40,
+    44
+   ],
+   "summary": "Anchor element.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/popover.tsx:PopoverHeader",
+   "type": "function",
+   "name": "PopoverHeader",
+   "filePath": "src/components/ui/popover.tsx",
+   "lineRange": [
+    46,
+    54
+   ],
+   "summary": "Header slot.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/popover.tsx:PopoverTitle",
+   "type": "function",
+   "name": "PopoverTitle",
+   "filePath": "src/components/ui/popover.tsx",
+   "lineRange": [
+    56,
+    64
+   ],
+   "summary": "Title slot.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/popover.tsx:PopoverDescription",
+   "type": "function",
+   "name": "PopoverDescription",
+   "filePath": "src/components/ui/popover.tsx",
+   "lineRange": [
+    66,
+    77
+   ],
+   "summary": "Description slot.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/separator.tsx",
+   "type": "file",
+   "name": "separator.tsx",
+   "filePath": "src/components/ui/separator.tsx",
+   "summary": "Radix Separator wrapper supporting horizontal and vertical orientation.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "radix"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/separator.tsx:Separator",
+   "type": "function",
+   "name": "Separator",
+   "filePath": "src/components/ui/separator.tsx",
+   "lineRange": [
+    8,
+    26
+   ],
+   "summary": "Styled divider.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/components/ui/sidebar.tsx",
+   "type": "file",
+   "name": "sidebar.tsx",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "summary": "Full shadcn-style sidebar system: provider with cookie-persisted open state and keyboard shortcut, responsive mobile Sheet mode, and a family of menu/group/rail/skeleton primitives.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "sidebar",
+    "layout",
+    "responsive"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Uses a React context (useSidebar) and CSS variables for width; collapses to icons or offcanvas via data attributes."
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:useSidebar",
+   "type": "function",
+   "name": "useSidebar",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    48,
+    55
+   ],
+   "summary": "Reads sidebar context.",
+   "tags": [
+    "hook",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarProvider",
+   "type": "function",
+   "name": "SidebarProvider",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    57,
+    153
+   ],
+   "summary": "Holds open/collapsed state, cookie persistence and Cmd+B shortcut.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:Sidebar",
+   "type": "function",
+   "name": "Sidebar",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    155,
+    256
+   ],
+   "summary": "Responsive sidebar shell (mobile Sheet or desktop fixed panel).",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarTrigger",
+   "type": "function",
+   "name": "SidebarTrigger",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    258,
+    283
+   ],
+   "summary": "Toggle button.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarRail",
+   "type": "function",
+   "name": "SidebarRail",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    285,
+    312
+   ],
+   "summary": "Edge rail toggle.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarInset",
+   "type": "function",
+   "name": "SidebarInset",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    314,
+    329
+   ],
+   "summary": "Main content wrapper.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarInput",
+   "type": "function",
+   "name": "SidebarInput",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    331,
+    343
+   ],
+   "summary": "Search input.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarHeader",
+   "type": "function",
+   "name": "SidebarHeader",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    345,
+    354
+   ],
+   "summary": "Header slot.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarFooter",
+   "type": "function",
+   "name": "SidebarFooter",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    356,
+    365
+   ],
+   "summary": "Footer slot.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarSeparator",
+   "type": "function",
+   "name": "SidebarSeparator",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    367,
+    379
+   ],
+   "summary": "Divider.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarContent",
+   "type": "function",
+   "name": "SidebarContent",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    381,
+    397
+   ],
+   "summary": "Scrollable body.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarGroup",
+   "type": "function",
+   "name": "SidebarGroup",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    399,
+    408
+   ],
+   "summary": "Group container.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarGroupLabel",
+   "type": "function",
+   "name": "SidebarGroupLabel",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    410,
+    429
+   ],
+   "summary": "Group label.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarGroupAction",
+   "type": "function",
+   "name": "SidebarGroupAction",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    431,
+    452
+   ],
+   "summary": "Group action button.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarGroupContent",
+   "type": "function",
+   "name": "SidebarGroupContent",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    454,
+    466
+   ],
+   "summary": "Group content.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarMenu",
+   "type": "function",
+   "name": "SidebarMenu",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    468,
+    477
+   ],
+   "summary": "Menu list.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarMenuItem",
+   "type": "function",
+   "name": "SidebarMenuItem",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    479,
+    488
+   ],
+   "summary": "Menu list item.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarMenuButton",
+   "type": "function",
+   "name": "SidebarMenuButton",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    512,
+    560
+   ],
+   "summary": "Menu button with variants and tooltip when collapsed.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarMenuAction",
+   "type": "function",
+   "name": "SidebarMenuAction",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    562,
+    592
+   ],
+   "summary": "Secondary action.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarMenuBadge",
+   "type": "function",
+   "name": "SidebarMenuBadge",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    594,
+    614
+   ],
+   "summary": "Badge.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarMenuSkeleton",
+   "type": "function",
+   "name": "SidebarMenuSkeleton",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    616,
+    652
+   ],
+   "summary": "Loading skeleton.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarMenuSub",
+   "type": "function",
+   "name": "SidebarMenuSub",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    654,
+    667
+   ],
+   "summary": "Nested menu.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarMenuSubItem",
+   "type": "function",
+   "name": "SidebarMenuSubItem",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    669,
+    681
+   ],
+   "summary": "Nested item.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/sidebar.tsx:SidebarMenuSubButton",
+   "type": "function",
+   "name": "SidebarMenuSubButton",
+   "filePath": "src/components/ui/sidebar.tsx",
+   "lineRange": [
+    683,
+    713
+   ],
+   "summary": "Nested button.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/components/ui/tooltip.tsx",
+   "type": "file",
+   "name": "tooltip.tsx",
+   "filePath": "src/components/ui/tooltip.tsx",
+   "summary": "Radix Tooltip wrappers with a default provider delay and styled animated content with arrow.",
+   "tags": [
+    "component",
+    "ui-primitive",
+    "tooltip",
+    "radix"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/tooltip.tsx:TooltipProvider",
+   "type": "function",
+   "name": "TooltipProvider",
+   "filePath": "src/components/ui/tooltip.tsx",
+   "lineRange": [
+    6,
+    17
+   ],
+   "summary": "Provider with default delay.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/tooltip.tsx:Tooltip",
+   "type": "function",
+   "name": "Tooltip",
+   "filePath": "src/components/ui/tooltip.tsx",
+   "lineRange": [
+    19,
+    23
+   ],
+   "summary": "Tooltip root.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/tooltip.tsx:TooltipTrigger",
+   "type": "function",
+   "name": "TooltipTrigger",
+   "filePath": "src/components/ui/tooltip.tsx",
+   "lineRange": [
+    25,
+    29
+   ],
+   "summary": "Trigger.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/components/ui/tooltip.tsx:TooltipContent",
+   "type": "function",
+   "name": "TooltipContent",
+   "filePath": "src/components/ui/tooltip.tsx",
+   "lineRange": [
+    31,
+    53
+   ],
+   "summary": "Styled content with arrow.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/config/nav.ts",
+   "type": "file",
+   "name": "nav.ts",
+   "filePath": "src/config/nav.ts",
+   "summary": "Declarative navigation tree (groups, parents, leaves) with i18n label keys, Lucide icons and role-based visibility used by the sidebar and command palette.",
+   "tags": [
+    "config",
+    "navigation",
+    "type-definition",
+    "rbac"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/config/nav.ts:isParent",
+   "type": "function",
+   "name": "isParent",
+   "filePath": "src/config/nav.ts",
+   "lineRange": [
+    72,
+    72
+   ],
+   "summary": "Type guard for parent nav entries.",
+   "tags": [
+    "utility",
+    "exported",
+    "config"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/data/api/client.ts",
+   "type": "file",
+   "name": "client.ts",
+   "filePath": "src/data/api/client.ts",
+   "summary": "Axios API client with an ambient (non-React) auth/org/branch context, localStorage bootstrap of the token, and interceptors injecting headers and handling 401s.",
+   "tags": [
+    "api-client",
+    "http",
+    "auth",
+    "singleton"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Keeps HTTP concerns framework-agnostic by holding context outside React; the auth store pushes values in."
+  },
+  {
+   "id": "file:src/data/api/custom-instance.ts",
+   "type": "file",
+   "name": "custom-instance.ts",
+   "filePath": "src/data/api/custom-instance.ts",
+   "summary": "Orval mutator that routes generated API hooks through the shared axios apiClient.",
+   "tags": [
+    "api-client",
+    "orval",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/data/api/custom-instance.ts:customInstance",
+   "type": "function",
+   "name": "customInstance",
+   "filePath": "src/data/api/custom-instance.ts",
+   "lineRange": [
+    4,
+    12
+   ],
+   "summary": "Orval mutator delegating to apiClient.",
+   "tags": [
+    "utility",
+    "exported",
+    "api-client"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:Command",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:Command",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandList",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandList",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandEmpty",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandEmpty",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandGroup",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandGroup",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandSeparator",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandSeparator",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandShortcut",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "function:src/components/ui/command.tsx:CommandShortcut",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "file:src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/command.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:Popover",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:Popover",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverAnchor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverAnchor",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverHeader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverHeader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverTitle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverTitle",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverDescription",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "function:src/components/ui/popover.tsx:PopoverDescription",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/popover.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/separator.tsx",
+   "target": "function:src/components/ui/separator.tsx:Separator",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/separator.tsx",
+   "target": "function:src/components/ui/separator.tsx:Separator",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/separator.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:useSidebar",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:useSidebar",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:Sidebar",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:Sidebar",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarRail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarRail",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarInset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarInset",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarHeader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarHeader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarFooter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarFooter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarSeparator",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarSeparator",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarGroup",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarGroup",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarGroupLabel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarGroupLabel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarGroupAction",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarGroupAction",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarGroupContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarGroupContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenu",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenu",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuButton",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuButton",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuAction",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuAction",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuBadge",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuBadge",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuSkeleton",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuSkeleton",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuSub",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuSub",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuSubItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuSubItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuSubButton",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "function:src/components/ui/sidebar.tsx:SidebarMenuSubButton",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "file:src/components/ui/separator.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "file:src/components/ui/sheet.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "file:src/components/ui/tooltip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "file:src/hooks/use-mobile.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/sidebar.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/components/ui/tooltip.tsx",
+   "target": "function:src/components/ui/tooltip.tsx:TooltipProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/tooltip.tsx",
+   "target": "function:src/components/ui/tooltip.tsx:TooltipProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/tooltip.tsx",
+   "target": "function:src/components/ui/tooltip.tsx:Tooltip",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/tooltip.tsx",
+   "target": "function:src/components/ui/tooltip.tsx:Tooltip",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/tooltip.tsx",
+   "target": "function:src/components/ui/tooltip.tsx:TooltipTrigger",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/tooltip.tsx",
+   "target": "function:src/components/ui/tooltip.tsx:TooltipTrigger",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/tooltip.tsx",
+   "target": "function:src/components/ui/tooltip.tsx:TooltipContent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/components/ui/tooltip.tsx",
+   "target": "function:src/components/ui/tooltip.tsx:TooltipContent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/components/ui/tooltip.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/config/nav.ts",
+   "target": "function:src/config/nav.ts:isParent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/config/nav.ts",
+   "target": "function:src/config/nav.ts:isParent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/client.ts",
+   "target": "file:src/data/config/constants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/client.ts",
+   "target": "file:src/data/config/env.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/custom-instance.ts",
+   "target": "function:src/data/api/custom-instance.ts:customInstance",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/data/api/custom-instance.ts",
+   "target": "function:src/data/api/custom-instance.ts:customInstance",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/data/api/custom-instance.ts",
+   "target": "file:src/data/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/data/api/custom-instance.ts",
+   "target": "file:src/data/api/client.ts",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  }
+ ]
+}

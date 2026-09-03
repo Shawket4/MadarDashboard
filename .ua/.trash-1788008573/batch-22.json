@@ -1,0 +1,22 @@
+{
+  "nodes": [
+    {"id":"file:index.html","type":"file","name":"index.html","filePath":"index.html","summary":"Vite HTML shell for the main management dashboard: mounts the React app from src/main.tsx into #root, sets the navy theme color, and marks the private login shell noindex/nofollow.","tags":["entry-point","markup","vite","html-shell"],"complexity":"simple"},
+    {"id":"file:order.html","type":"file","name":"order.html","filePath":"order.html","summary":"Vite HTML shell for the separate customer-facing Order app, mounting src/order/main.tsx into #root with the same viewport and favicon setup as the dashboard.","tags":["entry-point","markup","vite","customer-order"],"complexity":"simple"},
+    {"id":"document:overhaul_prompt.md","type":"document","name":"overhaul_prompt.md","filePath":"overhaul_prompt.md","summary":"Long-form agent brief describing a planned dashboard overhaul: stack conventions, a feature-sliced folder layout (app/pages/widgets/features/entities/shared), API regeneration steps, and page-by-page requirements. The paths it references (src/app/router, src/shared/*) do not match the current tree, so it is historical planning material.","tags":["documentation","planning","architecture","agent-prompt"],"complexity":"complex"},
+    {"id":"config:package.json","type":"config","name":"package.json","filePath":"package.json","summary":"NPM manifest defining the dashboard, demo, order, and marketing (get) Vite build/dev scripts, Tauri and Orval commands, linting/formatting, and the React 19 / TanStack / Radix / Tailwind dependency set.","tags":["configuration","build-system","dependencies","scripts"],"complexity":"moderate","languageNotes":"Multiple Vite configs (vite.order.config.ts, vite.get.config.ts) drive separate bundles from one package; VITE_MOCK/VITE_DEMO env flags switch MSW mocking and demo mode."},
+    {"id":"config:skills-lock.json","type":"config","name":"skills-lock.json","filePath":"skills-lock.json","summary":"Lockfile pinning the installed Claude Code skill 'remotion-best-practices' from remotion-dev/skills by content hash.","tags":["configuration","lockfile","tooling"],"complexity":"simple"},
+    {"id":"config:tsconfig.json","type":"config","name":"tsconfig.json","filePath":"tsconfig.json","summary":"TypeScript compiler config for the app source: ES2022 target, bundler resolution, strict mode with unused-checks, react-jsx, the @/* path alias to src/, and src/order excluded from this project.","tags":["configuration","typescript","build-system","path-aliases"],"complexity":"simple"},
+    {"id":"config:tsconfig.node.json","type":"config","name":"tsconfig.node.json","filePath":"tsconfig.node.json","summary":"Composite TypeScript project covering only vite.config.ts so Node-side build tooling is type-checked separately from the browser app.","tags":["configuration","typescript","build-system","vite"],"complexity":"simple"}
+  ],
+  "edges": [
+    {"source":"file:index.html","target":"file:src/main.tsx","type":"depends_on","direction":"forward","weight":0.6},
+    {"source":"file:order.html","target":"file:src/order/main.tsx","type":"depends_on","direction":"forward","weight":0.6},
+    {"source":"config:tsconfig.json","target":"file:src/main.tsx","type":"configures","direction":"forward","weight":0.6},
+    {"source":"config:tsconfig.json","target":"config:tsconfig.node.json","type":"depends_on","direction":"forward","weight":0.6},
+    {"source":"config:tsconfig.node.json","target":"file:vite.config.ts","type":"configures","direction":"forward","weight":0.6},
+    {"source":"config:package.json","target":"file:vite.config.ts","type":"configures","direction":"forward","weight":0.6},
+    {"source":"config:package.json","target":"file:index.html","type":"configures","direction":"forward","weight":0.6},
+    {"source":"config:package.json","target":"file:order.html","type":"configures","direction":"forward","weight":0.6},
+    {"source":"document:overhaul_prompt.md","target":"config:package.json","type":"related","direction":"forward","weight":0.5}
+  ]
+}

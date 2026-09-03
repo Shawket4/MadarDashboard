@@ -1,0 +1,1144 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/features/insights/decisions-tab.tsx",
+   "type": "file",
+   "name": "decisions-tab.tsx",
+   "filePath": "src/features/insights/decisions-tab.tsx",
+   "summary": "Profitability decisions tab listing recorded pricing decisions with before/after comparison rows.",
+   "tags": [
+    "component",
+    "insights",
+    "table",
+    "pricing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/insights/decisions-tab.tsx:DecisionsTab",
+   "type": "function",
+   "name": "DecisionsTab",
+   "filePath": "src/features/insights/decisions-tab.tsx",
+   "lineRange": [
+    29,
+    101
+   ],
+   "summary": "Fetches decision history and renders the decisions table with empty/loading states.",
+   "tags": [
+    "component",
+    "react",
+    "insights"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/insights/decisions-tab.tsx:DecisionRow",
+   "type": "function",
+   "name": "DecisionRow",
+   "filePath": "src/features/insights/decisions-tab.tsx",
+   "lineRange": [
+    103,
+    171
+   ],
+   "summary": "Single decision row showing item, signal badge and before/after metrics.",
+   "tags": [
+    "component",
+    "react",
+    "insights"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/insights/decisions-tab.tsx:BeforeAfter",
+   "type": "function",
+   "name": "BeforeAfter",
+   "filePath": "src/features/insights/decisions-tab.tsx",
+   "lineRange": [
+    174,
+    198
+   ],
+   "summary": "Renders a before/after value pair with delta styling.",
+   "tags": [
+    "component",
+    "react",
+    "insights"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/insights/margin-watch-card.tsx",
+   "type": "file",
+   "name": "margin-watch-card.tsx",
+   "filePath": "src/features/insights/margin-watch-card.tsx",
+   "summary": "Dashboard card surfacing menu items with margin signals (below cost, below target) for the current scope.",
+   "tags": [
+    "component",
+    "insights",
+    "dashboard",
+    "margin"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/insights/margin-watch-card.tsx:MarginWatchCard",
+   "type": "function",
+   "name": "MarginWatchCard",
+   "filePath": "src/features/insights/margin-watch-card.tsx",
+   "lineRange": [
+    22,
+    125
+   ],
+   "summary": "Loads insight signals and renders the margin watch chart card.",
+   "tags": [
+    "component",
+    "react",
+    "insights"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/insights/margin-watch-card.tsx:WatchList",
+   "type": "function",
+   "name": "WatchList",
+   "filePath": "src/features/insights/margin-watch-card.tsx",
+   "lineRange": [
+    127,
+    178
+   ],
+   "summary": "Lists flagged items with signal labels and margin values.",
+   "tags": [
+    "component",
+    "react",
+    "insights"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/insights/profitability-page.tsx",
+   "type": "file",
+   "name": "profitability-page.tsx",
+   "filePath": "src/features/insights/profitability-page.tsx",
+   "summary": "Profitability insights page with a per-item margin ledger, class chips, target editor, repricing and decisions tabs, and Excel export.",
+   "tags": [
+    "component",
+    "page",
+    "insights",
+    "pricing",
+    "reporting"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/insights/profitability-page.tsx:ClassChip",
+   "type": "function",
+   "name": "ClassChip",
+   "filePath": "src/features/insights/profitability-page.tsx",
+   "lineRange": [
+    52,
+    78
+   ],
+   "summary": "Badge showing an item's profitability class.",
+   "tags": [
+    "component",
+    "react",
+    "insights"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/insights/profitability-page.tsx:ProfitabilityPage",
+   "type": "function",
+   "name": "ProfitabilityPage",
+   "filePath": "src/features/insights/profitability-page.tsx",
+   "lineRange": [
+    90,
+    376
+   ],
+   "summary": "Main page assembling the ledger table, filters, tabs and target editing.",
+   "tags": [
+    "component",
+    "react",
+    "insights"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/insights/profitability-page.tsx:LedgerRow",
+   "type": "function",
+   "name": "LedgerRow",
+   "filePath": "src/features/insights/profitability-page.tsx",
+   "lineRange": [
+    378,
+    460
+   ],
+   "summary": "Table row rendering cost, price, margin and signal flags for one item.",
+   "tags": [
+    "component",
+    "react",
+    "insights"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/insights/repricing-tab.tsx",
+   "type": "file",
+   "name": "repricing-tab.tsx",
+   "filePath": "src/features/insights/repricing-tab.tsx",
+   "summary": "Repricing suggestions tab listing recommended price changes with apply actions.",
+   "tags": [
+    "component",
+    "insights",
+    "pricing",
+    "table"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/insights/repricing-tab.tsx:RepricingTab",
+   "type": "function",
+   "name": "RepricingTab",
+   "filePath": "src/features/insights/repricing-tab.tsx",
+   "lineRange": [
+    26,
+    117
+   ],
+   "summary": "Fetches price candidates and renders suggestion rows with apply buttons.",
+   "tags": [
+    "component",
+    "react",
+    "insights"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/insights/signals.ts",
+   "type": "file",
+   "name": "signals.ts",
+   "filePath": "src/features/insights/signals.ts",
+   "summary": "Defines the six advisory signal kinds with chip tone classes and localized label/reason formatters.",
+   "tags": [
+    "utility",
+    "insights",
+    "i18n",
+    "type-definition"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/insights/signals.ts:signalLabel",
+   "type": "function",
+   "name": "signalLabel",
+   "filePath": "src/features/insights/signals.ts",
+   "lineRange": [
+    26,
+    43
+   ],
+   "summary": "Returns the short translated chip label for a signal kind.",
+   "tags": [
+    "utility",
+    "typescript",
+    "insights"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/insights/signals.ts:signalReason",
+   "type": "function",
+   "name": "signalReason",
+   "filePath": "src/features/insights/signals.ts",
+   "lineRange": [
+    49,
+    112
+   ],
+   "summary": "Builds a translated explanatory sentence for a signal using formatted money/number values.",
+   "tags": [
+    "utility",
+    "typescript",
+    "insights"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/insights/target-editor.tsx",
+   "type": "file",
+   "name": "target-editor.tsx",
+   "filePath": "src/features/insights/target-editor.tsx",
+   "summary": "Popover editor for setting the org margin target percentage with validation and save mutation.",
+   "tags": [
+    "component",
+    "form",
+    "insights",
+    "popover"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/features/insights/target-editor.tsx:TargetEditor",
+   "type": "function",
+   "name": "TargetEditor",
+   "filePath": "src/features/insights/target-editor.tsx",
+   "lineRange": [
+    28,
+    165
+   ],
+   "summary": "Popover UI to view and update the margin target.",
+   "tags": [
+    "component",
+    "react",
+    "insights"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/features/insights/util.ts",
+   "type": "file",
+   "name": "util.ts",
+   "filePath": "src/features/insights/util.ts",
+   "summary": "Query-cache invalidation helper for insights queries.",
+   "tags": [
+    "utility",
+    "react-query",
+    "insights"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/features/insights/util.ts:invalidateInsights",
+   "type": "function",
+   "name": "invalidateInsights",
+   "filePath": "src/features/insights/util.ts",
+   "lineRange": [
+    6,
+    9
+   ],
+   "summary": "Invalidates insights-related React Query caches.",
+   "tags": [
+    "utility",
+    "typescript",
+    "insights"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/features/integrations/integrations-page.tsx",
+   "type": "file",
+   "name": "integrations-page.tsx",
+   "filePath": "src/features/integrations/integrations-page.tsx",
+   "summary": "Org-admin integrations page listing API credentials with create, encrypted handoff and revoke flows.",
+   "tags": [
+    "component",
+    "page",
+    "integrations",
+    "security",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/integrations/integrations-page.tsx:IntegrationsPage",
+   "type": "function",
+   "name": "IntegrationsPage",
+   "filePath": "src/features/integrations/integrations-page.tsx",
+   "lineRange": [
+    26,
+    227
+   ],
+   "summary": "Renders credential table and orchestrates credential creation, handoff and revocation.",
+   "tags": [
+    "component",
+    "react",
+    "integrations"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/features/inventory/count-editor.tsx",
+   "type": "file",
+   "name": "count-editor.tsx",
+   "filePath": "src/features/inventory/count-editor.tsx",
+   "summary": "Editable stocktake count table where users enter counted quantities, choose variance reasons, and submit or discard the count.",
+   "tags": [
+    "component",
+    "inventory",
+    "form",
+    "stocktake"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/features/inventory/count-editor.tsx:CountEditor",
+   "type": "function",
+   "name": "CountEditor",
+   "filePath": "src/features/inventory/count-editor.tsx",
+   "lineRange": [
+    29,
+    280
+   ],
+   "summary": "Stateful editor for a stocktake's line counts with variance flagging and submit.",
+   "tags": [
+    "component",
+    "react",
+    "inventory"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "function:src/features/insights/decisions-tab.tsx:DecisionsTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "function:src/features/insights/decisions-tab.tsx:DecisionsTab",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "function:src/features/insights/decisions-tab.tsx:DecisionRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "function:src/features/insights/decisions-tab.tsx:BeforeAfter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "file:src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "file:src/features/insights/signals.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "function:src/features/insights/margin-watch-card.tsx:MarginWatchCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "function:src/features/insights/margin-watch-card.tsx:MarginWatchCard",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "function:src/features/insights/margin-watch-card.tsx:WatchList",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "file:src/components/app/chart-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "file:src/features/insights/signals.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/margin-watch-card.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "function:src/features/insights/profitability-page.tsx:ClassChip",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "function:src/features/insights/profitability-page.tsx:ProfitabilityPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "function:src/features/insights/profitability-page.tsx:ProfitabilityPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "function:src/features/insights/profitability-page.tsx:LedgerRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/app/export-button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/app/ledger-strip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/app/page-tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/app/segmented-control.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/ui/switch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/ui/tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/components/ui/tooltip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/data/scope/use-scope.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/features/insights/decisions-tab.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/features/insights/flag-chip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/features/insights/repricing-tab.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/features/insights/target-editor.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/features/insights/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/lib/excel.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/profitability-page.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/repricing-tab.tsx",
+   "target": "function:src/features/insights/repricing-tab.tsx:RepricingTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/repricing-tab.tsx",
+   "target": "function:src/features/insights/repricing-tab.tsx:RepricingTab",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/insights/repricing-tab.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/repricing-tab.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/repricing-tab.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/repricing-tab.tsx",
+   "target": "file:src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/repricing-tab.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/repricing-tab.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/signals.ts",
+   "target": "function:src/features/insights/signals.ts:signalLabel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/signals.ts",
+   "target": "function:src/features/insights/signals.ts:signalLabel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/insights/signals.ts",
+   "target": "function:src/features/insights/signals.ts:signalReason",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/signals.ts",
+   "target": "function:src/features/insights/signals.ts:signalReason",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/insights/signals.ts",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/target-editor.tsx",
+   "target": "function:src/features/insights/target-editor.tsx:TargetEditor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/target-editor.tsx",
+   "target": "function:src/features/insights/target-editor.tsx:TargetEditor",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/insights/target-editor.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/target-editor.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/target-editor.tsx",
+   "target": "file:src/components/ui/label.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/target-editor.tsx",
+   "target": "file:src/components/ui/popover.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/target-editor.tsx",
+   "target": "file:src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/target-editor.tsx",
+   "target": "file:src/features/insights/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/target-editor.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/util.ts",
+   "target": "function:src/features/insights/util.ts:invalidateInsights",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/insights/util.ts",
+   "target": "function:src/features/insights/util.ts:invalidateInsights",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/insights/util.ts",
+   "target": "file:src/data/api/query.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "function:src/features/integrations/integrations-page.tsx:IntegrationsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "function:src/features/integrations/integrations-page.tsx:IntegrationsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/components/app/data-table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/components/app/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/components/app/page.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/components/app/stat-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/data/scope/use-page-search.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/features/integrations/credential-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/features/integrations/handoff-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/features/integrations/passphrase.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/features/integrations/use-credential-handoff.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/features/integrations/util.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/hooks/use-org-id.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/integrations/integrations-page.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "function:src/features/inventory/count-editor.tsx:CountEditor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "function:src/features/inventory/count-editor.tsx:CountEditor",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/components/app/confirm-dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/data/api/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/features/inventory/lib.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/lib/format.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "file:src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/features/insights/decisions-tab.tsx",
+   "target": "function:src/features/insights/signals.ts:signalLabel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/features/inventory/count-editor.tsx",
+   "target": "function:src/features/inventory/lib.ts:isVarianceFlagged",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}
