@@ -93,7 +93,13 @@ export function SettingsPage() {
               { href: LEGAL_URLS.privacy, key: "legal.privacy", fallback: "Privacy Policy" },
               { href: LEGAL_URLS.terms, key: "legal.terms", fallback: "Terms of Service" },
               { href: LEGAL_URLS.retention, key: "legal.retention", fallback: "Data retention" },
-              { href: LEGAL_URLS.deleteAccount, key: "legal.deleteAccount", fallback: "Delete your account" },
+              // "Delete your account" is deliberately NOT listed here. That
+              // document is written for end users of the Dawam staff app and is
+              // required by its Google Play listing; it describes removing a
+              // personal app account, which is not something a manager does from
+              // this dashboard. Linking it sent people to instructions that did
+              // not apply to them. `LEGAL_URLS.deleteAccount` stays exported for
+              // the store listing and for the Dawam app itself.
             ].map((item, i) => (
               <a
                 key={item.key}
