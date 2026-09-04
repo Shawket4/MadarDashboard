@@ -2,6 +2,11 @@
 // @ts-nocheck
 
 export interface StaffRequest {
+  /**
+     * The record a `correction` proposes to fix. `None` for every other kind.
+     * @nullable
+     */
+  attendance_record_id?: string | null;
   created_at: string;
   /** @nullable */
   decided_at?: string | null;

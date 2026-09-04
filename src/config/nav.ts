@@ -1,13 +1,12 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Sparkle,
+  Armchair,
   ArrowLeftRight,
   Wallet,
   BadgePercent,
   BarChart3,
   Boxes,
   Building2,
-  CalendarCheck,
   CalendarClock,
   CalendarRange,
   ChefHat,
@@ -33,6 +32,7 @@ import {
   // MessagesSquare, // unused while AI analytics is disabled (see below)
   Store,
   Trash2,
+  Telescope,
   TrendingUp,
   Truck,
   UserRound,
@@ -83,7 +83,7 @@ export const NAV: NavGroup[] = [
     fallback: "Sell",
     entries: [
       { to: "/orders", labelKey: "nav.orders", fallback: "Orders", icon: Receipt },
-      { to: "/reservations", labelKey: "nav.reservations", fallback: "Reservations", icon: CalendarCheck },
+      { to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
       { to: "/shifts", labelKey: "nav.shifts", fallback: "Shifts", icon: Clock },
       { to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
     ],
@@ -110,7 +110,7 @@ export const NAV: NavGroup[] = [
     labelKey: "nav.basira",
     fallback: "Basira",
     entries: [
-      { to: "/basira", labelKey: "nav.basiraAsk", fallback: "Ask", icon: Sparkle },
+      { to: "/basira", labelKey: "nav.basiraAsk", fallback: "Ask", icon: Telescope },
     ],
   },
   {

@@ -4,20 +4,25 @@ import type { HistoryTurn } from './historyTurn';
 
 export interface AiChatRequest {
   /**
-     * Recent prior turns in this conversation (oldest → newest), so follow-ups
-     * like "and last month?" resolve. Send only the last few; the server caps
-     * the window regardless.
+     * Continue a stored conversation. When set, history is loaded from the
+     * server and `history` below is ignored — this is the path that gives
+     * resumable chats and unlimited, compacted context.
+     *
+     * Omit it to start a new conversation; the response says which one was
+     * created.
+     * @nullable
+     */
+  conversation_id?: string | null;
+  /**
+     * Recent prior turns, oldest first. The stateless fallback, kept for
+     * clients that manage their own window and for one-off questions. Ignored
+     * when `conversation_id` is set. The server caps it regardless.
      * @nullable
      */
   history?: HistoryTurn[] | null;
   /**
-     * When true, also return a one-sentence natural-language summary of the
-     * result (a second, small model call, answered in `locale`). Default false.
-     */
-  include_summary?: boolean;
-  /**
      * Answer language — "en" or "ar" (default "en"). Drives translated labels
-     * and the summary language. Usually the dashboard's active language.
+     * and the reply language.
      * @nullable
      */
   locale?: string | null;

@@ -146,42 +146,292 @@ export const UpdateAddonItemResponse = zod.object({
 })
 
 
+export const chatBodyHistoryItemSpecTwoLimitMin = 0;
+
+export const chatBodyHistoryItemSpecTwoTransformTopPerTwoNMin = 0;
+
+
+
 export const ChatBody = zod.object({
+  "conversation_id": zod.uuid().nullish().describe('Continue a stored conversation. When set, history is loaded from the\nserver and `history` below is ignored — this is the path that gives\nresumable chats and unlimited, compacted context.\n\nOmit it to start a new conversation; the response says which one was\ncreated.'),
   "history": zod.array(zod.object({
-  "question": zod.string().describe('The earlier user question.'),
-  "report_id": zod.string().nullish().describe('The report id that answered it, if known.')
-}).describe('One earlier exchange in the same conversation, in COMPACT form: the question\nand which report answered it. This is all the model needs to resolve a\nfollow-up (\"and last month?\", \"what about Sidi Henish?\") — never the full\nresult tables — so per-message cost stays constant with the sliding window.')).nullish().describe('Recent prior turns in this conversation (oldest → newest), so follow-ups\nlike \"and last month?\" resolve. Send only the last few; the server caps\nthe window regardless.'),
-  "include_summary": zod.boolean().optional().describe('When true, also return a one-sentence natural-language summary of the\nresult (a second, small model call, answered in `locale`). Default false.'),
-  "locale": zod.string().nullish().describe('Answer language — \"en\" or \"ar\" (default \"en\"). Drives translated labels\nand the summary language. Usually the dashboard\'s active language.'),
+  "answer": zod.string().nullish().describe('What the assistant replied. Optional so a client can send a partial log.'),
+  "question": zod.string(),
+  "spec": zod.union([zod.null(),zod.object({
+  "branch": zod.string().nullish().describe('Narrow to ONE branch by name. Fuzzy-matched \*within\* the caller\'s\naccessible branches, so it can only ever narrow, never widen. Dashboards\nuse the request-level scope instead and leave this unset.'),
+  "compare": zod.enum(['none', 'previous_period', 'previous_year']).optional().describe('Period-over-period comparison.'),
+  "dataset": zod.string().describe('Dataset id — fixes the grain. See `GET \/metrics\/schema`.'),
+  "dimensions": zod.array(zod.string()).optional().describe('GROUP BY axes, outermost first. Empty = a single total row.'),
+  "filters": zod.record(zod.string(), zod.string()).optional().describe('Filter id → chosen value. Each value selects a pre-written predicate.'),
+  "having_min": zod.number().nullish().describe('Only keep groups whose sort measure reaches this value.'),
+  "limit": zod.number().min(chatBodyHistoryItemSpecTwoLimitMin).nullish().describe('Row cap, clamped to [`MAX_LIMIT`].'),
+  "measures": zod.array(zod.string()).optional().describe('Aggregates to compute. Empty = the dataset\'s headline measures.'),
+  "period": zod.object({
+  "from": zod.string().nullish().describe('Explicit inclusive lower bound.'),
+  "preset": zod.union([zod.null(),zod.enum(['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year', 'last_year', 'last_7_days', 'last_30_days', 'last_90_days', 'last_12_months', 'all_time']).describe('A named relative window. Takes precedence over `from`\/`to`.')]).optional(),
+  "to": zod.string().nullish().describe('Explicit inclusive upper bound.')
+}).optional().describe('The reporting window.\n\nPrefer a [`PeriodPreset`]: it is resolved server-side against the merchant\'s\ntimezone at query time, which means a dashboard widget saying \"last 30 days\"\nstays correct forever, and a language model never has to do calendar\narithmetic — historically the single largest source of wrong answers.'),
+  "sort": zod.union([zod.null(),zod.object({
+  "dir": zod.enum(['asc', 'desc']).optional().describe('Sort direction. `Asc` is what unlocks \"worst\", \"slowest\", \"least\" questions.'),
+  "measure": zod.string().describe('A measure id from `measures`.')
+}).describe('Which measure orders the result, and in which direction.')]).optional(),
+  "transform": zod.object({
+  "cumulative": zod.boolean().optional().describe('Add a running total in time order. Needs a time dimension.'),
+  "share": zod.boolean().optional().describe('Add each row\'s percentage of the grand total.'),
+  "top_per": zod.union([zod.null(),zod.object({
+  "dimension": zod.string().describe('Which of the chosen dimensions to rank within.'),
+  "n": zod.number().min(chatBodyHistoryItemSpecTwoTransformTopPerTwoNMin).optional().describe('How many rows to keep per group.')
+}).describe('Keep only the top N rows \*within\* each value of a dimension — \"the best\nseller in every branch\".')]).optional()
+}).optional().describe('Post-aggregation shaping.'),
+  "viz": zod.union([zod.null(),zod.enum(['auto', 'kpi', 'line', 'area', 'bar', 'row', 'pie', 'donut', 'table', 'heatmap']).describe('Preferred visualization. Omitted or [`Viz::Auto`] lets the backend pick\nfrom the result shape.')]).optional()
+}).describe('The query that produced that answer, from `results[].spec`. Optional so\nan older client, or a turn that ran no query, still works.')]).optional()
+}).describe('One earlier exchange, in compact form.\n\nResult \*tables\* are never replayed — they are large, and the model does not\nneed last week\'s rows to answer this week\'s question. What it does need is\nthe \*\*query\*\* that answered before, which is why `spec` is here: a follow-up\nlike \"and last month?\" or \"same thing for Marina\" is that spec with one\nfield changed. Prose alone forces the model to re-derive the whole query\nfrom its own summary, which is exactly where a follow-up silently drifts\ninto answering a different question.\n\nClients get the spec back on every result block (`results[].spec`) and\nshould echo it here.')).nullish().describe('Recent prior turns, oldest first. The stateless fallback, kept for\nclients that manage their own window and for one-off questions. Ignored\nwhen `conversation_id` is set. The server caps it regardless.'),
+  "locale": zod.string().nullish().describe('Answer language — \"en\" or \"ar\" (default \"en\"). Drives translated labels\nand the reply language.'),
   "question": zod.string().describe('The merchant\'s plain-language question, e.g. \"top 5 products last month\"\nor \"أعلى ٥ منتجات الشهر الماضي\".')
 })
 
-export const chatResponseRowCountMin = 0;
+export const chatResponseOneOneResultsItemRowCountMin = 0;
+
+export const chatResponseOneOneResultsItemSpecLimitMin = 0;
+
+export const chatResponseOneOneResultsItemSpecTransformTopPerTwoNMin = 0;
+
+export const chatResponseOneThreeResultsItemRowCountMin = 0;
+
+export const chatResponseOneThreeResultsItemSpecLimitMin = 0;
+
+export const chatResponseOneThreeResultsItemSpecTransformTopPerTwoNMin = 0;
 
 
 
-export const ChatResponse = zod.object({
-  "chart": zod.enum(['table', 'bar', 'line', 'pie']).describe('Suggested visualization for the result.'),
+export const ChatResponse = zod.union([zod.object({
+  "kind": zod.enum(['answer']),
+  "results": zod.array(zod.object({
   "columns": zod.array(zod.object({
-  "key": zod.string(),
-  "kind": zod.enum(['money', 'count', 'label', 'date', 'number']).describe('The renderable kind of an output column (money vs count vs label vs a time\naxis) so the frontend can format it and pick a chart.'),
-  "label": zod.string()
-}).describe('One output column: its SQL alias (also the JSON key) and how to render it.')).describe('Column metadata for rendering the table\/chart.'),
-  "facet_by": zod.string().nullish().describe('When set, the client renders one section (chart + table) per distinct\nvalue of this column key — e.g. one table per branch (\"faceting\").'),
-  "provider": zod.string().describe('Which model answered (e.g. \"gemini-2.5-flash\").'),
-  "report_id": zod.string().describe('The report the assistant chose.'),
-  "row_count": zod.number().min(chatResponseRowCountMin),
-  "rows": zod.array(zod.record(zod.string(), zod.unknown())).describe('Result rows, each an object keyed by column key.'),
+  "key": zod.string().describe('SQL alias \/ JSON key.'),
+  "kind": zod.enum(['money', 'count', 'label', 'date', 'number', 'minutes']).describe('The renderable kind of an output column, so a client can format it and pick\na sensible chart without knowing anything about the underlying SQL.'),
+  "label": zod.string().describe('Human label for a header or legend.')
+}).describe('One output column: the SQL alias (also the JSON key on every row) plus how\nto render it.')),
+  "facet_by": zod.string().nullish(),
+  "grain": zod.enum(['scalar', 'series', 'categorical', 'table']).describe('The \*shape\* of a result set, derived from the dimensions a query groups by.\nThis is what lets a dashboard render any metric with no per-metric code: a\nscalar becomes a KPI card, a series becomes a line, a breakdown becomes a\nbar or pie.'),
+  "period_from": zod.string().nullish(),
+  "period_to": zod.string().nullish(),
+  "preset_id": zod.string().nullish(),
+  "row_count": zod.number().min(chatResponseOneOneResultsItemRowCountMin),
+  "rows": zod.array(zod.record(zod.string(), zod.unknown())),
   "scope": zod.object({
-  "all_branches": zod.boolean().describe('True when the answer spans EVERY branch the caller can access.'),
-  "branches": zod.array(zod.string()).describe('The branch names the answer covers.'),
+  "all_branches": zod.boolean().describe('True when the answer spans every branch the caller can access.'),
+  "branches": zod.array(zod.string()),
   "label": zod.string().describe('Human-readable label, e.g. \"All branches (3)\" or \"Sidi Henish\".'),
-  "unmatched_branch": zod.string().nullish().describe('Set when the user named a branch that couldn\'t be matched; the answer\nthen falls back to all accessible branches and this flags the mismatch.')
-}).describe('Which branches this answer covers.'),
-  "summary": zod.string().nullish().describe('Optional one-sentence summary (only when `include_summary` was set and\nthe model produced one), in the requested locale.'),
-  "title": zod.string(),
-  "truncated": zod.boolean().describe('True when the result was capped.')
+  "unmatched_branch": zod.string().nullish().describe('Set when a branch was named but could not be matched. The answer then\nfalls back to the full accessible set, and this flags the mismatch rather\nthan silently answering a different question.')
+}).describe('Which branches this block covers.'),
+  "spec": zod.object({
+  "branch": zod.string().nullish().describe('Narrow to ONE branch by name. Fuzzy-matched \*within\* the caller\'s\naccessible branches, so it can only ever narrow, never widen. Dashboards\nuse the request-level scope instead and leave this unset.'),
+  "compare": zod.enum(['none', 'previous_period', 'previous_year']).optional().describe('Period-over-period comparison.'),
+  "dataset": zod.string().describe('Dataset id — fixes the grain. See `GET \/metrics\/schema`.'),
+  "dimensions": zod.array(zod.string()).optional().describe('GROUP BY axes, outermost first. Empty = a single total row.'),
+  "filters": zod.record(zod.string(), zod.string()).optional().describe('Filter id → chosen value. Each value selects a pre-written predicate.'),
+  "having_min": zod.number().nullish().describe('Only keep groups whose sort measure reaches this value.'),
+  "limit": zod.number().min(chatResponseOneOneResultsItemSpecLimitMin).nullish().describe('Row cap, clamped to [`MAX_LIMIT`].'),
+  "measures": zod.array(zod.string()).optional().describe('Aggregates to compute. Empty = the dataset\'s headline measures.'),
+  "period": zod.object({
+  "from": zod.string().nullish().describe('Explicit inclusive lower bound.'),
+  "preset": zod.union([zod.null(),zod.enum(['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year', 'last_year', 'last_7_days', 'last_30_days', 'last_90_days', 'last_12_months', 'all_time']).describe('A named relative window. Takes precedence over `from`\/`to`.')]).optional(),
+  "to": zod.string().nullish().describe('Explicit inclusive upper bound.')
+}).optional().describe('The reporting window.\n\nPrefer a [`PeriodPreset`]: it is resolved server-side against the merchant\'s\ntimezone at query time, which means a dashboard widget saying \"last 30 days\"\nstays correct forever, and a language model never has to do calendar\narithmetic — historically the single largest source of wrong answers.'),
+  "sort": zod.union([zod.null(),zod.object({
+  "dir": zod.enum(['asc', 'desc']).optional().describe('Sort direction. `Asc` is what unlocks \"worst\", \"slowest\", \"least\" questions.'),
+  "measure": zod.string().describe('A measure id from `measures`.')
+}).describe('Which measure orders the result, and in which direction.')]).optional(),
+  "transform": zod.object({
+  "cumulative": zod.boolean().optional().describe('Add a running total in time order. Needs a time dimension.'),
+  "share": zod.boolean().optional().describe('Add each row\'s percentage of the grand total.'),
+  "top_per": zod.union([zod.null(),zod.object({
+  "dimension": zod.string().describe('Which of the chosen dimensions to rank within.'),
+  "n": zod.number().min(chatResponseOneOneResultsItemSpecTransformTopPerTwoNMin).optional().describe('How many rows to keep per group.')
+}).describe('Keep only the top N rows \*within\* each value of a dimension — \"the best\nseller in every branch\".')]).optional()
+}).optional().describe('Post-aggregation shaping.'),
+  "viz": zod.union([zod.null(),zod.enum(['auto', 'kpi', 'line', 'area', 'bar', 'row', 'pie', 'donut', 'table', 'heatmap']).describe('Preferred visualization. Omitted or [`Viz::Auto`] lets the backend pick\nfrom the result shape.')]).optional()
+}).describe('The exact query that produced this. Sending it back is what makes\n\"pin this answer to my dashboard\" a single client-side action: the spec\nis already a valid widget definition.'),
+  "title": zod.string().nullish().describe('Set when the data came from a curated metric.'),
+  "truncated": zod.boolean(),
+  "viz": zod.enum(['auto', 'kpi', 'line', 'area', 'bar', 'row', 'pie', 'donut', 'table', 'heatmap']).describe('How a result is best visualized. A hint: the client may always override, and\n[`Viz::Auto`] asks the backend to choose from the [`Grain`].')
+}).describe('One dataset the assistant pulled while answering. A turn may carry several —\n\"compare this month to last\" is two.')),
+  "text": zod.string()
+}).describe('A finding, with the data behind it.'),zod.object({
+  "kind": zod.enum(['clarify']),
+  "question": zod.string()
+}).describe('One question back before the assistant can proceed.'),zod.object({
+  "kind": zod.enum(['incomplete']),
+  "results": zod.array(zod.object({
+  "columns": zod.array(zod.object({
+  "key": zod.string().describe('SQL alias \/ JSON key.'),
+  "kind": zod.enum(['money', 'count', 'label', 'date', 'number', 'minutes']).describe('The renderable kind of an output column, so a client can format it and pick\na sensible chart without knowing anything about the underlying SQL.'),
+  "label": zod.string().describe('Human label for a header or legend.')
+}).describe('One output column: the SQL alias (also the JSON key on every row) plus how\nto render it.')),
+  "facet_by": zod.string().nullish(),
+  "grain": zod.enum(['scalar', 'series', 'categorical', 'table']).describe('The \*shape\* of a result set, derived from the dimensions a query groups by.\nThis is what lets a dashboard render any metric with no per-metric code: a\nscalar becomes a KPI card, a series becomes a line, a breakdown becomes a\nbar or pie.'),
+  "period_from": zod.string().nullish(),
+  "period_to": zod.string().nullish(),
+  "preset_id": zod.string().nullish(),
+  "row_count": zod.number().min(chatResponseOneThreeResultsItemRowCountMin),
+  "rows": zod.array(zod.record(zod.string(), zod.unknown())),
+  "scope": zod.object({
+  "all_branches": zod.boolean().describe('True when the answer spans every branch the caller can access.'),
+  "branches": zod.array(zod.string()),
+  "label": zod.string().describe('Human-readable label, e.g. \"All branches (3)\" or \"Sidi Henish\".'),
+  "unmatched_branch": zod.string().nullish().describe('Set when a branch was named but could not be matched. The answer then\nfalls back to the full accessible set, and this flags the mismatch rather\nthan silently answering a different question.')
+}).describe('Which branches this block covers.'),
+  "spec": zod.object({
+  "branch": zod.string().nullish().describe('Narrow to ONE branch by name. Fuzzy-matched \*within\* the caller\'s\naccessible branches, so it can only ever narrow, never widen. Dashboards\nuse the request-level scope instead and leave this unset.'),
+  "compare": zod.enum(['none', 'previous_period', 'previous_year']).optional().describe('Period-over-period comparison.'),
+  "dataset": zod.string().describe('Dataset id — fixes the grain. See `GET \/metrics\/schema`.'),
+  "dimensions": zod.array(zod.string()).optional().describe('GROUP BY axes, outermost first. Empty = a single total row.'),
+  "filters": zod.record(zod.string(), zod.string()).optional().describe('Filter id → chosen value. Each value selects a pre-written predicate.'),
+  "having_min": zod.number().nullish().describe('Only keep groups whose sort measure reaches this value.'),
+  "limit": zod.number().min(chatResponseOneThreeResultsItemSpecLimitMin).nullish().describe('Row cap, clamped to [`MAX_LIMIT`].'),
+  "measures": zod.array(zod.string()).optional().describe('Aggregates to compute. Empty = the dataset\'s headline measures.'),
+  "period": zod.object({
+  "from": zod.string().nullish().describe('Explicit inclusive lower bound.'),
+  "preset": zod.union([zod.null(),zod.enum(['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year', 'last_year', 'last_7_days', 'last_30_days', 'last_90_days', 'last_12_months', 'all_time']).describe('A named relative window. Takes precedence over `from`\/`to`.')]).optional(),
+  "to": zod.string().nullish().describe('Explicit inclusive upper bound.')
+}).optional().describe('The reporting window.\n\nPrefer a [`PeriodPreset`]: it is resolved server-side against the merchant\'s\ntimezone at query time, which means a dashboard widget saying \"last 30 days\"\nstays correct forever, and a language model never has to do calendar\narithmetic — historically the single largest source of wrong answers.'),
+  "sort": zod.union([zod.null(),zod.object({
+  "dir": zod.enum(['asc', 'desc']).optional().describe('Sort direction. `Asc` is what unlocks \"worst\", \"slowest\", \"least\" questions.'),
+  "measure": zod.string().describe('A measure id from `measures`.')
+}).describe('Which measure orders the result, and in which direction.')]).optional(),
+  "transform": zod.object({
+  "cumulative": zod.boolean().optional().describe('Add a running total in time order. Needs a time dimension.'),
+  "share": zod.boolean().optional().describe('Add each row\'s percentage of the grand total.'),
+  "top_per": zod.union([zod.null(),zod.object({
+  "dimension": zod.string().describe('Which of the chosen dimensions to rank within.'),
+  "n": zod.number().min(chatResponseOneThreeResultsItemSpecTransformTopPerTwoNMin).optional().describe('How many rows to keep per group.')
+}).describe('Keep only the top N rows \*within\* each value of a dimension — \"the best\nseller in every branch\".')]).optional()
+}).optional().describe('Post-aggregation shaping.'),
+  "viz": zod.union([zod.null(),zod.enum(['auto', 'kpi', 'line', 'area', 'bar', 'row', 'pie', 'donut', 'table', 'heatmap']).describe('Preferred visualization. Omitted or [`Viz::Auto`] lets the backend pick\nfrom the result shape.')]).optional()
+}).describe('The exact query that produced this. Sending it back is what makes\n\"pin this answer to my dashboard\" a single client-side action: the spec\nis already a valid widget definition.'),
+  "title": zod.string().nullish().describe('Set when the data came from a curated metric.'),
+  "truncated": zod.boolean(),
+  "viz": zod.enum(['auto', 'kpi', 'line', 'area', 'bar', 'row', 'pie', 'donut', 'table', 'heatmap']).describe('How a result is best visualized. A hint: the client may always override, and\n[`Viz::Auto`] asks the backend to choose from the [`Grain`].')
+}).describe('One dataset the assistant pulled while answering. A turn may carry several —\n\"compare this month to last\" is two.')),
+  "text": zod.string()
+}).describe('It could not get to an answer. Any data it did gather is still returned.')]).describe('How the turn ended. Every variant is a 200.').and(zod.object({
+  "conversation_id": zod.uuid().nullish().describe('The conversation this turn belongs to. Present whenever the turn was\nstored — send it back on the next message to continue.'),
+  "provider": zod.string().describe('Which model answered.'),
+  "timezone": zod.string().describe('The timezone every date in the answer is expressed in.')
+}))
+
+
+export const chatStreamBodyHistoryItemSpecTwoLimitMin = 0;
+
+export const chatStreamBodyHistoryItemSpecTwoTransformTopPerTwoNMin = 0;
+
+
+
+export const ChatStreamBody = zod.object({
+  "conversation_id": zod.uuid().nullish().describe('Continue a stored conversation. When set, history is loaded from the\nserver and `history` below is ignored — this is the path that gives\nresumable chats and unlimited, compacted context.\n\nOmit it to start a new conversation; the response says which one was\ncreated.'),
+  "history": zod.array(zod.object({
+  "answer": zod.string().nullish().describe('What the assistant replied. Optional so a client can send a partial log.'),
+  "question": zod.string(),
+  "spec": zod.union([zod.null(),zod.object({
+  "branch": zod.string().nullish().describe('Narrow to ONE branch by name. Fuzzy-matched \*within\* the caller\'s\naccessible branches, so it can only ever narrow, never widen. Dashboards\nuse the request-level scope instead and leave this unset.'),
+  "compare": zod.enum(['none', 'previous_period', 'previous_year']).optional().describe('Period-over-period comparison.'),
+  "dataset": zod.string().describe('Dataset id — fixes the grain. See `GET \/metrics\/schema`.'),
+  "dimensions": zod.array(zod.string()).optional().describe('GROUP BY axes, outermost first. Empty = a single total row.'),
+  "filters": zod.record(zod.string(), zod.string()).optional().describe('Filter id → chosen value. Each value selects a pre-written predicate.'),
+  "having_min": zod.number().nullish().describe('Only keep groups whose sort measure reaches this value.'),
+  "limit": zod.number().min(chatStreamBodyHistoryItemSpecTwoLimitMin).nullish().describe('Row cap, clamped to [`MAX_LIMIT`].'),
+  "measures": zod.array(zod.string()).optional().describe('Aggregates to compute. Empty = the dataset\'s headline measures.'),
+  "period": zod.object({
+  "from": zod.string().nullish().describe('Explicit inclusive lower bound.'),
+  "preset": zod.union([zod.null(),zod.enum(['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year', 'last_year', 'last_7_days', 'last_30_days', 'last_90_days', 'last_12_months', 'all_time']).describe('A named relative window. Takes precedence over `from`\/`to`.')]).optional(),
+  "to": zod.string().nullish().describe('Explicit inclusive upper bound.')
+}).optional().describe('The reporting window.\n\nPrefer a [`PeriodPreset`]: it is resolved server-side against the merchant\'s\ntimezone at query time, which means a dashboard widget saying \"last 30 days\"\nstays correct forever, and a language model never has to do calendar\narithmetic — historically the single largest source of wrong answers.'),
+  "sort": zod.union([zod.null(),zod.object({
+  "dir": zod.enum(['asc', 'desc']).optional().describe('Sort direction. `Asc` is what unlocks \"worst\", \"slowest\", \"least\" questions.'),
+  "measure": zod.string().describe('A measure id from `measures`.')
+}).describe('Which measure orders the result, and in which direction.')]).optional(),
+  "transform": zod.object({
+  "cumulative": zod.boolean().optional().describe('Add a running total in time order. Needs a time dimension.'),
+  "share": zod.boolean().optional().describe('Add each row\'s percentage of the grand total.'),
+  "top_per": zod.union([zod.null(),zod.object({
+  "dimension": zod.string().describe('Which of the chosen dimensions to rank within.'),
+  "n": zod.number().min(chatStreamBodyHistoryItemSpecTwoTransformTopPerTwoNMin).optional().describe('How many rows to keep per group.')
+}).describe('Keep only the top N rows \*within\* each value of a dimension — \"the best\nseller in every branch\".')]).optional()
+}).optional().describe('Post-aggregation shaping.'),
+  "viz": zod.union([zod.null(),zod.enum(['auto', 'kpi', 'line', 'area', 'bar', 'row', 'pie', 'donut', 'table', 'heatmap']).describe('Preferred visualization. Omitted or [`Viz::Auto`] lets the backend pick\nfrom the result shape.')]).optional()
+}).describe('The query that produced that answer, from `results[].spec`. Optional so\nan older client, or a turn that ran no query, still works.')]).optional()
+}).describe('One earlier exchange, in compact form.\n\nResult \*tables\* are never replayed — they are large, and the model does not\nneed last week\'s rows to answer this week\'s question. What it does need is\nthe \*\*query\*\* that answered before, which is why `spec` is here: a follow-up\nlike \"and last month?\" or \"same thing for Marina\" is that spec with one\nfield changed. Prose alone forces the model to re-derive the whole query\nfrom its own summary, which is exactly where a follow-up silently drifts\ninto answering a different question.\n\nClients get the spec back on every result block (`results[].spec`) and\nshould echo it here.')).nullish().describe('Recent prior turns, oldest first. The stateless fallback, kept for\nclients that manage their own window and for one-off questions. Ignored\nwhen `conversation_id` is set. The server caps it regardless.'),
+  "locale": zod.string().nullish().describe('Answer language — \"en\" or \"ar\" (default \"en\"). Drives translated labels\nand the reply language.'),
+  "question": zod.string().describe('The merchant\'s plain-language question, e.g. \"top 5 products last month\"\nor \"أعلى ٥ منتجات الشهر الماضي\".')
 })
+
+export const ChatStreamResponse = zod.unknown()
+
+
+export const ListConversationsQueryParams = zod.object({
+  "limit": zod.number().nullish().describe('Page size (default 30, max 100).'),
+  "offset": zod.number().nullish()
+})
+
+export const ListConversationsResponse = zod.object({
+  "conversations": zod.array(zod.object({
+  "compacted": zod.boolean().describe('True once older turns have been folded into a summary — surfaced so a\nclient can say \"earlier messages condensed\" rather than appearing to\nhave lost them.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_turn_at": zod.iso.datetime({"offset":true}).nullish(),
+  "title": zod.string(),
+  "turn_count": zod.number()
+}).describe('A conversation without its turns, for the list view.'))
+})
+
+
+export const GetConversationParams = zod.object({
+  "id": zod.uuid().describe('Conversation id')
+})
+
+export const GetConversationQueryParams = zod.object({
+  "limit": zod.number().nullish().describe('How many of the most recent turns to return (default 50, max 200).')
+})
+
+export const GetConversationResponse = zod.object({
+  "compacted": zod.boolean().describe('True once older turns have been folded into a summary — surfaced so a\nclient can say \"earlier messages condensed\" rather than appearing to\nhave lost them.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_turn_at": zod.iso.datetime({"offset":true}).nullish(),
+  "title": zod.string(),
+  "turn_count": zod.number()
+}).describe('A conversation without its turns, for the list view.').and(zod.object({
+  "condensed": zod.string().nullish().describe('The running summary of everything before the verbatim window. Returned\nso the UI can show what was condensed instead of a silent gap.'),
+  "turns": zod.array(zod.object({
+  "answer": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`answer` | `clarify` | `incomplete`.'),
+  "provider": zod.string().nullish(),
+  "question": zod.string(),
+  "seq": zod.number(),
+  "specs": zod.unknown().describe('The queries that produced the answer — `[{title, preset_id, spec}]`.\nRe-running these is how a reopened conversation shows CURRENT figures\nrather than the numbers that were true when it was first asked.')
+}).describe('One stored exchange.'))
+})).describe('A conversation with its turns.')
+
+
+export const DeleteConversationParams = zod.object({
+  "id": zod.uuid().describe('Conversation id')
+})
+
+export const DeleteConversationResponse = zod.void()
+
+
+export const RenameConversationParams = zod.object({
+  "id": zod.uuid().describe('Conversation id')
+})
+
+export const RenameConversationBody = zod.object({
+  "title": zod.string()
+})
+
+export const RenameConversationResponse = zod.void()
 
 
 export const loginBodyPinMin = 4;
@@ -2115,6 +2365,15 @@ export const CreateFloorTableResponse = zod.object({
 })
 
 
+export const SwapTablesBody = zod.object({
+  "branch_id": zod.uuid(),
+  "table_a": zod.uuid(),
+  "table_b": zod.uuid()
+})
+
+export const SwapTablesResponse = zod.unknown()
+
+
 export const DeleteFloorTableParams = zod.object({
   "id": zod.uuid().describe('Table ID')
 })
@@ -2159,6 +2418,19 @@ export const UpdateFloorTableResponse = zod.object({
 })
 
 
+export const UpdateTableStateParams = zod.object({
+  "id": zod.uuid().describe('Table ID')
+})
+
+export const UpdateTableStateBody = zod.object({
+  "clear_section": zod.boolean().optional(),
+  "section_id": zod.uuid().nullish(),
+  "status": zod.string().nullish().describe('`free` | `held` | `seated` | `dirty`.')
+}).describe('Operational table-state edit from the POS: the layout (geometry\/shape) is\ndashboard-authored, but STATE — status walks (bussing a dirty table) and\nwhich zone the physical table currently sits in — belongs to the floor\nstaff. Both fields optional; `clear_section` moves the table out of every\nsection (`section_id` wins when both are sent).')
+
+export const UpdateTableStateResponse = zod.unknown()
+
+
 export const SetTableStatusParams = zod.object({
   "id": zod.uuid().describe('Table ID')
 })
@@ -2184,6 +2456,328 @@ export const SetTableStatusResponse = zod.object({
   "status": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "width": zod.number()
+})
+
+
+export const ListFloorTransfersQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "since": zod.iso.datetime({"offset":true}).optional().describe('Sync cursor (as on \/held-orders). Omit for the waiting queue only.')
+})
+
+export const ListFloorTransfersResponse = zod.object({
+  "server_time": zod.iso.datetime({"offset":true}),
+  "transfers": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "from_table_id": zod.uuid().nullish(),
+  "fulfilled_table_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "note": zod.string().nullish(),
+  "occupant_id": zod.uuid(),
+  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
+  "requested_by": zod.uuid().nullish(),
+  "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`waiting` | `fulfilled` | `cancelled`.'),
+  "target_section_id": zod.uuid().nullish(),
+  "target_table_id": zod.uuid().nullish(),
+  "updated_at": zod.iso.datetime({"offset":true})
+}))
+})
+
+
+export const CreateFloorTransferBody = zod.object({
+  "branch_id": zod.uuid(),
+  "id": zod.uuid().describe('Client-minted id (offline-first identity; retries dedup on it).'),
+  "note": zod.string().nullish(),
+  "occupant_id": zod.uuid(),
+  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "target_section_id": zod.uuid().nullish().describe('The wish: any table in this section…'),
+  "target_table_id": zod.uuid().nullish().describe('…or exactly this table. At least one of the two is required.')
+})
+
+export const CreateFloorTransferResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "from_table_id": zod.uuid().nullish(),
+  "fulfilled_table_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "note": zod.string().nullish(),
+  "occupant_id": zod.uuid(),
+  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
+  "requested_by": zod.uuid().nullish(),
+  "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`waiting` | `fulfilled` | `cancelled`.'),
+  "target_section_id": zod.uuid().nullish(),
+  "target_table_id": zod.uuid().nullish(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const CancelTransferParams = zod.object({
+  "id": zod.uuid().describe('Transfer request ID')
+})
+
+export const CancelTransferResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "from_table_id": zod.uuid().nullish(),
+  "fulfilled_table_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "note": zod.string().nullish(),
+  "occupant_id": zod.uuid(),
+  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
+  "requested_by": zod.uuid().nullish(),
+  "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`waiting` | `fulfilled` | `cancelled`.'),
+  "target_section_id": zod.uuid().nullish(),
+  "target_table_id": zod.uuid().nullish(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const FulfillTransferParams = zod.object({
+  "id": zod.uuid().describe('Transfer request ID')
+})
+
+export const FulfillTransferBody = zod.object({
+  "table_id": zod.uuid().describe('The table the party actually moves to (must satisfy the wish).')
+})
+
+export const FulfillTransferResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "from_table_id": zod.uuid().nullish(),
+  "fulfilled_table_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "note": zod.string().nullish(),
+  "occupant_id": zod.uuid(),
+  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
+  "requested_by": zod.uuid().nullish(),
+  "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`waiting` | `fulfilled` | `cancelled`.'),
+  "target_section_id": zod.uuid().nullish(),
+  "target_table_id": zod.uuid().nullish(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const ListHeldOrdersQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "since": zod.iso.datetime({"offset":true}).optional().describe('Sync cursor: return everything updated after this instant, INCLUDING\ncompleted\/discarded tombstones. Omit for the live board (held+resumed).')
+})
+
+export const ListHeldOrdersResponse = zod.object({
+  "held_orders": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})),
+  "server_time": zod.iso.datetime({"offset":true})
+}).describe('The `GET \/held-orders` sync payload. With `since`, tombstones are included\nso devices retire local copies; `server_time` is the client\'s next cursor.')
+
+
+export const ParkHeldOrderBody = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('Opaque client cart payload, stored and returned verbatim.'),
+  "created_at": zod.iso.datetime({"offset":true}).nullish().describe('Original creation instant (strip ordering); defaults to now.'),
+  "device_id": zod.string().nullish().describe('The parking device\'s installation id (also the claim key on resume).'),
+  "id": zod.uuid().describe('Client-minted id — the held order\'s identity across parks\/resumes\/devices.'),
+  "name": zod.string().optional(),
+  "table_id": zod.uuid().nullish().describe('Requested table. On conflict the park still succeeds WITHOUT the table\n(`table_conflict: true` in the response) — a queued offline park must\nnever dead-letter over a table race.')
+})
+
+export const ParkHeldOrderResponse = zod.object({
+  "held_order": zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "table_conflict": zod.boolean()
+}).describe('Park\/upsert result: the stored order plus whether a requested table\nassignment was DROPPED because the table was taken (offline-first parks\nkeep the cart and lose the race, never the other way around).')
+
+
+export const UpdateHeldOrderParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const UpdateHeldOrderBody = zod.object({
+  "base_revision": zod.number().nullish().describe('Optimistic-concurrency fence: reject (409) if the server has moved past\nthis revision. Omit to last-write-wins.'),
+  "name": zod.string().nullish()
+})
+
+export const UpdateHeldOrderResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const ClaimHeldOrderParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const ClaimHeldOrderBody = zod.object({
+  "device_id": zod.string().describe('The resuming device — recorded as the claim holder.'),
+  "force": zod.boolean().optional().describe('Steal a claim held by another device (that till died mid-edit).')
+})
+
+export const ClaimHeldOrderResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const CompleteHeldOrderParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const CompleteHeldOrderBody = zod.object({
+  "order_id": zod.uuid().nullish().describe('The paid order this cart became (linked for the audit trail).')
+})
+
+export const CompleteHeldOrderResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const DiscardHeldOrderParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const DiscardHeldOrderBody = zod.object({
+  "device_id": zod.string().nullish(),
+  "force": zod.boolean().optional().describe('Discard even while another device holds the resume claim.')
+})
+
+export const DiscardHeldOrderResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const ReleaseHeldOrderParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const ReleaseHeldOrderBody = zod.object({
+  "device_id": zod.string()
+})
+
+export const ReleaseHeldOrderResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const AssignHeldOrderTableParams = zod.object({
+  "id": zod.uuid().describe('Held order ID')
+})
+
+export const AssignHeldOrderTableBody = zod.object({
+  "table_id": zod.uuid().nullish().describe('The table to seat this held order on; `null` releases the current table.')
+})
+
+export const AssignHeldOrderTableResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
+  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "device_id": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "revision": zod.number(),
+  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
+  "table_id": zod.uuid().nullish(),
+  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
+  "updated_at": zod.iso.datetime({"offset":true})
 })
 
 
@@ -2902,11 +3496,11 @@ export const UpdateInventorySettingsResponse = zod.object({
 
 
 export const CreateTransferBody = zod.object({
+  "source_branch_id": zod.uuid(),
   "destination_branch_id": zod.uuid(),
-  "note": zod.string().nullish(),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number(),
-  "source_branch_id": zod.uuid()
+  "note": zod.string().nullish()
 })
 
 export const CreateTransferResponse = zod.object({
@@ -4245,6 +4839,145 @@ export const DeletePriceOverrideBody = zod.object({
 })
 
 export const DeletePriceOverrideResponse = zod.void()
+
+
+export const runMetricsQueryBodyWidgetsItemSpecTwoLimitMin = 0;
+
+export const runMetricsQueryBodyWidgetsItemSpecTwoTransformTopPerTwoNMin = 0;
+
+
+
+export const RunMetricsQueryBody = zod.object({
+  "locale": zod.string().nullish().describe('Answer language for translated labels (\"en\" or \"ar\").'),
+  "period": zod.union([zod.null(),zod.object({
+  "from": zod.string().nullish().describe('Explicit inclusive lower bound.'),
+  "preset": zod.union([zod.null(),zod.enum(['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year', 'last_year', 'last_7_days', 'last_30_days', 'last_90_days', 'last_12_months', 'all_time']).describe('A named relative window. Takes precedence over `from`\/`to`.')]).optional(),
+  "to": zod.string().nullish().describe('Explicit inclusive upper bound.')
+}).describe('Default window for every widget that does not set its own.')]).optional(),
+  "widgets": zod.array(zod.object({
+  "key": zod.string().describe('Caller-chosen key, echoed back so results can be matched to widgets.'),
+  "period": zod.union([zod.null(),zod.object({
+  "from": zod.string().nullish().describe('Explicit inclusive lower bound.'),
+  "preset": zod.union([zod.null(),zod.enum(['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year', 'last_year', 'last_7_days', 'last_30_days', 'last_90_days', 'last_12_months', 'all_time']).describe('A named relative window. Takes precedence over `from`\/`to`.')]).optional(),
+  "to": zod.string().nullish().describe('Explicit inclusive upper bound.')
+}).describe('Overrides the batch-level period for this widget alone.')]).optional(),
+  "preset": zod.string().nullish().describe('A curated metric id from `GET \/metrics\/schema`.'),
+  "spec": zod.union([zod.null(),zod.object({
+  "branch": zod.string().nullish().describe('Narrow to ONE branch by name. Fuzzy-matched \*within\* the caller\'s\naccessible branches, so it can only ever narrow, never widen. Dashboards\nuse the request-level scope instead and leave this unset.'),
+  "compare": zod.enum(['none', 'previous_period', 'previous_year']).optional().describe('Period-over-period comparison.'),
+  "dataset": zod.string().describe('Dataset id — fixes the grain. See `GET \/metrics\/schema`.'),
+  "dimensions": zod.array(zod.string()).optional().describe('GROUP BY axes, outermost first. Empty = a single total row.'),
+  "filters": zod.record(zod.string(), zod.string()).optional().describe('Filter id → chosen value. Each value selects a pre-written predicate.'),
+  "having_min": zod.number().nullish().describe('Only keep groups whose sort measure reaches this value.'),
+  "limit": zod.number().min(runMetricsQueryBodyWidgetsItemSpecTwoLimitMin).nullish().describe('Row cap, clamped to [`MAX_LIMIT`].'),
+  "measures": zod.array(zod.string()).optional().describe('Aggregates to compute. Empty = the dataset\'s headline measures.'),
+  "period": zod.object({
+  "from": zod.string().nullish().describe('Explicit inclusive lower bound.'),
+  "preset": zod.union([zod.null(),zod.enum(['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year', 'last_year', 'last_7_days', 'last_30_days', 'last_90_days', 'last_12_months', 'all_time']).describe('A named relative window. Takes precedence over `from`\/`to`.')]).optional(),
+  "to": zod.string().nullish().describe('Explicit inclusive upper bound.')
+}).optional().describe('The reporting window.\n\nPrefer a [`PeriodPreset`]: it is resolved server-side against the merchant\'s\ntimezone at query time, which means a dashboard widget saying \"last 30 days\"\nstays correct forever, and a language model never has to do calendar\narithmetic — historically the single largest source of wrong answers.'),
+  "sort": zod.union([zod.null(),zod.object({
+  "dir": zod.enum(['asc', 'desc']).optional().describe('Sort direction. `Asc` is what unlocks \"worst\", \"slowest\", \"least\" questions.'),
+  "measure": zod.string().describe('A measure id from `measures`.')
+}).describe('Which measure orders the result, and in which direction.')]).optional(),
+  "transform": zod.object({
+  "cumulative": zod.boolean().optional().describe('Add a running total in time order. Needs a time dimension.'),
+  "share": zod.boolean().optional().describe('Add each row\'s percentage of the grand total.'),
+  "top_per": zod.union([zod.null(),zod.object({
+  "dimension": zod.string().describe('Which of the chosen dimensions to rank within.'),
+  "n": zod.number().min(runMetricsQueryBodyWidgetsItemSpecTwoTransformTopPerTwoNMin).optional().describe('How many rows to keep per group.')
+}).describe('Keep only the top N rows \*within\* each value of a dimension — \"the best\nseller in every branch\".')]).optional()
+}).optional().describe('Post-aggregation shaping.'),
+  "viz": zod.union([zod.null(),zod.enum(['auto', 'kpi', 'line', 'area', 'bar', 'row', 'pie', 'donut', 'table', 'heatmap']).describe('Preferred visualization. Omitted or [`Viz::Auto`] lets the backend pick\nfrom the result shape.')]).optional()
+}).describe('A fully custom query. Same IR the AI agent produces.')]).optional()
+}).describe('One widget in a batch. Exactly one of `preset` or `spec`.'))
+})
+
+export const runMetricsQueryResponseResultsOneOneRowCountMin = 0;
+
+
+
+export const RunMetricsQueryResponse = zod.object({
+  "results": zod.record(zod.string(), zod.union([zod.object({
+  "columns": zod.array(zod.object({
+  "key": zod.string().describe('SQL alias \/ JSON key.'),
+  "kind": zod.enum(['money', 'count', 'label', 'date', 'number', 'minutes']).describe('The renderable kind of an output column, so a client can format it and pick\na sensible chart without knowing anything about the underlying SQL.'),
+  "label": zod.string().describe('Human label for a header or legend.')
+}).describe('One output column: the SQL alias (also the JSON key on every row) plus how\nto render it.')),
+  "facet_by": zod.string().nullish(),
+  "grain": zod.enum(['scalar', 'series', 'categorical', 'table']).describe('The \*shape\* of a result set, derived from the dimensions a query groups by.\nThis is what lets a dashboard render any metric with no per-metric code: a\nscalar becomes a KPI card, a series becomes a line, a breakdown becomes a\nbar or pie.'),
+  "period": zod.object({
+  "from": zod.string().nullish(),
+  "to": zod.string().nullish()
+}).describe('The resolved window, echoed so a client can label an answer without\nre-deriving \"last month\" itself.'),
+  "row_count": zod.number().min(runMetricsQueryResponseResultsOneOneRowCountMin),
+  "rows": zod.array(zod.record(zod.string(), zod.unknown())),
+  "title": zod.string().nullish(),
+  "truncated": zod.boolean(),
+  "viz": zod.enum(['auto', 'kpi', 'line', 'area', 'bar', 'row', 'pie', 'donut', 'table', 'heatmap']).describe('How a result is best visualized. A hint: the client may always override, and\n[`Viz::Auto`] asks the backend to choose from the [`Grain`].')
+}).and(zod.object({
+  "status": zod.enum(['ok'])
+})),zod.object({
+  "error": zod.string(),
+  "status": zod.enum(['error'])
+})]).describe('A widget either produced a result or an explanation. Never both, never\nneither — and a failure here is a 200 with an `error`, not a failed batch.')),
+  "scope": zod.object({
+  "all_branches": zod.boolean().describe('True when the answer spans every branch the caller can access.'),
+  "branches": zod.array(zod.string()),
+  "label": zod.string().describe('Human-readable label, e.g. \"All branches (3)\" or \"Sidi Henish\".'),
+  "unmatched_branch": zod.string().nullish().describe('Set when a branch was named but could not be matched. The answer then\nfalls back to the full accessible set, and this flags the mismatch rather\nthan silently answering a different question.')
+}).describe('Which branches every result covers.'),
+  "timezone": zod.string().describe('The timezone all time buckets were computed in.')
+})
+
+
+export const SchemaResponse = zod.object({
+  "boards": zod.array(zod.object({
+  "description": zod.string(),
+  "key": zod.string(),
+  "title": zod.string(),
+  "widgets": zod.array(zod.string())
+})).describe('Built-in dashboard layouts a merchant can use or fork.'),
+  "datasets": zod.array(zod.object({
+  "default_measures": zod.array(zod.string()),
+  "dimensions": zod.array(zod.object({
+  "help": zod.string().nullish().describe('One line on exactly what it counts. Absent for dimensions, whose label\nis self-explanatory.'),
+  "id": zod.string(),
+  "kind": zod.enum(['money', 'count', 'label', 'date', 'number', 'minutes']).describe('The renderable kind of an output column, so a client can format it and pick\na sensible chart without knowing anything about the underlying SQL.'),
+  "label": zod.string(),
+  "time": zod.boolean().optional().describe('True for time axes.')
+})),
+  "filters": zod.array(zod.object({
+  "default": zod.string(),
+  "help": zod.string(),
+  "id": zod.string(),
+  "label": zod.string(),
+  "values": zod.array(zod.string())
+})),
+  "help": zod.string().describe('What one row is, and when to use this dataset instead of another.'),
+  "id": zod.string(),
+  "measures": zod.array(zod.object({
+  "help": zod.string().nullish().describe('One line on exactly what it counts. Absent for dimensions, whose label\nis self-explanatory.'),
+  "id": zod.string(),
+  "kind": zod.enum(['money', 'count', 'label', 'date', 'number', 'minutes']).describe('The renderable kind of an output column, so a client can format it and pick\na sensible chart without knowing anything about the underlying SQL.'),
+  "label": zod.string(),
+  "time": zod.boolean().optional().describe('True for time axes.')
+})),
+  "title": zod.string()
+})),
+  "period_presets": zod.array(zod.string()).describe('Named relative windows accepted in `period.preset`.'),
+  "presets": zod.array(zod.object({
+  "category": zod.string(),
+  "dataset": zod.string(),
+  "default_period": zod.enum(['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year', 'last_year', 'last_7_days', 'last_30_days', 'last_90_days', 'last_12_months', 'all_time']).describe('Named relative windows, resolved in the merchant\'s timezone.'),
+  "description": zod.string(),
+  "grain": zod.enum(['scalar', 'series', 'categorical', 'table']).describe('Result shape, so a widget picker knows a KPI card from a line chart\nbefore running anything.'),
+  "id": zod.string(),
+  "permission": zod.string().describe('Permission resource required, with the `read` action.'),
+  "title": zod.string(),
+  "viz": zod.enum(['auto', 'kpi', 'line', 'area', 'bar', 'row', 'pie', 'donut', 'table', 'heatmap']).describe('How a result is best visualized. A hint: the client may always override, and\n[`Viz::Auto`] asks the backend to choose from the [`Grain`].')
+}))
+}).describe('The complete registry, as served to a dashboard.')
 
 
 export const ListGroupsQueryParams = zod.object({
@@ -6124,66 +6857,6 @@ export const OtpVerifyResponse = zod.object({
 })
 
 
-export const CreatePublicBookingBody = zod.object({
-  "branch_id": zod.uuid(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "device_token": zod.string().describe('Device-trust token from the delivery OTP flow, proving this phone is verified.'),
-  "kind": zod.string().nullish().describe('`reservation` or `walk_in`; defaults from whether `reserved_for` is set.'),
-  "lat": zod.number().nullish(),
-  "lng": zod.number().nullish(),
-  "party_size": zod.number().nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish()
-})
-
-export const CreatePublicBookingResponse = zod.object({
-  "eta_minutes": zod.number().nullish().describe('OSRM drive estimate from the guest\'s saved location, when available.'),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "party_size": zod.number(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string(),
-  "table_count": zod.number()
-}).describe('Slim, guest-safe view (no org\/internal columns).')
-
-
-export const ListReservationPublicBranchesQueryParams = zod.object({
-  "org_id": zod.uuid()
-})
-
-export const ListReservationPublicBranchesResponseItem = zod.object({
-  "code": zod.string(),
-  "id": zod.uuid(),
-  "in_mall_enabled": zod.boolean(),
-  "in_mall_open_now": zod.boolean().describe('Effective-open right now (enabled + open shift + override + window).'),
-  "in_mall_require_location": zod.boolean().describe('When false, in-mall ordering does not require a device GPS location.'),
-  "name": zod.string(),
-  "otp_required": zod.boolean().describe('When false, the public checkout skips OTP verification for this branch.'),
-  "outside_enabled": zod.boolean(),
-  "outside_open_now": zod.boolean(),
-  "pickup_enabled": zod.boolean(),
-  "pickup_open_now": zod.boolean(),
-  "umbrella_enabled": zod.boolean(),
-  "umbrella_open_now": zod.boolean()
-})
-export const ListReservationPublicBranchesResponse = zod.array(ListReservationPublicBranchesResponseItem)
-
-
-export const TrackPublicBookingParams = zod.object({
-  "id": zod.uuid().describe('Booking ID')
-})
-
-export const TrackPublicBookingResponse = zod.object({
-  "eta_minutes": zod.number().nullish().describe('OSRM drive estimate from the guest\'s saved location, when available.'),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "party_size": zod.number(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string(),
-  "table_count": zod.number()
-}).describe('Slim, guest-safe view (no org\/internal columns).')
-
-
 export const ListPurchaseOrdersParams = zod.object({
   "branch_id": zod.uuid().describe('Branch ID')
 })
@@ -7272,194 +7945,6 @@ export const ShiftSummaryResponse = zod.object({
   "total_tax": zod.number(),
   "total_tips": zod.number().optional().describe('Tips, standalone — matches `total_tips` on `GET \/shifts\/{id}\/report`.'),
   "voided_orders": zod.number()
-})
-
-
-export const ListBookingsQueryParams = zod.object({
-  "branch_id": zod.uuid(),
-  "status": zod.string().optional(),
-  "date": zod.iso.date().optional().describe('Filter reservations to this calendar date (YYYY-MM-DD). Omit for the live\nboard (everything not yet completed\/cancelled\/no_show).')
-})
-
-export const ListBookingsResponseItem = zod.object({
-  "arrived_at": zod.iso.datetime({"offset":true}).nullish(),
-  "branch_id": zod.uuid(),
-  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "customer_lat": zod.number().nullish(),
-  "customer_lng": zod.number().nullish(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
-  "notes": zod.string().nullish(),
-  "notified_at": zod.iso.datetime({"offset":true}).nullish(),
-  "org_id": zod.uuid(),
-  "otp_verified": zod.boolean(),
-  "party_size": zod.number(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "table_ids": zod.array(zod.uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-export const ListBookingsResponse = zod.array(ListBookingsResponseItem)
-
-
-export const CreateBookingBody = zod.object({
-  "branch_id": zod.uuid(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "kind": zod.string().nullish().describe('`reservation` or `walk_in`. Defaults from whether `reserved_for` is set.'),
-  "notes": zod.string().nullish(),
-  "party_size": zod.number().nullish(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish()
-})
-
-export const CreateBookingResponse = zod.object({
-  "arrived_at": zod.iso.datetime({"offset":true}).nullish(),
-  "branch_id": zod.uuid(),
-  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "customer_lat": zod.number().nullish(),
-  "customer_lng": zod.number().nullish(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
-  "notes": zod.string().nullish(),
-  "notified_at": zod.iso.datetime({"offset":true}).nullish(),
-  "org_id": zod.uuid(),
-  "otp_verified": zod.boolean(),
-  "party_size": zod.number(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "table_ids": zod.array(zod.uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const UpdateBookingParams = zod.object({
-  "id": zod.uuid().describe('Booking ID')
-})
-
-export const UpdateBookingBody = zod.object({
-  "customer_name": zod.string().nullish(),
-  "notes": zod.string().nullish(),
-  "party_size": zod.number().nullish(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string().nullish().describe('Drive the status machine: confirmed \/ notified \/ arrived \/ seated \/\ncompleted \/ no_show \/ cancelled. The matching timestamp is stamped and,\nfor terminals, assigned tables are freed.')
-})
-
-export const UpdateBookingResponse = zod.object({
-  "arrived_at": zod.iso.datetime({"offset":true}).nullish(),
-  "branch_id": zod.uuid(),
-  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "customer_lat": zod.number().nullish(),
-  "customer_lng": zod.number().nullish(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
-  "notes": zod.string().nullish(),
-  "notified_at": zod.iso.datetime({"offset":true}).nullish(),
-  "org_id": zod.uuid(),
-  "otp_verified": zod.boolean(),
-  "party_size": zod.number(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "table_ids": zod.array(zod.uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const AssignTablesParams = zod.object({
-  "id": zod.uuid().describe('Booking ID')
-})
-
-export const AssignTablesBody = zod.object({
-  "table_ids": zod.array(zod.uuid())
-})
-
-export const AssignTablesResponse = zod.object({
-  "arrived_at": zod.iso.datetime({"offset":true}).nullish(),
-  "branch_id": zod.uuid(),
-  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "customer_lat": zod.number().nullish(),
-  "customer_lng": zod.number().nullish(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
-  "notes": zod.string().nullish(),
-  "notified_at": zod.iso.datetime({"offset":true}).nullish(),
-  "org_id": zod.uuid(),
-  "otp_verified": zod.boolean(),
-  "party_size": zod.number(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "table_ids": zod.array(zod.uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const NotifyBookingParams = zod.object({
-  "id": zod.uuid().describe('Booking ID')
-})
-
-export const NotifyBookingResponse = zod.object({
-  "arrived_at": zod.iso.datetime({"offset":true}).nullish(),
-  "branch_id": zod.uuid(),
-  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "customer_lat": zod.number().nullish(),
-  "customer_lng": zod.number().nullish(),
-  "customer_name": zod.string(),
-  "customer_phone": zod.string(),
-  "id": zod.uuid(),
-  "kind": zod.string(),
-  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
-  "notes": zod.string().nullish(),
-  "notified_at": zod.iso.datetime({"offset":true}).nullish(),
-  "org_id": zod.uuid(),
-  "otp_verified": zod.boolean(),
-  "party_size": zod.number(),
-  "quoted_ready_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reserved_for": zod.iso.datetime({"offset":true}).nullish(),
-  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "table_ids": zod.array(zod.uuid()).describe('Assigned table ids (multiple ⇒ merged tables).'),
-  "updated_at": zod.iso.datetime({"offset":true})
 })
 
 
@@ -8560,6 +9045,7 @@ export const MyPayslipsResponse = zod.array(MyPayslipsResponseItem)
 
 
 export const MyRequestsResponseItem = zod.object({
+  "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -8587,10 +9073,11 @@ export const MyRequestsResponse = zod.array(MyRequestsResponseItem)
 
 
 export const CreateMyRequestBody = zod.object({
+  "attendance_record_id": zod.uuid().nullish().describe('`correction` only — the record whose punch is wrong.'),
   "end_date": zod.iso.date().nullish(),
   "from_time": zod.string().nullish(),
   "is_half_day": zod.boolean().nullish(),
-  "kind": zod.string().describe('One of `leave`, `late_arrival`, `early_departure`, `excuse`, `mission`.'),
+  "kind": zod.string().describe('One of `leave`, `late_arrival`, `early_departure`, `excuse`, `mission`,\n`correction`.'),
   "leave_type_id": zod.uuid().nullish(),
   "location": zod.string().nullish(),
   "on_date": zod.iso.date(),
@@ -8601,6 +9088,7 @@ export const CreateMyRequestBody = zod.object({
 })
 
 export const CreateMyRequestResponse = zod.object({
+  "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -8626,9 +9114,40 @@ export const CreateMyRequestResponse = zod.object({
 })
 
 
+/**
+ * Own-row scoped like the rest of `/staff/me/*`: it needs no permission grant,
+ * because seeing when you are expected at work is not an admin capability.
+ * @summary The employee's OWN roster for a date range — what the app's Shifts tab shows.
+ */
+export const MyScheduleQueryParams = zod.object({
+  "from": zod.iso.date(),
+  "to": zod.iso.date()
+})
+
+export const MyScheduleResponseItem = zod.object({
+  "branch_name": zod.string().nullish().describe('The branch each shift is worked at, when the employee has one assignment.'),
+  "date": zod.iso.date(),
+  "shifts": zod.array(zod.object({
+  "break_minutes": zod.number(),
+  "checkin_window_minutes": zod.number(),
+  "grace_minutes": zod.number(),
+  "half_day_threshold_minutes": zod.number().nullish(),
+  "name": zod.string(),
+  "overtime_multiplier": zod.number(),
+  "overtime_threshold_minutes": zod.number(),
+  "paid_break": zod.boolean(),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}),
+  "work_shift_id": zod.uuid()
+}).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Empty = a rest day.')
+}).describe('One day of an employee\'s own upcoming roster.')
+export const MyScheduleResponse = zod.array(MyScheduleResponseItem)
+
+
 export const MyTodayResponse = zod.object({
   "blocked_reason": zod.string().nullish().describe('Why `can_check_in` is false, in words the app can show verbatim.'),
   "branch_id": zod.uuid().nullish().describe('WHERE to clock in today. Resolved server-side — from the open record, the\nrostered shift\'s branch, or the employee\'s single branch assignment — so\nthe app never has to ask. A branch picker would make the geofence\nanswerable to a dropdown, which defeats the point of having one.\n`None` means we cannot tell, and the app should say so rather than guess.'),
+  "branch_name": zod.string().nullish().describe('That branch\'s name, so the app\'s geofence chip can say WHERE it is about\nto clock in rather than merely that it can.'),
   "business_date": zod.iso.date().describe('The business date in the relevant branch\'s timezone — not the device\'s.'),
   "can_check_in": zod.boolean(),
   "can_check_out": zod.boolean(),
@@ -9039,6 +9558,19 @@ export const DeletePeriodParams = zod.object({
 export const DeletePeriodResponse = zod.void()
 
 
+/**
+ * Deliberately serves the PAYSLIPS, not a fresh computation: the file handed to
+ * a bank must be exactly what was approved, even if a deduction has been edited
+ * since. A period that has not been generated has nothing to export.
+ * @summary The generated period as a bank-ready CSV.
+ */
+export const ExportPeriodCsvParams = zod.object({
+  "id": zod.uuid().describe('Period ID')
+})
+
+export const ExportPeriodCsvResponse = zod.unknown()
+
+
 export const GeneratePeriodParams = zod.object({
   "id": zod.uuid().describe('Period ID')
 })
@@ -9158,6 +9690,7 @@ export const ListRequestsQueryParams = zod.object({
 })
 
 export const ListRequestsResponseItem = zod.object({
+  "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -9185,10 +9718,11 @@ export const ListRequestsResponse = zod.array(ListRequestsResponseItem)
 
 
 export const CreateRequestAdminBody = zod.object({
+  "attendance_record_id": zod.uuid().nullish().describe('`correction` only — the record whose punch is wrong.'),
   "end_date": zod.iso.date().nullish(),
   "from_time": zod.string().nullish(),
   "is_half_day": zod.boolean().nullish(),
-  "kind": zod.string().describe('One of `leave`, `late_arrival`, `early_departure`, `excuse`, `mission`.'),
+  "kind": zod.string().describe('One of `leave`, `late_arrival`, `early_departure`, `excuse`, `mission`,\n`correction`.'),
   "leave_type_id": zod.uuid().nullish(),
   "location": zod.string().nullish(),
   "on_date": zod.iso.date(),
@@ -9199,6 +9733,7 @@ export const CreateRequestAdminBody = zod.object({
 })
 
 export const CreateRequestAdminResponse = zod.object({
+  "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -9235,6 +9770,7 @@ export const DecideRequestBody = zod.object({
 })
 
 export const DecideRequestResponse = zod.object({
+  "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -9353,6 +9889,40 @@ export const DeleteAssignmentParams = zod.object({
 })
 
 export const DeleteAssignmentResponse = zod.void()
+
+
+/**
+ * Computed from TODAY'S attendance rows joined against the roster, so someone
+ * rostered with no row yet is `absent` only once their shift has actually
+ * started — before that they are simply `off`, not a red number on a manager's
+ * dashboard at 6am.
+ * @summary Who is in, late, absent or on leave right now.
+ */
+export const TeamPresenceQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Omit for every branch in the org.')
+})
+
+export const TeamPresenceResponse = zod.object({
+  "absent": zod.number(),
+  "business_date": zod.iso.date().describe('The branch\'s business date, in ITS timezone — not the manager\'s device.'),
+  "late": zod.number(),
+  "on_leave": zod.number(),
+  "planned_minutes": zod.number().describe('Minutes rostered for today across the team.'),
+  "present": zod.number(),
+  "rows": zod.array(zod.object({
+  "branch_name": zod.string().nullish(),
+  "check_in_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_out_at": zod.iso.datetime({"offset":true}).nullish(),
+  "job_title": zod.string().nullish(),
+  "late_minutes": zod.number(),
+  "scheduled_minutes": zod.number().describe('Minutes this person is rostered for today — the denominator of the\nlabour-vs-plan bar.'),
+  "state": zod.string().describe('`in` | `late` | `absent` | `on_leave` | `off` | `done`.'),
+  "user_id": zod.uuid(),
+  "user_name": zod.string(),
+  "worked_minutes": zod.number()
+}).describe('One person\'s state right now, for the manager\'s live team list.')),
+  "worked_minutes": zod.number().describe('Minutes actually worked so far today across the team.')
+}).describe('The whole team\'s state right now, plus the day\'s labour against plan.')
 
 
 export const ListWorkShiftsResponseItem = zod.object({

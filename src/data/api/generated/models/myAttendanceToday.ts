@@ -21,6 +21,12 @@ export interface MyAttendanceToday {
      * @nullable
      */
   branch_id?: string | null;
+  /**
+     * That branch's name, so the app's geofence chip can say WHERE it is about
+     * to clock in rather than merely that it can.
+     * @nullable
+     */
+  branch_name?: string | null;
   /** The business date in the relevant branch's timezone — not the device's. */
   business_date: string;
   can_check_in: boolean;

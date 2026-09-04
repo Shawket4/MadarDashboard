@@ -16,11 +16,11 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppUsersRouteImport } from './routes/_app/users'
 import { Route as AppTillsRouteImport } from './routes/_app/tills'
 import { Route as AppShiftsRouteImport } from './routes/_app/shifts'
-import { Route as AppReservationsRouteImport } from './routes/_app/reservations'
 import { Route as AppQrRouteImport } from './routes/_app/qr'
 import { Route as AppPermissionsRouteImport } from './routes/_app/permissions'
 import { Route as AppOrgsRouteImport } from './routes/_app/orgs'
 import { Route as AppOrdersRouteImport } from './routes/_app/orders'
+import { Route as AppFloorRouteImport } from './routes/_app/floor'
 import { Route as AppDiscountsRouteImport } from './routes/_app/discounts'
 import { Route as AppBranchesRouteImport } from './routes/_app/branches'
 import { Route as AppBasiraRouteImport } from './routes/_app/basira'
@@ -103,11 +103,6 @@ const AppShiftsRoute = AppShiftsRouteImport.update({
   path: '/shifts',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppReservationsRoute = AppReservationsRouteImport.update({
-  id: '/reservations',
-  path: '/reservations',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppQrRoute = AppQrRouteImport.update({
   id: '/qr',
   path: '/qr',
@@ -126,6 +121,11 @@ const AppOrgsRoute = AppOrgsRouteImport.update({
 const AppOrdersRoute = AppOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppFloorRoute = AppFloorRouteImport.update({
+  id: '/floor',
+  path: '/floor',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppDiscountsRoute = AppDiscountsRouteImport.update({
@@ -380,11 +380,11 @@ export interface FileRoutesByFullPath {
   '/basira': typeof AppBasiraRoute
   '/branches': typeof AppBranchesRoute
   '/discounts': typeof AppDiscountsRoute
+  '/floor': typeof AppFloorRoute
   '/orders': typeof AppOrdersRoute
   '/orgs': typeof AppOrgsRoute
   '/permissions': typeof AppPermissionsRoute
   '/qr': typeof AppQrRoute
-  '/reservations': typeof AppReservationsRoute
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
@@ -434,11 +434,11 @@ export interface FileRoutesByTo {
   '/basira': typeof AppBasiraRoute
   '/branches': typeof AppBranchesRoute
   '/discounts': typeof AppDiscountsRoute
+  '/floor': typeof AppFloorRoute
   '/orders': typeof AppOrdersRoute
   '/orgs': typeof AppOrgsRoute
   '/permissions': typeof AppPermissionsRoute
   '/qr': typeof AppQrRoute
-  '/reservations': typeof AppReservationsRoute
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
@@ -496,11 +496,11 @@ export interface FileRoutesById {
   '/_app/basira': typeof AppBasiraRoute
   '/_app/branches': typeof AppBranchesRoute
   '/_app/discounts': typeof AppDiscountsRoute
+  '/_app/floor': typeof AppFloorRoute
   '/_app/orders': typeof AppOrdersRoute
   '/_app/orgs': typeof AppOrgsRoute
   '/_app/permissions': typeof AppPermissionsRoute
   '/_app/qr': typeof AppQrRoute
-  '/_app/reservations': typeof AppReservationsRoute
   '/_app/shifts': typeof AppShiftsRoute
   '/_app/tills': typeof AppTillsRoute
   '/_app/users': typeof AppUsersRoute
@@ -559,11 +559,11 @@ export interface FileRouteTypes {
     | '/basira'
     | '/branches'
     | '/discounts'
+    | '/floor'
     | '/orders'
     | '/orgs'
     | '/permissions'
     | '/qr'
-    | '/reservations'
     | '/shifts'
     | '/tills'
     | '/users'
@@ -613,11 +613,11 @@ export interface FileRouteTypes {
     | '/basira'
     | '/branches'
     | '/discounts'
+    | '/floor'
     | '/orders'
     | '/orgs'
     | '/permissions'
     | '/qr'
-    | '/reservations'
     | '/shifts'
     | '/tills'
     | '/users'
@@ -674,11 +674,11 @@ export interface FileRouteTypes {
     | '/_app/basira'
     | '/_app/branches'
     | '/_app/discounts'
+    | '/_app/floor'
     | '/_app/orders'
     | '/_app/orgs'
     | '/_app/permissions'
     | '/_app/qr'
-    | '/_app/reservations'
     | '/_app/shifts'
     | '/_app/tills'
     | '/_app/users'
@@ -780,13 +780,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppShiftsRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/reservations': {
-      id: '/_app/reservations'
-      path: '/reservations'
-      fullPath: '/reservations'
-      preLoaderRoute: typeof AppReservationsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/qr': {
       id: '/_app/qr'
       path: '/qr'
@@ -813,6 +806,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/orders'
       preLoaderRoute: typeof AppOrdersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/floor': {
+      id: '/_app/floor'
+      path: '/floor'
+      fullPath: '/floor'
+      preLoaderRoute: typeof AppFloorRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/discounts': {
@@ -1260,11 +1260,11 @@ interface AppRouteRouteChildren {
   AppBasiraRoute: typeof AppBasiraRoute
   AppBranchesRoute: typeof AppBranchesRoute
   AppDiscountsRoute: typeof AppDiscountsRoute
+  AppFloorRoute: typeof AppFloorRoute
   AppOrdersRoute: typeof AppOrdersRoute
   AppOrgsRoute: typeof AppOrgsRoute
   AppPermissionsRoute: typeof AppPermissionsRoute
   AppQrRoute: typeof AppQrRoute
-  AppReservationsRoute: typeof AppReservationsRoute
   AppShiftsRoute: typeof AppShiftsRoute
   AppTillsRoute: typeof AppTillsRoute
   AppUsersRoute: typeof AppUsersRoute
@@ -1291,11 +1291,11 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppBasiraRoute: AppBasiraRoute,
   AppBranchesRoute: AppBranchesRoute,
   AppDiscountsRoute: AppDiscountsRoute,
+  AppFloorRoute: AppFloorRoute,
   AppOrdersRoute: AppOrdersRoute,
   AppOrgsRoute: AppOrgsRoute,
   AppPermissionsRoute: AppPermissionsRoute,
   AppQrRoute: AppQrRoute,
-  AppReservationsRoute: AppReservationsRoute,
   AppShiftsRoute: AppShiftsRoute,
   AppTillsRoute: AppTillsRoute,
   AppUsersRoute: AppUsersRoute,

@@ -14,10 +14,14 @@ import type {
 
 import {
   BundleStatus,
-  ChartHint,
   ColumnKind,
+  Compare,
+  Dir,
+  Grain,
+  PeriodPreset,
   PrinterBrand,
-  UserRole
+  UserRole,
+  Viz
 } from './models';
 import type {
   AddonCost,
@@ -32,7 +36,6 @@ import type {
   AttendanceSettings,
   AttendanceSummary,
   AuthPermissionsResponse,
-  BookingView,
   Branch,
   BranchAddonOverride,
   BranchDeliverySettings,
@@ -55,6 +58,8 @@ import type {
   CombinedItemSalesRow,
   ComputedPayslip,
   ConsumptionRow,
+  ConversationDetail,
+  ConversationList,
   CreateUserResponse,
   CredentialSummary,
   CredentialWithSecret,
@@ -78,6 +83,9 @@ import type {
   GroupOptionOut,
   GroupOut,
   GuestSavedLocation,
+  HeldOrderParkResponse,
+  HeldOrderView,
+  HeldOrdersSyncResponse,
   InventoryValuationReport,
   ItemOptionOut,
   ItemSize,
@@ -94,6 +102,7 @@ import type {
   MeResponse,
   MenuItem,
   MenuItemFull,
+  MetricsQueryResponse,
   MyAttendanceToday,
   OfflineAuthBundle,
   OnboardingStatus,
@@ -124,7 +133,6 @@ import type {
   PermissionMatrix,
   PreviewIngredient,
   PriceOverrideOut,
-  PublicBooking,
   PublicBranch,
   PublicOrg,
   PurchaseOrder,
@@ -132,6 +140,7 @@ import type {
   QrResponse,
   QuoteResponse,
   RecipeCostResult,
+  RegistryInfo,
   ReorderSuggestion,
   RepricingReport,
   ReservationSettings,
@@ -142,6 +151,7 @@ import type {
   SalaryAdvance,
   ScheduleAssignment,
   ScheduleOverride,
+  ScheduledDay,
   Shift,
   ShiftPreFill,
   ShiftReportResponse,
@@ -149,6 +159,7 @@ import type {
   ShrinkageRow,
   SizeCostOut,
   SkuCost,
+  Sort,
   StaffDocument,
   StaffRequest,
   StationRoutes,
@@ -156,9 +167,13 @@ import type {
   StocktakeFull,
   StudioAggregate,
   Supplier,
+  TeamPresence,
   TellerStats,
   Till,
   TimeseriesPoint,
+  TopPer,
+  TransferView,
+  TransfersSyncResponse,
   UploadResponse,
   UserBranch,
   UserPublic,
@@ -178,9 +193,23 @@ export const getListAddonCatalogResponseMock = (overrideResponse: Partial<Extrac
 
 export const getUpdateAddonItemResponseMock = (overrideResponse: Partial<Extract<AddonItem, object>> = {}): AddonItem => ({addon_type: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', default_price: faker.number.int(), id: faker.string.uuid(), ingredients: faker.helpers.arrayElement([Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), ingredient_unit: faker.string.alpha({length: {min: 10, max: 20}}), org_ingredient_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), quantity_used: faker.number.float({fractionDigits: 2})})), undefined]), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, org_id: faker.string.uuid(), primary_ingredient_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
-export const getChatResponseMock = (overrideResponse: Partial<Extract<AiChatResponse, object>> = {}): AiChatResponse => ({chart: faker.helpers.arrayElement(Object.values(ChartHint)), columns: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({key: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.helpers.arrayElement(Object.values(ColumnKind)), label: faker.string.alpha({length: {min: 10, max: 20}})})), facet_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), provider: faker.string.alpha({length: {min: 10, max: 20}}), report_id: faker.string.alpha({length: {min: 10, max: 20}}), row_count: faker.number.int({min: 0}), rows: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({
+export const getChatResponseSortMock = (overrideResponse: Partial<Sort> = {}): Sort => ({...{dir: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(Dir)), undefined]), measure: faker.string.alpha({length: {min: 10, max: 20}})}, ...overrideResponse});
+
+export const getChatResponseTopPerMock = (overrideResponse: Partial<TopPer> = {}): TopPer => ({...{dimension: faker.string.alpha({length: {min: 10, max: 20}}), n: faker.helpers.arrayElement([faker.number.int({min: 0}), undefined])}, ...overrideResponse});
+
+export const getChatResponseMock = (): AiChatResponse => ({...faker.helpers.arrayElement([{kind: faker.helpers.arrayElement(['answer'] as const), results: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({columns: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({key: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.helpers.arrayElement(Object.values(ColumnKind)), label: faker.string.alpha({length: {min: 10, max: 20}})})), facet_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), grain: faker.helpers.arrayElement(Object.values(Grain)), period_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), period_to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), preset_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), row_count: faker.number.int({min: 0}), rows: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({
         [faker.string.alphanumeric(5)]: {}
-      })), scope: {all_branches: faker.datatype.boolean(), branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), label: faker.string.alpha({length: {min: 10, max: 20}}), unmatched_branch: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, summary: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), title: faker.string.alpha({length: {min: 10, max: 20}}), truncated: faker.datatype.boolean(), ...overrideResponse})
+      })), scope: {all_branches: faker.datatype.boolean(), branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), label: faker.string.alpha({length: {min: 10, max: 20}}), unmatched_branch: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, spec: {branch: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), compare: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(Compare)), undefined]), dataset: faker.string.alpha({length: {min: 10, max: 20}}), dimensions: faker.helpers.arrayElement([Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), filters: faker.helpers.arrayElement([{
+        [faker.string.alphanumeric(5)]: faker.string.alpha({length: {min: 10, max: 20}})
+      }, undefined]), having_min: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), limit: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: 0}), null]), undefined]), measures: faker.helpers.arrayElement([Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), period: faker.helpers.arrayElement([{from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), preset: faker.helpers.arrayElement([faker.helpers.arrayElement([null,faker.helpers.arrayElement(Object.values(PeriodPreset)),]), undefined]), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, undefined]), sort: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getChatResponseSortMock()},]), undefined]), transform: faker.helpers.arrayElement([{cumulative: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), share: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), top_per: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getChatResponseTopPerMock()},]), undefined])}, undefined]), viz: faker.helpers.arrayElement([faker.helpers.arrayElement([null,faker.helpers.arrayElement(Object.values(Viz)),]), undefined])}, title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), truncated: faker.datatype.boolean(), viz: faker.helpers.arrayElement(Object.values(Viz))})), text: faker.string.alpha({length: {min: 10, max: 20}})},{kind: faker.helpers.arrayElement(['clarify'] as const), question: faker.string.alpha({length: {min: 10, max: 20}})},{kind: faker.helpers.arrayElement(['incomplete'] as const), results: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({columns: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({key: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.helpers.arrayElement(Object.values(ColumnKind)), label: faker.string.alpha({length: {min: 10, max: 20}})})), facet_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), grain: faker.helpers.arrayElement(Object.values(Grain)), period_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), period_to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), preset_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), row_count: faker.number.int({min: 0}), rows: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({
+        [faker.string.alphanumeric(5)]: {}
+      })), scope: {all_branches: faker.datatype.boolean(), branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), label: faker.string.alpha({length: {min: 10, max: 20}}), unmatched_branch: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, spec: {branch: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), compare: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(Compare)), undefined]), dataset: faker.string.alpha({length: {min: 10, max: 20}}), dimensions: faker.helpers.arrayElement([Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), filters: faker.helpers.arrayElement([{
+        [faker.string.alphanumeric(5)]: faker.string.alpha({length: {min: 10, max: 20}})
+      }, undefined]), having_min: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), limit: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: 0}), null]), undefined]), measures: faker.helpers.arrayElement([Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), period: faker.helpers.arrayElement([{from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), preset: faker.helpers.arrayElement([faker.helpers.arrayElement([null,faker.helpers.arrayElement(Object.values(PeriodPreset)),]), undefined]), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, undefined]), sort: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getChatResponseSortMock()},]), undefined]), transform: faker.helpers.arrayElement([{cumulative: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), share: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), top_per: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getChatResponseTopPerMock()},]), undefined])}, undefined]), viz: faker.helpers.arrayElement([faker.helpers.arrayElement([null,faker.helpers.arrayElement(Object.values(Viz)),]), undefined])}, title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), truncated: faker.datatype.boolean(), viz: faker.helpers.arrayElement(Object.values(Viz))})), text: faker.string.alpha({length: {min: 10, max: 20}})},]),...{conversation_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), provider: faker.string.alpha({length: {min: 10, max: 20}}), timezone: faker.string.alpha({length: {min: 10, max: 20}})},})
+
+export const getListConversationsResponseMock = (overrideResponse: Partial<Extract<ConversationList, object>> = {}): ConversationList => ({conversations: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({compacted: faker.datatype.boolean(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_turn_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), title: faker.string.alpha({length: {min: 10, max: 20}}), turn_count: faker.number.int()})), ...overrideResponse})
+
+export const getGetConversationResponseMock = (): ConversationDetail => ({...{compacted: faker.datatype.boolean(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_turn_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), title: faker.string.alpha({length: {min: 10, max: 20}}), turn_count: faker.number.int()},...{condensed: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), turns: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({answer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), provider: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), question: faker.string.alpha({length: {min: 10, max: 20}}), seq: faker.number.int(), specs: {}}))},})
 
 export const getLoginResponseMock = (overrideResponse: Partial<Extract<LoginResponse, object>> = {}): LoginResponse => ({currency_code: faker.string.alpha({length: {min: 10, max: 20}}), tax_rate: faker.number.float({fractionDigits: 2}), token: faker.string.alpha({length: {min: 10, max: 20}}), user: {branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.helpers.arrayElement(Object.values(UserRole))}, ...overrideResponse})
 
@@ -304,6 +333,30 @@ export const getUpdateFloorTableResponseMock = (overrideResponse: Partial<Extrac
 
 export const getSetTableStatusResponseMock = (overrideResponse: Partial<Extract<FloorTable, object>> = {}): FloorTable => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', height: faker.number.float({fractionDigits: 2}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), label: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), pos_x: faker.number.float({fractionDigits: 2}), pos_y: faker.number.float({fractionDigits: 2}), rotation: faker.number.float({fractionDigits: 2}), seats: faker.number.int(), section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), shape: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', width: faker.number.float({fractionDigits: 2}), ...overrideResponse})
 
+export const getListFloorTransfersResponseMock = (overrideResponse: Partial<Extract<TransfersSyncResponse, object>> = {}): TransfersSyncResponse => ({server_time: faker.date.past().toISOString().slice(0, 19) + 'Z', transfers: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', from_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), fulfilled_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), occupant_id: faker.string.uuid(), occupant_kind: faker.string.alpha({length: {min: 10, max: 20}}), occupant_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), requested_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), resolved_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), target_section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), target_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})), ...overrideResponse})
+
+export const getCreateFloorTransferResponseMock = (overrideResponse: Partial<Extract<TransferView, object>> = {}): TransferView => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', from_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), fulfilled_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), occupant_id: faker.string.uuid(), occupant_kind: faker.string.alpha({length: {min: 10, max: 20}}), occupant_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), requested_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), resolved_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), target_section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), target_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getCancelTransferResponseMock = (overrideResponse: Partial<Extract<TransferView, object>> = {}): TransferView => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', from_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), fulfilled_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), occupant_id: faker.string.uuid(), occupant_kind: faker.string.alpha({length: {min: 10, max: 20}}), occupant_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), requested_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), resolved_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), target_section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), target_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getFulfillTransferResponseMock = (overrideResponse: Partial<Extract<TransferView, object>> = {}): TransferView => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', from_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), fulfilled_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), occupant_id: faker.string.uuid(), occupant_kind: faker.string.alpha({length: {min: 10, max: 20}}), occupant_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), requested_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), resolved_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), target_section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), target_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getListHeldOrdersResponseMock = (overrideResponse: Partial<Extract<HeldOrdersSyncResponse, object>> = {}): HeldOrdersSyncResponse => ({held_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})), server_time: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getParkHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderParkResponse, object>> = {}): HeldOrderParkResponse => ({held_order: {branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, table_conflict: faker.datatype.boolean(), ...overrideResponse})
+
+export const getUpdateHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getClaimHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getCompleteHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getDiscardHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getReleaseHeldOrderResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getAssignHeldOrderTableResponseMock = (overrideResponse: Partial<Extract<HeldOrderView, object>> = {}): HeldOrderView => ({branch_id: faker.string.uuid(), cart: {}, claimed_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revision: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), table_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
 export const getMarginWatchResponseMock = (overrideResponse: Partial<Extract<MarginWatch, object>> = {}): MarginWatch => ({bottom: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), class: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), flags: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), link: faker.string.alpha({length: {min: 10, max: 20}}), params: {}})), item_name: faker.string.alpha({length: {min: 10, max: 20}}), margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), margin_share_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), menu_item_id: faker.string.uuid(), on_menu: faker.datatype.boolean(), popularity_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), prev_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), prev_quantity: faker.number.int(), quantity_sold: faker.number.int(), revenue: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})), branch_id: faker.string.uuid(), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), open_signals: faker.number.int(), rows_cost_unknown: faker.number.int(), target_pct: faker.number.float({fractionDigits: 2}), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), top: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), class: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), flags: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), link: faker.string.alpha({length: {min: 10, max: 20}}), params: {}})), item_name: faker.string.alpha({length: {min: 10, max: 20}}), margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), margin_share_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), menu_item_id: faker.string.uuid(), on_menu: faker.datatype.boolean(), popularity_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), prev_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), prev_quantity: faker.number.int(), quantity_sold: faker.number.int(), revenue: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})), totals: {below_target_gap: faker.number.int(), cost_known: faker.number.int(), margin_known: faker.number.int(), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), prev_margin_known: faker.number.int(), prev_revenue: faker.number.int(), revenue: faker.number.int(), revenue_cost_unknown: faker.number.int()}, ...overrideResponse})
 
 export const getMenuMarginLedgerResponseMock = (overrideResponse: Partial<Extract<MarginLedgerReport, object>> = {}): MarginLedgerReport => ({branch_id: faker.string.uuid(), cost_basis: faker.string.alpha({length: {min: 10, max: 20}}), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), rows: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), class: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), flags: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), link: faker.string.alpha({length: {min: 10, max: 20}}), params: {}})), item_name: faker.string.alpha({length: {min: 10, max: 20}}), margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), margin_share_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), menu_item_id: faker.string.uuid(), on_menu: faker.datatype.boolean(), popularity_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), prev_margin: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), prev_quantity: faker.number.int(), quantity_sold: faker.number.int(), revenue: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})), rows_cost_unknown: faker.number.int(), target_pct: faker.number.float({fractionDigits: 2}), target_source: faker.string.alpha({length: {min: 10, max: 20}}), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), totals: {below_target_gap: faker.number.int(), cost_known: faker.number.int(), margin_known: faker.number.int(), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), prev_margin_known: faker.number.int(), prev_revenue: faker.number.int(), revenue: faker.number.int(), revenue_cost_unknown: faker.number.int()}, ...overrideResponse})
@@ -412,6 +465,14 @@ export const getGetStudioResponseMock = (overrideResponse: Partial<Extract<Studi
 
 export const getPutPriceOverrideResponseMock = (overrideResponse: Partial<Extract<PriceOverrideOut, object>> = {}): PriceOverrideOut => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), channel: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_available: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), price: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), scope: faker.string.alpha({length: {min: 10, max: 20}}), target_id: faker.string.uuid(), target_type: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
+export const getRunMetricsQueryResponseMock = (overrideResponse: Partial<Extract<MetricsQueryResponse, object>> = {}): MetricsQueryResponse => ({results: {
+        [faker.string.alphanumeric(5)]: faker.helpers.arrayElement([{...{columns: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({key: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.helpers.arrayElement(Object.values(ColumnKind)), label: faker.string.alpha({length: {min: 10, max: 20}})})), facet_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), grain: faker.helpers.arrayElement(Object.values(Grain)), period: {from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, row_count: faker.number.int({min: 0}), rows: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({
+        [faker.string.alphanumeric(5)]: {}
+      })), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), truncated: faker.datatype.boolean(), viz: faker.helpers.arrayElement(Object.values(Viz))},...{status: faker.helpers.arrayElement(['ok'] as const)},},{error: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.helpers.arrayElement(['error'] as const)},])
+      }, scope: {all_branches: faker.datatype.boolean(), branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), label: faker.string.alpha({length: {min: 10, max: 20}}), unmatched_branch: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, timezone: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getSchemaResponseMock = (overrideResponse: Partial<Extract<RegistryInfo, object>> = {}): RegistryInfo => ({boards: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({description: faker.string.alpha({length: {min: 10, max: 20}}), key: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.string.alpha({length: {min: 10, max: 20}}), widgets: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}})))})), datasets: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({default_measures: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), dimensions: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({help: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.helpers.arrayElement(Object.values(ColumnKind)), label: faker.string.alpha({length: {min: 10, max: 20}}), time: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])})), filters: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({default: faker.string.alpha({length: {min: 10, max: 20}}), help: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.alpha({length: {min: 10, max: 20}}), label: faker.string.alpha({length: {min: 10, max: 20}}), values: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}})))})), help: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.alpha({length: {min: 10, max: 20}}), measures: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({help: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.helpers.arrayElement(Object.values(ColumnKind)), label: faker.string.alpha({length: {min: 10, max: 20}}), time: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])})), title: faker.string.alpha({length: {min: 10, max: 20}})})), period_presets: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), presets: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category: faker.string.alpha({length: {min: 10, max: 20}}), dataset: faker.string.alpha({length: {min: 10, max: 20}}), default_period: faker.helpers.arrayElement(Object.values(PeriodPreset)), description: faker.string.alpha({length: {min: 10, max: 20}}), grain: faker.helpers.arrayElement(Object.values(Grain)), id: faker.string.alpha({length: {min: 10, max: 20}}), permission: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.string.alpha({length: {min: 10, max: 20}}), viz: faker.helpers.arrayElement(Object.values(Viz))})), ...overrideResponse})
+
 export const getListGroupsResponseMock = (): GroupOut[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), is_active: faker.datatype.boolean(), is_required: faker.datatype.boolean(), legacy_addon_type: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), max_selections: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), min_selections: faker.number.int(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, options: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), is_active: faker.datatype.boolean(), is_default: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, price: faker.number.int(), replaces_ingredient_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), sort: faker.number.int()})), org_id: faker.string.uuid(), selection_type: faker.string.alpha({length: {min: 10, max: 20}}), sort: faker.number.int()})))
 
 export const getCreateGroupResponseMock = (overrideResponse: Partial<Extract<GroupOut, object>> = {}): GroupOut => ({id: faker.string.uuid(), is_active: faker.datatype.boolean(), is_required: faker.datatype.boolean(), legacy_addon_type: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), max_selections: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), min_selections: faker.number.int(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, options: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), is_active: faker.datatype.boolean(), is_default: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, price: faker.number.int(), replaces_ingredient_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), sort: faker.number.int()})), org_id: faker.string.uuid(), selection_type: faker.string.alpha({length: {min: 10, max: 20}}), sort: faker.number.int(), ...overrideResponse})
@@ -516,12 +577,6 @@ export const getOtpRequestResponseMock = (overrideResponse: Partial<Extract<OtpR
 
 export const getOtpVerifyResponseMock = (overrideResponse: Partial<Extract<OtpVerifyResponse, object>> = {}): OtpVerifyResponse => ({device_token: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
-export const getCreatePublicBookingResponseMock = (overrideResponse: Partial<Extract<PublicBooking, object>> = {}): PublicBooking => ({eta_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), party_size: faker.number.int(), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), table_count: faker.number.int(), ...overrideResponse})
-
-export const getListReservationPublicBranchesResponseMock = (): PublicBranch[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({code: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), in_mall_enabled: faker.datatype.boolean(), in_mall_open_now: faker.datatype.boolean(), in_mall_require_location: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), otp_required: faker.datatype.boolean(), outside_enabled: faker.datatype.boolean(), outside_open_now: faker.datatype.boolean(), pickup_enabled: faker.datatype.boolean(), pickup_open_now: faker.datatype.boolean(), umbrella_enabled: faker.datatype.boolean(), umbrella_open_now: faker.datatype.boolean()})))
-
-export const getTrackPublicBookingResponseMock = (overrideResponse: Partial<Extract<PublicBooking, object>> = {}): PublicBooking => ({eta_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), party_size: faker.number.int(), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), table_count: faker.number.int(), ...overrideResponse})
-
 export const getListPurchaseOrdersResponseMock = (): PurchaseOrder[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.string.uuid(), expected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), received_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), received_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), reference: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
 
 export const getCreatePurchaseOrderResponseMock = (): PurchaseOrderFull => ({...{branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.string.uuid(), expected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), received_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), received_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), reference: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'},...{lines: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), org_ingredient_id: faker.string.uuid(), purchase_order_id: faker.string.uuid(), purchase_unit: faker.string.alpha({length: {min: 10, max: 20}}), quantity_ordered: faker.number.float({fractionDigits: 2}), quantity_received: faker.number.float({fractionDigits: 2}), unit: faker.string.alpha({length: {min: 10, max: 20}}), unit_cost: faker.number.int(), units_per_purchase_unit: faker.number.float({fractionDigits: 2})}))},})
@@ -606,16 +661,6 @@ export const getShiftDeductionsResponseMock = (): DeductionLogRow[] => (Array.fr
 
 export const getShiftSummaryResponseMock = (overrideResponse: Partial<Extract<ShiftSummary, object>> = {}): ShiftSummary => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), cash_discrepancy: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), cash_tips: faker.helpers.arrayElement([faker.number.int(), undefined]), closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), closing_cash_declared: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closing_cash_system: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', opening_cash: faker.number.int(), revenue_by_method: {}, shift_id: faker.string.uuid(), status: faker.string.alpha({length: {min: 10, max: 20}}), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), total_discount: faker.number.int(), total_orders: faker.number.int(), total_revenue: faker.number.int(), total_tax: faker.number.int(), total_tips: faker.helpers.arrayElement([faker.number.int(), undefined]), voided_orders: faker.number.int(), ...overrideResponse})
 
-export const getListBookingsResponseMock = (): BookingView[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({arrived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), branch_id: faker.string.uuid(), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notified_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), party_size: faker.number.int(), quoted_ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
-
-export const getCreateBookingResponseMock = (overrideResponse: Partial<Extract<BookingView, object>> = {}): BookingView => ({arrived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), branch_id: faker.string.uuid(), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notified_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), party_size: faker.number.int(), quoted_ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
-
-export const getUpdateBookingResponseMock = (overrideResponse: Partial<Extract<BookingView, object>> = {}): BookingView => ({arrived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), branch_id: faker.string.uuid(), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notified_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), party_size: faker.number.int(), quoted_ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
-
-export const getAssignTablesResponseMock = (overrideResponse: Partial<Extract<BookingView, object>> = {}): BookingView => ({arrived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), branch_id: faker.string.uuid(), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notified_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), party_size: faker.number.int(), quoted_ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
-
-export const getNotifyBookingResponseMock = (overrideResponse: Partial<Extract<BookingView, object>> = {}): BookingView => ({arrived_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), branch_id: faker.string.uuid(), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notified_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), party_size: faker.number.int(), quoted_ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reserved_for: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
-
 export const getListShiftsResponseMock = (overrideResponse: Partial<Extract<PaginatedShifts, object>> = {}): PaginatedShifts => ({data: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cash_discrepancy: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), closed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), closing_cash_declared: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closing_cash_system: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), force_close_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), force_closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), force_closed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', opening_cash: faker.number.int(), opening_cash_edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), opening_cash_original: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), opening_cash_was_edited: faker.datatype.boolean(), status: faker.string.alpha({length: {min: 10, max: 20}}), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), till_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), till_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), page: faker.number.int(), per_page: faker.number.int(), total: faker.number.int(), total_pages: faker.number.int(), ...overrideResponse})
 
 export const getGetCurrentShiftResponseShiftMock = (overrideResponse: Partial<Shift> = {}): Shift => ({...{branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cash_discrepancy: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), closed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), closing_cash_declared: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closing_cash_system: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), force_close_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), force_closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), force_closed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', opening_cash: faker.number.int(), opening_cash_edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), opening_cash_original: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), opening_cash_was_edited: faker.datatype.boolean(), status: faker.string.alpha({length: {min: 10, max: 20}}), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), till_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), till_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, ...overrideResponse});
@@ -688,13 +733,15 @@ export const getMyLeaveBalancesResponseMock = (): LeaveBalance[] => (Array.from(
 
 export const getMyPayslipsResponseMock = (): Payslip[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({absent_days: faker.number.float({fractionDigits: 2}), advance_installment_piastres: faker.number.int(), base_salary_piastres: faker.number.int(), bonuses_piastres: faker.number.int(), breakdown: {}, deductions_piastres: faker.number.int(), generated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), late_minutes: faker.number.int(), leave_days: faker.number.float({fractionDigits: 2}), net_piastres: faker.number.int(), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), overtime_piastres: faker.number.int(), payroll_period_id: faker.string.uuid(), period_end: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), period_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), period_start: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_days: faker.number.float({fractionDigits: 2})})))
 
-export const getMyRequestsResponseMock = (): StaffRequest[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
+export const getMyRequestsResponseMock = (): StaffRequest[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({attendance_record_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
 
-export const getCreateMyRequestResponseMock = (overrideResponse: Partial<Extract<StaffRequest, object>> = {}): StaffRequest => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+export const getCreateMyRequestResponseMock = (overrideResponse: Partial<Extract<StaffRequest, object>> = {}): StaffRequest => ({attendance_record_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getMyScheduleResponseMock = (): ScheduledDay[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), date: faker.date.past().toISOString().slice(0, 10), shifts: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({break_minutes: faker.number.int(), checkin_window_minutes: faker.number.int(), grace_minutes: faker.number.int(), half_day_threshold_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), overtime_multiplier: faker.number.float({fractionDigits: 2}), overtime_threshold_minutes: faker.number.int(), paid_break: faker.datatype.boolean(), scheduled_end_at: faker.date.past().toISOString().slice(0, 19) + 'Z', scheduled_start_at: faker.date.past().toISOString().slice(0, 19) + 'Z', work_shift_id: faker.string.uuid()}))})))
 
 export const getMyTodayResponseAttendanceRecordMock = (overrideResponse: Partial<AttendanceRecord> = {}): AttendanceRecord => ({...{branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int()}, ...overrideResponse});
 
-export const getMyTodayResponseMock = (overrideResponse: Partial<Extract<MyAttendanceToday, object>> = {}): MyAttendanceToday => ({blocked_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), business_date: faker.date.past().toISOString().slice(0, 10), can_check_in: faker.datatype.boolean(), can_check_out: faker.datatype.boolean(), closed_records: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int()})), open_record: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getMyTodayResponseAttendanceRecordMock()},]), undefined]), scheduled: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({break_minutes: faker.number.int(), checkin_window_minutes: faker.number.int(), grace_minutes: faker.number.int(), half_day_threshold_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), overtime_multiplier: faker.number.float({fractionDigits: 2}), overtime_threshold_minutes: faker.number.int(), paid_break: faker.datatype.boolean(), scheduled_end_at: faker.date.past().toISOString().slice(0, 19) + 'Z', scheduled_start_at: faker.date.past().toISOString().slice(0, 19) + 'Z', work_shift_id: faker.string.uuid()})), ...overrideResponse})
+export const getMyTodayResponseMock = (overrideResponse: Partial<Extract<MyAttendanceToday, object>> = {}): MyAttendanceToday => ({blocked_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), business_date: faker.date.past().toISOString().slice(0, 10), can_check_in: faker.datatype.boolean(), can_check_out: faker.datatype.boolean(), closed_records: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), business_date: faker.date.past().toISOString().slice(0, 10), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_in_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_in_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), check_out_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), early_leave_minutes: faker.number.int(), edit_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), edited_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), is_manual: faker.datatype.boolean(), late_minutes: faker.number.int(), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), overtime_minutes: faker.number.int(), scheduled_end_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), scheduled_start_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), worked_minutes: faker.number.int()})), open_record: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getMyTodayResponseAttendanceRecordMock()},]), undefined]), scheduled: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({break_minutes: faker.number.int(), checkin_window_minutes: faker.number.int(), grace_minutes: faker.number.int(), half_day_threshold_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), overtime_multiplier: faker.number.float({fractionDigits: 2}), overtime_threshold_minutes: faker.number.int(), paid_break: faker.datatype.boolean(), scheduled_end_at: faker.date.past().toISOString().slice(0, 19) + 'Z', scheduled_start_at: faker.date.past().toISOString().slice(0, 19) + 'Z', work_shift_id: faker.string.uuid()})), ...overrideResponse})
 
 export const getListAdvancesResponseMock = (): SalaryAdvance[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_piastres: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), installments: faker.number.int(), monthly_installment_piastres: faker.number.int(), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), remaining_piastres: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
 
@@ -726,11 +773,11 @@ export const getPreviewPeriodResponseMock = (): ComputedPayslip[] => (Array.from
 
 export const getSetPeriodStatusResponseMock = (overrideResponse: Partial<Extract<PayrollPeriod, object>> = {}): PayrollPeriod => ({closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', employee_count: faker.number.int(), end_date: faker.date.past().toISOString().slice(0, 10), generated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), generated_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), paid_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), start_date: faker.date.past().toISOString().slice(0, 10), status: faker.string.alpha({length: {min: 10, max: 20}}), total_net_piastres: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
-export const getListRequestsResponseMock = (): StaffRequest[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
+export const getListRequestsResponseMock = (): StaffRequest[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({attendance_record_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
 
-export const getCreateRequestAdminResponseMock = (overrideResponse: Partial<Extract<StaffRequest, object>> = {}): StaffRequest => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+export const getCreateRequestAdminResponseMock = (overrideResponse: Partial<Extract<StaffRequest, object>> = {}): StaffRequest => ({attendance_record_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
 
-export const getDecideRequestResponseMock = (overrideResponse: Partial<Extract<StaffRequest, object>> = {}): StaffRequest => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+export const getDecideRequestResponseMock = (overrideResponse: Partial<Extract<StaffRequest, object>> = {}): StaffRequest => ({attendance_record_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', decided_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), decided_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), decision_note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), end_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_half_day: faker.datatype.boolean(), is_paid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), leave_type_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), leave_type_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), location: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), to_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid(), user_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
 
 export const getListAssignmentsResponseMock = (): ScheduleAssignment[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', day_of_week: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), effective_from: faker.date.past().toISOString().slice(0, 10), effective_to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), id: faker.string.uuid(), org_id: faker.string.uuid(), user_id: faker.string.uuid(), work_shift_id: faker.string.uuid(), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
 
@@ -739,6 +786,8 @@ export const getCreateAssignmentResponseMock = (overrideResponse: Partial<Extrac
 export const getGetScheduledDayResponseMock = (): ResolvedShift[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({break_minutes: faker.number.int(), checkin_window_minutes: faker.number.int(), grace_minutes: faker.number.int(), half_day_threshold_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), overtime_multiplier: faker.number.float({fractionDigits: 2}), overtime_threshold_minutes: faker.number.int(), paid_break: faker.datatype.boolean(), scheduled_end_at: faker.date.past().toISOString().slice(0, 19) + 'Z', scheduled_start_at: faker.date.past().toISOString().slice(0, 19) + 'Z', work_shift_id: faker.string.uuid()})))
 
 export const getPutOverrideResponseMock = (overrideResponse: Partial<Extract<ScheduleOverride, object>> = {}): ScheduleOverride => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), on_date: faker.date.past().toISOString().slice(0, 10), org_id: faker.string.uuid(), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), user_id: faker.string.uuid(), work_shift_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), work_shift_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getTeamPresenceResponseMock = (overrideResponse: Partial<Extract<TeamPresence, object>> = {}): TeamPresence => ({absent: faker.number.int(), business_date: faker.date.past().toISOString().slice(0, 10), late: faker.number.int(), on_leave: faker.number.int(), planned_minutes: faker.number.int(), present: faker.number.int(), rows: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), check_in_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), check_out_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), job_title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), late_minutes: faker.number.int(), scheduled_minutes: faker.number.int(), state: faker.string.alpha({length: {min: 10, max: 20}}), user_id: faker.string.uuid(), user_name: faker.string.alpha({length: {min: 10, max: 20}}), worked_minutes: faker.number.int()})), worked_minutes: faker.number.int(), ...overrideResponse})
 
 export const getListWorkShiftsResponseMock = (): WorkShift[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), break_minutes: faker.number.int(), checkin_window_minutes: faker.number.int(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', crosses_midnight: faker.datatype.boolean(), end_time: faker.string.alpha({length: {min: 10, max: 20}}), grace_minutes: faker.number.int(), half_day_threshold_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), overtime_multiplier: faker.number.float({fractionDigits: 2}), overtime_threshold_minutes: faker.number.int(), paid_break: faker.datatype.boolean(), start_time: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
 
@@ -855,6 +904,60 @@ export const getChatMockHandler = (overrideResponse?: AiChatResponse | ((info: P
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getChatResponseMock(),
       { status: 200
+      })
+  }, options)
+}
+
+export const getChatStreamMockHandler = (overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<unknown> | unknown), options?: RequestHandlerOptions) => {
+  return http.post('*/ai/chat/stream', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListConversationsMockHandler = (overrideResponse?: ConversationList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ConversationList> | ConversationList), options?: RequestHandlerOptions) => {
+  return http.get('*/ai/conversations', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListConversationsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getGetConversationMockHandler = (overrideResponse?: ConversationDetail | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ConversationDetail> | ConversationDetail), options?: RequestHandlerOptions) => {
+  return http.get('*/ai/conversations/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetConversationResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDeleteConversationMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/ai/conversations/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getRenameConversationMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.patch('*/ai/conversations/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
       })
   }, options)
 }
@@ -1687,6 +1790,16 @@ export const getCreateFloorTableMockHandler = (overrideResponse?: FloorTable | (
   }, options)
 }
 
+export const getSwapTablesMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.post('*/floor/tables/swap', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 200
+      })
+  }, options)
+}
+
 export const getDeleteFloorTableMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
   return http.delete('*/floor/tables/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
   if (typeof overrideResponse === 'function') {await overrideResponse(info); }
@@ -1709,6 +1822,16 @@ export const getUpdateFloorTableMockHandler = (overrideResponse?: FloorTable | (
   }, options)
 }
 
+export const getUpdateTableStateMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.patch('*/floor/tables/:id/state', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 200
+      })
+  }, options)
+}
+
 export const getSetTableStatusMockHandler = (overrideResponse?: FloorTable | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<FloorTable> | FloorTable), options?: RequestHandlerOptions) => {
   return http.patch('*/floor/tables/:id/status', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
 
@@ -1716,6 +1839,150 @@ export const getSetTableStatusMockHandler = (overrideResponse?: FloorTable | ((i
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getSetTableStatusResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListFloorTransfersMockHandler = (overrideResponse?: TransfersSyncResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TransfersSyncResponse> | TransfersSyncResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/floor/transfers', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListFloorTransfersResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateFloorTransferMockHandler = (overrideResponse?: TransferView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<TransferView> | TransferView), options?: RequestHandlerOptions) => {
+  return http.post('*/floor/transfers', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateFloorTransferResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCancelTransferMockHandler = (overrideResponse?: TransferView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<TransferView> | TransferView), options?: RequestHandlerOptions) => {
+  return http.post('*/floor/transfers/:id/cancel', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCancelTransferResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getFulfillTransferMockHandler = (overrideResponse?: TransferView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<TransferView> | TransferView), options?: RequestHandlerOptions) => {
+  return http.post('*/floor/transfers/:id/fulfill', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getFulfillTransferResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListHeldOrdersMockHandler = (overrideResponse?: HeldOrdersSyncResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<HeldOrdersSyncResponse> | HeldOrdersSyncResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/held-orders', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListHeldOrdersResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getParkHeldOrderMockHandler = (overrideResponse?: HeldOrderParkResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderParkResponse> | HeldOrderParkResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getParkHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getUpdateHeldOrderMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.patch('*/held-orders/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getUpdateHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getClaimHeldOrderMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders/:id/claim', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getClaimHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCompleteHeldOrderMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders/:id/complete', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCompleteHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDiscardHeldOrderMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders/:id/discard', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getDiscardHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getReleaseHeldOrderMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders/:id/release', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getReleaseHeldOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getAssignHeldOrderTableMockHandler = (overrideResponse?: HeldOrderView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HeldOrderView> | HeldOrderView), options?: RequestHandlerOptions) => {
+  return http.post('*/held-orders/:id/table', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAssignHeldOrderTableResponseMock(),
       { status: 200
       })
   }, options)
@@ -2539,6 +2806,30 @@ export const getDeletePriceOverrideMockHandler = (overrideResponse?: void | ((in
   }, options)
 }
 
+export const getRunMetricsQueryMockHandler = (overrideResponse?: MetricsQueryResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<MetricsQueryResponse> | MetricsQueryResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/metrics/query', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getRunMetricsQueryResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getSchemaMockHandler = (overrideResponse?: RegistryInfo | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<RegistryInfo> | RegistryInfo), options?: RequestHandlerOptions) => {
+  return http.get('*/metrics/schema', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSchemaResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getListGroupsMockHandler = (overrideResponse?: GroupOut[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<GroupOut[]> | GroupOut[]), options?: RequestHandlerOptions) => {
   return http.get('*/modifier-groups', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -3155,42 +3446,6 @@ export const getOtpVerifyMockHandler = (overrideResponse?: OtpVerifyResponse | (
   }, options)
 }
 
-export const getCreatePublicBookingMockHandler = (overrideResponse?: PublicBooking | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PublicBooking> | PublicBooking), options?: RequestHandlerOptions) => {
-  return http.post('*/public/reservations', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getCreatePublicBookingResponseMock(),
-      { status: 201
-      })
-  }, options)
-}
-
-export const getListReservationPublicBranchesMockHandler = (overrideResponse?: PublicBranch[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PublicBranch[]> | PublicBranch[]), options?: RequestHandlerOptions) => {
-  return http.get('*/public/reservations/branches', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getListReservationPublicBranchesResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getTrackPublicBookingMockHandler = (overrideResponse?: PublicBooking | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PublicBooking> | PublicBooking), options?: RequestHandlerOptions) => {
-  return http.get('*/public/reservations/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getTrackPublicBookingResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
 export const getListPurchaseOrdersMockHandler = (overrideResponse?: PurchaseOrder[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PurchaseOrder[]> | PurchaseOrder[]), options?: RequestHandlerOptions) => {
   return http.get('*/purchasing/branches/:branchId/orders', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -3735,66 +3990,6 @@ export const getShiftSummaryMockHandler = (overrideResponse?: ShiftSummary | ((i
   }, options)
 }
 
-export const getListBookingsMockHandler = (overrideResponse?: BookingView[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<BookingView[]> | BookingView[]), options?: RequestHandlerOptions) => {
-  return http.get('*/reservations', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getListBookingsResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getCreateBookingMockHandler = (overrideResponse?: BookingView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<BookingView> | BookingView), options?: RequestHandlerOptions) => {
-  return http.post('*/reservations', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getCreateBookingResponseMock(),
-      { status: 201
-      })
-  }, options)
-}
-
-export const getUpdateBookingMockHandler = (overrideResponse?: BookingView | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<BookingView> | BookingView), options?: RequestHandlerOptions) => {
-  return http.patch('*/reservations/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getUpdateBookingResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getAssignTablesMockHandler = (overrideResponse?: BookingView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<BookingView> | BookingView), options?: RequestHandlerOptions) => {
-  return http.post('*/reservations/:id/assign', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getAssignTablesResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
-export const getNotifyBookingMockHandler = (overrideResponse?: BookingView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<BookingView> | BookingView), options?: RequestHandlerOptions) => {
-  return http.post('*/reservations/:id/notify', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getNotifyBookingResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
 export const getListShiftsMockHandler = (overrideResponse?: PaginatedShifts | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedShifts> | PaginatedShifts), options?: RequestHandlerOptions) => {
   return http.get('*/shifts/branches/:branchId', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -4299,6 +4494,18 @@ export const getCreateMyRequestMockHandler = (overrideResponse?: StaffRequest | 
   }, options)
 }
 
+export const getMyScheduleMockHandler = (overrideResponse?: ScheduledDay[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ScheduledDay[]> | ScheduledDay[]), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/me/schedule', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMyScheduleResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getMyTodayMockHandler = (overrideResponse?: MyAttendanceToday | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MyAttendanceToday> | MyAttendanceToday), options?: RequestHandlerOptions) => {
   return http.get('*/staff/me/today', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -4473,6 +4680,16 @@ export const getDeletePeriodMockHandler = (overrideResponse?: void | ((info: Par
   }, options)
 }
 
+export const getExportPeriodCsvMockHandler = (overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<unknown> | unknown), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/payroll/periods/:id/export.csv', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 200
+      })
+  }, options)
+}
+
 export const getGeneratePeriodMockHandler = (overrideResponse?: Payslip[] | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<Payslip[]> | Payslip[]), options?: RequestHandlerOptions) => {
   return http.post('*/staff/payroll/periods/:id/generate', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
 
@@ -4621,6 +4838,18 @@ export const getDeleteAssignmentMockHandler = (overrideResponse?: void | ((info:
 
     return new HttpResponse(null,
       { status: 204
+      })
+  }, options)
+}
+
+export const getTeamPresenceMockHandler = (overrideResponse?: TeamPresence | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TeamPresence> | TeamPresence), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/team/presence', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getTeamPresenceResponseMock(),
+      { status: 200
       })
   }, options)
 }
@@ -4969,6 +5198,11 @@ export const getMadarAPIMock = () => [
   getDeleteAddonItemMockHandler(),
   getUpdateAddonItemMockHandler(),
   getChatMockHandler(),
+  getChatStreamMockHandler(),
+  getListConversationsMockHandler(),
+  getGetConversationMockHandler(),
+  getDeleteConversationMockHandler(),
+  getRenameConversationMockHandler(),
   getLoginMockHandler(),
   getMeMockHandler(),
   getGetMyPermissionsMockHandler(),
@@ -5040,9 +5274,23 @@ export const getMadarAPIMock = () => [
   getUpdateSectionMockHandler(),
   getListFloorTablesMockHandler(),
   getCreateFloorTableMockHandler(),
+  getSwapTablesMockHandler(),
   getDeleteFloorTableMockHandler(),
   getUpdateFloorTableMockHandler(),
+  getUpdateTableStateMockHandler(),
   getSetTableStatusMockHandler(),
+  getListFloorTransfersMockHandler(),
+  getCreateFloorTransferMockHandler(),
+  getCancelTransferMockHandler(),
+  getFulfillTransferMockHandler(),
+  getListHeldOrdersMockHandler(),
+  getParkHeldOrderMockHandler(),
+  getUpdateHeldOrderMockHandler(),
+  getClaimHeldOrderMockHandler(),
+  getCompleteHeldOrderMockHandler(),
+  getDiscardHeldOrderMockHandler(),
+  getReleaseHeldOrderMockHandler(),
+  getAssignHeldOrderTableMockHandler(),
   getMarginWatchMockHandler(),
   getMenuMarginLedgerMockHandler(),
   getRepricingMockHandler(),
@@ -5114,6 +5362,8 @@ export const getMadarAPIMock = () => [
   getGetStudioMockHandler(),
   getPutPriceOverrideMockHandler(),
   getDeletePriceOverrideMockHandler(),
+  getRunMetricsQueryMockHandler(),
+  getSchemaMockHandler(),
   getListGroupsMockHandler(),
   getCreateGroupMockHandler(),
   getDeleteGroupMockHandler(),
@@ -5166,9 +5416,6 @@ export const getMadarAPIMock = () => [
   getListPublicOrgsMockHandler(),
   getOtpRequestMockHandler(),
   getOtpVerifyMockHandler(),
-  getCreatePublicBookingMockHandler(),
-  getListReservationPublicBranchesMockHandler(),
-  getTrackPublicBookingMockHandler(),
   getListPurchaseOrdersMockHandler(),
   getCreatePurchaseOrderMockHandler(),
   getReorderSuggestionsMockHandler(),
@@ -5215,11 +5462,6 @@ export const getMadarAPIMock = () => [
   getOrgWasteReportMockHandler(),
   getShiftDeductionsMockHandler(),
   getShiftSummaryMockHandler(),
-  getListBookingsMockHandler(),
-  getCreateBookingMockHandler(),
-  getUpdateBookingMockHandler(),
-  getAssignTablesMockHandler(),
-  getNotifyBookingMockHandler(),
   getListShiftsMockHandler(),
   getGetCurrentShiftMockHandler(),
   getOpenShiftMockHandler(),
@@ -5263,6 +5505,7 @@ export const getMadarAPIMock = () => [
   getMyPayslipsMockHandler(),
   getMyRequestsMockHandler(),
   getCreateMyRequestMockHandler(),
+  getMyScheduleMockHandler(),
   getMyTodayMockHandler(),
   getListAdvancesMockHandler(),
   getCreateAdvanceAdminMockHandler(),
@@ -5278,6 +5521,7 @@ export const getMadarAPIMock = () => [
   getListPeriodsMockHandler(),
   getCreatePeriodMockHandler(),
   getDeletePeriodMockHandler(),
+  getExportPeriodCsvMockHandler(),
   getGeneratePeriodMockHandler(),
   getListPayslipsMockHandler(),
   getPreviewPeriodMockHandler(),
@@ -5291,6 +5535,7 @@ export const getMadarAPIMock = () => [
   getPutOverrideMockHandler(),
   getDeleteOverrideMockHandler(),
   getDeleteAssignmentMockHandler(),
+  getTeamPresenceMockHandler(),
   getListWorkShiftsMockHandler(),
   getCreateWorkShiftMockHandler(),
   getDeleteWorkShiftMockHandler(),

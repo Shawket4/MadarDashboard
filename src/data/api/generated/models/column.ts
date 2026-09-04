@@ -3,10 +3,13 @@
 import type { ColumnKind } from './columnKind';
 
 /**
- * One output column: its SQL alias (also the JSON key) and how to render it.
+ * One output column: the SQL alias (also the JSON key on every row) plus how
+ * to render it.
  */
 export interface Column {
+  /** SQL alias / JSON key. */
   key: string;
   kind: ColumnKind;
+  /** Human label for a header or legend. */
   label: string;
 }

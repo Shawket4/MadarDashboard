@@ -2,8 +2,8 @@
 // @ts-nocheck
 
 /**
- * The renderable kind of an output column (money vs count vs label vs a time
- * axis) so the frontend can format it and pick a chart.
+ * The renderable kind of an output column, so a client can format it and pick
+ * a sensible chart without knowing anything about the underlying SQL.
  */
 export type ColumnKind = typeof ColumnKind[keyof typeof ColumnKind];
 
@@ -14,4 +14,5 @@ export const ColumnKind = {
   label: 'label',
   date: 'date',
   number: 'number',
+  minutes: 'minutes',
 } as const;

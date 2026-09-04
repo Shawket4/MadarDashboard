@@ -1,38 +1,16 @@
 /* eslint-disable */
 // @ts-nocheck
-import type { AiChatResponseRowsItem } from './aiChatResponseRowsItem';
-import type { ChartHint } from './chartHint';
-import type { Column } from './column';
-import type { ScopeInfo } from './scopeInfo';
+import type { AiChatKind } from './aiChatKind';
 
-export interface AiChatResponse {
-  /** Suggested visualization for the result. */
-  chart: ChartHint;
-  /** Column metadata for rendering the table/chart. */
-  columns: Column[];
+export type AiChatResponse = AiChatKind & ({
   /**
-     * When set, the client renders one section (chart + table) per distinct
-     * value of this column key — e.g. one table per branch ("faceting").
+     * The conversation this turn belongs to. Present whenever the turn was
+     * stored — send it back on the next message to continue.
      * @nullable
      */
-  facet_by?: string | null;
-  /** Which model answered (e.g. "gemini-2.5-flash"). */
+  conversation_id?: string | null;
+  /** Which model answered. */
   provider: string;
-  /** The report the assistant chose. */
-  report_id: string;
-  /** @minimum 0 */
-  row_count: number;
-  /** Result rows, each an object keyed by column key. */
-  rows: AiChatResponseRowsItem[];
-  /** Which branches this answer covers. */
-  scope: ScopeInfo;
-  /**
-     * Optional one-sentence summary (only when `include_summary` was set and
-     * the model produced one), in the requested locale.
-     * @nullable
-     */
-  summary?: string | null;
-  title: string;
-  /** True when the result was capped. */
-  truncated: boolean;
-}
+  /** The timezone every date in the answer is expressed in. */
+  timezone: string;
+});

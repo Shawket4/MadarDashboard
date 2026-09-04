@@ -2,19 +2,21 @@
 // @ts-nocheck
 
 /**
- * Which branches an answer actually covers — surfaced on every response so the
- * scope is never ambiguous ("all branches" vs a specific one).
+ * Which branches an answer actually covers. Returned on every response so the
+ * scope of a number is never ambiguous — "all branches" versus one of them is
+ * the difference between a figure being right and being off by a factor of
+ * however many branches the merchant has.
  */
 export interface ScopeInfo {
-  /** True when the answer spans EVERY branch the caller can access. */
+  /** True when the answer spans every branch the caller can access. */
   all_branches: boolean;
-  /** The branch names the answer covers. */
   branches: string[];
   /** Human-readable label, e.g. "All branches (3)" or "Sidi Henish". */
   label: string;
   /**
-     * Set when the user named a branch that couldn't be matched; the answer
-     * then falls back to all accessible branches and this flags the mismatch.
+     * Set when a branch was named but could not be matched. The answer then
+     * falls back to the full accessible set, and this flags the mismatch rather
+     * than silently answering a different question.
      * @nullable
      */
   unmatched_branch?: string | null;

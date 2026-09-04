@@ -54,6 +54,17 @@ import {
   mockPutMarginTarget,
   permissionMatrix,
   shiftsPage,
+  addFloorSection,
+  addFloorTable,
+  deleteFloorSection,
+  deleteFloorTable,
+  floorSections,
+  floorTables,
+  patchFloorSection,
+  patchFloorTable,
+  reservationSettings,
+  putReservationSettings,
+  saveFloorLayout,
 } from "./data";
 
 const PUBLIC_BRANCHES = [
@@ -490,4 +501,67 @@ export const handlers = [
 
   // ── Orders ────────────────────────────────────────────────────────────────
   http.get("*/orders", () => HttpResponse.json(MOCK_ORDERS_PAGE)),
+
+  // ── Floor plan ────────────────────────────────────────────────────────────
+  // A real, mutable room. The floor editor is direct manipulation, so it can
+  // only be exercised (or reviewed) against tables that actually move, resize,
+  // rotate and save. Seeded with an arranged room rather than a grid, including
+  // tables left `dirty` by a checkout — the state the POS's bussing flow hands
+  // over, and the one the dashboard must not show as available.
+  http.get("*/floor/sections", ({ request }) =>
+    HttpResponse.json(floorSections(branchOf(request))),
+  ),
+  http.post("*/floor/sections", async ({ request }) => {
+    const body = (await request.json()) as { branch_id: string; name: string };
+    return HttpResponse.json(addFloorSection(body.branch_id, body.name), { status: 201 });
+  }),
+  http.patch("*/floor/sections/:id", async ({ params, request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json(patchFloorSection(params.id as string, body));
+  }),
+  http.delete("*/floor/sections/:id", ({ params }) => {
+    deleteFloorSection(params.id as string);
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.get("*/floor/tables", ({ request }) =>
+    HttpResponse.json(floorTables(branchOf(request))),
+  ),
+  http.post("*/floor/tables", async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json(addFloorTable(body), { status: 201 });
+  }),
+  http.patch("*/floor/tables/:id/status", async ({ params, request }) => {
+    const body = (await request.json()) as { status: string };
+    return HttpResponse.json(patchFloorTable(params.id as string, { status: body.status }));
+  }),
+  http.patch("*/floor/tables/:id", async ({ params, request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json(patchFloorTable(params.id as string, body));
+  }),
+  http.delete("*/floor/tables/:id", ({ params }) => {
+    deleteFloorTable(params.id as string);
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.put("*/floor/layout", async ({ request }) => {
+    const body = (await request.json()) as {
+      branch_id: string;
+      tables: Record<string, unknown>[];
+    };
+    return HttpResponse.json(saveFloorLayout(body.branch_id, body.tables));
+  }),
+  http.get("*/floor/reservation-settings", ({ request }) =>
+    HttpResponse.json(reservationSettings(branchOf(request))),
+  ),
+  http.put("*/floor/reservation-settings", async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json(putReservationSettings(branchOf(request), body));
+  }),
+  // The live board joins occupancy onto the layout from these two.
+  http.get("*/held-orders", () => HttpResponse.json({ server_time: new Date().toISOString(), held_orders: [] })),
+  http.get("*/open-tickets", () => HttpResponse.json([])),
 ];
+
+/** The branch a floor request is scoped to (query param on every floor read). */
+function branchOf(request: Request): string {
+  return new URL(request.url).searchParams.get("branch_id") ?? "br_zamalek";
+}
