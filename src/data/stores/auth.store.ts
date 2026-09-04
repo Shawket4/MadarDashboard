@@ -1,3 +1,4 @@
+import { safeStorage } from "@/lib/safe-storage";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { apiContext } from "@/data/api/client";
@@ -47,7 +48,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: LS_KEYS.auth,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => safeStorage),
       partialize: (s) => ({ user: s.user, token: s.token }),
       onRehydrateStorage: () => (state) => {
         if (state?.token) apiContext.setToken(state.token);

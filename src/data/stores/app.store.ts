@@ -1,3 +1,4 @@
+import { safeStorage } from "@/lib/safe-storage";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { apiContext } from "@/data/api/client";
@@ -70,7 +71,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: LS_KEYS.app,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => safeStorage),
       partialize: (s) => ({
         selectedOrgId: s.selectedOrgId,
         selectedOrgLogo: s.selectedOrgLogo,
@@ -89,7 +90,7 @@ export const useAppStore = create<AppState>()(
         // no dashboard session — the isolated order / landing apps, which would pull
         // this store in transitively (via lib/format) and lose the visitor's
         // Arabic choice on every reload.
-        if (state?.language && localStorage.getItem(LS_KEYS.app)) {
+        if (state?.language && safeStorage.getItem(LS_KEYS.app)) {
           void i18n.changeLanguage(state.language);
         }
       },

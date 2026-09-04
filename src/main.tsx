@@ -42,7 +42,48 @@ const router = createRouter({
 });
 
 // Error/performance monitoring + masked session replay. No-op without a DSN.
-initSentry(router);
+//
+// GUARDED, and it must stay guarded. This runs BEFORE `render()`, so anything
+// it throws takes the whole app down to a blank page — the browser has no
+// reason to continue executing the entry module. Observability failing is an
+// inconvenience; a dashboard that will not open is an outage, and the app wins
+// that trade every time. (The Flutter app has had this guarantee since it was
+// written; the web app did not.)
+try {
+  initSentry(router);
+} catch (err) {
+  console.error("Sentry failed to initialise; continuing without it.", err);
+}
+
+/**
+ * Last-resort visible failure.
+ *
+ * A blank page is the worst possible failure mode: it is indistinguishable from
+ * a network problem, an ad blocker, or a broken build, and it leaves the user
+ * with nothing to report. If the app cannot mount — an unsupported browser API,
+ * a storage access a stricter browser refuses, a bad chunk — say so on the page
+ * and name the error, so what comes back is a cause rather than "it does not
+ * load".
+ */
+function renderFatal(err: unknown) {
+  const root = document.getElementById("root");
+  if (!root) return;
+  const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+  root.innerHTML = `
+    <div style="font:14px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+                max-width:34rem;margin:16vh auto;padding:0 1.5rem;color:#14181E">
+      <h1 style="font-size:1.05rem;margin:0 0 .5rem">Madar could not start in this browser</h1>
+      <p style="margin:0 0 1rem;color:#76828B">
+        Please try reloading. If it keeps happening, send us the message below.
+      </p>
+      <pre style="background:#EFF3F4;padding:.75rem;border-radius:8px;white-space:pre-wrap;
+                  font-size:12px;color:#14181E;overflow-x:auto">${
+                    detail.replace(/[<>&]/g, (c) =>
+                      ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] ?? c,
+                    )
+                  }</pre>
+    </div>`;
+}
 
 function render() {
   createRoot(document.getElementById("root")!, {
@@ -74,10 +115,34 @@ function render() {
 //  • otherwise   → render normally.
 const demoFlag = (import.meta.env as Record<string, string | undefined>).VITE_DEMO;
 const mockFlag = (import.meta.env as Record<string, string | undefined>).VITE_MOCK;
-if (demoFlag === "1" || demoFlag === "true") {
-  void import("@/data/api/demo/enable").then(({ enableDemo }) => enableDemo().then(render).catch(render));
-} else if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
-  void import("@/data/api/mock/enable").then(({ enableMocks }) => enableMocks().then(render));
-} else {
-  render();
+/** Mount, and show WHY rather than nothing if mounting is impossible. */
+function safeRender() {
+  try {
+    render();
+  } catch (err) {
+    console.error("Madar failed to mount", err);
+    renderFatal(err);
+  }
 }
+
+if (demoFlag === "1" || demoFlag === "true") {
+  void import("@/data/api/demo/enable")
+    .then(({ enableDemo }) => enableDemo().then(safeRender).catch(safeRender))
+    .catch(renderFatal);
+} else if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
+  void import("@/data/api/mock/enable")
+    .then(({ enableMocks }) => enableMocks().then(safeRender))
+    .catch(renderFatal);
+} else {
+  safeRender();
+}
+
+// A module-level failure anywhere upstream (a store, i18n, a browser API a
+// stricter engine refuses) rejects before any of the above runs, and the page
+// stays blank with the reason only in the console. Surface it.
+window.addEventListener("error", (e) => {
+  if (!document.getElementById("root")?.hasChildNodes()) renderFatal(e.error ?? e.message);
+});
+window.addEventListener("unhandledrejection", (e) => {
+  if (!document.getElementById("root")?.hasChildNodes()) renderFatal(e.reason);
+});
