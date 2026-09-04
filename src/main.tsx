@@ -85,7 +85,11 @@ function renderFatal(err: unknown) {
     </div>`;
 }
 
+/** Set once React has actually mounted. See the listeners at the bottom. */
+let mounted = false;
+
 function render() {
+  mounted = true;
   createRoot(document.getElementById("root")!, {
     // React 19 root-level error hooks — forward what React catches to Sentry.
     onUncaughtError: Sentry.reactErrorHandler(),
@@ -137,12 +141,20 @@ if (demoFlag === "1" || demoFlag === "true") {
   safeRender();
 }
 
-// A module-level failure anywhere upstream (a store, i18n, a browser API a
-// stricter engine refuses) rejects before any of the above runs, and the page
-// stays blank with the reason only in the console. Surface it.
+// A module-level failure upstream of `render()` — a store, i18n, a browser API
+// a stricter engine refuses — throws before anything above runs, leaving a
+// blank page with the reason only in the console. Surface it.
+//
+// Guarded on `mounted`, NOT on whether #root has children. Those are different
+// questions, and conflating them was a bug: React sets up a root before it
+// paints into it, so an ordinary async rejection arriving in that window looked
+// like "the app never started" and replaced a perfectly healthy app with an
+// error panel. A rejection observed on the live site — a view transition
+// skipped because the tab was in the background — would have done exactly that.
+//
+// Rejections are excluded entirely. A rejected promise is a normal event in a
+// running app; it is not evidence that boot failed, and treating it as fatal
+// trades a working page for a scary one.
 window.addEventListener("error", (e) => {
-  if (!document.getElementById("root")?.hasChildNodes()) renderFatal(e.error ?? e.message);
-});
-window.addEventListener("unhandledrejection", (e) => {
-  if (!document.getElementById("root")?.hasChildNodes()) renderFatal(e.reason);
+  if (!mounted) renderFatal(e.error ?? e.message);
 });
