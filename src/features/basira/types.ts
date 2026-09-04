@@ -106,6 +106,31 @@ export interface ConversationSummary {
   compacted: boolean;
 }
 
+/** The renderable half of a stored query. Mirrors `handlers::snapshot_of`. */
+export interface StoredSnapshot {
+  columns: Column[];
+  rows: Record<string, string | number | null>[];
+  row_count: number;
+  truncated: boolean;
+  grain: Grain;
+  viz: Viz;
+  facet_by?: string | null;
+  scope: ScopeInfo;
+  period_from?: string | null;
+  period_to?: string | null;
+}
+
+/** One query a stored turn ran, with what it returned at the time. */
+export interface StoredQuery {
+  title?: string | null;
+  preset_id?: string | null;
+  spec: QuerySpec;
+  /** ISO-8601. Absent on turns stored before snapshots existed. */
+  captured_at?: string | null;
+  /** Absent on turns stored before snapshots existed. */
+  snapshot?: StoredSnapshot | null;
+}
+
 /** One stored exchange. Mirrors `ai::store::StoredTurn`. */
 export interface StoredTurn {
   id: string;
@@ -113,8 +138,15 @@ export interface StoredTurn {
   question: string;
   answer?: string;
   kind: "answer" | "clarify" | "incomplete";
-  /** `[{title, preset_id, spec}]` — the queries, never the rows. */
-  specs: { title?: string | null; preset_id?: string | null; spec: QuerySpec }[];
+  /**
+   * `[{title, preset_id, spec, captured_at, snapshot}]`.
+   *
+   * The spec re-runs for current figures; the snapshot is what was actually on
+   * screen, so reopening a conversation shows its charts rather than prose
+   * about charts that are gone. `captured_at` is what lets the UI label a
+   * stored figure as historical instead of passing it off as current.
+   */
+  specs: StoredQuery[];
   provider?: string;
   created_at: string;
 }
@@ -147,6 +179,12 @@ export interface Exchange {
   error?: string;
   /** True until a terminal frame arrives. */
   pending: boolean;
-  /** Restored from history rather than streamed — no results to render. */
+  /**
+   * Restored from history rather than streamed. Its results come from the
+   * stored snapshot, so they are real figures — just not necessarily current
+   * ones, which is why `capturedAt` travels with them.
+   */
   fromHistory?: boolean;
+  /** When the stored figures were taken. Only set on a restored exchange. */
+  capturedAt?: string;
 }

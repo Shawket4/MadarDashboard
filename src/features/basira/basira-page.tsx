@@ -3,57 +3,74 @@
  *
  * Named for بصيرة, "insight": what the merchant gets, rather than what the
  * machinery is. "AI" describes an implementation detail and overclaims; this
- * thing reads a fixed set of your own business measures and says what it found.
+ * reads a fixed set of your own business measures and says what it found.
  *
- * The layout is a working tool, not a chat toy: conversations on the left,
- * transcript in the middle, and every answer carrying the chart AND a
- * provenance line saying exactly which query produced it. That last part is the
- * difference between an assistant you can act on and one you have to verify by
- * hand — the number is only useful if you can see what it counted.
+ * ── Layout ─────────────────────────────────────────────────────────────────
+ *
+ * A full-height workspace, not a page that scrolls. The window is the frame;
+ * the transcript scrolls inside it and the composer stays put, so the input is
+ * always where you left it and the page never scrolls out from under a chart
+ * mid-answer.
+ *
+ * Two arrangements, one component tree:
+ *   • xl and up — conversation rail pinned beside the transcript.
+ *   • below xl — the same rail in a slide-over, opened from the toolbar.
+ *
+ * The rail used to be `hidden lg:flex`, which meant a phone or tablet user
+ * could start a conversation but never reopen one. That is not a layout
+ * compromise; on those devices the feature simply was not there.
+ *
+ * ── Presentation ───────────────────────────────────────────────────────────
+ *
+ * Answers are laid out as findings, not as chat: the question is a heading, the
+ * finding is prose beneath it, and the evidence sits under that with a
+ * provenance line naming the exact query. The number is only worth acting on if
+ * you can see what it counted, so the query is one click away from every chart.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
 import {
+  AlertCircle,
+  ArrowUp,
   ChevronDown,
+  Clock3,
   Loader2,
+  MessageSquare,
   MessageSquarePlus,
-  MoreHorizontal,
-  Pencil,
-  Send,
-  Sparkle,
-  Trash2,
+  RefreshCw,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { EmptyState } from "@/components/app/empty-state";
-import { Page, PageHeader } from "@/components/app/page";
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { cn } from "@/lib/utils";
+import { fmtDateTime } from "@/lib/format";
 import { getErrorMessage } from "@/data/api/errors";
 import { toast } from "sonner";
 
 import * as api from "./api";
 import { ResultView, ScopeBadge } from "./result-block";
-import type {
-  ChatFrame,
-  ConversationSummary,
-  Exchange,
-  ResultBlock,
-} from "./types";
+import { ConversationList } from "./conversation-list";
+import { blocksFromStoredTurn } from "./history";
+import type { ChatFrame, ConversationSummary, Exchange, ResultBlock } from "./types";
 
-/** Questions offered on an empty conversation. Deliberately specific — a vague
- *  prompt teaches the merchant nothing about what the thing can actually do. */
+/**
+ * Questions offered on an empty conversation. Deliberately specific: a vague
+ * prompt teaches the merchant nothing about what this can actually do, and the
+ * first question someone asks sets their expectation of the whole feature.
+ */
 const STARTERS = [
   { key: "topProducts", fallback: "What sold best last month?" },
   { key: "branchCompare", fallback: "Compare my branches this month" },
@@ -76,6 +93,8 @@ export function BasiraPage() {
   const [busy, setBusy] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
   const [loadingThread, setLoadingThread] = useState(false);
+  const [railOpen, setRailOpen] = useState(false);
+  const [renaming, setRenaming] = useState<ConversationSummary | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -94,49 +113,48 @@ export function BasiraPage() {
     void refreshList();
   }, [refreshList]);
 
-  // Abort an in-flight turn when the page unmounts, so a half-read stream does
-  // not keep a connection open behind a navigation.
+  // Abort an in-flight turn on unmount, so a half-read stream does not keep a
+  // connection open behind a navigation.
   useEffect(() => () => abortRef.current?.abort(), []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [exchanges]);
 
-  /** Open a stored conversation. */
-  const openConversation = useCallback(
-    async (id: string) => {
-      abortRef.current?.abort();
-      setActiveId(id);
-      setLoadingThread(true);
-      try {
-        const detail = await api.getConversation(id);
-        setExchanges(
-          detail.turns.map((turn) => ({
-            id: turn.id,
-            question: turn.question,
-            answer: turn.answer,
-            kind: turn.kind,
-            // Stored turns keep the QUERY, never the rows — re-running the spec
-            // is what would give current figures, and showing last week's
-            // numbers as if they were today's would be worse than showing none.
-            results: [],
-            pending: false,
-            fromHistory: true,
-          })),
-        );
-      } catch (err) {
-        toast.error(getErrorMessage(err));
-      } finally {
-        setLoadingThread(false);
-      }
-    },
-    [],
-  );
+  const openConversation = useCallback(async (id: string) => {
+    abortRef.current?.abort();
+    setActiveId(id);
+    setRailOpen(false);
+    setLoadingThread(true);
+    try {
+      const detail = await api.getConversation(id);
+      setExchanges(
+        detail.turns.map((turn) => ({
+          id: turn.id,
+          question: turn.question,
+          answer: turn.answer,
+          kind: turn.kind,
+          // Charts come back with the turn. They are the figures that were on
+          // screen when the question was asked, so they are dated rather than
+          // presented as current — see `blocksFromStoredTurn`.
+          results: blocksFromStoredTurn(turn),
+          capturedAt: turn.specs.find((s) => s.captured_at)?.captured_at ?? undefined,
+          pending: false,
+          fromHistory: true,
+        })),
+      );
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setLoadingThread(false);
+    }
+  }, []);
 
   const startNew = useCallback(() => {
     abortRef.current?.abort();
     setActiveId(undefined);
     setExchanges([]);
+    setRailOpen(false);
   }, []);
 
   const ask = useCallback(
@@ -147,10 +165,7 @@ export function BasiraPage() {
       const id = nextId();
       setQuestion("");
       setBusy(true);
-      setExchanges((prev) => [
-        ...prev,
-        { id, question: trimmed, results: [], pending: true },
-      ]);
+      setExchanges((prev) => [...prev, { id, question: trimmed, results: [], pending: true }]);
 
       const patch = (fn: (x: Exchange) => Exchange) =>
         setExchanges((prev) => prev.map((x) => (x.id === id ? fn(x) : x)));
@@ -179,7 +194,11 @@ export function BasiraPage() {
               case "result":
                 // Charts land as they finish, so something real is on screen
                 // while the model is still writing the sentence about it.
-                patch((x) => ({ ...x, results: [...x.results, frame.block], querying: undefined }));
+                patch((x) => ({
+                  ...x,
+                  results: [...x.results, frame.block],
+                  querying: undefined,
+                }));
                 break;
               case "answer": {
                 const r = frame.response;
@@ -222,18 +241,19 @@ export function BasiraPage() {
     [activeId, busy, i18n.language, refreshList],
   );
 
-  const rename = useCallback(
-    async (c: ConversationSummary) => {
-      const title = window.prompt(t("basira.renamePrompt", "Rename conversation"), c.title);
-      if (!title?.trim()) return;
+  const commitRename = useCallback(
+    async (title: string) => {
+      const target = renaming;
+      if (!target || !title.trim()) return;
+      setRenaming(null);
       try {
-        await api.renameConversation(c.id, title.trim());
+        await api.renameConversation(target.id, title.trim());
         void refreshList();
       } catch (err) {
         toast.error(getErrorMessage(err));
       }
     },
-    [refreshList, t],
+    [refreshList, renaming],
   );
 
   const remove = useCallback(
@@ -260,107 +280,104 @@ export function BasiraPage() {
   );
 
   const isEmpty = exchanges.length === 0 && !loadingThread;
+  const activeTitle = conversations.find((c) => c.id === activeId)?.title;
+
+  const listProps = {
+    conversations,
+    activeId,
+    loading: loadingList,
+    onOpen: (id: string) => void openConversation(id),
+    onNew: startNew,
+    onRename: (c: ConversationSummary) => setRenaming(c),
+    onDelete: (c: ConversationSummary) => void remove(c),
+    isRtl,
+  };
 
   return (
-    <Page>
-      <PageHeader
-        title={t("basira.title", "Basira")}
-        description={t(
-          "basira.subtitle",
-          "Ask about your business in plain language. Every answer shows the figures behind it.",
-        )}
-      />
-      <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
-        {/* ── Conversations ───────────────────────────────────────────── */}
-        <aside className="hidden lg:flex lg:flex-col lg:gap-2">
-          <Button variant="outline" className="justify-start gap-2" onClick={startNew}>
-            <MessageSquarePlus className="size-4" />
-            {t("basira.newChat", "New conversation")}
-          </Button>
-          <ScrollArea className="h-[calc(100svh-15rem)] pe-1">
-            {loadingList ? (
-              <div className="space-y-1.5 pt-1">
-                {[0, 1, 2].map((i) => (
-                  <Skeleton key={i} className="h-9 w-full" />
-                ))}
-              </div>
-            ) : conversations.length === 0 ? (
-              <p className="px-2 pt-3 text-xs text-muted-foreground">
-                {t("basira.noChats", "Your conversations will appear here.")}
-              </p>
-            ) : (
-              <ul className="space-y-0.5 pt-1">
-                {conversations.map((c) => (
-                  <li key={c.id} className="group/item flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => void openConversation(c.id)}
-                      className={cn(
-                        "min-w-0 flex-1 truncate rounded-md px-2 py-1.5 text-start text-[13px] transition-colors",
-                        c.id === activeId
-                          ? "bg-muted font-medium text-foreground"
-                          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                      )}
-                      title={c.title}
-                    >
-                      {c.title}
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-7 shrink-0 opacity-0 transition-opacity group-hover/item:opacity-100 focus-visible:opacity-100"
-                          aria-label={t("common.more", "More")}
-                        >
-                          <MoreHorizontal className="size-3.5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align={isRtl ? "start" : "end"}>
-                        <DropdownMenuItem onClick={() => void rename(c)}>
-                          <Pencil className="size-3.5" />
-                          {t("common.rename", "Rename")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => void remove(c)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="size-3.5" />
-                          {t("common.delete", "Delete")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </ScrollArea>
+    /* Fills the space the app shell leaves, rather than claiming a viewport
+       height of its own -- there is a header and a footer above and below this
+       outlet, and `100dvh` here would push the composer off the bottom of the
+       screen by exactly their height.
+   
+       `min-h-0` is load-bearing on this and on every flex ancestor of a scroll
+       pane. A flex item defaults to `min-height: auto`, which refuses to shrink
+       below its content; the panes then grow to fit and the scrolling silently
+       moves to the document -- taking the composer with it, exactly when the
+       transcript is longest and the input matters most. */
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
+      <header className="flex shrink-0 items-center gap-2 border-b border-border/70 px-3 py-2.5 sm:px-5">
+        {/* Below xl the rail lives in a slide-over, so it needs a way in. */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0 xl:hidden"
+          onClick={() => setRailOpen(true)}
+          aria-label={t("basira.showConversations", "Conversations")}
+        >
+          <MessageSquare className="size-4" />
+        </Button>
+
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-sm font-semibold tracking-tight">
+            {activeTitle ?? t("basira.title", "Basira")}
+          </h1>
+          <p className="hidden truncate text-xs text-muted-foreground sm:block">
+            {t("basira.subtitle", "Ask about your business in plain language.")}
+          </p>
+        </div>
+
+        <Button variant="ghost" size="icon" className="shrink-0 xl:hidden" onClick={startNew}>
+          <MessageSquarePlus className="size-4" />
+          <span className="sr-only">{t("basira.newChat", "New conversation")}</span>
+        </Button>
+      </header>
+
+      <div className="flex min-h-0 flex-1">
+        <aside className="hidden w-[276px] shrink-0 border-e border-border/70 p-3 xl:block">
+          <ConversationList {...listProps} />
         </aside>
 
-        {/* ── Transcript ──────────────────────────────────────────────── */}
-        <section className="flex min-h-[calc(100svh-13rem)] flex-col rounded-xl border border-border/70 bg-card">
-          <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
-            {loadingThread ? (
-              <div className="space-y-4">
-                <Skeleton className="h-8 w-2/5" />
-                <Skeleton className="h-24 w-full" />
-              </div>
-            ) : isEmpty ? (
-              <Welcome onPick={(q) => void ask(q)} />
-            ) : (
-              <div className="mx-auto flex max-w-3xl flex-col gap-6">
-                {exchanges.map((x) => (
-                  <ExchangeView key={x.id} exchange={x} />
-                ))}
-              </div>
-            )}
-            <div ref={bottomRef} />
+        <Sheet open={railOpen} onOpenChange={setRailOpen}>
+          <SheetContent
+            side={isRtl ? "right" : "left"}
+            className="flex w-[86vw] max-w-[340px] flex-col gap-0 p-0"
+          >
+            <SheetHeader className="border-b border-border/70 p-3">
+              <SheetTitle className="text-sm">
+                {t("basira.conversations", "Conversations")}
+              </SheetTitle>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 p-3">
+              <ConversationList {...listProps} />
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6 sm:py-8">
+              {loadingThread ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-2/5" />
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-48 w-full" />
+                </div>
+              ) : isEmpty ? (
+                <Welcome onPick={(q) => void ask(q)} />
+              ) : (
+                <div className="flex flex-col gap-9">
+                  {exchanges.map((x) => (
+                    <ExchangeView key={x.id} exchange={x} onRetry={() => void ask(x.question)} />
+                  ))}
+                </div>
+              )}
+              <div ref={bottomRef} />
+            </div>
           </div>
 
-          {/* ── Composer ─────────────────────────────────────────────── */}
-          <div className="border-t border-border/70 p-3 sm:p-4">
+          <div className="shrink-0 border-t border-border/70 bg-background/95 px-4 py-3 backdrop-blur sm:px-6">
             <form
-              className="mx-auto flex max-w-3xl items-end gap-2"
+              className="mx-auto flex w-full max-w-3xl items-end gap-2"
               onSubmit={(e) => {
                 e.preventDefault();
                 void ask(question);
@@ -370,9 +387,10 @@ export function BasiraPage() {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyDown={(e) => {
-                  // Enter sends, Shift+Enter breaks the line — the convention
-                  // in every chat the merchant already uses.
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  // Enter sends, Shift+Enter breaks the line — the convention in
+                  // every chat the merchant already uses. On touch the soft
+                  // keyboard sends its own newline, so this stays desktop-only.
+                  if (e.key === "Enter" && !e.shiftKey && !("ontouchstart" in window)) {
                     e.preventDefault();
                     void ask(question);
                   }
@@ -380,18 +398,19 @@ export function BasiraPage() {
                 rows={1}
                 disabled={busy}
                 placeholder={t("basira.placeholder", "Ask about sales, staff, stock…")}
-                className="max-h-40 min-h-11 resize-none"
+                className="max-h-40 min-h-11 resize-none py-3 text-[15px] sm:text-sm"
               />
-              <Button type="submit" size="icon" className="size-11 shrink-0" disabled={busy || !question.trim()}>
-                {busy ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Send className={cn("size-4", isRtl && "-scale-x-100")} />
-                )}
+              <Button
+                type="submit"
+                size="icon"
+                className="size-11 shrink-0 rounded-full"
+                disabled={busy || !question.trim()}
+              >
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
                 <span className="sr-only">{t("basira.send", "Send")}</span>
               </Button>
             </form>
-            <p className="mx-auto mt-2 max-w-3xl text-[11px] text-muted-foreground">
+            <p className="mx-auto mt-2 max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
               {t(
                 "basira.disclaimer",
                 "Reads your own business figures. Staff names are replaced with codes before anything leaves.",
@@ -400,27 +419,80 @@ export function BasiraPage() {
           </div>
         </section>
       </div>
-    </Page>
+
+      <RenameDialog
+        conversation={renaming}
+        onCancel={() => setRenaming(null)}
+        onSave={(title) => void commitRename(title)}
+      />
+    </div>
+  );
+}
+
+/**
+ * Rename, as a real dialog.
+ *
+ * This was a `window.prompt`, which cannot be translated, cannot be styled,
+ * ignores RTL, and on iOS Safari renders as a system alert bearing the site's
+ * domain — the single most out-of-place thing that can appear in a product.
+ */
+function RenameDialog({
+  conversation,
+  onCancel,
+  onSave,
+}: {
+  conversation: ConversationSummary | null;
+  onCancel: () => void;
+  onSave: (title: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [value, setValue] = useState("");
+
+  useEffect(() => {
+    if (conversation) setValue(conversation.title);
+  }, [conversation]);
+
+  return (
+    <Dialog open={conversation !== null} onOpenChange={(o) => !o && onCancel()}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{t("basira.renamePrompt", "Rename conversation")}</DialogTitle>
+        </DialogHeader>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSave(value);
+          }}
+        >
+          <Input value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
+          <DialogFooter className="mt-4">
+            <Button type="button" variant="ghost" onClick={onCancel}>
+              {t("common.cancel", "Cancel")}
+            </Button>
+            <Button type="submit" disabled={!value.trim()}>
+              {t("common.save", "Save")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
 function Welcome({ onPick }: { onPick: (q: string) => void }) {
   const { t } = useTranslation();
   return (
-    <div className="mx-auto flex h-full max-w-xl flex-col items-center justify-center py-12 text-center">
-      <div className="mb-3 grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
-        <Sparkle className="size-5" />
-      </div>
-      <h2 className="text-lg font-semibold text-foreground">
+    <div className="flex flex-col items-start py-6 sm:py-12">
+      <h2 className="text-balance text-xl font-semibold tracking-tight sm:text-2xl">
         {t("basira.welcomeTitle", "What would you like to know?")}
       </h2>
-      <p className="mt-1 text-sm text-muted-foreground">
+      <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
         {t(
           "basira.welcomeBody",
-          "Ask in English or Arabic. Answers come with the chart and the query behind them.",
+          "Ask in English or Arabic. Every answer comes with the chart and the exact query behind it.",
         )}
       </p>
-      <div className="mt-6 grid w-full gap-2 sm:grid-cols-2">
+      <div className="mt-7 grid w-full gap-2 sm:grid-cols-2">
         {STARTERS.map((s) => {
           const label = t(`basira.starters.${s.key}`, s.fallback);
           return (
@@ -428,7 +500,7 @@ function Welcome({ onPick }: { onPick: (q: string) => void }) {
               key={s.key}
               type="button"
               onClick={() => onPick(label)}
-              className="rounded-lg border border-border/70 px-3 py-2.5 text-start text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-muted/50 hover:text-foreground"
+              className="rounded-xl border border-border/70 px-3.5 py-3 text-start text-[13px] leading-snug text-muted-foreground transition-colors hover:border-border hover:bg-muted/50 hover:text-foreground"
             >
               {label}
             </button>
@@ -439,52 +511,76 @@ function Welcome({ onPick }: { onPick: (q: string) => void }) {
   );
 }
 
-function ExchangeView({ exchange }: { exchange: Exchange }) {
+function ExchangeView({ exchange, onRetry }: { exchange: Exchange; onRetry: () => void }) {
   const { t } = useTranslation();
   return (
     <motion.article
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18 }}
-      className="space-y-3"
+      className="scroll-mt-6"
     >
-      <p className="ms-auto w-fit max-w-[85%] rounded-2xl rounded-ee-sm bg-primary px-3.5 py-2 text-sm text-primary-foreground">
+      {/* The question reads as a heading rather than a chat bubble. Scrolling
+          back through a long conversation then works like scanning a report,
+          which is what someone is actually doing when they return to one. */}
+      <h2 className="text-pretty text-[15px] font-semibold leading-snug text-foreground sm:text-base">
         {exchange.question}
-      </p>
+      </h2>
 
-      {exchange.pending && !exchange.answer ? (
-        <Working step={exchange.step} querying={exchange.querying} />
-      ) : null}
+      <div className="mt-3 space-y-3">
+        {exchange.pending && !exchange.answer ? (
+          <Working step={exchange.step} querying={exchange.querying} />
+        ) : null}
 
-      {exchange.results.map((block, i) => (
-        <BlockCard key={i} block={block} />
-      ))}
+        {exchange.answer ? (
+          <p
+            className={cn(
+              "text-[15px] leading-relaxed text-foreground sm:text-sm",
+              exchange.kind === "clarify" && "text-muted-foreground",
+            )}
+          >
+            {exchange.answer}
+          </p>
+        ) : null}
 
-      {exchange.answer ? (
-        <p
-          className={cn(
-            "max-w-[95%] text-sm leading-relaxed text-foreground",
-            exchange.kind === "clarify" && "italic text-muted-foreground",
-          )}
-        >
-          {exchange.answer}
-        </p>
-      ) : null}
+        {exchange.capturedAt && exchange.results.length > 0 ? (
+          <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Clock3 className="size-3 shrink-0" />
+            {t("basira.asAt", "Figures as at {{when}}", {
+              when: fmtDateTime(exchange.capturedAt),
+            })}
+          </p>
+        ) : null}
 
-      {exchange.fromHistory && exchange.kind !== "clarify" ? (
-        <p className="text-[11px] text-muted-foreground">
-          {t("basira.historyNote", "Charts are not stored — ask again for current figures.")}
-        </p>
-      ) : null}
+        {exchange.results.map((block, i) => (
+          <BlockCard key={i} block={block} stale={Boolean(exchange.capturedAt)} />
+        ))}
 
-      {exchange.error ? (
-        <EmptyState
-          title={t("basira.failed", "That question could not be answered")}
-          description={exchange.error}
-          className="border-destructive/30"
-        />
-      ) : null}
+        {exchange.error ? <Failure message={exchange.error} onRetry={onRetry} /> : null}
+      </div>
     </motion.article>
+  );
+}
+
+/**
+ * A failed turn.
+ *
+ * The backend now says what went wrong and what to try instead, so this renders
+ * that sentence as the primary content rather than burying it under a generic
+ * "something went wrong" title. Retry sits next to it because re-asking is the
+ * correct first move for a timeout or a dropped stream.
+ */
+function Failure({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col gap-2.5 rounded-xl border border-destructive/30 bg-destructive/5 p-3.5 sm:flex-row sm:items-start sm:gap-3">
+      <AlertCircle className="size-4 shrink-0 text-destructive sm:mt-0.5" />
+      <p className="min-w-0 flex-1 text-[13px] leading-relaxed text-foreground">{message}</p>
+      <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={onRetry}>
+        <RefreshCw className="size-3.5" />
+        {t("common.retry", "Try again")}
+      </Button>
+    </div>
   );
 }
 
@@ -503,38 +599,44 @@ function Working({ step, querying }: { step?: number; querying?: string }) {
   );
 }
 
-function BlockCard({ block }: { block: ResultBlock }) {
+function BlockCard({ block, stale }: { block: ResultBlock; stale?: boolean }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-xl border border-border/70 bg-background p-3 sm:p-4">
-      <div className="mb-2 flex flex-wrap items-center gap-2">
+    <div className="overflow-hidden rounded-xl border border-border/70 bg-card">
+      <div className="flex flex-wrap items-center gap-2 px-3 pt-3 sm:px-4 sm:pt-4">
         {block.title ? (
           <h3 className="text-[13px] font-medium text-foreground">{block.title}</h3>
         ) : null}
         <ScopeBadge block={block} />
       </div>
 
-      <ResultView block={block} />
+      {/* The renderer can produce a wide table; it must scroll inside its own
+          box rather than making the whole workspace scroll sideways. */}
+      <div className="min-w-0 overflow-x-auto px-3 py-3 sm:px-4">
+        <ResultView block={block} />
+      </div>
 
-      {/* Provenance. Renders the RESOLVED query — the dataset, the real dates,
-          the filters that actually ran — never the model's raw arguments. It is
-          what makes a number checkable instead of something to take on faith. */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="mt-3 flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ChevronDown className={cn("size-3 transition-transform", open && "rotate-180")} />
-        {t("basira.provenance", "What was queried")}
-      </button>
-      {open ? <Provenance block={block} /> : null}
+      {/* Provenance: the RESOLVED query — dataset, real dates, filters that
+          actually ran — never the model's raw arguments. It is what makes a
+          number checkable instead of something to take on faith. */}
+      <div className="border-t border-border/70 px-3 py-2 sm:px-4">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronDown className={cn("size-3 transition-transform", open && "rotate-180")} />
+          {t("basira.provenance", "What was queried")}
+        </button>
+        {open ? <Provenance block={block} stale={stale} /> : null}
+      </div>
     </div>
   );
 }
 
-function Provenance({ block }: { block: ResultBlock }) {
+function Provenance({ block, stale }: { block: ResultBlock; stale?: boolean }) {
   const { t } = useTranslation();
   const spec = block.spec;
 
@@ -553,12 +655,12 @@ function Provenance({ block }: { block: ResultBlock }) {
       : t("basira.allTime", "all time");
 
   return (
-    <div className="mt-2 space-y-1 rounded-lg bg-muted/50 p-2.5 font-mono text-[11px] leading-relaxed text-muted-foreground">
-      <p>{parts.join(" · ")}</p>
+    <div className="mt-2 space-y-1 overflow-x-auto rounded-lg bg-muted/50 p-2.5 font-mono text-[11px] leading-relaxed text-muted-foreground">
+      <p className="whitespace-pre-wrap break-words">{parts.join(" · ")}</p>
       <Separator className="my-1.5" />
-      <p>
-        {period} · {block.scope.label} · {block.row_count}{" "}
-        {t("basira.rows", "rows")}
+      <p className="break-words">
+        {period} · {block.scope.label} · {block.row_count} {t("basira.rows", "rows")}
+        {stale ? ` · ${t("basira.stored", "stored")}` : ""}
       </p>
     </div>
   );

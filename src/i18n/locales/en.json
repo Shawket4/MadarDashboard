@@ -90,7 +90,9 @@
     "copyFailed": "Copy failed",
     "copied": "Copied!",
     "copyLink": "Copy link",
-    "copy": "Copy"
+    "copy": "Copy",
+    "rename": "Rename",
+    "more": "More"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -3726,14 +3728,14 @@
   },
   "basira": {
     "title": "Basira",
-    "subtitle": "Ask about your business in plain language. Every answer shows the figures behind it.",
+    "subtitle": "Ask about your business in plain language.",
     "newChat": "New conversation",
     "noChats": "Your conversations will appear here.",
     "placeholder": "Ask about sales, staff, stock…",
     "send": "Send",
     "disclaimer": "Reads your own business figures. Staff names are replaced with codes before anything leaves.",
     "welcomeTitle": "What would you like to know?",
-    "welcomeBody": "Ask in English or Arabic. Answers come with the chart and the query behind them.",
+    "welcomeBody": "Ask in English or Arabic. Every answer comes with the chart and the exact query behind it.",
     "starters": {
       "topProducts": "What sold best last month?",
       "branchCompare": "Compare my branches this month",
@@ -3750,9 +3752,14 @@
     "noActivity": "No activity in this period",
     "truncated": "Showing the first {{count}} rows.",
     "unmatchedBranch": "No branch matched “{{name}}” — showing all branches",
-    "historyNote": "Charts are not stored — ask again for current figures.",
     "renamePrompt": "Rename conversation",
     "deleteTitle": "Delete this conversation?",
-    "deleteBody": "The questions and answers are removed. Your data is not affected."
+    "deleteBody": "The questions and answers are removed. Your data is not affected.",
+    "conversations": "Conversations",
+    "showConversations": "Conversations",
+    "turnCount": "{{count}} question",
+    "turnCount_other": "{{count}} questions",
+    "asAt": "Figures as at {{when}}",
+    "stored": "stored"
   }
 }
