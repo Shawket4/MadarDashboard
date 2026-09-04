@@ -2162,6 +2162,7 @@ export const UpdateDiscountResponse = zod.object({
 export const SaveLayoutBody = zod.object({
   "branch_id": zod.uuid(),
   "tables": zod.array(zod.object({
+  "expected_updated_at": zod.iso.datetime({"offset":true}).nullish().describe('Optimistic-concurrency token: the `updated_at` the client last saw for\nthis table.\n\nThe dashboard autosaves every gesture, so two managers arranging the\nsame room no longer collide rarely and visibly -- they collide often and\nsilently, each overwriting the other\'s last drag. When this is sent, the\nwrite only lands if the row has not moved since; otherwise the whole\nrequest is rejected and the caller is told exactly which tables changed.\n\nOptional so existing clients (and the POS) keep working unchanged: absent\nmeans \"no guard\", which is the previous last-write-wins behaviour.'),
   "height": zod.number(),
   "id": zod.uuid(),
   "pos_x": zod.number(),

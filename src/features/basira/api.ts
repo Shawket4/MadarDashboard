@@ -10,8 +10,8 @@
  * being hidden inside a hook.
  */
 import { apiClient } from "@/data/api/client";
+import { authHeaders } from "@/data/api/stream-auth";
 import { env } from "@/data/config/env";
-import { LS_KEYS } from "@/data/config/constants";
 import { reportHandledError } from "@/lib/report-error";
 import type {
   ChatFrame,
@@ -44,34 +44,6 @@ export async function deleteConversation(id: string): Promise<void> {
 }
 
 // ── The streamed turn ───────────────────────────────────────────────────────
-
-/**
- * Read the ambient auth the axios client holds.
- *
- * `fetch` bypasses the interceptors, so the same headers have to be attached
- * here. Read from localStorage rather than from the store so a hard refresh
- * mid-conversation still authenticates — the store rehydrates in a microtask
- * and this can run first.
- */
-function authHeaders(): Record<string, string> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  try {
-    const persisted = localStorage.getItem(LS_KEYS.auth);
-    if (persisted) {
-      const parsed = JSON.parse(persisted) as {
-        state?: { token?: string; orgId?: string; branchId?: string };
-      };
-      if (parsed.state?.token) headers.Authorization = `Bearer ${parsed.state.token}`;
-      if (parsed.state?.orgId) headers["X-Org-Id"] = parsed.state.orgId;
-      // The branch selector narrows scope server-side; sending it keeps a
-      // streamed answer scoped the same way a non-streamed one would be.
-      if (parsed.state?.branchId) headers["X-Branch-Id"] = parsed.state.branchId;
-    }
-  } catch {
-    /* An unreadable session is handled by the 401 below, not here. */
-  }
-  return headers;
-}
 
 export interface AskOptions {
   question: string;

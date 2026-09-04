@@ -236,3 +236,190 @@ export const applyRedo = <T,>(
     history: { past: [...history.past, current], future: history.future.slice(1) },
   };
 };
+
+// ── Multi-select, alignment, clipboard ──────────────────────────────────────
+//
+// Everything below is pure geometry or pure serialization, deliberately kept
+// out of the component: "did the marquee catch a rotated table?" and "does a
+// paste keep its shape?" are questions a pixel answers wrongly and a test
+// answers once.
+
+/** A table as far as geometry is concerned. */
+export interface GeoItem {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rot: number;
+}
+
+/** Axis-aligned envelope of one item, rotation included. */
+export const envelopeOf = (it: GeoItem): Rect => {
+  const r = Math.hypot(it.w, it.h) / 2;
+  return { x: it.x + it.w / 2 - r, y: it.y + it.h / 2 - r, w: r * 2, h: r * 2 };
+};
+
+/** Do two rectangles overlap at all? */
+export const rectsIntersect = (a: Rect, b: Rect): boolean =>
+  a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+
+/**
+ * Which items a marquee caught.
+ *
+ * Touch, not containment. A box that must fully enclose a table means a
+ * near-miss selects nothing, and on a dense floor you can rarely draw a box
+ * that encloses what you want without also enclosing what you do not.
+ */
+export const marqueeHits = (marquee: Rect, items: GeoItem[]): string[] => {
+  const norm: Rect = {
+    x: marquee.w < 0 ? marquee.x + marquee.w : marquee.x,
+    y: marquee.h < 0 ? marquee.y + marquee.h : marquee.y,
+    w: Math.abs(marquee.w),
+    h: Math.abs(marquee.h),
+  };
+  return items.filter((it) => rectsIntersect(norm, envelopeOf(it))).map((it) => it.id);
+};
+
+export const ALIGNMENTS = ["left", "hcenter", "right", "top", "vcenter", "bottom"] as const;
+export type Alignment = (typeof ALIGNMENTS)[number];
+
+/**
+ * Align a selection, returning only the items that actually move.
+ *
+ * Aligns on the ENVELOPE, not the raw box, so a rotated table lines up by the
+ * space it really occupies — which is what someone looking at the room means
+ * by "these should be flush".
+ */
+export const alignItems = (items: GeoItem[], how: Alignment): GeoItem[] => {
+  if (items.length < 2) return [];
+  const env = items.map((it) => ({ it, e: envelopeOf(it) }));
+  const minX = Math.min(...env.map((v) => v.e.x));
+  const maxX = Math.max(...env.map((v) => v.e.x + v.e.w));
+  const minY = Math.min(...env.map((v) => v.e.y));
+  const maxY = Math.max(...env.map((v) => v.e.y + v.e.h));
+
+  const out: GeoItem[] = [];
+  for (const { it, e } of env) {
+    let dx = 0;
+    let dy = 0;
+    switch (how) {
+      case "left": dx = minX - e.x; break;
+      case "right": dx = maxX - (e.x + e.w); break;
+      case "hcenter": dx = (minX + maxX) / 2 - (e.x + e.w / 2); break;
+      case "top": dy = minY - e.y; break;
+      case "bottom": dy = maxY - (e.y + e.h); break;
+      case "vcenter": dy = (minY + maxY) / 2 - (e.y + e.h / 2); break;
+    }
+    if (dx !== 0 || dy !== 0) out.push({ ...it, x: it.x + dx, y: it.y + dy });
+  }
+  return out;
+};
+
+/**
+ * Space a selection evenly along an axis, holding the two outermost still.
+ * GAPS are equalised rather than centres, so tables of different sizes end up
+ * looking evenly spaced instead of merely measuring evenly.
+ */
+export const distributeItems = (items: GeoItem[], axis: "x" | "y"): GeoItem[] => {
+  if (items.length < 3) return [];
+  const key = axis;
+  const span = axis === "x" ? "w" : "h";
+  const sorted = [...items]
+    .map((it) => ({ it, e: envelopeOf(it) }))
+    .sort((a, b) => a.e[key] - b.e[key]);
+
+  const first = sorted[0].e;
+  const last = sorted[sorted.length - 1].e;
+  const total = last[key] + last[span] - first[key];
+  const used = sorted.reduce((sum, v) => sum + v.e[span], 0);
+  const gap = (total - used) / (sorted.length - 1);
+
+  const out: GeoItem[] = [];
+  let cursor = first[key] + first[span] + gap;
+  for (let i = 1; i < sorted.length - 1; i += 1) {
+    const { it, e } = sorted[i];
+    const delta = cursor - e[key];
+    if (delta !== 0) {
+      out.push(axis === "x" ? { ...it, x: it.x + delta } : { ...it, y: it.y + delta });
+    }
+    cursor += e[span] + gap;
+  }
+  return out;
+};
+
+// ── Clipboard ───────────────────────────────────────────────────────────────
+
+/** What a copied table carries. Blueprint only — never live status. */
+export interface ClipboardTable {
+  label: string;
+  seats: number;
+  shape: string;
+  w: number;
+  h: number;
+  rot: number;
+  /** Offset from the copied selection's top-left, so a paste keeps its shape. */
+  dx: number;
+  dy: number;
+}
+
+/**
+ * A magic key, so a paste from an unrelated app is ignored rather than throwing.
+ * The payload rides the REAL clipboard as text/plain JSON, which means copying
+ * in one branch and pasting into another — or into a second tab — works for
+ * free, and costs nothing extra to support.
+ */
+export const CLIPBOARD_KIND = "madar.floor.tables.v1";
+
+export const serializeTables = (
+  tables: { label: string; seats: number; shape: string }[],
+  geo: GeoItem[],
+): string => {
+  const minX = Math.min(...geo.map((g) => g.x));
+  const minY = Math.min(...geo.map((g) => g.y));
+  return JSON.stringify({
+    kind: CLIPBOARD_KIND,
+    tables: geo.map((g, i) => ({
+      label: tables[i].label,
+      seats: tables[i].seats,
+      shape: tables[i].shape,
+      w: g.w,
+      h: g.h,
+      rot: g.rot,
+      dx: g.x - minX,
+      dy: g.y - minY,
+    })),
+  });
+};
+
+/** `null` for anything that is not ours — a stray paste must never throw. */
+export const parseClipboard = (text: string): ClipboardTable[] | null => {
+  try {
+    const v = JSON.parse(text) as { kind?: string; tables?: ClipboardTable[] };
+    if (v?.kind !== CLIPBOARD_KIND || !Array.isArray(v.tables) || v.tables.length === 0) {
+      return null;
+    }
+    const ok = v.tables.filter(
+      (t) => typeof t?.dx === "number" && typeof t?.dy === "number" && typeof t?.w === "number",
+    );
+    return ok.length > 0 ? ok : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * A label for a pasted copy that is not already on the floor.
+ *
+ * Table labels are how staff refer to a table out loud ("drinks to 12"), so two
+ * tables called 12 is an operational problem, not a cosmetic one.
+ */
+export const uniqueLabel = (base: string, taken: Set<string>): string => {
+  const stem = base.replace(/\s+\(\d+\)$/, "");
+  if (!taken.has(stem)) return stem;
+  for (let n = 2; n < 999; n += 1) {
+    const candidate = `${stem} (${n})`;
+    if (!taken.has(candidate)) return candidate;
+  }
+  return `${stem} ${Date.now()}`;
+};
