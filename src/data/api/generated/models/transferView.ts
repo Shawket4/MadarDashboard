@@ -12,7 +12,10 @@ export interface TransferView {
   /** @nullable */
   note?: string | null;
   occupant_id: string;
-  /** `held_order` | `open_ticket`. */
+  /**
+     * Always `open_ticket`. Kept on the wire so the rebuilt booking flow
+     * can queue into the same waitlist without a schema change.
+     */
   occupant_kind: string;
   /**
      * Display label for the queue: the held order's name / the ticket's ref.

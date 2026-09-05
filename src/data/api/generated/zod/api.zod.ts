@@ -2194,50 +2194,6 @@ export const SaveLayoutResponseItem = zod.object({
 export const SaveLayoutResponse = zod.array(SaveLayoutResponseItem)
 
 
-export const GetReservationSettingsQueryParams = zod.object({
-  "branch_id": zod.uuid()
-})
-
-export const GetReservationSettingsResponse = zod.object({
-  "accepting_reservations": zod.boolean(),
-  "accepting_waitlist": zod.boolean(),
-  "branch_id": zod.uuid(),
-  "grace_minutes": zod.number(),
-  "hold_lead_minutes": zod.number(),
-  "lead_minutes": zod.number(),
-  "max_party_size": zod.number().nullish(),
-  "slot_minutes": zod.number(),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const PutReservationSettingsQueryParams = zod.object({
-  "branch_id": zod.uuid()
-})
-
-export const PutReservationSettingsBody = zod.object({
-  "accepting_reservations": zod.boolean().nullish(),
-  "accepting_waitlist": zod.boolean().nullish(),
-  "grace_minutes": zod.number().nullish(),
-  "hold_lead_minutes": zod.number().nullish(),
-  "lead_minutes": zod.number().nullish(),
-  "max_party_size": zod.number().nullish(),
-  "slot_minutes": zod.number().nullish()
-})
-
-export const PutReservationSettingsResponse = zod.object({
-  "accepting_reservations": zod.boolean(),
-  "accepting_waitlist": zod.boolean(),
-  "branch_id": zod.uuid(),
-  "grace_minutes": zod.number(),
-  "hold_lead_minutes": zod.number(),
-  "lead_minutes": zod.number(),
-  "max_party_size": zod.number().nullish(),
-  "slot_minutes": zod.number(),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
 export const ListSectionsQueryParams = zod.object({
   "branch_id": zod.uuid()
 })
@@ -2419,45 +2375,27 @@ export const UpdateFloorTableResponse = zod.object({
 })
 
 
-export const UpdateTableStateParams = zod.object({
+/**
+ * The ONE human act the derived-status model needs. Everything else about a
+ * table's status follows from the ticket on it: seated when one lands, free
+ * when nobody vacated, dirty after a checkout. But no server can see that the
+ * plates have been cleared, so a person says so.
+ *
+ * Deliberately not a set-status endpoint. Its predecessor took any status and
+ * wrote it with no lock and no occupancy check, so it could declare a table
+ * free while a ticket was open on it. This performs exactly one transition,
+ * `dirty` -> `free`, and refuses anything else.
+ * @summary Mark a bussed table ready for the next party.
+ */
+export const ClearTableParams = zod.object({
   "id": zod.uuid().describe('Table ID')
 })
 
-export const UpdateTableStateBody = zod.object({
-  "clear_section": zod.boolean().optional(),
-  "section_id": zod.uuid().nullish(),
-  "status": zod.string().nullish().describe('`free` | `held` | `seated` | `dirty`.')
-}).describe('Operational table-state edit from the POS: the layout (geometry\/shape) is\ndashboard-authored, but STATE — status walks (bussing a dirty table) and\nwhich zone the physical table currently sits in — belongs to the floor\nstaff. Both fields optional; `clear_section` moves the table out of every\nsection (`section_id` wins when both are sent).')
-
-export const UpdateTableStateResponse = zod.unknown()
-
-
-export const SetTableStatusParams = zod.object({
-  "id": zod.uuid().describe('Table ID')
+export const ClearTableBody = zod.object({
+  "branch_id": zod.uuid()
 })
 
-export const SetTableStatusBody = zod.object({
-  "status": zod.string().describe('One of `free`, `held`, `seated`, `dirty`.')
-})
-
-export const SetTableStatusResponse = zod.object({
-  "branch_id": zod.uuid(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "height": zod.number(),
-  "id": zod.uuid(),
-  "is_active": zod.boolean(),
-  "label": zod.string(),
-  "org_id": zod.uuid(),
-  "pos_x": zod.number(),
-  "pos_y": zod.number(),
-  "rotation": zod.number(),
-  "seats": zod.number(),
-  "section_id": zod.uuid().nullish(),
-  "shape": zod.string(),
-  "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true}),
-  "width": zod.number()
-})
+export const ClearTableResponse = zod.unknown()
 
 
 export const ListFloorTransfersQueryParams = zod.object({
@@ -2475,7 +2413,7 @@ export const ListFloorTransfersResponse = zod.object({
   "id": zod.uuid(),
   "note": zod.string().nullish(),
   "occupant_id": zod.uuid(),
-  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_kind": zod.string().describe('Always `open_ticket`. Kept on the wire so the rebuilt booking flow\ncan queue into the same waitlist without a schema change.'),
   "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
   "requested_by": zod.uuid().nullish(),
   "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -2495,7 +2433,7 @@ export const CreateFloorTransferBody = zod.object({
   "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
   "target_section_id": zod.uuid().nullish().describe('The wish: any table in this section…'),
   "target_table_id": zod.uuid().nullish().describe('…or exactly this table. At least one of the two is required.')
-})
+}).describe('Operational table-state edit from the POS: the layout (geometry\/shape) is\ndashboard-authored, but STATE — status walks (bussing a dirty table) and\nwhich zone the physical table currently sits in — belongs to the floor\nstaff. Both fields optional; `clear_section` moves the table out of every\nsection (`section_id` wins when both are sent).')
 
 export const CreateFloorTransferResponse = zod.object({
   "branch_id": zod.uuid(),
@@ -2505,7 +2443,7 @@ export const CreateFloorTransferResponse = zod.object({
   "id": zod.uuid(),
   "note": zod.string().nullish(),
   "occupant_id": zod.uuid(),
-  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_kind": zod.string().describe('Always `open_ticket`. Kept on the wire so the rebuilt booking flow\ncan queue into the same waitlist without a schema change.'),
   "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
   "requested_by": zod.uuid().nullish(),
   "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -2528,7 +2466,7 @@ export const CancelTransferResponse = zod.object({
   "id": zod.uuid(),
   "note": zod.string().nullish(),
   "occupant_id": zod.uuid(),
-  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_kind": zod.string().describe('Always `open_ticket`. Kept on the wire so the rebuilt booking flow\ncan queue into the same waitlist without a schema change.'),
   "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
   "requested_by": zod.uuid().nullish(),
   "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -2555,229 +2493,13 @@ export const FulfillTransferResponse = zod.object({
   "id": zod.uuid(),
   "note": zod.string().nullish(),
   "occupant_id": zod.uuid(),
-  "occupant_kind": zod.string().describe('`held_order` | `open_ticket`.'),
+  "occupant_kind": zod.string().describe('Always `open_ticket`. Kept on the wire so the rebuilt booking flow\ncan queue into the same waitlist without a schema change.'),
   "occupant_label": zod.string().nullish().describe('Display label for the queue: the held order\'s name \/ the ticket\'s ref.'),
   "requested_by": zod.uuid().nullish(),
   "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string().describe('`waiting` | `fulfilled` | `cancelled`.'),
   "target_section_id": zod.uuid().nullish(),
   "target_table_id": zod.uuid().nullish(),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const ListHeldOrdersQueryParams = zod.object({
-  "branch_id": zod.uuid(),
-  "since": zod.iso.datetime({"offset":true}).optional().describe('Sync cursor: return everything updated after this instant, INCLUDING\ncompleted\/discarded tombstones. Omit for the live board (held+resumed).')
-})
-
-export const ListHeldOrdersResponse = zod.object({
-  "held_orders": zod.array(zod.object({
-  "branch_id": zod.uuid(),
-  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
-  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "device_id": zod.string().nullish(),
-  "id": zod.uuid(),
-  "name": zod.string(),
-  "order_id": zod.uuid().nullish(),
-  "revision": zod.number(),
-  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
-  "table_id": zod.uuid().nullish(),
-  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})),
-  "server_time": zod.iso.datetime({"offset":true})
-}).describe('The `GET \/held-orders` sync payload. With `since`, tombstones are included\nso devices retire local copies; `server_time` is the client\'s next cursor.')
-
-
-export const ParkHeldOrderBody = zod.object({
-  "branch_id": zod.uuid(),
-  "cart": zod.unknown().describe('Opaque client cart payload, stored and returned verbatim.'),
-  "created_at": zod.iso.datetime({"offset":true}).nullish().describe('Original creation instant (strip ordering); defaults to now.'),
-  "device_id": zod.string().nullish().describe('The parking device\'s installation id (also the claim key on resume).'),
-  "id": zod.uuid().describe('Client-minted id — the held order\'s identity across parks\/resumes\/devices.'),
-  "name": zod.string().optional(),
-  "table_id": zod.uuid().nullish().describe('Requested table. On conflict the park still succeeds WITHOUT the table\n(`table_conflict: true` in the response) — a queued offline park must\nnever dead-letter over a table race.')
-})
-
-export const ParkHeldOrderResponse = zod.object({
-  "held_order": zod.object({
-  "branch_id": zod.uuid(),
-  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
-  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "device_id": zod.string().nullish(),
-  "id": zod.uuid(),
-  "name": zod.string(),
-  "order_id": zod.uuid().nullish(),
-  "revision": zod.number(),
-  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
-  "table_id": zod.uuid().nullish(),
-  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-}),
-  "table_conflict": zod.boolean()
-}).describe('Park\/upsert result: the stored order plus whether a requested table\nassignment was DROPPED because the table was taken (offline-first parks\nkeep the cart and lose the race, never the other way around).')
-
-
-export const UpdateHeldOrderParams = zod.object({
-  "id": zod.uuid().describe('Held order ID')
-})
-
-export const UpdateHeldOrderBody = zod.object({
-  "base_revision": zod.number().nullish().describe('Optimistic-concurrency fence: reject (409) if the server has moved past\nthis revision. Omit to last-write-wins.'),
-  "name": zod.string().nullish()
-})
-
-export const UpdateHeldOrderResponse = zod.object({
-  "branch_id": zod.uuid(),
-  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
-  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "device_id": zod.string().nullish(),
-  "id": zod.uuid(),
-  "name": zod.string(),
-  "order_id": zod.uuid().nullish(),
-  "revision": zod.number(),
-  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
-  "table_id": zod.uuid().nullish(),
-  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const ClaimHeldOrderParams = zod.object({
-  "id": zod.uuid().describe('Held order ID')
-})
-
-export const ClaimHeldOrderBody = zod.object({
-  "device_id": zod.string().describe('The resuming device — recorded as the claim holder.'),
-  "force": zod.boolean().optional().describe('Steal a claim held by another device (that till died mid-edit).')
-})
-
-export const ClaimHeldOrderResponse = zod.object({
-  "branch_id": zod.uuid(),
-  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
-  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "device_id": zod.string().nullish(),
-  "id": zod.uuid(),
-  "name": zod.string(),
-  "order_id": zod.uuid().nullish(),
-  "revision": zod.number(),
-  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
-  "table_id": zod.uuid().nullish(),
-  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const CompleteHeldOrderParams = zod.object({
-  "id": zod.uuid().describe('Held order ID')
-})
-
-export const CompleteHeldOrderBody = zod.object({
-  "order_id": zod.uuid().nullish().describe('The paid order this cart became (linked for the audit trail).')
-})
-
-export const CompleteHeldOrderResponse = zod.object({
-  "branch_id": zod.uuid(),
-  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
-  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "device_id": zod.string().nullish(),
-  "id": zod.uuid(),
-  "name": zod.string(),
-  "order_id": zod.uuid().nullish(),
-  "revision": zod.number(),
-  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
-  "table_id": zod.uuid().nullish(),
-  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const DiscardHeldOrderParams = zod.object({
-  "id": zod.uuid().describe('Held order ID')
-})
-
-export const DiscardHeldOrderBody = zod.object({
-  "device_id": zod.string().nullish(),
-  "force": zod.boolean().optional().describe('Discard even while another device holds the resume claim.')
-})
-
-export const DiscardHeldOrderResponse = zod.object({
-  "branch_id": zod.uuid(),
-  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
-  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "device_id": zod.string().nullish(),
-  "id": zod.uuid(),
-  "name": zod.string(),
-  "order_id": zod.uuid().nullish(),
-  "revision": zod.number(),
-  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
-  "table_id": zod.uuid().nullish(),
-  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const ReleaseHeldOrderParams = zod.object({
-  "id": zod.uuid().describe('Held order ID')
-})
-
-export const ReleaseHeldOrderBody = zod.object({
-  "device_id": zod.string()
-})
-
-export const ReleaseHeldOrderResponse = zod.object({
-  "branch_id": zod.uuid(),
-  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
-  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "device_id": zod.string().nullish(),
-  "id": zod.uuid(),
-  "name": zod.string(),
-  "order_id": zod.uuid().nullish(),
-  "revision": zod.number(),
-  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
-  "table_id": zod.uuid().nullish(),
-  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const AssignHeldOrderTableParams = zod.object({
-  "id": zod.uuid().describe('Held order ID')
-})
-
-export const AssignHeldOrderTableBody = zod.object({
-  "table_id": zod.uuid().nullish().describe('The table to seat this held order on; `null` releases the current table.')
-})
-
-export const AssignHeldOrderTableResponse = zod.object({
-  "branch_id": zod.uuid(),
-  "cart": zod.unknown().describe('The opaque client cart payload, returned verbatim.'),
-  "claimed_by_device": zod.string().nullish().describe('Set while `resumed` — the device editing the cart.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "device_id": zod.string().nullish(),
-  "id": zod.uuid(),
-  "name": zod.string(),
-  "order_id": zod.uuid().nullish(),
-  "revision": zod.number(),
-  "status": zod.string().describe('`held` | `resumed` | `completed` | `discarded`.'),
-  "table_id": zod.uuid().nullish(),
-  "table_label": zod.string().nullish().describe('Resolved display label of the assigned table (for lists\/strips).'),
   "updated_at": zod.iso.datetime({"offset":true})
 })
 

@@ -1,6 +1,13 @@
 /* eslint-disable */
 // @ts-nocheck
 
+/**
+ * Operational table-state edit from the POS: the layout (geometry/shape) is
+ * dashboard-authored, but STATE — status walks (bussing a dirty table) and
+ * which zone the physical table currently sits in — belongs to the floor
+ * staff. Both fields optional; `clear_section` moves the table out of every
+ * section (`section_id` wins when both are sent).
+ */
 export interface CreateFloorTransferRequest {
   branch_id: string;
   /** Client-minted id (offline-first identity; retries dedup on it). */

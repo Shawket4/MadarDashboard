@@ -3768,5 +3768,9 @@
     "turnCount_other": "{{count}} questions",
     "asAt": "Figures as at {{when}}",
     "stored": "stored"
+  },
+  "reservations": {
+    "notOpenTitle": "Online booking isn’t available yet",
+    "notOpenBody": "We’re building it. In the meantime, please call the venue to reserve a table."
   }
 }

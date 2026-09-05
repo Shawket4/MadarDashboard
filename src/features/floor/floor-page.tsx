@@ -36,7 +36,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { getErrorMessage } from "@/data/api/errors";
 import {
   createFloorTable, deleteFloorTable, useListFloorTables, useListFloorTransfers,
-  useListHeldOrders, useListOpenTickets, useListSections,
+  useListOpenTickets, useListSections,
 } from "@/data/api/generated/api";
 
 import { AddTableDialog } from "./add-table-dialog";
@@ -65,7 +65,6 @@ export function FloorPage() {
   const enabled = { query: { enabled: !!branchId } };
   const sectionsQ = useListSections({ branch_id: branchId ?? "" }, enabled);
   const tablesQ = useListFloorTables({ branch_id: branchId ?? "" }, enabled);
-  const heldQ = useListHeldOrders({ branch_id: branchId ?? "" }, enabled);
   const transfersQ = useListFloorTransfers({ branch_id: branchId ?? "" }, enabled);
   // Best-effort: without `open_tickets:read` the floor still renders, just
   // without ticket chips.
@@ -102,6 +101,11 @@ export function FloorPage() {
     return allTables.filter((tb) => tb.is_active && (tb.section_id ?? null) === id);
   }, [allTables, sectionKey]);
 
+  /**
+   * Who is sitting where. An occupant is always an open ticket now: a parked
+   * order is a POS-local draft with no server presence, so there is exactly one
+   * source to read and no precedence rule to get wrong.
+   */
   const occupants = useMemo(() => {
     const map = new Map<string, string>();
     for (const tk of ticketsQ.data ?? []) {
@@ -109,14 +113,8 @@ export function FloorPage() {
         map.set(tk.table_id, tk.ticket_ref ?? tk.customer_name ?? "#");
       }
     }
-    // Held orders win: they own the table they are parked on.
-    for (const ho of heldQ.data?.held_orders ?? []) {
-      if (ho.table_id && (ho.status === "held" || ho.status === "resumed")) {
-        map.set(ho.table_id, ho.name);
-      }
-    }
     return map;
-  }, [ticketsQ.data, heldQ.data]);
+  }, [ticketsQ.data]);
 
   /**
    * Read-only capacity. The board exists so someone can decide where to seat a

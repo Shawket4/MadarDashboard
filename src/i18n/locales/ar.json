@@ -3866,5 +3866,9 @@
     "turnCount_other": "{{count}} أسئلة",
     "asAt": "أرقام بتاريخ {{when}}",
     "stored": "محفوظ"
+  },
+  "reservations": {
+    "notOpenTitle": "الحجز أونلاين لسه مش متاح",
+    "notOpenBody": "بنجهزه. لحد ما يخلص، كلّم المكان عشان تحجز ترابيزة."
   }
 }
