@@ -34,6 +34,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { useScope } from "@/data/scope/use-scope";
 import { getErrorMessage } from "@/data/api/errors";
+import { fmtTime } from "@/lib/format";
 import {
   createFloorTable, deleteFloorTable, useListFloorTables, useListFloorTransfers,
   useListOpenTickets, useListSections,
@@ -45,10 +46,9 @@ import { InspectorPanel } from "./properties-panel";
 import { StatusLegend } from "./status-legend";
 import { TransferQueue } from "./transfer-queue";
 import { useFloorGeometry, type SaveState } from "./use-floor-geometry";
-import { useFloorRealtime } from "./use-floor-realtime";
 import { useFloorViewport } from "./use-floor-viewport";
 import {
-  ZOOM_STEP, alignItems, distributeItems, invalidateFloor, needsClearing,
+  ZOOM_STEP, alignItems, distributeItems, invalidateFloor, isHeldNow, needsClearing,
   parseClipboard, serializeTables, snapTo, uniqueLabel, type Alignment, type GeoItem,
 } from "./util";
 
@@ -91,9 +91,9 @@ export function FloorPage() {
   const geometry = useFloorGeometry(branchId ?? "", allTables);
   const { geoOf, setGeo, beginGesture, undo, redo, canUndo, canRedo, saveState } = geometry;
 
-  // Live updates, replacing a 10-second poll. The backend has published these
-  // events since the module was written and nothing consumed them.
-  useFloorRealtime(branchId);
+  // Live updates arrive through the app shell's single branch stream
+  // (`data/realtime/use-branch-realtime.ts`); every floor query is invalidated
+  // there, so this page only renders what the cache holds.
 
   const visible = useMemo(() => {
     if (sectionKey === null) return allTables.filter((tb) => tb.is_active);
@@ -115,6 +115,29 @@ export function FloorPage() {
     }
     return map;
   }, [ticketsQ.data]);
+
+  /**
+   * Today's booking per table, from the floor endpoint's `next_booking`. The
+   * hold flips by the clock (`held_from`), not by an event, so a one-minute
+   * tick keeps the tint honest between refetches.
+   */
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const reservations = useMemo(() => {
+    const map = new Map<string, { label: string; held: boolean }>();
+    for (const tb of allTables) {
+      const nb = tb.next_booking;
+      if (!nb || nb.status !== "confirmed") continue;
+      map.set(tb.id, {
+        label: `${nb.guest_name} · ${fmtTime(nb.starts_at)}`,
+        held: isHeldNow(nb, now),
+      });
+    }
+    return map;
+  }, [allTables, now]);
 
   /**
    * Read-only capacity. The board exists so someone can decide where to seat a
@@ -471,6 +494,7 @@ export function FloorPage() {
               tables={visible}
               geoOf={geoOf}
               occupants={occupants}
+              reservations={reservations}
               selection={selection}
               onSelectionChange={setSelection}
               editable={editable}

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Sparkles, Users } from "lucide-react";
+import { CalendarClock, Sparkles, Users } from "lucide-react";
 
 import { TABLE_TONE_STYLE, toneFor, type TableTone } from "./util";
 
@@ -117,6 +117,7 @@ export function seatSlots(shape: string, w: number, h: number, seats: number): S
 /** The glyph that names each tone — state never rests on colour alone. */
 const TONE_ICON: Record<TableTone, typeof Users | null> = {
   available: null,
+  held: CalendarClock,
   seated: Users,
   dirty: Sparkles,
 };
@@ -134,8 +135,13 @@ interface TableGlyphProps {
   status: string;
   selected?: boolean;
   inactive?: boolean;
-  /** Occupant chip (live board): held-order name or ticket ref. */
+  /** Occupant chip (live board): the ticket ref or party name sitting here. */
   occupant?: string | null;
+  /** A booking claiming this table today ("Ahmed · 19:30"); shown as the chip
+   *  when nobody sits here yet. */
+  reservation?: string | null;
+  /** The booking's hold window has started: tint the table as reserved. */
+  held?: boolean;
   /** Extra nodes rendered inside the rotated group (editor handles). */
   children?: ReactNode;
 }
@@ -152,11 +158,11 @@ interface TableGlyphProps {
  */
 export function TableGlyph({
   x, y, w, h, rotation, shape, label, seats, seatsWord, status,
-  selected = false, inactive = false, occupant = null, children,
+  selected = false, inactive = false, occupant = null, reservation = null, held = false, children,
 }: TableGlyphProps) {
   const cx = x + w / 2;
   const cy = y + h / 2;
-  const tone = toneFor({ status }, occupant);
+  const tone = toneFor({ status }, occupant, held);
   const style = TABLE_TONE_STYLE[tone];
   const ToneIcon = TONE_ICON[tone];
   const compact = h < 64 || w < 72;
@@ -166,7 +172,9 @@ export function TableGlyph({
   // Occupant chip geometry: below the seats line, clipped to the table width.
   const chipMax = Math.max(w - 12, 48);
   const chipChars = Math.max(3, Math.floor((chipMax - 16) / 8));
-  const chipText = occupant && occupant.length > chipChars ? `${occupant.slice(0, chipChars - 1)}…` : occupant;
+  // The occupant wins the chip; a reservation shows only while the table waits.
+  const chipSource = occupant ?? (tone === "dirty" ? null : reservation);
+  const chipText = chipSource && chipSource.length > chipChars ? `${chipSource.slice(0, chipChars - 1)}…` : chipSource;
   const chipW = chipText ? Math.min(chipMax, chipText.length * 8 + 18) : 0;
 
   return (

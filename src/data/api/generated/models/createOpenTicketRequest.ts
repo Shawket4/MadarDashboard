@@ -3,6 +3,12 @@
 import type { OrderItemInput } from './orderItemInput';
 
 export interface CreateOpenTicketRequest {
+  /**
+     * The booking this party arrived under: the ticket links to it and the
+     * booking moves to `seated` in the same transaction.
+     * @nullable
+     */
+  booking_id?: string | null;
   branch_id: string;
   /** @nullable */
   customer_name?: string | null;

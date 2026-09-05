@@ -505,6 +505,455 @@ export const ResolveBranchResponse = zod.object({
 })
 
 
+export const ListBookingsQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "date": zod.string().optional().describe('Service date (`YYYY-MM-DD`, branch-local, 05:00→05:00). Defaults to today.'),
+  "from": zod.iso.datetime({"offset":true}).optional().describe('Explicit window (overrides `date`).'),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "active": zod.boolean().optional().describe('Only `confirmed` \/ `seated`.'),
+  "status": zod.string().optional()
+})
+
+export const ListBookingsResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.string().nullish(),
+  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('The floor shows the claimed tables as held from here (branch\n`hold_minutes` before the start). Clients compare with their clock.'),
+  "id": zod.uuid(),
+  "locale": zod.string(),
+  "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
+  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish(),
+  "party_size": zod.number(),
+  "phone_verified": zod.boolean(),
+  "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "section_id": zod.uuid().nullish(),
+  "source": zod.string().describe('`public` | `host`.'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated` | `completed` | `no_show` | `cancelled`.'),
+  "table_ids": zod.array(zod.uuid()),
+  "table_labels": zod.array(zod.string()),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListBookingsResponse = zod.array(ListBookingsResponseItem)
+
+
+export const CreateBookingBody = zod.object({
+  "branch_id": zod.uuid(),
+  "duration_minutes": zod.number().nullish().describe('Defaults to the branch\'s `default_duration_minutes`.'),
+  "force": zod.boolean().nullish().describe('Create even when no table fits (the booking shows as \"needs a table\").'),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "locale": zod.string().nullish().describe('`en` | `ar` for the guest\'s messages.'),
+  "notes": zod.string().nullish(),
+  "party_size": zod.number(),
+  "section_id": zod.uuid().nullish().describe('Seating preference for the auto-assigner.'),
+  "send_confirmation": zod.boolean().nullish().describe('Send the WhatsApp confirmation (default true).'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "table_ids": zod.array(zod.uuid()).nullish().describe('Explicit tables (skips auto-assignment). Empty = deliberately none.')
+})
+
+export const CreateBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.string().nullish(),
+  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('The floor shows the claimed tables as held from here (branch\n`hold_minutes` before the start). Clients compare with their clock.'),
+  "id": zod.uuid(),
+  "locale": zod.string(),
+  "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
+  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish(),
+  "party_size": zod.number(),
+  "phone_verified": zod.boolean(),
+  "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "section_id": zod.uuid().nullish(),
+  "source": zod.string().describe('`public` | `host`.'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated` | `completed` | `no_show` | `cancelled`.'),
+  "table_ids": zod.array(zod.uuid()),
+  "table_labels": zod.array(zod.string()),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const BookingAvailabilityQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "date": zod.string(),
+  "party_size": zod.number(),
+  "section_id": zod.uuid().optional(),
+  "exclude_booking_id": zod.uuid().optional().describe('Ignore this booking\'s own claims (when moving it).')
+})
+
+export const BookingAvailabilityResponse = zod.object({
+  "date": zod.string(),
+  "slots": zod.array(zod.object({
+  "available": zod.boolean(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "table_ids": zod.array(zod.uuid()).describe('The tables the auto-assigner would pick (host view only; empty when\nunavailable).')
+})),
+  "timezone": zod.string()
+})
+
+
+export const GetBookingSettingsQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const getBookingSettingsResponseHoursItemDowMin = 0;
+
+
+
+export const GetBookingSettingsResponse = zod.object({
+  "auto_no_show_minutes": zod.number().nullish().describe('Unseated this long after `starts_at` → `no_show` automatically. `null`\n= only when the window ends.'),
+  "blackout_dates": zod.array(zod.string()).describe('ISO dates (`YYYY-MM-DD`) with no online slots.'),
+  "branch_id": zod.uuid(),
+  "default_duration_minutes": zod.number(),
+  "enabled": zod.boolean().describe('Online (public) booking switch. Host bookings work regardless.'),
+  "hold_minutes": zod.number().describe('The floor shows the table as held from `starts_at - hold_minutes`.'),
+  "horizon_days": zod.number(),
+  "hours": zod.array(zod.object({
+  "close": zod.string(),
+  "dow": zod.number().min(getBookingSettingsResponseHoursItemDowMin),
+  "open": zod.string()
+}).describe('One weekly booking window. `dow`: 0 = Sunday … 6 = Saturday. `open`\/`close`\nare `HH:MM` local; a close at or before open means \"closes after midnight\".')),
+  "lead_time_minutes": zod.number(),
+  "max_covers_per_slot": zod.number().nullish().describe('Optional ceiling on guests whose bookings start in one slot.'),
+  "max_party": zod.number(),
+  "min_party": zod.number(),
+  "reminder_lead_minutes": zod.number().nullish().describe('WhatsApp reminder lead. `null` = no reminder.'),
+  "require_otp": zod.boolean().describe('Online guests must verify their phone by WhatsApp code.'),
+  "slot_minutes": zod.number()
+})
+
+
+export const putBookingSettingsBodyHoursItemDowMin = 0;
+
+
+
+export const PutBookingSettingsBody = zod.object({
+  "auto_no_show_minutes": zod.number().nullish().describe('Unseated this long after `starts_at` → `no_show` automatically. `null`\n= only when the window ends.'),
+  "blackout_dates": zod.array(zod.string()).describe('ISO dates (`YYYY-MM-DD`) with no online slots.'),
+  "branch_id": zod.uuid(),
+  "default_duration_minutes": zod.number(),
+  "enabled": zod.boolean().describe('Online (public) booking switch. Host bookings work regardless.'),
+  "hold_minutes": zod.number().describe('The floor shows the table as held from `starts_at - hold_minutes`.'),
+  "horizon_days": zod.number(),
+  "hours": zod.array(zod.object({
+  "close": zod.string(),
+  "dow": zod.number().min(putBookingSettingsBodyHoursItemDowMin),
+  "open": zod.string()
+}).describe('One weekly booking window. `dow`: 0 = Sunday … 6 = Saturday. `open`\/`close`\nare `HH:MM` local; a close at or before open means \"closes after midnight\".')),
+  "lead_time_minutes": zod.number(),
+  "max_covers_per_slot": zod.number().nullish().describe('Optional ceiling on guests whose bookings start in one slot.'),
+  "max_party": zod.number(),
+  "min_party": zod.number(),
+  "reminder_lead_minutes": zod.number().nullish().describe('WhatsApp reminder lead. `null` = no reminder.'),
+  "require_otp": zod.boolean().describe('Online guests must verify their phone by WhatsApp code.'),
+  "slot_minutes": zod.number()
+})
+
+export const putBookingSettingsResponseHoursItemDowMin = 0;
+
+
+
+export const PutBookingSettingsResponse = zod.object({
+  "auto_no_show_minutes": zod.number().nullish().describe('Unseated this long after `starts_at` → `no_show` automatically. `null`\n= only when the window ends.'),
+  "blackout_dates": zod.array(zod.string()).describe('ISO dates (`YYYY-MM-DD`) with no online slots.'),
+  "branch_id": zod.uuid(),
+  "default_duration_minutes": zod.number(),
+  "enabled": zod.boolean().describe('Online (public) booking switch. Host bookings work regardless.'),
+  "hold_minutes": zod.number().describe('The floor shows the table as held from `starts_at - hold_minutes`.'),
+  "horizon_days": zod.number(),
+  "hours": zod.array(zod.object({
+  "close": zod.string(),
+  "dow": zod.number().min(putBookingSettingsResponseHoursItemDowMin),
+  "open": zod.string()
+}).describe('One weekly booking window. `dow`: 0 = Sunday … 6 = Saturday. `open`\/`close`\nare `HH:MM` local; a close at or before open means \"closes after midnight\".')),
+  "lead_time_minutes": zod.number(),
+  "max_covers_per_slot": zod.number().nullish().describe('Optional ceiling on guests whose bookings start in one slot.'),
+  "max_party": zod.number(),
+  "min_party": zod.number(),
+  "reminder_lead_minutes": zod.number().nullish().describe('WhatsApp reminder lead. `null` = no reminder.'),
+  "require_otp": zod.boolean().describe('Online guests must verify their phone by WhatsApp code.'),
+  "slot_minutes": zod.number()
+})
+
+
+export const BookingStatsQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "from": zod.iso.datetime({"offset":true}),
+  "to": zod.iso.datetime({"offset":true})
+})
+
+export const BookingStatsResponse = zod.object({
+  "cancelled": zod.number(),
+  "completed": zod.number(),
+  "covers": zod.number().describe('Guests across bookings that were seated or completed.'),
+  "host_count": zod.number(),
+  "no_show": zod.number(),
+  "no_show_rate": zod.number().describe('no_show \/ (no_show + seated + completed), 0 when nothing happened.'),
+  "public_count": zod.number(),
+  "seated": zod.number(),
+  "total": zod.number()
+})
+
+
+export const GetBookingParams = zod.object({
+  "id": zod.uuid().describe('Booking ID')
+})
+
+export const GetBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.string().nullish(),
+  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('The floor shows the claimed tables as held from here (branch\n`hold_minutes` before the start). Clients compare with their clock.'),
+  "id": zod.uuid(),
+  "locale": zod.string(),
+  "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
+  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish(),
+  "party_size": zod.number(),
+  "phone_verified": zod.boolean(),
+  "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "section_id": zod.uuid().nullish(),
+  "source": zod.string().describe('`public` | `host`.'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated` | `completed` | `no_show` | `cancelled`.'),
+  "table_ids": zod.array(zod.uuid()),
+  "table_labels": zod.array(zod.string()),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const UpdateBookingParams = zod.object({
+  "id": zod.uuid().describe('Booking ID')
+})
+
+export const UpdateBookingBody = zod.object({
+  "duration_minutes": zod.number().nullish(),
+  "force": zod.boolean().nullish().describe('Keep the booking when no table fits after a move (default true).'),
+  "guest_name": zod.string().nullish(),
+  "guest_phone": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "party_size": zod.number().nullish(),
+  "section_id": zod.uuid().nullish(),
+  "starts_at": zod.iso.datetime({"offset":true}).nullish(),
+  "table_ids": zod.array(zod.uuid()).nullish().describe('Present = reassign to exactly these tables (empty = unassign).')
+})
+
+export const UpdateBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.string().nullish(),
+  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('The floor shows the claimed tables as held from here (branch\n`hold_minutes` before the start). Clients compare with their clock.'),
+  "id": zod.uuid(),
+  "locale": zod.string(),
+  "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
+  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish(),
+  "party_size": zod.number(),
+  "phone_verified": zod.boolean(),
+  "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "section_id": zod.uuid().nullish(),
+  "source": zod.string().describe('`public` | `host`.'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated` | `completed` | `no_show` | `cancelled`.'),
+  "table_ids": zod.array(zod.uuid()),
+  "table_labels": zod.array(zod.string()),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const CancelBookingParams = zod.object({
+  "id": zod.uuid().describe('Booking ID')
+})
+
+export const CancelBookingBody = zod.object({
+  "notify_guest": zod.boolean().nullish().describe('Message the guest (default true).'),
+  "reason": zod.string().nullish()
+})
+
+export const CancelBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.string().nullish(),
+  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('The floor shows the claimed tables as held from here (branch\n`hold_minutes` before the start). Clients compare with their clock.'),
+  "id": zod.uuid(),
+  "locale": zod.string(),
+  "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
+  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish(),
+  "party_size": zod.number(),
+  "phone_verified": zod.boolean(),
+  "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "section_id": zod.uuid().nullish(),
+  "source": zod.string().describe('`public` | `host`.'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated` | `completed` | `no_show` | `cancelled`.'),
+  "table_ids": zod.array(zod.uuid()),
+  "table_labels": zod.array(zod.string()),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const CompleteBookingParams = zod.object({
+  "id": zod.uuid().describe('Booking ID')
+})
+
+export const CompleteBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.string().nullish(),
+  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('The floor shows the claimed tables as held from here (branch\n`hold_minutes` before the start). Clients compare with their clock.'),
+  "id": zod.uuid(),
+  "locale": zod.string(),
+  "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
+  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish(),
+  "party_size": zod.number(),
+  "phone_verified": zod.boolean(),
+  "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "section_id": zod.uuid().nullish(),
+  "source": zod.string().describe('`public` | `host`.'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated` | `completed` | `no_show` | `cancelled`.'),
+  "table_ids": zod.array(zod.uuid()),
+  "table_labels": zod.array(zod.string()),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const NoShowBookingParams = zod.object({
+  "id": zod.uuid().describe('Booking ID')
+})
+
+export const NoShowBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.string().nullish(),
+  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('The floor shows the claimed tables as held from here (branch\n`hold_minutes` before the start). Clients compare with their clock.'),
+  "id": zod.uuid(),
+  "locale": zod.string(),
+  "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
+  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish(),
+  "party_size": zod.number(),
+  "phone_verified": zod.boolean(),
+  "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "section_id": zod.uuid().nullish(),
+  "source": zod.string().describe('`public` | `host`.'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated` | `completed` | `no_show` | `cancelled`.'),
+  "table_ids": zod.array(zod.uuid()),
+  "table_labels": zod.array(zod.string()),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const SeatBookingParams = zod.object({
+  "id": zod.uuid().describe('Booking ID')
+})
+
+export const SeatBookingBody = zod.object({
+  "table_ids": zod.array(zod.uuid()).nullish().describe('Seat the party on these tables instead (a walk-in took theirs, or the\nhost prefers another). Omit to keep the claim.')
+})
+
+export const SeatBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.string().nullish(),
+  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('The floor shows the claimed tables as held from here (branch\n`hold_minutes` before the start). Clients compare with their clock.'),
+  "id": zod.uuid(),
+  "locale": zod.string(),
+  "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
+  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish(),
+  "party_size": zod.number(),
+  "phone_verified": zod.boolean(),
+  "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "section_id": zod.uuid().nullish(),
+  "source": zod.string().describe('`public` | `host`.'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated` | `completed` | `no_show` | `cancelled`.'),
+  "table_ids": zod.array(zod.uuid()),
+  "table_labels": zod.array(zod.string()),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
 export const ListBranchAddonOverridesQueryParams = zod.object({
   "branch_id": zod.uuid()
 })
@@ -1455,20 +1904,6 @@ export const ListDeliveryOrdersResponseItem = zod.object({
 export const ListDeliveryOrdersResponse = zod.array(ListDeliveryOrdersResponseItem)
 
 
-/**
- * @summary Server-Sent Events stream of delivery-order changes for one branch. Auth is
-the same Bearer + `delivery_orders:read` + branch-access trio as the list
-endpoint, enforced before the stream opens. The stream is **updates-only**:
-the client should `GET /delivery-orders` first to seed the list, then connect.
-On any error/disconnect the client re-GETs and reconnects.
- */
-export const StreamDeliveryOrdersQueryParams = zod.object({
-  "branch_id": zod.uuid()
-})
-
-export const StreamDeliveryOrdersResponse = zod.unknown()
-
-
 export const GetDeliveryOrderParams = zod.object({
   "id": zod.uuid()
 })
@@ -2180,6 +2615,15 @@ export const SaveLayoutResponseItem = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "label": zod.string(),
+  "next_booking": zod.union([zod.null(),zod.object({
+  "booking_id": zod.uuid(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('`starts_at - hold_minutes`: from here the table reads as held.'),
+  "party_size": zod.number(),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated`.')
+}).describe('The next active booking claiming this table (today\'s service, or the\none in progress). The floor renders \"held\" from `held_from` by its own\nclock; nothing here is written to `status`. Only the list endpoint fills\nit — single-row writes return `null`.')]).optional(),
   "org_id": zod.uuid(),
   "pos_x": zod.number(),
   "pos_y": zod.number(),
@@ -2275,6 +2719,15 @@ export const ListFloorTablesResponseItem = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "label": zod.string(),
+  "next_booking": zod.union([zod.null(),zod.object({
+  "booking_id": zod.uuid(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('`starts_at - hold_minutes`: from here the table reads as held.'),
+  "party_size": zod.number(),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated`.')
+}).describe('The next active booking claiming this table (today\'s service, or the\none in progress). The floor renders \"held\" from `held_from` by its own\nclock; nothing here is written to `status`. Only the list endpoint fills\nit — single-row writes return `null`.')]).optional(),
   "org_id": zod.uuid(),
   "pos_x": zod.number(),
   "pos_y": zod.number(),
@@ -2309,6 +2762,15 @@ export const CreateFloorTableResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "label": zod.string(),
+  "next_booking": zod.union([zod.null(),zod.object({
+  "booking_id": zod.uuid(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('`starts_at - hold_minutes`: from here the table reads as held.'),
+  "party_size": zod.number(),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated`.')
+}).describe('The next active booking claiming this table (today\'s service, or the\none in progress). The floor renders \"held\" from `held_from` by its own\nclock; nothing here is written to `status`. Only the list endpoint fills\nit — single-row writes return `null`.')]).optional(),
   "org_id": zod.uuid(),
   "pos_x": zod.number(),
   "pos_y": zod.number(),
@@ -2362,6 +2824,15 @@ export const UpdateFloorTableResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "label": zod.string(),
+  "next_booking": zod.union([zod.null(),zod.object({
+  "booking_id": zod.uuid(),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('`starts_at - hold_minutes`: from here the table reads as held.'),
+  "party_size": zod.number(),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated`.')
+}).describe('The next active booking claiming this table (today\'s service, or the\none in progress). The floor renders \"held\" from `held_from` by its own\nclock; nothing here is written to `status`. Only the list endpoint fills\nit — single-row writes return `null`.')]).optional(),
   "org_id": zod.uuid(),
   "pos_x": zod.number(),
   "pos_y": zod.number(),
@@ -4944,6 +5415,7 @@ export const ListOpenTicketsQueryParams = zod.object({
 })
 
 export const ListOpenTicketsResponseItem = zod.object({
+  "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
   "guest_count": zod.number().nullish(),
@@ -4972,6 +5444,7 @@ export const ListOpenTicketsResponse = zod.array(ListOpenTicketsResponseItem)
 
 
 export const CreateOpenTicketBody = zod.object({
+  "booking_id": zod.uuid().nullish().describe('The booking this party arrived under: the ticket links to it and the\nbooking moves to `seated` in the same transaction.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
   "discount_id": zod.uuid().nullish().describe('Optional discount the waiter applied at order time (overridable at settle).'),
@@ -5010,6 +5483,7 @@ export const CreateOpenTicketBody = zod.object({
 })
 
 export const CreateOpenTicketResponse = zod.object({
+  "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
   "guest_count": zod.number().nullish(),
@@ -5041,6 +5515,7 @@ export const GetOpenTicketParams = zod.object({
 })
 
 export const GetOpenTicketResponse = zod.object({
+  "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
   "guest_count": zod.number().nullish(),
@@ -5101,6 +5576,7 @@ export const AddRoundBody = zod.object({
 })
 
 export const AddRoundResponse = zod.object({
+  "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
   "guest_count": zod.number().nullish(),
@@ -5200,6 +5676,7 @@ export const MoveTicketTableBody = zod.object({
 })
 
 export const MoveTicketTableResponse = zod.object({
+  "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
   "guest_count": zod.number().nullish(),
@@ -5235,6 +5712,7 @@ export const VoidOpenTicketBody = zod.object({
 })
 
 export const VoidOpenTicketResponse = zod.object({
+  "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
   "guest_count": zod.number().nullish(),
@@ -6308,6 +6786,111 @@ export const DeleteUserPermissionParams = zod.object({
 export const DeleteUserPermissionResponse = zod.void()
 
 
+export const BookingBranchesQueryParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const BookingBranchesResponseItem = zod.object({
+  "code": zod.string(),
+  "id": zod.uuid(),
+  "name": zod.string()
+})
+export const BookingBranchesResponse = zod.array(BookingBranchesResponseItem)
+
+
+export const CreatePublicBookingBody = zod.object({
+  "branch_id": zod.uuid(),
+  "device_token": zod.string().nullish().describe('From `\/public\/otp\/verify`; required when the branch requires OTP.'),
+  "guest_name": zod.string(),
+  "locale": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "party_size": zod.number(),
+  "phone": zod.string(),
+  "starts_at": zod.iso.datetime({"offset":true})
+})
+
+export const CreatePublicBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "can_modify": zod.boolean().describe('Still confirmed and further away than the branch\'s lead time.'),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "id": zod.uuid(),
+  "manage_token": zod.string(),
+  "notes": zod.string().nullish(),
+  "party_size": zod.number(),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string(),
+  "timezone": zod.string()
+}).describe('What a guest sees on the manage page — no table ids, no staff fields.')
+
+
+export const GetPublicBookingParams = zod.object({
+  "token": zod.string().describe('Manage token from the confirmation link')
+})
+
+export const GetPublicBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "can_modify": zod.boolean().describe('Still confirmed and further away than the branch\'s lead time.'),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "id": zod.uuid(),
+  "manage_token": zod.string(),
+  "notes": zod.string().nullish(),
+  "party_size": zod.number(),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string(),
+  "timezone": zod.string()
+}).describe('What a guest sees on the manage page — no table ids, no staff fields.')
+
+
+export const UpdatePublicBookingParams = zod.object({
+  "token": zod.string().describe('Manage token')
+})
+
+export const UpdatePublicBookingBody = zod.object({
+  "notes": zod.string().nullish(),
+  "party_size": zod.number().nullish(),
+  "starts_at": zod.iso.datetime({"offset":true}).nullish()
+})
+
+export const UpdatePublicBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "can_modify": zod.boolean().describe('Still confirmed and further away than the branch\'s lead time.'),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "id": zod.uuid(),
+  "manage_token": zod.string(),
+  "notes": zod.string().nullish(),
+  "party_size": zod.number(),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string(),
+  "timezone": zod.string()
+}).describe('What a guest sees on the manage page — no table ids, no staff fields.')
+
+
+export const CancelPublicBookingParams = zod.object({
+  "token": zod.string().describe('Manage token')
+})
+
+export const CancelPublicBookingResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "can_modify": zod.boolean().describe('Still confirmed and further away than the branch\'s lead time.'),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "id": zod.uuid(),
+  "manage_token": zod.string(),
+  "notes": zod.string().nullish(),
+  "party_size": zod.number(),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string(),
+  "timezone": zod.string()
+}).describe('What a guest sees on the manage page — no table ids, no staff fields.')
+
+
 export const PublicBranchesQueryParams = zod.object({
   "org_id": zod.uuid()
 })
@@ -6328,6 +6911,56 @@ export const PublicBranchesResponseItem = zod.object({
   "umbrella_open_now": zod.boolean()
 })
 export const PublicBranchesResponse = zod.array(PublicBranchesResponseItem)
+
+
+export const BookingInfoParams = zod.object({
+  "id": zod.uuid().describe('Branch ID')
+})
+
+export const bookingInfoResponseHoursItemDowMin = 0;
+
+
+
+export const BookingInfoResponse = zod.object({
+  "blackout_dates": zod.array(zod.string()),
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "default_duration_minutes": zod.number(),
+  "enabled": zod.boolean(),
+  "horizon_days": zod.number(),
+  "hours": zod.array(zod.object({
+  "close": zod.string(),
+  "dow": zod.number().min(bookingInfoResponseHoursItemDowMin),
+  "open": zod.string()
+}).describe('One weekly booking window. `dow`: 0 = Sunday … 6 = Saturday. `open`\/`close`\nare `HH:MM` local; a close at or before open means \"closes after midnight\".')),
+  "lead_time_minutes": zod.number(),
+  "max_party": zod.number(),
+  "min_party": zod.number(),
+  "org_name": zod.string(),
+  "require_otp": zod.boolean(),
+  "slot_minutes": zod.number(),
+  "timezone": zod.string(),
+  "today": zod.string().describe('Today\'s service date in the branch zone (the picker\'s floor).')
+})
+
+
+export const BookingSlotsParams = zod.object({
+  "id": zod.uuid().describe('Branch ID')
+})
+
+export const BookingSlotsQueryParams = zod.object({
+  "date": zod.string(),
+  "party_size": zod.number()
+})
+
+export const BookingSlotsResponse = zod.object({
+  "date": zod.string(),
+  "slots": zod.array(zod.object({
+  "available": zod.boolean(),
+  "starts_at": zod.iso.datetime({"offset":true})
+})),
+  "timezone": zod.string()
+})
 
 
 export const DeliveryQuoteParams = zod.object({

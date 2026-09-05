@@ -3,6 +3,11 @@
 import type { OpenTicketItemView } from './openTicketItemView';
 
 export interface OpenTicketView {
+  /**
+     * The booking this ticket seated, if the party had one.
+     * @nullable
+     */
+  booking_id?: string | null;
   branch_id: string;
   /** @nullable */
   customer_name?: string | null;

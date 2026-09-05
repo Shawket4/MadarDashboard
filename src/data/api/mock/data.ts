@@ -1279,8 +1279,6 @@ const mockTables: MockFloorTable[] = [
   table("tbl_13", null, "QR-1", 2, "rect", 0, 0, 80, 80, "free"),
 ];
 
-const mockReservationSettings: Record<string, Record<string, unknown>> = {};
-
 export const floorSections = (branchId: string) =>
   mockSections.filter((s) => s.branch_id === branchId || branchId === ALL_BRANCHES_MOCK);
 
@@ -1351,23 +1349,173 @@ export const saveFloorLayout = (branchId: string, tables: Record<string, unknown
   return floorTables(branchId);
 };
 
-export const reservationSettings = (branchId: string) => ({
-  branch_id: branchId,
-  accepting_reservations: false,
-  accepting_waitlist: false,
-  lead_minutes: 30,
-  hold_lead_minutes: 120,
-  grace_minutes: 15,
-  max_party_size: null,
-  slot_minutes: 15,
-  updated_at: FLOOR_STAMP,
-  ...(mockReservationSettings[branchId] ?? {}),
-});
+// ── Bookings ──────────────────────────────────────────────────────────────
 
-export const putReservationSettings = (branchId: string, patch: Record<string, unknown>) => {
-  const clean = Object.fromEntries(
-    Object.entries(patch).filter(([, v]) => v !== null && v !== undefined),
-  );
-  mockReservationSettings[branchId] = { ...(mockReservationSettings[branchId] ?? {}), ...clean };
-  return reservationSettings(branchId);
+const mockBookingSettings: Record<string, Record<string, unknown>> = {};
+
+export const bookingSettings = (branchId: string) =>
+  mockBookingSettings[branchId] ?? {
+    branch_id: branchId,
+    enabled: true,
+    hours: [0, 1, 2, 3, 4, 5, 6].map((dow) => ({ dow, open: "12:00", close: "23:00" })),
+    slot_minutes: 30,
+    default_duration_minutes: 90,
+    min_party: 1,
+    max_party: 12,
+    lead_time_minutes: 60,
+    horizon_days: 30,
+    hold_minutes: 15,
+    auto_no_show_minutes: 30,
+    reminder_lead_minutes: 120,
+    require_otp: true,
+    max_covers_per_slot: null,
+    blackout_dates: [],
+  };
+
+export const putBookingSettings = (body: Record<string, unknown>) => {
+  const branchId = String(body.branch_id);
+  mockBookingSettings[branchId] = { ...bookingSettings(branchId), ...body };
+  return mockBookingSettings[branchId];
 };
+
+interface MockBooking {
+  id: string;
+  branch_id: string;
+  status: string;
+  party_size: number;
+  starts_at: string;
+  ends_at: string;
+  held_from: string;
+  guest_name: string;
+  guest_phone: string;
+  phone_verified: boolean;
+  notes: string | null;
+  source: string;
+  locale: string;
+  section_id: string | null;
+  open_ticket_id: string | null;
+  table_ids: string[];
+  table_labels: string[];
+  needs_table: boolean;
+  created_by: string | null;
+  cancel_reason: string | null;
+  cancelled_by: string | null;
+  seated_at: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
+  no_show_at: string | null;
+  reminder_sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+const todayAt = (h: number, m = 0) => {
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d;
+};
+const isoOf = (d: Date) => d.toISOString();
+const plusMin = (d: Date, n: number) => new Date(d.getTime() + n * 60_000);
+
+let bookingSeq = 0;
+const mkBooking = (over: Partial<MockBooking>): MockBooking => {
+  const start = todayAt(19, 0);
+  const t0 = mockTables[0];
+  return {
+    id: `bk-${++bookingSeq}`,
+    branch_id: t0?.branch_id ?? "b1",
+    status: "confirmed",
+    party_size: 2,
+    starts_at: isoOf(start),
+    ends_at: isoOf(plusMin(start, 90)),
+    held_from: isoOf(plusMin(start, -15)),
+    guest_name: "Guest",
+    guest_phone: "201000000000",
+    phone_verified: true,
+    notes: null,
+    source: "public",
+    locale: "en",
+    section_id: null,
+    open_ticket_id: null,
+    table_ids: t0 ? [t0.id] : [],
+    table_labels: t0 ? [t0.label] : [],
+    needs_table: !t0,
+    created_by: null,
+    cancel_reason: null,
+    cancelled_by: null,
+    seated_at: null,
+    completed_at: null,
+    cancelled_at: null,
+    no_show_at: null,
+    reminder_sent_at: null,
+    created_at: FLOOR_STAMP,
+    updated_at: FLOOR_STAMP,
+    ...over,
+  };
+};
+
+const mockBookings: MockBooking[] = [
+  mkBooking({ guest_name: "Ahmed Samir", party_size: 4 }),
+  mkBooking({ guest_name: "Nour El-Din", party_size: 2, starts_at: isoOf(todayAt(20, 30)), ends_at: isoOf(todayAt(22, 0)), held_from: isoOf(todayAt(20, 15)), source: "host", table_ids: [], table_labels: [], needs_table: true }),
+  mkBooking({ guest_name: "Mariam H.", party_size: 6, status: "seated", starts_at: isoOf(todayAt(13, 0)), ends_at: isoOf(todayAt(14, 30)), held_from: isoOf(todayAt(12, 45)), seated_at: isoOf(todayAt(13, 5)) }),
+];
+
+export const listBookings = (branchId: string, _date: string | null) =>
+  mockBookings.filter((b) => b.branch_id === branchId || branchId === ALL_BRANCHES_MOCK);
+
+export const getBooking = (id: string) => mockBookings.find((b) => b.id === id) ?? null;
+
+export const addBooking = (body: Record<string, unknown>) => {
+  const start = new Date(String(body.starts_at));
+  const ids = (body.table_ids as string[] | null | undefined) ?? (mockTables[0] ? [mockTables[0].id] : []);
+  const row = mkBooking({
+    branch_id: String(body.branch_id),
+    party_size: Number(body.party_size),
+    starts_at: isoOf(start),
+    ends_at: isoOf(plusMin(start, Number(body.duration_minutes ?? 90))),
+    held_from: isoOf(plusMin(start, -15)),
+    guest_name: String(body.guest_name),
+    guest_phone: String(body.guest_phone),
+    notes: (body.notes as string | null) ?? null,
+    source: "host",
+    table_ids: ids,
+    table_labels: ids.map((id) => mockTables.find((t) => t.id === id)?.label ?? "?"),
+    needs_table: ids.length === 0,
+  });
+  mockBookings.push(row);
+  return row;
+};
+
+export const patchBooking = (id: string, body: Record<string, unknown>) => {
+  const b = getBooking(id);
+  if (!b) return null;
+  Object.assign(b, body, { updated_at: new Date().toISOString() });
+  if (Array.isArray(body.table_ids)) {
+    b.table_labels = (body.table_ids as string[]).map((tid) => mockTables.find((t) => t.id === tid)?.label ?? "?");
+    b.needs_table = b.table_ids.length === 0;
+  }
+  return b;
+};
+
+export const setBookingStatus = (id: string, status: string) => {
+  const b = getBooking(id);
+  if (!b) return null;
+  b.status = status;
+  b.needs_table = false;
+  return b;
+};
+
+export const bookingAvailability = (_branchId: string, date: string, party: number) => {
+  const [y, m, d] = date.split("-").map(Number);
+  const slots = [];
+  for (let h = 12; h < 22; h += 1) {
+    for (const mm of [0, 30]) {
+      const s = new Date(y, (m || 1) - 1, d || 1, h, mm, 0, 0);
+      const available = party <= 6 && !(h === 19 && mm === 0);
+      slots.push({ starts_at: isoOf(s), ends_at: isoOf(plusMin(s, 90)), available, table_ids: available && mockTables[0] ? [mockTables[0].id] : [] });
+    }
+  }
+  return { date, timezone: "Africa/Cairo", slots };
+};
+
+export const bookingStats = () => ({ total: 3, covers: 6, seated: 1, completed: 0, no_show: 0, cancelled: 0, public_count: 2, host_count: 1, no_show_rate: 0 });

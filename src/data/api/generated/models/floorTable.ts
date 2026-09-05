@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { TableBookingHint } from './tableBookingHint';
 
 export interface FloorTable {
   branch_id: string;
@@ -8,6 +9,7 @@ export interface FloorTable {
   id: string;
   is_active: boolean;
   label: string;
+  next_booking?: null | TableBookingHint;
   org_id: string;
   pos_x: number;
   pos_y: number;

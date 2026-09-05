@@ -7,13 +7,11 @@ export const invalidateFloor = () =>
       typeof q.queryKey[0] === "string" && (q.queryKey[0] as string).startsWith("/floor"),
   });
 
-/** Held orders + open tickets feed the live board's occupant chips. */
+/** Open tickets feed the live board's occupant chips. */
 export const invalidateOccupants = () =>
   queryClient.invalidateQueries({
     predicate: (q) =>
-      typeof q.queryKey[0] === "string" &&
-      ((q.queryKey[0] as string).startsWith("/held-orders") ||
-        (q.queryKey[0] as string).startsWith("/open-tickets")),
+      typeof q.queryKey[0] === "string" && (q.queryKey[0] as string).startsWith("/open-tickets"),
   });
 
 /**
@@ -27,12 +25,15 @@ export const invalidateOccupants = () =>
  * `dirty` until a human clears it on the POS. Showing that as "available" would
  * put a manager's free-table count above what the room can actually seat.
  */
-export const TABLE_TONES = ["available", "seated", "dirty"] as const;
+export const TABLE_TONES = ["available", "held", "seated", "dirty"] as const;
 export type TableTone = (typeof TABLE_TONES)[number];
 
 /** Color tokens per display tone, shared by the editor, glyph, and live board. */
 export const TABLE_TONE_STYLE: Record<TableTone, { fill: string; ring: string; label: string }> = {
   available: { fill: "var(--color-success)", ring: "var(--color-success)", label: "Available" },
+  // A booked party is due: the table is kept for them (derived from the
+  // booking's `held_from`, never written to the table's status).
+  held: { fill: "var(--color-warning)", ring: "var(--color-warning)", label: "Reserved" },
   seated: { fill: "var(--color-primary)", ring: "var(--color-primary)", label: "Seated" },
   dirty: { fill: "var(--color-destructive)", ring: "var(--color-destructive)", label: "Needs clearing" },
 };
@@ -52,11 +53,39 @@ export const isTableTaken = (table: { status: string }, occupant?: string | null
 export const needsClearing = (table: { status: string }, occupant?: string | null): boolean =>
   table.status === "dirty" && !isTableTaken(table, occupant);
 
-/** The single mapper every floor surface uses to pick a tone. */
-export const toneFor = (table: { status: string }, occupant?: string | null): TableTone => {
+/**
+ * The single mapper every floor surface uses to pick a tone. `held` says a
+ * booking's hold window has started for this table (see `isHeldNow`); it only
+ * shows on a table nobody is sitting at — a party that already sat down, or a
+ * table still owing a bus, tells the truer story.
+ */
+export const toneFor = (
+  table: { status: string },
+  occupant?: string | null,
+  held = false,
+): TableTone => {
   if (isTableTaken(table, occupant)) return "seated";
-  return needsClearing(table, occupant) ? "dirty" : "available";
+  if (needsClearing(table, occupant)) return "dirty";
+  return held ? "held" : "available";
 };
+
+/** The slice of `FloorTable.next_booking` the floor reads. */
+export interface NextBooking {
+  booking_id: string;
+  status: string;
+  guest_name: string;
+  party_size: number;
+  starts_at: string;
+  held_from: string;
+}
+
+/**
+ * Has the booking's hold begun? True from `held_from` (branch `hold_minutes`
+ * before the start) until the booking is seated/over. Pure on `now` so the
+ * board can re-evaluate on a timer without a server round trip.
+ */
+export const isHeldNow = (b: NextBooking | null | undefined, now: Date = new Date()): boolean =>
+  !!b && b.status === "confirmed" && new Date(b.held_from).getTime() <= now.getTime();
 
 /** Snap grid pitch (canvas units) used by drag / resize / nudge in the editor. */
 export const GRID = 10;

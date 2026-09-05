@@ -63,8 +63,15 @@ import {
   floorTables,
   patchFloorSection,
   patchFloorTable,
-  reservationSettings,
-  putReservationSettings,
+  addBooking,
+  bookingAvailability,
+  bookingSettings,
+  bookingStats,
+  getBooking,
+  listBookings,
+  patchBooking,
+  putBookingSettings,
+  setBookingStatus,
   saveFloorLayout,
 } from "./data";
 
@@ -551,13 +558,39 @@ export const handlers = [
     };
     return HttpResponse.json(saveFloorLayout(body.branch_id, body.tables));
   }),
-  http.get("*/floor/reservation-settings", ({ request }) =>
-    HttpResponse.json(reservationSettings(branchOf(request))),
+  // ── bookings (floor-layer reservations) ──────────────────────────────
+  http.get("*/bookings/settings", ({ request }) =>
+    HttpResponse.json(bookingSettings(branchOf(request))),
   ),
-  http.put("*/floor/reservation-settings", async ({ request }) => {
+  http.put("*/bookings/settings", async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
-    return HttpResponse.json(putReservationSettings(branchOf(request), body));
+    return HttpResponse.json(putBookingSettings(body));
   }),
+  http.get("*/bookings/availability", ({ request }) => {
+    const url = new URL(request.url);
+    return HttpResponse.json(bookingAvailability(branchOf(request), url.searchParams.get("date") ?? "", Number(url.searchParams.get("party_size") ?? 2)));
+  }),
+  http.get("*/bookings/stats", () => HttpResponse.json(bookingStats())),
+  http.get("*/bookings", ({ request }) => {
+    const url = new URL(request.url);
+    return HttpResponse.json(listBookings(branchOf(request), url.searchParams.get("date")));
+  }),
+  http.post("*/bookings", async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json(addBooking(body), { status: 201 });
+  }),
+  http.get("*/bookings/:id", ({ params }) => {
+    const b = getBooking(params.id as string);
+    return b ? HttpResponse.json(b) : new HttpResponse(null, { status: 404 });
+  }),
+  http.patch("*/bookings/:id", async ({ params, request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json(patchBooking(params.id as string, body));
+  }),
+  http.post("*/bookings/:id/cancel", ({ params }) => HttpResponse.json(setBookingStatus(params.id as string, "cancelled"))),
+  http.post("*/bookings/:id/no-show", ({ params }) => HttpResponse.json(setBookingStatus(params.id as string, "no_show"))),
+  http.post("*/bookings/:id/seat", ({ params }) => HttpResponse.json(setBookingStatus(params.id as string, "seated"))),
+  http.post("*/bookings/:id/complete", ({ params }) => HttpResponse.json(setBookingStatus(params.id as string, "completed"))),
   // The live board joins occupancy onto the layout from these two.
   http.get("*/held-orders", () => HttpResponse.json({ server_time: new Date().toISOString(), held_orders: [] })),
   http.get("*/open-tickets", () => HttpResponse.json([])),

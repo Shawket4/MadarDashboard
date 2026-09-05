@@ -1,16 +1,18 @@
 import { useTranslation } from "react-i18next";
-import { Sparkles, Users } from "lucide-react";
+import { CalendarClock, Sparkles, Users } from "lucide-react";
 
 import { TABLE_TONES, TABLE_TONE_STYLE, type TableTone } from "./util";
 
 /** The glyph that names each tone — colour is never the only signal. */
 const TONE_ICON: Record<TableTone, typeof Users | null> = {
   available: null,
+  held: CalendarClock,
   seated: Users,
   dirty: Sparkles,
 };
 
-/** Three-state legend: available, seated, and still needing a bus. */
+/** Four-state legend: available, reserved (a booked party is due), seated,
+ *  and still needing a bus. */
 export function StatusLegend() {
   const { t } = useTranslation();
   return (
