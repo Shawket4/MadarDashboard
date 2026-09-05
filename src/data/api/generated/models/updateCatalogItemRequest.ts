@@ -3,7 +3,7 @@
 
 export interface UpdateCatalogItemRequest {
   /** @nullable */
-  category?: string | null;
+  category_id?: string | null;
   /** @nullable */
   cost_per_unit?: number | null;
   /** @nullable */
@@ -19,8 +19,7 @@ export interface UpdateCatalogItemRequest {
   /** @nullable */
   pack_unit?: string | null;
   /**
-     * Set/replace the default supplier. (Omitted = unchanged; clearing to
-     * none is not supported via this field.)
+     * Set/replace the default supplier (omitted = unchanged).
      * @nullable
      */
   supplier_id?: string | null;

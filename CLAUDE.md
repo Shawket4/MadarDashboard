@@ -140,6 +140,16 @@ than assuming — `--color-warning` in particular is far too light for text on i
 - State must never rest on colour alone — every tone carries a glyph, and
   needs-clearing is additionally hatched.
 
+## Inventory — count-first
+`src/features/inventory/` follows the backend's v2 model (`../MadarRust/INVENTORY_V2.md`):
+the dashboard never writes an on-hand figure. It counts (Stock counts), wastes,
+transfers and receives; every quantity on screen comes from the ledger. Stock counts
+list the whole catalog for a branch (`is_new` rows have never moved there), flag
+differences against live `book_qty` with the same rule the server enforces
+(`lib.ts` → `isVarianceFlagged`), and the Today page shows a first-run card until a
+branch has one finalized count. Ingredient categories come from the API
+(`useListIngredientCategories`), never from a hard-coded list.
+
 ## Gotchas
 - **Mock mode + service worker.** `dev:mock` needs MSW's worker
   (`public/mockServiceWorker.js`). After switching dev servers on the same port, a

@@ -2,10 +2,12 @@
 // @ts-nocheck
 
 export interface OrgIngredient {
-  category: string;
+  category_id: string;
+  category_name: string;
+  category_slug: string;
   /**
-     * Piastres per unit. `null` ⟺ never entered (unknown, NOT free) —
-     * recipes using this ingredient are cost-missing everywhere.
+     * Standard (org default) cost, piastres per unit. `null` ⟺ never entered
+     * (unknown, NOT free) — recipes using this ingredient are cost-missing.
      * @nullable
      */
   cost_per_unit?: number | null;
@@ -41,8 +43,7 @@ export interface OrgIngredient {
   unit: string;
   updated_at: string;
   /**
-     * Usable % after trim/cook loss (e.g. 70 = 70%); `null` = 100%. Recipe
-     * quantities are grossed up by this at save time.
+     * Usable % after trim/cook loss (e.g. 70 = 70%); `null` = 100%.
      * @nullable
      */
   yield_pct?: number | null;

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { BranchInventoryMovement } from "@/data/api/generated/models";
+import type { StockMovement } from "@/data/api/generated/models";
 import { useBranchWasteReport, useListWaste } from "@/data/api/generated/api";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
@@ -25,7 +25,7 @@ export function WastePage() {
 
   // The waste log scopes to the selected branch or rolls up across the org
   // ("All branches"). Logging waste needs a concrete branch (gated below).
-  const waste = useListWaste(scopeBranchId, { query: { enabled: !!scopeBranchId } });
+  const waste = useListWaste(scopeBranchId, undefined, { query: { enabled: !!scopeBranchId } });
   // The "by reason" report also rolls up org-wide for All branches (the
   // waste-report endpoint accepts the all-branches sentinel).
   const report = useBranchWasteReport(
@@ -52,7 +52,7 @@ export function WastePage() {
     [report.data],
   );
 
-  const columns = useMemo<ColumnDef<BranchInventoryMovement>[]>(
+  const columns = useMemo<ColumnDef<StockMovement>[]>(
     () => [
       {
         accessorKey: "created_at",
@@ -64,7 +64,7 @@ export function WastePage() {
             accessorKey: "branch_name",
             header: t("inventory.waste.branch", "Branch"),
             cell: ({ row }) => <span>{row.original.branch_name ?? "—"}</span>,
-          }] as ColumnDef<BranchInventoryMovement>[])
+          }] as ColumnDef<StockMovement>[])
         : []),
       { accessorKey: "ingredient_name", header: t("inventory.waste.ingredient", "Ingredient") },
       {
@@ -91,7 +91,7 @@ export function WastePage() {
 
   const handleExport = () => {
     const rows = waste.data ?? [];
-    const cols: ExcelColumn<BranchInventoryMovement>[] = [
+    const cols: ExcelColumn<StockMovement>[] = [
       { header: t("common.date", "Date"), accessor: (m) => m.created_at, type: "dateTime", width: 20 },
       { header: t("inventory.waste.ingredient", "Ingredient"), accessor: (m) => m.ingredient_name, type: "text", width: 28 },
       { header: t("inventory.waste.quantity", "Quantity"), accessor: (m) => Math.abs(m.quantity), type: "number", width: 14 },

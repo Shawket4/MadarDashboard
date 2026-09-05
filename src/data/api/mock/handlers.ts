@@ -20,6 +20,7 @@ import {
   MOCK_DELIVERY_SALES,
   MOCK_DELIVERY_SETTINGS,
   MOCK_INGREDIENT_CATALOG,
+  MOCK_INGREDIENT_CATEGORIES,
   MOCK_INVENTORY_SETTINGS,
   MOCK_INVENTORY_VALUATION,
   MOCK_LOW_STOCK,
@@ -439,6 +440,7 @@ export const handlers = [
   http.get("*/menu-items", () => HttpResponse.json(MOCK_MENU_ITEMS)),
 
   // ── Inventory ─────────────────────────────────────────────────────────────
+  http.get("*/inventory/orgs/*/categories", () => HttpResponse.json(MOCK_INGREDIENT_CATEGORIES)),
   http.get("*/inventory/orgs/*/catalog", () => HttpResponse.json(MOCK_INGREDIENT_CATALOG)),
   http.get("*/inventory/orgs/*/settings", () => HttpResponse.json(MOCK_INVENTORY_SETTINGS)),
   http.get("*/inventory/branches/*/stock", () => HttpResponse.json(MOCK_BRANCH_STOCK)),

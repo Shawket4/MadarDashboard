@@ -136,9 +136,9 @@ export const NAV: NavGroup[] = [
         basePath: "/inventory",
         children: [
           { to: "/inventory/today", labelKey: "nav.invToday", fallback: "Today", icon: Home },
+          { to: "/inventory/counts", labelKey: "nav.invCounts", fallback: "Stock counts", icon: ClipboardList },
           { to: "/inventory/ingredients", labelKey: "nav.ingredients", fallback: "Ingredients", icon: Package },
           { to: "/inventory/purchasing", labelKey: "nav.invPurchasing", fallback: "Purchasing", icon: ShoppingCart },
-          { to: "/inventory/counts", labelKey: "nav.invCounts", fallback: "Stock counts", icon: ClipboardList },
           { to: "/inventory/waste", labelKey: "nav.invWaste", fallback: "Waste", icon: Trash2 },
           { to: "/inventory/transfers", labelKey: "nav.invTransfers", fallback: "Transfers", icon: ArrowLeftRight },
           { to: "/inventory/reports", labelKey: "nav.invReports", fallback: "Reports", icon: FileBarChart },

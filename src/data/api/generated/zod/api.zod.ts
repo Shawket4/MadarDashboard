@@ -2879,17 +2879,17 @@ export const ListMovementsQueryParams = zod.object({
 })
 
 export const ListMovementsResponseItem = zod.object({
-  "balance_after": zod.number().nullish(),
+  "balance_after": zod.number(),
   "below_zero": zod.boolean(),
   "branch_id": zod.uuid(),
-  "branch_inventory_id": zod.uuid().nullish(),
   "branch_name": zod.string().nullish().describe('Branch name; only populated by the all-branches waste roll-up (nil\n{branch_id}). `None` for single-branch queries that do not select it.'),
+  "branch_stock_id": zod.uuid().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "created_by_name": zod.string().nullish(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
-  "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in | stock_count'),
+  "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number().describe('Signed delta applied to stock (consumption negative, replenishment positive).'),
@@ -2907,97 +2907,58 @@ export const ListBranchStockParams = zod.object({
 })
 
 export const ListBranchStockResponseItem = zod.object({
-  "below_reorder": zod.boolean(),
+  "below_par": zod.boolean(),
   "branch_id": zod.uuid(),
-  "cost_per_unit": zod.number().nullish().describe('Piastres per unit; `null` ⟺ cost never entered.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "current_stock": zod.number(),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
+  "category_slug": zod.string(),
+  "cost_per_unit": zod.number().nullish().describe('This branch\'s actual (weighted-average) cost, falling back to the org\nstandard cost. Piastres per unit; `null` ⟺ unknown.'),
   "description": zod.string().nullish(),
-  "id": zod.uuid(),
+  "has_activity": zod.boolean(),
   "ingredient_name": zod.string(),
-  "last_counted_at": zod.iso.datetime({"offset":true}).nullish().describe('When this item was last reconciled by a finalized stock count; `null` =\nnever counted. Drives the \"count due\" signal on the inventory home.'),
+  "last_counted_at": zod.iso.datetime({"offset":true}).nullish().describe('Last finalized stock count that included this ingredient; `null` = never.'),
+  "last_movement_at": zod.iso.datetime({"offset":true}).nullish().describe('Last ledger movement of any kind; `null` = never.'),
+  "on_hand": zod.number().describe('Book stock in the base unit. May be negative (sold past zero, flagged).'),
   "org_ingredient_id": zod.uuid(),
-  "par_max": zod.number().nullish().describe('Order-up-to level (bring stock back up to this when reordering).'),
-  "par_min": zod.number().nullish().describe('Reorder point (order when on-hand ≤ this). Falls back to reorder_threshold.'),
-  "reorder_threshold": zod.number(),
-  "unit": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
+  "par_max": zod.number().nullish().describe('Order-up-to level for reorder suggestions.'),
+  "par_min": zod.number().nullish().describe('Reorder point: below-par when `on_hand <= par_min` and `par_min > 0`.'),
+  "unit": zod.string()
+}).describe('One catalog ingredient as seen from a branch. Every live catalog ingredient\nappears exactly once; `has_activity = false` means the branch has never\nmoved or counted it (on hand is 0 and every date is null).')
 export const ListBranchStockResponse = zod.array(ListBranchStockResponseItem)
 
 
-export const AddToBranchStockParams = zod.object({
-  "branch_id": zod.uuid().describe('Branch ID')
-})
-
-export const AddToBranchStockBody = zod.object({
-  "current_stock": zod.number().nullish(),
-  "org_ingredient_id": zod.uuid(),
-  "par_max": zod.number().nullish(),
-  "par_min": zod.number().nullish(),
-  "reorder_threshold": zod.number().nullish()
-})
-
-export const AddToBranchStockResponse = zod.object({
-  "below_reorder": zod.boolean(),
-  "branch_id": zod.uuid(),
-  "cost_per_unit": zod.number().nullish().describe('Piastres per unit; `null` ⟺ cost never entered.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "current_stock": zod.number(),
-  "description": zod.string().nullish(),
-  "id": zod.uuid(),
-  "ingredient_name": zod.string(),
-  "last_counted_at": zod.iso.datetime({"offset":true}).nullish().describe('When this item was last reconciled by a finalized stock count; `null` =\nnever counted. Drives the \"count due\" signal on the inventory home.'),
-  "org_ingredient_id": zod.uuid(),
-  "par_max": zod.number().nullish().describe('Order-up-to level (bring stock back up to this when reordering).'),
-  "par_min": zod.number().nullish().describe('Reorder point (order when on-hand ≤ this). Falls back to reorder_threshold.'),
-  "reorder_threshold": zod.number(),
-  "unit": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const RemoveFromBranchStockParams = zod.object({
+export const SetParLevelsParams = zod.object({
   "branch_id": zod.uuid().describe('Branch ID'),
-  "id": zod.uuid().describe('Stock ID')
+  "org_ingredient_id": zod.uuid().describe('Ingredient ID')
 })
 
-export const RemoveFromBranchStockResponse = zod.void()
-
-
-export const UpdateBranchStockParams = zod.object({
-  "branch_id": zod.uuid().describe('Branch ID'),
-  "id": zod.uuid().describe('Stock ID')
-})
-
-export const UpdateBranchStockBody = zod.object({
-  "current_stock": zod.number().nullish(),
+export const SetParLevelsBody = zod.object({
   "par_max": zod.number().nullish(),
-  "par_min": zod.number().nullish(),
-  "reorder_threshold": zod.number().nullish()
-})
+  "par_min": zod.number().nullish()
+}).describe('Par levels for one ingredient at one branch. `null` clears a level.')
 
-export const UpdateBranchStockResponse = zod.object({
-  "below_reorder": zod.boolean(),
+export const SetParLevelsResponse = zod.object({
+  "below_par": zod.boolean(),
   "branch_id": zod.uuid(),
-  "cost_per_unit": zod.number().nullish().describe('Piastres per unit; `null` ⟺ cost never entered.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "current_stock": zod.number(),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
+  "category_slug": zod.string(),
+  "cost_per_unit": zod.number().nullish().describe('This branch\'s actual (weighted-average) cost, falling back to the org\nstandard cost. Piastres per unit; `null` ⟺ unknown.'),
   "description": zod.string().nullish(),
-  "id": zod.uuid(),
+  "has_activity": zod.boolean(),
   "ingredient_name": zod.string(),
-  "last_counted_at": zod.iso.datetime({"offset":true}).nullish().describe('When this item was last reconciled by a finalized stock count; `null` =\nnever counted. Drives the \"count due\" signal on the inventory home.'),
+  "last_counted_at": zod.iso.datetime({"offset":true}).nullish().describe('Last finalized stock count that included this ingredient; `null` = never.'),
+  "last_movement_at": zod.iso.datetime({"offset":true}).nullish().describe('Last ledger movement of any kind; `null` = never.'),
+  "on_hand": zod.number().describe('Book stock in the base unit. May be negative (sold past zero, flagged).'),
   "org_ingredient_id": zod.uuid(),
-  "par_max": zod.number().nullish().describe('Order-up-to level (bring stock back up to this when reordering).'),
-  "par_min": zod.number().nullish().describe('Reorder point (order when on-hand ≤ this). Falls back to reorder_threshold.'),
-  "reorder_threshold": zod.number(),
-  "unit": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
+  "par_max": zod.number().nullish().describe('Order-up-to level for reorder suggestions.'),
+  "par_min": zod.number().nullish().describe('Reorder point: below-par when `on_hand <= par_min` and `par_min > 0`.'),
+  "unit": zod.string()
+}).describe('One catalog ingredient as seen from a branch. Every live catalog ingredient\nappears exactly once; `has_activity = false` means the branch has never\nmoved or counted it (on hand is 0 and every date is null).')
 
 
 export const ListTransfersParams = zod.object({
-  "branch_id": zod.uuid()
+  "branch_id": zod.uuid().describe('Branch ID')
 })
 
 export const ListTransfersQueryParams = zod.object({
@@ -3029,18 +2990,23 @@ export const ListWasteParams = zod.object({
   "branch_id": zod.uuid().describe('Branch ID')
 })
 
+export const ListWasteQueryParams = zod.object({
+  "limit": zod.number().optional(),
+  "offset": zod.number().optional()
+})
+
 export const ListWasteResponseItem = zod.object({
-  "balance_after": zod.number().nullish(),
+  "balance_after": zod.number(),
   "below_zero": zod.boolean(),
   "branch_id": zod.uuid(),
-  "branch_inventory_id": zod.uuid().nullish(),
   "branch_name": zod.string().nullish().describe('Branch name; only populated by the all-branches waste roll-up (nil\n{branch_id}). `None` for single-branch queries that do not select it.'),
+  "branch_stock_id": zod.uuid().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "created_by_name": zod.string().nullish(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
-  "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in | stock_count'),
+  "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number().describe('Signed delta applied to stock (consumption negative, replenishment positive).'),
@@ -3065,17 +3031,17 @@ export const CreateWasteBody = zod.object({
 })
 
 export const CreateWasteResponse = zod.object({
-  "balance_after": zod.number().nullish(),
+  "balance_after": zod.number(),
   "below_zero": zod.boolean(),
   "branch_id": zod.uuid(),
-  "branch_inventory_id": zod.uuid().nullish(),
   "branch_name": zod.string().nullish().describe('Branch name; only populated by the all-branches waste roll-up (nil\n{branch_id}). `None` for single-branch queries that do not select it.'),
+  "branch_stock_id": zod.uuid().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "created_by_name": zod.string().nullish(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
-  "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in | stock_count'),
+  "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number().describe('Signed delta applied to stock (consumption negative, replenishment positive).'),
@@ -3092,8 +3058,10 @@ export const ListCatalogParams = zod.object({
 })
 
 export const ListCatalogResponseItem = zod.object({
-  "category": zod.string(),
-  "cost_per_unit": zod.number().nullish().describe('Piastres per unit. `null` ⟺ never entered (unknown, NOT free) —\nrecipes using this ingredient are cost-missing everywhere.'),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
+  "category_slug": zod.string(),
+  "cost_per_unit": zod.number().nullish().describe('Standard (org default) cost, piastres per unit. `null` ⟺ never entered\n(unknown, NOT free) — recipes using this ingredient are cost-missing.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "density_g_per_ml": zod.number().nullish().describe('Grams per millilitre, bridging weight↔volume in recipes; `null` = none.'),
   "description": zod.string().nullish(),
@@ -3107,7 +3075,7 @@ export const ListCatalogResponseItem = zod.object({
   "supplier_name": zod.string().nullish(),
   "unit": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%. Recipe\nquantities are grossed up by this at save time.')
+  "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%.')
 })
 export const ListCatalogResponse = zod.array(ListCatalogResponseItem)
 
@@ -3117,21 +3085,23 @@ export const CreateCatalogItemParams = zod.object({
 })
 
 export const CreateCatalogItemBody = zod.object({
-  "category": zod.string(),
+  "category_id": zod.uuid().nullish().describe('Omitted ⟹ the org\'s `general` category.'),
   "cost_per_unit": zod.number().nullish(),
   "density_g_per_ml": zod.number().nullish(),
   "description": zod.string().nullish(),
   "name": zod.string(),
   "pack_size": zod.number().nullish(),
-  "pack_unit": zod.string().nullish().describe('Optional named purchase pack and its base-unit size.'),
-  "supplier_id": zod.uuid().nullish().describe('Optional default supplier for reordering.'),
+  "pack_unit": zod.string().nullish(),
+  "supplier_id": zod.uuid().nullish(),
   "unit": zod.string(),
   "yield_pct": zod.number().nullish()
 })
 
 export const CreateCatalogItemResponse = zod.object({
-  "category": zod.string(),
-  "cost_per_unit": zod.number().nullish().describe('Piastres per unit. `null` ⟺ never entered (unknown, NOT free) —\nrecipes using this ingredient are cost-missing everywhere.'),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
+  "category_slug": zod.string(),
+  "cost_per_unit": zod.number().nullish().describe('Standard (org default) cost, piastres per unit. `null` ⟺ never entered\n(unknown, NOT free) — recipes using this ingredient are cost-missing.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "density_g_per_ml": zod.number().nullish().describe('Grams per millilitre, bridging weight↔volume in recipes; `null` = none.'),
   "description": zod.string().nullish(),
@@ -3145,7 +3115,7 @@ export const CreateCatalogItemResponse = zod.object({
   "supplier_name": zod.string().nullish(),
   "unit": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%. Recipe\nquantities are grossed up by this at save time.')
+  "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%.')
 })
 
 
@@ -3163,7 +3133,7 @@ export const UpdateCatalogItemParams = zod.object({
 })
 
 export const UpdateCatalogItemBody = zod.object({
-  "category": zod.string().nullish(),
+  "category_id": zod.uuid().nullish(),
   "cost_per_unit": zod.number().nullish(),
   "density_g_per_ml": zod.number().nullish(),
   "description": zod.string().nullish(),
@@ -3171,14 +3141,16 @@ export const UpdateCatalogItemBody = zod.object({
   "name": zod.string().nullish(),
   "pack_size": zod.number().nullish(),
   "pack_unit": zod.string().nullish(),
-  "supplier_id": zod.uuid().nullish().describe('Set\/replace the default supplier. (Omitted = unchanged; clearing to\nnone is not supported via this field.)'),
+  "supplier_id": zod.uuid().nullish().describe('Set\/replace the default supplier (omitted = unchanged).'),
   "unit": zod.string().nullish(),
   "yield_pct": zod.number().nullish()
 })
 
 export const UpdateCatalogItemResponse = zod.object({
-  "category": zod.string(),
-  "cost_per_unit": zod.number().nullish().describe('Piastres per unit. `null` ⟺ never entered (unknown, NOT free) —\nrecipes using this ingredient are cost-missing everywhere.'),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
+  "category_slug": zod.string(),
+  "cost_per_unit": zod.number().nullish().describe('Standard (org default) cost, piastres per unit. `null` ⟺ never entered\n(unknown, NOT free) — recipes using this ingredient are cost-missing.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "density_g_per_ml": zod.number().nullish().describe('Grams per millilitre, bridging weight↔volume in recipes; `null` = none.'),
   "description": zod.string().nullish(),
@@ -3192,7 +3164,80 @@ export const UpdateCatalogItemResponse = zod.object({
   "supplier_name": zod.string().nullish(),
   "unit": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%. Recipe\nquantities are grossed up by this at save time.')
+  "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%.')
+})
+
+
+export const ListIngredientCategoriesParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID')
+})
+
+export const ListIngredientCategoriesResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "ingredient_count": zod.number().describe('Live (non-deleted) ingredients in this category.'),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "slug": zod.string().describe('Stable machine key (`general`, `milk`, `coffee_bean`, …). `milk` and\n`coffee_bean` carry swap semantics in the menu; the slug never changes.'),
+  "sort_order": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListIngredientCategoriesResponse = zod.array(ListIngredientCategoriesResponseItem)
+
+
+export const CreateIngredientCategoryParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID')
+})
+
+export const CreateIngredientCategoryBody = zod.object({
+  "name": zod.string(),
+  "slug": zod.string().nullish().describe('Optional explicit slug (`[a-z0-9_]`); derived from the name when omitted.'),
+  "sort_order": zod.number().nullish()
+})
+
+export const CreateIngredientCategoryResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "ingredient_count": zod.number().describe('Live (non-deleted) ingredients in this category.'),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "slug": zod.string().describe('Stable machine key (`general`, `milk`, `coffee_bean`, …). `milk` and\n`coffee_bean` carry swap semantics in the menu; the slug never changes.'),
+  "sort_order": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const DeleteIngredientCategoryParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID'),
+  "id": zod.uuid().describe('Category ID')
+})
+
+export const DeleteIngredientCategoryQueryParams = zod.object({
+  "reassign_to": zod.uuid().optional().describe('Category that ingredients in the deleted one move to. Required when the\ncategory still has ingredients.')
+})
+
+export const DeleteIngredientCategoryResponse = zod.void()
+
+
+export const UpdateIngredientCategoryParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID'),
+  "id": zod.uuid().describe('Category ID')
+})
+
+export const UpdateIngredientCategoryBody = zod.object({
+  "name": zod.string().nullish(),
+  "sort_order": zod.number().nullish()
+})
+
+export const UpdateIngredientCategoryResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "ingredient_count": zod.number().describe('Live (non-deleted) ingredients in this category.'),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "slug": zod.string().describe('Stable machine key (`general`, `milk`, `coffee_bean`, …). `milk` and\n`coffee_bean` carry swap semantics in the menu; the slug never changes.'),
+  "sort_order": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true})
 })
 
 
@@ -3201,7 +3246,7 @@ export const GetInventorySettingsParams = zod.object({
 })
 
 export const GetInventorySettingsResponse = zod.object({
-  "stocktake_variance_threshold_pct": zod.number().describe('Stock-count variance tolerance (percent). A counted row whose |difference|\nis at least this percent of expected is flagged and needs a reason.')
+  "stocktake_variance_threshold_pct": zod.number().describe('Stock-count variance tolerance (percent). A counted row whose |difference|\nis at least this percent of book stock is flagged and needs a reason.')
 })
 
 
@@ -3214,7 +3259,7 @@ export const UpdateInventorySettingsBody = zod.object({
 })
 
 export const UpdateInventorySettingsResponse = zod.object({
-  "stocktake_variance_threshold_pct": zod.number().describe('Stock-count variance tolerance (percent). A counted row whose |difference|\nis at least this percent of expected is flagged and needs a reason.')
+  "stocktake_variance_threshold_pct": zod.number().describe('Stock-count variance tolerance (percent). A counted row whose |difference|\nis at least this percent of book stock is flagged and needs a reason.')
 })
 
 
@@ -6670,8 +6715,8 @@ export const ReorderSuggestionsParams = zod.object({
 
 export const ReorderSuggestionsResponseItem = zod.object({
   "lines": zod.array(zod.object({
-  "current_stock": zod.number(),
   "ingredient_name": zod.string(),
+  "on_hand": zod.number(),
   "org_ingredient_id": zod.uuid(),
   "suggested_qty": zod.number().describe('Quantity (in base units) to bring stock up to the order-up-to level.'),
   "unit": zod.string()
@@ -7231,11 +7276,11 @@ export const BranchInventoryValuationParams = zod.object({
 export const BranchInventoryValuationResponse = zod.object({
   "items": zod.array(zod.object({
   "cost_per_unit": zod.number().nullish().describe('Piastres per unit; `null` ⟺ unknown.'),
-  "current_stock": zod.number(),
   "ingredient_name": zod.string(),
+  "on_hand": zod.number(),
   "org_ingredient_id": zod.uuid(),
   "unit": zod.string(),
-  "value": zod.number().nullish().describe('current_stock × cost_per_unit in piastres; `null` when cost unknown.')
+  "value": zod.number().nullish().describe('on_hand × cost_per_unit in piastres; `null` when cost unknown.')
 })),
   "total_value": zod.number(),
   "unknown_cost_count": zod.number()
@@ -7272,11 +7317,12 @@ export const BranchLowStockParams = zod.object({
 export const BranchLowStockResponseItem = zod.object({
   "branch_id": zod.uuid(),
   "branch_name": zod.string(),
-  "current_stock": zod.number(),
-  "deficit": zod.number().describe('reorder_threshold − current_stock: how much to order to reach par.'),
   "ingredient_name": zod.string(),
+  "on_hand": zod.number(),
   "org_ingredient_id": zod.uuid(),
-  "reorder_threshold": zod.number(),
+  "par_max": zod.number().nullish().describe('Order-up-to level; `null` when only a reorder point is set.'),
+  "par_min": zod.number().describe('Reorder point the item is at or below.'),
+  "suggested_qty": zod.number().describe('Quantity to bring stock back to par_max (or par_min when no max is set).'),
   "supplier_id": zod.uuid().nullish().describe('Default supplier for this ingredient (for one-click \"create PO\"); may be null.'),
   "supplier_name": zod.string().nullish(),
   "unit": zod.string()
@@ -7417,12 +7463,12 @@ export const BranchStockResponse = zod.object({
   "branch_id": zod.uuid(),
   "branch_name": zod.string(),
   "items": zod.array(zod.object({
-  "below_reorder": zod.boolean(),
-  "branch_inventory_id": zod.uuid(),
+  "below_par": zod.boolean(),
   "cost_per_unit": zod.number().nullish().describe('Piastres per unit; `null` ⟺ cost never entered.'),
-  "current_stock": zod.number(),
   "ingredient_name": zod.string(),
-  "reorder_threshold": zod.number(),
+  "on_hand": zod.number(),
+  "org_ingredient_id": zod.uuid(),
+  "par_min": zod.number().nullish().describe('Reorder point; `null` = not set at this branch.'),
   "unit": zod.string()
 }))
 })
@@ -7553,11 +7599,11 @@ export const OrgInventoryValuationParams = zod.object({
 export const OrgInventoryValuationResponse = zod.object({
   "items": zod.array(zod.object({
   "cost_per_unit": zod.number().nullish().describe('Piastres per unit; `null` ⟺ unknown.'),
-  "current_stock": zod.number(),
   "ingredient_name": zod.string(),
+  "on_hand": zod.number(),
   "org_ingredient_id": zod.uuid(),
   "unit": zod.string(),
-  "value": zod.number().nullish().describe('current_stock × cost_per_unit in piastres; `null` when cost unknown.')
+  "value": zod.number().nullish().describe('on_hand × cost_per_unit in piastres; `null` when cost unknown.')
 })),
   "total_value": zod.number(),
   "unknown_cost_count": zod.number()
@@ -7571,11 +7617,12 @@ export const OrgLowStockParams = zod.object({
 export const OrgLowStockResponseItem = zod.object({
   "branch_id": zod.uuid(),
   "branch_name": zod.string(),
-  "current_stock": zod.number(),
-  "deficit": zod.number().describe('reorder_threshold − current_stock: how much to order to reach par.'),
   "ingredient_name": zod.string(),
+  "on_hand": zod.number(),
   "org_ingredient_id": zod.uuid(),
-  "reorder_threshold": zod.number(),
+  "par_max": zod.number().nullish().describe('Order-up-to level; `null` when only a reorder point is set.'),
+  "par_min": zod.number().describe('Reorder point the item is at or below.'),
+  "suggested_qty": zod.number().describe('Quantity to bring stock back to par_max (or par_min when no max is set).'),
   "supplier_id": zod.uuid().nullish().describe('Default supplier for this ingredient (for one-click \"create PO\"); may be null.'),
   "supplier_name": zod.string().nullish(),
   "unit": zod.string()
@@ -9754,22 +9801,27 @@ export const UpdateWorkShiftResponse = zod.object({
 
 
 export const ListStocktakesParams = zod.object({
-  "branch_id": zod.uuid().describe('Branch ID')
+  "branch_id": zod.uuid().describe('Branch ID, or the all-zeros UUID for every branch in the org')
 })
 
 export const ListStocktakesResponseItem = zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to).'),
+  "counted_items": zod.number().nullish().describe('Items counted \/ items in scope; populated by the list endpoint only.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "finalized_at": zod.iso.datetime({"offset":true}).nullish(),
   "finalized_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "note": zod.string().nullish(),
   "org_id": zod.uuid(),
+  "scope": zod.looseObject({
+
+}).describe('`{\"kind\":\"full\"}`, `{\"kind\":\"category\",\"category_id\":…}` or\n`{\"kind\":\"items\",\"org_ingredient_ids\":[…]}`.'),
   "started_at": zod.iso.datetime({"offset":true}),
   "started_by": zod.uuid(),
   "started_by_name": zod.string().nullish(),
-  "status": zod.string()
+  "status": zod.string(),
+  "total_items": zod.number().nullish()
 })
 export const ListStocktakesResponse = zod.array(ListStocktakesResponseItem)
 
@@ -9779,42 +9831,50 @@ export const CreateStocktakeParams = zod.object({
 })
 
 export const CreateStocktakeBody = zod.object({
-  "category": zod.string().nullish().describe('Cycle-count scope: snapshot only ingredients in this catalog category.\nOmit (with org_ingredient_ids) for a full-branch count.'),
+  "category_id": zod.uuid().nullish().describe('Cycle-count scope: only ingredients in this category.'),
   "note": zod.string().nullish(),
-  "org_ingredient_ids": zod.array(zod.uuid()).nullish().describe('Cycle-count scope: snapshot only these specific ingredients.')
+  "org_ingredient_ids": zod.array(zod.uuid()).nullish().describe('Cycle-count scope: only these ingredients.')
 })
 
 export const CreateStocktakeResponse = zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to).'),
+  "counted_items": zod.number().nullish().describe('Items counted \/ items in scope; populated by the list endpoint only.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "finalized_at": zod.iso.datetime({"offset":true}).nullish(),
   "finalized_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "note": zod.string().nullish(),
   "org_id": zod.uuid(),
+  "scope": zod.looseObject({
+
+}).describe('`{\"kind\":\"full\"}`, `{\"kind\":\"category\",\"category_id\":…}` or\n`{\"kind\":\"items\",\"org_ingredient_ids\":[…]}`.'),
   "started_at": zod.iso.datetime({"offset":true}),
   "started_by": zod.uuid(),
   "started_by_name": zod.string().nullish(),
-  "status": zod.string()
+  "status": zod.string(),
+  "total_items": zod.number().nullish()
 }).and(zod.object({
   "items": zod.array(zod.object({
-  "branch_inventory_id": zod.uuid().nullish(),
+  "book_qty": zod.number().describe('The baseline the difference is measured against: live book stock while\nthe count is open, frozen at finalize.'),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
   "counted_by": zod.uuid().nullish(),
   "counted_qty": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
-  "expected_qty": zod.number(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "is_new": zod.boolean().describe('True when the branch had no stock activity for this ingredient when the\ncount opened — counting it is what starts tracking it here.'),
   "note": zod.string().nullish(),
+  "opening_qty": zod.number().describe('Book stock when the count was opened (reference only).'),
   "org_ingredient_id": zod.uuid(),
   "stocktake_id": zod.uuid(),
   "unit": zod.string(),
   "unit_cost": zod.number().nullish().describe('Piastres per unit snapshot; `null` ⟺ unknown.'),
-  "variance": zod.number().nullish(),
+  "variance": zod.number().nullish().describe('counted − book; `null` until counted.'),
   "variance_reason": zod.string().nullish().describe('theft | spoilage | breakage | miscount | supplier_short | transfer_error | other.')
 })),
-  "variance_threshold_pct": zod.number().describe('Org tolerance: a counted row whose |difference| is >= this percent of the\nexpected quantity (or that appears-from \/ vanishes-to zero) is flagged and\nrequires a `variance_reason` before the count can be finalized.')
+  "variance_threshold_pct": zod.number().describe('Org tolerance: a counted row whose |difference| is >= this percent of\nbook stock (or that appears-from \/ vanishes-to zero) is flagged and\nrequires a `variance_reason` before the count can be finalized.')
 }))
 
 
@@ -9824,35 +9884,43 @@ export const GetStocktakeParams = zod.object({
 
 export const GetStocktakeResponse = zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to).'),
+  "counted_items": zod.number().nullish().describe('Items counted \/ items in scope; populated by the list endpoint only.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "finalized_at": zod.iso.datetime({"offset":true}).nullish(),
   "finalized_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "note": zod.string().nullish(),
   "org_id": zod.uuid(),
+  "scope": zod.looseObject({
+
+}).describe('`{\"kind\":\"full\"}`, `{\"kind\":\"category\",\"category_id\":…}` or\n`{\"kind\":\"items\",\"org_ingredient_ids\":[…]}`.'),
   "started_at": zod.iso.datetime({"offset":true}),
   "started_by": zod.uuid(),
   "started_by_name": zod.string().nullish(),
-  "status": zod.string()
+  "status": zod.string(),
+  "total_items": zod.number().nullish()
 }).and(zod.object({
   "items": zod.array(zod.object({
-  "branch_inventory_id": zod.uuid().nullish(),
+  "book_qty": zod.number().describe('The baseline the difference is measured against: live book stock while\nthe count is open, frozen at finalize.'),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
   "counted_by": zod.uuid().nullish(),
   "counted_qty": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
-  "expected_qty": zod.number(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "is_new": zod.boolean().describe('True when the branch had no stock activity for this ingredient when the\ncount opened — counting it is what starts tracking it here.'),
   "note": zod.string().nullish(),
+  "opening_qty": zod.number().describe('Book stock when the count was opened (reference only).'),
   "org_ingredient_id": zod.uuid(),
   "stocktake_id": zod.uuid(),
   "unit": zod.string(),
   "unit_cost": zod.number().nullish().describe('Piastres per unit snapshot; `null` ⟺ unknown.'),
-  "variance": zod.number().nullish(),
+  "variance": zod.number().nullish().describe('counted − book; `null` until counted.'),
   "variance_reason": zod.string().nullish().describe('theft | spoilage | breakage | miscount | supplier_short | transfer_error | other.')
 })),
-  "variance_threshold_pct": zod.number().describe('Org tolerance: a counted row whose |difference| is >= this percent of the\nexpected quantity (or that appears-from \/ vanishes-to zero) is flagged and\nrequires a `variance_reason` before the count can be finalized.')
+  "variance_threshold_pct": zod.number().describe('Org tolerance: a counted row whose |difference| is >= this percent of\nbook stock (or that appears-from \/ vanishes-to zero) is flagged and\nrequires a `variance_reason` before the count can be finalized.')
 }))
 
 
@@ -9862,17 +9930,22 @@ export const CancelStocktakeParams = zod.object({
 
 export const CancelStocktakeResponse = zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to).'),
+  "counted_items": zod.number().nullish().describe('Items counted \/ items in scope; populated by the list endpoint only.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "finalized_at": zod.iso.datetime({"offset":true}).nullish(),
   "finalized_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "note": zod.string().nullish(),
   "org_id": zod.uuid(),
+  "scope": zod.looseObject({
+
+}).describe('`{\"kind\":\"full\"}`, `{\"kind\":\"category\",\"category_id\":…}` or\n`{\"kind\":\"items\",\"org_ingredient_ids\":[…]}`.'),
   "started_at": zod.iso.datetime({"offset":true}),
   "started_by": zod.uuid(),
   "started_by_name": zod.string().nullish(),
-  "status": zod.string()
+  "status": zod.string(),
+  "total_items": zod.number().nullish()
 })
 
 
@@ -9882,35 +9955,43 @@ export const FinalizeStocktakeParams = zod.object({
 
 export const FinalizeStocktakeResponse = zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to).'),
+  "counted_items": zod.number().nullish().describe('Items counted \/ items in scope; populated by the list endpoint only.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "finalized_at": zod.iso.datetime({"offset":true}).nullish(),
   "finalized_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "note": zod.string().nullish(),
   "org_id": zod.uuid(),
+  "scope": zod.looseObject({
+
+}).describe('`{\"kind\":\"full\"}`, `{\"kind\":\"category\",\"category_id\":…}` or\n`{\"kind\":\"items\",\"org_ingredient_ids\":[…]}`.'),
   "started_at": zod.iso.datetime({"offset":true}),
   "started_by": zod.uuid(),
   "started_by_name": zod.string().nullish(),
-  "status": zod.string()
+  "status": zod.string(),
+  "total_items": zod.number().nullish()
 }).and(zod.object({
   "items": zod.array(zod.object({
-  "branch_inventory_id": zod.uuid().nullish(),
+  "book_qty": zod.number().describe('The baseline the difference is measured against: live book stock while\nthe count is open, frozen at finalize.'),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
   "counted_by": zod.uuid().nullish(),
   "counted_qty": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
-  "expected_qty": zod.number(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "is_new": zod.boolean().describe('True when the branch had no stock activity for this ingredient when the\ncount opened — counting it is what starts tracking it here.'),
   "note": zod.string().nullish(),
+  "opening_qty": zod.number().describe('Book stock when the count was opened (reference only).'),
   "org_ingredient_id": zod.uuid(),
   "stocktake_id": zod.uuid(),
   "unit": zod.string(),
   "unit_cost": zod.number().nullish().describe('Piastres per unit snapshot; `null` ⟺ unknown.'),
-  "variance": zod.number().nullish(),
+  "variance": zod.number().nullish().describe('counted − book; `null` until counted.'),
   "variance_reason": zod.string().nullish().describe('theft | spoilage | breakage | miscount | supplier_short | transfer_error | other.')
 })),
-  "variance_threshold_pct": zod.number().describe('Org tolerance: a counted row whose |difference| is >= this percent of the\nexpected quantity (or that appears-from \/ vanishes-to zero) is flagged and\nrequires a `variance_reason` before the count can be finalized.')
+  "variance_threshold_pct": zod.number().describe('Org tolerance: a counted row whose |difference| is >= this percent of\nbook stock (or that appears-from \/ vanishes-to zero) is flagged and\nrequires a `variance_reason` before the count can be finalized.')
 }))
 
 
@@ -9923,41 +10004,49 @@ export const UpsertItemsBody = zod.object({
   "counted_qty": zod.number(),
   "note": zod.string().nullish(),
   "org_ingredient_id": zod.uuid(),
-  "variance_reason": zod.string().nullish().describe('Why the count differs from expected. One of: theft | spoilage | breakage |\nmiscount | supplier_short | transfer_error | other. Required at finalize for\nrows whose difference exceeds the org\'s variance threshold.')
+  "variance_reason": zod.string().nullish().describe('Why the count differs from book stock. One of: theft | spoilage |\nbreakage | miscount | supplier_short | transfer_error | other. Required\nat finalize for rows whose difference exceeds the org\'s threshold.')
 }))
 })
 
 export const UpsertItemsResponse = zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to). Other\nstocktake endpoints leave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label — only populated by the stocktakes list (so the \"All\nbranches\" view can show which branch each stocktake belongs to).'),
+  "counted_items": zod.number().nullish().describe('Items counted \/ items in scope; populated by the list endpoint only.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "finalized_at": zod.iso.datetime({"offset":true}).nullish(),
   "finalized_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "note": zod.string().nullish(),
   "org_id": zod.uuid(),
+  "scope": zod.looseObject({
+
+}).describe('`{\"kind\":\"full\"}`, `{\"kind\":\"category\",\"category_id\":…}` or\n`{\"kind\":\"items\",\"org_ingredient_ids\":[…]}`.'),
   "started_at": zod.iso.datetime({"offset":true}),
   "started_by": zod.uuid(),
   "started_by_name": zod.string().nullish(),
-  "status": zod.string()
+  "status": zod.string(),
+  "total_items": zod.number().nullish()
 }).and(zod.object({
   "items": zod.array(zod.object({
-  "branch_inventory_id": zod.uuid().nullish(),
+  "book_qty": zod.number().describe('The baseline the difference is measured against: live book stock while\nthe count is open, frozen at finalize.'),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
   "counted_by": zod.uuid().nullish(),
   "counted_qty": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
-  "expected_qty": zod.number(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "is_new": zod.boolean().describe('True when the branch had no stock activity for this ingredient when the\ncount opened — counting it is what starts tracking it here.'),
   "note": zod.string().nullish(),
+  "opening_qty": zod.number().describe('Book stock when the count was opened (reference only).'),
   "org_ingredient_id": zod.uuid(),
   "stocktake_id": zod.uuid(),
   "unit": zod.string(),
   "unit_cost": zod.number().nullish().describe('Piastres per unit snapshot; `null` ⟺ unknown.'),
-  "variance": zod.number().nullish(),
+  "variance": zod.number().nullish().describe('counted − book; `null` until counted.'),
   "variance_reason": zod.string().nullish().describe('theft | spoilage | breakage | miscount | supplier_short | transfer_error | other.')
 })),
-  "variance_threshold_pct": zod.number().describe('Org tolerance: a counted row whose |difference| is >= this percent of the\nexpected quantity (or that appears-from \/ vanishes-to zero) is flagged and\nrequires a `variance_reason` before the count can be finalized.')
+  "variance_threshold_pct": zod.number().describe('Org tolerance: a counted row whose |difference| is >= this percent of\nbook stock (or that appears-from \/ vanishes-to zero) is flagged and\nrequires a `variance_reason` before the count can be finalized.')
 }))
 
 
@@ -9968,22 +10057,24 @@ export const VarianceReportParams = zod.object({
 export const VarianceReportResponse = zod.object({
   "net_variance_value": zod.number().describe('overage − shrinkage (net effect on inventory value).'),
   "rows": zod.array(zod.object({
+  "book_qty": zod.number().describe('Book stock the difference is measured against (at finalize).'),
+  "category_name": zod.string(),
   "counted_qty": zod.number().nullish(),
-  "expected_qty": zod.number(),
   "ingredient_name": zod.string(),
   "is_flagged": zod.boolean().describe('True when |difference| exceeds the org threshold (or appears\/vanishes from zero).'),
+  "opening_qty": zod.number().describe('Book stock when the count opened.'),
   "org_ingredient_id": zod.uuid(),
   "unit": zod.string(),
   "unit_cost": zod.number().nullish(),
-  "variance": zod.number().nullish(),
-  "variance_reason": zod.string().nullish().describe('theft | spoilage | breakage | miscount | supplier_short | transfer_error | other.'),
+  "variance": zod.number().nullish().describe('counted − book.'),
+  "variance_reason": zod.string().nullish(),
   "variance_value": zod.number().nullish().describe('variance × unit_cost in piastres; `null` when cost unknown.')
 })),
   "stocktake_id": zod.uuid(),
   "total_overage_value": zod.number().describe('Piastres of overage (positive variances).'),
   "total_shrinkage_value": zod.number().describe('Piastres lost to shrinkage (negative variances), as a positive number.'),
   "unknown_cost_count": zod.number().describe('Count of counted rows whose cost was unknown (excluded from totals).'),
-  "variance_threshold_pct": zod.number().describe('Org tolerance used to compute `is_flagged`.')
+  "variance_threshold_pct": zod.number()
 })
 
 

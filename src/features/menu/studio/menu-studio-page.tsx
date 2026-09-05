@@ -111,7 +111,7 @@ export function MenuStudioPage() {
     () =>
       catalog
         .filter((c) => c.is_active)
-        .map((c) => ({ value: c.id, label: c.name, hint: t(`units.${c.unit}`, c.unit), keywords: c.category })),
+        .map((c) => ({ value: c.id, label: c.name, hint: t(`units.${c.unit}`, c.unit), keywords: c.category_name })),
     [catalog, t],
   );
 

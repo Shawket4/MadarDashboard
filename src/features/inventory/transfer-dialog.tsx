@@ -25,7 +25,7 @@ interface Props {
   defaultSourceId?: string | null;
 }
 
-/** Move stock between two branches (atomic; reversible by deleting the row). */
+/** Move stock between two branches (atomic; reversible from the list). */
 export function TransferDialog({ open, onOpenChange, branches, defaultSourceId }: Props) {
   const { t } = useTranslation();
   const [sourceId, setSourceId] = useState<string>("");
@@ -46,13 +46,12 @@ export function TransferDialog({ open, onOpenChange, branches, defaultSourceId }
   }, [open, defaultSourceId]);
 
   const sourceStock = useListBranchStock(sourceId, { query: { enabled: open && !!sourceId } });
+  // Only what the source actually holds can travel.
   const options = useMemo(
     () =>
-      (sourceStock.data ?? []).map((s) => ({
-        value: s.org_ingredient_id,
-        label: s.ingredient_name,
-        hint: `${fmtNumber(s.current_stock)} ${fmtUnit(s.unit)}`,
-      })),
+      (sourceStock.data ?? [])
+        .filter((s) => s.on_hand > 0)
+        .map((s) => ({ value: s.org_ingredient_id, label: s.ingredient_name, keywords: s.category_name, hint: `${fmtNumber(s.on_hand)} ${fmtUnit(s.unit)}` })),
     [sourceStock.data],
   );
   const selected = (sourceStock.data ?? []).find((s) => s.org_ingredient_id === ingredientId) ?? null;
@@ -60,23 +59,16 @@ export function TransferDialog({ open, onOpenChange, branches, defaultSourceId }
 
   const quantity = parseFloat(qty);
   const sameBranch = !!sourceId && sourceId === destId;
-  const exceeds = selected != null && Number.isFinite(quantity) && quantity > selected.current_stock;
-  const valid =
-    !!sourceId && !!destId && !sameBranch && !!ingredientId && Number.isFinite(quantity) && quantity > 0 && !exceeds;
+  const exceeds = selected != null && Number.isFinite(quantity) && quantity > selected.on_hand;
+  const valid = !!sourceId && !!destId && !sameBranch && !!ingredientId && Number.isFinite(quantity) && quantity > 0 && !exceeds;
 
   const submit = async () => {
     if (!valid || !ingredientId) return;
     setBusy(true);
     try {
-      await createTransfer({
-        source_branch_id: sourceId,
-        destination_branch_id: destId,
-        org_ingredient_id: ingredientId,
-        quantity,
-        note: note.trim() || null,
-      });
+      await createTransfer({ source_branch_id: sourceId, destination_branch_id: destId, org_ingredient_id: ingredientId, quantity, note: note.trim() || null });
       await invalidateInventory();
-      toast.success(t("inventory.transfers.create", "New transfer"));
+      toast.success(t("inventory.transfers.created", "Transfer recorded"));
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -98,9 +90,7 @@ export function TransferDialog({ open, onOpenChange, branches, defaultSourceId }
               <Label>{t("inventory.transfers.source", "From branch")}</Label>
               <Select value={sourceId} onValueChange={(v) => { setSourceId(v); setIngredientId(null); }}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>
-                  {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                </SelectContent>
+                <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <ArrowRight className="mb-2.5 size-4 shrink-0 text-muted-foreground rtl:rotate-180" />
@@ -108,9 +98,7 @@ export function TransferDialog({ open, onOpenChange, branches, defaultSourceId }
               <Label>{t("inventory.transfers.destination", "To branch")}</Label>
               <Select value={destId} onValueChange={setDestId}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>
-                  {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                </SelectContent>
+                <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
@@ -124,22 +112,20 @@ export function TransferDialog({ open, onOpenChange, branches, defaultSourceId }
               onChange={setIngredientId}
               disabled={!sourceId}
               placeholder={t("inventory.stock.pickIngredient", "Pick an ingredient")}
+              emptyText={sourceId && !sourceStock.isLoading && options.length === 0
+                ? t("inventory.transfers.nothingToSend", "This branch has nothing on hand to send. Count it first.")
+                : undefined}
             />
             {selected && sourceBranch ? (
               <p className="text-xs text-muted-foreground">
-                {t("inventory.transfers.onHandHint", {
-                  branch: sourceBranch.name,
-                  qty: fmtNumber(selected.current_stock),
-                  unit: fmtUnit(selected.unit),
-                  defaultValue: `${sourceBranch.name} on hand: ${fmtNumber(selected.current_stock)} ${fmtUnit(selected.unit)}`,
-                })}
+                {t("inventory.transfers.onHandHint", { branch: sourceBranch.name, qty: fmtNumber(selected.on_hand), unit: fmtUnit(selected.unit), defaultValue: `${sourceBranch.name} on hand: ${fmtNumber(selected.on_hand)} ${fmtUnit(selected.unit)}` })}
               </p>
             ) : null}
           </div>
 
           <div className="space-y-1.5">
             <Label>{t("inventory.transfers.quantity", "Quantity")}</Label>
-            <Input type="number" min="0" step="0.0001" value={qty} onChange={(e) => setQty(e.target.value)} className="tabular" />
+            <Input type="number" inputMode="decimal" min="0" step="0.0001" value={qty} onChange={(e) => setQty(e.target.value)} className="tabular" />
             {exceeds ? <p className="text-xs text-destructive">{t("inventory.waste.quantityExceeds", "More than on hand")}</p> : null}
           </div>
           <div className="space-y-1.5">

@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, Boxes, CalendarClock, OctagonX, PackageCheck, ShoppingCart, Trash2, Truck, Wallet } from "lucide-react";
+import { AlertTriangle, Boxes, CalendarClock, ClipboardList, OctagonX, PackageCheck, ShoppingCart, Trash2, Truck, Wallet } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/empty-state";
@@ -18,6 +18,7 @@ import {
   useListBranchStock,
   useListCatalog,
   useListOrgPurchaseOrders,
+  useListStocktakes,
   useListSuppliers,
   useListWaste,
   useBranchInventoryValuation,
@@ -32,9 +33,7 @@ import { cn } from "@/lib/utils";
 import { PurchaseOrderDialog } from "./purchase-order-dialog";
 import { ReceiveDialog } from "./receive-dialog";
 import { WasteDialog } from "./waste-dialog";
-
-const DAY_MS = 86_400_000;
-const COUNT_DUE_DAYS = 14;
+import { countsDue, needsFirstCount } from "./lib";
 
 export function TodayPage() {
   const { t } = useTranslation();
@@ -53,9 +52,6 @@ export function TodayPage() {
   }, []);
 
   // Branch-specific when a branch is selected; org-wide roll-up otherwise.
-  // The all-branches case uses the org endpoints (org_id in the path) so it
-  // works for super-admins too, whose token carries no org for the branch
-  // endpoints to infer.
   const branchVal = useBranchInventoryValuation(branchId ?? "", { query: { enabled: !!branchId } });
   const orgVal = useOrgInventoryValuation(orgId ?? "", { query: { enabled: !branchId && !!orgId } });
   const valuation = branchId ? branchVal : orgVal;
@@ -66,43 +62,31 @@ export function TodayPage() {
   const suppliers = useListSuppliers(orgId ?? "", { query: { enabled: !!orgId } });
   const catalog = useListCatalog(orgId ?? "", { query: { enabled: !!orgId } });
   const branchStock = useListBranchStock(branchId ?? "", { query: { enabled: !!branchId } });
-  const waste = useListWaste(branchId ?? "", { query: { enabled: !!branchId } });
+  const stocktakes = useListStocktakes(branchId ?? "", { query: { enabled: !!branchId } });
+  const waste = useListWaste(branchId ?? "", undefined, { query: { enabled: !!branchId } });
 
   const lowRows = useMemo(() => lowStock.data ?? [], [lowStock.data]);
-  const criticalCount = useMemo(() => lowRows.filter((r) => r.current_stock <= 0).length, [lowRows]);
-
+  const criticalCount = useMemo(() => lowRows.filter((r) => r.on_hand <= 0).length, [lowRows]);
   const arriving = useMemo(
     () => (pos.data ?? []).filter((p) => p.status === "ordered" || p.status === "partially_received"),
     [pos.data],
   );
-
-  const todaysWaste = useMemo(
-    () => (waste.data ?? []).filter((m) => m.created_at >= todayStartISO),
-    [waste.data, todayStartISO],
-  );
-
-  const countsDue = useMemo(() => {
-    if (!branchId) return null;
-    const now = Date.now();
-    return (branchStock.data ?? []).filter(
-      (s) => s.last_counted_at == null || now - new Date(s.last_counted_at).getTime() > COUNT_DUE_DAYS * DAY_MS,
-    ).length;
-  }, [branchStock.data, branchId]);
+  const todaysWaste = useMemo(() => (waste.data ?? []).filter((m) => m.created_at >= todayStartISO), [waste.data, todayStartISO]);
+  const due = useMemo(() => (branchId ? countsDue(branchStock.data ?? []) : null), [branchStock.data, branchId]);
+  const firstRun = !!branchId && !stocktakes.isLoading && needsFirstCount(stocktakes.data);
 
   const openReorderPo = (row: LowStockRow) => {
     setPoBranchId(row.branch_id);
     setPoPrefill({
       supplierId: row.supplier_id ?? null,
-      lines: [{ org_ingredient_id: row.org_ingredient_id, quantity_ordered: Math.max(1, Math.ceil(row.deficit)) }],
+      lines: [{ org_ingredient_id: row.org_ingredient_id, quantity_ordered: Math.max(1, Math.ceil(row.suggested_qty)) }],
     });
   };
 
   if (!orgId) {
     return (
       <Page>
-        <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.today.title", "Today")}</h1>
-        </div>
+        <PageHeader title={t("inventory.today.title", "Today")} />
         <EmptyState icon={Boxes} title={t("inventory.pickOrg", "Select an organization to manage inventory")} />
       </Page>
     );
@@ -114,6 +98,23 @@ export function TodayPage() {
         title={t("inventory.today.title", "Today")}
         description={t("inventory.today.subtitle", "Your morning briefing: alerts, deliveries and counts due")}
       />
+
+      {firstRun ? (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="font-semibold">{t("inventory.today.firstRunTitle", "Start by counting this branch")}</p>
+              <p className="max-w-prose text-sm text-muted-foreground">
+                {t("inventory.today.firstRunHint", "Nothing has been counted here yet, so the numbers below are empty. A whole-branch count takes a few minutes and brings stock value, low-stock alerts and usage to life.")}
+              </p>
+            </div>
+            <Link to="/inventory/counts" className={cn(buttonVariants({ size: "lg" }))}>
+              <ClipboardList className="size-4" />
+              {t("inventory.today.startFirstCount", "Count this branch's stock")}
+            </Link>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <LedgerStrip
         items={[
@@ -148,7 +149,7 @@ export function TodayPage() {
           {
             key: "counts",
             label: t("inventory.today.countsDue", "Counts due"),
-            value: countsDue == null ? "—" : countsDue,
+            value: due == null ? "—" : due,
             icon: CalendarClock,
             accent: "primary",
             loading: !!branchId && branchStock.isLoading,
@@ -169,7 +170,11 @@ export function TodayPage() {
           {lowStock.isLoading ? (
             <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
           ) : lowRows.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">{t("inventory.today.allGood", "All good — nothing below its low-stock level")}</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              {firstRun
+                ? t("inventory.today.noParsYet", "Low-stock alerts appear once you set a reorder point on an ingredient.")
+                : t("inventory.today.allGood", "All good — nothing below its reorder point")}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -178,7 +183,8 @@ export function TodayPage() {
                     <TableHead>{t("inventory.catalog.name", "Name")}</TableHead>
                     <TableHead>{t("inventory.reports.branchName", "Branch")}</TableHead>
                     <TableHead className="text-end">{t("inventory.today.onHand", "On hand")}</TableHead>
-                    <TableHead className="text-end">{t("inventory.today.lowStockLevel", "Low-stock level")}</TableHead>
+                    <TableHead className="text-end">{t("inventory.today.reorderPoint", "Reorder point")}</TableHead>
+                    <TableHead className="text-end">{t("inventory.today.suggested", "Order")}</TableHead>
                     <TableHead>{t("inventory.catalog.supplier", "Supplier")}</TableHead>
                     <TableHead className="text-end">{t("inventory.today.reorder", "Reorder")}</TableHead>
                   </TableRow>
@@ -188,15 +194,16 @@ export function TodayPage() {
                     <TableRow key={`${r.branch_id}-${r.org_ingredient_id}`}>
                       <TableCell className="flex items-center gap-2 font-medium">
                         {r.ingredient_name}
-                        <Badge variant="secondary" className={cn("flex items-center gap-1", r.current_stock <= 0 ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning")}>
-                          {r.current_stock <= 0
+                        <Badge variant="secondary" className={cn("flex items-center gap-1", r.on_hand <= 0 ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning")}>
+                          {r.on_hand <= 0
                             ? <><OctagonX className="size-3" />{t("inventory.today.statusCritical", "Critical")}</>
                             : <><AlertTriangle className="size-3" />{t("inventory.today.statusLow", "Low")}</>}
                         </Badge>
                       </TableCell>
                       <TableCell>{r.branch_name}</TableCell>
-                      <TableCell className="text-end tabular">{fmtNumber(r.current_stock)} {fmtUnit(r.unit)}</TableCell>
-                      <TableCell className="text-end tabular">{fmtNumber(r.reorder_threshold)} {fmtUnit(r.unit)}</TableCell>
+                      <TableCell className="text-end tabular">{fmtNumber(r.on_hand)} {fmtUnit(r.unit)}</TableCell>
+                      <TableCell className="text-end tabular">{fmtNumber(r.par_min)} {fmtUnit(r.unit)}</TableCell>
+                      <TableCell className="text-end tabular">{fmtNumber(r.suggested_qty)} {fmtUnit(r.unit)}</TableCell>
                       <TableCell>{r.supplier_name ?? <span className="text-muted-foreground">—</span>}</TableCell>
                       <TableCell className="text-end">
                         <Button variant="outline" size="sm" onClick={() => openReorderPo(r)}>
@@ -269,7 +276,6 @@ export function TodayPage() {
         </Card>
       </div>
 
-      {/* Reorder → PO */}
       {poBranchId ? (
         <PurchaseOrderDialog
           branchId={poBranchId}

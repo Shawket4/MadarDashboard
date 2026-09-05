@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import {
@@ -14,8 +15,7 @@ import { Combobox } from "@/components/app/combobox";
 import { createWaste, useListBranchStock } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtNumber, fmtUnit } from "@/lib/format";
-import { WASTE_REASONS } from "./lib";
-import { invalidateInventory } from "./lib";
+import { WASTE_REASONS, invalidateInventory } from "./lib";
 
 interface Props {
   branchId: string;
@@ -44,32 +44,31 @@ export function WasteDialog({ branchId, open, onOpenChange, presetIngredientId }
     }
   }, [open, presetIngredientId]);
 
+  // The whole catalog is listed; items with nothing on hand cannot be wasted
+  // (the ledger would go negative) and say so instead of hiding.
   const options = useMemo(
     () =>
       (stock.data ?? []).map((s) => ({
         value: s.org_ingredient_id,
         label: s.ingredient_name,
-        hint: `${fmtNumber(s.current_stock)} ${fmtUnit(s.unit)}`,
+        keywords: s.category_name,
+        hint: s.on_hand > 0 ? `${fmtNumber(s.on_hand)} ${fmtUnit(s.unit)}` : t("inventory.waste.nothingOnHand", "nothing on hand"),
       })),
-    [stock.data],
+    [stock.data, t],
   );
   const selected = (stock.data ?? []).find((s) => s.org_ingredient_id === ingredientId) ?? null;
   const quantity = parseFloat(qty);
-  const exceeds = selected != null && Number.isFinite(quantity) && quantity > selected.current_stock;
+  const exceeds = selected != null && Number.isFinite(quantity) && quantity > selected.on_hand;
   const valid = !!ingredientId && Number.isFinite(quantity) && quantity > 0 && !exceeds;
+  const nothingCounted = !stock.isLoading && (stock.data ?? []).every((s) => !s.has_activity);
 
   const submit = async () => {
     if (!valid || !ingredientId) return;
     setBusy(true);
     try {
-      await createWaste(branchId, {
-        org_ingredient_id: ingredientId,
-        quantity,
-        reason,
-        note: note.trim() || null,
-      });
+      await createWaste(branchId, { org_ingredient_id: ingredientId, quantity, reason, note: note.trim() || null });
       await invalidateInventory();
-      toast.success(t("inventory.waste.record", "Record waste"));
+      toast.success(t("inventory.waste.recorded", "Waste recorded"));
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -85,36 +84,26 @@ export function WasteDialog({ branchId, open, onOpenChange, presetIngredientId }
           <DialogTitle>{t("inventory.waste.recordTitle", "Record waste")}</DialogTitle>
           <DialogDescription>{t("inventory.waste.title", "Waste log")}</DialogDescription>
         </DialogHeader>
+        {nothingCounted ? (
+          <p className="rounded-md border border-info/30 bg-info/5 p-2 text-xs">
+            {t("inventory.waste.countFirstHint", "This branch has no stock on record yet.")}{" "}
+            <Link to="/inventory/counts" className="text-primary underline">{t("inventory.waste.countFirstLink", "Count it first")}</Link>
+          </p>
+        ) : null}
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label>{t("inventory.waste.ingredient", "Ingredient")}</Label>
-            <Combobox
-              options={options}
-              value={ingredientId}
-              onChange={setIngredientId}
-              placeholder={t("inventory.stock.pickIngredient", "Pick an ingredient")}
-            />
+            <Combobox options={options} value={ingredientId} onChange={setIngredientId} placeholder={t("inventory.stock.pickIngredient", "Pick an ingredient")} />
             {selected ? (
               <p className="text-xs text-muted-foreground">
-                {t("inventory.waste.onHandHint", {
-                  qty: fmtNumber(selected.current_stock),
-                  unit: fmtUnit(selected.unit),
-                  defaultValue: `${fmtNumber(selected.current_stock)} ${fmtUnit(selected.unit)} on hand`,
-                })}
+                {t("inventory.waste.onHandHint", { qty: fmtNumber(selected.on_hand), unit: fmtUnit(selected.unit), defaultValue: `${fmtNumber(selected.on_hand)} ${fmtUnit(selected.unit)} on hand` })}
               </p>
             ) : null}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t("inventory.waste.quantity", "Quantity")}</Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.0001"
-                value={qty}
-                onChange={(e) => setQty(e.target.value)}
-                className="tabular"
-              />
+              <Input type="number" inputMode="decimal" min="0" step="0.0001" value={qty} onChange={(e) => setQty(e.target.value)} className="tabular" />
               {exceeds ? <p className="text-xs text-destructive">{t("inventory.waste.quantityExceeds", "More than on hand")}</p> : null}
             </div>
             <div className="space-y-1.5">
@@ -122,9 +111,7 @@ export function WasteDialog({ branchId, open, onOpenChange, presetIngredientId }
               <Select value={reason} onValueChange={setReason}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {WASTE_REASONS.map((r) => (
-                    <SelectItem key={r} value={r}>{t(`inventory.waste.reasons.${r}`, r)}</SelectItem>
-                  ))}
+                  {WASTE_REASONS.map((r) => <SelectItem key={r} value={r}>{t(`inventory.waste.reasons.${r}`, r)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

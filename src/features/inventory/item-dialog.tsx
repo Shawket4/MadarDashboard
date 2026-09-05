@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -14,10 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Combobox } from "@/components/app/combobox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { Branch, OrgIngredient } from "@/data/api/generated/models";
-import { addToBranchStock, createCatalogItem, updateCatalogItem, useListSuppliers } from "@/data/api/generated/api";
+import {
+  createCatalogItem, createIngredientCategory, setParLevels, updateCatalogItem,
+  useListIngredientCategories, useListSuppliers,
+} from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtUnit, piastresToEgp } from "@/lib/format";
-import { CATEGORIES, UNITS, invalidateInventory, unitsForFamily } from "./lib";
+import { UNITS, invalidateInventory, unitsForFamily } from "./lib";
 
 interface Props {
   orgId: string;
@@ -28,20 +31,27 @@ interface Props {
   branches: Branch[];
 }
 
-interface BranchRow {
-  stock: string;
+interface ParRow {
   parMin: string;
   parMax: string;
 }
 
-/** Create or edit an org ingredient; on create, optionally seed per-branch stock. */
+const NEW_CATEGORY = "__new__";
+
+/**
+ * Create or edit an org ingredient. On create, optional per-branch par levels
+ * can be set; opening stock is never typed in here — it comes from the first
+ * count (or a delivery), so the ledger stays the only source of quantities.
+ */
 export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props) {
   const { t } = useTranslation();
   const editing = !!item;
   const suppliers = useListSuppliers(orgId, { query: { enabled: open && !!orgId } });
+  const categories = useListIngredientCategories(orgId, { query: { enabled: open && !!orgId } });
 
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("general");
+  const [categoryId, setCategoryId] = useState<string>("");
+  const [newCategory, setNewCategory] = useState("");
   const [unit, setUnit] = useState("g");
   const [cost, setCost] = useState("");
   const [supplierId, setSupplierId] = useState<string | null>(null);
@@ -51,13 +61,14 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
   const [yieldPct, setYieldPct] = useState("");
   const [density, setDensity] = useState("");
   const [advanced, setAdvanced] = useState(false);
-  const [perBranch, setPerBranch] = useState<Record<string, BranchRow>>({});
+  const [pars, setPars] = useState<Record<string, ParRow>>({});
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setName(item?.name ?? "");
-    setCategory(item?.category ?? "general");
+    setCategoryId(item?.category_id ?? "");
+    setNewCategory("");
     setUnit(item?.unit ?? "g");
     setCost(item?.cost_per_unit != null ? String(piastresToEgp(item.cost_per_unit)) : "");
     setSupplierId(item?.supplier_id ?? null);
@@ -67,25 +78,32 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
     setYieldPct(item?.yield_pct != null ? String(item.yield_pct) : "");
     setDensity(item?.density_g_per_ml != null ? String(item.density_g_per_ml) : "");
     setAdvanced(false);
-    setPerBranch({});
+    setPars({});
   }, [open, item]);
+
+  // Default a new ingredient to `general` once categories load.
+  useEffect(() => {
+    if (!open || editing || categoryId) return;
+    const general = (categories.data ?? []).find((c) => c.slug === "general") ?? categories.data?.[0];
+    if (general) setCategoryId(general.id);
+  }, [open, editing, categoryId, categories.data]);
 
   const supplierOptions = useMemo(
     () => (suppliers.data ?? []).filter((s) => s.is_active).map((s) => ({ value: s.id, label: s.name })),
     [suppliers.data],
   );
 
-  // On edit the unit can only change within the same measure family (the backend
-  // rebases recipes/stock/cost). On create any unit is fine.
   const unitOptions = editing && item ? unitsForFamily(item.unit) : [...UNITS];
-  const unitLocked = editing && unitOptions.length <= 1; // pcs can't convert
+  const unitLocked = editing && unitOptions.length <= 1;
   const unitChanged = editing && !!item && unit !== item.unit;
+  const isNewCategory = categoryId === NEW_CATEGORY;
 
-  const setRow = (branchId: string, patch: Partial<BranchRow>) =>
-    setPerBranch((prev) => ({ ...prev, [branchId]: { ...(prev[branchId] ?? { stock: "", parMin: "", parMax: "" }), ...patch } }));
+  const setPar = (branchId: string, patch: Partial<ParRow>) =>
+    setPars((prev) => ({ ...prev, [branchId]: { ...(prev[branchId] ?? { parMin: "", parMax: "" }), ...patch } }));
 
   const submit = async () => {
     if (!name.trim()) return;
+    if (isNewCategory && !newCategory.trim()) return;
     const trimmed = cost.trim();
     const cost_per_unit = trimmed === "" ? null : egpToPiastres(parseFloat(trimmed));
     const pack_unit = packUnit.trim() || null;
@@ -94,12 +112,17 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
     const density_g_per_ml = density.trim() === "" ? null : parseFloat(density);
     setBusy(true);
     try {
+      let category_id: string | null = categoryId || null;
+      if (isNewCategory) {
+        const created = await createIngredientCategory(orgId, { name: newCategory.trim() });
+        category_id = created.id;
+      }
       if (editing && item) {
         if (unitChanged) {
           // Changing the unit rebases cost server-side, so cost_per_unit must NOT
-          // be sent in the same request (backend returns 400). Send the unit first…
+          // be sent in the same request (backend returns 400). Unit first…
           await updateCatalogItem(orgId, item.id, {
-            name: name.trim(), category, unit,
+            name: name.trim(), category_id, unit,
             description: description.trim() || null,
             supplier_id: supplierId || undefined,
             pack_unit, pack_size, yield_pct, density_g_per_ml,
@@ -110,7 +133,7 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
           }
         } else {
           await updateCatalogItem(orgId, item.id, {
-            name: name.trim(), category, unit, cost_per_unit,
+            name: name.trim(), category_id, unit, cost_per_unit,
             description: description.trim() || null,
             supplier_id: supplierId || undefined,
             pack_unit, pack_size, yield_pct, density_g_per_ml,
@@ -118,25 +141,18 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
         }
       } else {
         const created = await createCatalogItem(orgId, {
-          name: name.trim(), category, unit, cost_per_unit,
+          name: name.trim(), category_id, unit, cost_per_unit,
           description: description.trim() || null,
           supplier_id: supplierId || undefined,
           pack_unit, pack_size, yield_pct, density_g_per_ml,
         });
-        // Seed per-branch stock where the manager entered a value.
         for (const b of branches) {
-          const row = perBranch[b.id];
+          const row = pars[b.id];
           if (!row) continue;
-          const stock = row.stock.trim() === "" ? null : parseFloat(row.stock);
           const par_min = row.parMin.trim() === "" ? null : parseFloat(row.parMin);
           const par_max = row.parMax.trim() === "" ? null : parseFloat(row.parMax);
-          if (stock == null && par_min == null && par_max == null) continue;
-          await addToBranchStock(b.id, {
-            org_ingredient_id: created.id,
-            current_stock: stock,
-            par_min,
-            par_max,
-          });
+          if (par_min == null && par_max == null) continue;
+          await setParLevels(b.id, created.id, { par_min, par_max });
         }
       }
       await invalidateInventory();
@@ -154,7 +170,7 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editing ? t("inventory.catalog.editTitle", "Edit ingredient") : t("inventory.catalog.newItem", "New ingredient")}</DialogTitle>
-          <DialogDescription>{t("inventory.catalog.title", "Ingredient catalog")}</DialogDescription>
+          <DialogDescription>{t("inventory.catalog.title", "Ingredients")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
@@ -165,12 +181,21 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t("inventory.catalog.category", "Category")}</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger><SelectValue placeholder={t("inventory.catalog.category", "Category")} /></SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{t(`inventory.catalog.cat_${c}`, c)}</SelectItem>)}
+                  {(categories.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  <SelectItem value={NEW_CATEGORY}><span className="flex items-center gap-1"><Plus className="size-3" />{t("inventory.catalog.newCategory", "New category…")}</span></SelectItem>
                 </SelectContent>
               </Select>
+              {isNewCategory ? (
+                <Input
+                  placeholder={t("inventory.catalog.newCategoryName", "Category name")}
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  autoFocus
+                />
+              ) : null}
             </div>
             <div className="space-y-1.5">
               <Label>{t("inventory.catalog.unit", "Unit")}</Label>
@@ -238,34 +263,18 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
 
           {!editing && branches.length > 0 ? (
             <div className="space-y-2 rounded-lg border p-3">
-              <p className="text-sm font-medium">{t("inventory.catalog.perBranchStock", "Per-branch stock & par levels")}</p>
-              <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 text-xs text-muted-foreground">
+              <p className="text-sm font-medium">{t("inventory.catalog.perBranchPar", "Reorder levels per branch")}</p>
+              <p className="text-xs text-muted-foreground">{t("inventory.catalog.perBranchParHint", "Optional. Opening stock is not typed here — count it on the branch and the ledger takes it from there.")}</p>
+              <div className="grid grid-cols-[1fr_auto_auto] gap-2 text-xs text-muted-foreground">
                 <span />
-                <span className="w-24 text-center">{t("inventory.catalog.onHand", "On hand")}</span>
-                <span className="w-24 text-center">{t("inventory.catalog.parMin", "Min par")}</span>
-                <span className="w-24 text-center">{t("inventory.catalog.parMax", "Max par")}</span>
+                <span className="w-24 text-center">{t("inventory.catalog.parMin", "Reorder point")}</span>
+                <span className="w-24 text-center">{t("inventory.catalog.parMax", "Order up to")}</span>
               </div>
               {branches.map((b) => (
-                <div key={b.id} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-2">
+                <div key={b.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-2">
                   <span className="truncate text-sm">{b.name}</span>
-                  <Input
-                    type="number" min="0" step="0.0001" placeholder="—"
-                    value={perBranch[b.id]?.stock ?? ""}
-                    onChange={(e) => setRow(b.id, { stock: e.target.value })}
-                    className="h-8 w-24 tabular"
-                  />
-                  <Input
-                    type="number" min="0" step="0.0001" placeholder="—"
-                    value={perBranch[b.id]?.parMin ?? ""}
-                    onChange={(e) => setRow(b.id, { parMin: e.target.value })}
-                    className="h-8 w-24 tabular"
-                  />
-                  <Input
-                    type="number" min="0" step="0.0001" placeholder="—"
-                    value={perBranch[b.id]?.parMax ?? ""}
-                    onChange={(e) => setRow(b.id, { parMax: e.target.value })}
-                    className="h-8 w-24 tabular"
-                  />
+                  <Input type="number" min="0" step="0.0001" placeholder="—" value={pars[b.id]?.parMin ?? ""} onChange={(e) => setPar(b.id, { parMin: e.target.value })} className="h-8 w-24 tabular" />
+                  <Input type="number" min="0" step="0.0001" placeholder="—" value={pars[b.id]?.parMax ?? ""} onChange={(e) => setPar(b.id, { parMax: e.target.value })} className="h-8 w-24 tabular" />
                 </div>
               ))}
               <p className="text-xs text-muted-foreground">{fmtUnit(unit)}</p>
@@ -275,7 +284,7 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-          <Button loading={busy} disabled={!name.trim()} onClick={() => void submit()}>{t("common.save", "Save")}</Button>
+          <Button loading={busy} disabled={!name.trim() || (isNewCategory && !newCategory.trim())} onClick={() => void submit()}>{t("common.save", "Save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

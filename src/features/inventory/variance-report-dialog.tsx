@@ -20,6 +20,11 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * Difference is measured against BOOK stock at finalize, so the columns add
+ * up: Book − Counted = Difference. The opening figure is shown only when the
+ * count saw activity, as context.
+ */
 export function VarianceReportDialog({ stocktakeId, open, onOpenChange }: Props) {
   const { t } = useTranslation();
   const report = useVarianceReport(stocktakeId ?? "", { query: { enabled: open && !!stocktakeId } });
@@ -27,7 +32,7 @@ export function VarianceReportDialog({ stocktakeId, open, onOpenChange }: Props)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>{t("inventory.stocktakes.varianceReport", "Variance report")}</DialogTitle>
           <DialogDescription>
@@ -44,27 +49,38 @@ export function VarianceReportDialog({ stocktakeId, open, onOpenChange }: Props)
         />
 
         {data ? (
-          <>
-            <div className="overflow-x-auto rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("inventory.stocktakes.ingredient", "Ingredient")}</TableHead>
-                    <TableHead className="text-end">{t("inventory.stocktakes.expected", "Expected")}</TableHead>
-                    <TableHead className="text-end">{t("inventory.stocktakes.counted", "Counted")}</TableHead>
-                    <TableHead className="text-end">{t("inventory.stocktakes.difference", "Difference")}</TableHead>
-                    <TableHead className="text-end">{t("inventory.stocktakes.value", "Value")}</TableHead>
-                    <TableHead>{t("inventory.stocktakes.reason", "Reason")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.rows.map((r) => (
+          <div className="overflow-x-auto rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("inventory.stocktakes.ingredient", "Ingredient")}</TableHead>
+                  <TableHead className="text-end">{t("inventory.stocktakes.bookStock", "Book stock")}</TableHead>
+                  <TableHead className="text-end">{t("inventory.stocktakes.counted", "Counted")}</TableHead>
+                  <TableHead className="text-end">{t("inventory.stocktakes.difference", "Difference")}</TableHead>
+                  <TableHead className="text-end">{t("inventory.stocktakes.value", "Value")}</TableHead>
+                  <TableHead>{t("inventory.stocktakes.reason", "Reason")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.rows.map((r) => {
+                  const moved = Math.abs(r.book_qty - r.opening_qty) > 1e-9;
+                  return (
                     <TableRow key={r.org_ingredient_id}>
-                      <TableCell className="flex items-center gap-2">
-                        {r.ingredient_name}
-                        {r.is_flagged ? <Badge variant="secondary" className="bg-warning/10 text-warning">{t("inventory.flagged", "Flagged")}</Badge> : null}
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {r.ingredient_name}
+                          {r.is_flagged ? <Badge variant="secondary" className="bg-warning/10 text-warning">{t("inventory.flagged", "Flagged")}</Badge> : null}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{r.category_name}</p>
                       </TableCell>
-                      <TableCell className="text-end tabular">{fmtNumber(r.expected_qty)} {fmtUnit(r.unit)}</TableCell>
+                      <TableCell className="text-end tabular">
+                        {fmtNumber(r.book_qty)} {fmtUnit(r.unit)}
+                        {moved ? (
+                          <p className="text-xs text-muted-foreground">
+                            {t("inventory.stocktakes.atStart", { qty: fmtNumber(r.opening_qty), defaultValue: `was ${fmtNumber(r.opening_qty)} at start` })}
+                          </p>
+                        ) : null}
+                      </TableCell>
                       <TableCell className="text-end tabular">{r.counted_qty != null ? fmtNumber(r.counted_qty) : "—"}</TableCell>
                       <TableCell className={cn("text-end tabular", (r.variance ?? 0) < 0 ? "text-destructive" : (r.variance ?? 0) > 0 ? "text-success" : "")}>
                         {r.variance != null ? `${r.variance > 0 ? "+" : ""}${fmtNumber(r.variance)}` : "—"}
@@ -72,11 +88,11 @@ export function VarianceReportDialog({ stocktakeId, open, onOpenChange }: Props)
                       <TableCell className="text-end tabular">{fmtMoney(r.variance_value)}</TableCell>
                       <TableCell>{r.variance_reason ? t(`inventory.varianceReasons.${r.variance_reason}`, r.variance_reason) : "—"}</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (

@@ -89,7 +89,7 @@ export function RecipeBuilder({
   const byId = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
   const activeCatalog = useMemo(() => catalog.filter((c) => c.is_active), [catalog]);
   const catalogOptions = useMemo(
-    () => activeCatalog.map((c) => ({ value: c.id, label: c.name, hint: t(`units.${c.unit}`, c.unit), keywords: c.category })),
+    () => activeCatalog.map((c) => ({ value: c.id, label: c.name, hint: t(`units.${c.unit}`, c.unit), keywords: c.category_name })),
     [activeCatalog, t],
   );
   const costOf = (id: string | null): number | null => {

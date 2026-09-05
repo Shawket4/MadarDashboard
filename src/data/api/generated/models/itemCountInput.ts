@@ -7,9 +7,9 @@ export interface ItemCountInput {
   note?: string | null;
   org_ingredient_id: string;
   /**
-     * Why the count differs from expected. One of: theft | spoilage | breakage |
-     * miscount | supplier_short | transfer_error | other. Required at finalize for
-     * rows whose difference exceeds the org's variance threshold.
+     * Why the count differs from book stock. One of: theft | spoilage |
+     * breakage | miscount | supplier_short | transfer_error | other. Required
+     * at finalize for rows whose difference exceeds the org's threshold.
      * @nullable
      */
   variance_reason?: string | null;

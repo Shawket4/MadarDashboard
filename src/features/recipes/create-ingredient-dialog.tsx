@@ -1,26 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createCatalogItem, useListCatalog } from "@/data/api/generated/api";
 import type { OrgIngredient } from "@/data/api/generated/models";
+import { createCatalogItem, useListIngredientCategories } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres } from "@/lib/format";
 import { invalidateRecipes } from "./util";
 
 const UNITS = ["g", "kg", "ml", "l", "pcs"] as const;
-// `general` is the neutral default; `milk`/`coffee_bean` carry swap semantics
-// (a milk/coffee swap add-on replaces the base line of the matching category).
-// Any other category the org already uses is merged in below, so a non-coffee
-// business (bakery, kitchen, …) categorizes with its own terms.
-const PRESET_CATEGORIES = ["general", "milk", "coffee_bean"] as const;
 
 interface Props {
   orgId: string;
@@ -29,27 +24,26 @@ interface Props {
   onCreated: (ingredient: OrgIngredient) => void;
 }
 
-/** Lightweight inline ingredient onboarding for the recipe builder. */
+/**
+ * Lightweight inline ingredient onboarding for the recipe builder. Categories
+ * come from the org (`milk` / `coffee_bean` carry swap semantics: a milk or
+ * coffee swap add-on replaces the base recipe line of the matching category).
+ */
 export function CreateIngredientDialog({ orgId, open, onOpenChange, onCreated }: Props) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("general");
+  const [categoryId, setCategoryId] = useState("");
   const [unit, setUnit] = useState("g");
   const [cost, setCost] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Preset swap-semantic categories + whatever categories this org already uses,
-  // so the picker fits any kind of business rather than assuming a coffee shop.
-  const catalogQ = useListCatalog(orgId, { query: { enabled: open && !!orgId } });
-  const categories = useMemo(() => {
-    const seen = new Set<string>(PRESET_CATEGORIES);
-    const extra: string[] = [];
-    for (const c of catalogQ.data ?? []) {
-      const cat = c.category?.trim();
-      if (cat && !seen.has(cat)) { seen.add(cat); extra.push(cat); }
-    }
-    return [...PRESET_CATEGORIES, ...extra.sort()];
-  }, [catalogQ.data]);
+  const categories = useListIngredientCategories(orgId, { query: { enabled: open && !!orgId } });
+
+  useEffect(() => {
+    if (!open || categoryId) return;
+    const general = (categories.data ?? []).find((c) => c.slug === "general") ?? categories.data?.[0];
+    if (general) setCategoryId(general.id);
+  }, [open, categoryId, categories.data]);
 
   const submit = async () => {
     if (!name.trim()) return;
@@ -57,12 +51,12 @@ export function CreateIngredientDialog({ orgId, open, onOpenChange, onCreated }:
     const cost_per_unit = trimmed === "" ? null : egpToPiastres(parseFloat(trimmed));
     setBusy(true);
     try {
-      const created = await createCatalogItem(orgId, { name: name.trim(), category, unit, cost_per_unit });
+      const created = await createCatalogItem(orgId, { name: name.trim(), category_id: categoryId || null, unit, cost_per_unit });
       void invalidateRecipes();
       onCreated(created);
       toast.success(t("common.savedChanges", "Changes saved"));
       onOpenChange(false);
-      setName(""); setCost(""); setCategory("general"); setUnit("g");
+      setName(""); setCost(""); setCategoryId(""); setUnit("g");
     } catch (e) {
       toast.error(getErrorMessage(e));
     } finally {
@@ -82,9 +76,9 @@ export function CreateIngredientDialog({ orgId, open, onOpenChange, onCreated }:
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t("inventory.catalog.category", "Category")}</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{categories.map((c) => <SelectItem key={c} value={c}>{t(`inventory.catalog.cat_${c}`, c)}</SelectItem>)}</SelectContent>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger><SelectValue placeholder={t("inventory.catalog.category", "Category")} /></SelectTrigger>
+                <SelectContent>{(categories.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">

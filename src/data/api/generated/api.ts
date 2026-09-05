@@ -22,7 +22,6 @@ import type {
 import type {
   AcceptingInput,
   AddRoundRequest,
-  AddToStockRequest,
   AddonCost,
   AddonIngredient,
   AddonItem,
@@ -50,9 +49,6 @@ import type {
   BranchConsumptionParams,
   BranchDeliverySalesParams,
   BranchDeliverySettings,
-  BranchInventoryItem,
-  BranchInventoryMovement,
-  BranchInventoryTransfer,
   BranchMenuOverride,
   BranchMenuOverrideInput,
   BranchQrParams,
@@ -63,6 +59,7 @@ import type {
   BranchSettingsInput,
   BranchShrinkageParams,
   BranchStockReport,
+  BranchStockRow,
   BranchTable,
   BranchTellerStatsParams,
   BranchWaiterStatsParams,
@@ -110,6 +107,7 @@ import type {
   CreateFloorTableRequest,
   CreateFloorTransferRequest,
   CreateGroupRequest,
+  CreateIngredientCategoryRequest,
   CreateInventoryTransferRequest,
   CreateMarketingLinkRequest,
   CreateMenuItemRequest,
@@ -143,6 +141,7 @@ import type {
   DeleteChannelAddonOverrideParams,
   DeleteChannelOverrideParams,
   DeleteDrinkRecipeParams,
+  DeleteIngredientCategoryParams,
   DeleteItemRouteParams,
   DeleteZoneParams,
   DeliveryMenu,
@@ -180,6 +179,7 @@ import type {
   GuestOrderHistoryParams,
   GuestPastLocationsParams,
   GuestSavedLocation,
+  IngredientCategory,
   InventoryValuationReport,
   ItemOptionOut,
   ItemRouteInput,
@@ -228,6 +228,7 @@ import type {
   ListTillsParams,
   ListTransfersParams,
   ListUsersParams,
+  ListWasteParams,
   ListZonesParams,
   LoginRequest,
   LoginResponse,
@@ -329,6 +330,7 @@ import type {
   ScheduleAssignment,
   ScheduleOverride,
   ScheduledDay,
+  SetParRequest,
   SetRoutingModeRequest,
   SettleOpenTicketRequest,
   Shift,
@@ -342,6 +344,8 @@ import type {
   StaffRequest,
   StationRoutes,
   StatusInput,
+  StockMovement,
+  StockTransfer,
   Stocktake,
   StocktakeFull,
   StreamDeliveryOrdersParams,
@@ -365,6 +369,7 @@ import type {
   UpdateCategoryRequest,
   UpdateDiscountRequest,
   UpdateFloorTableRequest,
+  UpdateIngredientCategoryRequest,
   UpdateInventorySettingsRequest,
   UpdateMenuItemRequest,
   UpdateOptionalFieldRequest,
@@ -372,7 +377,6 @@ import type {
   UpdatePaymentMethodRequest,
   UpdateSectionRequest,
   UpdateStationRequest,
-  UpdateStockRequest,
   UpdateSupplierRequest,
   UpdateTillRequest,
   UpdateTransferRequest,
@@ -7587,7 +7591,7 @@ export const listMovements = (
 ) => {
 
 
-      return customInstance<BranchInventoryMovement[]>(
+      return customInstance<StockMovement[]>(
       {url: `/inventory/branches/${branchId}/movements`, method: 'GET',
         params, signal
     },
@@ -7681,7 +7685,7 @@ export const listBranchStock = (
 ) => {
 
 
-      return customInstance<BranchInventoryItem[]>(
+      return customInstance<BranchStockRow[]>(
       {url: `/inventory/branches/${branchId}/stock`, method: 'GET', signal
     },
       options);
@@ -7762,17 +7766,18 @@ export function useListBranchStock<TData = Awaited<ReturnType<typeof listBranchS
 
 
 
-export const addToBranchStock = (
+export const setParLevels = (
     branchId: string,
-    addToStockRequest: AddToStockRequest,
+    orgIngredientId: string,
+    setParRequest: SetParRequest,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
-      return customInstance<BranchInventoryItem>(
-      {url: `/inventory/branches/${branchId}/stock`, method: 'POST',
+      return customInstance<BranchStockRow>(
+      {url: `/inventory/branches/${branchId}/stock/${orgIngredientId}/par`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
-      data: addToStockRequest, signal
+      data: setParRequest, signal
     },
       options);
     }
@@ -7780,11 +7785,11 @@ export const addToBranchStock = (
 
 
 
-export const getAddToBranchStockMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addToBranchStock>>, TError,{branchId: string;data: AddToStockRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof addToBranchStock>>, TError,{branchId: string;data: AddToStockRequest}, TContext> => {
+export const getSetParLevelsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setParLevels>>, TError,{branchId: string;orgIngredientId: string;data: SetParRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof setParLevels>>, TError,{branchId: string;orgIngredientId: string;data: SetParRequest}, TContext> => {
 
-const mutationKey = ['addToBranchStock'];
+const mutationKey = ['setParLevels'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -7794,10 +7799,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addToBranchStock>>, {branchId: string;data: AddToStockRequest}> = (props) => {
-          const {branchId,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setParLevels>>, {branchId: string;orgIngredientId: string;data: SetParRequest}> = (props) => {
+          const {branchId,orgIngredientId,data} = props ?? {};
 
-          return  addToBranchStock(branchId,data,requestOptions)
+          return  setParLevels(branchId,orgIngredientId,data,requestOptions)
         }
 
 
@@ -7807,138 +7812,19 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type AddToBranchStockMutationResult = NonNullable<Awaited<ReturnType<typeof addToBranchStock>>>
-    export type AddToBranchStockMutationBody = AddToStockRequest
-    export type AddToBranchStockMutationError = ErrorBody
+    export type SetParLevelsMutationResult = NonNullable<Awaited<ReturnType<typeof setParLevels>>>
+    export type SetParLevelsMutationBody = SetParRequest
+    export type SetParLevelsMutationError = ErrorBody
 
-    export const useAddToBranchStock = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addToBranchStock>>, TError,{branchId: string;data: AddToStockRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+    export const useSetParLevels = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setParLevels>>, TError,{branchId: string;orgIngredientId: string;data: SetParRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof addToBranchStock>>,
+        Awaited<ReturnType<typeof setParLevels>>,
         TError,
-        {branchId: string;data: AddToStockRequest},
+        {branchId: string;orgIngredientId: string;data: SetParRequest},
         TContext
       > => {
-      return useMutation(getAddToBranchStockMutationOptions(options), queryClient);
-    }
-
-export const removeFromBranchStock = (
-    branchId: string,
-    id: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<void>(
-      {url: `/inventory/branches/${branchId}/stock/${id}`, method: 'DELETE', signal
-    },
-      options);
-    }
-
-
-
-
-export const getRemoveFromBranchStockMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeFromBranchStock>>, TError,{branchId: string;id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof removeFromBranchStock>>, TError,{branchId: string;id: string}, TContext> => {
-
-const mutationKey = ['removeFromBranchStock'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeFromBranchStock>>, {branchId: string;id: string}> = (props) => {
-          const {branchId,id} = props ?? {};
-
-          return  removeFromBranchStock(branchId,id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RemoveFromBranchStockMutationResult = NonNullable<Awaited<ReturnType<typeof removeFromBranchStock>>>
-
-    export type RemoveFromBranchStockMutationError = ErrorBody
-
-    export const useRemoveFromBranchStock = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeFromBranchStock>>, TError,{branchId: string;id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof removeFromBranchStock>>,
-        TError,
-        {branchId: string;id: string},
-        TContext
-      > => {
-      return useMutation(getRemoveFromBranchStockMutationOptions(options), queryClient);
-    }
-
-export const updateBranchStock = (
-    branchId: string,
-    id: string,
-    updateStockRequest: UpdateStockRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<BranchInventoryItem>(
-      {url: `/inventory/branches/${branchId}/stock/${id}`, method: 'PATCH',
-      headers: {'Content-Type': 'application/json', },
-      data: updateStockRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getUpdateBranchStockMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBranchStock>>, TError,{branchId: string;id: string;data: UpdateStockRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateBranchStock>>, TError,{branchId: string;id: string;data: UpdateStockRequest}, TContext> => {
-
-const mutationKey = ['updateBranchStock'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateBranchStock>>, {branchId: string;id: string;data: UpdateStockRequest}> = (props) => {
-          const {branchId,id,data} = props ?? {};
-
-          return  updateBranchStock(branchId,id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateBranchStockMutationResult = NonNullable<Awaited<ReturnType<typeof updateBranchStock>>>
-    export type UpdateBranchStockMutationBody = UpdateStockRequest
-    export type UpdateBranchStockMutationError = ErrorBody
-
-    export const useUpdateBranchStock = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBranchStock>>, TError,{branchId: string;id: string;data: UpdateStockRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateBranchStock>>,
-        TError,
-        {branchId: string;id: string;data: UpdateStockRequest},
-        TContext
-      > => {
-      return useMutation(getUpdateBranchStockMutationOptions(options), queryClient);
+      return useMutation(getSetParLevelsMutationOptions(options), queryClient);
     }
 
 export const listTransfers = (
@@ -7948,7 +7834,7 @@ export const listTransfers = (
 ) => {
 
 
-      return customInstance<BranchInventoryTransfer[]>(
+      return customInstance<StockTransfer[]>(
       {url: `/inventory/branches/${branchId}/transfers`, method: 'GET',
         params, signal
     },
@@ -8038,12 +7924,14 @@ export function useListTransfers<TData = Awaited<ReturnType<typeof listTransfers
 
 export const listWaste = (
     branchId: string,
+    params?: ListWasteParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
-      return customInstance<BranchInventoryMovement[]>(
-      {url: `/inventory/branches/${branchId}/waste`, method: 'GET', signal
+      return customInstance<StockMovement[]>(
+      {url: `/inventory/branches/${branchId}/waste`, method: 'GET',
+        params, signal
     },
       options);
     }
@@ -8051,23 +7939,25 @@ export const listWaste = (
 
 
 
-export const getListWasteQueryKey = (branchId: string,) => {
+export const getListWasteQueryKey = (branchId: string,
+    params?: ListWasteParams,) => {
     return [
-    `/inventory/branches/${branchId}/waste`
+    `/inventory/branches/${branchId}/waste`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListWasteQueryOptions = <TData = Awaited<ReturnType<typeof listWaste>>, TError = ErrorBody>(branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaste>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getListWasteQueryOptions = <TData = Awaited<ReturnType<typeof listWaste>>, TError = ErrorBody>(branchId: string,
+    params?: ListWasteParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaste>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListWasteQueryKey(branchId);
+  const queryKey =  queryOptions?.queryKey ?? getListWasteQueryKey(branchId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWaste>>> = ({ signal }) => listWaste(branchId, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWaste>>> = ({ signal }) => listWaste(branchId,params, requestOptions, signal);
 
 
 
@@ -8081,7 +7971,8 @@ export type ListWasteQueryError = ErrorBody
 
 
 export function useListWaste<TData = Awaited<ReturnType<typeof listWaste>>, TError = ErrorBody>(
- branchId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaste>>, TError, TData>> & Pick<
+ branchId: string,
+    params: undefined |  ListWasteParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaste>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listWaste>>,
           TError,
@@ -8091,7 +7982,8 @@ export function useListWaste<TData = Awaited<ReturnType<typeof listWaste>>, TErr
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListWaste<TData = Awaited<ReturnType<typeof listWaste>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaste>>, TError, TData>> & Pick<
+ branchId: string,
+    params?: ListWasteParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaste>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listWaste>>,
           TError,
@@ -8101,16 +7993,18 @@ export function useListWaste<TData = Awaited<ReturnType<typeof listWaste>>, TErr
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListWaste<TData = Awaited<ReturnType<typeof listWaste>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaste>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ branchId: string,
+    params?: ListWasteParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaste>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListWaste<TData = Awaited<ReturnType<typeof listWaste>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaste>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ branchId: string,
+    params?: ListWasteParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaste>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListWasteQueryOptions(branchId,options)
+  const queryOptions = getListWasteQueryOptions(branchId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -8130,7 +8024,7 @@ export const createWaste = (
 ) => {
 
 
-      return customInstance<BranchInventoryMovement>(
+      return customInstance<StockMovement>(
       {url: `/inventory/branches/${branchId}/waste`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createWasteRequest, signal
@@ -8449,6 +8343,274 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getUpdateCatalogItemMutationOptions(options), queryClient);
     }
 
+export const listIngredientCategories = (
+    orgId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<IngredientCategory[]>(
+      {url: `/inventory/orgs/${orgId}/categories`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListIngredientCategoriesQueryKey = (orgId: string,) => {
+    return [
+    `/inventory/orgs/${orgId}/categories`
+    ] as const;
+    }
+
+
+export const getListIngredientCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof listIngredientCategories>>, TError = ErrorBody>(orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientCategories>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListIngredientCategoriesQueryKey(orgId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listIngredientCategories>>> = ({ signal }) => listIngredientCategories(orgId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listIngredientCategories>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListIngredientCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof listIngredientCategories>>>
+export type ListIngredientCategoriesQueryError = ErrorBody
+
+
+export function useListIngredientCategories<TData = Awaited<ReturnType<typeof listIngredientCategories>>, TError = ErrorBody>(
+ orgId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientCategories>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listIngredientCategories>>,
+          TError,
+          Awaited<ReturnType<typeof listIngredientCategories>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListIngredientCategories<TData = Awaited<ReturnType<typeof listIngredientCategories>>, TError = ErrorBody>(
+ orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientCategories>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listIngredientCategories>>,
+          TError,
+          Awaited<ReturnType<typeof listIngredientCategories>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListIngredientCategories<TData = Awaited<ReturnType<typeof listIngredientCategories>>, TError = ErrorBody>(
+ orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientCategories>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListIngredientCategories<TData = Awaited<ReturnType<typeof listIngredientCategories>>, TError = ErrorBody>(
+ orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientCategories>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListIngredientCategoriesQueryOptions(orgId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const createIngredientCategory = (
+    orgId: string,
+    createIngredientCategoryRequest: CreateIngredientCategoryRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<IngredientCategory>(
+      {url: `/inventory/orgs/${orgId}/categories`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createIngredientCategoryRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getCreateIngredientCategoryMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createIngredientCategory>>, TError,{orgId: string;data: CreateIngredientCategoryRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createIngredientCategory>>, TError,{orgId: string;data: CreateIngredientCategoryRequest}, TContext> => {
+
+const mutationKey = ['createIngredientCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createIngredientCategory>>, {orgId: string;data: CreateIngredientCategoryRequest}> = (props) => {
+          const {orgId,data} = props ?? {};
+
+          return  createIngredientCategory(orgId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateIngredientCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof createIngredientCategory>>>
+    export type CreateIngredientCategoryMutationBody = CreateIngredientCategoryRequest
+    export type CreateIngredientCategoryMutationError = ErrorBody
+
+    export const useCreateIngredientCategory = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createIngredientCategory>>, TError,{orgId: string;data: CreateIngredientCategoryRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createIngredientCategory>>,
+        TError,
+        {orgId: string;data: CreateIngredientCategoryRequest},
+        TContext
+      > => {
+      return useMutation(getCreateIngredientCategoryMutationOptions(options), queryClient);
+    }
+
+export const deleteIngredientCategory = (
+    orgId: string,
+    id: string,
+    params?: DeleteIngredientCategoryParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/inventory/orgs/${orgId}/categories/${id}`, method: 'DELETE',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getDeleteIngredientCategoryMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteIngredientCategory>>, TError,{orgId: string;id: string;params?: DeleteIngredientCategoryParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteIngredientCategory>>, TError,{orgId: string;id: string;params?: DeleteIngredientCategoryParams}, TContext> => {
+
+const mutationKey = ['deleteIngredientCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteIngredientCategory>>, {orgId: string;id: string;params?: DeleteIngredientCategoryParams}> = (props) => {
+          const {orgId,id,params} = props ?? {};
+
+          return  deleteIngredientCategory(orgId,id,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteIngredientCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteIngredientCategory>>>
+
+    export type DeleteIngredientCategoryMutationError = ErrorBody
+
+    export const useDeleteIngredientCategory = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteIngredientCategory>>, TError,{orgId: string;id: string;params?: DeleteIngredientCategoryParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteIngredientCategory>>,
+        TError,
+        {orgId: string;id: string;params?: DeleteIngredientCategoryParams},
+        TContext
+      > => {
+      return useMutation(getDeleteIngredientCategoryMutationOptions(options), queryClient);
+    }
+
+export const updateIngredientCategory = (
+    orgId: string,
+    id: string,
+    updateIngredientCategoryRequest: UpdateIngredientCategoryRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<IngredientCategory>(
+      {url: `/inventory/orgs/${orgId}/categories/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateIngredientCategoryRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getUpdateIngredientCategoryMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateIngredientCategory>>, TError,{orgId: string;id: string;data: UpdateIngredientCategoryRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateIngredientCategory>>, TError,{orgId: string;id: string;data: UpdateIngredientCategoryRequest}, TContext> => {
+
+const mutationKey = ['updateIngredientCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateIngredientCategory>>, {orgId: string;id: string;data: UpdateIngredientCategoryRequest}> = (props) => {
+          const {orgId,id,data} = props ?? {};
+
+          return  updateIngredientCategory(orgId,id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateIngredientCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof updateIngredientCategory>>>
+    export type UpdateIngredientCategoryMutationBody = UpdateIngredientCategoryRequest
+    export type UpdateIngredientCategoryMutationError = ErrorBody
+
+    export const useUpdateIngredientCategory = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateIngredientCategory>>, TError,{orgId: string;id: string;data: UpdateIngredientCategoryRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateIngredientCategory>>,
+        TError,
+        {orgId: string;id: string;data: UpdateIngredientCategoryRequest},
+        TContext
+      > => {
+      return useMutation(getUpdateIngredientCategoryMutationOptions(options), queryClient);
+    }
+
 export const getInventorySettings = (
     orgId: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -8602,7 +8764,7 @@ export const createTransfer = (
 ) => {
 
 
-      return customInstance<BranchInventoryTransfer>(
+      return customInstance<StockTransfer>(
       {url: `/inventory/transfers`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createInventoryTransferRequest, signal
@@ -8719,7 +8881,7 @@ export const updateTransfer = (
 ) => {
 
 
-      return customInstance<BranchInventoryTransfer>(
+      return customInstance<StockTransfer>(
       {url: `/inventory/transfers/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateTransferRequest, signal

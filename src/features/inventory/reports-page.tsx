@@ -63,17 +63,17 @@ export function ReportsPage() {
 
   const byCategory = useMemo(() => {
     const cat = new Map<string, string>();
-    for (const c of catalog.data ?? []) cat.set(c.id, c.category);
+    for (const c of catalog.data ?? []) cat.set(c.id, c.category_name);
     const sums = new Map<string, number>();
     for (const it of valuation.data?.items ?? []) {
       if (it.value == null) continue;
-      const key = cat.get(it.org_ingredient_id) ?? "general";
+      const key = cat.get(it.org_ingredient_id) ?? t("inventory.catalog.uncategorized", "Uncategorized");
       sums.set(key, (sums.get(key) ?? 0) + it.value);
     }
     const rows = Array.from(sums.entries()).sort((a, b) => b[1] - a[1]);
     const max = rows.reduce((m, [, v]) => Math.max(m, v), 0);
     return { rows, max };
-  }, [catalog.data, valuation.data]);
+  }, [catalog.data, valuation.data, t]);
 
   // Export the currently-visible report tab.
   const handleExport = () => {
@@ -92,7 +92,7 @@ export function ReportsPage() {
         { header: t("inventory.reports.byCategory", "By category"), accessor: (r) => r.category, type: "text", width: 24 },
         { header: t("inventory.reports.totalValue", "Total value"), accessor: (r) => r.value, type: "money", width: 16 },
       ];
-      rows = byCategory.rows.map(([cat, val]) => ({ category: t(`inventory.catalog.cat_${cat}`, cat), value: val }));
+      rows = byCategory.rows.map(([cat, val]) => ({ category: cat, value: val }));
     } else if (tab === "consumption") {
       title = t("inventory.reports.consumption", "Consumption");
       cols = [
@@ -201,14 +201,14 @@ export function ReportsPage() {
                   ) : byCategory.rows.map(([cat, val]) => (
                     <div key={cat} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
-                        <span>{t(`inventory.catalog.cat_${cat}`, cat)}</span>
+                        <span>{cat}</span>
                         <span className="tabular">{fmtMoney(val)}</span>
                       </div>
                       <ProgressBar
                         value={val}
                         max={byCategory.max}
                         accent="brand"
-                        ariaLabel={t(`inventory.catalog.cat_${cat}`, cat)}
+                        ariaLabel={cat}
                         className="h-2"
                       />
                     </div>

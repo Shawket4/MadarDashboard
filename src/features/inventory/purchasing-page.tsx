@@ -373,7 +373,7 @@ export function PurchasingPage() {
                         {suggestion.lines.map((l) => (
                           <TableRow key={l.org_ingredient_id}>
                             <TableCell>{l.ingredient_name}</TableCell>
-                            <TableCell className="text-end tabular text-destructive">{fmtNumber(l.current_stock)} {fmtUnit(l.unit)}</TableCell>
+                            <TableCell className="text-end tabular text-destructive">{fmtNumber(l.on_hand)} {fmtUnit(l.unit)}</TableCell>
                             <TableCell className="text-end tabular font-medium">{fmtNumber(l.suggested_qty)} {fmtUnit(l.unit)}</TableCell>
                           </TableRow>
                         ))}

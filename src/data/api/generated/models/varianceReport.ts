@@ -13,6 +13,5 @@ export interface VarianceReport {
   total_shrinkage_value: number;
   /** Count of counted rows whose cost was unknown (excluded from totals). */
   unknown_cost_count: number;
-  /** Org tolerance used to compute `is_flagged`. */
   variance_threshold_pct: number;
 }

@@ -440,16 +440,25 @@ export const MOCK_ORDERS_PAGE: PaginatedOrders = {
  * and "coffee_bean" have translations, so we stick to those three (Milk, Coffee
  * bean, General) rather than inventing keys the bundle can't translate.
  */
+
+/** IngredientCategory[] — the org's ingredient categories (`milk` / `coffee_bean` carry swap semantics). */
+export const MOCK_INGREDIENT_CATEGORIES = [
+  { id: "icat_general", org_id: MOCK_ORG_ID, slug: "general", name: "General", sort_order: 0, ingredient_count: 5, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "icat_milk", org_id: MOCK_ORG_ID, slug: "milk", name: "Milk", sort_order: 10, ingredient_count: 3, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "icat_coffee", org_id: MOCK_ORG_ID, slug: "coffee_bean", name: "Coffee bean", sort_order: 10, ingredient_count: 1, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+];
+const CAT_BY_SLUG = Object.fromEntries(MOCK_INGREDIENT_CATEGORIES.map((c) => [c.slug, c]));
+
 export const MOCK_INGREDIENT_CATALOG = [
-  { id: "ing_milk", org_id: MOCK_ORG_ID, name: "Whole Milk", name_translations: { ar: "حليب كامل الدسم" }, category: "milk", unit: "l", cost_per_unit: 1_800, density_g_per_ml: null, pack_size: 12, pack_unit: "case", yield_pct: null, low_stock_level: 10, reorder_threshold: 10, supplier_id: "sup_dairy", supplier_name: "Cairo Dairy Co.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
-  { id: "ing_coffee", org_id: MOCK_ORG_ID, name: "Espresso Beans", name_translations: { ar: "حبوب إسبريسو" }, category: "coffee_bean", unit: "kg", cost_per_unit: 45_000, density_g_per_ml: null, pack_size: 6, pack_unit: "case", yield_pct: null, low_stock_level: 2, reorder_threshold: 2, supplier_id: "sup_coffee", supplier_name: "Premium Roasters", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
-  { id: "ing_cream", org_id: MOCK_ORG_ID, name: "Heavy Cream", name_translations: { ar: "كريمة ثقيلة" }, category: "milk", unit: "l", cost_per_unit: 3_200, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, low_stock_level: 5, reorder_threshold: 5, supplier_id: "sup_dairy", supplier_name: "Cairo Dairy Co.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
-  { id: "ing_oatmilk", org_id: MOCK_ORG_ID, name: "Oat Milk", name_translations: { ar: "حليب الشوفان" }, category: "milk", unit: "l", cost_per_unit: 4_500, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, low_stock_level: 4, reorder_threshold: 4, supplier_id: null, supplier_name: null, description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
-  { id: "ing_sugar", org_id: MOCK_ORG_ID, name: "Sugar", name_translations: { ar: "سكر" }, category: "general", unit: "kg", cost_per_unit: 800, density_g_per_ml: null, pack_size: 25, pack_unit: "sack", yield_pct: null, low_stock_level: 5, reorder_threshold: 5, supplier_id: "sup_dry", supplier_name: "Dry Goods Dist.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
-  { id: "ing_vanilla", org_id: MOCK_ORG_ID, name: "Vanilla Syrup", name_translations: { ar: "شراب الفانيليا" }, category: "general", unit: "l", cost_per_unit: 12_000, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, low_stock_level: 2, reorder_threshold: 2, supplier_id: "sup_dry", supplier_name: "Dry Goods Dist.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
-  { id: "ing_caramel", org_id: MOCK_ORG_ID, name: "Caramel Syrup", name_translations: { ar: "شراب الكراميل" }, category: "general", unit: "l", cost_per_unit: 11_500, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, low_stock_level: 2, reorder_threshold: 2, supplier_id: "sup_dry", supplier_name: "Dry Goods Dist.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
-  { id: "ing_cocoa", org_id: MOCK_ORG_ID, name: "Cocoa Powder", name_translations: { ar: "مسحوق الكاكاو" }, category: "general", unit: "kg", cost_per_unit: 9_500, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, low_stock_level: 1, reorder_threshold: 1, supplier_id: "sup_dry", supplier_name: "Dry Goods Dist.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
-  { id: "ing_matcha", org_id: MOCK_ORG_ID, name: "Matcha Powder", name_translations: { ar: "مسحوق الماتشا" }, category: "general", unit: "kg", cost_per_unit: 85_000, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, low_stock_level: 0.5, reorder_threshold: 0.5, supplier_id: null, supplier_name: null, description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "ing_milk", org_id: MOCK_ORG_ID, name: "Whole Milk", name_translations: { ar: "حليب كامل الدسم" }, category_id: CAT_BY_SLUG["milk"].id, category_slug: "milk", category_name: CAT_BY_SLUG["milk"].name, unit: "l", cost_per_unit: 1_800, density_g_per_ml: null, pack_size: 12, pack_unit: "case", yield_pct: null, par_level: 10, supplier_id: "sup_dairy", supplier_name: "Cairo Dairy Co.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "ing_coffee", org_id: MOCK_ORG_ID, name: "Espresso Beans", name_translations: { ar: "حبوب إسبريسو" }, category_id: CAT_BY_SLUG["coffee_bean"].id, category_slug: "coffee_bean", category_name: CAT_BY_SLUG["coffee_bean"].name, unit: "kg", cost_per_unit: 45_000, density_g_per_ml: null, pack_size: 6, pack_unit: "case", yield_pct: null, par_level: 2, supplier_id: "sup_coffee", supplier_name: "Premium Roasters", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "ing_cream", org_id: MOCK_ORG_ID, name: "Heavy Cream", name_translations: { ar: "كريمة ثقيلة" }, category_id: CAT_BY_SLUG["milk"].id, category_slug: "milk", category_name: CAT_BY_SLUG["milk"].name, unit: "l", cost_per_unit: 3_200, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, par_level: 5, supplier_id: "sup_dairy", supplier_name: "Cairo Dairy Co.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "ing_oatmilk", org_id: MOCK_ORG_ID, name: "Oat Milk", name_translations: { ar: "حليب الشوفان" }, category_id: CAT_BY_SLUG["milk"].id, category_slug: "milk", category_name: CAT_BY_SLUG["milk"].name, unit: "l", cost_per_unit: 4_500, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, par_level: 4, supplier_id: null, supplier_name: null, description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "ing_sugar", org_id: MOCK_ORG_ID, name: "Sugar", name_translations: { ar: "سكر" }, category_id: CAT_BY_SLUG["general"].id, category_slug: "general", category_name: CAT_BY_SLUG["general"].name, unit: "kg", cost_per_unit: 800, density_g_per_ml: null, pack_size: 25, pack_unit: "sack", yield_pct: null, par_level: 5, supplier_id: "sup_dry", supplier_name: "Dry Goods Dist.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "ing_vanilla", org_id: MOCK_ORG_ID, name: "Vanilla Syrup", name_translations: { ar: "شراب الفانيليا" }, category_id: CAT_BY_SLUG["general"].id, category_slug: "general", category_name: CAT_BY_SLUG["general"].name, unit: "l", cost_per_unit: 12_000, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, par_level: 2, supplier_id: "sup_dry", supplier_name: "Dry Goods Dist.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "ing_caramel", org_id: MOCK_ORG_ID, name: "Caramel Syrup", name_translations: { ar: "شراب الكراميل" }, category_id: CAT_BY_SLUG["general"].id, category_slug: "general", category_name: CAT_BY_SLUG["general"].name, unit: "l", cost_per_unit: 11_500, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, par_level: 2, supplier_id: "sup_dry", supplier_name: "Dry Goods Dist.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "ing_cocoa", org_id: MOCK_ORG_ID, name: "Cocoa Powder", name_translations: { ar: "مسحوق الكاكاو" }, category_id: CAT_BY_SLUG["general"].id, category_slug: "general", category_name: CAT_BY_SLUG["general"].name, unit: "kg", cost_per_unit: 9_500, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, par_level: 1, supplier_id: "sup_dry", supplier_name: "Dry Goods Dist.", description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
+  { id: "ing_matcha", org_id: MOCK_ORG_ID, name: "Matcha Powder", name_translations: { ar: "مسحوق الماتشا" }, category_id: CAT_BY_SLUG["general"].id, category_slug: "general", category_name: CAT_BY_SLUG["general"].name, unit: "kg", cost_per_unit: 85_000, density_g_per_ml: null, pack_size: null, pack_unit: null, yield_pct: null, par_level: 0.5, supplier_id: null, supplier_name: null, description: null, is_active: true, created_at: "2026-01-04T08:00:00Z", updated_at: NOW_ISO },
 ];
 
 /** On-hand quantity per ingredient (deterministic), keyed by org_ingredient_id. */
@@ -458,26 +467,27 @@ const STOCK_LEVELS: Record<string, number> = {
   ing_vanilla: 1.4, ing_caramel: 5.1, ing_cocoa: 2.3, ing_matcha: 0.35,
 };
 
-/** BranchInventoryItem[] — on-hand stock for a single branch. */
+/** BranchStockRow[] — every catalog ingredient as seen from one branch. */
 export const MOCK_BRANCH_STOCK = MOCK_INGREDIENT_CATALOG.map((ing) => {
   const stock = STOCK_LEVELS[ing.id] ?? 0;
-  const reorder = ing.reorder_threshold;
+  const par = ing.par_level;
   return {
-    id: `bii_${ing.id}`,
     branch_id: "br_zamalek",
     org_ingredient_id: ing.id,
     ingredient_name: ing.name,
-    description: null,
     unit: ing.unit,
-    current_stock: stock,
+    category_id: ing.category_id,
+    category_slug: ing.category_slug,
+    category_name: ing.category_name,
+    description: null,
     cost_per_unit: ing.cost_per_unit,
-    reorder_threshold: reorder,
-    par_min: reorder,
-    par_max: reorder * 4,
-    below_reorder: stock <= reorder,
+    on_hand: stock,
+    par_min: par,
+    par_max: par * 4,
+    below_par: par > 0 && stock <= par,
     last_counted_at: "2026-06-15T19:30:00Z",
-    created_at: "2026-01-04T08:00:00Z",
-    updated_at: NOW_ISO,
+    last_movement_at: "2026-06-16T09:10:00Z",
+    has_activity: true,
   };
 });
 
@@ -485,7 +495,7 @@ export const MOCK_BRANCH_STOCK = MOCK_INGREDIENT_CATALOG.map((ing) => {
 const VALUATION_ITEMS = MOCK_INGREDIENT_CATALOG.map((ing) => {
   const stock = STOCK_LEVELS[ing.id] ?? 0;
   const value = ing.cost_per_unit != null ? Math.round(stock * ing.cost_per_unit) : null;
-  return { org_ingredient_id: ing.id, ingredient_name: ing.name, unit: ing.unit, current_stock: stock, cost_per_unit: ing.cost_per_unit, value };
+  return { org_ingredient_id: ing.id, ingredient_name: ing.name, unit: ing.unit, on_hand: stock, cost_per_unit: ing.cost_per_unit, value };
 });
 
 export const MOCK_INVENTORY_VALUATION = {
@@ -495,7 +505,12 @@ export const MOCK_INVENTORY_VALUATION = {
 };
 
 /** Low-stock alert rows: the branch items at/under their reorder point. */
-export const MOCK_LOW_STOCK = MOCK_BRANCH_STOCK.filter((i) => i.below_reorder);
+export const MOCK_LOW_STOCK = MOCK_BRANCH_STOCK.filter((i) => i.below_par).map((i) => ({
+  branch_id: i.branch_id, branch_name: "Zamalek", org_ingredient_id: i.org_ingredient_id, ingredient_name: i.ingredient_name, unit: i.unit,
+  on_hand: i.on_hand, par_min: i.par_min, par_max: i.par_max, suggested_qty: Math.max((i.par_max ?? i.par_min) - i.on_hand, 0),
+  supplier_id: MOCK_INGREDIENT_CATALOG.find((c) => c.id === i.org_ingredient_id)?.supplier_id ?? null,
+  supplier_name: MOCK_INGREDIENT_CATALOG.find((c) => c.id === i.org_ingredient_id)?.supplier_name ?? null,
+}));
 
 /** ConsumptionRow[] — ingredient usage over the period (org roll-up). */
 export const MOCK_CONSUMPTION = [
@@ -571,14 +586,14 @@ export const MOCK_REORDER_SUGGESTIONS = [
   {
     supplier_id: "sup_dairy", supplier_name: "Cairo Dairy Co.",
     lines: [
-      { org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", current_stock: 8, suggested_qty: 32, unit: "l" },
+      { org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", on_hand: 8, suggested_qty: 32, unit: "l" },
     ],
   },
   {
     supplier_id: null, supplier_name: null,
     lines: [
-      { org_ingredient_id: "ing_oatmilk", ingredient_name: "Oat Milk", current_stock: 3, suggested_qty: 13, unit: "l" },
-      { org_ingredient_id: "ing_matcha", ingredient_name: "Matcha Powder", current_stock: 0.35, suggested_qty: 1.65, unit: "kg" },
+      { org_ingredient_id: "ing_oatmilk", ingredient_name: "Oat Milk", on_hand: 3, suggested_qty: 13, unit: "l" },
+      { org_ingredient_id: "ing_matcha", ingredient_name: "Matcha Powder", on_hand: 0.35, suggested_qty: 1.65, unit: "kg" },
     ],
   },
 ];
@@ -589,20 +604,20 @@ export const MOCK_REORDER_SUGGESTIONS = [
  * the "All branches" list reads cleanly (the editor only shows per-branch).
  */
 export const MOCK_STOCKTAKES = [
-  { id: "stk_0610", org_id: MOCK_ORG_ID, branch_id: "br_zamalek", branch_name: "Zamalek", status: "finalized", note: "End-of-week full count", started_by: "usr_mona", started_by_name: "Mona Adel", finalized_by: "usr_mona", started_at: "2026-06-15T18:45:00Z", finalized_at: "2026-06-15T19:30:00Z", created_at: "2026-06-15T18:45:00Z" },
-  { id: "stk_0608", org_id: MOCK_ORG_ID, branch_id: "br_newcairo", branch_name: "New Cairo", status: "finalized", note: null, started_by: "usr_karim", started_by_name: "Karim Saleh", finalized_by: "usr_karim", started_at: "2026-06-08T20:00:00Z", finalized_at: "2026-06-08T20:40:00Z", created_at: "2026-06-08T20:00:00Z" },
-  { id: "stk_0601", org_id: MOCK_ORG_ID, branch_id: "br_maadi", branch_name: "Maadi", status: "finalized", note: "Coffee + dairy only", started_by: "usr_youssef", started_by_name: "Youssef Nabil", finalized_by: "usr_youssef", started_at: "2026-06-01T19:10:00Z", finalized_at: "2026-06-01T19:35:00Z", created_at: "2026-06-01T19:10:00Z" },
+  { id: "stk_0610", org_id: MOCK_ORG_ID, branch_id: "br_zamalek", branch_name: "Zamalek", status: "finalized", scope: { kind: "full" }, counted_items: 9, total_items: 9, note: "End-of-week full count", started_by: "usr_mona", started_by_name: "Mona Adel", finalized_by: "usr_mona", started_at: "2026-06-15T18:45:00Z", finalized_at: "2026-06-15T19:30:00Z", created_at: "2026-06-15T18:45:00Z" },
+  { id: "stk_0608", org_id: MOCK_ORG_ID, branch_id: "br_newcairo", branch_name: "New Cairo", status: "finalized", scope: { kind: "full" }, counted_items: 9, total_items: 9, note: null, started_by: "usr_karim", started_by_name: "Karim Saleh", finalized_by: "usr_karim", started_at: "2026-06-08T20:00:00Z", finalized_at: "2026-06-08T20:40:00Z", created_at: "2026-06-08T20:00:00Z" },
+  { id: "stk_0601", org_id: MOCK_ORG_ID, branch_id: "br_maadi", branch_name: "Maadi", status: "finalized", scope: { kind: "category", category_id: "icat_milk" }, counted_items: 3, total_items: 3, note: "Coffee + dairy only", started_by: "usr_youssef", started_by_name: "Youssef Nabil", finalized_by: "usr_youssef", started_at: "2026-06-01T19:10:00Z", finalized_at: "2026-06-01T19:35:00Z", created_at: "2026-06-01T19:10:00Z" },
 ];
 
 /** VarianceReport for the finalized Zamalek count (stk_0610). */
 const VARIANCE_ROWS = [
-  { org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", unit: "l", expected_qty: 12.5, counted_qty: 8.0, variance: -4.5, unit_cost: 1_800, variance_value: -8_100, variance_reason: "spoilage", is_flagged: true },
-  { org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", unit: "kg", expected_qty: 15.3, counted_qty: 14.5, variance: -0.8, unit_cost: 45_000, variance_value: -36_000, variance_reason: "miscount", is_flagged: true },
-  { org_ingredient_id: "ing_cream", ingredient_name: "Heavy Cream", unit: "l", expected_qty: 7.4, counted_qty: 6.2, variance: -1.2, unit_cost: 3_200, variance_value: -3_840, variance_reason: "breakage", is_flagged: true },
-  { org_ingredient_id: "ing_sugar", ingredient_name: "Sugar", unit: "kg", expected_qty: 21.0, counted_qty: 22.0, variance: 1.0, unit_cost: 800, variance_value: 800, variance_reason: null, is_flagged: false },
-  { org_ingredient_id: "ing_oatmilk", ingredient_name: "Oat Milk", unit: "l", expected_qty: 3.0, counted_qty: 3.0, variance: 0, unit_cost: 4_500, variance_value: 0, variance_reason: null, is_flagged: false },
-  { org_ingredient_id: "ing_vanilla", ingredient_name: "Vanilla Syrup", unit: "l", expected_qty: 1.4, counted_qty: 1.4, variance: 0, unit_cost: 12_000, variance_value: 0, variance_reason: null, is_flagged: false },
-  { org_ingredient_id: "ing_matcha", ingredient_name: "Matcha Powder", unit: "kg", expected_qty: 0.40, counted_qty: 0.35, variance: -0.05, unit_cost: 85_000, variance_value: -4_250, variance_reason: "theft", is_flagged: true },
+  { org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", unit: "l", category_name: "General", opening_qty: 12.5, book_qty: 12.5, counted_qty: 8.0, variance: -4.5, unit_cost: 1_800, variance_value: -8_100, variance_reason: "spoilage", is_flagged: true },
+  { org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", unit: "kg", category_name: "General", opening_qty: 15.3, book_qty: 15.3, counted_qty: 14.5, variance: -0.8, unit_cost: 45_000, variance_value: -36_000, variance_reason: "miscount", is_flagged: true },
+  { org_ingredient_id: "ing_cream", ingredient_name: "Heavy Cream", unit: "l", category_name: "General", opening_qty: 7.4, book_qty: 7.4, counted_qty: 6.2, variance: -1.2, unit_cost: 3_200, variance_value: -3_840, variance_reason: "breakage", is_flagged: true },
+  { org_ingredient_id: "ing_sugar", ingredient_name: "Sugar", unit: "kg", category_name: "General", opening_qty: 21.0, book_qty: 21.0, counted_qty: 22.0, variance: 1.0, unit_cost: 800, variance_value: 800, variance_reason: null, is_flagged: false },
+  { org_ingredient_id: "ing_oatmilk", ingredient_name: "Oat Milk", unit: "l", category_name: "General", opening_qty: 3.0, book_qty: 3.0, counted_qty: 3.0, variance: 0, unit_cost: 4_500, variance_value: 0, variance_reason: null, is_flagged: false },
+  { org_ingredient_id: "ing_vanilla", ingredient_name: "Vanilla Syrup", unit: "l", category_name: "General", opening_qty: 1.4, book_qty: 1.4, counted_qty: 1.4, variance: 0, unit_cost: 12_000, variance_value: 0, variance_reason: null, is_flagged: false },
+  { org_ingredient_id: "ing_matcha", ingredient_name: "Matcha Powder", unit: "kg", category_name: "General", opening_qty: 0.40, book_qty: 0.40, counted_qty: 0.35, variance: -0.05, unit_cost: 85_000, variance_value: -4_250, variance_reason: "theft", is_flagged: true },
 ];
 
 export const MOCK_VARIANCE_REPORT = {

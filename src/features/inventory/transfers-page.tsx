@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { BranchInventoryTransfer } from "@/data/api/generated/models";
+import type { StockTransfer } from "@/data/api/generated/models";
 import {
   deleteTransfer, updateTransfer, useListBranches, useListTransfers,
 } from "@/data/api/generated/api";
@@ -40,7 +40,7 @@ export function TransfersPage() {
   const { branchId, scopeBranchId } = useScope();
   const [dir, setDir] = useState<Direction>("all");
   const [newOpen, setNewOpen] = useState(false);
-  const [editNote, setEditNote] = useState<BranchInventoryTransfer | null>(null);
+  const [editNote, setEditNote] = useState<StockTransfer | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [savingNote, setSavingNote] = useState(false);
 
@@ -56,7 +56,7 @@ export function TransfersPage() {
     { query: { enabled: !!scopeBranchId } },
   );
 
-  const onReverse = async (tr: BranchInventoryTransfer) => {
+  const onReverse = async (tr: StockTransfer) => {
     if (await confirm({
       title: t("inventory.transfers.reverseTitle", "Reverse transfer"),
       description: t("inventory.transfers.reverseConfirm", "Reverse this transfer with a compensating entry?"),
@@ -88,7 +88,7 @@ export function TransfersPage() {
     }
   };
 
-  const columns = useMemo<ColumnDef<BranchInventoryTransfer>[]>(
+  const columns = useMemo<ColumnDef<StockTransfer>[]>(
     () => [
       {
         accessorKey: "initiated_at",
@@ -151,7 +151,7 @@ export function TransfersPage() {
 
   const handleExport = () => {
     const rows = transfers.data ?? [];
-    const cols: ExcelColumn<BranchInventoryTransfer>[] = [
+    const cols: ExcelColumn<StockTransfer>[] = [
       { header: t("common.date", "Date"), accessor: (tr) => tr.initiated_at, type: "dateTime", width: 20 },
       { header: t("inventory.transfers.ingredient", "Ingredient"), accessor: (tr) => tr.ingredient_name, type: "text", width: 28 },
       { header: t("inventory.transfers.quantity", "Quantity"), accessor: (tr) => tr.quantity, type: "number", width: 12 },

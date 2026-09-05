@@ -2,7 +2,11 @@
 // @ts-nocheck
 
 export interface CreateCatalogItemRequest {
-  category: string;
+  /**
+     * Omitted ⟹ the org's `general` category.
+     * @nullable
+     */
+  category_id?: string | null;
   /** @nullable */
   cost_per_unit?: number | null;
   /** @nullable */
@@ -12,15 +16,9 @@ export interface CreateCatalogItemRequest {
   name: string;
   /** @nullable */
   pack_size?: number | null;
-  /**
-     * Optional named purchase pack and its base-unit size.
-     * @nullable
-     */
+  /** @nullable */
   pack_unit?: string | null;
-  /**
-     * Optional default supplier for reordering.
-     * @nullable
-     */
+  /** @nullable */
   supplier_id?: string | null;
   unit: string;
   /** @nullable */

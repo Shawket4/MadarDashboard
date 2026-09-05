@@ -1,14 +1,16 @@
 import { queryClient } from "@/data/api/query";
+import type { BranchStockRow, ItemCountInput, Stocktake, StocktakeItem } from "@/data/api/generated/models";
 
 /**
- * Self-contained helpers for the inventory screens. Kept separate from any
- * shared `util.ts` so this module stays internally consistent and correct
- * against the backend enums.
+ * Shared vocabulary + helpers for the inventory screens.
  *
- * Invalidate everything an inventory mutation can touch: catalog/stock/movements/
- * waste/transfers (under `/inventory`), stocktakes, purchasing, and the reports
- * that read those movements (valuation, low-stock, consumption, shrinkage, waste).
+ * Model (inventory v2): the org catalog is the only setup. Every branch sees the
+ * whole catalog; a row with `has_activity = false` has simply never moved or
+ * been counted there. Stock only changes through the ledger — the dashboard
+ * never writes an on-hand figure, it counts, wastes, transfers or receives.
  */
+
+/** Invalidate everything an inventory mutation can touch. */
 export const invalidateInventory = () =>
   queryClient.invalidateQueries({
     predicate: (q) => {
@@ -25,7 +27,6 @@ export const invalidateInventory = () =>
 
 // ── Enums (mirror the backend) ───────────────────────────────────────────────
 
-/** Stock-count variance reasons (StocktakeItem.variance_reason / ItemCountInput). */
 export const VARIANCE_REASONS = [
   "theft",
   "spoilage",
@@ -37,41 +38,22 @@ export const VARIANCE_REASONS = [
 ] as const;
 export type VarianceReason = (typeof VARIANCE_REASONS)[number];
 
-/** Waste reasons (CreateWasteRequest.reason). */
-export const WASTE_REASONS = [
-  "expired",
-  "spoiled",
-  "damaged",
-  "overproduction",
-  "theft",
-  "other",
-] as const;
+export const WASTE_REASONS = ["expired", "spoiled", "damaged", "overproduction", "theft", "other"] as const;
 export type WasteReason = (typeof WASTE_REASONS)[number];
 
-/** Purchase-order statuses (PurchaseOrder.status). */
-export const PO_STATUSES = [
-  "draft",
-  "ordered",
-  "partially_received",
-  "received",
-  "cancelled",
-] as const;
+export const PO_STATUSES = ["draft", "ordered", "partially_received", "received", "cancelled"] as const;
 export type POStatus = (typeof PO_STATUSES)[number];
 
 /** Stock units the catalog supports. */
 export const UNITS = ["g", "kg", "ml", "l", "pcs"] as const;
-/** Ingredient categories with existing i18n keys (inventory.catalog.cat_*). */
-export const CATEGORIES = ["general", "milk", "coffee_bean"] as const;
 
 // ── Measure families (the backend converts only within a family) ─────────────
 
 export type MeasureFamily = "weight" | "volume" | "count";
 
-/** weight: g↔kg · volume: ml↔l · count: pcs (no conversion). */
 export const unitFamily = (unit: string): MeasureFamily =>
   unit === "g" || unit === "kg" ? "weight" : unit === "ml" || unit === "l" ? "volume" : "count";
 
-/** The valid units a given unit can change to / be purchased in (same family). */
 export const unitsForFamily = (unit: string): string[] => {
   switch (unitFamily(unit)) {
     case "weight":
@@ -83,26 +65,79 @@ export const unitsForFamily = (unit: string): string[] => {
   }
 };
 
-// ── Variance flagging (client-side, mirrors the finalize guardrail) ──────────
+// ── Stock counts ─────────────────────────────────────────────────────────────
 
 /**
- * A counted row is flagged when |counted − expected| is at least the org
- * tolerance percent of the expected quantity, or when stock appears-from /
- * vanishes-to zero. Flagged rows require a `variance_reason` before finalize
- * (the backend returns 409 otherwise). Uncounted rows are never flagged.
+ * A counted row is flagged when |counted − book| is at least the org tolerance
+ * percent of book stock, or when stock appears-from / vanishes-to zero.
+ * Flagged rows need a `variance_reason` before finalize (the backend enforces
+ * the same rule against the same live book figure and answers 409 otherwise).
  */
-export function isVarianceFlagged(
-  expected: number,
-  counted: number | null | undefined,
-  thresholdPct: number,
-): boolean {
+export function isVarianceFlagged(book: number, counted: number | null | undefined, thresholdPct: number): boolean {
   if (counted == null) return false;
-  if (expected === 0) return counted !== 0; // appears from zero
-  if (counted === 0) return true; // vanishes to zero
-  return Math.abs(counted - expected) >= (thresholdPct / 100) * Math.abs(expected);
+  if (Math.abs(book) < 1e-9) return Math.abs(counted) > 1e-9;
+  return (Math.abs(counted - book) / Math.abs(book)) * 100 >= thresholdPct;
 }
 
-/** Tailwind classes for a coloured PO-status badge. */
+/** Parse a count input; empty or non-numeric means "not counted". */
+export function parseCount(raw: string | undefined): number | null {
+  if (raw == null || raw.trim() === "") return null;
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * The `PUT /stocktakes/{id}/items` payload from the editor's local state: one
+ * entry per row that has a count, carrying its reason when one was picked.
+ * Rows outside the snapshot (found items) are included the same way.
+ */
+export function buildCountPayload(
+  rowIds: string[],
+  counts: Record<string, string>,
+  reasons: Record<string, string>,
+): ItemCountInput[] {
+  const out: ItemCountInput[] = [];
+  for (const id of rowIds) {
+    const qty = parseCount(counts[id]);
+    if (qty == null) continue;
+    out.push({ org_ingredient_id: id, counted_qty: qty, variance_reason: reasons[id] || null });
+  }
+  return out;
+}
+
+/** Names of counted rows that are flagged but carry no reason yet. */
+export function missingReasons(
+  items: Pick<StocktakeItem, "org_ingredient_id" | "ingredient_name" | "book_qty">[],
+  counts: Record<string, string>,
+  reasons: Record<string, string>,
+  thresholdPct: number,
+): string[] {
+  return items
+    .filter((it) => {
+      const counted = parseCount(counts[it.org_ingredient_id]);
+      return counted != null && isVarianceFlagged(it.book_qty, counted, thresholdPct) && !reasons[it.org_ingredient_id];
+    })
+    .map((it) => it.ingredient_name);
+}
+
+export const isOpenStocktake = (status: string): boolean => status === "in_progress" || status === "draft";
+
+/** True when the branch has never finalized a count — the first-run entrance. */
+export function needsFirstCount(stocktakes: Pick<Stocktake, "status">[] | undefined): boolean {
+  if (!stocktakes) return false;
+  return !stocktakes.some((s) => s.status === "finalized");
+}
+
+export const COUNT_DUE_DAYS = 14;
+
+/** Catalog rows a branch should count: never counted, or older than the window. */
+export function countsDue(rows: Pick<BranchStockRow, "last_counted_at">[], now = Date.now()): number {
+  const window = COUNT_DUE_DAYS * 86_400_000;
+  return rows.filter((r) => r.last_counted_at == null || now - new Date(r.last_counted_at).getTime() > window).length;
+}
+
+// ── Badge styles ─────────────────────────────────────────────────────────────
+
 export const PO_STATUS_STYLES: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   ordered: "bg-info/10 text-info",
@@ -111,14 +146,9 @@ export const PO_STATUS_STYLES: Record<string, string> = {
   cancelled: "bg-destructive/10 text-destructive",
 };
 
-/** Stocktake statuses that are still editable (the backend uses these for an open count). */
-export const isOpenStocktake = (status: string): boolean => status === "in_progress" || status === "draft";
-
-/** Tailwind classes for a coloured stocktake-status badge. */
 export const STOCKTAKE_STATUS_STYLES: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   in_progress: "bg-info/10 text-info",
-  open: "bg-info/10 text-info",
   finalized: "bg-success/10 text-success",
   cancelled: "bg-destructive/10 text-destructive",
 };
