@@ -327,12 +327,15 @@ import type {
   PutModifierGroupsRequest,
   PutOverrideRequest,
   PutRecipeRequest,
+  PutRecipeStepsRequest,
   PutSizesRequest,
   PutTargetRequest,
   QrResponse,
   QuoteResponse,
   ReceivePurchaseOrderRequest,
   RecipeCostResult,
+  RecipeStep,
+  RecipeStepPreset,
   RegistryInfo,
   RenameConversationRequest,
   ReorderSuggestion,
@@ -18635,6 +18638,246 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDeleteDrinkRecipeMutationOptions(options), queryClient);
+    }
+
+export const listStepPresets = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RecipeStepPreset[]>(
+      {url: `/recipes/step-presets`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListStepPresetsQueryKey = () => {
+    return [
+    `/recipes/step-presets`
+    ] as const;
+    }
+
+
+export const getListStepPresetsQueryOptions = <TData = Awaited<ReturnType<typeof listStepPresets>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStepPresets>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStepPresetsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStepPresets>>> = ({ signal }) => listStepPresets(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStepPresets>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStepPresetsQueryResult = NonNullable<Awaited<ReturnType<typeof listStepPresets>>>
+export type ListStepPresetsQueryError = ErrorBody
+
+
+export function useListStepPresets<TData = Awaited<ReturnType<typeof listStepPresets>>, TError = ErrorBody>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStepPresets>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStepPresets>>,
+          TError,
+          Awaited<ReturnType<typeof listStepPresets>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStepPresets<TData = Awaited<ReturnType<typeof listStepPresets>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStepPresets>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStepPresets>>,
+          TError,
+          Awaited<ReturnType<typeof listStepPresets>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStepPresets<TData = Awaited<ReturnType<typeof listStepPresets>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStepPresets>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStepPresets<TData = Awaited<ReturnType<typeof listStepPresets>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStepPresets>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStepPresetsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const listRecipeSteps = (
+    menuItemId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RecipeStep[]>(
+      {url: `/recipes/steps/${menuItemId}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListRecipeStepsQueryKey = (menuItemId: string,) => {
+    return [
+    `/recipes/steps/${menuItemId}`
+    ] as const;
+    }
+
+
+export const getListRecipeStepsQueryOptions = <TData = Awaited<ReturnType<typeof listRecipeSteps>>, TError = ErrorBody>(menuItemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRecipeSteps>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRecipeStepsQueryKey(menuItemId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRecipeSteps>>> = ({ signal }) => listRecipeSteps(menuItemId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: menuItemId !== null && menuItemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRecipeSteps>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRecipeStepsQueryResult = NonNullable<Awaited<ReturnType<typeof listRecipeSteps>>>
+export type ListRecipeStepsQueryError = ErrorBody
+
+
+export function useListRecipeSteps<TData = Awaited<ReturnType<typeof listRecipeSteps>>, TError = ErrorBody>(
+ menuItemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRecipeSteps>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRecipeSteps>>,
+          TError,
+          Awaited<ReturnType<typeof listRecipeSteps>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRecipeSteps<TData = Awaited<ReturnType<typeof listRecipeSteps>>, TError = ErrorBody>(
+ menuItemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRecipeSteps>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRecipeSteps>>,
+          TError,
+          Awaited<ReturnType<typeof listRecipeSteps>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRecipeSteps<TData = Awaited<ReturnType<typeof listRecipeSteps>>, TError = ErrorBody>(
+ menuItemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRecipeSteps>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRecipeSteps<TData = Awaited<ReturnType<typeof listRecipeSteps>>, TError = ErrorBody>(
+ menuItemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRecipeSteps>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRecipeStepsQueryOptions(menuItemId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary Replace an item's steps, in one transaction.
+ */
+export const putRecipeSteps = (
+    menuItemId: string,
+    putRecipeStepsRequest: PutRecipeStepsRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RecipeStep[]>(
+      {url: `/recipes/steps/${menuItemId}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: putRecipeStepsRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutRecipeStepsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putRecipeSteps>>, TError,{menuItemId: string;data: PutRecipeStepsRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putRecipeSteps>>, TError,{menuItemId: string;data: PutRecipeStepsRequest}, TContext> => {
+
+const mutationKey = ['putRecipeSteps'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putRecipeSteps>>, {menuItemId: string;data: PutRecipeStepsRequest}> = (props) => {
+          const {menuItemId,data} = props ?? {};
+
+          return  putRecipeSteps(menuItemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutRecipeStepsMutationResult = NonNullable<Awaited<ReturnType<typeof putRecipeSteps>>>
+    export type PutRecipeStepsMutationBody = PutRecipeStepsRequest
+    export type PutRecipeStepsMutationError = ErrorBody
+
+    /**
+ * @summary Replace an item's steps, in one transaction.
+ */
+export const usePutRecipeSteps = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putRecipeSteps>>, TError,{menuItemId: string;data: PutRecipeStepsRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putRecipeSteps>>,
+        TError,
+        {menuItemId: string;data: PutRecipeStepsRequest},
+        TContext
+      > => {
+      return useMutation(getPutRecipeStepsMutationOptions(options), queryClient);
     }
 
 export const branchAddonSales = (
