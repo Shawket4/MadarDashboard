@@ -186,9 +186,15 @@ export const toOptionRows = (s: StudioAggregate): OptionRowDraft[] =>
     };
   });
 
-/** The item's saved steps, as the editor holds them. */
+/** The item's saved steps, as the editor holds them.
+ *
+ * Tolerates an aggregate with no `recipe_steps` at all. The field is served by
+ * a newer backend than the one this page may be talking to — during a rollout,
+ * or from a response cached before it — and mapping it blind took the whole
+ * Menu Studio down with "Cannot read properties of undefined". A missing list
+ * is simply an item with no steps yet. */
 export const toStepDrafts = (s: StudioAggregate): StepDraft[] =>
-  s.recipe_steps.map((st) =>
+  (s.recipe_steps ?? []).map((st) =>
     st.kind === "preset"
       ? { kind: "preset" as const, preset_slug: st.preset_slug ?? null, title: "", title_ar: "" }
       : // A step typed in one language shows that name in both; keep only what
