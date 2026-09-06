@@ -186,6 +186,21 @@ export const toOptionRows = (s: StudioAggregate): OptionRowDraft[] =>
     };
   });
 
+/** The item's saved steps, as the editor holds them. */
+export const toStepDrafts = (s: StudioAggregate): StepDraft[] =>
+  s.recipe_steps.map((st) =>
+    st.kind === "preset"
+      ? { kind: "preset" as const, preset_slug: st.preset_slug ?? null, title: "", title_ar: "" }
+      : // A step typed in one language shows that name in both; keep only what
+        // was actually typed so saving does not invent an Arabic name.
+        {
+          kind: "custom" as const,
+          preset_slug: null,
+          title: st.name === st.name_ar ? st.name : st.name,
+          title_ar: st.name_ar === st.name ? "" : st.name_ar,
+        },
+  );
+
 // ── Dirty signatures ─────────────────────────────────────────────────────────
 
 export const itemSig = (v: ItemDraftValues): string =>
@@ -211,6 +226,20 @@ export const modifiersSig = (attached: AttachDraft[]): string =>
 export const optionsSig = (rows: OptionRowDraft[]): string =>
   JSON.stringify(rows.map((r) => [r.id ?? null, r.name, r.price, r.is_active, r.ingredient_id, r.quantity, r.unit]));
 
+export const stepsSig = (steps: StepDraft[]): string =>
+  JSON.stringify(steps.map((s) => [s.kind, s.preset_slug, s.title.trim(), s.title_ar.trim()]));
+
+/**
+ * One step being edited. A preset step points at the library and is named by
+ * it; a custom step carries the typed name and never an animation.
+ */
+export interface StepDraft {
+  kind: "preset" | "custom";
+  preset_slug: string | null;
+  title: string;
+  title_ar: string;
+}
+
 export interface PristineSigs {
   item: string;
   sizes: string;
@@ -218,6 +247,14 @@ export interface PristineSigs {
   recipes: Record<string, string>;
   modifiers: string;
   options: string;
+  steps: string;
 }
 
-export const EMPTY_PRISTINE: PristineSigs = { item: "", sizes: "", recipes: {}, modifiers: "", options: "" };
+export const EMPTY_PRISTINE: PristineSigs = {
+  item: "",
+  sizes: "",
+  recipes: {},
+  modifiers: "",
+  options: "",
+  steps: "",
+};

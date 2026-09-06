@@ -17,6 +17,7 @@ import {
   duplicateItem,
   putItemOptions,
   putModifierGroups,
+  putRecipeSteps,
   putSizeRecipe,
   putSizes,
   updateMenuItem,
@@ -38,6 +39,8 @@ import {
   modifiersSig,
   optionsSig,
   recipeSig,
+  stepsSig,
+  toStepDrafts,
   sizesSig,
   toAttachDrafts,
   toItemValues,
@@ -48,9 +51,11 @@ import {
   type OptionRowDraft,
   type PristineSigs,
   type SizeBlockDraft,
+  type StepDraft,
 } from "./util";
 import { SectionItem } from "./section-item";
 import { SectionSizes } from "./section-sizes";
+import { SectionSteps } from "./section-steps";
 import { SectionModifiers } from "./section-modifiers";
 import { SectionOptions } from "./section-options";
 
@@ -64,6 +69,7 @@ const TAB_TO_SECTION: Record<string, string> = {
   basics: "item",
   sizes: "sizes",
   recipe: "sizes",
+  steps: "steps",
   modifiers: "modifiers",
   options: "options",
 };
@@ -122,6 +128,7 @@ export function MenuStudioPage() {
   const [blocks, setBlocks] = useState<SizeBlockDraft[]>([]);
   const [attached, setAttached] = useState<AttachDraft[]>([]);
   const [rows, setRows] = useState<OptionRowDraft[]>([]);
+  const [steps, setSteps] = useState<StepDraft[]>([]);
   const [pristine, setPristine] = useState<PristineSigs>(EMPTY_PRISTINE);
   const [saving, setSaving] = useState(false);
 
@@ -146,19 +153,32 @@ export function MenuStudioPage() {
   const anyRecipeDirty = recipeDirtyKeys.size > 0;
   const modifiersDirty = !!studio && modifiersSig(attached) !== pristine.modifiers;
   const optionsDirty = !!studio && optionsSig(rows) !== pristine.options;
+  const stepsDirty = !!studio && stepsSig(steps) !== pristine.steps;
   const sizesSectionDirty = sizesDirty || anyRecipeDirty;
   const dirtyCount =
-    (itemDirty ? 1 : 0) + (sizesSectionDirty ? 1 : 0) + (modifiersDirty ? 1 : 0) + (optionsDirty ? 1 : 0);
+    (itemDirty ? 1 : 0) +
+    (sizesSectionDirty ? 1 : 0) +
+    (stepsDirty ? 1 : 0) +
+    (modifiersDirty ? 1 : 0) +
+    (optionsDirty ? 1 : 0);
 
   // ── Seeding from the server aggregate ───────────────────────────────────────
   // Re-seed whenever the aggregate refetches, but never clobber a dirty section
   // (mid-edit refetches happen — e.g. an inline ingredient-cost fix). `force`
   // overrides for Discard and when the route's item changes.
-  const dirtyRef = useRef({ item: false, image: false, sizes: false, modifiers: false, options: false });
+  const dirtyRef = useRef({
+    item: false,
+    image: false,
+    sizes: false,
+    steps: false,
+    modifiers: false,
+    options: false,
+  });
   dirtyRef.current = {
     item: itemFieldsDirty,
     image: imageDirty,
     sizes: sizesDirty || anyRecipeDirty,
+    steps: stepsDirty,
     modifiers: modifiersDirty,
     options: optionsDirty,
   };
@@ -168,11 +188,13 @@ export function MenuStudioPage() {
       const d = dirtyRef.current;
       const seedItem = force || !d.item;
       const seedSizes = force || !d.sizes;
+      const seedSteps = force || !d.steps;
       const seedModifiers = force || !d.modifiers;
       const seedOptions = force || !d.options;
 
       const itemV = toItemValues(s);
       const sizeBlocks = toSizeBlocks(s);
+      const stepDrafts = toStepDrafts(s);
       const attachDrafts = toAttachDrafts(s);
       const optionRows = toOptionRows(s);
 
@@ -182,6 +204,7 @@ export function MenuStudioPage() {
         setImageRemoved(false);
       }
       if (seedSizes) setBlocks(sizeBlocks);
+      if (seedSteps) setSteps(stepDrafts);
       if (seedModifiers) setAttached(attachDrafts);
       if (seedOptions) setRows(optionRows);
 
@@ -192,6 +215,7 @@ export function MenuStudioPage() {
           next.sizes = sizesSig(sizeBlocks);
           next.recipes = Object.fromEntries(sizeBlocks.map((b) => [b.key, recipeSig(b.lines)]));
         }
+        if (seedSteps) next.steps = stepsSig(stepDrafts);
         if (seedModifiers) next.modifiers = modifiersSig(attachDrafts);
         if (seedOptions) next.options = optionsSig(optionRows);
         return next;
@@ -290,6 +314,12 @@ export function MenuStudioPage() {
         return;
       }
     }
+    for (const s of steps) {
+      if (s.kind === "custom" && !s.title.trim() && !s.title_ar.trim()) {
+        toast.error(t("menu.studio.validate.stepName", "Every written step needs a name"));
+        return;
+      }
+    }
     for (const r of rows) {
       if (!r.name.trim()) {
         toast.error(t("menu.studio.validate.optionName", "Every option needs a name"));
@@ -376,7 +406,25 @@ export function MenuStudioPage() {
         }
       }
 
-      // 5 · Modifier attachments — replace-set in current order.
+      // 5 · Steps — replace-set in current order. A preset step sends only its
+      // slug; the library owns its name, so nothing here can drift from it.
+      if (stepsDirty) {
+        try {
+          await putRecipeSteps(itemId, {
+            steps: steps.map((s) =>
+              s.kind === "preset"
+                ? { kind: "preset", preset_slug: s.preset_slug }
+                : { kind: "custom", title: s.title.trim() || null, title_ar: s.title_ar.trim() || null },
+            ),
+          });
+        } catch (e) {
+          fail(t("menu.studio.sectionSteps", "the steps"), e);
+          return;
+        }
+        setPristine((p) => ({ ...p, steps: stepsSig(steps) }));
+      }
+
+      // 6 · Modifier attachments — replace-set in current order.
       if (modifiersDirty) {
         try {
           await putModifierGroups(itemId, {
@@ -396,7 +444,7 @@ export function MenuStudioPage() {
         setPristine((p) => ({ ...p, modifiers: modifiersSig(attached) }));
       }
 
-      // 6 · Item-only options — replace-set.
+      // 7 · Item-only options — replace-set.
       if (optionsDirty) {
         const options: ItemOptionInput[] = rows.map((r) => {
           const qty = parseFloat(r.quantity);
@@ -418,7 +466,7 @@ export function MenuStudioPage() {
         setPristine((p) => ({ ...p, options: optionsSig(rows) }));
       }
 
-      // 7 · Refresh + one toast. The refetch re-seeds the pristine state.
+      // 8 · Refresh + one toast. The refetch re-seeds the pristine state.
       invalidateStudio(itemId);
       void invalidateCatalog();
       toast.success(t("common.savedChanges", "Changes saved"));
@@ -571,6 +619,18 @@ export function MenuStudioPage() {
             orgId={orgId}
             onCostFixed={onCostFixed}
           />
+        </SectionShell>
+
+        <SectionShell
+          id="studio-section-steps"
+          title={t("menu.studio.sections.stepsTitle", "How it's made")}
+          description={t(
+            "menu.studio.sections.stepsDesc",
+            "The order of preparation, shown on the till. Pick from the library or write your own; amounts stay in the recipe above.",
+          )}
+          dirty={stepsDirty}
+        >
+          <SectionSteps steps={steps} setSteps={setSteps} />
         </SectionShell>
 
         <SectionShell

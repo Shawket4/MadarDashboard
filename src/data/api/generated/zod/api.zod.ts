@@ -4122,6 +4122,17 @@ export const CreateMenuItemResponse = zod.object({
   "size_label": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })),
+  "recipe_steps": zod.array(zod.object({
+  "animation_sha256": zod.string().nullish(),
+  "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
+  "kind": zod.string().describe('`preset` | `custom`.'),
+  "name": zod.string().describe('The preset\'s name, or the typed name of a custom step.'),
+  "name_ar": zod.string(),
+  "note": zod.string().nullish(),
+  "note_ar": zod.string().nullish(),
+  "position": zod.number(),
+  "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
+}).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')).optional().describe('How the item is made, in order. Each preset step carries its animation\'s\naddress and fingerprint, so a device downloads only what its own menu\nuses and never the whole library.'),
   "recipes": zod.array(zod.object({
   "category": zod.string(),
   "ingredient_name": zod.string(),
@@ -4195,6 +4206,17 @@ export const GetMenuItemResponse = zod.object({
   "size_label": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })),
+  "recipe_steps": zod.array(zod.object({
+  "animation_sha256": zod.string().nullish(),
+  "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
+  "kind": zod.string().describe('`preset` | `custom`.'),
+  "name": zod.string().describe('The preset\'s name, or the typed name of a custom step.'),
+  "name_ar": zod.string(),
+  "note": zod.string().nullish(),
+  "note_ar": zod.string().nullish(),
+  "position": zod.number(),
+  "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
+}).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')).optional().describe('How the item is made, in order. Each preset step carries its animation\'s\naddress and fingerprint, so a device downloads only what its own menu\nuses and never the whole library.'),
   "recipes": zod.array(zod.object({
   "category": zod.string(),
   "ingredient_name": zod.string(),
@@ -4454,6 +4476,17 @@ export const DuplicateItemResponse = zod.object({
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
+  "recipe_steps": zod.array(zod.object({
+  "animation_sha256": zod.string().nullish(),
+  "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
+  "kind": zod.string().describe('`preset` | `custom`.'),
+  "name": zod.string().describe('The preset\'s name, or the typed name of a custom step.'),
+  "name_ar": zod.string(),
+  "note": zod.string().nullish(),
+  "note_ar": zod.string().nullish(),
+  "position": zod.number(),
+  "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
+}).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')).describe('How the item is made, in order. Edited through `PUT \/recipes\/steps\/{id}`\nand saved by the studio alongside the recipe lines.'),
   "sizes": zod.array(zod.object({
   "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
   "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
@@ -4569,6 +4602,17 @@ export const PutModifierGroupsResponse = zod.object({
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
+  "recipe_steps": zod.array(zod.object({
+  "animation_sha256": zod.string().nullish(),
+  "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
+  "kind": zod.string().describe('`preset` | `custom`.'),
+  "name": zod.string().describe('The preset\'s name, or the typed name of a custom step.'),
+  "name_ar": zod.string(),
+  "note": zod.string().nullish(),
+  "note_ar": zod.string().nullish(),
+  "position": zod.number(),
+  "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
+}).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')).describe('How the item is made, in order. Edited through `PUT \/recipes\/steps\/{id}`\nand saved by the studio alongside the recipe lines.'),
   "sizes": zod.array(zod.object({
   "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
   "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
@@ -4891,6 +4935,17 @@ export const PutSizesResponse = zod.object({
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
+  "recipe_steps": zod.array(zod.object({
+  "animation_sha256": zod.string().nullish(),
+  "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
+  "kind": zod.string().describe('`preset` | `custom`.'),
+  "name": zod.string().describe('The preset\'s name, or the typed name of a custom step.'),
+  "name_ar": zod.string(),
+  "note": zod.string().nullish(),
+  "note_ar": zod.string().nullish(),
+  "position": zod.number(),
+  "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
+}).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')).describe('How the item is made, in order. Edited through `PUT \/recipes\/steps\/{id}`\nand saved by the studio alongside the recipe lines.'),
   "sizes": zod.array(zod.object({
   "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
   "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
@@ -5021,6 +5076,17 @@ export const GetStudioResponse = zod.object({
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
+  "recipe_steps": zod.array(zod.object({
+  "animation_sha256": zod.string().nullish(),
+  "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
+  "kind": zod.string().describe('`preset` | `custom`.'),
+  "name": zod.string().describe('The preset\'s name, or the typed name of a custom step.'),
+  "name_ar": zod.string(),
+  "note": zod.string().nullish(),
+  "note_ar": zod.string().nullish(),
+  "position": zod.number(),
+  "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
+}).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')).describe('How the item is made, in order. Edited through `PUT \/recipes\/steps\/{id}`\nand saved by the studio alongside the recipe lines.'),
   "sizes": zod.array(zod.object({
   "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
   "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
@@ -7809,6 +7875,68 @@ export const DeleteDrinkRecipeQueryParams = zod.object({
 })
 
 export const DeleteDrinkRecipeResponse = zod.void()
+
+
+export const ListStepPresetsResponseItem = zod.object({
+  "animation_sha256": zod.string(),
+  "animation_url": zod.string().describe('Path to the animation, relative to the API base.'),
+  "bytes": zod.number(),
+  "name": zod.string(),
+  "name_ar": zod.string(),
+  "note": zod.string().nullish(),
+  "note_ar": zod.string().nullish(),
+  "slug": zod.string(),
+  "sort_order": zod.number()
+}).describe('One curated step the dashboard offers.')
+export const ListStepPresetsResponse = zod.array(ListStepPresetsResponseItem)
+
+
+export const ListRecipeStepsParams = zod.object({
+  "menu_item_id": zod.uuid().describe('Menu item ID')
+})
+
+export const ListRecipeStepsResponseItem = zod.object({
+  "animation_sha256": zod.string().nullish(),
+  "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
+  "kind": zod.string().describe('`preset` | `custom`.'),
+  "name": zod.string().describe('The preset\'s name, or the typed name of a custom step.'),
+  "name_ar": zod.string(),
+  "note": zod.string().nullish(),
+  "note_ar": zod.string().nullish(),
+  "position": zod.number(),
+  "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
+}).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')
+export const ListRecipeStepsResponse = zod.array(ListRecipeStepsResponseItem)
+
+
+/**
+ * @summary Replace an item's steps, in one transaction.
+ */
+export const PutRecipeStepsParams = zod.object({
+  "menu_item_id": zod.uuid().describe('Menu item ID')
+})
+
+export const PutRecipeStepsBody = zod.object({
+  "steps": zod.array(zod.object({
+  "kind": zod.string().describe('`preset` | `custom`.'),
+  "preset_slug": zod.string().nullish().describe('Required for `preset`.'),
+  "title": zod.string().nullish().describe('The typed name, for `custom`. Either language will do.'),
+  "title_ar": zod.string().nullish()
+})).describe('The whole list, in order. Replaces what was there.')
+})
+
+export const PutRecipeStepsResponseItem = zod.object({
+  "animation_sha256": zod.string().nullish(),
+  "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
+  "kind": zod.string().describe('`preset` | `custom`.'),
+  "name": zod.string().describe('The preset\'s name, or the typed name of a custom step.'),
+  "name_ar": zod.string(),
+  "note": zod.string().nullish(),
+  "note_ar": zod.string().nullish(),
+  "position": zod.number(),
+  "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
+}).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')
+export const PutRecipeStepsResponse = zod.array(PutRecipeStepsResponseItem)
 
 
 export const BranchAddonSalesParams = zod.object({

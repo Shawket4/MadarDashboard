@@ -3,6 +3,7 @@
 import type { AvailabilityOut } from './availabilityOut';
 import type { ItemOptionOut } from './itemOptionOut';
 import type { ModifierGroupOut } from './modifierGroupOut';
+import type { RecipeStep } from './recipeStep';
 import type { SizeOut } from './sizeOut';
 import type { UsedInBundleOut } from './usedInBundleOut';
 
@@ -25,6 +26,11 @@ export interface StudioAggregate {
   name_translations: unknown;
   options: ItemOptionOut[];
   org_id: string;
+  /**
+     * How the item is made, in order. Edited through `PUT /recipes/steps/{id}`
+     * and saved by the studio alongside the recipe lines.
+     */
+  recipe_steps: RecipeStep[];
   sizes: SizeOut[];
   used_in_bundles: UsedInBundleOut[];
 }
