@@ -84,6 +84,7 @@ export const NAV: NavGroup[] = [
     entries: [
       { to: "/orders", labelKey: "nav.orders", fallback: "Orders", icon: Receipt },
       { to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
+      { to: "/bookings", labelKey: "nav.bookings", fallback: "Bookings", icon: CalendarClock },
       { to: "/shifts", labelKey: "nav.shifts", fallback: "Shifts", icon: Clock },
       { to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
     ],

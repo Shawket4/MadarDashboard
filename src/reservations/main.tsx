@@ -9,20 +9,11 @@
 //   /                      — landing (scan a QR / pick a venue)
 //   /<orgId>               — org-level: guest picks a branch
 //   /<orgId>/<branchId>    — branch pre-selected (QR deep link)
-//
-// ── Status ──────────────────────────────────────────────────────────────────
-//
-// The booking DOMAIN is not built yet. The previous reservations flow was
-// removed — it shipped and was never used, zero bookings ever — and its
-// replacement is being built on the floor/ticket layer, where a table's real
-// occupancy is already known.
-//
-// So this ships the origin, the bundle, the routing and the shell, and says
-// plainly that booking is not open yet. It deliberately does NOT render a form
-// that looks like it takes reservations: a guest who fills one in and gets no
-// table is worse off than one who was told to phone.
+//   /manage/<token>        — the guest's booking (from the WhatsApp link)
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "motion/react";
 import {
   Outlet,
   RouterProvider,
@@ -30,75 +21,63 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { MotionConfig } from "motion/react";
-import { useTranslation } from "react-i18next";
 
 // Self-hosted fonts (match the dashboard and the ordering app).
-import "@fontsource-variable/inter";
 import "@fontsource-variable/fraunces";
 import "@fontsource/ibm-plex-sans-arabic/400.css";
 import "@fontsource/ibm-plex-sans-arabic/500.css";
 import "@fontsource/ibm-plex-sans-arabic/600.css";
 import "@fontsource/ibm-plex-sans-arabic/700.css";
-
-import "@/styles/globals.css";
+import "@fontsource-variable/inter";
 
 // Side effects: i18n + RTL and the theme class. The admin auth/app stores are
 // intentionally NOT imported — this origin never holds a session.
 import "@/i18n";
+import "@/styles/globals.css";
 import "@/lib/theme";
 
 import { queryClient } from "@/data/api/query";
-
-/**
- * The one screen this app has today.
- *
- * Honest rather than decorative: it names the venue when the URL identifies
- * one, and tells the guest what to do instead. No fake availability, no form
- * that goes nowhere.
- */
-function BookingNotOpen() {
-  const { t } = useTranslation();
-  return (
-    <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-      <h1 className="text-balance text-xl font-semibold tracking-tight">
-        {t("reservations.notOpenTitle", "Online booking isn’t available yet")}
-      </h1>
-      <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
-        {t(
-          "reservations.notOpenBody",
-          "We’re building it. In the meantime, please call the venue to reserve a table.",
-        )}
-      </p>
-    </main>
-  );
-}
+import { ScanToOrder } from "@/features/public-ordering/scan-to-order";
+import { ManagePage } from "@/features/reservations/manage-page";
+import { ReservePage } from "@/features/reservations/reserve-page";
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: BookingNotOpen,
+  component: ScanToOrder,
 });
 
-// Org- and branch-level deep links resolve to the same screen for now, but the
-// routes exist so a QR printed today keeps working when booking opens.
+const manageRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/manage/$token",
+  component: function Manage() {
+    const { token } = manageRoute.useParams();
+    return <ManagePage token={token} />;
+  },
+});
+
 const orgRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/$orgId",
-  component: BookingNotOpen,
+  component: function Org() {
+    const { orgId } = orgRoute.useParams();
+    return <ReservePage orgId={orgId} />;
+  },
 });
 
 const branchRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/$orgId/$branchId",
-  component: BookingNotOpen,
+  component: function Branch() {
+    const { orgId, branchId } = branchRoute.useParams();
+    return <ReservePage key={branchId} orgId={orgId} branchId={branchId} />;
+  },
 });
 
 const router = createRouter({
-  routeTree: rootRoute.addChildren([indexRoute, orgRoute, branchRoute]),
+  routeTree: rootRoute.addChildren([indexRoute, manageRoute, orgRoute, branchRoute]),
   defaultPreload: "intent",
 });
 

@@ -50,6 +50,8 @@ export interface FloorCanvasProps {
   tables: FloorTable[];
   geoOf: (t: FloorTable) => GeoItem;
   occupants: Map<string, string>;
+  /** Today's booking per table: the chip text and whether its hold has begun. */
+  reservations?: Map<string, { label: string; held: boolean }>;
   selection: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
   /** Editing enabled? When false the canvas is pan/zoom only. */
@@ -61,7 +63,7 @@ export interface FloorCanvasProps {
 }
 
 export function FloorCanvas({
-  tables, geoOf, occupants, selection, onSelectionChange,
+  tables, geoOf, occupants, reservations, selection, onSelectionChange,
   editable, viewport, beginGesture, onGeoChange, className,
 }: FloorCanvasProps) {
   const { t } = useTranslation();
@@ -268,11 +270,12 @@ export function FloorCanvas({
       {tables.map((tb) => {
         const g = geoOf(tb);
         const occupant = occupants.get(tb.id) ?? null;
+        const reservation = reservations?.get(tb.id) ?? null;
         const isSelected = selection.has(tb.id);
         return (
           <g key={tb.id} onPointerDown={(e) => onPointerDownTable(e, tb)}>
             <title>
-              {`${tb.label} · ${tb.seats} ${t("floor.seatsShort", "seats")}${occupant ? ` · ${occupant}` : ""}`}
+              {`${tb.label} · ${tb.seats} ${t("floor.seatsShort", "seats")}${occupant ? ` · ${occupant}` : reservation ? ` · ${reservation.label}` : ""}`}
             </title>
             <TableGlyph
               x={g.x} y={g.y} w={g.w} h={g.h} rotation={g.rot}
@@ -280,6 +283,8 @@ export function FloorCanvas({
               seatsWord={t("floor.seatsShort", "seats")}
               status={tb.status}
               occupant={occupant}
+              reservation={reservation?.label ?? null}
+              held={reservation?.held ?? false}
             />
             {isSelected ? (
               <rect

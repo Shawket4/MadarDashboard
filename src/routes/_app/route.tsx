@@ -11,6 +11,7 @@ import { requireAuth } from "@/lib/auth-guard";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useSyncTimezone } from "@/data/scope/use-timezone";
+import { useBranchRealtime } from "@/data/realtime/use-branch-realtime";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useGetOnboarding } from "@/data/api/generated/api";
 import { ONBOARDING_SKIP_KEY } from "@/features/onboarding/config";
@@ -41,6 +42,10 @@ function AppLayout() {
   // Resolve the active branch/org timezone so every formatter renders in the
   // configured zone, not the device's. See data/scope/use-timezone.ts.
   useSyncTimezone();
+
+  // One realtime stream for the selected branch, shared by every page (floor,
+  // bookings, tickets, delivery). Mounted here so navigation never reconnects.
+  useBranchRealtime(search.branchId);
 
   // First-run gate: a fresh org_admin whose onboarding isn't complete is routed
   // into the full-screen setup wizard. Skipping (the wizard's "Skip for now")

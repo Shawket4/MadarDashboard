@@ -150,6 +150,19 @@ differences against live `book_qty` with the same rule the server enforces
 branch has one finalized count. Ingredient categories come from the API
 (`useListIngredientCategories`), never from a hard-coded list.
 
+## Bookings — the floor's future
+`src/features/bookings/` authors table bookings on the floor layer (backend
+`src/bookings`). A booking claims tables for a window; the floor shows the table
+as **reserved** from `next_booking.held_from` (a fourth tone, `held`, derived by
+the clock — never written to `status`), and the POS seats it by firing a ticket
+with `booking_id`. The dashboard lists, creates (auto-assigned tables via
+`useBookingAvailability`), edits, cancels, marks no-show/seated/complete, and
+edits per-branch settings. The public site (`src/reservations/`, its own bundle
+and origin) books with the shared WhatsApp OTP and manages by link. Realtime
+arrives through the app shell's single branch stream
+(`src/data/realtime/use-branch-realtime.ts`), which invalidates queries by event
+prefix; pages never read event payloads.
+
 ## Gotchas
 - **Mock mode + service worker.** `dev:mock` needs MSW's worker
   (`public/mockServiceWorker.js`). After switching dev servers on the same port, a
