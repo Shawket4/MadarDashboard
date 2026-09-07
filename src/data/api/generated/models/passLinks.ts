@@ -12,7 +12,9 @@ export interface PassLinks {
      */
   any: boolean;
   /**
-     * Downloads the signed `.pkpass`.
+     * Downloads the signed `.pkpass`. Site-relative, because the signup page
+     * is served from the same origin as the API — so a pass needs a
+     * CERTIFICATE, not a configured base URL.
      * @nullable
      */
   apple_url?: string | null;

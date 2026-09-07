@@ -20,6 +20,7 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { PhoneVerify } from "@/features/reservations/phone-verify";
 import { fmtMoney } from "@/lib/format";
 
+import { resolveBrand } from "./brand";
 import { WalletButtons } from "./wallet-buttons";
 
 export function JoinPage({ branchId }: { branchId: string }) {
@@ -63,7 +64,9 @@ export function JoinPage({ branchId }: { branchId: string }) {
     );
   }
 
-  const programName = (isAr && data.program_name_ar) || data.program_name;
+  // Same resolution as the card, so the signup screen and the card a customer
+  // ends up with are unmistakably the same shop.
+  const brand = resolveBrand(data.brand, i18n.resolvedLanguage ?? "en");
 
   // Already done — show the card and the wallet buttons, nothing else.
   if (joined) {
@@ -117,10 +120,17 @@ export function JoinPage({ branchId }: { branchId: string }) {
     <StorefrontShell>
       <div className="flex flex-col gap-6 pt-4">
         <header className="flex flex-col gap-2">
+          {brand.logoUrl ? (
+            <img
+              src={brand.logoUrl}
+              alt={brand.orgName}
+              className="mb-1 max-h-10 w-auto max-w-[160px] object-contain"
+            />
+          ) : null}
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            {data.org_name} · {data.branch_name}
+            {brand.orgName} · {data.branch_name}
           </p>
-          <h1 className="font-serif text-2xl">{programName}</h1>
+          <h1 className="font-serif text-2xl">{brand.programName}</h1>
           <p className="text-sm text-muted-foreground">
             {/* The two programs are explained in their own terms. A stamp card
                 that talked about EGP per point would be a card nobody could

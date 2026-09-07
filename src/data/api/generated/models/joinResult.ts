@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { CardBrand } from './cardBrand';
 import type { PassLinks } from './passLinks';
 
 /**
@@ -13,10 +14,10 @@ export interface JoinResult {
   already_member: boolean;
   /** The live balance, in `mode`'s currency. Zero for a fresh member. */
   balance: number;
+  brand: CardBrand;
   member_token: string;
   mode: string;
   name: string;
   next_reward_cost: number;
   passes: PassLinks;
-  program_name: string;
 }

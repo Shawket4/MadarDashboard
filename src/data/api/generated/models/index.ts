@@ -83,6 +83,7 @@ export * from './bundleStatus';
 export * from './bundleWithComponents';
 export * from './cancelBookingRequest';
 export * from './cancelInput';
+export * from './cardBrand';
 export * from './cardView';
 export * from './cartLineInput';
 export * from './cashMovement';

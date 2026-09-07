@@ -7727,6 +7727,15 @@ export const LoyaltyCardParams = zod.object({
 
 export const LoyaltyCardResponse = zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "brand": zod.object({
+  "background_color": zod.string().nullish().describe('`#RRGGBB`, validated on write.'),
+  "foreground_color": zod.string().nullish(),
+  "label_color": zod.string().nullish(),
+  "logo_url": zod.string().nullish(),
+  "org_name": zod.string().describe('The organisation\'s name. Always present.'),
+  "program_name": zod.string().describe('What the programme calls itself (\"Rewards\", \"Bean Club\").'),
+  "program_name_ar": zod.string().nullish()
+}).describe('Whose card this is, and how it should look.'),
   "can_redeem": zod.boolean(),
   "member_token": zod.string(),
   "mode": zod.string(),
@@ -7734,11 +7743,10 @@ export const LoyaltyCardResponse = zod.object({
   "next_reward_cost": zod.number(),
   "passes": zod.object({
   "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
-  "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`.'),
+  "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
   "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
 }).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.'),
   "points_to_next_reward": zod.number(),
-  "program_name": zod.string(),
   "rewards": zod.array(zod.object({
   "cost_amount": zod.number(),
   "cost_currency": zod.string(),
@@ -7776,16 +7784,24 @@ export const LoyaltyJoinBody = zod.object({
 export const LoyaltyJoinResponse = zod.object({
   "already_member": zod.boolean().describe('True when this phone was already a member — the page says \"welcome back\"\nand shows the existing card rather than pretending to have made a new one.'),
   "balance": zod.number().describe('The live balance, in `mode`\'s currency. Zero for a fresh member.'),
+  "brand": zod.object({
+  "background_color": zod.string().nullish().describe('`#RRGGBB`, validated on write.'),
+  "foreground_color": zod.string().nullish(),
+  "label_color": zod.string().nullish(),
+  "logo_url": zod.string().nullish(),
+  "org_name": zod.string().describe('The organisation\'s name. Always present.'),
+  "program_name": zod.string().describe('What the programme calls itself (\"Rewards\", \"Bean Club\").'),
+  "program_name_ar": zod.string().nullish()
+}).describe('How a tenant\'s card should look.\n\nEvery field is optional and the site falls back to Madar\'s own palette, so a\ntenant who has set nothing still gets a finished card rather than an\nunstyled one. `org_name` is NOT optional: whose card this is must always be\non it, however little else has been configured.'),
   "member_token": zod.string(),
   "mode": zod.string(),
   "name": zod.string(),
   "next_reward_cost": zod.number(),
   "passes": zod.object({
   "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
-  "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`.'),
+  "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
   "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
-}).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.'),
-  "program_name": zod.string()
+}).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.')
 }).describe('What the customer sees after signing up: their card, and the buttons.')
 
 
@@ -7796,13 +7812,19 @@ export const LoyaltyJoinInfoQueryParams = zod.object({
 export const LoyaltyJoinInfoResponse = zod.object({
   "branch_id": zod.uuid(),
   "branch_name": zod.string(),
+  "brand": zod.object({
+  "background_color": zod.string().nullish().describe('`#RRGGBB`, validated on write.'),
+  "foreground_color": zod.string().nullish(),
+  "label_color": zod.string().nullish(),
+  "logo_url": zod.string().nullish(),
+  "org_name": zod.string().describe('The organisation\'s name. Always present.'),
+  "program_name": zod.string().describe('What the programme calls itself (\"Rewards\", \"Bean Club\").'),
+  "program_name_ar": zod.string().nullish()
+}).describe('Whose programme this is, and how the page should look.'),
   "earn_piastres_per_point": zod.number().describe('EGP that earns one point — the page\'s \"a point for every N EGP\" line.\nPiastres on the wire, as everywhere; the page divides by 100. Only\nmeaningful when `mode` is `\"points\"`.'),
   "enabled": zod.boolean().describe('False when the program is off here — the page says so instead of taking\na signup that would go nowhere.'),
   "mode": zod.string().describe('`\"points\"` (earned on spend) or `\"visits\"` (a stamp per order) — which\nsentence the page writes.'),
   "next_reward_cost": zod.number().describe('The cheapest reward on offer, in `mode`\'s currency.'),
-  "org_name": zod.string(),
-  "program_name": zod.string(),
-  "program_name_ar": zod.string().nullish(),
   "require_otp": zod.boolean().describe('The page collects an OTP only when the branch asks for one.'),
   "rewards": zod.array(zod.object({
   "cost_amount": zod.number(),

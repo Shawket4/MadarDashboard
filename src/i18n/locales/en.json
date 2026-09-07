@@ -4125,6 +4125,7 @@
     "toGo": "{{n}} more to your next reward.",
     "earnLine": "Earn a point for every {{amount}} you spend.",
     "rewardLine": "{{points}} points gets you a reward.",
-    "stampLine": "Every order earns a stamp, and {{n}} of them gets you a reward."
+    "stampLine": "Every order earns a stamp, and {{n}} of them gets you a reward.",
+    "ordersToGo": "{{n}} more orders to your next reward."
   }
 }

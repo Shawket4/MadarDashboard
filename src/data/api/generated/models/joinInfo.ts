@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { CardBrand } from './cardBrand';
 import type { PublicReward } from './publicReward';
 
 /**
@@ -8,6 +9,8 @@ import type { PublicReward } from './publicReward';
 export interface JoinInfo {
   branch_id: string;
   branch_name: string;
+  /** Whose programme this is, and how the page should look. */
+  brand: CardBrand;
   /**
      * EGP that earns one point — the page's "a point for every N EGP" line.
      * Piastres on the wire, as everywhere; the page divides by 100. Only
@@ -26,10 +29,6 @@ export interface JoinInfo {
   mode: string;
   /** The cheapest reward on offer, in `mode`'s currency. */
   next_reward_cost: number;
-  org_name: string;
-  program_name: string;
-  /** @nullable */
-  program_name_ar?: string | null;
   /** The page collects an OTP only when the branch asks for one. */
   require_otp: boolean;
   /** The rewards on offer, each with what it costs. */

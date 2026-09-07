@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { CardBrand } from './cardBrand';
 import type { PassLinks } from './passLinks';
 import type { PublicReward } from './publicReward';
 
@@ -12,6 +13,8 @@ import type { PublicReward } from './publicReward';
 export interface CardView {
   /** The live balance, in `mode`'s currency. */
   balance: number;
+  /** Whose card this is, and how it should look. */
+  brand: CardBrand;
   can_redeem: boolean;
   member_token: string;
   mode: string;
@@ -19,6 +22,5 @@ export interface CardView {
   next_reward_cost: number;
   passes: PassLinks;
   points_to_next_reward: number;
-  program_name: string;
   rewards: PublicReward[];
 }
