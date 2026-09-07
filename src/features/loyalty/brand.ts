@@ -52,6 +52,19 @@ export interface ResolvedBrand {
   orgName: string;
   programName: string;
   logoUrl: string | null;
+  /**
+   * The logo may be repainted in `foreground` for contrast.
+   *
+   * The card's ground is DERIVED from the logo's dominant colour, so a logo
+   * left in its own colours is very nearly the colour it is sitting on. A shape
+   * on transparency can be repainted, and then it reads by construction —
+   * `foreground` is the one colour already guaranteed to clear AA on that
+   * ground. A logo with its background baked in cannot: every pixel is opaque,
+   * so the silhouette would be a solid rectangle, and it gets a plate instead.
+   *
+   * Decided by the backend, which has the pixels (`orgs::branding::is_mark`).
+   */
+  logoIsMark: boolean;
   background: string;
   /** Text on `background`, contrast-checked rather than trusted. */
   foreground: string;
@@ -102,6 +115,7 @@ export function resolveBrand(
       brand?.program_name?.trim() ||
       "Rewards",
     logoUrl: brand?.logo_url?.trim() || null,
+    logoIsMark: brand?.logo_is_mark ?? false,
     background,
     foreground,
     muted: dark ? "rgba(255,255,255,0.72)" : "rgba(0,0,0,0.60)",

@@ -50,18 +50,32 @@ export function StampRow({
   // exceed the target; neither should render a broken row.
   const filled = Math.max(0, Math.min(earned, target));
 
-  // Half a step in from each end, as a fraction of the row.
-  const inset = 50 / target;
-  // The completed run reaches the centre of the last DONE step.
-  const done = filled > 0 ? ((filled - 1) / target) * 100 : 0;
+  // The steps run END TO END: first against the left edge, last against the
+  // right. `justify-content: space-between` does that, and it means a step's
+  // centre is half a step in from each end — a distance we therefore have to
+  // know, so the size is computed rather than left to the flex algorithm.
+  //
+  // `min()` gives both halves of what a step needs: never larger than it should
+  // be, and never wider than its share of the row. Twelve fixed 40px steps want
+  // 480px and a card on a 360px phone offers about 250, which is how the row
+  // came to spill out of the rounded corner.
+  const cap = target <= 5 ? "2.5rem" : target <= NUMERALS_UP_TO ? "2.125rem" : "1.625rem";
+  const size = `min(${cap}, calc((100% - ${target - 1} * 0.25rem) / ${target}))`;
+  const half = `calc(${size} / 2)`;
+
+  // From the first step's centre to the last completed one's. Both ends are
+  // inset by half a step, so the run between the centres measures the row less
+  // one whole step — no pixel anywhere, so it holds at any width.
+  const done =
+    filled > 1 && target > 1
+      ? `calc((100% - ${size}) * ${(filled - 1) / (target - 1)})`
+      : "0px";
 
   const numerals = target <= NUMERALS_UP_TO;
-  // Roomier steps when there are few of them; the cap only ever shrinks.
-  const cap = target <= 5 ? 40 : target <= NUMERALS_UP_TO ? 34 : 26;
 
   return (
     <ol
-      className="relative flex w-full items-center gap-1"
+      className="relative flex w-full items-center justify-between gap-1"
       role="img"
       aria-label={`${filled} of ${target} collected`}
     >
@@ -70,8 +84,8 @@ export function StampRow({
         aria-hidden
         className="pointer-events-none absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full"
         style={{
-          left: `${inset}%`,
-          right: `${inset}%`,
+          left: half,
+          right: half,
           backgroundColor: muted,
           opacity: 0.4,
         }}
@@ -79,11 +93,7 @@ export function StampRow({
       <div
         aria-hidden
         className="pointer-events-none absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full transition-[width] duration-500 motion-reduce:transition-none"
-        style={{
-          left: `${inset}%`,
-          width: `${done}%`,
-          backgroundColor: accent,
-        }}
+        style={{ left: half, width: done, backgroundColor: accent }}
       />
 
       {Array.from({ length: target }, (_, i) => {
@@ -93,11 +103,13 @@ export function StampRow({
           <li
             key={i}
             aria-hidden
-            className="relative grid aspect-square min-w-0 shrink place-items-center rounded-full text-[13px] font-semibold leading-none transition-colors duration-300 motion-reduce:transition-none"
+            className="relative grid shrink-0 place-items-center rounded-full text-[13px] font-semibold leading-none transition-colors duration-300 motion-reduce:transition-none"
             style={{
-              // Grow to share the row, never past what a step should be.
-              flex: "1 1 0",
-              maxWidth: cap,
+              width: size,
+              height: size,
+              // Opaque, so the track passes BEHIND a step rather than through
+              // it — an empty circle with a grey line across it reads as
+              // crossed out.
               backgroundColor: isDone ? accent : onAccent,
               // The next step is ringed so it reads as "you are here" without
               // colour alone carrying the state.

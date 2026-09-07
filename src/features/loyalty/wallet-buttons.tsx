@@ -13,11 +13,14 @@
  *
  * The cases that actually happen, in order of how often:
  *  - the device's wallet is configured — one badge, done;
- *  - the device's wallet is NOT configured but the other is — the QR leads,
- *    because an Apple badge is no use to an Android phone, and the other badge
- *    stays underneath for someone on the wrong device;
- *  - neither is configured — the QR alone. The programme still works and the
- *    till still scans.
+ *  - the device's wallet is NOT configured but the other is — the badge is
+ *    demoted to a line, because an Apple badge is no use to an Android phone;
+ *  - neither is configured — nothing at all.
+ *
+ * None of these show a QR any more. The code lives on the CARD, above, where
+ * both wallet passes also put it: it is what the till scans, it works on every
+ * device, and it should not appear only in the cases where we failed to offer a
+ * wallet.
  */
 import { useTranslation } from "react-i18next";
 
@@ -25,8 +28,6 @@ import { detectWallet, type WalletKind } from "./detect-wallet";
 
 interface Props {
   passes: { apple_url?: string | null; google_url?: string | null; any?: boolean };
-  /** Member token — used for the QR, which works on every device. */
-  token: string;
 }
 
 const BADGE: Record<WalletKind, { src: string; alt: string }> = {
@@ -34,20 +35,7 @@ const BADGE: Record<WalletKind, { src: string; alt: string }> = {
   google: { src: "/wallet/add-to-google-wallet.svg", alt: "Add to Google Wallet" },
 };
 
-function MemberQr({ token, caption }: { token: string; caption: string }) {
-  return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-border/70 bg-card p-5 text-center">
-      <img
-        src={`/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png`}
-        alt=""
-        className="aspect-square w-full max-w-44 rounded-xl bg-white p-2"
-      />
-      <p className="text-sm text-muted-foreground">{caption}</p>
-    </div>
-  );
-}
-
-export function WalletButtons({ passes, token }: Props) {
+export function WalletButtons({ passes }: Props) {
   const { t } = useTranslation();
   const urls: Record<WalletKind, string | null> = {
     apple: passes.apple_url ?? null,
@@ -55,17 +43,9 @@ export function WalletButtons({ passes, token }: Props) {
   };
   const available = (["apple", "google"] as const).filter((k) => urls[k]);
 
-  if (available.length === 0) {
-    return (
-      <MemberQr
-        token={token}
-        caption={t(
-          "loyalty.showThisCode",
-          "Show this code at the counter to collect your points.",
-        )}
-      />
-    );
-  }
+  // No wallet configured for this tenant. The card above already carries the
+  // code, so there is nothing to add rather than something to apologise for.
+  if (available.length === 0) return null;
 
   const detected = detectWallet();
 
@@ -76,15 +56,14 @@ export function WalletButtons({ passes, token }: Props) {
   if (detected && !urls[detected]) {
     const other = available[0]!;
     return (
-      <div className="flex flex-col gap-3">
-        <MemberQr
-          token={token}
-          caption={t(
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-center text-xs text-muted-foreground">
+          {t(
             "loyalty.noWalletHere",
-            "Show this code at the counter — it works without a wallet app.",
+            "Your card is above — show it at the counter. No wallet app needed.",
           )}
-        />
-        <a href={urls[other]!} className="mx-auto" aria-label={BADGE[other].alt}>
+        </p>
+        <a href={urls[other]!} aria-label={BADGE[other].alt}>
           <img src={BADGE[other].src} alt={BADGE[other].alt} className="h-11 w-auto" />
         </a>
       </div>

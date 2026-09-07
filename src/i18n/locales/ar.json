@@ -4224,7 +4224,6 @@
     "addToApple": "أضف إلى Apple Wallet",
     "addToGoogle": "احفظ في Google Wallet",
     "yourCode": "الكود الخاص بك",
-    "showThisCode": "أظهر هذا الكود عند الكاشير لتحصيل نقاطك.",
     "noCard": "لم يتم العثور على البطاقة",
     "noCardBody": "هذا الرابط لا يطابق أي بطاقة. امسح الكود على الكاشير للانضمام.",
     "toGo": "بقي {{n}} حتى مكافأتك التالية.",
@@ -4235,6 +4234,8 @@
     "useAppleInstead": "استخدم Apple Wallet بدلًا من ذلك",
     "useGoogleInstead": "استخدم Google Wallet بدلًا من ذلك",
     "noWalletHere": "أظهر هذا الكود عند الكاشير — يعمل بدون تطبيق محفظة.",
-    "ofTarget": "من {{n}} {{unit}}"
+    "ofTarget": "من {{n}} {{unit}}",
+    "scanAtCounter": "امسح عند الكاشير",
+    "memberCodeAlt": "رمز عضويتك"
   }
 }

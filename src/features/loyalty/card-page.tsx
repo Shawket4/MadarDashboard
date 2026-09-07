@@ -69,6 +69,7 @@ export function CardPage({ token }: { token: string }) {
           toGo={data.points_to_next_reward}
           canRedeem={data.can_redeem}
           memberName={data.name}
+          qrUrl={`/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png`}
         />
 
         {data.rewards.length > 0 ? (
@@ -89,7 +90,7 @@ export function CardPage({ token }: { token: string }) {
           </ul>
         ) : null}
 
-        <WalletButtons passes={data.passes} token={data.member_token} />
+        <WalletButtons passes={data.passes} />
       </div>
     </StorefrontShell>
   );

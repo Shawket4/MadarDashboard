@@ -19,6 +19,13 @@ export interface CardBrand {
   foreground_color?: string | null;
   /** @nullable */
   label_color?: string | null;
+  /**
+     * True when the logo is a shape on transparency, so the card may repaint
+     * it in the foreground for contrast. False for a logo with its background
+     * baked in, which gets a plate to sit on instead — repainting that one
+     * would give a solid rectangle. See `orgs::branding::is_mark`.
+     */
+  logo_is_mark: boolean;
   /** @nullable */
   logo_url?: string | null;
   /** The organisation's name. Always present. */

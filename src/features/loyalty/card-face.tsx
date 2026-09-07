@@ -32,6 +32,7 @@ export function CardFace({
   toGo,
   canRedeem,
   memberName,
+  qrUrl,
 }: {
   brand: ResolvedBrand;
   mode: string;
@@ -40,6 +41,8 @@ export function CardFace({
   toGo: number;
   canRedeem: boolean;
   memberName?: string | null;
+  /** The member's code. Omitted where there is no member — the settings preview. */
+  qrUrl?: string | null;
 }) {
   const { t } = useTranslation();
   const isVisits = mode === "visits";
@@ -72,15 +75,41 @@ export function CardFace({
 
       <header className="flex items-center gap-3">
         {brand.logoUrl ? (
-          // A plate, because a logo is drawn for a light ground and would
-          // disappear into a dark one. Hairline-edged so it still has a shape
-          // when the card's own ground is pale.
-          <span
-            className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-1.5"
-            style={{ boxShadow: `0 0 0 1px ${brand.muted}` }}
-          >
-            <img src={brand.logoUrl} alt="" className="max-h-full max-w-full object-contain" />
-          </span>
+          brand.logoIsMark ? (
+            // Repainted in the card's own foreground. The ground was derived
+            // FROM this logo, so leaving it in its own colours is what put a
+            // blue mark on a blue card; the foreground is the one colour
+            // already guaranteed to read on that ground.
+            //
+            // A mask rather than a filter: alpha carries the shape, so
+            // anti-aliased edges survive and it stays the same mark rather
+            // than a traced one.
+            <span
+              aria-hidden
+              className="size-12 shrink-0"
+              style={{
+                backgroundColor: brand.foreground,
+                maskImage: `url(${JSON.stringify(brand.logoUrl)})`,
+                WebkitMaskImage: `url(${JSON.stringify(brand.logoUrl)})`,
+                maskSize: "contain",
+                WebkitMaskSize: "contain",
+                maskRepeat: "no-repeat",
+                WebkitMaskRepeat: "no-repeat",
+                maskPosition: "center",
+                WebkitMaskPosition: "center",
+              }}
+            />
+          ) : (
+            // Its background is baked in, so it cannot be repainted. A plate
+            // gives it an edge against a ground that may be its own colour.
+            <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-1.5 shadow-sm">
+              <img
+                src={brand.logoUrl}
+                alt=""
+                className="max-h-full max-w-full object-contain"
+              />
+            </span>
+          )
         ) : null}
         <div className="min-w-0 flex-1">
           {/* The shop's name is always here. Whose card this is must be on it,
@@ -157,22 +186,47 @@ export function CardFace({
         </p>
       </div>
 
-      {memberName ? (
-        // The embossed line. Labelled, because a bare name on a card looks like
-        // a caption for the thing above it rather than whose card this is.
+      {memberName || qrUrl ? (
+        // The embossed line and the code, in that order — the same order both
+        // wallet passes use, fields above and the barcode at the foot. The code
+        // used to live under the "add to wallet" buttons and only appear when
+        // NO wallet could be offered, which is backwards: it is the thing the
+        // till scans, and it works on every device. A card carries its own code.
         <footer
-          className="mt-6 border-t pt-3"
-          style={{ borderColor: brand.muted, opacity: 0.95 }}
+          className="mt-6 flex items-end justify-between gap-4 border-t pt-4"
+          style={{ borderColor: brand.muted }}
         >
-          <p
-            className="text-[10px] uppercase tracking-[0.18em]"
-            style={{ color: brand.muted }}
-          >
-            {t("loyalty.member", "Member")}
-          </p>
-          <p className="truncate text-[13px] font-medium uppercase tracking-[0.08em]">
-            {memberName}
-          </p>
+          {memberName ? (
+            <div className="min-w-0 flex-1">
+              <p
+                className="text-[10px] uppercase tracking-[0.18em]"
+                style={{ color: brand.muted }}
+              >
+                {t("loyalty.member", "Member")}
+              </p>
+              <p className="truncate text-[13px] font-medium uppercase tracking-[0.08em]">
+                {memberName}
+              </p>
+            </div>
+          ) : null}
+          {qrUrl ? (
+            <div className="flex shrink-0 flex-col items-center gap-1.5">
+              {/* On white whatever the card's ground: a scanner needs the
+                  quiet zone and the contrast, and a QR tinted to match the
+                  card is a QR that does not read. */}
+              <img
+                src={qrUrl}
+                alt={t("loyalty.memberCodeAlt", "Your membership code")}
+                className="size-[92px] rounded-lg bg-white p-1.5"
+              />
+              <span
+                className="text-[9px] uppercase tracking-[0.14em]"
+                style={{ color: brand.muted }}
+              >
+                {t("loyalty.scanAtCounter", "Scan at the counter")}
+              </span>
+            </div>
+          ) : null}
         </footer>
       ) : null}
     </section>

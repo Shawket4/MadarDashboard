@@ -4126,7 +4126,6 @@
     "addToApple": "Add to Apple Wallet",
     "addToGoogle": "Save to Google Wallet",
     "yourCode": "Your code",
-    "showThisCode": "Show this code at the counter to collect your points.",
     "noCard": "Card not found",
     "noCardBody": "This link doesn't match a card. Scan the code on the counter to join.",
     "toGo": "{{n}} more to your next reward.",
@@ -4137,6 +4136,8 @@
     "useAppleInstead": "Use Apple Wallet instead",
     "useGoogleInstead": "Use Google Wallet instead",
     "noWalletHere": "Show this code at the counter — it works without a wallet app.",
-    "ofTarget": "of {{n}} {{unit}}"
+    "ofTarget": "of {{n}} {{unit}}",
+    "scanAtCounter": "Scan at the counter",
+    "memberCodeAlt": "Your membership code"
   }
 }

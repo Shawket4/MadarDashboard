@@ -62,6 +62,7 @@ export function BrandPane() {
       program_name: t("nav.loyalty", "Rewards"),
       program_name_ar: null,
       logo_url: org.data?.logo_url ?? null,
+      logo_is_mark: org.data?.brand_logo_is_mark ?? false,
       background_color: org.data?.brand_background ?? null,
       foreground_color: org.data?.brand_foreground ?? null,
       label_color: org.data?.brand_accent ?? null,

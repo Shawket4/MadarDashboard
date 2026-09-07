@@ -97,8 +97,9 @@ export function JoinPage({ branchId }: { branchId: string }) {
             toGo={Math.max(joined.next_reward_cost - joined.balance, 0)}
             canRedeem={joined.balance >= joined.next_reward_cost}
             memberName={joined.name}
+            qrUrl={`/api/public/loyalty/card/${encodeURIComponent(joined.member_token)}/qr.png`}
           />
-          <WalletButtons passes={joined.passes} token={joined.member_token} />
+          <WalletButtons passes={joined.passes} />
           <a
             href={`/card/${encodeURIComponent(joined.member_token)}`}
             className="text-center text-sm text-muted-foreground underline underline-offset-4"

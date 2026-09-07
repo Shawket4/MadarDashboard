@@ -14,6 +14,12 @@ export interface Org {
   brand_background?: string | null;
   /** @nullable */
   brand_foreground?: string | null;
+  /**
+     * True when the logo is a shape on transparency, so a card may repaint it
+     * for contrast (`branding::is_mark`). NULL until it has been looked at.
+     * @nullable
+     */
+  brand_logo_is_mark?: boolean | null;
   currency_code: string;
   id: string;
   is_active: boolean;
