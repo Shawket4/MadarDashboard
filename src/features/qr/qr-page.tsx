@@ -1,9 +1,21 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, Download, Link2, QrCode, RefreshCw, Store } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Building2,
+  CalendarCheck,
+  Check,
+  Copy,
+  Download,
+  Link2,
+  QrCode,
+  RefreshCw,
+  Store,
+  UtensilsCrossed,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { downloadUrl } from "@/lib/download";
@@ -22,7 +34,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -30,33 +41,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { branchQr, orgQr } from "@/data/api/generated/api";
+import { branchBookingQr, branchQr, orgBookingQr, orgQr } from "@/data/api/generated/api";
 import type { QrResponse } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { QrPreviewDialog } from "./qr-preview-dialog";
 
-// ── In-mall form schema ───────────────────────────────────────────────────────
+/**
+ * Every scannable code the product makes, on one page.
+ *
+ * It used to be three mutually exclusive layouts chosen by scope — an org card,
+ * an empty state, or a two-tab branch view — each carrying its own copy of the
+ * render options and its own `result`/`busy` state pair. You could not discover
+ * that in-mall codes existed without first selecting a branch, and adding a
+ * fifth kind meant a fourth duplicated triplet.
+ *
+ * Now one `QrKind` list drives one generator. Every kind is always visible;
+ * the ones that need a branch say so instead of disappearing.
+ */
 
-// Schema is built inside the component so messages can use t().
-type InMallValues = {
-  place_name: string;
-  floor: string;
-  unit_number: string;
-};
-
-// ── Render options state ──────────────────────────────────────────────────────
+// ── Render options ───────────────────────────────────────────────────────────
 
 interface RenderOpts {
   card: boolean;
   dpi: number;
 }
 
+/** Applies to every code on the page — hence one bar at the top, not one per card. */
 function RenderOptions({ opts, onChange }: { opts: RenderOpts; onChange: (o: RenderOpts) => void }) {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-4 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border bg-muted/40 px-4 py-3 text-sm">
       <div className="flex items-center gap-2">
         <Switch
           id="card-toggle"
@@ -69,9 +85,7 @@ function RenderOptions({ opts, onChange }: { opts: RenderOpts; onChange: (o: Ren
       </div>
       {opts.card && (
         <div className="flex items-center gap-2">
-          <Label className="text-xs text-muted-foreground">
-            {t("qr.opts.dpiLabel", "DPI")}
-          </Label>
+          <Label className="text-xs text-muted-foreground">{t("qr.opts.dpiLabel", "DPI")}</Label>
           <Select
             value={String(opts.dpi)}
             onValueChange={(v) => onChange({ ...opts, dpi: Number(v) })}
@@ -87,19 +101,46 @@ function RenderOptions({ opts, onChange }: { opts: RenderOpts; onChange: (o: Ren
           </Select>
         </div>
       )}
+      <p className="text-xs text-muted-foreground">
+        {t("qr.opts.hint", "Applies to every code on this page.")}
+      </p>
     </div>
   );
 }
 
-// ── QR result display ─────────────────────────────────────────────────────────
+// ── One generated code ───────────────────────────────────────────────────────
 
-function QrResult({ qr, title, onPreview }: { qr: QrResponse; title: string; onPreview?: () => void }) {
+function CopyLinkButton({ url }: { url: string }) {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    void navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      })
+      .catch(() => toast.error(t("qr.copyFailed", "Could not copy the link")));
+  };
+  return (
+    <Button variant="outline" size="sm" onClick={copy} aria-label={t("common.copy", "Copy")}>
+      {copied ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4" />}
+      {copied ? t("qr.copied", "Copied") : t("qr.copyLink", "Copy link")}
+    </Button>
+  );
+}
+
+function QrResult({
+  qr,
+  title,
+  onPreview,
+}: {
+  qr: QrResponse;
+  title: string;
+  onPreview: () => void;
+}) {
   const { t } = useTranslation();
   const isSvg = qr.qr_data_url.startsWith("data:image/svg");
-
-  const download = () => {
-    downloadUrl(qr.qr_data_url, `qr-${qr.short_code}.${isSvg ? "svg" : "png"}`);
-  };
 
   return (
     <div className="flex flex-col items-center gap-3 rounded-xl border bg-card p-4">
@@ -118,6 +159,7 @@ function QrResult({ qr, title, onPreview }: { qr: QrResponse; title: string; onP
           />
         </span>
       </button>
+
       <div className="flex w-full items-center gap-2 rounded-lg bg-muted px-2 py-1.5">
         <Link2 className="size-3 shrink-0 text-muted-foreground" />
         <a
@@ -129,101 +171,155 @@ function QrResult({ qr, title, onPreview }: { qr: QrResponse; title: string; onP
           {qr.short_url}
         </a>
       </div>
-      <Button className="w-full" onClick={download}>
-        <Download className="size-4" />
-        {t("common.download", "Download")} {title}
-      </Button>
+
+      {/* Where the short link actually lands. Worth showing: a misconfigured
+          PUBLIC_*_BASE_URL is invisible until someone scans a printed card. */}
+      <p
+        className="w-full truncate text-center font-mono text-[11px] text-muted-foreground"
+        title={qr.long_url}
+      >
+        {qr.long_url}
+      </p>
+
+      <div className="flex w-full gap-2">
+        <CopyLinkButton url={qr.short_url} />
+        <Button
+          className="flex-1"
+          size="sm"
+          onClick={() => downloadUrl(qr.qr_data_url, `qr-${qr.short_code}.${isSvg ? "svg" : "png"}`)}
+        >
+          <Download className="size-4" />
+          {t("common.download", "Download")}
+        </Button>
+      </div>
     </div>
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── The catalogue ────────────────────────────────────────────────────────────
+
+type InMallValues = { place_name: string; floor: string; unit_number: string };
+
+interface QrKind {
+  id: string;
+  scope: "org" | "branch";
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  /** Only the in-mall kind collects fields before it can generate. */
+  form?: true;
+  run: (ids: { orgId: string; branchId: string }, params: RenderOpts) => Promise<QrResponse>;
+}
 
 export function QrPage() {
   const { t } = useTranslation();
   const orgId = useOrgId();
   const { branchId, isAllBranches } = useScope();
 
-  // Build schema inside component so validation messages can use t()
+  const [renderOpts, setRenderOpts] = useState<RenderOpts>({ card: true, dpi: 600 });
+  const [results, setResults] = useState<Record<string, QrResponse>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ qr: QrResponse; title: string } | null>(null);
+
+  // Built inside the component so validation messages can use t().
   const inMallSchema = z.object({
     place_name: z.string().min(1, t("common.requiredField")).max(80),
     floor: z.string().min(1, t("common.requiredField")).max(40),
     unit_number: z.string().min(1, t("common.requiredField")).max(40),
   });
-
-  const [renderOpts, setRenderOpts] = useState<RenderOpts>({ card: true, dpi: 600 });
-
-  // Standard branch QR state
-  const [branchQrResult, setBranchQrResult] = useState<QrResponse | null>(null);
-  const [branchBusy, setBranchBusy] = useState(false);
-
-  // In-mall QR state
-  const [inMallResult, setInMallResult] = useState<QrResponse | null>(null);
-  const [inMallBusy, setInMallBusy] = useState(false);
-
-  // Org QR state
-  const [orgQrResult, setOrgQrResult] = useState<QrResponse | null>(null);
-  const [orgBusy, setOrgBusy] = useState(false);
-
-  // Preview dialog
-  const [preview, setPreview] = useState<{ qr: QrResponse; title: string } | null>(null);
-
   const inMallForm = useForm<z.input<typeof inMallSchema>, unknown, InMallValues>({
     resolver: zodResolver(inMallSchema),
     defaultValues: { place_name: "", floor: "", unit_number: "" },
   });
 
-  const renderParams = {
-    card: renderOpts.card,
-    dpi: renderOpts.dpi,
-  };
+  const kinds: QrKind[] = [
+    {
+      id: "org_order",
+      scope: "org",
+      icon: Building2,
+      title: t("qr.org.title", "All-branches ordering"),
+      description: t(
+        "qr.org.description",
+        "One code that lets customers browse and pick any of your branches, then place an order.",
+      ),
+      run: ({ orgId: o }, p) => orgQr(o, p),
+    },
+    {
+      id: "org_booking",
+      scope: "org",
+      icon: CalendarCheck,
+      title: t("qr.orgBooking.title", "All-branches bookings"),
+      description: t(
+        "qr.orgBooking.description",
+        "Guests pick a branch, then a time. Needs at least one branch with bookings switched on.",
+      ),
+      run: ({ orgId: o }, p) => orgBookingQr(o, p),
+    },
+    {
+      id: "branch_order",
+      scope: "branch",
+      icon: Store,
+      title: t("qr.standard.title", "Branch menu"),
+      description: t(
+        "qr.standard.description",
+        "Customers scan this to open this branch's ordering page. Works for in-mall and outside delivery.",
+      ),
+      run: ({ branchId: b }, p) => branchQr(b, p),
+    },
+    {
+      id: "branch_booking",
+      scope: "branch",
+      icon: CalendarCheck,
+      title: t("qr.branchBooking.title", "Branch bookings"),
+      description: t(
+        "qr.branchBooking.description",
+        "Straight to this branch's free times — for the table tent or the door. Bookings must be switched on for the branch.",
+      ),
+      run: ({ branchId: b }, p) => branchBookingQr(b, p),
+    },
+    {
+      id: "branch_order_in_mall",
+      scope: "branch",
+      icon: UtensilsCrossed,
+      form: true,
+      title: t("qr.inMall.title", "In-mall delivery"),
+      description: t(
+        "qr.inMall.description",
+        "A code per shop or unit inside the mall — the location is pre-filled for the customer.",
+      ),
+      run: ({ branchId: b }, p) =>
+        branchQr(b, { ...p, ...(inMallForm.getValues() as InMallValues) }),
+    },
+  ];
 
-  const generateBranchQr = async () => {
-    if (!branchId) return;
-    setBranchBusy(true);
-    setBranchQrResult(null);
-    try {
-      const result = await branchQr(branchId, renderParams);
-      setBranchQrResult(result);
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-    } finally {
-      setBranchBusy(false);
-    }
-  };
-
-  const generateInMallQr = async (values: InMallValues) => {
-    if (!branchId) return;
-    setInMallBusy(true);
-    setInMallResult(null);
-    try {
-      const result = await branchQr(branchId, {
-        ...renderParams,
-        place_name: values.place_name,
-        floor: values.floor,
-        unit_number: values.unit_number,
+  const generate = useCallback(
+    async (kind: QrKind) => {
+      if (!orgId) return;
+      if (kind.scope === "branch" && !branchId) return;
+      setBusyId(kind.id);
+      setResults((r) => {
+        const { [kind.id]: _dropped, ...rest } = r;
+        return rest;
       });
-      setInMallResult(result);
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-    } finally {
-      setInMallBusy(false);
-    }
-  };
-
-  const generateOrgQr = async () => {
-    if (!orgId) return;
-    setOrgBusy(true);
-    setOrgQrResult(null);
-    try {
-      const result = await orgQr(orgId, renderParams);
-      setOrgQrResult(result);
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-    } finally {
-      setOrgBusy(false);
-    }
-  };
+      setErrors((e) => {
+        const { [kind.id]: _dropped, ...rest } = e;
+        return rest;
+      });
+      try {
+        const qr = await kind.run({ orgId, branchId: branchId ?? "" }, renderOpts);
+        setResults((r) => ({ ...r, [kind.id]: qr }));
+      } catch (e) {
+        // Inline, not a toast: "bookings are switched off for this branch" is
+        // a 409 the operator has to go and fix, and it belongs beside the
+        // button that produced it.
+        setErrors((prev) => ({ ...prev, [kind.id]: getErrorMessage(e) }));
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [orgId, branchId, renderOpts],
+  );
 
   if (!orgId) {
     return (
@@ -234,195 +330,161 @@ export function QrPage() {
     );
   }
 
-  return (
-    <Page>
-      <PageHeader
-        title={t("qr.title", "QR Codes")}
-        description={t("qr.subtitle", "Generate scannable QR codes for your online ordering page")}
-      />
+  const renderKind = (kind: QrKind) => {
+    const available = kind.scope === "org" ? isAllBranches : Boolean(branchId);
+    const unavailableHint =
+      kind.scope === "org"
+        ? t("qr.needsAllBranches", "Switch the scope bar to All branches to make this code.")
+        : t("qr.needsBranch", "Select a branch in the scope bar to make this code.");
+    const result = results[kind.id];
+    const error = errors[kind.id];
+    const busy = busyId === kind.id;
+    const Icon = kind.icon;
 
-      {/* Org-level all-branches QR */}
-      {isAllBranches ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="size-4" />
-              {t("qr.org.title", "All-branches QR")}
-            </CardTitle>
-            <CardDescription>
-              {t(
-                "qr.org.description",
-                "One QR that lets customers browse and pick any of your branches, then place an order.",
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <div className="flex flex-1 flex-col gap-3">
-              <RenderOptions opts={renderOpts} onChange={setRenderOpts} />
-              <Button onClick={() => void generateOrgQr()} disabled={orgBusy} className="self-start">
-                {orgBusy ? (
-                  <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
-                ) : (
-                  <QrCode className="size-4" />
-                )}
-                {t("qr.generate", "Generate QR")}
-              </Button>
-            </div>
-            {orgQrResult && (
-              <div className="w-full sm:w-64">
-                <QrResult qr={orgQrResult} title={t("qr.org.title", "All-branches QR")} onPreview={() => setPreview({ qr: orgQrResult, title: t("qr.org.title", "All-branches QR") })} />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ) : !branchId ? (
-        <EmptyState icon={Store} title={t("qr.pickBranch", "Select a branch from the scope bar above")} />
-      ) : (
-        <Tabs defaultValue="standard">
-          <TabsList>
-            <TabsTrigger value="standard">{t("qr.tabs.standard", "Standard menu")}</TabsTrigger>
-            <TabsTrigger value="in_mall">{t("qr.tabs.inMall", "In-mall delivery")}</TabsTrigger>
-          </TabsList>
+    const generateButton = (
+      <Button
+        onClick={() => void generate(kind)}
+        disabled={!available || busy}
+        className="self-start"
+      >
+        {busy ? (
+          <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
+        ) : (
+          <QrCode className="size-4" />
+        )}
+        {t("qr.generate", "Generate QR")}
+      </Button>
+    );
 
-          {/* Standard branch QR */}
-          <TabsContent value="standard" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Store className="size-4" />
-                  {t("qr.standard.title", "Branch menu QR")}
-                </CardTitle>
-                <CardDescription>
-                  {t(
-                    "qr.standard.description",
-                    "Customers scan this to open your branch's ordering page. Works for both in-mall and outside delivery.",
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                <div className="flex flex-1 flex-col gap-3">
-                  <RenderOptions opts={renderOpts} onChange={setRenderOpts} />
-                  <Button
-                    onClick={() => void generateBranchQr()}
-                    disabled={branchBusy}
-                    className="self-start"
-                  >
-                    {branchBusy ? (
+    return (
+      <Card key={kind.id} className={available ? undefined : "opacity-70"}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon className="size-4" />
+            {kind.title}
+          </CardTitle>
+          <CardDescription>{kind.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 lg:flex-row lg:items-start">
+          <div className="flex flex-1 flex-col gap-3">
+            {!available && <p className="text-sm text-muted-foreground">{unavailableHint}</p>}
+
+            {kind.form ? (
+              <Form {...inMallForm}>
+                <form
+                  onSubmit={inMallForm.handleSubmit(() => void generate(kind))}
+                  className="flex flex-col gap-3"
+                >
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <FormField
+                      control={inMallForm.control}
+                      name="place_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("qr.inMall.placeName", "Shop name")}</FormLabel>
+                          <FormControl>
+                            <Input {...field} disabled={!available} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={inMallForm.control}
+                      name="floor"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("qr.inMall.floor", "Floor")}</FormLabel>
+                          <FormControl>
+                            <Input {...field} disabled={!available} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={inMallForm.control}
+                      name="unit_number"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("qr.inMall.unitNumber", "Unit number")}</FormLabel>
+                          <FormControl>
+                            <Input {...field} disabled={!available} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <Button type="submit" disabled={!available || busy} className="self-start">
+                    {busy ? (
                       <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
                     ) : (
                       <QrCode className="size-4" />
                     )}
                     {t("qr.generate", "Generate QR")}
                   </Button>
-                </div>
-                {branchQrResult && (
-                  <div className="w-full sm:w-64">
-                    <QrResult
-                      qr={branchQrResult}
-                      title={t("qr.standard.title", "Branch menu QR")}
-                      onPreview={() => setPreview({ qr: branchQrResult, title: t("qr.standard.title", "Branch menu QR") })}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </form>
+              </Form>
+            ) : (
+              generateButton
+            )}
 
-          {/* In-mall delivery QR */}
-          <TabsContent value="in_mall" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="size-4" />
-                  {t("qr.inMall.title", "In-mall delivery QR")}
-                </CardTitle>
-                <CardDescription>
-                  {t(
-                    "qr.inMall.description",
-                    "Place this QR at a specific spot inside the mall. When customers scan it, the delivery type is locked to in-mall and the location is pre-filled.",
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...inMallForm}>
-                  <form
-                    onSubmit={inMallForm.handleSubmit(generateInMallQr)}
-                    className="flex flex-col gap-4 sm:flex-row sm:items-start"
-                  >
-                    <div className="flex flex-1 flex-col gap-3">
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <FormField
-                          control={inMallForm.control}
-                          name="place_name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t("qr.inMall.placeName", "Shop / company name")}</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder={t("qr.inMall.placeNamePlaceholder", "Starbucks Kiosk 3")} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={inMallForm.control}
-                          name="floor"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t("qr.inMall.floor", "Floor")}</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder={t("qr.inMall.floorPlaceholder", "Ground Floor")} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={inMallForm.control}
-                          name="unit_number"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t("qr.inMall.unit", "Unit / office")}</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder={t("qr.inMall.unitPlaceholder", "Unit 42")} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <RenderOptions opts={renderOpts} onChange={setRenderOpts} />
-                      <Button type="submit" disabled={inMallBusy} className="self-start">
-                        {inMallBusy ? (
-                          <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
-                        ) : (
-                          <QrCode className="size-4" />
-                        )}
-                        {t("qr.generate", "Generate QR")}
-                      </Button>
-                    </div>
-                    {inMallResult && (
-                      <div className="w-full sm:w-64">
-                        <QrResult
-                          qr={inMallResult}
-                          title={t("qr.inMall.title", "In-mall delivery QR")}
-                          onPreview={() => setPreview({ qr: inMallResult, title: t("qr.inMall.title", "In-mall delivery QR") })}
-                        />
-                      </div>
-                    )}
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      )}
+            {error && (
+              <p role="status" className="text-sm text-destructive">
+                {error}
+              </p>
+            )}
+          </div>
+
+          {result && (
+            <div className="w-full lg:w-64">
+              <QrResult
+                qr={result}
+                title={kind.title}
+                onPreview={() => setPreview({ qr: result, title: kind.title })}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const orgKinds = kinds.filter((k) => k.scope === "org");
+  const branchKinds = kinds.filter((k) => k.scope === "branch");
+
+  return (
+    <Page>
+      <PageHeader
+        title={t("qr.title", "QR Codes")}
+        description={t(
+          "qr.subtitle",
+          "Scannable codes for your ordering pages and your booking pages.",
+        )}
+      />
+
+      <RenderOptions opts={renderOpts} onChange={setRenderOpts} />
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          {t("qr.section.org", "For the whole organization")}
+        </h2>
+        <div className="grid gap-4 xl:grid-cols-2">{orgKinds.map(renderKind)}</div>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          {t("qr.section.branch", "For one branch")}
+        </h2>
+        <div className="grid gap-4">{branchKinds.map(renderKind)}</div>
+      </section>
 
       <QrPreviewDialog
+        open={preview !== null}
+        onOpenChange={(o) => !o && setPreview(null)}
         qr={preview?.qr ?? null}
-        title={preview?.title}
-        open={!!preview}
-        onOpenChange={(o) => { if (!o) setPreview(null); }}
+        title={preview?.title ?? ""}
       />
     </Page>
   );

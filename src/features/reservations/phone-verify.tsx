@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useOtpRequest, useOtpVerify } from "@/data/api/generated/api";
 import { cn } from "@/lib/utils";
-import { getDeviceToken, isValidPhone, normalizePhone, setDeviceToken } from "@/features/public-ordering/utils";
+import { getDeviceToken, isValidPhone, normalizePhone, setDeviceToken } from "@/features/public-shell/guest";
 
 const CODE_LEN = 4;
 

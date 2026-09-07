@@ -15,8 +15,8 @@ import {
 } from "@/data/api/generated/api";
 import { queryClient } from "@/data/api/query";
 import { getErrorMessage } from "@/data/api/errors";
-import { StorefrontShell } from "@/features/public-ordering/storefront-shell";
-import { useOrderTheme } from "@/features/public-ordering/use-order-theme";
+import { StorefrontShell } from "@/features/public-shell/storefront-shell";
+import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { cn } from "@/lib/utils";
 
 import { fmtDay, fmtSlot, fmtWhen, pickableDates } from "./util";
@@ -33,8 +33,8 @@ export function ManagePage({ token }: { token: string }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? "en";
   useLayoutEffect(() => {
-    useOrderTheme.getState().apply();
-    return () => useOrderTheme.getState().restoreGlobal();
+    usePublicTheme.getState().apply();
+    return () => usePublicTheme.getState().restoreGlobal();
   }, []);
 
   const q = useGetPublicBooking(token, { query: { retry: false } });

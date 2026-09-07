@@ -24,8 +24,8 @@ import { fmtMoney } from "@/lib/format";
 import { listItem, riseIn, spring, staggerContainer } from "@/lib/motion";
 
 import { Totals } from "../public-ordering/components/cart-sheet";
-import { useOrderTheme } from "../public-ordering/use-order-theme";
-import { StorefrontShell } from "../public-ordering/storefront-shell";
+import { usePublicTheme } from "@/features/public-shell/use-public-theme";
+import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 
 interface OrderTrackingPageProps {
   id: string;
@@ -56,8 +56,8 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
   // Scope the storefront (light-by-default) theme to this page, like the ordering
   // flow, restoring the dashboard theme on unmount.
   useLayoutEffect(() => {
-    useOrderTheme.getState().apply();
-    return () => useOrderTheme.getState().restoreGlobal();
+    usePublicTheme.getState().apply();
+    return () => usePublicTheme.getState().restoreGlobal();
   }, []);
 
   const { data, isLoading, isError } = useTrackDeliveryOrder(id, {

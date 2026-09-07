@@ -9,14 +9,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { fadeInUp } from "@/lib/motion";
 
-import {
-  getDeviceToken,
-  getGuestPhone,
-  isValidPhone,
-  normalizePhone,
-  setDeviceToken,
-  setGuestPhone,
-} from "../utils";
+import { getDeviceToken, getGuestPhone, isValidPhone, normalizePhone, setDeviceToken, setGuestPhone } from "@/features/public-shell/guest";
 
 const CODE_LEN = 4;
 

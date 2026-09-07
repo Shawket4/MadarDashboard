@@ -25,22 +25,10 @@ import { fmtMoney } from "@/lib/format";
 import { fadeIn } from "@/lib/motion";
 
 import { isFlatChannel, type CartLine, type Channel, type Step } from "./types";
-import {
-  asChannel,
-  calcDiscount,
-  cartSubtotal,
-  clearCart,
-  getDeviceToken,
-  isValidPhone,
-  loadCart,
-  newUid,
-  normalizePhone,
-  saveCart,
-  setDeviceToken,
-  toCartLineInput,
-} from "./utils";
+import { asChannel, calcDiscount, cartSubtotal, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
+import { getDeviceToken, isValidPhone, normalizePhone, setDeviceToken } from "@/features/public-shell/guest";
 import { FIELD_LIMITS } from "./limits";
-import { useOrderTheme } from "./use-order-theme";
+import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { StepShell } from "./components/step-shell";
 import { BranchStep } from "./components/branch-step";
 import { BranchSelector } from "./components/branch-selector";
@@ -87,8 +75,8 @@ export function PublicOrderingPage({
   // Scope the order flow to its own light-by-default theme, then restore the
   // dashboard's global theme when the customer leaves the flow.
   useLayoutEffect(() => {
-    useOrderTheme.getState().apply();
-    return () => useOrderTheme.getState().restoreGlobal();
+    usePublicTheme.getState().apply();
+    return () => usePublicTheme.getState().restoreGlobal();
   }, []);
 
   // ── URL-bound selection (branch + channel) ───────────────────────────────

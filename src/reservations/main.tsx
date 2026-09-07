@@ -37,7 +37,7 @@ import "@/styles/globals.css";
 import "@/lib/theme";
 
 import { queryClient } from "@/data/api/query";
-import { ScanToOrder } from "@/features/public-ordering/scan-to-order";
+import { ScanToBook } from "@/features/reservations/scan-to-book";
 import { ManagePage } from "@/features/reservations/manage-page";
 import { ReservePage } from "@/features/reservations/reserve-page";
 
@@ -46,7 +46,7 @@ const rootRoute = createRootRoute({ component: () => <Outlet /> });
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: ScanToOrder,
+  component: ScanToBook,
 });
 
 const manageRoute = createRoute({

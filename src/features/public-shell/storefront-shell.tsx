@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Languages, Moon, Sun } from "lucide-react";
 
-import { useOrderTheme } from "./use-order-theme";
+import { usePublicTheme } from "./use-public-theme";
 import { LegalLinks } from "@/components/legal-links";
 
 /** A circular, bordered header icon button — matches the ordering flow's chrome. */
@@ -28,17 +28,22 @@ export function HeaderIcon({
 }
 
 /**
- * Storefront brand chrome shared by the customer surfaces (order tracking, the
- * scan-to-order prompt): a sticky header carrying the theme/language toggles and a
- * footer with the Madar mark, wrapping a focused mobile-width column. The page is
- * responsible for applying the storefront theme (see `useOrderTheme`).
+ * Storefront brand chrome shared by every PUBLIC guest surface — ordering,
+ * order tracking, and table bookings: a sticky header carrying the theme and
+ * language toggles, and a footer with the Madar mark, wrapping a focused
+ * mobile-width column. The page applies the storefront theme itself (see
+ * `usePublicTheme`).
+ *
+ * This lives in `public-shell` rather than in either feature because ordering
+ * and reservations are separately built, separately deployed bundles; neither
+ * may import the other.
  */
 export function StorefrontShell({ children }: { children: ReactNode }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const toggleLang = () => void i18n.changeLanguage(lang.startsWith("ar") ? "en" : "ar");
-  const mode = useOrderTheme((s) => s.mode);
-  const toggleTheme = useOrderTheme((s) => s.toggle);
+  const mode = usePublicTheme((s) => s.mode);
+  const toggleTheme = usePublicTheme((s) => s.toggle);
 
   return (
     <div className="relative flex min-h-[100dvh] flex-col bg-background text-foreground">
