@@ -21,6 +21,7 @@ import { PhoneVerify } from "@/features/reservations/phone-verify";
 import { fmtMoney } from "@/lib/format";
 
 import { resolveBrand } from "./brand";
+import { CardFace } from "./card-face";
 import { WalletButtons } from "./wallet-buttons";
 
 export function JoinPage({ branchId }: { branchId: string }) {
@@ -86,6 +87,17 @@ export function JoinPage({ branchId }: { branchId: string }) {
                 : t("loyalty.joinedBody", "Add your card to your phone and show it when you pay.")}
             </p>
           </div>
+          {/* The same card they will see from now on, so signing up ends by
+              showing them the thing they just got rather than describing it. */}
+          <CardFace
+            brand={brand}
+            mode={data.mode}
+            balance={joined.balance}
+            target={joined.next_reward_cost}
+            toGo={Math.max(joined.next_reward_cost - joined.balance, 0)}
+            canRedeem={joined.balance >= joined.next_reward_cost}
+            memberName={joined.name}
+          />
           <WalletButtons passes={joined.passes} token={joined.member_token} />
           <a
             href={`/card/${encodeURIComponent(joined.member_token)}`}

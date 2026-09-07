@@ -4135,6 +4135,7 @@
     "stampLine": "Every order earns a stamp, and {{n}} of them gets you a reward.",
     "ordersToGo": "{{n}} more orders to your next reward.",
     "useAppleInstead": "Use Apple Wallet instead",
-    "useGoogleInstead": "Use Google Wallet instead"
+    "useGoogleInstead": "Use Google Wallet instead",
+    "noWalletHere": "Show this code at the counter — it works without a wallet app."
   }
 }

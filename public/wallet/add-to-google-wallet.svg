@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 55" role="img" aria-label="Add to Google Wallet">
+  <!-- Recreation of Google's badge per the published guidelines: black field,
+       rounded ends, the Wallet mark then "Add to Google Wallet" in Roboto.
+       Replace with the official artwork (see README). -->
+  <rect width="240" height="55" rx="8" fill="#000"/>
+  <g transform="translate(16 15)">
+    <!-- Google Wallet mark, in Google's four brand colours -->
+    <rect x="0" y="4" width="24" height="17" rx="4" fill="#4285F4"/>
+    <path d="M0 8.5h24V11H0z" fill="#34A853"/>
+    <rect x="0" y="0" width="24" height="7" rx="3.2" fill="#FBBC04"/>
+    <circle cx="19" cy="12.5" r="3" fill="#EA4335"/>
+  </g>
+  <text x="52" y="34.5" fill="#fff" font-family="Roboto,'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="18" font-weight="500">Add to Google Wallet</text>
+</svg>
