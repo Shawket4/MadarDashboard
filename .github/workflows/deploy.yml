@@ -53,6 +53,13 @@ jobs:
         env:
           VITE_API_URL: https://reservations.madar-pos.cloud/api
 
+      - name: Build loyalty app (separate, isolated bundle)
+        run: npm run build:loyalty
+        env:
+          # Same-origin, so the member token in a card URL never crosses origins
+          # and the page needs no CORS grant.
+          VITE_API_URL: https://loyalty.madar-pos.cloud/api
+
       - name: Build demo dashboard (VITE_DEMO — talks to the isolated demo API)
         run: npm run build:demo
         env:
@@ -104,6 +111,25 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "dist-reservations/*"
           target: "/var/www/madar-reservations"
+          strip_components: 1
+
+      - name: Ensure loyalty web root exists
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: sudo mkdir -p /var/www/madar-loyalty && sudo chown -R $USER /var/www/madar-loyalty
+
+      - name: Deploy loyalty app to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "dist-loyalty/*"
+          # Matches the nginx root in MadarRust/deploy/loyalty/nginx-loyalty.conf.
+          target: "/var/www/madar-loyalty"
           strip_components: 1
 
       - name: Ensure demo web root exists
