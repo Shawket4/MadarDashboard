@@ -22,6 +22,21 @@ interface Props {
   onOpenChange: (o: boolean) => void;
 }
 
+/**
+ * The enlarged QR, its short link, and the two things you do with it.
+ *
+ * Built to survive a narrow screen, which the previous version did not. Two
+ * rules do the work, and both are about URLs rather than about the image:
+ *
+ *  - **URLs wrap at any character.** `truncate` sets `white-space: nowrap`,
+ *    which makes an element's min-content width the WHOLE string; flex and grid
+ *    items then refuse to shrink below it (`min-width: auto`) and force the
+ *    dialog wider than the viewport. Letting the text break means its
+ *    min-content width is one character, and no ancestor can be blown out.
+ *  - **Nothing carries a fixed pixel size.** The QR is a fraction of the dialog
+ *    with a square aspect — square because a QR stretched on one axis stops
+ *    scanning.
+ */
 export function QrPreviewDialog({ qr, title, open, onOpenChange }: Props) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
@@ -29,6 +44,7 @@ export function QrPreviewDialog({ qr, title, open, onOpenChange }: Props) {
   if (!qr) return null;
 
   const isSvg = qr.qr_data_url.startsWith("data:image/svg");
+  const label = title ?? t("qr.preview.title", "QR Code");
 
   const handleCopy = async () => {
     try {
@@ -46,58 +62,53 @@ export function QrPreviewDialog({ qr, title, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Never wider than the viewport less a margin — the default max-width is
-          larger than a phone screen, which pushed the dialog edge to edge. */}
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-sm">
-        <DialogHeader>
+      {/* Never wider than the viewport less a margin. The component default is
+          wider than a phone, which put the dialog edge to edge. */}
+      <DialogContent className="max-w-[calc(100vw-2rem)] overflow-hidden sm:max-w-sm">
+        <DialogHeader className="min-w-0">
           <DialogTitle className="flex items-center gap-2">
-            <QrCode className="size-4" />
-            {title ?? t("qr.preview.title", "QR Code")}
+            <QrCode className="size-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">{label}</span>
           </DialogTitle>
-          {/* `break-all`, not `truncate`: a short link is the one thing someone
-              may need to read off the screen in full. */}
-          <DialogDescription className="break-all text-xs">
+          {/* The destination, wrapping rather than truncating: this is the one
+              thing on the screen someone may need to read in full, because a
+              wrong base URL is invisible until a printed card is scanned. */}
+          <DialogDescription className="text-xs [overflow-wrap:anywhere]">
             {qr.long_url}
           </DialogDescription>
         </DialogHeader>
 
-        {/* QR image */}
         <div className="flex justify-center rounded-xl border bg-card p-4">
-          {/* White quiet-zone wrapper so the raster is legible on any theme.
-              Scales down with the dialog rather than holding 224px; the square
-              aspect is kept because a stretched QR stops scanning. */}
+          {/* White quiet-zone wrapper so the raster is legible on any theme. */}
           <span className="block w-full max-w-56 rounded bg-white p-1">
             <img
               src={qr.qr_data_url}
-              alt={t("qr.imageAlt", "QR code for {{title}}", { title: title ?? t("qr.preview.title", "QR Code") })}
+              alt={t("qr.imageAlt", "QR code for {{title}}", { title: label })}
               className="aspect-square w-full object-contain"
             />
           </span>
         </div>
 
-        {/* Short URL */}
-        <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2">
+        <div className="flex min-w-0 flex-col gap-2 rounded-lg bg-muted px-3 py-2">
           <a
             href={qr.short_url}
             target="_blank"
             rel="noreferrer"
-            className="flex min-w-0 flex-1 items-center gap-1.5 rounded text-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
+            className="flex min-w-0 items-start gap-1.5 text-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
           >
-            <ExternalLink className="size-3 shrink-0" />
-            <span className="truncate">{qr.short_url}</span>
+            <ExternalLink className="mt-1 size-3 shrink-0" />
+            <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+              {qr.short_url}
+            </span>
           </a>
-          <Badge variant="outline" className="shrink-0 font-mono text-xs">
+          <Badge variant="outline" className="w-fit font-mono text-xs">
             {qr.short_code}
           </Badge>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={handleCopy}
-          >
+        {/* Stacked on a phone: two buttons side by side leave neither legible. */}
+        <div className="flex flex-col gap-2 sm:flex-row [&>*]:flex-1">
+          <Button variant="outline" onClick={handleCopy}>
             {copied ? (
               <Check className="size-4 text-success" />
             ) : (
@@ -107,7 +118,7 @@ export function QrPreviewDialog({ qr, title, open, onOpenChange }: Props) {
               ? t("common.copied", "Copied!")
               : t("common.copyLink", "Copy link")}
           </Button>
-          <Button className="flex-1" onClick={handleDownload}>
+          <Button onClick={handleDownload}>
             <Download className="size-4" />
             {t("common.download", "Download")}
           </Button>

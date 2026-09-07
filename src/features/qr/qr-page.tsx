@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { cn } from "@/lib/utils";
 import { downloadUrl } from "@/lib/download";
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
@@ -130,6 +131,39 @@ function CopyLinkButton({ url }: { url: string }) {
   );
 }
 
+/// A URL rendered so it can never widen its container.
+///
+/// This is the whole reason the QR cards overflowed on a phone. `truncate` sets
+/// `white-space: nowrap`, which makes an element's MIN-CONTENT width the entire
+/// string — and flex and grid items default to `min-width: auto`, so they refuse
+/// to shrink below that. The card was then forced wider than the screen no
+/// matter what width was put on the QR image itself.
+///
+/// `break-anywhere` lets the string break at any character, so its min-content
+/// width is one character. That holds regardless of what any ancestor does,
+/// which `min-w-0` sprinkled up the tree does not.
+function UrlText({
+  url,
+  className,
+  mono = true,
+}: {
+  url: string;
+  className?: string;
+  mono?: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "block [overflow-wrap:anywhere]",
+        mono && "font-mono",
+        className,
+      )}
+    >
+      {url}
+    </span>
+  );
+}
+
 function QrResult({
   qr,
   title,
@@ -143,11 +177,11 @@ function QrResult({
   const isSvg = qr.qr_data_url.startsWith("data:image/svg");
 
   return (
-    <div className="flex min-w-0 flex-col items-center gap-3 rounded-xl border bg-card p-4">
-      {/* The QR scales with the card instead of holding a fixed 208px, which
-          overflowed a narrow phone once the card and page padding were counted.
-          `aspect-square` keeps it a square as it shrinks — a QR stretched on one
-          axis stops scanning. */}
+    // `min-w-0` so this card may shrink inside its grid track, and
+    // `overflow-hidden` so nothing inside can paint past the rounded border.
+    <div className="flex min-w-0 flex-col items-center gap-3 overflow-hidden rounded-xl border bg-card p-4">
+      {/* The QR scales with the card. `aspect-square` is load-bearing, not
+          decorative: a QR stretched on one axis stops scanning. */}
       <button
         type="button"
         onClick={onPreview}
@@ -164,31 +198,27 @@ function QrResult({
         </span>
       </button>
 
-      <div className="flex w-full items-center gap-2 rounded-lg bg-muted px-2 py-1.5">
-        <Link2 className="size-3 shrink-0 text-muted-foreground" />
-        <a
-          href={qr.short_url}
-          target="_blank"
-          rel="noreferrer"
-          className="min-w-0 flex-1 truncate font-mono text-xs hover:underline"
-        >
-          {qr.short_url}
-        </a>
-      </div>
+      <a
+        href={qr.short_url}
+        target="_blank"
+        rel="noreferrer"
+        className="flex w-full min-w-0 items-start gap-2 rounded-lg bg-muted px-2 py-1.5 text-xs hover:underline"
+      >
+        <Link2 className="mt-0.5 size-3 shrink-0 text-muted-foreground" />
+        <UrlText url={qr.short_url} className="min-w-0 flex-1" />
+      </a>
 
       {/* Where the short link actually lands. Worth showing: a misconfigured
           PUBLIC_*_BASE_URL is invisible until someone scans a printed card. */}
-      <p
-        className="w-full truncate text-center font-mono text-[11px] text-muted-foreground"
-        title={qr.long_url}
-      >
-        {qr.long_url}
-      </p>
+      <UrlText
+        url={qr.long_url}
+        className="w-full text-center text-[11px] text-muted-foreground"
+      />
 
-      <div className="flex w-full gap-2">
+      {/* Stacked on a phone: two buttons side by side leave neither readable. */}
+      <div className="flex w-full flex-col gap-2 sm:flex-row [&>*]:flex-1">
         <CopyLinkButton url={qr.short_url} />
         <Button
-          className="flex-1"
           size="sm"
           onClick={() => downloadUrl(qr.qr_data_url, `qr-${qr.short_code}.${isSvg ? "svg" : "png"}`)}
         >
