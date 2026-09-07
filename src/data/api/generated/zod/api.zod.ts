@@ -6061,7 +6061,8 @@ export const SettleOpenTicketBody = zod.object({
   "discount_value": zod.number().nullish(),
   "loyalty_customer_id": zod.uuid().nullish().describe('The member spending a balance on this settle, when rewards are applied.'),
   "loyalty_redemptions": zod.array(zod.object({
-  "item_index": zod.number().min(settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin).describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.'),
+  "item_index": zod.number().min(settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin).nullish().describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.\n\nOptional because a TICKET settle names its lines by id instead (see\n`ticket_line_id`) and the server fills this in — a till settling a ticket\ncannot see the order the server will flatten its rounds into, and a\nguessed index takes the wrong item off the bill.'),
+  "ticket_line_id": zod.uuid().nullish().describe('`open_ticket_items.id` — how a ticket settle names the line to cover.\nResolved to `item_index` by `settle_open_ticket` before pricing.'),
   "units": zod.number().nullish().describe('How many of that line\'s units the reward covers. Defaults to one.')
 }).describe('One reward applied to one line of the cart.')).optional().describe('Rewards covering lines of the ticket. A table-service bill redeems\nexactly like a counter one — the cashier scans at settle either way.'),
   "payment_method": zod.string(),
@@ -6317,7 +6318,8 @@ export const CreateOrderBody = zod.object({
 })),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member spending a balance on this sale. Required when\n`loyalty_redemptions` is non-empty, and ONLY for that: earning is a\nseparate, later act (`POST \/loyalty\/award`), so a sale that redeems\nnothing never names a member here.'),
   "loyalty_redemptions": zod.array(zod.object({
-  "item_index": zod.number().min(createOrderBodyLoyaltyRedemptionsItemItemIndexMin).describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.'),
+  "item_index": zod.number().min(createOrderBodyLoyaltyRedemptionsItemItemIndexMin).nullish().describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.\n\nOptional because a TICKET settle names its lines by id instead (see\n`ticket_line_id`) and the server fills this in — a till settling a ticket\ncannot see the order the server will flatten its rounds into, and a\nguessed index takes the wrong item off the bill.'),
+  "ticket_line_id": zod.uuid().nullish().describe('`open_ticket_items.id` — how a ticket settle names the line to cover.\nResolved to `item_index` by `settle_open_ticket` before pricing.'),
   "units": zod.number().nullish().describe('How many of that line\'s units the reward covers. Defaults to one.')
 }).describe('One reward applied to one line of the cart.')).optional().describe('Rewards covering lines of this cart. Each names a line by its index in\n`items` and how many of that line\'s units the reward pays for, so a\nmixed basket can have one free coffee among four paid ones.'),
   "notes": zod.string().nullish(),
