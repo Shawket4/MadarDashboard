@@ -46,25 +46,31 @@ export function QrPreviewDialog({ qr, title, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
+      {/* Never wider than the viewport less a margin — the default max-width is
+          larger than a phone screen, which pushed the dialog edge to edge. */}
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <QrCode className="size-4" />
             {title ?? t("qr.preview.title", "QR Code")}
           </DialogTitle>
-          <DialogDescription className="truncate text-xs">
+          {/* `break-all`, not `truncate`: a short link is the one thing someone
+              may need to read off the screen in full. */}
+          <DialogDescription className="break-all text-xs">
             {qr.long_url}
           </DialogDescription>
         </DialogHeader>
 
         {/* QR image */}
         <div className="flex justify-center rounded-xl border bg-card p-4">
-          {/* White quiet-zone wrapper so the raster is legible on any theme */}
-          <span className="block rounded bg-white p-1">
+          {/* White quiet-zone wrapper so the raster is legible on any theme.
+              Scales down with the dialog rather than holding 224px; the square
+              aspect is kept because a stretched QR stops scanning. */}
+          <span className="block w-full max-w-56 rounded bg-white p-1">
             <img
               src={qr.qr_data_url}
               alt={t("qr.imageAlt", "QR code for {{title}}", { title: title ?? t("qr.preview.title", "QR Code") })}
-              className="size-56 object-contain"
+              className="aspect-square w-full object-contain"
             />
           </span>
         </div>

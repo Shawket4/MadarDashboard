@@ -145,11 +145,14 @@ export function RewardCatalogue({
             />
           ) : (
             rows.map((row, i) => (
-              <div key={row.menu_item_id} className="flex items-end gap-3">
+              <div
+                key={row.menu_item_id}
+                className="flex flex-wrap items-end gap-3 sm:flex-nowrap"
+              >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{row.name}</p>
                 </div>
-                <div className="w-32 space-y-1.5">
+                <div className="w-24 shrink-0 space-y-1.5 sm:w-32">
                   <Label className="text-xs text-muted-foreground">
                     {currencyLabel(mode, row.cost_amount)}
                   </Label>

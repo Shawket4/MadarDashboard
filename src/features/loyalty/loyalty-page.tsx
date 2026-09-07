@@ -67,9 +67,9 @@ export function LoyaltyPage() {
         )}
       />
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex w-full flex-wrap items-center gap-3">
         <Select value={scope} onValueChange={setScope}>
-          <SelectTrigger className="w-64">
+          <SelectTrigger className="w-full sm:w-64">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

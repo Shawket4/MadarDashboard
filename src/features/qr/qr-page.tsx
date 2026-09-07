@@ -143,11 +143,15 @@ function QrResult({
   const isSvg = qr.qr_data_url.startsWith("data:image/svg");
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border bg-card p-4">
+    <div className="flex min-w-0 flex-col items-center gap-3 rounded-xl border bg-card p-4">
+      {/* The QR scales with the card instead of holding a fixed 208px, which
+          overflowed a narrow phone once the card and page padding were counted.
+          `aspect-square` keeps it a square as it shrinks — a QR stretched on one
+          axis stops scanning. */}
       <button
         type="button"
         onClick={onPreview}
-        className="rounded-lg outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
+        className="w-full max-w-52 rounded-lg outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
         aria-label={t("qr.enlarge", "Enlarge QR code")}
       >
         {/* White quiet-zone wrapper so the raster reads cleanly on any theme */}
@@ -155,7 +159,7 @@ function QrResult({
           <img
             src={qr.qr_data_url}
             alt={t("qr.imageAlt", "QR code for {{title}}", { title })}
-            className="size-52 cursor-zoom-in object-contain"
+            className="aspect-square w-full cursor-zoom-in object-contain"
           />
         </span>
       </button>
