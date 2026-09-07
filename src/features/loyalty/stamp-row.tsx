@@ -23,7 +23,12 @@
  * matches the Wallet pass's (`wallet::google::MAX_STEPS`), so the card in the
  * phone and the card on the page never disagree.
  */
+import type { CSSProperties } from "react";
+
 const MAX_STEPS = 12;
+
+/** Breathing room between steps, and the width the sizing has to account for. */
+const GAP = "0.25rem";
 
 /** Past this many, a step is too small to hold a legible numeral. */
 const NUMERALS_UP_TO = 9;
@@ -60,22 +65,27 @@ export function StampRow({
   // 480px and a card on a 360px phone offers about 250, which is how the row
   // came to spill out of the rounded corner.
   const cap = target <= 5 ? "2.5rem" : target <= NUMERALS_UP_TO ? "2.125rem" : "1.625rem";
-  const size = `min(${cap}, calc((100% - ${target - 1} * 0.25rem) / ${target}))`;
-  const half = `calc(${size} / 2)`;
+  // Named once, on the row, and referenced everywhere else. The step size shows
+  // up in four places — the step itself, both ends of the track, and the length
+  // of the completed run — and repeating a nested `min(calc(...))` in each was
+  // both unreadable and, spelled out four times, easy to get subtly wrong.
+  const size = `min(${cap}, calc((100% - ${target - 1} * ${GAP}) / ${target}))`;
+  const half = "calc(var(--step) / 2)";
 
   // From the first step's centre to the last completed one's. Both ends are
   // inset by half a step, so the run between the centres measures the row less
   // one whole step — no pixel anywhere, so it holds at any width.
   const done =
     filled > 1 && target > 1
-      ? `calc((100% - ${size}) * ${(filled - 1) / (target - 1)})`
+      ? `calc((100% - var(--step)) * ${(filled - 1) / (target - 1)})`
       : "0px";
 
   const numerals = target <= NUMERALS_UP_TO;
 
   return (
     <ol
-      className="relative flex w-full items-center justify-between gap-1"
+      className="relative flex w-full items-center justify-between"
+      style={{ gap: GAP, "--step": size } as CSSProperties}
       role="img"
       aria-label={`${filled} of ${target} collected`}
     >
@@ -105,8 +115,13 @@ export function StampRow({
             aria-hidden
             className="relative grid shrink-0 place-items-center rounded-full text-[13px] font-semibold leading-none transition-colors duration-300 motion-reduce:transition-none"
             style={{
-              width: size,
-              height: size,
+              width: "var(--step)",
+              // NOT `height: size`. A percentage in `height` resolves against
+              // the parent's HEIGHT, and this row has none of its own — so the
+              // same expression that sized the width correctly gave a height
+              // unrelated to it, and every step came out a squashed oval.
+              // The ratio takes its height from the width it actually got.
+              aspectRatio: "1",
               // Opaque, so the track passes BEHIND a step rather than through
               // it — an empty circle with a grey line across it reads as
               // crossed out.
