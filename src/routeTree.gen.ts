@@ -42,8 +42,15 @@ import { Route as AppStaffRequestsRouteImport } from './routes/_app/staff/reques
 import { Route as AppStaffEmployeesRouteImport } from './routes/_app/staff/employees'
 import { Route as AppStaffAttendanceRouteImport } from './routes/_app/staff/attendance'
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
+import { Route as AppSettingsQrRouteImport } from './routes/_app/settings/qr'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
+import { Route as AppSettingsLoyaltyRouteImport } from './routes/_app/settings/loyalty'
+import { Route as AppSettingsKitchenStationsRouteImport } from './routes/_app/settings/kitchen-stations'
+import { Route as AppSettingsKitchenRoutingRouteImport } from './routes/_app/settings/kitchen-routing'
 import { Route as AppSettingsIntegrationsRouteImport } from './routes/_app/settings/integrations'
+import { Route as AppSettingsDeliveryZonesRouteImport } from './routes/_app/settings/delivery-zones'
+import { Route as AppSettingsDeliveryRouteImport } from './routes/_app/settings/delivery'
+import { Route as AppSettingsBookingsRouteImport } from './routes/_app/settings/bookings'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
 import { Route as AppMenuPricingRouteImport } from './routes/_app/menu/pricing'
 import { Route as AppMenuOverridesRouteImport } from './routes/_app/menu/overrides'
@@ -234,15 +241,53 @@ const AppSettingsWhatsappRoute = AppSettingsWhatsappRouteImport.update({
   path: '/whatsapp',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
+const AppSettingsQrRoute = AppSettingsQrRouteImport.update({
+  id: '/qr',
+  path: '/qr',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
 const AppSettingsPaymentMethodsRoute =
   AppSettingsPaymentMethodsRouteImport.update({
     id: '/payment-methods',
     path: '/payment-methods',
     getParentRoute: () => AppSettingsRouteRoute,
   } as any)
+const AppSettingsLoyaltyRoute = AppSettingsLoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsKitchenStationsRoute =
+  AppSettingsKitchenStationsRouteImport.update({
+    id: '/kitchen-stations',
+    path: '/kitchen-stations',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsKitchenRoutingRoute =
+  AppSettingsKitchenRoutingRouteImport.update({
+    id: '/kitchen-routing',
+    path: '/kitchen-routing',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
 const AppSettingsIntegrationsRoute = AppSettingsIntegrationsRouteImport.update({
   id: '/integrations',
   path: '/integrations',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsDeliveryZonesRoute =
+  AppSettingsDeliveryZonesRouteImport.update({
+    id: '/delivery-zones',
+    path: '/delivery-zones',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsDeliveryRoute = AppSettingsDeliveryRouteImport.update({
+  id: '/delivery',
+  path: '/delivery',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsBookingsRoute = AppSettingsBookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
 const AppMenuRecipesRoute = AppMenuRecipesRouteImport.update({
@@ -419,8 +464,15 @@ export interface FileRoutesByFullPath {
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
+  '/settings/bookings': typeof AppSettingsBookingsRoute
+  '/settings/delivery': typeof AppSettingsDeliveryRoute
+  '/settings/delivery-zones': typeof AppSettingsDeliveryZonesRoute
   '/settings/integrations': typeof AppSettingsIntegrationsRoute
+  '/settings/kitchen-routing': typeof AppSettingsKitchenRoutingRoute
+  '/settings/kitchen-stations': typeof AppSettingsKitchenStationsRoute
+  '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/settings/qr': typeof AppSettingsQrRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/staff/attendance': typeof AppStaffAttendanceRoute
   '/staff/employees': typeof AppStaffEmployeesRoute
@@ -475,8 +527,15 @@ export interface FileRoutesByTo {
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
+  '/settings/bookings': typeof AppSettingsBookingsRoute
+  '/settings/delivery': typeof AppSettingsDeliveryRoute
+  '/settings/delivery-zones': typeof AppSettingsDeliveryZonesRoute
   '/settings/integrations': typeof AppSettingsIntegrationsRoute
+  '/settings/kitchen-routing': typeof AppSettingsKitchenRoutingRoute
+  '/settings/kitchen-stations': typeof AppSettingsKitchenStationsRoute
+  '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/settings/qr': typeof AppSettingsQrRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/staff/attendance': typeof AppStaffAttendanceRoute
   '/staff/employees': typeof AppStaffEmployeesRoute
@@ -538,8 +597,15 @@ export interface FileRoutesById {
   '/_app/menu/overrides': typeof AppMenuOverridesRoute
   '/_app/menu/pricing': typeof AppMenuPricingRoute
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
+  '/_app/settings/bookings': typeof AppSettingsBookingsRoute
+  '/_app/settings/delivery': typeof AppSettingsDeliveryRoute
+  '/_app/settings/delivery-zones': typeof AppSettingsDeliveryZonesRoute
   '/_app/settings/integrations': typeof AppSettingsIntegrationsRoute
+  '/_app/settings/kitchen-routing': typeof AppSettingsKitchenRoutingRoute
+  '/_app/settings/kitchen-stations': typeof AppSettingsKitchenStationsRoute
+  '/_app/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/_app/settings/qr': typeof AppSettingsQrRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/_app/staff/attendance': typeof AppStaffAttendanceRoute
   '/_app/staff/employees': typeof AppStaffEmployeesRoute
@@ -601,8 +667,15 @@ export interface FileRouteTypes {
     | '/menu/overrides'
     | '/menu/pricing'
     | '/menu/recipes'
+    | '/settings/bookings'
+    | '/settings/delivery'
+    | '/settings/delivery-zones'
     | '/settings/integrations'
+    | '/settings/kitchen-routing'
+    | '/settings/kitchen-stations'
+    | '/settings/loyalty'
     | '/settings/payment-methods'
+    | '/settings/qr'
     | '/settings/whatsapp'
     | '/staff/attendance'
     | '/staff/employees'
@@ -657,8 +730,15 @@ export interface FileRouteTypes {
     | '/menu/overrides'
     | '/menu/pricing'
     | '/menu/recipes'
+    | '/settings/bookings'
+    | '/settings/delivery'
+    | '/settings/delivery-zones'
     | '/settings/integrations'
+    | '/settings/kitchen-routing'
+    | '/settings/kitchen-stations'
+    | '/settings/loyalty'
     | '/settings/payment-methods'
+    | '/settings/qr'
     | '/settings/whatsapp'
     | '/staff/attendance'
     | '/staff/employees'
@@ -719,8 +799,15 @@ export interface FileRouteTypes {
     | '/_app/menu/overrides'
     | '/_app/menu/pricing'
     | '/_app/menu/recipes'
+    | '/_app/settings/bookings'
+    | '/_app/settings/delivery'
+    | '/_app/settings/delivery-zones'
     | '/_app/settings/integrations'
+    | '/_app/settings/kitchen-routing'
+    | '/_app/settings/kitchen-stations'
+    | '/_app/settings/loyalty'
     | '/_app/settings/payment-methods'
+    | '/_app/settings/qr'
     | '/_app/settings/whatsapp'
     | '/_app/staff/attendance'
     | '/_app/staff/employees'
@@ -974,6 +1061,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsWhatsappRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
+    '/_app/settings/qr': {
+      id: '/_app/settings/qr'
+      path: '/qr'
+      fullPath: '/settings/qr'
+      preLoaderRoute: typeof AppSettingsQrRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
     '/_app/settings/payment-methods': {
       id: '/_app/settings/payment-methods'
       path: '/payment-methods'
@@ -981,11 +1075,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsPaymentMethodsRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
+    '/_app/settings/loyalty': {
+      id: '/_app/settings/loyalty'
+      path: '/loyalty'
+      fullPath: '/settings/loyalty'
+      preLoaderRoute: typeof AppSettingsLoyaltyRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/kitchen-stations': {
+      id: '/_app/settings/kitchen-stations'
+      path: '/kitchen-stations'
+      fullPath: '/settings/kitchen-stations'
+      preLoaderRoute: typeof AppSettingsKitchenStationsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/kitchen-routing': {
+      id: '/_app/settings/kitchen-routing'
+      path: '/kitchen-routing'
+      fullPath: '/settings/kitchen-routing'
+      preLoaderRoute: typeof AppSettingsKitchenRoutingRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
     '/_app/settings/integrations': {
       id: '/_app/settings/integrations'
       path: '/integrations'
       fullPath: '/settings/integrations'
       preLoaderRoute: typeof AppSettingsIntegrationsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/delivery-zones': {
+      id: '/_app/settings/delivery-zones'
+      path: '/delivery-zones'
+      fullPath: '/settings/delivery-zones'
+      preLoaderRoute: typeof AppSettingsDeliveryZonesRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/delivery': {
+      id: '/_app/settings/delivery'
+      path: '/delivery'
+      fullPath: '/settings/delivery'
+      preLoaderRoute: typeof AppSettingsDeliveryRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/bookings': {
+      id: '/_app/settings/bookings'
+      path: '/bookings'
+      fullPath: '/settings/bookings'
+      preLoaderRoute: typeof AppSettingsBookingsRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
     '/_app/menu/recipes': {
@@ -1253,15 +1389,29 @@ const AppMenuRouteRouteWithChildren = AppMenuRouteRoute._addFileChildren(
 )
 
 interface AppSettingsRouteRouteChildren {
+  AppSettingsBookingsRoute: typeof AppSettingsBookingsRoute
+  AppSettingsDeliveryRoute: typeof AppSettingsDeliveryRoute
+  AppSettingsDeliveryZonesRoute: typeof AppSettingsDeliveryZonesRoute
   AppSettingsIntegrationsRoute: typeof AppSettingsIntegrationsRoute
+  AppSettingsKitchenRoutingRoute: typeof AppSettingsKitchenRoutingRoute
+  AppSettingsKitchenStationsRoute: typeof AppSettingsKitchenStationsRoute
+  AppSettingsLoyaltyRoute: typeof AppSettingsLoyaltyRoute
   AppSettingsPaymentMethodsRoute: typeof AppSettingsPaymentMethodsRoute
+  AppSettingsQrRoute: typeof AppSettingsQrRoute
   AppSettingsWhatsappRoute: typeof AppSettingsWhatsappRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
 
 const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
+  AppSettingsBookingsRoute: AppSettingsBookingsRoute,
+  AppSettingsDeliveryRoute: AppSettingsDeliveryRoute,
+  AppSettingsDeliveryZonesRoute: AppSettingsDeliveryZonesRoute,
   AppSettingsIntegrationsRoute: AppSettingsIntegrationsRoute,
+  AppSettingsKitchenRoutingRoute: AppSettingsKitchenRoutingRoute,
+  AppSettingsKitchenStationsRoute: AppSettingsKitchenStationsRoute,
+  AppSettingsLoyaltyRoute: AppSettingsLoyaltyRoute,
   AppSettingsPaymentMethodsRoute: AppSettingsPaymentMethodsRoute,
+  AppSettingsQrRoute: AppSettingsQrRoute,
   AppSettingsWhatsappRoute: AppSettingsWhatsappRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
 }

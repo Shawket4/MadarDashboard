@@ -1204,6 +1204,42 @@ export const BranchBookingQrResponse = zod.object({
 }).describe('JSON returned from every QR-generation endpoint.')
 
 
+/**
+ * @summary The counter's join QR: a static, per-branch card that opens the public
+signup form. Static on purpose — it is printed once and stood on a counter,
+so it must keep working with no reprint. The per-CUSTOMER QR is a different
+thing entirely: it lives on their Wallet pass and carries their member token.
+ */
+export const BranchLoyaltyQrParams = zod.object({
+  "id": zod.uuid().describe('Branch ID')
+})
+
+export const branchLoyaltyQrQueryDpiMin = 0;
+
+export const branchLoyaltyQrQueryModulePxMin = 0;
+
+
+
+export const BranchLoyaltyQrQueryParams = zod.object({
+  "card": zod.boolean().optional().describe('`true` (default) → branded A6 card PNG; `false` → plain receipt QR PNG.'),
+  "caption": zod.string().optional().describe('Dynamic caption line beneath the tagline (A6 card only).'),
+  "dpi": zod.number().min(branchLoyaltyQrQueryDpiMin).optional().describe('Raster DPI for the A6 card (clamped 72–2400). Default 600.'),
+  "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
+  "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
+  "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
+  "module_px": zod.number().min(branchLoyaltyQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "slug": zod.string().optional()
+})
+
+export const BranchLoyaltyQrResponse = zod.object({
+  "kind": zod.string(),
+  "long_url": zod.string(),
+  "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
+  "short_code": zod.string(),
+  "short_url": zod.string()
+}).describe('JSON returned from every QR-generation endpoint.')
+
+
 export const BranchQrParams = zod.object({
   "id": zod.uuid().describe('Branch ID')
 })
@@ -4028,6 +4064,317 @@ export const UpdateStationResponse = zod.object({
 })
 
 
+export const LoyaltyAdjustBody = zod.object({
+  "branch_id": zod.uuid(),
+  "customer_id": zod.uuid(),
+  "note": zod.string().nullish(),
+  "points": zod.number().describe('Signed. Negative takes points away.')
+})
+
+export const LoyaltyAdjustResponse = zod.object({
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "can_redeem": zod.boolean().describe('The balance affords at least one reward on offer here.'),
+  "enrolled_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "lifetime_points": zod.number(),
+  "lifetime_visits": zod.number(),
+  "locale": zod.string(),
+  "mode": zod.string().describe('`\"points\"` or `\"visits\"` — what the branch that asked collects.'),
+  "name": zod.string(),
+  "next_reward_cost": zod.number().describe('The cheapest reward on offer here, in `mode`\'s currency — what the\nprogress line counts towards. Falls back to the scope\'s default cost\nwhen no rewards have been curated.'),
+  "org_id": zod.uuid(),
+  "phone": zod.string(),
+  "points_balance": zod.number(),
+  "points_to_next_reward": zod.number().describe('`next_reward_cost - balance`, floored at zero.'),
+  "visits_balance": zod.number()
+}).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')
+
+
+/**
+ * @summary The live route. Tellers press the button; the permission is the same `update`
+the redeem action needs.
+ */
+export const LoyaltyAwardBody = zod.object({
+  "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish(),
+  "order_id": zod.uuid().nullish().describe('The server\'s order id — the history path, where the order is synced.'),
+  "order_key": zod.uuid().nullish().describe('The client-minted idempotency key — the just-checked-out path, where the\norder may not have reached the server yet. Resolved to the same order.'),
+  "phone": zod.string().nullish(),
+  "requested_at": zod.iso.datetime({"offset":true}).nullish().describe('When the teller pressed the button. Absent = now.\n\nAn offline till stamps the press and queues it, so a drain days later\nstill credits an award that was made in time. Bounded on arrival (see\nthe module docs) so it cannot be used to reach outside the window.'),
+  "token": zod.string().nullish().describe('Who. A scanned pass token, a typed phone, or an already-resolved member.')
+})
+
+export const LoyaltyAwardResponse = zod.object({
+  "already_awarded": zod.boolean().describe('True when this order had already earned — a double tap, a retry, or a\nreplayed offline op. Not an error: the outcome is the one that was asked\nfor, and the response carries the balance that resulted.'),
+  "member": zod.object({
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "can_redeem": zod.boolean().describe('The balance affords at least one reward on offer here.'),
+  "enrolled_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "lifetime_points": zod.number(),
+  "lifetime_visits": zod.number(),
+  "locale": zod.string(),
+  "mode": zod.string().describe('`\"points\"` or `\"visits\"` — what the branch that asked collects.'),
+  "name": zod.string(),
+  "next_reward_cost": zod.number().describe('The cheapest reward on offer here, in `mode`\'s currency — what the\nprogress line counts towards. Falls back to the scope\'s default cost\nwhen no rewards have been curated.'),
+  "org_id": zod.uuid(),
+  "phone": zod.string(),
+  "points_balance": zod.number(),
+  "points_to_next_reward": zod.number().describe('`next_reward_cost - balance`, floored at zero.'),
+  "visits_balance": zod.number()
+}).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.'),
+  "order_id": zod.uuid(),
+  "points_awarded": zod.number().describe('Points this sale earned. 0 when it was too small to reach one point.')
+})
+
+
+/**
+ * A POST rather than a GET because the member token is a bearer-ish secret: in
+ * a query string it would land in access logs, browser history and any proxy
+ * in between.
+ * @summary Identify the member in front of the till.
+ */
+export const LoyaltyLookupBody = zod.object({
+  "branch_id": zod.uuid(),
+  "phone": zod.string().nullish().describe('Manual fallback for a customer whose phone is dead.'),
+  "token": zod.string().nullish().describe('The token from the scanned pass barcode. Preferred.')
+})
+
+export const LoyaltyLookupResponse = zod.object({
+  "member": zod.object({
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "can_redeem": zod.boolean().describe('The balance affords at least one reward on offer here.'),
+  "enrolled_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "lifetime_points": zod.number(),
+  "lifetime_visits": zod.number(),
+  "locale": zod.string(),
+  "mode": zod.string().describe('`\"points\"` or `\"visits\"` — what the branch that asked collects.'),
+  "name": zod.string(),
+  "next_reward_cost": zod.number().describe('The cheapest reward on offer here, in `mode`\'s currency — what the\nprogress line counts towards. Falls back to the scope\'s default cost\nwhen no rewards have been curated.'),
+  "org_id": zod.uuid(),
+  "phone": zod.string(),
+  "points_balance": zod.number(),
+  "points_to_next_reward": zod.number().describe('`next_reward_cost - balance`, floored at zero.'),
+  "visits_balance": zod.number()
+}).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.'),
+  "recent": zod.array(zod.object({
+  "basis_piastres": zod.number().nullish().describe('Piastres the rule was applied to (earns only).'),
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string().describe('`\"points\"` or `\"visits\"` — which balance this row moved.'),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "note": zod.string().nullish(),
+  "order_id": zod.uuid().nullish(),
+  "points": zod.number(),
+  "reward_name": zod.string().nullish()
+}).describe('One line of a member\'s history.')).describe('Recent history, so a teller can answer \"where did my points go?\".'),
+  "rewards": zod.array(zod.object({
+  "base_price": zod.number().describe('Menu price in piastres — what the reward is worth, for the admin\'s sake.'),
+  "cost_amount": zod.number().describe('How much of that currency it costs. Per item, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\".'),
+  "cost_currency": zod.string().describe('`\"points\"` or `\"visits\"` — what this reward is bought with.'),
+  "image_url": zod.string().nullish(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string().describe('Denormalised for display so the teller and the pass need no menu join.'),
+  "sort_order": zod.number()
+})).describe('What this member could claim at this branch right now. Empty until the\nbalance reaches the threshold, so the screen cannot tempt a teller into\nhanding over a reward that has not been earned.')
+}).describe('What the teller\'s scan screen shows.')
+
+
+export const ListLoyaltyMembersQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Scopes the thresholds shown. Omit to use the org default.'),
+  "q": zod.string().optional().describe('Name or phone fragment.'),
+  "limit": zod.number().optional(),
+  "offset": zod.number().optional()
+})
+
+export const ListLoyaltyMembersResponse = zod.object({
+  "members": zod.array(zod.object({
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "can_redeem": zod.boolean().describe('The balance affords at least one reward on offer here.'),
+  "enrolled_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "lifetime_points": zod.number(),
+  "lifetime_visits": zod.number(),
+  "locale": zod.string(),
+  "mode": zod.string().describe('`\"points\"` or `\"visits\"` — what the branch that asked collects.'),
+  "name": zod.string(),
+  "next_reward_cost": zod.number().describe('The cheapest reward on offer here, in `mode`\'s currency — what the\nprogress line counts towards. Falls back to the scope\'s default cost\nwhen no rewards have been curated.'),
+  "org_id": zod.uuid(),
+  "phone": zod.string(),
+  "points_balance": zod.number(),
+  "points_to_next_reward": zod.number().describe('`next_reward_cost - balance`, floored at zero.'),
+  "visits_balance": zod.number()
+}).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')),
+  "total": zod.number()
+})
+
+
+export const GetLoyaltyMemberParams = zod.object({
+  "id": zod.uuid().describe('Member ID')
+})
+
+export const GetLoyaltyMemberQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Scopes the thresholds shown. Omit to use the org default.'),
+  "q": zod.string().optional().describe('Name or phone fragment.'),
+  "limit": zod.number().optional(),
+  "offset": zod.number().optional()
+})
+
+export const GetLoyaltyMemberResponse = zod.object({
+  "ledger": zod.array(zod.object({
+  "basis_piastres": zod.number().nullish().describe('Piastres the rule was applied to (earns only).'),
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string().describe('`\"points\"` or `\"visits\"` — which balance this row moved.'),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "note": zod.string().nullish(),
+  "order_id": zod.uuid().nullish(),
+  "points": zod.number(),
+  "reward_name": zod.string().nullish()
+}).describe('One line of a member\'s history.')),
+  "member": zod.object({
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "can_redeem": zod.boolean().describe('The balance affords at least one reward on offer here.'),
+  "enrolled_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "lifetime_points": zod.number(),
+  "lifetime_visits": zod.number(),
+  "locale": zod.string(),
+  "mode": zod.string().describe('`\"points\"` or `\"visits\"` — what the branch that asked collects.'),
+  "name": zod.string(),
+  "next_reward_cost": zod.number().describe('The cheapest reward on offer here, in `mode`\'s currency — what the\nprogress line counts towards. Falls back to the scope\'s default cost\nwhen no rewards have been curated.'),
+  "org_id": zod.uuid(),
+  "phone": zod.string(),
+  "points_balance": zod.number(),
+  "points_to_next_reward": zod.number().describe('`next_reward_cost - balance`, floored at zero.'),
+  "visits_balance": zod.number()
+}).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')
+})
+
+
+export const GetLoyaltyRewardItemsQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')
+})
+
+export const GetLoyaltyRewardItemsResponse = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "inherited": zod.boolean().describe('True when these rows are the org default rather than this branch\'s own.'),
+  "items": zod.array(zod.object({
+  "base_price": zod.number().describe('Menu price in piastres — what the reward is worth, for the admin\'s sake.'),
+  "cost_amount": zod.number().describe('How much of that currency it costs. Per item, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\".'),
+  "cost_currency": zod.string().describe('`\"points\"` or `\"visits\"` — what this reward is bought with.'),
+  "image_url": zod.string().nullish(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string().describe('Denormalised for display so the teller and the pass need no menu join.'),
+  "sort_order": zod.number()
+})),
+  "org_id": zod.uuid()
+})
+
+
+export const PutLoyaltyRewardItemsBody = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "items": zod.array(zod.object({
+  "cost_amount": zod.number().nullish().describe('Omitted follows the scope\'s `default_reward_cost`.'),
+  "cost_currency": zod.string().nullish().describe('`\"points\"` or `\"visits\"`. Omitted follows the scope\'s mode.'),
+  "menu_item_id": zod.uuid()
+})).describe('The complete list for this scope, in order. An empty list clears the\nscope — for a branch that means going back to inheriting the org\'s.')
+})
+
+export const PutLoyaltyRewardItemsResponse = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "inherited": zod.boolean().describe('True when these rows are the org default rather than this branch\'s own.'),
+  "items": zod.array(zod.object({
+  "base_price": zod.number().describe('Menu price in piastres — what the reward is worth, for the admin\'s sake.'),
+  "cost_amount": zod.number().describe('How much of that currency it costs. Per item, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\".'),
+  "cost_currency": zod.string().describe('`\"points\"` or `\"visits\"` — what this reward is bought with.'),
+  "image_url": zod.string().nullish(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string().describe('Denormalised for display so the teller and the pass need no menu join.'),
+  "sort_order": zod.number()
+})),
+  "org_id": zod.uuid()
+})
+
+
+export const GetLoyaltySettingsQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')
+})
+
+export const GetLoyaltySettingsResponse = zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = the org-wide default. A branch id = that branch\'s override.'),
+  "default_reward_cost": zod.number().describe('The cost offered by default when an admin adds a reward, in whatever this\nscope collects. Each reward may override it, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\". Also the pass\'s fallback\ntarget when no rewards have been curated yet.'),
+  "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
+  "earn_on_discounted": zod.boolean().describe('Earn on what was actually paid rather than the pre-discount subtotal.'),
+  "earn_piastres_per_point": zod.number().describe('One point per this many piastres. 1000 = a point per 10 EGP. The\ndashboard shows and accepts EGP; the wire is always piastres.'),
+  "enabled": zod.boolean().describe('The program switch for this scope.'),
+  "mode": zod.string().describe('What this scope collects: `\"points\"` (from money spent) or `\"visits\"`\n(one stamp per sale). One or the other — never both.'),
+  "org_id": zod.uuid(),
+  "pass_background_color": zod.string().nullish(),
+  "pass_foreground_color": zod.string().nullish(),
+  "pass_label_color": zod.string().nullish(),
+  "pass_logo_url": zod.string().nullish(),
+  "program_name": zod.string(),
+  "program_name_ar": zod.string().nullish(),
+  "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
+  "terms": zod.string().nullish(),
+  "terms_ar": zod.string().nullish()
+})
+
+
+export const PutLoyaltySettingsBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = the org-wide default. A branch id = that branch\'s override.'),
+  "default_reward_cost": zod.number().describe('The cost offered by default when an admin adds a reward, in whatever this\nscope collects. Each reward may override it, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\". Also the pass\'s fallback\ntarget when no rewards have been curated yet.'),
+  "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
+  "earn_on_discounted": zod.boolean().describe('Earn on what was actually paid rather than the pre-discount subtotal.'),
+  "earn_piastres_per_point": zod.number().describe('One point per this many piastres. 1000 = a point per 10 EGP. The\ndashboard shows and accepts EGP; the wire is always piastres.'),
+  "enabled": zod.boolean().describe('The program switch for this scope.'),
+  "mode": zod.string().describe('What this scope collects: `\"points\"` (from money spent) or `\"visits\"`\n(one stamp per sale). One or the other — never both.'),
+  "org_id": zod.uuid(),
+  "pass_background_color": zod.string().nullish(),
+  "pass_foreground_color": zod.string().nullish(),
+  "pass_label_color": zod.string().nullish(),
+  "pass_logo_url": zod.string().nullish(),
+  "program_name": zod.string(),
+  "program_name_ar": zod.string().nullish(),
+  "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
+  "terms": zod.string().nullish(),
+  "terms_ar": zod.string().nullish()
+})
+
+export const PutLoyaltySettingsResponse = zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = the org-wide default. A branch id = that branch\'s override.'),
+  "default_reward_cost": zod.number().describe('The cost offered by default when an admin adds a reward, in whatever this\nscope collects. Each reward may override it, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\". Also the pass\'s fallback\ntarget when no rewards have been curated yet.'),
+  "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
+  "earn_on_discounted": zod.boolean().describe('Earn on what was actually paid rather than the pre-discount subtotal.'),
+  "earn_piastres_per_point": zod.number().describe('One point per this many piastres. 1000 = a point per 10 EGP. The\ndashboard shows and accepts EGP; the wire is always piastres.'),
+  "enabled": zod.boolean().describe('The program switch for this scope.'),
+  "mode": zod.string().describe('What this scope collects: `\"points\"` (from money spent) or `\"visits\"`\n(one stamp per sale). One or the other — never both.'),
+  "org_id": zod.uuid(),
+  "pass_background_color": zod.string().nullish(),
+  "pass_foreground_color": zod.string().nullish(),
+  "pass_label_color": zod.string().nullish(),
+  "pass_logo_url": zod.string().nullish(),
+  "program_name": zod.string(),
+  "program_name_ar": zod.string().nullish(),
+  "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
+  "terms": zod.string().nullish(),
+  "terms_ar": zod.string().nullish()
+})
+
+
+export const DeleteLoyaltySettingsQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')
+})
+
+export const DeleteLoyaltySettingsResponse = zod.void()
+
+
 export const PutSizeRecipeParams = zod.object({
   "size_id": zod.uuid().describe('menu_item_sizes ID')
 })
@@ -5703,11 +6050,20 @@ export const SettleOpenTicketParams = zod.object({
   "id": zod.uuid().describe('Open ticket ID')
 })
 
+export const settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin = 0;
+
+
+
 export const SettleOpenTicketBody = zod.object({
   "amount_tendered": zod.number().nullish(),
   "discount_id": zod.uuid().nullish().describe('Settle-time overrides (else the ticket\'s own discount \/ no tip).'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().nullish(),
+  "loyalty_customer_id": zod.uuid().nullish().describe('The member spending a balance on this settle, when rewards are applied.'),
+  "loyalty_redemptions": zod.array(zod.object({
+  "item_index": zod.number().min(settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin).describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.'),
+  "units": zod.number().nullish().describe('How many of that line\'s units the reward covers. Defaults to one.')
+}).describe('One reward applied to one line of the cart.')).optional().describe('Rewards covering lines of the ticket. A table-service bill redeems\nexactly like a counter one — the cashier scans at settle either way.'),
   "payment_method": zod.string(),
   "shift_id": zod.uuid(),
   "tip_amount": zod.number().nullish(),
@@ -5919,6 +6275,10 @@ export const ListOrdersResponse = zod.object({
 })
 
 
+export const createOrderBodyLoyaltyRedemptionsItemItemIndexMin = 0;
+
+
+
 export const CreateOrderBody = zod.object({
   "amount_tendered": zod.number().nullish(),
   "branch_id": zod.uuid(),
@@ -5955,6 +6315,11 @@ export const CreateOrderBody = zod.object({
   "size_label": zod.string().nullish(),
   "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this item\/bundle line. When\npresent it is RECORDED as the line\'s unit_price; absent → the server\'s expected\n(catalog + branch override) price is used. Recording what the customer was\nactually charged keeps the DB equal to the printed receipt even when the POS\'s\nsynced menu\/override prices are stale or it was offline at sale time.')
 })),
+  "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member spending a balance on this sale. Required when\n`loyalty_redemptions` is non-empty, and ONLY for that: earning is a\nseparate, later act (`POST \/loyalty\/award`), so a sale that redeems\nnothing never names a member here.'),
+  "loyalty_redemptions": zod.array(zod.object({
+  "item_index": zod.number().min(createOrderBodyLoyaltyRedemptionsItemItemIndexMin).describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.'),
+  "units": zod.number().nullish().describe('How many of that line\'s units the reward covers. Defaults to one.')
+}).describe('One reward applied to one line of the cart.')).optional().describe('Rewards covering lines of this cart. Each names a line by its index in\n`items` and how many of that line\'s units the reward pays for, so a\nmixed basket can have one free coffee among four paid ones.'),
   "notes": zod.string().nullish(),
   "order_number": zod.number().nullish().describe('IGNORED by the server (accepted for backward compatibility only). The\nauthoritative per-shift number is ALWAYS `MAX(order_number)+1` computed under\nthe shift advisory lock — never the client value, which is used only on the\ndevice\'s local receipt. The byte-identical-at-reprint guarantee rides on\n`order_ref`, not this field. Two tills on one shift get distinct numbers\n(UNIQUE(shift_id, order_number) + the lock).'),
   "order_ref": zod.string().nullish().describe('Client-minted order reference (`<BRANCH>-<YYMMDD>-<DEVICE>-<NNNN>`). Stored\nverbatim when present; absent → the server mints the deterministic\nshift-based ref. The global `UNIQUE(order_ref)` index keeps both paths\ncollision-safe (a managed per-device code makes concurrent tills unique).'),
@@ -7352,6 +7717,112 @@ export const TrackDeliveryOrderResponse = zod.object({
   "total": zod.number(),
   "unit_number": zod.string().nullish()
 }).describe('Customer-safe tracking view of a delivery order, keyed by its opaque UUID\n(same capability-URL trust model as the device-token flow). No phone number\nis exposed; the destination fields are the customer\'s own inputs. Powers the\npublic `\/track\/{id}` page (polled, since the public surface has no SSE).')
+
+
+export const LoyaltyCardParams = zod.object({
+  "token": zod.string().describe('Member token from the pass barcode')
+})
+
+export const LoyaltyCardResponse = zod.object({
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "can_redeem": zod.boolean(),
+  "member_token": zod.string(),
+  "mode": zod.string(),
+  "name": zod.string(),
+  "next_reward_cost": zod.number(),
+  "passes": zod.object({
+  "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
+  "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`.'),
+  "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
+}).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.'),
+  "points_to_next_reward": zod.number(),
+  "program_name": zod.string(),
+  "rewards": zod.array(zod.object({
+  "cost_amount": zod.number(),
+  "cost_currency": zod.string(),
+  "name": zod.string()
+}).describe('A reward as the signup page lists it: what it is, and what it costs.'))
+}).describe('The member\'s own card page — what they see when they open the link again.\n\nThe token in the path is the member\'s secret, which is why this returns only\nwhat the pass already shows and never the phone number in full.')
+
+
+/**
+ * Rendered server-side with the same renderer the printed cards use, rather
+ * than shipping a QR library to the browser — and rendered from the token
+ * DIRECTLY, never through a Shlink short link: a short URL is a public
+ * redirect, and the member token is the one value here that has to stay
+ * between the customer and the till.
+ *
+ * This is the fallback that makes the program usable before either wallet is
+ * configured — and the answer for a customer whose phone has no wallet app.
+ * @summary The member's QR as a PNG.
+ */
+export const LoyaltyCardQrParams = zod.object({
+  "token": zod.string().describe('Member token')
+})
+
+export const LoyaltyCardQrResponse = zod.unknown()
+
+
+export const LoyaltyJoinBody = zod.object({
+  "branch_id": zod.uuid(),
+  "device_token": zod.string().nullish().describe('Device-trust token from `\/public\/otp\/verify`. Required only when the\nbranch\'s `require_otp` is on.'),
+  "locale": zod.string().nullish().describe('\'en\' or \'ar\' — the language the pass is written in.'),
+  "name": zod.string(),
+  "phone": zod.string()
+})
+
+export const LoyaltyJoinResponse = zod.object({
+  "already_member": zod.boolean().describe('True when this phone was already a member — the page says \"welcome back\"\nand shows the existing card rather than pretending to have made a new one.'),
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency. Zero for a fresh member.'),
+  "member_token": zod.string(),
+  "mode": zod.string(),
+  "name": zod.string(),
+  "next_reward_cost": zod.number(),
+  "passes": zod.object({
+  "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
+  "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`.'),
+  "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
+}).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.'),
+  "program_name": zod.string()
+}).describe('What the customer sees after signing up: their card, and the buttons.')
+
+
+export const LoyaltyJoinInfoQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const LoyaltyJoinInfoResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "earn_piastres_per_point": zod.number().describe('EGP that earns one point — the page\'s \"a point for every N EGP\" line.\nPiastres on the wire, as everywhere; the page divides by 100. Only\nmeaningful when `mode` is `\"points\"`.'),
+  "enabled": zod.boolean().describe('False when the program is off here — the page says so instead of taking\na signup that would go nowhere.'),
+  "mode": zod.string().describe('`\"points\"` (earned on spend) or `\"visits\"` (a stamp per order) — which\nsentence the page writes.'),
+  "next_reward_cost": zod.number().describe('The cheapest reward on offer, in `mode`\'s currency.'),
+  "org_name": zod.string(),
+  "program_name": zod.string(),
+  "program_name_ar": zod.string().nullish(),
+  "require_otp": zod.boolean().describe('The page collects an OTP only when the branch asks for one.'),
+  "rewards": zod.array(zod.object({
+  "cost_amount": zod.number(),
+  "cost_currency": zod.string(),
+  "name": zod.string()
+}).describe('A reward as the signup page lists it: what it is, and what it costs.')).describe('The rewards on offer, each with what it costs.'),
+  "terms": zod.string().nullish(),
+  "terms_ar": zod.string().nullish()
+}).describe('What the signup page needs to render itself before anyone types anything.')
+
+
+/**
+ * 503s until Apple credentials are configured — see
+ * `wallet::apple::sign_manifest`. The button that leads here is only rendered
+ * when `apple::is_configured()`, so a customer does not meet this by accident.
+ * @summary Download the signed `.pkpass`.
+ */
+export const LoyaltyApplePassParams = zod.object({
+  "token": zod.string().describe('Member token')
+})
+
+export const LoyaltyApplePassResponse = zod.unknown()
 
 
 export const ListPublicOrgsResponseItem = zod.object({

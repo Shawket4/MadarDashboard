@@ -28,6 +28,7 @@ import type {
   AddonOverride,
   AddonSalesRow,
   AddonSlot,
+  AdjustRequest,
   AdvanceDecision,
   AiChatRequest,
   AiChatResponse,
@@ -41,6 +42,8 @@ import type {
   AuthPermissionsResponse,
   AvailabilityResponse,
   AvailableBundlesParams,
+  AwardRequest,
+  AwardResult,
   BookingAvailabilityParams,
   BookingBranchesParams,
   BookingSettings,
@@ -58,6 +61,7 @@ import type {
   BranchConsumptionParams,
   BranchDeliverySalesParams,
   BranchDeliverySettings,
+  BranchLoyaltyQrParams,
   BranchMenuOverride,
   BranchMenuOverrideInput,
   BranchQrParams,
@@ -79,6 +83,7 @@ import type {
   BundleWithComponents,
   CancelBookingRequest,
   CancelInput,
+  CardView,
   CashMovement,
   CashMovementRequest,
   CatalogSyncParams,
@@ -154,6 +159,7 @@ import type {
   DeleteDrinkRecipeParams,
   DeleteIngredientCategoryParams,
   DeleteItemRouteParams,
+  DeleteLoyaltySettingsParams,
   DeleteZoneParams,
   DeliveryMenu,
   DeliveryOrder,
@@ -182,6 +188,9 @@ import type {
   GetBranchSettingsParams,
   GetConversationParams,
   GetCurrentShiftParams,
+  GetLoyaltyMemberParams,
+  GetLoyaltyRewardItemsParams,
+  GetLoyaltySettingsParams,
   GetMarginTargetsParams,
   GetRoutingModeParams,
   GetScheduledDayParams,
@@ -196,6 +205,9 @@ import type {
   ItemOptionOut,
   ItemRouteInput,
   ItemSize,
+  JoinInfo,
+  JoinInput,
+  JoinResult,
   KitchenStation,
   KitchenTicketView,
   LeaveBalance,
@@ -225,6 +237,7 @@ import type {
   ListFloorTablesParams,
   ListFloorTransfersParams,
   ListGroupsParams,
+  ListLoyaltyMembersParams,
   ListMenuCatalogParams,
   ListMenuItemsParams,
   ListMovementsParams,
@@ -245,7 +258,10 @@ import type {
   ListZonesParams,
   LoginRequest,
   LoginResponse,
+  LookupRequest,
   LowStockRow,
+  LoyaltyJoinInfoParams,
+  LoyaltySettings,
   ManualRecordRequest,
   MarginLedgerReport,
   MarginTargets,
@@ -253,6 +269,9 @@ import type {
   MarginWatchParams,
   MarketingLink,
   MeResponse,
+  MemberDetail,
+  MemberView,
+  MembersPage,
   MenuItem,
   MenuItemFull,
   MenuMarginLedgerParams,
@@ -330,6 +349,7 @@ import type {
   PutOverrideRequest,
   PutRecipeRequest,
   PutRecipeStepsRequest,
+  PutRewardItems,
   PutSizesRequest,
   PutTargetRequest,
   QrResponse,
@@ -346,10 +366,12 @@ import type {
   ResolveBranchRequest,
   ResolveBranchResponse,
   ResolvedShift,
+  RewardCatalogue,
   RolePermission,
   RoutingModeResponse,
   SalaryAdvance,
   SaveLayoutRequest,
+  ScanResult,
   ScheduleAssignment,
   ScheduleOverride,
   ScheduledDay,
@@ -3210,6 +3232,113 @@ export function useBranchBookingQr<TData = Awaited<ReturnType<typeof branchBooki
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getBranchBookingQrQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary The counter's join QR: a static, per-branch card that opens the public
+signup form. Static on purpose — it is printed once and stood on a counter,
+so it must keep working with no reprint. The per-CUSTOMER QR is a different
+thing entirely: it lives on their Wallet pass and carries their member token.
+ */
+export const branchLoyaltyQr = (
+    id: string,
+    params?: BranchLoyaltyQrParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<QrResponse>(
+      {url: `/branches/${id}/loyalty-qr`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchLoyaltyQrQueryKey = (id: string,
+    params?: BranchLoyaltyQrParams,) => {
+    return [
+    `/branches/${id}/loyalty-qr`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchLoyaltyQrQueryOptions = <TData = Awaited<ReturnType<typeof branchLoyaltyQr>>, TError = ErrorBody>(id: string,
+    params?: BranchLoyaltyQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchLoyaltyQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchLoyaltyQrQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchLoyaltyQr>>> = ({ signal }) => branchLoyaltyQr(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchLoyaltyQr>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchLoyaltyQrQueryResult = NonNullable<Awaited<ReturnType<typeof branchLoyaltyQr>>>
+export type BranchLoyaltyQrQueryError = ErrorBody
+
+
+export function useBranchLoyaltyQr<TData = Awaited<ReturnType<typeof branchLoyaltyQr>>, TError = ErrorBody>(
+ id: string,
+    params: undefined |  BranchLoyaltyQrParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchLoyaltyQr>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchLoyaltyQr>>,
+          TError,
+          Awaited<ReturnType<typeof branchLoyaltyQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchLoyaltyQr<TData = Awaited<ReturnType<typeof branchLoyaltyQr>>, TError = ErrorBody>(
+ id: string,
+    params?: BranchLoyaltyQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchLoyaltyQr>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchLoyaltyQr>>,
+          TError,
+          Awaited<ReturnType<typeof branchLoyaltyQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchLoyaltyQr<TData = Awaited<ReturnType<typeof branchLoyaltyQr>>, TError = ErrorBody>(
+ id: string,
+    params?: BranchLoyaltyQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchLoyaltyQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The counter's join QR: a static, per-branch card that opens the public
+signup form. Static on purpose — it is printed once and stood on a counter,
+so it must keep working with no reprint. The per-CUSTOMER QR is a different
+thing entirely: it lives on their Wallet pass and carries their member token.
+ */
+
+export function useBranchLoyaltyQr<TData = Awaited<ReturnType<typeof branchLoyaltyQr>>, TError = ErrorBody>(
+ id: string,
+    params?: BranchLoyaltyQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchLoyaltyQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchLoyaltyQrQueryOptions(id,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -10747,6 +10876,735 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getUpdateStationMutationOptions(options), queryClient);
     }
 
+export const loyaltyAdjust = (
+    adjustRequest: AdjustRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MemberView>(
+      {url: `/loyalty/adjust`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: adjustRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyAdjustMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyAdjust>>, TError,{data: AdjustRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof loyaltyAdjust>>, TError,{data: AdjustRequest}, TContext> => {
+
+const mutationKey = ['loyaltyAdjust'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loyaltyAdjust>>, {data: AdjustRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  loyaltyAdjust(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoyaltyAdjustMutationResult = NonNullable<Awaited<ReturnType<typeof loyaltyAdjust>>>
+    export type LoyaltyAdjustMutationBody = AdjustRequest
+    export type LoyaltyAdjustMutationError = ErrorBody
+
+    export const useLoyaltyAdjust = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyAdjust>>, TError,{data: AdjustRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof loyaltyAdjust>>,
+        TError,
+        {data: AdjustRequest},
+        TContext
+      > => {
+      return useMutation(getLoyaltyAdjustMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary The live route. Tellers press the button; the permission is the same `update`
+the redeem action needs.
+ */
+export const loyaltyAward = (
+    awardRequest: AwardRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AwardResult>(
+      {url: `/loyalty/award`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: awardRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyAwardMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyAward>>, TError,{data: AwardRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof loyaltyAward>>, TError,{data: AwardRequest}, TContext> => {
+
+const mutationKey = ['loyaltyAward'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loyaltyAward>>, {data: AwardRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  loyaltyAward(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoyaltyAwardMutationResult = NonNullable<Awaited<ReturnType<typeof loyaltyAward>>>
+    export type LoyaltyAwardMutationBody = AwardRequest
+    export type LoyaltyAwardMutationError = ErrorBody
+
+    /**
+ * @summary The live route. Tellers press the button; the permission is the same `update`
+the redeem action needs.
+ */
+export const useLoyaltyAward = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyAward>>, TError,{data: AwardRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof loyaltyAward>>,
+        TError,
+        {data: AwardRequest},
+        TContext
+      > => {
+      return useMutation(getLoyaltyAwardMutationOptions(options), queryClient);
+    }
+
+/**
+ * A POST rather than a GET because the member token is a bearer-ish secret: in
+ * a query string it would land in access logs, browser history and any proxy
+ * in between.
+ * @summary Identify the member in front of the till.
+ */
+export const loyaltyLookup = (
+    lookupRequest: LookupRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ScanResult>(
+      {url: `/loyalty/lookup`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: lookupRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyLookupMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyLookup>>, TError,{data: LookupRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof loyaltyLookup>>, TError,{data: LookupRequest}, TContext> => {
+
+const mutationKey = ['loyaltyLookup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loyaltyLookup>>, {data: LookupRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  loyaltyLookup(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoyaltyLookupMutationResult = NonNullable<Awaited<ReturnType<typeof loyaltyLookup>>>
+    export type LoyaltyLookupMutationBody = LookupRequest
+    export type LoyaltyLookupMutationError = ErrorBody
+
+    /**
+ * @summary Identify the member in front of the till.
+ */
+export const useLoyaltyLookup = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyLookup>>, TError,{data: LookupRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof loyaltyLookup>>,
+        TError,
+        {data: LookupRequest},
+        TContext
+      > => {
+      return useMutation(getLoyaltyLookupMutationOptions(options), queryClient);
+    }
+
+export const listLoyaltyMembers = (
+    params?: ListLoyaltyMembersParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MembersPage>(
+      {url: `/loyalty/members`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListLoyaltyMembersQueryKey = (params?: ListLoyaltyMembersParams,) => {
+    return [
+    `/loyalty/members`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListLoyaltyMembersQueryOptions = <TData = Awaited<ReturnType<typeof listLoyaltyMembers>>, TError = ErrorBody>(params?: ListLoyaltyMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLoyaltyMembers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLoyaltyMembersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLoyaltyMembers>>> = ({ signal }) => listLoyaltyMembers(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLoyaltyMembers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListLoyaltyMembersQueryResult = NonNullable<Awaited<ReturnType<typeof listLoyaltyMembers>>>
+export type ListLoyaltyMembersQueryError = ErrorBody
+
+
+export function useListLoyaltyMembers<TData = Awaited<ReturnType<typeof listLoyaltyMembers>>, TError = ErrorBody>(
+ params: undefined |  ListLoyaltyMembersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLoyaltyMembers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLoyaltyMembers>>,
+          TError,
+          Awaited<ReturnType<typeof listLoyaltyMembers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLoyaltyMembers<TData = Awaited<ReturnType<typeof listLoyaltyMembers>>, TError = ErrorBody>(
+ params?: ListLoyaltyMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLoyaltyMembers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLoyaltyMembers>>,
+          TError,
+          Awaited<ReturnType<typeof listLoyaltyMembers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLoyaltyMembers<TData = Awaited<ReturnType<typeof listLoyaltyMembers>>, TError = ErrorBody>(
+ params?: ListLoyaltyMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLoyaltyMembers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListLoyaltyMembers<TData = Awaited<ReturnType<typeof listLoyaltyMembers>>, TError = ErrorBody>(
+ params?: ListLoyaltyMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLoyaltyMembers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListLoyaltyMembersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLoyaltyMember = (
+    id: string,
+    params?: GetLoyaltyMemberParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MemberDetail>(
+      {url: `/loyalty/members/${id}`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLoyaltyMemberQueryKey = (id: string,
+    params?: GetLoyaltyMemberParams,) => {
+    return [
+    `/loyalty/members/${id}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLoyaltyMemberQueryOptions = <TData = Awaited<ReturnType<typeof getLoyaltyMember>>, TError = ErrorBody>(id: string,
+    params?: GetLoyaltyMemberParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyMember>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoyaltyMemberQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoyaltyMember>>> = ({ signal }) => getLoyaltyMember(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyMember>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLoyaltyMemberQueryResult = NonNullable<Awaited<ReturnType<typeof getLoyaltyMember>>>
+export type GetLoyaltyMemberQueryError = ErrorBody
+
+
+export function useGetLoyaltyMember<TData = Awaited<ReturnType<typeof getLoyaltyMember>>, TError = ErrorBody>(
+ id: string,
+    params: undefined |  GetLoyaltyMemberParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyMember>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyMember>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyMember>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyMember<TData = Awaited<ReturnType<typeof getLoyaltyMember>>, TError = ErrorBody>(
+ id: string,
+    params?: GetLoyaltyMemberParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyMember>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyMember>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyMember>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyMember<TData = Awaited<ReturnType<typeof getLoyaltyMember>>, TError = ErrorBody>(
+ id: string,
+    params?: GetLoyaltyMemberParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyMember>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLoyaltyMember<TData = Awaited<ReturnType<typeof getLoyaltyMember>>, TError = ErrorBody>(
+ id: string,
+    params?: GetLoyaltyMemberParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyMember>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLoyaltyMemberQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLoyaltyRewardItems = (
+    params?: GetLoyaltyRewardItemsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RewardCatalogue>(
+      {url: `/loyalty/reward-items`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLoyaltyRewardItemsQueryKey = (params?: GetLoyaltyRewardItemsParams,) => {
+    return [
+    `/loyalty/reward-items`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLoyaltyRewardItemsQueryOptions = <TData = Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError = ErrorBody>(params?: GetLoyaltyRewardItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoyaltyRewardItemsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoyaltyRewardItems>>> = ({ signal }) => getLoyaltyRewardItems(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLoyaltyRewardItemsQueryResult = NonNullable<Awaited<ReturnType<typeof getLoyaltyRewardItems>>>
+export type GetLoyaltyRewardItemsQueryError = ErrorBody
+
+
+export function useGetLoyaltyRewardItems<TData = Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError = ErrorBody>(
+ params: undefined |  GetLoyaltyRewardItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyRewardItems>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyRewardItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyRewardItems<TData = Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError = ErrorBody>(
+ params?: GetLoyaltyRewardItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyRewardItems>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyRewardItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyRewardItems<TData = Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError = ErrorBody>(
+ params?: GetLoyaltyRewardItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLoyaltyRewardItems<TData = Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError = ErrorBody>(
+ params?: GetLoyaltyRewardItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyRewardItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLoyaltyRewardItemsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const putLoyaltyRewardItems = (
+    putRewardItems: PutRewardItems,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RewardCatalogue>(
+      {url: `/loyalty/reward-items`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: putRewardItems, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutLoyaltyRewardItemsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLoyaltyRewardItems>>, TError,{data: PutRewardItems}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putLoyaltyRewardItems>>, TError,{data: PutRewardItems}, TContext> => {
+
+const mutationKey = ['putLoyaltyRewardItems'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putLoyaltyRewardItems>>, {data: PutRewardItems}> = (props) => {
+          const {data} = props ?? {};
+
+          return  putLoyaltyRewardItems(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutLoyaltyRewardItemsMutationResult = NonNullable<Awaited<ReturnType<typeof putLoyaltyRewardItems>>>
+    export type PutLoyaltyRewardItemsMutationBody = PutRewardItems
+    export type PutLoyaltyRewardItemsMutationError = ErrorBody
+
+    export const usePutLoyaltyRewardItems = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLoyaltyRewardItems>>, TError,{data: PutRewardItems}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putLoyaltyRewardItems>>,
+        TError,
+        {data: PutRewardItems},
+        TContext
+      > => {
+      return useMutation(getPutLoyaltyRewardItemsMutationOptions(options), queryClient);
+    }
+
+export const getLoyaltySettings = (
+    params?: GetLoyaltySettingsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<LoyaltySettings>(
+      {url: `/loyalty/settings`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLoyaltySettingsQueryKey = (params?: GetLoyaltySettingsParams,) => {
+    return [
+    `/loyalty/settings`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLoyaltySettingsQueryOptions = <TData = Awaited<ReturnType<typeof getLoyaltySettings>>, TError = ErrorBody>(params?: GetLoyaltySettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltySettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoyaltySettingsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoyaltySettings>>> = ({ signal }) => getLoyaltySettings(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoyaltySettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLoyaltySettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getLoyaltySettings>>>
+export type GetLoyaltySettingsQueryError = ErrorBody
+
+
+export function useGetLoyaltySettings<TData = Awaited<ReturnType<typeof getLoyaltySettings>>, TError = ErrorBody>(
+ params: undefined |  GetLoyaltySettingsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltySettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltySettings>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltySettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltySettings<TData = Awaited<ReturnType<typeof getLoyaltySettings>>, TError = ErrorBody>(
+ params?: GetLoyaltySettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltySettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltySettings>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltySettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltySettings<TData = Awaited<ReturnType<typeof getLoyaltySettings>>, TError = ErrorBody>(
+ params?: GetLoyaltySettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltySettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLoyaltySettings<TData = Awaited<ReturnType<typeof getLoyaltySettings>>, TError = ErrorBody>(
+ params?: GetLoyaltySettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltySettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLoyaltySettingsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const putLoyaltySettings = (
+    loyaltySettings: LoyaltySettings,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<LoyaltySettings>(
+      {url: `/loyalty/settings`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: loyaltySettings, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutLoyaltySettingsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLoyaltySettings>>, TError,{data: LoyaltySettings}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putLoyaltySettings>>, TError,{data: LoyaltySettings}, TContext> => {
+
+const mutationKey = ['putLoyaltySettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putLoyaltySettings>>, {data: LoyaltySettings}> = (props) => {
+          const {data} = props ?? {};
+
+          return  putLoyaltySettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutLoyaltySettingsMutationResult = NonNullable<Awaited<ReturnType<typeof putLoyaltySettings>>>
+    export type PutLoyaltySettingsMutationBody = LoyaltySettings
+    export type PutLoyaltySettingsMutationError = ErrorBody
+
+    export const usePutLoyaltySettings = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLoyaltySettings>>, TError,{data: LoyaltySettings}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putLoyaltySettings>>,
+        TError,
+        {data: LoyaltySettings},
+        TContext
+      > => {
+      return useMutation(getPutLoyaltySettingsMutationOptions(options), queryClient);
+    }
+
+export const deleteLoyaltySettings = (
+    params?: DeleteLoyaltySettingsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/loyalty/settings`, method: 'DELETE',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getDeleteLoyaltySettingsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLoyaltySettings>>, TError,{params?: DeleteLoyaltySettingsParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteLoyaltySettings>>, TError,{params?: DeleteLoyaltySettingsParams}, TContext> => {
+
+const mutationKey = ['deleteLoyaltySettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteLoyaltySettings>>, {params?: DeleteLoyaltySettingsParams}> = (props) => {
+          const {params} = props ?? {};
+
+          return  deleteLoyaltySettings(params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteLoyaltySettingsMutationResult = NonNullable<Awaited<ReturnType<typeof deleteLoyaltySettings>>>
+
+    export type DeleteLoyaltySettingsMutationError = ErrorBody
+
+    export const useDeleteLoyaltySettings = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLoyaltySettings>>, TError,{params?: DeleteLoyaltySettingsParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteLoyaltySettings>>,
+        TError,
+        {params?: DeleteLoyaltySettingsParams},
+        TContext
+      > => {
+      return useMutation(getDeleteLoyaltySettingsMutationOptions(options), queryClient);
+    }
+
 export const putSizeRecipe = (
     sizeId: string,
     putRecipeRequest: PutRecipeRequest,
@@ -16907,6 +17765,437 @@ export function useTrackDeliveryOrder<TData = Awaited<ReturnType<typeof trackDel
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getTrackDeliveryOrderQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const loyaltyCard = (
+    token: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CardView>(
+      {url: `/public/loyalty/card/${token}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyCardQueryKey = (token: string,) => {
+    return [
+    `/public/loyalty/card/${token}`
+    ] as const;
+    }
+
+
+export const getLoyaltyCardQueryOptions = <TData = Awaited<ReturnType<typeof loyaltyCard>>, TError = ErrorBody>(token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCard>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLoyaltyCardQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof loyaltyCard>>> = ({ signal }) => loyaltyCard(token, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof loyaltyCard>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LoyaltyCardQueryResult = NonNullable<Awaited<ReturnType<typeof loyaltyCard>>>
+export type LoyaltyCardQueryError = ErrorBody
+
+
+export function useLoyaltyCard<TData = Awaited<ReturnType<typeof loyaltyCard>>, TError = ErrorBody>(
+ token: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCard>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyCard>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyCard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyCard<TData = Awaited<ReturnType<typeof loyaltyCard>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCard>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyCard>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyCard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyCard<TData = Awaited<ReturnType<typeof loyaltyCard>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCard>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useLoyaltyCard<TData = Awaited<ReturnType<typeof loyaltyCard>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCard>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLoyaltyCardQueryOptions(token,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * Rendered server-side with the same renderer the printed cards use, rather
+ * than shipping a QR library to the browser — and rendered from the token
+ * DIRECTLY, never through a Shlink short link: a short URL is a public
+ * redirect, and the member token is the one value here that has to stay
+ * between the customer and the till.
+ *
+ * This is the fallback that makes the program usable before either wallet is
+ * configured — and the answer for a customer whose phone has no wallet app.
+ * @summary The member's QR as a PNG.
+ */
+export const loyaltyCardQr = (
+    token: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/public/loyalty/card/${token}/qr.png`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyCardQrQueryKey = (token: string,) => {
+    return [
+    `/public/loyalty/card/${token}/qr.png`
+    ] as const;
+    }
+
+
+export const getLoyaltyCardQrQueryOptions = <TData = Awaited<ReturnType<typeof loyaltyCardQr>>, TError = ErrorBody>(token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLoyaltyCardQrQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof loyaltyCardQr>>> = ({ signal }) => loyaltyCardQr(token, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardQr>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LoyaltyCardQrQueryResult = NonNullable<Awaited<ReturnType<typeof loyaltyCardQr>>>
+export type LoyaltyCardQrQueryError = ErrorBody
+
+
+export function useLoyaltyCardQr<TData = Awaited<ReturnType<typeof loyaltyCardQr>>, TError = ErrorBody>(
+ token: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardQr>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyCardQr>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyCardQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyCardQr<TData = Awaited<ReturnType<typeof loyaltyCardQr>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardQr>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyCardQr>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyCardQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyCardQr<TData = Awaited<ReturnType<typeof loyaltyCardQr>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The member's QR as a PNG.
+ */
+
+export function useLoyaltyCardQr<TData = Awaited<ReturnType<typeof loyaltyCardQr>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLoyaltyCardQrQueryOptions(token,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const loyaltyJoin = (
+    joinInput: JoinInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<JoinResult>(
+      {url: `/public/loyalty/join`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: joinInput, signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyJoinMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyJoin>>, TError,{data: JoinInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof loyaltyJoin>>, TError,{data: JoinInput}, TContext> => {
+
+const mutationKey = ['loyaltyJoin'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loyaltyJoin>>, {data: JoinInput}> = (props) => {
+          const {data} = props ?? {};
+
+          return  loyaltyJoin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoyaltyJoinMutationResult = NonNullable<Awaited<ReturnType<typeof loyaltyJoin>>>
+    export type LoyaltyJoinMutationBody = JoinInput
+    export type LoyaltyJoinMutationError = ErrorBody
+
+    export const useLoyaltyJoin = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyJoin>>, TError,{data: JoinInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof loyaltyJoin>>,
+        TError,
+        {data: JoinInput},
+        TContext
+      > => {
+      return useMutation(getLoyaltyJoinMutationOptions(options), queryClient);
+    }
+
+export const loyaltyJoinInfo = (
+    params: LoyaltyJoinInfoParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<JoinInfo>(
+      {url: `/public/loyalty/join-info`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyJoinInfoQueryKey = (params?: LoyaltyJoinInfoParams,) => {
+    return [
+    `/public/loyalty/join-info`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getLoyaltyJoinInfoQueryOptions = <TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(params: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLoyaltyJoinInfoQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof loyaltyJoinInfo>>> = ({ signal }) => loyaltyJoinInfo(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LoyaltyJoinInfoQueryResult = NonNullable<Awaited<ReturnType<typeof loyaltyJoinInfo>>>
+export type LoyaltyJoinInfoQueryError = ErrorBody
+
+
+export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(
+ params: LoyaltyJoinInfoParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyJoinInfo>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyJoinInfo>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(
+ params: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyJoinInfo>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyJoinInfo>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(
+ params: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(
+ params: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLoyaltyJoinInfoQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * 503s until Apple credentials are configured — see
+ * `wallet::apple::sign_manifest`. The button that leads here is only rendered
+ * when `apple::is_configured()`, so a customer does not meet this by accident.
+ * @summary Download the signed `.pkpass`.
+ */
+export const loyaltyApplePass = (
+    token: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/public/loyalty/pass/${token}/apple.pkpass`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyApplePassQueryKey = (token: string,) => {
+    return [
+    `/public/loyalty/pass/${token}/apple.pkpass`
+    ] as const;
+    }
+
+
+export const getLoyaltyApplePassQueryOptions = <TData = Awaited<ReturnType<typeof loyaltyApplePass>>, TError = ErrorBody>(token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyApplePass>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLoyaltyApplePassQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof loyaltyApplePass>>> = ({ signal }) => loyaltyApplePass(token, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof loyaltyApplePass>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LoyaltyApplePassQueryResult = NonNullable<Awaited<ReturnType<typeof loyaltyApplePass>>>
+export type LoyaltyApplePassQueryError = ErrorBody
+
+
+export function useLoyaltyApplePass<TData = Awaited<ReturnType<typeof loyaltyApplePass>>, TError = ErrorBody>(
+ token: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyApplePass>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyApplePass>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyApplePass>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyApplePass<TData = Awaited<ReturnType<typeof loyaltyApplePass>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyApplePass>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyApplePass>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyApplePass>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyApplePass<TData = Awaited<ReturnType<typeof loyaltyApplePass>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyApplePass>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download the signed `.pkpass`.
+ */
+
+export function useLoyaltyApplePass<TData = Awaited<ReturnType<typeof loyaltyApplePass>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyApplePass>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLoyaltyApplePassQueryOptions(token,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { DeliverySettingsPage } from "@/features/delivery/settings-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/** Moved: delivery configuration now lives under Settings, with the rest of it. */
 export const Route = createFileRoute("/_app/delivery/settings")({
-  component: DeliverySettingsPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/settings/delivery" });
+  },
 });

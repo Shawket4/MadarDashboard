@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { StationsPage } from "@/features/kitchen-stations/stations-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/** Moved: see `/settings/kitchen-stations`. */
 export const Route = createFileRoute("/_app/kitchen/stations")({
-  component: StationsPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/settings/kitchen-stations" });
+  },
 });

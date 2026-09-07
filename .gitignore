@@ -44,6 +44,7 @@ dist-order
 dist-get
 dist-demo
 dist-reservations
+dist-loyalty
 
 # Rendered reel videos — large binaries, never commit to git history
 brag-output/*.mp4

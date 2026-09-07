@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { QrPage } from "@/features/qr/qr-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/** Moved: QR codes are configuration and now live under Settings. */
 export const Route = createFileRoute("/_app/qr")({
-  component: QrPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/settings/qr" });
+  },
 });

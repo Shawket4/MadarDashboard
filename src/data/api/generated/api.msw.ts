@@ -37,6 +37,7 @@ import type {
   AttendanceSummary,
   AuthPermissionsResponse,
   AvailabilityResponse,
+  AwardResult,
   BookingSettings,
   BookingStats,
   BookingView,
@@ -51,6 +52,7 @@ import type {
   BundlePerformanceResponse,
   BundleSalesRow,
   BundleWithComponents,
+  CardView,
   CashMovement,
   CatalogSyncResponse,
   Category,
@@ -89,17 +91,23 @@ import type {
   InventoryValuationReport,
   ItemOptionOut,
   ItemSize,
+  JoinInfo,
+  JoinResult,
   KitchenStation,
   KitchenTicketView,
   LeaveBalance,
   LeaveType,
   LoginResponse,
   LowStockRow,
+  LoyaltySettings,
   MarginLedgerReport,
   MarginTargets,
   MarginWatch,
   MarketingLink,
   MeResponse,
+  MemberDetail,
+  MemberView,
+  MembersPage,
   MenuItem,
   MenuItemFull,
   MetricsQueryResponse,
@@ -151,9 +159,11 @@ import type {
   RepricingReport,
   ResolveBranchResponse,
   ResolvedShift,
+  RewardCatalogue,
   RolePermission,
   RoutingModeResponse,
   SalaryAdvance,
+  ScanResult,
   ScheduleAssignment,
   ScheduleOverride,
   ScheduledDay,
@@ -268,6 +278,8 @@ export const getGetBranchResponseMock = (overrideResponse: Partial<Extract<Branc
 export const getUpdateBranchResponseMock = (overrideResponse: Partial<Extract<Branch, object>> = {}): Branch => ({address: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', geo_radius_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), org_logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), printer_brand: faker.helpers.arrayElement([faker.helpers.arrayElement([null,faker.helpers.arrayElement(Object.values(PrinterBrand)),]), undefined]), printer_ip: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), printer_port: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), timezone: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
 export const getBranchBookingQrResponseMock = (overrideResponse: Partial<Extract<QrResponse, object>> = {}): QrResponse => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), long_url: faker.string.alpha({length: {min: 10, max: 20}}), qr_data_url: faker.string.alpha({length: {min: 10, max: 20}}), short_code: faker.string.alpha({length: {min: 10, max: 20}}), short_url: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getBranchLoyaltyQrResponseMock = (overrideResponse: Partial<Extract<QrResponse, object>> = {}): QrResponse => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), long_url: faker.string.alpha({length: {min: 10, max: 20}}), qr_data_url: faker.string.alpha({length: {min: 10, max: 20}}), short_code: faker.string.alpha({length: {min: 10, max: 20}}), short_url: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 export const getBranchQrResponseMock = (overrideResponse: Partial<Extract<QrResponse, object>> = {}): QrResponse => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), long_url: faker.string.alpha({length: {min: 10, max: 20}}), qr_data_url: faker.string.alpha({length: {min: 10, max: 20}}), short_code: faker.string.alpha({length: {min: 10, max: 20}}), short_url: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
@@ -445,6 +457,24 @@ export const getCreateStationResponseMock = (overrideResponse: Partial<Extract<K
 
 export const getUpdateStationResponseMock = (overrideResponse: Partial<Extract<KitchenStation, object>> = {}): KitchenStation => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), is_active: faker.datatype.boolean(), is_default: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, org_id: faker.string.uuid(), printer_brand: faker.helpers.arrayElement([faker.helpers.arrayElement([null,faker.helpers.arrayElement(Object.values(PrinterBrand)),]), undefined]), printer_ip: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), printer_port: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), sort_order: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
+export const getLoyaltyAdjustResponseMock = (overrideResponse: Partial<Extract<MemberView, object>> = {}): MemberView => ({balance: faker.number.int(), can_redeem: faker.datatype.boolean(), enrolled_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), lifetime_points: faker.number.int(), lifetime_visits: faker.number.int(), locale: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), org_id: faker.string.uuid(), phone: faker.string.alpha({length: {min: 10, max: 20}}), points_balance: faker.number.int(), points_to_next_reward: faker.number.int(), visits_balance: faker.number.int(), ...overrideResponse})
+
+export const getLoyaltyAwardResponseMock = (overrideResponse: Partial<Extract<AwardResult, object>> = {}): AwardResult => ({already_awarded: faker.datatype.boolean(), member: {balance: faker.number.int(), can_redeem: faker.datatype.boolean(), enrolled_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), lifetime_points: faker.number.int(), lifetime_visits: faker.number.int(), locale: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), org_id: faker.string.uuid(), phone: faker.string.alpha({length: {min: 10, max: 20}}), points_balance: faker.number.int(), points_to_next_reward: faker.number.int(), visits_balance: faker.number.int()}, order_id: faker.string.uuid(), points_awarded: faker.number.int(), ...overrideResponse})
+
+export const getLoyaltyLookupResponseMock = (overrideResponse: Partial<Extract<ScanResult, object>> = {}): ScanResult => ({member: {balance: faker.number.int(), can_redeem: faker.datatype.boolean(), enrolled_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), lifetime_points: faker.number.int(), lifetime_visits: faker.number.int(), locale: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), org_id: faker.string.uuid(), phone: faker.string.alpha({length: {min: 10, max: 20}}), points_balance: faker.number.int(), points_to_next_reward: faker.number.int(), visits_balance: faker.number.int()}, recent: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({basis_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', currency: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), points: faker.number.int(), reward_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), rewards: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({base_price: faker.number.int(), cost_amount: faker.number.int(), cost_currency: faker.string.alpha({length: {min: 10, max: 20}}), image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), menu_item_id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), sort_order: faker.number.int()})), ...overrideResponse})
+
+export const getListLoyaltyMembersResponseMock = (overrideResponse: Partial<Extract<MembersPage, object>> = {}): MembersPage => ({members: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({balance: faker.number.int(), can_redeem: faker.datatype.boolean(), enrolled_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), lifetime_points: faker.number.int(), lifetime_visits: faker.number.int(), locale: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), org_id: faker.string.uuid(), phone: faker.string.alpha({length: {min: 10, max: 20}}), points_balance: faker.number.int(), points_to_next_reward: faker.number.int(), visits_balance: faker.number.int()})), total: faker.number.int(), ...overrideResponse})
+
+export const getGetLoyaltyMemberResponseMock = (overrideResponse: Partial<Extract<MemberDetail, object>> = {}): MemberDetail => ({ledger: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({basis_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', currency: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), points: faker.number.int(), reward_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), member: {balance: faker.number.int(), can_redeem: faker.datatype.boolean(), enrolled_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), lifetime_points: faker.number.int(), lifetime_visits: faker.number.int(), locale: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), org_id: faker.string.uuid(), phone: faker.string.alpha({length: {min: 10, max: 20}}), points_balance: faker.number.int(), points_to_next_reward: faker.number.int(), visits_balance: faker.number.int()}, ...overrideResponse})
+
+export const getGetLoyaltyRewardItemsResponseMock = (overrideResponse: Partial<Extract<RewardCatalogue, object>> = {}): RewardCatalogue => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), inherited: faker.datatype.boolean(), items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({base_price: faker.number.int(), cost_amount: faker.number.int(), cost_currency: faker.string.alpha({length: {min: 10, max: 20}}), image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), menu_item_id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), sort_order: faker.number.int()})), org_id: faker.string.uuid(), ...overrideResponse})
+
+export const getPutLoyaltyRewardItemsResponseMock = (overrideResponse: Partial<Extract<RewardCatalogue, object>> = {}): RewardCatalogue => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), inherited: faker.datatype.boolean(), items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({base_price: faker.number.int(), cost_amount: faker.number.int(), cost_currency: faker.string.alpha({length: {min: 10, max: 20}}), image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), menu_item_id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), sort_order: faker.number.int()})), org_id: faker.string.uuid(), ...overrideResponse})
+
+export const getGetLoyaltySettingsResponseMock = (overrideResponse: Partial<Extract<LoyaltySettings, object>> = {}): LoyaltySettings => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), default_reward_cost: faker.number.int(), earn_include_tax: faker.datatype.boolean(), earn_on_discounted: faker.datatype.boolean(), earn_piastres_per_point: faker.number.int(), enabled: faker.datatype.boolean(), mode: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), pass_background_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), pass_foreground_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), pass_label_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), pass_logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), program_name: faker.string.alpha({length: {min: 10, max: 20}}), program_name_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_otp: faker.datatype.boolean(), terms: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), terms_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getPutLoyaltySettingsResponseMock = (overrideResponse: Partial<Extract<LoyaltySettings, object>> = {}): LoyaltySettings => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), default_reward_cost: faker.number.int(), earn_include_tax: faker.datatype.boolean(), earn_on_discounted: faker.datatype.boolean(), earn_piastres_per_point: faker.number.int(), enabled: faker.datatype.boolean(), mode: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), pass_background_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), pass_foreground_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), pass_label_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), pass_logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), program_name: faker.string.alpha({length: {min: 10, max: 20}}), program_name_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_otp: faker.datatype.boolean(), terms: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), terms_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
 export const getPutSizeRecipeResponseMock = (overrideResponse: Partial<Extract<RecipeCostResult, object>> = {}): RecipeCostResult => ({catalog_revision: faker.number.int(), cost_incomplete: faker.datatype.boolean(), cost_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), recipe: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), ingredient_id: faker.string.uuid(), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), line_cost_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), quantity: faker.string.alpha({length: {min: 10, max: 20}}), unit: faker.string.alpha({length: {min: 10, max: 20}})})), size_id: faker.string.uuid(), ...overrideResponse})
 
 export const getListMenuItemsResponseMock = (): MenuItem[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({base_price: faker.number.int(), category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', default_milk_addon_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), deleted_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), description: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), description_translations: {}, id: faker.string.uuid(), image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, org_id: faker.string.uuid(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
@@ -610,6 +640,12 @@ export const getGuestOrderHistoryResponseMock = (): OrderHistorySummary[] => (Ar
 export const getGuestPastLocationsResponseMock = (): GuestSavedLocation[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({address_line: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.string.uuid(), channel: faker.string.alpha({length: {min: 10, max: 20}}), customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), floor: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), landmark: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_used_at: faker.date.past().toISOString().slice(0, 19) + 'Z', place_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), unit_number: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})))
 
 export const getTrackDeliveryOrderResponseMock = (overrideResponse: Partial<Extract<DeliveryTracking, object>> = {}): DeliveryTracking => ({address_line: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), cancel_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), channel: faker.string.alpha({length: {min: 10, max: 20}}), confirmed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', customer_name: faker.string.alpha({length: {min: 10, max: 20}}), delivered_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), delivery_fee: faker.number.int(), delivery_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), discount_amount: faker.number.int(), estimated_prep_minutes: faker.number.int(), floor: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), org_id: faker.string.uuid(), out_for_delivery_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), payment_method_hint: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), place_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), preparing_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), rejected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), subtotal: faker.number.int(), total: faker.number.int(), unit_number: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getLoyaltyCardResponseMock = (overrideResponse: Partial<Extract<CardView, object>> = {}): CardView => ({balance: faker.number.int(), can_redeem: faker.datatype.boolean(), member_token: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), passes: {any: faker.datatype.boolean(), apple_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), google_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, points_to_next_reward: faker.number.int(), program_name: faker.string.alpha({length: {min: 10, max: 20}}), rewards: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({cost_amount: faker.number.int(), cost_currency: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
+
+export const getLoyaltyJoinResponseMock = (overrideResponse: Partial<Extract<JoinResult, object>> = {}): JoinResult => ({already_member: faker.datatype.boolean(), balance: faker.number.int(), member_token: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), passes: {any: faker.datatype.boolean(), apple_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), google_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, program_name: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getLoyaltyJoinInfoResponseMock = (overrideResponse: Partial<Extract<JoinInfo, object>> = {}): JoinInfo => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), earn_piastres_per_point: faker.number.int(), enabled: faker.datatype.boolean(), mode: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), org_name: faker.string.alpha({length: {min: 10, max: 20}}), program_name: faker.string.alpha({length: {min: 10, max: 20}}), program_name_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_otp: faker.datatype.boolean(), rewards: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({cost_amount: faker.number.int(), cost_currency: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}})})), terms: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), terms_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
 
 export const getListPublicOrgsResponseMock = (): PublicOrg[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({address: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_count: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}})})))
 
@@ -1333,6 +1369,18 @@ export const getBranchBookingQrMockHandler = (overrideResponse?: QrResponse | ((
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getBranchBookingQrResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getBranchLoyaltyQrMockHandler = (overrideResponse?: QrResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<QrResponse> | QrResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/branches/:id/loyalty-qr', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getBranchLoyaltyQrResponseMock(),
       { status: 200
       })
   }, options)
@@ -2566,6 +2614,124 @@ export const getUpdateStationMockHandler = (overrideResponse?: KitchenStation | 
   }, options)
 }
 
+export const getLoyaltyAdjustMockHandler = (overrideResponse?: MemberView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<MemberView> | MemberView), options?: RequestHandlerOptions) => {
+  return http.post('*/loyalty/adjust', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getLoyaltyAdjustResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getLoyaltyAwardMockHandler = (overrideResponse?: AwardResult | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<AwardResult> | AwardResult), options?: RequestHandlerOptions) => {
+  return http.post('*/loyalty/award', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getLoyaltyAwardResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getLoyaltyLookupMockHandler = (overrideResponse?: ScanResult | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ScanResult> | ScanResult), options?: RequestHandlerOptions) => {
+  return http.post('*/loyalty/lookup', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getLoyaltyLookupResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListLoyaltyMembersMockHandler = (overrideResponse?: MembersPage | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MembersPage> | MembersPage), options?: RequestHandlerOptions) => {
+  return http.get('*/loyalty/members', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListLoyaltyMembersResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getGetLoyaltyMemberMockHandler = (overrideResponse?: MemberDetail | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MemberDetail> | MemberDetail), options?: RequestHandlerOptions) => {
+  return http.get('*/loyalty/members/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetLoyaltyMemberResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getGetLoyaltyRewardItemsMockHandler = (overrideResponse?: RewardCatalogue | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<RewardCatalogue> | RewardCatalogue), options?: RequestHandlerOptions) => {
+  return http.get('*/loyalty/reward-items', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetLoyaltyRewardItemsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPutLoyaltyRewardItemsMockHandler = (overrideResponse?: RewardCatalogue | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<RewardCatalogue> | RewardCatalogue), options?: RequestHandlerOptions) => {
+  return http.put('*/loyalty/reward-items', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutLoyaltyRewardItemsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getGetLoyaltySettingsMockHandler = (overrideResponse?: LoyaltySettings | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<LoyaltySettings> | LoyaltySettings), options?: RequestHandlerOptions) => {
+  return http.get('*/loyalty/settings', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetLoyaltySettingsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPutLoyaltySettingsMockHandler = (overrideResponse?: LoyaltySettings | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<LoyaltySettings> | LoyaltySettings), options?: RequestHandlerOptions) => {
+  return http.put('*/loyalty/settings', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutLoyaltySettingsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDeleteLoyaltySettingsMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/loyalty/settings', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
 export const getPutSizeRecipeMockHandler = (overrideResponse?: RecipeCostResult | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<RecipeCostResult> | RecipeCostResult), options?: RequestHandlerOptions) => {
   return http.put('*/menu-item-sizes/:sizeId/recipe', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
 
@@ -3585,6 +3751,62 @@ export const getTrackDeliveryOrderMockHandler = (overrideResponse?: DeliveryTrac
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getTrackDeliveryOrderResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getLoyaltyCardMockHandler = (overrideResponse?: CardView | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<CardView> | CardView), options?: RequestHandlerOptions) => {
+  return http.get('*/public/loyalty/card/:token', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getLoyaltyCardResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getLoyaltyCardQrMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.get('*/public/loyalty/card/:token/qr.png', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 200
+      })
+  }, options)
+}
+
+export const getLoyaltyJoinMockHandler = (overrideResponse?: JoinResult | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<JoinResult> | JoinResult), options?: RequestHandlerOptions) => {
+  return http.post('*/public/loyalty/join', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getLoyaltyJoinResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getLoyaltyJoinInfoMockHandler = (overrideResponse?: JoinInfo | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<JoinInfo> | JoinInfo), options?: RequestHandlerOptions) => {
+  return http.get('*/public/loyalty/join-info', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getLoyaltyJoinInfoResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getLoyaltyApplePassMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.get('*/public/loyalty/pass/:token/apple.pkpass', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
       { status: 200
       })
   }, options)
@@ -5447,6 +5669,7 @@ export const getMadarAPIMock = () => [
   getUpdateBranchMockHandler(),
   getDeleteBranchMockHandler(),
   getBranchBookingQrMockHandler(),
+  getBranchLoyaltyQrMockHandler(),
   getBranchQrMockHandler(),
   getListTablesMockHandler(),
   getCreateTableMockHandler(),
@@ -5553,6 +5776,16 @@ export const getMadarAPIMock = () => [
   getCreateStationMockHandler(),
   getDeleteStationMockHandler(),
   getUpdateStationMockHandler(),
+  getLoyaltyAdjustMockHandler(),
+  getLoyaltyAwardMockHandler(),
+  getLoyaltyLookupMockHandler(),
+  getListLoyaltyMembersMockHandler(),
+  getGetLoyaltyMemberMockHandler(),
+  getGetLoyaltyRewardItemsMockHandler(),
+  getPutLoyaltyRewardItemsMockHandler(),
+  getGetLoyaltySettingsMockHandler(),
+  getPutLoyaltySettingsMockHandler(),
+  getDeleteLoyaltySettingsMockHandler(),
   getPutSizeRecipeMockHandler(),
   getListMenuItemsMockHandler(),
   getCreateMenuItemMockHandler(),
@@ -5640,6 +5873,11 @@ export const getMadarAPIMock = () => [
   getGuestOrderHistoryMockHandler(),
   getGuestPastLocationsMockHandler(),
   getTrackDeliveryOrderMockHandler(),
+  getLoyaltyCardMockHandler(),
+  getLoyaltyCardQrMockHandler(),
+  getLoyaltyJoinMockHandler(),
+  getLoyaltyJoinInfoMockHandler(),
+  getLoyaltyApplePassMockHandler(),
   getListPublicOrgsMockHandler(),
   getOtpRequestMockHandler(),
   getOtpVerifyMockHandler(),

@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { LoyaltyRedemptionInput } from './loyaltyRedemptionInput';
 
 export interface SettleOpenTicketRequest {
   /** @nullable */
@@ -13,6 +14,16 @@ export interface SettleOpenTicketRequest {
   discount_type?: string | null;
   /** @nullable */
   discount_value?: number | null;
+  /**
+     * The member spending a balance on this settle, when rewards are applied.
+     * @nullable
+     */
+  loyalty_customer_id?: string | null;
+  /**
+     * Rewards covering lines of the ticket. A table-service bill redeems
+     * exactly like a counter one — the cashier scans at settle either way.
+     */
+  loyalty_redemptions?: LoyaltyRedemptionInput[];
   payment_method: string;
   shift_id: string;
   /** @nullable */
