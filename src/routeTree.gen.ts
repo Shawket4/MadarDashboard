@@ -50,6 +50,7 @@ import { Route as AppSettingsKitchenRoutingRouteImport } from './routes/_app/set
 import { Route as AppSettingsIntegrationsRouteImport } from './routes/_app/settings/integrations'
 import { Route as AppSettingsDeliveryZonesRouteImport } from './routes/_app/settings/delivery-zones'
 import { Route as AppSettingsDeliveryRouteImport } from './routes/_app/settings/delivery'
+import { Route as AppSettingsBrandRouteImport } from './routes/_app/settings/brand'
 import { Route as AppSettingsBookingsRouteImport } from './routes/_app/settings/bookings'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
 import { Route as AppMenuPricingRouteImport } from './routes/_app/menu/pricing'
@@ -285,6 +286,11 @@ const AppSettingsDeliveryRoute = AppSettingsDeliveryRouteImport.update({
   path: '/delivery',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
+const AppSettingsBrandRoute = AppSettingsBrandRouteImport.update({
+  id: '/brand',
+  path: '/brand',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
 const AppSettingsBookingsRoute = AppSettingsBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
@@ -465,6 +471,7 @@ export interface FileRoutesByFullPath {
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
+  '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
   '/settings/delivery-zones': typeof AppSettingsDeliveryZonesRoute
   '/settings/integrations': typeof AppSettingsIntegrationsRoute
@@ -528,6 +535,7 @@ export interface FileRoutesByTo {
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
+  '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
   '/settings/delivery-zones': typeof AppSettingsDeliveryZonesRoute
   '/settings/integrations': typeof AppSettingsIntegrationsRoute
@@ -598,6 +606,7 @@ export interface FileRoutesById {
   '/_app/menu/pricing': typeof AppMenuPricingRoute
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
   '/_app/settings/bookings': typeof AppSettingsBookingsRoute
+  '/_app/settings/brand': typeof AppSettingsBrandRoute
   '/_app/settings/delivery': typeof AppSettingsDeliveryRoute
   '/_app/settings/delivery-zones': typeof AppSettingsDeliveryZonesRoute
   '/_app/settings/integrations': typeof AppSettingsIntegrationsRoute
@@ -668,6 +677,7 @@ export interface FileRouteTypes {
     | '/menu/pricing'
     | '/menu/recipes'
     | '/settings/bookings'
+    | '/settings/brand'
     | '/settings/delivery'
     | '/settings/delivery-zones'
     | '/settings/integrations'
@@ -731,6 +741,7 @@ export interface FileRouteTypes {
     | '/menu/pricing'
     | '/menu/recipes'
     | '/settings/bookings'
+    | '/settings/brand'
     | '/settings/delivery'
     | '/settings/delivery-zones'
     | '/settings/integrations'
@@ -800,6 +811,7 @@ export interface FileRouteTypes {
     | '/_app/menu/pricing'
     | '/_app/menu/recipes'
     | '/_app/settings/bookings'
+    | '/_app/settings/brand'
     | '/_app/settings/delivery'
     | '/_app/settings/delivery-zones'
     | '/_app/settings/integrations'
@@ -1117,6 +1129,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsDeliveryRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
+    '/_app/settings/brand': {
+      id: '/_app/settings/brand'
+      path: '/brand'
+      fullPath: '/settings/brand'
+      preLoaderRoute: typeof AppSettingsBrandRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
     '/_app/settings/bookings': {
       id: '/_app/settings/bookings'
       path: '/bookings'
@@ -1390,6 +1409,7 @@ const AppMenuRouteRouteWithChildren = AppMenuRouteRoute._addFileChildren(
 
 interface AppSettingsRouteRouteChildren {
   AppSettingsBookingsRoute: typeof AppSettingsBookingsRoute
+  AppSettingsBrandRoute: typeof AppSettingsBrandRoute
   AppSettingsDeliveryRoute: typeof AppSettingsDeliveryRoute
   AppSettingsDeliveryZonesRoute: typeof AppSettingsDeliveryZonesRoute
   AppSettingsIntegrationsRoute: typeof AppSettingsIntegrationsRoute
@@ -1404,6 +1424,7 @@ interface AppSettingsRouteRouteChildren {
 
 const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
   AppSettingsBookingsRoute: AppSettingsBookingsRoute,
+  AppSettingsBrandRoute: AppSettingsBrandRoute,
   AppSettingsDeliveryRoute: AppSettingsDeliveryRoute,
   AppSettingsDeliveryZonesRoute: AppSettingsDeliveryZonesRoute,
   AppSettingsIntegrationsRoute: AppSettingsIntegrationsRoute,
