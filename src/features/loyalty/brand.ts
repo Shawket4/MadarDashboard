@@ -3,8 +3,10 @@
  *
  * Every branding field is optional: a shop that has configured nothing still
  * gets a finished card rather than an unstyled one. The fallbacks are the Madar
- * brand tokens, kept in step with `MadarRust/src/qr_card/mod.rs`, which is the
- * single source of truth for them.
+ * brand tokens, kept in step with `MadarRust/src/orgs/branding.rs`, which is
+ * the single source of truth for them — it derives a shop's palette from its
+ * logo at upload time and guarantees the result is readable. What happens here
+ * is a SAFETY NET for a row written before that existed, not a second opinion.
  */
 import type { CardBrand } from "@/data/api/generated/models/cardBrand";
 
@@ -14,6 +16,12 @@ const MADAR_TEAL = "#0D6273";
 const MADAR_TEAL_LIGHT = "#2E94A6";
 /** Paper — the light ground the mark is drawn on. */
 const MADAR_PAPER = "#EFF3F4";
+
+/** Ink for a light ground — `branding::MADAR_INK`. */
+const MADAR_INK = "#12222A";
+
+/** WCAG 2.1 AA for body text, and the floor `branding::ensure_readable` holds to. */
+const AA = 4.5;
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
@@ -32,6 +40,12 @@ const luminance = (hex: string): number => {
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   };
   return 0.2126 * channel(0) + 0.7152 * channel(1) + 0.0722 * channel(2);
+};
+
+/** Contrast ratio between two colours, per WCAG. 1 = identical, 21 = max. */
+const contrast = (a: string, b: string): number => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
 };
 
 export interface ResolvedBrand {
@@ -54,17 +68,31 @@ export function resolveBrand(
   locale: string,
 ): ResolvedBrand {
   const background = safe(brand?.background_color, MADAR_TEAL);
-  const dark = luminance(background) < 0.5;
 
-  // A configured foreground is honoured ONLY if it is actually legible on the
-  // chosen background. Someone picking two dark colours in an admin form should
-  // not be able to ship an unreadable card to their customers.
+  // A given foreground is honoured ONLY if it actually clears AA on the chosen
+  // background, and by the SAME measure the backend used to pick it — the real
+  // WCAG ratio, not a luminance gap.
+  //
+  // A luminance gap is not a contrast ratio, and the difference is not academic:
+  // on a ground like #8A9AA3 it rejected the near-black ink the backend had
+  // computed at 5.6:1 and substituted white, which measures 2.6:1. A cruder rule
+  // overriding a stricter one always loses.
   const configured = safe(brand?.foreground_color, "");
-  const automatic = dark ? MADAR_PAPER : "#12222A";
+  // The fallback is CHOSEN, not assumed. "Is the ground dark?" is the wrong
+  // question — on that same #8A9AA3 (luminance 0.31, so nominally dark) white
+  // is the unreadable answer. Ask which of the two actually reads, which is
+  // what `branding::readable_on` does on the other side of the wire.
+  const automatic =
+    contrast(MADAR_PAPER, background) >= contrast(MADAR_INK, background)
+      ? MADAR_PAPER
+      : MADAR_INK;
   const foreground =
-    configured && Math.abs(luminance(configured) - luminance(background)) > 0.3
-      ? configured
-      : automatic;
+    configured && contrast(configured, background) >= AA ? configured : automatic;
+
+  // Light TEXT means a dark card, whatever the ground's luminance says. Secondary
+  // text is the same ink softened, so it can only ever be a weaker version of
+  // something already legible.
+  const dark = foreground === MADAR_PAPER || luminance(foreground) > 0.5;
 
   const isAr = locale.startsWith("ar");
   return {

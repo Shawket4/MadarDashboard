@@ -4198,7 +4198,7 @@
     "searchMembers": "ابحث بالاسم أو رقم الهاتف",
     "noMembers": "لا يوجد أعضاء بعد",
     "noMembersHint": "ينضم العملاء بمسح كود الكاشير.",
-    "member": "العضو",
+    "member": "عضو",
     "balance": "الرصيد",
     "progress": "حتى المكافأة التالية",
     "joined": "تاريخ الانضمام",
@@ -4234,6 +4234,7 @@
     "ordersToGo": "بقي {{n}} طلبات حتى مكافأتك التالية.",
     "useAppleInstead": "استخدم Apple Wallet بدلًا من ذلك",
     "useGoogleInstead": "استخدم Google Wallet بدلًا من ذلك",
-    "noWalletHere": "أظهر هذا الكود عند الكاشير — يعمل بدون تطبيق محفظة."
+    "noWalletHere": "أظهر هذا الكود عند الكاشير — يعمل بدون تطبيق محفظة.",
+    "ofTarget": "من {{n}} {{unit}}"
   }
 }

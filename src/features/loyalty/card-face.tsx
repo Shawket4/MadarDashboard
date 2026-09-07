@@ -1,10 +1,17 @@
 /**
  * The membership card: the one object the customer thinks of as "my card".
  *
- * Laid out as a physical card rather than a page section — a tinted field with
- * the shop's mark at the top, the state of play in the middle, and the member's
- * name along the bottom edge like an embossed line. That shape is why the
- * hierarchy reads without instructions: identity, progress, ownership.
+ * Laid out as a physical card rather than a page section — the shop's mark at
+ * the top, the state of play in the middle, and the member's name along the
+ * bottom edge like an embossed line. That shape is why the hierarchy reads
+ * without instructions: identity, progress, ownership.
+ *
+ * ## One skeleton, both modes
+ * Points and stamps say the same three things in the same three places: a
+ * FIGURE (what you have), a DRAWING of the journey, and a SENTENCE naming what
+ * happens next. Only the drawing differs — a stepper you can count, or a bar
+ * where counting to 250 would be absurd. The card used to change shape between
+ * the two, so a shop switching mode got what looked like a different product.
  *
  * The colours come from the ORG's logo (`orgs::branding` derives them at upload
  * and guarantees the text clears AA on whatever ground it produced), so this
@@ -35,30 +42,45 @@ export function CardFace({
   memberName?: string | null;
 }) {
   const { t } = useTranslation();
-  const isSteps = mode === "visits" && stampable(target);
+  const isVisits = mode === "visits";
+  const isSteps = isVisits && stampable(target);
   const pct = target > 0 ? Math.min(100, Math.round((balance / target) * 100)) : 0;
+  const unit = t(
+    `loyalty.unit.${isVisits ? "orders" : "points"}`,
+    isVisits ? "orders" : "points",
+  );
 
   return (
     <section
-      className="relative overflow-hidden rounded-[26px] px-6 pb-5 pt-7 shadow-lg"
+      className="relative isolate overflow-hidden rounded-[26px] px-6 pb-5 pt-6 shadow-lg"
       style={{ backgroundColor: brand.background, color: brand.foreground }}
     >
-      {/* A soft bloom in the accent, so a flat fill reads as a printed card
-          rather than a coloured rectangle. Purely decorative, hence aria-hidden
-          and no contribution to any state. */}
+      {/* Two blooms in the accent, so a flat fill reads as a printed card
+          rather than a coloured rectangle — one catching the top corner, one
+          weighting the base. Purely decorative, hence aria-hidden, and no state
+          is ever carried by them. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full opacity-[0.18]"
+        className="pointer-events-none absolute -right-16 -top-24 -z-10 size-56 rounded-full opacity-[0.20]"
+        style={{ backgroundColor: brand.accent }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-28 -left-20 -z-10 size-56 rounded-full opacity-[0.10]"
         style={{ backgroundColor: brand.accent }}
       />
 
-      <header className="relative flex items-center gap-3">
+      <header className="flex items-center gap-3">
         {brand.logoUrl ? (
-          <img
-            src={brand.logoUrl}
-            alt=""
-            className="size-11 shrink-0 rounded-xl bg-white/90 object-contain p-1"
-          />
+          // A plate, because a logo is drawn for a light ground and would
+          // disappear into a dark one. Hairline-edged so it still has a shape
+          // when the card's own ground is pale.
+          <span
+            className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-1.5"
+            style={{ boxShadow: `0 0 0 1px ${brand.muted}` }}
+          >
+            <img src={brand.logoUrl} alt="" className="max-h-full max-w-full object-contain" />
+          </span>
         ) : null}
         <div className="min-w-0 flex-1">
           {/* The shop's name is always here. Whose card this is must be on it,
@@ -75,80 +97,82 @@ export function CardFace({
         </div>
       </header>
 
-      <div className="relative mt-7 flex flex-col items-center gap-4">
+      <div className="mt-6 flex flex-col gap-4">
+        {/* The figure. Baseline-aligned so the unit sits on the numeral's foot
+            rather than floating beside it. */}
+        <p className="flex items-baseline gap-2">
+          <span className="font-serif text-[52px] leading-none tabular-nums">
+            {balance}
+          </span>
+          <span className="min-w-0 truncate text-sm" style={{ color: brand.muted }}>
+            {isSteps
+              ? t("loyalty.ofTarget", {
+                  defaultValue: "of {{n}} {{unit}}",
+                  n: target,
+                  unit,
+                })
+              : unit}
+          </span>
+        </p>
+
         {isSteps ? (
-          <>
-            <StampRow
-              earned={balance}
-              target={target}
-              accent={brand.accent}
-              onAccent={brand.background}
-              muted={brand.muted}
-            />
-            <p className="text-center text-sm">
-              {canRedeem ? (
-                <span className="font-semibold">
-                  {t("loyalty.rewardReady", "Reward earned — ask at the counter.")}
-                </span>
-              ) : (
-                t("loyalty.ordersToGo", {
-                  defaultValue: "{{n}} more orders to your next reward.",
-                  n: toGo,
-                })
-              )}
-            </p>
-          </>
+          <StampRow
+            earned={balance}
+            target={target}
+            accent={brand.accent}
+            onAccent={brand.background}
+            muted={brand.muted}
+          />
         ) : (
-          <>
-            <div className="flex items-baseline gap-2">
-              <span className="font-serif text-[56px] leading-none tabular-nums">
-                {balance}
-              </span>
-              <span className="text-sm" style={{ color: brand.muted }}>
-                {t(
-                  `loyalty.unit.${mode === "visits" ? "orders" : "points"}`,
-                  mode === "visits" ? "orders" : "points",
-                )}
-              </span>
-            </div>
-            {/* Decoration; the sentence beneath carries the fact. State never
-                rests on a graphic alone. */}
+          // Decoration; the sentence beneath carries the fact. State never
+          // rests on a graphic alone.
+          <div
+            aria-hidden
+            className="h-2 w-full overflow-hidden rounded-full"
+            style={{ backgroundColor: brand.muted, opacity: 0.35 }}
+          >
             <div
-              aria-hidden
-              className="h-2 w-full max-w-[260px] overflow-hidden rounded-full"
-              style={{ backgroundColor: brand.muted, opacity: 0.35 }}
-            >
-              <div
-                className="h-full rounded-full transition-[width] duration-500 motion-reduce:transition-none"
-                style={{ width: `${pct}%`, backgroundColor: brand.accent }}
-              />
-            </div>
-            <p className="text-center text-sm">
-              {canRedeem ? (
-                <span className="font-semibold">
-                  {t("loyalty.rewardReady", "Reward earned — ask at the counter.")}
-                </span>
-              ) : (
-                t("loyalty.toGo", {
-                  defaultValue: "{{n}} more to your next reward.",
-                  n: toGo,
-                })
-              )}
-            </p>
-          </>
+              className="h-full rounded-full transition-[width] duration-500 motion-reduce:transition-none"
+              style={{ width: `${pct}%`, backgroundColor: brand.accent }}
+            />
+          </div>
         )}
+
+        <p className="text-sm">
+          {canRedeem ? (
+            <span className="font-semibold">
+              {t("loyalty.rewardReady", "Reward earned — ask at the counter.")}
+            </span>
+          ) : isVisits ? (
+            t("loyalty.ordersToGo", {
+              defaultValue: "{{n}} more orders to your next reward.",
+              n: toGo,
+            })
+          ) : (
+            t("loyalty.toGo", {
+              defaultValue: "{{n}} more to your next reward.",
+              n: toGo,
+            })
+          )}
+        </p>
       </div>
 
       {memberName ? (
+        // The embossed line. Labelled, because a bare name on a card looks like
+        // a caption for the thing above it rather than whose card this is.
         <footer
-          className="relative mt-6 flex items-center justify-between border-t pt-3 text-[11px] uppercase tracking-[0.14em]"
-          style={{ borderColor: brand.muted, color: brand.muted }}
+          className="mt-6 border-t pt-3"
+          style={{ borderColor: brand.muted, opacity: 0.95 }}
         >
-          <span className="min-w-0 truncate">{memberName}</span>
-          <span className="shrink-0 tabular-nums">
-            {balance}
-            {target > 0 ? ` / ${target}` : ""}
-          </span>
+          <p
+            className="text-[10px] uppercase tracking-[0.18em]"
+            style={{ color: brand.muted }}
+          >
+            {t("loyalty.member", "Member")}
+          </p>
+          <p className="truncate text-[13px] font-medium uppercase tracking-[0.08em]">
+            {memberName}
+          </p>
         </footer>
       ) : null}
     </section>

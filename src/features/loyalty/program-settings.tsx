@@ -118,10 +118,6 @@ export function ProgramSettings({
           default_reward_cost: v.default_reward_cost,
           require_otp: v.require_otp,
           terms: v.terms || null,
-          pass_background_color: settings?.pass_background_color ?? null,
-          pass_foreground_color: settings?.pass_foreground_color ?? null,
-          pass_label_color: settings?.pass_label_color ?? null,
-          pass_logo_url: settings?.pass_logo_url ?? null,
           terms_ar: settings?.terms_ar ?? null,
         },
       });

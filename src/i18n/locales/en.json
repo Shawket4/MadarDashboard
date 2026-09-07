@@ -4136,6 +4136,7 @@
     "ordersToGo": "{{n}} more orders to your next reward.",
     "useAppleInstead": "Use Apple Wallet instead",
     "useGoogleInstead": "Use Google Wallet instead",
-    "noWalletHere": "Show this code at the counter — it works without a wallet app."
+    "noWalletHere": "Show this code at the counter — it works without a wallet app.",
+    "ofTarget": "of {{n}} {{unit}}"
   }
 }

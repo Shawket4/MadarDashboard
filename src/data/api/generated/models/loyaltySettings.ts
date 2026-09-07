@@ -31,14 +31,6 @@ export interface LoyaltySettings {
      */
   mode: string;
   org_id: string;
-  /** @nullable */
-  pass_background_color?: string | null;
-  /** @nullable */
-  pass_foreground_color?: string | null;
-  /** @nullable */
-  pass_label_color?: string | null;
-  /** @nullable */
-  pass_logo_url?: string | null;
   program_name: string;
   /** @nullable */
   program_name_ar?: string | null;
