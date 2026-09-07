@@ -22,9 +22,9 @@ import {
 import type { PublicBookingInfo } from "@/data/api/generated/models/publicBookingInfo";
 import type { PublicBookingView } from "@/data/api/generated/models/publicBookingView";
 import { getErrorMessage } from "@/data/api/errors";
-import { StorefrontShell } from "@/features/public-ordering/storefront-shell";
-import { useOrderTheme } from "@/features/public-ordering/use-order-theme";
-import { getGuestPhone, setGuestPhone } from "@/features/public-ordering/utils";
+import { StorefrontShell } from "@/features/public-shell/storefront-shell";
+import { usePublicTheme } from "@/features/public-shell/use-public-theme";
+import { getGuestPhone, setGuestPhone } from "@/features/public-shell/guest";
 import { cn } from "@/lib/utils";
 
 import { PhoneVerify } from "./phone-verify";
@@ -43,8 +43,8 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
   const lang = i18n.resolvedLanguage ?? "en";
 
   useLayoutEffect(() => {
-    useOrderTheme.getState().apply();
-    return () => useOrderTheme.getState().restoreGlobal();
+    usePublicTheme.getState().apply();
+    return () => usePublicTheme.getState().restoreGlobal();
   }, []);
 
   const [branchId, setBranchId] = useState<string | null>(initialBranch ?? null);

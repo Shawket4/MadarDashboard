@@ -1174,6 +1174,36 @@ export const DeleteBranchParams = zod.object({
 export const DeleteBranchResponse = zod.void()
 
 
+export const BranchBookingQrParams = zod.object({
+  "id": zod.uuid().describe('Branch ID')
+})
+
+export const branchBookingQrQueryDpiMin = 0;
+
+export const branchBookingQrQueryModulePxMin = 0;
+
+
+
+export const BranchBookingQrQueryParams = zod.object({
+  "card": zod.boolean().optional().describe('`true` (default) → branded A6 card PNG; `false` → plain receipt QR PNG.'),
+  "caption": zod.string().optional().describe('Dynamic caption line beneath the tagline (A6 card only).'),
+  "dpi": zod.number().min(branchBookingQrQueryDpiMin).optional().describe('Raster DPI for the A6 card (clamped 72–2400). Default 600.'),
+  "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
+  "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
+  "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
+  "module_px": zod.number().min(branchBookingQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "slug": zod.string().optional()
+})
+
+export const BranchBookingQrResponse = zod.object({
+  "kind": zod.string(),
+  "long_url": zod.string(),
+  "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
+  "short_code": zod.string(),
+  "short_url": zod.string()
+}).describe('JSON returned from every QR-generation endpoint.')
+
+
 export const BranchQrParams = zod.object({
   "id": zod.uuid().describe('Branch ID')
 })
@@ -6556,6 +6586,35 @@ export const UpdateOrgResponse = zod.object({
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
+
+
+export const OrgBookingQrParams = zod.object({
+  "id": zod.uuid().describe('Organisation ID')
+})
+
+export const orgBookingQrQueryDpiMin = 0;
+
+export const orgBookingQrQueryModulePxMin = 0;
+
+
+
+export const OrgBookingQrQueryParams = zod.object({
+  "card": zod.boolean().optional().describe('`true` (default) → branded A6 card PNG; `false` → plain receipt QR PNG.'),
+  "caption": zod.string().optional().describe('Dynamic caption line beneath the tagline (A6 card only).'),
+  "dpi": zod.number().min(orgBookingQrQueryDpiMin).optional().describe('Raster DPI for the A6 card (clamped 72–2400). Default 600.'),
+  "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
+  "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
+  "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
+  "module_px": zod.number().min(orgBookingQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+})
+
+export const OrgBookingQrResponse = zod.object({
+  "kind": zod.string(),
+  "long_url": zod.string(),
+  "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
+  "short_code": zod.string(),
+  "short_url": zod.string()
+}).describe('JSON returned from every QR-generation endpoint.')
 
 
 export const UploadOrgLogoParams = zod.object({

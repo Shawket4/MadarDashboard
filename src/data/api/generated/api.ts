@@ -52,6 +52,7 @@ import type {
   BranchAddonOverride,
   BranchAddonOverrideInput,
   BranchAddonSalesParams,
+  BranchBookingQrParams,
   BranchBundleSalesParams,
   BranchCombinedItemSalesParams,
   BranchConsumptionParams,
@@ -272,6 +273,7 @@ import type {
   OrderFull,
   OrderHistorySummary,
   Org,
+  OrgBookingQrParams,
   OrgBranchComparisonParams,
   OrgComparisonReport,
   OrgConsumptionParams,
@@ -3124,6 +3126,101 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getDeleteBranchMutationOptions(options), queryClient);
     }
+
+export const branchBookingQr = (
+    id: string,
+    params?: BranchBookingQrParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<QrResponse>(
+      {url: `/branches/${id}/booking-qr`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchBookingQrQueryKey = (id: string,
+    params?: BranchBookingQrParams,) => {
+    return [
+    `/branches/${id}/booking-qr`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchBookingQrQueryOptions = <TData = Awaited<ReturnType<typeof branchBookingQr>>, TError = ErrorBody>(id: string,
+    params?: BranchBookingQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchBookingQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchBookingQrQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchBookingQr>>> = ({ signal }) => branchBookingQr(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchBookingQr>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchBookingQrQueryResult = NonNullable<Awaited<ReturnType<typeof branchBookingQr>>>
+export type BranchBookingQrQueryError = ErrorBody
+
+
+export function useBranchBookingQr<TData = Awaited<ReturnType<typeof branchBookingQr>>, TError = ErrorBody>(
+ id: string,
+    params: undefined |  BranchBookingQrParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchBookingQr>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchBookingQr>>,
+          TError,
+          Awaited<ReturnType<typeof branchBookingQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchBookingQr<TData = Awaited<ReturnType<typeof branchBookingQr>>, TError = ErrorBody>(
+ id: string,
+    params?: BranchBookingQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchBookingQr>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchBookingQr>>,
+          TError,
+          Awaited<ReturnType<typeof branchBookingQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchBookingQr<TData = Awaited<ReturnType<typeof branchBookingQr>>, TError = ErrorBody>(
+ id: string,
+    params?: BranchBookingQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchBookingQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchBookingQr<TData = Awaited<ReturnType<typeof branchBookingQr>>, TError = ErrorBody>(
+ id: string,
+    params?: BranchBookingQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchBookingQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchBookingQrQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const branchQr = (
     id: string,
@@ -14446,6 +14543,101 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateOrgMutationOptions(options), queryClient);
     }
+
+export const orgBookingQr = (
+    id: string,
+    params?: OrgBookingQrParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<QrResponse>(
+      {url: `/orgs/${id}/booking-qr`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getOrgBookingQrQueryKey = (id: string,
+    params?: OrgBookingQrParams,) => {
+    return [
+    `/orgs/${id}/booking-qr`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getOrgBookingQrQueryOptions = <TData = Awaited<ReturnType<typeof orgBookingQr>>, TError = ErrorBody>(id: string,
+    params?: OrgBookingQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgBookingQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOrgBookingQrQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof orgBookingQr>>> = ({ signal }) => orgBookingQr(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof orgBookingQr>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OrgBookingQrQueryResult = NonNullable<Awaited<ReturnType<typeof orgBookingQr>>>
+export type OrgBookingQrQueryError = ErrorBody
+
+
+export function useOrgBookingQr<TData = Awaited<ReturnType<typeof orgBookingQr>>, TError = ErrorBody>(
+ id: string,
+    params: undefined |  OrgBookingQrParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgBookingQr>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgBookingQr>>,
+          TError,
+          Awaited<ReturnType<typeof orgBookingQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgBookingQr<TData = Awaited<ReturnType<typeof orgBookingQr>>, TError = ErrorBody>(
+ id: string,
+    params?: OrgBookingQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgBookingQr>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgBookingQr>>,
+          TError,
+          Awaited<ReturnType<typeof orgBookingQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgBookingQr<TData = Awaited<ReturnType<typeof orgBookingQr>>, TError = ErrorBody>(
+ id: string,
+    params?: OrgBookingQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgBookingQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useOrgBookingQr<TData = Awaited<ReturnType<typeof orgBookingQr>>, TError = ErrorBody>(
+ id: string,
+    params?: OrgBookingQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgBookingQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOrgBookingQrQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const uploadOrgLogo = (
     id: string,

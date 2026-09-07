@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import i18n from "@/i18n";
 
 import type { Step } from "../types";
-import { useOrderTheme } from "../use-order-theme";
+import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { LegalLinks } from "@/components/legal-links";
 
 const PROGRESS_STEPS: Step[] = ["branch", "channel", "phone", "location", "menu", "checkout"];
@@ -80,8 +80,8 @@ export function StepShell({
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const toggleLang = () => void i18n.changeLanguage(lang.startsWith("ar") ? "en" : "ar");
-  const mode = useOrderTheme((s) => s.mode);
-  const toggleTheme = useOrderTheme((s) => s.toggle);
+  const mode = usePublicTheme((s) => s.mode);
+  const toggleTheme = usePublicTheme((s) => s.toggle);
 
   // Time-of-day greeting shown under the menu heading.
   const hour = new Date().getHours();

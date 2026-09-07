@@ -267,6 +267,8 @@ export const getGetBranchResponseMock = (overrideResponse: Partial<Extract<Branc
 
 export const getUpdateBranchResponseMock = (overrideResponse: Partial<Extract<Branch, object>> = {}): Branch => ({address: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', geo_radius_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), latitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), longitude: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), org_logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), printer_brand: faker.helpers.arrayElement([faker.helpers.arrayElement([null,faker.helpers.arrayElement(Object.values(PrinterBrand)),]), undefined]), printer_ip: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), printer_port: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), timezone: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
+export const getBranchBookingQrResponseMock = (overrideResponse: Partial<Extract<QrResponse, object>> = {}): QrResponse => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), long_url: faker.string.alpha({length: {min: 10, max: 20}}), qr_data_url: faker.string.alpha({length: {min: 10, max: 20}}), short_code: faker.string.alpha({length: {min: 10, max: 20}}), short_url: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
 export const getBranchQrResponseMock = (overrideResponse: Partial<Extract<QrResponse, object>> = {}): QrResponse => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), long_url: faker.string.alpha({length: {min: 10, max: 20}}), qr_data_url: faker.string.alpha({length: {min: 10, max: 20}}), short_code: faker.string.alpha({length: {min: 10, max: 20}}), short_url: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 export const getListTablesResponseMock = (): BranchTable[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), is_active: faker.datatype.boolean(), label: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
@@ -546,6 +548,8 @@ export const getCreateOrgResponseMock = (overrideResponse: Partial<Extract<Org, 
 export const getGetOrgResponseMock = (overrideResponse: Partial<Extract<Org, object>> = {}): Org => ({currency_code: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), slug: faker.string.alpha({length: {min: 10, max: 20}}), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 export const getUpdateOrgResponseMock = (overrideResponse: Partial<Extract<Org, object>> = {}): Org => ({currency_code: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), slug: faker.string.alpha({length: {min: 10, max: 20}}), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getOrgBookingQrResponseMock = (overrideResponse: Partial<Extract<QrResponse, object>> = {}): QrResponse => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), long_url: faker.string.alpha({length: {min: 10, max: 20}}), qr_data_url: faker.string.alpha({length: {min: 10, max: 20}}), short_code: faker.string.alpha({length: {min: 10, max: 20}}), short_url: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 export const getUploadOrgLogoResponseMock = (overrideResponse: Partial<Extract<Org, object>> = {}): Org => ({currency_code: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), slug: faker.string.alpha({length: {min: 10, max: 20}}), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
@@ -1318,6 +1322,18 @@ export const getDeleteBranchMockHandler = (overrideResponse?: void | ((info: Par
 
     return new HttpResponse(null,
       { status: 204
+      })
+  }, options)
+}
+
+export const getBranchBookingQrMockHandler = (overrideResponse?: QrResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<QrResponse> | QrResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/branches/:id/booking-qr', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getBranchBookingQrResponseMock(),
+      { status: 200
       })
   }, options)
 }
@@ -3199,6 +3215,18 @@ export const getUpdateOrgMockHandler = (overrideResponse?: Org | ((info: Paramet
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getUpdateOrgResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getOrgBookingQrMockHandler = (overrideResponse?: QrResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<QrResponse> | QrResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/orgs/:id/booking-qr', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getOrgBookingQrResponseMock(),
       { status: 200
       })
   }, options)
@@ -5418,6 +5446,7 @@ export const getMadarAPIMock = () => [
   getGetBranchMockHandler(),
   getUpdateBranchMockHandler(),
   getDeleteBranchMockHandler(),
+  getBranchBookingQrMockHandler(),
   getBranchQrMockHandler(),
   getListTablesMockHandler(),
   getCreateTableMockHandler(),
@@ -5580,6 +5609,7 @@ export const getMadarAPIMock = () => [
   getGetOrgMockHandler(),
   getDeleteOrgMockHandler(),
   getUpdateOrgMockHandler(),
+  getOrgBookingQrMockHandler(),
   getUploadOrgLogoMockHandler(),
   getOfflineAuthBundleMockHandler(),
   getGetOnboardingMockHandler(),

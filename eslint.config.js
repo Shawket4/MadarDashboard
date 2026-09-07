@@ -57,4 +57,43 @@ export default [
       '@typescript-eslint/no-explicit-any': 'error',
     },
   },
+
+  // The three public bundles are separately built, separately deployed apps on
+  // their own hosts. Ordering and reservations must not reach into each other:
+  // a change to the storefront should never be able to break the booking flow.
+  // Anything they genuinely both need lives in `features/public-shell`.
+  {
+    files: ['src/features/reservations/**', 'src/reservations/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/features/public-ordering/**', '../public-ordering/**'],
+              message:
+                'Reservations must not import from public-ordering — they are separate bundles. Move what you need into features/public-shell.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/features/public-ordering/**', 'src/order/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/features/reservations/**', '../reservations/**'],
+              message:
+                'Ordering must not import from reservations — they are separate bundles. Move what you need into features/public-shell.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]
