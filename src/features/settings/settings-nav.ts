@@ -12,6 +12,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ChefHat,
+  Image as ImageIcon,
   CreditCard,
   Languages,
   Layers,
@@ -54,6 +55,16 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         descKey: "settings.appearanceDesc",
         desc: "Theme and language for this device.",
         icon: Palette,
+      },
+      {
+        // A manager owns their own mark; everything else about an organisation
+        // stays super-admin territory.
+        to: "/settings/brand",
+        labelKey: "settings.brand",
+        fallback: "Logo",
+        descKey: "settings.brandDesc",
+        desc: "Your mark, on receipts and on your customers' loyalty cards.",
+        icon: ImageIcon,
       },
     ],
   },

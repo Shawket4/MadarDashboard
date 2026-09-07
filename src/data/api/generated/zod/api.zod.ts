@@ -6867,6 +6867,9 @@ export const VoidOrderResponse = zod.object({
 
 
 export const ListOrgsResponseItem = zod.object({
+  "brand_accent": zod.string().nullish(),
+  "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_foreground": zod.string().nullish(),
   "currency_code": zod.string(),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
@@ -6891,6 +6894,9 @@ export const CreateOrgBody = zod.object({
 })
 
 export const CreateOrgResponse = zod.object({
+  "brand_accent": zod.string().nullish(),
+  "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_foreground": zod.string().nullish(),
   "currency_code": zod.string(),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
@@ -6908,6 +6914,9 @@ export const GetOrgParams = zod.object({
 })
 
 export const GetOrgResponse = zod.object({
+  "brand_accent": zod.string().nullish(),
+  "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_foreground": zod.string().nullish(),
   "currency_code": zod.string(),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
@@ -6943,6 +6952,9 @@ export const UpdateOrgBody = zod.object({
 })
 
 export const UpdateOrgResponse = zod.object({
+  "brand_accent": zod.string().nullish(),
+  "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_foreground": zod.string().nullish(),
   "currency_code": zod.string(),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
@@ -6993,6 +7005,9 @@ export const UploadOrgLogoBody = zod.object({
 })
 
 export const UploadOrgLogoResponse = zod.object({
+  "brand_accent": zod.string().nullish(),
+  "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_foreground": zod.string().nullish(),
   "currency_code": zod.string(),
   "id": zod.uuid(),
   "is_active": zod.boolean(),

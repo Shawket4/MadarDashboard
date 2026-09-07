@@ -2020,7 +2020,14 @@
     "whatsappDesc": "The number that sends codes and order updates.",
     "pickBranch": "Pick a branch",
     "editRules": "Edit rules",
-    "bookingsPerBranch": "Every branch has its own rules. A branch you have not set up takes no online bookings."
+    "bookingsPerBranch": "Every branch has its own rules. A branch you have not set up takes no online bookings.",
+    "brand": "Logo",
+    "brandDesc": "Your mark, on receipts and on your customers' loyalty cards.",
+    "logoSaved": "Logo updated",
+    "logoHint": "PNG or JPG, square works best. The card's colours are taken from it automatically.",
+    "cardPreview": "How the loyalty card will look",
+    "previewMember": "Member name",
+    "brandDerived": "Colours are read from your logo and adjusted so the text stays readable. Upload a new logo to change them."
   },
   "meta": {
     "publication": "Capability Portfolio",
