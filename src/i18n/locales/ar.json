@@ -4231,6 +4231,8 @@
     "earnLine": "اكسب نقطة عن كل {{amount}} تنفقها.",
     "rewardLine": "{{points}} نقطة تمنحك مكافأة.",
     "stampLine": "كل طلب يكسب ختمًا، و{{n}} منها تمنحك مكافأة.",
-    "ordersToGo": "بقي {{n}} طلبات حتى مكافأتك التالية."
+    "ordersToGo": "بقي {{n}} طلبات حتى مكافأتك التالية.",
+    "useAppleInstead": "استخدم Apple Wallet بدلًا من ذلك",
+    "useGoogleInstead": "استخدم Google Wallet بدلًا من ذلك"
   }
 }
