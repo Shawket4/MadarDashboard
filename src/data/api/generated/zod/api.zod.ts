@@ -7114,6 +7114,43 @@ export const UploadOrgLogoResponse = zod.object({
 })
 
 
+/**
+ * A membership belongs to the SHOP, not to a branch — which is why the wallet
+ * pass has always carried the org's programme and every branch's location. The
+ * only thing that was ever per-branch was the way IN, so a shop that wants one
+ * code on a poster had to pick a branch and pretend.
+ * @summary The shop's join QR: one code for the whole organisation.
+ */
+export const OrgLoyaltyQrParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const orgLoyaltyQrQueryDpiMin = 0;
+
+export const orgLoyaltyQrQueryModulePxMin = 0;
+
+
+
+export const OrgLoyaltyQrQueryParams = zod.object({
+  "card": zod.boolean().optional().describe('`true` (default) → branded A6 card PNG; `false` → plain receipt QR PNG.'),
+  "caption": zod.string().optional().describe('Dynamic caption line beneath the tagline (A6 card only).'),
+  "dpi": zod.number().min(orgLoyaltyQrQueryDpiMin).optional().describe('Raster DPI for the A6 card (clamped 72–2400). Default 600.'),
+  "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
+  "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
+  "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
+  "module_px": zod.number().min(orgLoyaltyQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "slug": zod.string().optional()
+})
+
+export const OrgLoyaltyQrResponse = zod.object({
+  "kind": zod.string(),
+  "long_url": zod.string(),
+  "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
+  "short_code": zod.string(),
+  "short_url": zod.string()
+}).describe('JSON returned from every QR-generation endpoint.')
+
+
 export const OfflineAuthBundleParams = zod.object({
   "id": zod.uuid().describe('Organization ID')
 })
@@ -7887,10 +7924,11 @@ export const LoyaltyCardQrResponse = zod.unknown()
 
 export const LoyaltyJoinBody = zod.object({
   "birthday": zod.iso.date().nullish().describe('Date of birth, `YYYY-MM-DD`. Accepted ONLY where the org asked for one:\na field the shop turned off must not be storable by posting past the\nform, and the year is kept because a date without one is not a date.'),
-  "branch_id": zod.uuid(),
+  "branch_id": zod.uuid().nullish().describe('The branch whose counter code was scanned, when one was. Absent for an\norg-wide code — see [`BranchQuery`].'),
   "device_token": zod.string().nullish().describe('Device-trust token from `\/public\/otp\/verify`. Required only when the\nbranch\'s `require_otp` is on.'),
   "locale": zod.string().nullish().describe('\'en\' or \'ar\' — the language the pass is written in.'),
   "name": zod.string(),
+  "org_id": zod.uuid().nullish(),
   "phone": zod.string()
 })
 
@@ -7920,14 +7958,15 @@ export const LoyaltyJoinResponse = zod.object({
 
 
 export const LoyaltyJoinInfoQueryParams = zod.object({
-  "branch_id": zod.uuid()
+  "branch_id": zod.uuid().optional().describe('The counter QR of one branch. Its settings and its catalogue apply.'),
+  "org_id": zod.uuid().optional().describe('The organisation\'s own code, for a shop that wants ONE card to hand out\n— a poster, a receipt footer, a link in a bio. The programme\'s org-level\nsettings apply, which is also what the wallet pass has always used.')
 })
 
 export const LoyaltyJoinInfoResponse = zod.object({
   "birthday_enabled": zod.boolean().describe('Ask for a date of birth. False means the form does not show the field —\na shop that does not run birthday rewards is not given one to hold.'),
   "birthday_reward_amount": zod.number().nullish().describe('What the birthday is worth here, so the page can say what it is FOR\nrather than asking for a date of birth and explaining nothing.'),
-  "branch_id": zod.uuid(),
-  "branch_name": zod.string(),
+  "branch_id": zod.uuid().nullish().describe('Absent for an org-wide code — the customer has not told us where they\nare, and nothing in the programme needs to know.'),
+  "branch_name": zod.string().nullish(),
   "brand": zod.object({
   "background_color": zod.string().nullish().describe('`#RRGGBB`, validated on write.'),
   "foreground_color": zod.string().nullish(),

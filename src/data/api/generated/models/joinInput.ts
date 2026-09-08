@@ -9,7 +9,12 @@ export interface JoinInput {
      * @nullable
      */
   birthday?: string | null;
-  branch_id: string;
+  /**
+     * The branch whose counter code was scanned, when one was. Absent for an
+     * org-wide code — see [`BranchQuery`].
+     * @nullable
+     */
+  branch_id?: string | null;
   /**
      * Device-trust token from `/public/otp/verify`. Required only when the
      * branch's `require_otp` is on.
@@ -22,5 +27,7 @@ export interface JoinInput {
      */
   locale?: string | null;
   name: string;
+  /** @nullable */
+  org_id?: string | null;
   phone: string;
 }

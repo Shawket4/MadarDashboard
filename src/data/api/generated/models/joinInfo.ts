@@ -18,8 +18,14 @@ export interface JoinInfo {
      * @nullable
      */
   birthday_reward_amount?: number | null;
-  branch_id: string;
-  branch_name: string;
+  /**
+     * Absent for an org-wide code — the customer has not told us where they
+     * are, and nothing in the programme needs to know.
+     * @nullable
+     */
+  branch_id?: string | null;
+  /** @nullable */
+  branch_name?: string | null;
   /** Whose programme this is, and how the page should look. */
   brand: CardBrand;
   /**

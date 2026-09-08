@@ -4074,7 +4074,7 @@
     "tabMembers": "Members",
     "wholeOrg": "Whole organisation (default)",
     "counterQr": "Counter code",
-    "qrPerBranch": "Pick a branch to print its counter code — each branch has its own.",
+    "qrPerBranch": "This branch's counter code. It signs people up under this branch's settings.",
     "enabled": "Program is running",
     "enabledHint": "Customers can join and collect here.",
     "programName": "Program name",
@@ -4174,6 +4174,8 @@
     "yourCard": "Your card",
     "yourDetails": "Your details",
     "keepItHandy": "Keep it handy",
-    "whatYouCanClaim": "What you can claim"
+    "whatYouCanClaim": "What you can claim",
+    "orgQr": "Sign-up code",
+    "qrOrgHint": "One code for the whole shop — for a poster, a receipt footer or a link in a bio. Members belong to the shop, not to a branch, so their card works everywhere either way."
   }
 }

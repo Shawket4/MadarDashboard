@@ -59,6 +59,23 @@ const joinRoute = createRoute({
   },
 });
 
+/**
+ * One code for the whole shop, as opposed to one branch's counter card.
+ *
+ * A distinct PATH rather than the same one carrying either kind of id: a public
+ * link that means different things depending on what a uuid turns out to be is
+ * a link nobody can reason about, and every branch card already printed keeps
+ * working untouched.
+ */
+const joinOrgRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/join/org/$orgId",
+  component: function JoinOrg() {
+    const { orgId } = joinOrgRoute.useParams();
+    return <JoinPage key={orgId} orgId={orgId} />;
+  },
+});
+
 const cardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/card/$token",
@@ -69,7 +86,9 @@ const cardRoute = createRoute({
 });
 
 const router = createRouter({
-  routeTree: rootRoute.addChildren([indexRoute, joinRoute, cardRoute]),
+  // `join/org/$orgId` before `join/$branchId`: the literal segment has to be
+  // matched first, or "org" is read as a branch id.
+  routeTree: rootRoute.addChildren([indexRoute, joinOrgRoute, joinRoute, cardRoute]),
   defaultPreload: "intent",
 });
 

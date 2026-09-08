@@ -300,6 +300,7 @@ import type {
   OrgConsumptionParams,
   OrgIngredient,
   OrgInventorySettings,
+  OrgLoyaltyQrParams,
   OrgPaymentMethod,
   OrgQrParams,
   OrgShrinkageParams,
@@ -15736,6 +15737,111 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getUploadOrgLogoMutationOptions(options), queryClient);
     }
 
+/**
+ * A membership belongs to the SHOP, not to a branch — which is why the wallet
+ * pass has always carried the org's programme and every branch's location. The
+ * only thing that was ever per-branch was the way IN, so a shop that wants one
+ * code on a poster had to pick a branch and pretend.
+ * @summary The shop's join QR: one code for the whole organisation.
+ */
+export const orgLoyaltyQr = (
+    id: string,
+    params?: OrgLoyaltyQrParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<QrResponse>(
+      {url: `/orgs/${id}/loyalty-qr`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getOrgLoyaltyQrQueryKey = (id: string,
+    params?: OrgLoyaltyQrParams,) => {
+    return [
+    `/orgs/${id}/loyalty-qr`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getOrgLoyaltyQrQueryOptions = <TData = Awaited<ReturnType<typeof orgLoyaltyQr>>, TError = ErrorBody>(id: string,
+    params?: OrgLoyaltyQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgLoyaltyQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOrgLoyaltyQrQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof orgLoyaltyQr>>> = ({ signal }) => orgLoyaltyQr(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof orgLoyaltyQr>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OrgLoyaltyQrQueryResult = NonNullable<Awaited<ReturnType<typeof orgLoyaltyQr>>>
+export type OrgLoyaltyQrQueryError = ErrorBody
+
+
+export function useOrgLoyaltyQr<TData = Awaited<ReturnType<typeof orgLoyaltyQr>>, TError = ErrorBody>(
+ id: string,
+    params: undefined |  OrgLoyaltyQrParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgLoyaltyQr>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgLoyaltyQr>>,
+          TError,
+          Awaited<ReturnType<typeof orgLoyaltyQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgLoyaltyQr<TData = Awaited<ReturnType<typeof orgLoyaltyQr>>, TError = ErrorBody>(
+ id: string,
+    params?: OrgLoyaltyQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgLoyaltyQr>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgLoyaltyQr>>,
+          TError,
+          Awaited<ReturnType<typeof orgLoyaltyQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgLoyaltyQr<TData = Awaited<ReturnType<typeof orgLoyaltyQr>>, TError = ErrorBody>(
+ id: string,
+    params?: OrgLoyaltyQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgLoyaltyQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The shop's join QR: one code for the whole organisation.
+ */
+
+export function useOrgLoyaltyQr<TData = Awaited<ReturnType<typeof orgLoyaltyQr>>, TError = ErrorBody>(
+ id: string,
+    params?: OrgLoyaltyQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgLoyaltyQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOrgLoyaltyQrQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const offlineAuthBundle = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -18202,7 +18308,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 export const loyaltyJoinInfo = (
-    params: LoyaltyJoinInfoParams,
+    params?: LoyaltyJoinInfoParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
@@ -18224,7 +18330,7 @@ export const getLoyaltyJoinInfoQueryKey = (params?: LoyaltyJoinInfoParams,) => {
     }
 
 
-export const getLoyaltyJoinInfoQueryOptions = <TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(params: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getLoyaltyJoinInfoQueryOptions = <TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(params?: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -18247,7 +18353,7 @@ export type LoyaltyJoinInfoQueryError = ErrorBody
 
 
 export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(
- params: LoyaltyJoinInfoParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>> & Pick<
+ params: undefined |  LoyaltyJoinInfoParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof loyaltyJoinInfo>>,
           TError,
@@ -18257,7 +18363,7 @@ export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoin
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(
- params: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>> & Pick<
+ params?: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof loyaltyJoinInfo>>,
           TError,
@@ -18267,12 +18373,12 @@ export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoin
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(
- params: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ params?: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(
- params: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ params?: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { branchLoyaltyQr, useListBranches } from "@/data/api/generated/api";
+import { branchLoyaltyQr, orgLoyaltyQr, useListBranches } from "@/data/api/generated/api";
 import type { QrResponse } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
@@ -44,10 +44,17 @@ export function LoyaltyPage() {
   const [qrLoading, setQrLoading] = useState(false);
 
   const showQr = async () => {
-    if (!branchId) return;
     setQrLoading(true);
     try {
-      setQr(await branchLoyaltyQr(branchId, {}, {}));
+      // A membership belongs to the SHOP, so the whole-organisation scope has a
+      // code of its own — a poster, a receipt footer, a link in a bio. Picking
+      // a branch you did not mean, just to get something printable, was the
+      // only way to do that.
+      setQr(
+        branchId
+          ? await branchLoyaltyQr(branchId, {}, {})
+          : await orgLoyaltyQr(orgId, {}, {}),
+      );
     } catch (e) {
       // The endpoint refuses to print a card that leads to "we run no program
       // here", and says so — worth surfacing rather than swallowing.
@@ -84,12 +91,12 @@ export function LoyaltyPage() {
           </SelectContent>
         </Select>
 
-        {branchId ? (
-          <Button variant="outline" onClick={() => void showQr()} disabled={qrLoading}>
-            {qrLoading ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
-            {t("loyalty.counterQr", "Counter code")}
-          </Button>
-        ) : null}
+        <Button variant="outline" onClick={() => void showQr()} disabled={qrLoading || !orgId}>
+          {qrLoading ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
+          {branchId
+            ? t("loyalty.counterQr", "Counter code")
+            : t("loyalty.orgQr", "Sign-up code")}
+        </Button>
       </div>
 
       <Tabs defaultValue="program">
@@ -120,16 +127,19 @@ export function LoyaltyPage() {
         }}
       />
 
-      {!branchId ? (
-        <Card>
-          <CardContent className="p-5 text-xs text-muted-foreground">
-            {t(
-              "loyalty.qrPerBranch",
-              "Pick a branch to print its counter code — each branch has its own.",
-            )}
-          </CardContent>
-        </Card>
-      ) : null}
+      <Card>
+        <CardContent className="p-5 text-xs text-muted-foreground">
+          {branchId
+            ? t(
+                "loyalty.qrPerBranch",
+                "This branch's counter code. It signs people up under this branch's settings.",
+              )
+            : t(
+                "loyalty.qrOrgHint",
+                "One code for the whole shop — for a poster, a receipt footer or a link in a bio. Members belong to the shop, not to a branch, so their card works everywhere either way.",
+              )}
+        </CardContent>
+      </Card>
     </Page>
   );
 }

@@ -31,9 +31,19 @@ import { LoyaltyPage, Panel, Section, usePageAccent } from "./page-shell";
 import { WalletButtons } from "./wallet-buttons";
 import { costLabel } from "./util";
 
-export function JoinPage({ branchId }: { branchId: string }) {
+export function JoinPage({
+  branchId,
+  orgId,
+}: {
+  /** One branch's counter code. */
+  branchId?: string;
+  /** The shop's own code — no branch, and none needed. */
+  orgId?: string;
+}) {
   const { t, i18n } = useTranslation();
-  const info = useLoyaltyJoinInfo({ branch_id: branchId });
+  const info = useLoyaltyJoinInfo(
+    branchId ? { branch_id: branchId } : { org_id: orgId },
+  );
   const [joined, setJoined] = useState<JoinResult | null>(null);
 
   if (info.isLoading) {
@@ -71,7 +81,13 @@ export function JoinPage({ branchId }: { branchId: string }) {
   return joined ? (
     <Joined data={data} joined={joined} brand={brand} />
   ) : (
-    <Form data={data} brand={brand} branchId={branchId} onJoined={setJoined} />
+    <Form
+      data={data}
+      brand={brand}
+      branchId={branchId}
+      orgId={orgId}
+      onJoined={setJoined}
+    />
   );
 }
 
@@ -97,11 +113,13 @@ function Form({
   data,
   brand,
   branchId,
+  orgId,
   onJoined,
 }: {
   data: JoinInfo;
   brand: ReturnType<typeof resolveBrand>;
-  branchId: string;
+  branchId?: string;
+  orgId?: string;
   onJoined: (r: JoinResult) => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -119,6 +137,7 @@ function Form({
         await join.mutateAsync({
           data: {
             branch_id: branchId,
+            org_id: branchId ? undefined : orgId,
             name: name.trim(),
             phone,
             device_token: deviceToken ?? undefined,
@@ -137,7 +156,7 @@ function Form({
   return (
     <LoyaltyPage
       brand={brand}
-      eyebrow={data.branch_name}
+      eyebrow={data.branch_name ?? undefined}
       title={brand.programName}
       intro={howItWorks(data, t)}
     >
@@ -263,7 +282,7 @@ function Joined({
   return (
     <LoyaltyPage
       brand={brand}
-      eyebrow={data.branch_name}
+      eyebrow={data.branch_name ?? undefined}
       title={
         joined.already_member
           ? t("loyalty.welcomeBack", "Welcome back")

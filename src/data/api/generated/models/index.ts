@@ -402,6 +402,7 @@ export * from './orgComparisonReport';
 export * from './orgConsumptionParams';
 export * from './orgIngredient';
 export * from './orgInventorySettings';
+export * from './orgLoyaltyQrParams';
 export * from './orgPaymentMethod';
 export * from './orgQrParams';
 export * from './orgShrinkageParams';
