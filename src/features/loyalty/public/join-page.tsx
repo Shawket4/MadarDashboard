@@ -27,6 +27,7 @@ import { fmtMoney } from "@/lib/format";
 
 import { resolveBrand } from "../shared/brand";
 import { CardFace } from "./card-face";
+import { BirthdayPicker, isComplete, type Birthday } from "./birthday-picker";
 import { LoyaltyPage, Panel, Section, usePageAccent } from "./page-shell";
 import { WalletButtons } from "./wallet-buttons";
 import { costLabel } from "../shared/util";
@@ -127,7 +128,7 @@ function Form({
   const accent = usePageAccent(brand);
   const join = useLoyaltyJoin();
   const [name, setName] = useState("");
-  const [birthday, setBirthday] = useState("");
+  const [birthday, setBirthday] = useState<Birthday>({ month: null, day: null });
   const [error, setError] = useState<string | null>(null);
 
   const submit = async (phone: string, deviceToken: string | null) => {
@@ -142,9 +143,13 @@ function Form({
             phone,
             device_token: deviceToken ?? undefined,
             locale: isAr ? "ar" : "en",
-            // Only sent where the shop asked for it. The server drops it
-            // otherwise, so this is tidiness rather than the guard.
-            birthday: data.birthday_enabled && birthday ? birthday : undefined,
+            // Only sent where the shop asked for it, and only as a complete
+            // pair. The server drops anything else, so this is tidiness rather
+            // than the guard.
+            birth_month:
+              data.birthday_enabled && isComplete(birthday) ? birthday.month : undefined,
+            birth_day:
+              data.birthday_enabled && isComplete(birthday) ? birthday.day : undefined,
           },
         }),
       );
@@ -197,39 +202,30 @@ function Form({
           {/* Only where the shop turned birthdays on. A date of birth is the
               most sensitive thing this form collects, and a shop not running
               birthday rewards is never given one to hold. */}
+          {/* Only where the shop turned birthdays on. A birthday is the most
+              sensitive thing this form collects, and a shop not running
+              birthday rewards is never given one to hold. */}
           {data.birthday_enabled ? (
-            <div className="flex flex-col gap-2">
-              <label htmlFor="loyalty-birthday" className="text-sm font-medium">
-                {t("loyalty.yourBirthday", "Your birthday")}
-                <span className="ms-1 font-normal text-muted-foreground">
-                  {t("loyalty.optional", "(optional)")}
-                </span>
-              </label>
-              <Input
-                id="loyalty-birthday"
-                type="date"
-                value={birthday}
-                onChange={(e) => setBirthday(e.target.value)}
-                // Nobody's birthday is tomorrow, and one typed that way would
-                // silently never fire.
-                max={new Date().toISOString().slice(0, 10)}
-                autoComplete="bday"
-              />
-              <p className="text-xs text-muted-foreground">
-                {/* Say what it is FOR. Asking for a date of birth and
-                    explaining nothing is how a form loses people. */}
-                {data.birthday_reward_amount
+            <BirthdayPicker
+              value={birthday}
+              onChange={setBirthday}
+              label={t("loyalty.yourBirthday", "Your birthday")}
+              hint={
+                // Say what it is FOR, and what is not being asked. Requesting a
+                // date of birth and explaining nothing is how a form loses
+                // people.
+                data.birthday_reward_amount
                   ? t("loyalty.birthdayWithGift", {
                       defaultValue:
-                        "We'll wish you a happy birthday and put {{n}} on your card.",
+                        "We'll wish you a happy birthday and put {{n}} on your card. We don't ask for the year.",
                       n: data.birthday_reward_amount,
                     })
                   : t(
                       "loyalty.birthdayNoGift",
-                      "So we can wish you a happy birthday. Nothing else.",
-                    )}
-              </p>
-            </div>
+                      "So we can wish you a happy birthday. We don't ask for the year.",
+                    )
+              }
+            />
           ) : null}
 
           {/* The very same component (and the very same OTP endpoints and

@@ -7923,7 +7923,8 @@ export const LoyaltyCardQrResponse = zod.unknown()
 
 
 export const LoyaltyJoinBody = zod.object({
-  "birthday": zod.iso.date().nullish().describe('Date of birth, `YYYY-MM-DD`. Accepted ONLY where the org asked for one:\na field the shop turned off must not be storable by posting past the\nform, and the year is kept because a date without one is not a date.'),
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish().describe('The day of their birthday, 1–12 and 1–31. Accepted ONLY where the org\nasked for one: a field the shop turned off must not be storable by\nposting past the form.\n\nNo year, deliberately. A greeting needs to know WHEN, not how old — and\na full date of birth is an identity credential, which is a great deal\nmore than an annual message needs.'),
   "branch_id": zod.uuid().nullish().describe('The branch whose counter code was scanned, when one was. Absent for an\norg-wide code — see [`BranchQuery`].'),
   "device_token": zod.string().nullish().describe('Device-trust token from `\/public\/otp\/verify`. Required only when the\nbranch\'s `require_otp` is on.'),
   "locale": zod.string().nullish().describe('\'en\' or \'ar\' — the language the pass is written in.'),

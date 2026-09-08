@@ -4159,8 +4159,8 @@
     "rewardsReadyN_other": "{{count}} rewards earned — ask at the counter.",
     "yourBirthday": "Your birthday",
     "optional": "(optional)",
-    "birthdayWithGift": "We'll wish you a happy birthday and put {{n}} on your card.",
-    "birthdayNoGift": "So we can wish you a happy birthday. Nothing else.",
+    "birthdayWithGift": "We'll wish you a happy birthday and put {{n}} on your card. We don't ask for the year.",
+    "birthdayNoGift": "So we can wish you a happy birthday. We don't ask for the year.",
     "birthdays": "Birthdays",
     "birthdaysHint": "Asks for a date of birth at signup and sends a WhatsApp greeting on the day. Off means the form does not ask at all.",
     "birthdayGift": "Birthday gift",
@@ -4176,6 +4176,8 @@
     "keepItHandy": "Keep it handy",
     "whatYouCanClaim": "What you can claim",
     "orgQr": "Sign-up code",
-    "qrOrgHint": "One code for the whole shop — for a poster, a receipt footer or a link in a bio. Members belong to the shop, not to a branch, so their card works everywhere either way."
+    "qrOrgHint": "One code for the whole shop — for a poster, a receipt footer or a link in a bio. Members belong to the shop, not to a branch, so their card works everywhere either way.",
+    "month": "Month",
+    "day": "Day"
   }
 }
