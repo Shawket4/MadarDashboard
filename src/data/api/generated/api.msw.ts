@@ -197,6 +197,7 @@ import type {
   UserPublic,
   VarianceReport,
   WaiterStatsReport,
+  WalletStatus,
   WasteReportRow,
   WhatsappStatus,
   WorkShift
@@ -474,6 +475,8 @@ export const getPutLoyaltyRewardItemsResponseMock = (overrideResponse: Partial<E
 export const getGetLoyaltySettingsResponseMock = (overrideResponse: Partial<Extract<LoyaltySettings, object>> = {}): LoyaltySettings => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), default_reward_cost: faker.number.int(), earn_include_tax: faker.datatype.boolean(), earn_on_discounted: faker.datatype.boolean(), earn_piastres_per_point: faker.number.int(), enabled: faker.datatype.boolean(), mode: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), program_name: faker.string.alpha({length: {min: 10, max: 20}}), program_name_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_otp: faker.datatype.boolean(), terms: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), terms_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
 
 export const getPutLoyaltySettingsResponseMock = (overrideResponse: Partial<Extract<LoyaltySettings, object>> = {}): LoyaltySettings => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), default_reward_cost: faker.number.int(), earn_include_tax: faker.datatype.boolean(), earn_on_discounted: faker.datatype.boolean(), earn_piastres_per_point: faker.number.int(), enabled: faker.datatype.boolean(), mode: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), program_name: faker.string.alpha({length: {min: 10, max: 20}}), program_name_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_otp: faker.datatype.boolean(), terms: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), terms_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getGetLoyaltyWalletStatusResponseMock = (overrideResponse: Partial<Extract<WalletStatus, object>> = {}): WalletStatus => ({apple: {configured: faker.datatype.boolean(), detail: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), missing: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), reachable: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, google: {configured: faker.datatype.boolean(), detail: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), missing: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), reachable: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, ...overrideResponse})
 
 export const getPutSizeRecipeResponseMock = (overrideResponse: Partial<Extract<RecipeCostResult, object>> = {}): RecipeCostResult => ({catalog_revision: faker.number.int(), cost_incomplete: faker.datatype.boolean(), cost_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), recipe: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), ingredient_id: faker.string.uuid(), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), line_cost_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), quantity: faker.string.alpha({length: {min: 10, max: 20}}), unit: faker.string.alpha({length: {min: 10, max: 20}})})), size_id: faker.string.uuid(), ...overrideResponse})
 
@@ -2728,6 +2731,18 @@ export const getDeleteLoyaltySettingsMockHandler = (overrideResponse?: void | ((
 
     return new HttpResponse(null,
       { status: 204
+      })
+  }, options)
+}
+
+export const getGetLoyaltyWalletStatusMockHandler = (overrideResponse?: WalletStatus | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<WalletStatus> | WalletStatus), options?: RequestHandlerOptions) => {
+  return http.get('*/loyalty/wallet-status', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetLoyaltyWalletStatusResponseMock(),
+      { status: 200
       })
   }, options)
 }
@@ -5786,6 +5801,7 @@ export const getMadarAPIMock = () => [
   getGetLoyaltySettingsMockHandler(),
   getPutLoyaltySettingsMockHandler(),
   getDeleteLoyaltySettingsMockHandler(),
+  getGetLoyaltyWalletStatusMockHandler(),
   getPutSizeRecipeMockHandler(),
   getListMenuItemsMockHandler(),
   getCreateMenuItemMockHandler(),

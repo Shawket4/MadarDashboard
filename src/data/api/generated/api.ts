@@ -191,6 +191,7 @@ import type {
   GetLoyaltyMemberParams,
   GetLoyaltyRewardItemsParams,
   GetLoyaltySettingsParams,
+  GetLoyaltyWalletStatusParams,
   GetMarginTargetsParams,
   GetRoutingModeParams,
   GetScheduledDayParams,
@@ -447,6 +448,7 @@ import type {
   VoidOrderRequest,
   WaiterStatsReport,
   WaiveDeductionRequest,
+  WalletStatus,
   WasteReportRow,
   WhatsappStatus,
   WorkShift,
@@ -11604,6 +11606,108 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getDeleteLoyaltySettingsMutationOptions(options), queryClient);
     }
+
+/**
+ * Every failure in this feature has looked the same from the outside — a
+ * missing button, or a save that says "something went wrong" — while the cause
+ * was a variable nobody set, a key file the code never read, a service account
+ * Google had not been told about, or a link over a size limit. None of those
+ * reach a customer's screen, and only some reach a log.
+ *
+ * This asks, on demand, and reports what it finds. It makes live calls to
+ * Google, so it is deliberately not part of any page load.
+ * @summary Why there is no "Add to Wallet" button.
+ */
+export const getLoyaltyWalletStatus = (
+    params?: GetLoyaltyWalletStatusParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<WalletStatus>(
+      {url: `/loyalty/wallet-status`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLoyaltyWalletStatusQueryKey = (params?: GetLoyaltyWalletStatusParams,) => {
+    return [
+    `/loyalty/wallet-status`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLoyaltyWalletStatusQueryOptions = <TData = Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError = ErrorBody>(params?: GetLoyaltyWalletStatusParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoyaltyWalletStatusQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoyaltyWalletStatus>>> = ({ signal }) => getLoyaltyWalletStatus(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLoyaltyWalletStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getLoyaltyWalletStatus>>>
+export type GetLoyaltyWalletStatusQueryError = ErrorBody
+
+
+export function useGetLoyaltyWalletStatus<TData = Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError = ErrorBody>(
+ params: undefined |  GetLoyaltyWalletStatusParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyWalletStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyWalletStatus>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyWalletStatus<TData = Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError = ErrorBody>(
+ params?: GetLoyaltyWalletStatusParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyWalletStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyWalletStatus>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyWalletStatus<TData = Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError = ErrorBody>(
+ params?: GetLoyaltyWalletStatusParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Why there is no "Add to Wallet" button.
+ */
+
+export function useGetLoyaltyWalletStatus<TData = Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError = ErrorBody>(
+ params?: GetLoyaltyWalletStatusParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLoyaltyWalletStatusQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const putSizeRecipe = (
     sizeId: string,

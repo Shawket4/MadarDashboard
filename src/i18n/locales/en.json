@@ -4138,6 +4138,11 @@
     "noWalletHere": "Show this code at the counter — it works without a wallet app.",
     "ofTarget": "of {{n}} {{unit}}",
     "scanAtCounter": "Scan at the counter",
-    "memberCodeAlt": "Your membership code"
+    "memberCodeAlt": "Your membership code",
+    "walletStatus": "Wallet passes",
+    "walletStatusHint": "Checks whether Apple and Google will issue a card for this shop.",
+    "walletCheck": "Check",
+    "walletMissing": "Not set on the server:",
+    "walletReady": "Configured."
   }
 }

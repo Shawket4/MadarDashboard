@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Loader2, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { WalletStatusPanel } from "./wallet-status";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -297,6 +298,12 @@ export function ProgramSettings({
           <div className="space-y-1.5">
             <Label htmlFor="terms">{t("loyalty.terms", "Terms (shown on the pass)")}</Label>
             <Input id="terms" {...form.register("terms")} />
+          </div>
+
+          {/* Sits with the pass settings, because "the customer has no Add to
+              Wallet button" is the question it answers. */}
+          <div className="border-t pt-4">
+            <WalletStatusPanel branchId={branchId} />
           </div>
         </CardContent>
       </Card>

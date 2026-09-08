@@ -4174,7 +4174,7 @@ export const LoyaltyLookupResponse = zod.object({
   "rewards": zod.array(zod.object({
   "base_price": zod.number().describe('Menu price in piastres — what the reward is worth, for the admin\'s sake.'),
   "cost_amount": zod.number().describe('How much of that currency it costs. Per item, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\".'),
-  "cost_currency": zod.string().describe('`\"points\"` or `\"visits\"` — what this reward is bought with.'),
+  "cost_currency": zod.string().describe('`\"points\"` or `\"visits\"` — what this reward is bought with.\n\nAlways the currency of the scope this was READ through, never whatever\nthe row happened to be written with. A program has one mode\n([`LoyaltySettings::mode`]) and a reward is priced in it; the stored\ncolumn is a record of intent, not an independent fact, and letting the\ntwo disagree is what made a whole catalogue vanish from the till while\nthe dashboard still listed it.'),
   "image_url": zod.string().nullish(),
   "menu_item_id": zod.uuid(),
   "name": zod.string().describe('Denormalised for display so the teller and the pass need no menu join.'),
@@ -4267,7 +4267,7 @@ export const GetLoyaltyRewardItemsResponse = zod.object({
   "items": zod.array(zod.object({
   "base_price": zod.number().describe('Menu price in piastres — what the reward is worth, for the admin\'s sake.'),
   "cost_amount": zod.number().describe('How much of that currency it costs. Per item, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\".'),
-  "cost_currency": zod.string().describe('`\"points\"` or `\"visits\"` — what this reward is bought with.'),
+  "cost_currency": zod.string().describe('`\"points\"` or `\"visits\"` — what this reward is bought with.\n\nAlways the currency of the scope this was READ through, never whatever\nthe row happened to be written with. A program has one mode\n([`LoyaltySettings::mode`]) and a reward is priced in it; the stored\ncolumn is a record of intent, not an independent fact, and letting the\ntwo disagree is what made a whole catalogue vanish from the till while\nthe dashboard still listed it.'),
   "image_url": zod.string().nullish(),
   "menu_item_id": zod.uuid(),
   "name": zod.string().describe('Denormalised for display so the teller and the pass need no menu join.'),
@@ -4292,7 +4292,7 @@ export const PutLoyaltyRewardItemsResponse = zod.object({
   "items": zod.array(zod.object({
   "base_price": zod.number().describe('Menu price in piastres — what the reward is worth, for the admin\'s sake.'),
   "cost_amount": zod.number().describe('How much of that currency it costs. Per item, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\".'),
-  "cost_currency": zod.string().describe('`\"points\"` or `\"visits\"` — what this reward is bought with.'),
+  "cost_currency": zod.string().describe('`\"points\"` or `\"visits\"` — what this reward is bought with.\n\nAlways the currency of the scope this was READ through, never whatever\nthe row happened to be written with. A program has one mode\n([`LoyaltySettings::mode`]) and a reward is priced in it; the stored\ncolumn is a record of intent, not an independent fact, and letting the\ntwo disagree is what made a whole catalogue vanish from the till while\nthe dashboard still listed it.'),
   "image_url": zod.string().nullish(),
   "menu_item_id": zod.uuid(),
   "name": zod.string().describe('Denormalised for display so the teller and the pass need no menu join.'),
@@ -4361,6 +4361,37 @@ export const DeleteLoyaltySettingsQueryParams = zod.object({
 })
 
 export const DeleteLoyaltySettingsResponse = zod.void()
+
+
+/**
+ * Every failure in this feature has looked the same from the outside — a
+ * missing button, or a save that says "something went wrong" — while the cause
+ * was a variable nobody set, a key file the code never read, a service account
+ * Google had not been told about, or a link over a size limit. None of those
+ * reach a customer's screen, and only some reach a log.
+ *
+ * This asks, on demand, and reports what it finds. It makes live calls to
+ * Google, so it is deliberately not part of any page load.
+ * @summary Why there is no "Add to Wallet" button.
+ */
+export const GetLoyaltyWalletStatusQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')
+})
+
+export const GetLoyaltyWalletStatusResponse = zod.object({
+  "apple": zod.object({
+  "configured": zod.boolean().describe('Everything present. False means the button is not offered at all.'),
+  "detail": zod.string().nullish(),
+  "missing": zod.array(zod.string()).describe('The settings still missing, by name. Empty when `configured`.'),
+  "reachable": zod.boolean().nullish().describe('Google only: what Google itself said when asked. `None` for Apple, which\nsigns locally and has nobody to ask.')
+}).describe('What a wallet needs before it will offer a button, and whether it has it.'),
+  "google": zod.object({
+  "configured": zod.boolean().describe('Everything present. False means the button is not offered at all.'),
+  "detail": zod.string().nullish(),
+  "missing": zod.array(zod.string()).describe('The settings still missing, by name. Empty when `configured`.'),
+  "reachable": zod.boolean().nullish().describe('Google only: what Google itself said when asked. `None` for Apple, which\nsigns locally and has nobody to ask.')
+}).describe('What a wallet needs before it will offer a button, and whether it has it.')
+})
 
 
 export const PutSizeRecipeParams = zod.object({

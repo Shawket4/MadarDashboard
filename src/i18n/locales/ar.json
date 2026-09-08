@@ -4236,6 +4236,11 @@
     "noWalletHere": "أظهر هذا الكود عند الكاشير — يعمل بدون تطبيق محفظة.",
     "ofTarget": "من {{n}} {{unit}}",
     "scanAtCounter": "امسح عند الكاشير",
-    "memberCodeAlt": "رمز عضويتك"
+    "memberCodeAlt": "رمز عضويتك",
+    "walletStatus": "بطاقات المحفظة",
+    "walletStatusHint": "يتحقق مما إذا كانت Apple و Google ستصدران بطاقة لهذا المتجر.",
+    "walletCheck": "فحص",
+    "walletMissing": "غير مضبوط على الخادم:",
+    "walletReady": "تم الضبط."
   }
 }
