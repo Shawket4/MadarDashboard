@@ -4227,7 +4227,7 @@
     "youreIn": "تم انضمامك",
     "welcomeBack": "أهلًا بعودتك",
     "alreadyMember": "أنت عضو بالفعل — هذه بطاقتك مرة أخرى.",
-    "joinedBody": "أضف بطاقتك إلى هاتفك وأظهرها عند الدفع.",
+    "joinedBody": "اعرضها عند الدفع، وستبدأ في احتساب مكافآتك.",
     "viewCard": "عرض بطاقتي",
     "addToApple": "أضف إلى Apple Wallet",
     "addToGoogle": "احفظ في Google Wallet",
@@ -4268,6 +4268,10 @@
     "birthdayMessagePlaceholder": "اتركه فارغاً لاستخدام رسالتنا. {name} يصبح اسمه.",
     "birthdayMessageAr": "الرسالة (بالعربية)",
     "birthdayMessageArPlaceholder": "اتركه فارغاً وسيصل الأعضاء العرب النص الإنجليزي.",
-    "birthdayPreview": "ما الذي سيصلهم"
+    "birthdayPreview": "ما الذي سيصلهم",
+    "yourCard": "بطاقتك",
+    "yourDetails": "بياناتك",
+    "keepItHandy": "احتفظ بها في متناولك",
+    "whatYouCanClaim": "ما يمكنك الحصول عليه"
   }
 }

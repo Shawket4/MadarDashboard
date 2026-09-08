@@ -48,6 +48,45 @@ const contrast = (a: string, b: string): number => {
   return (hi + 0.05) / (lo + 0.05);
 };
 
+/** Mix two colours, `t` of the way from `a` to `b`. */
+const mix = (a: string, b: string, t: number): string => {
+  const ch = (h: string, i: number) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16);
+  const c = (i: number) => Math.round(ch(a, i) + (ch(b, i) - ch(a, i)) * t);
+  return `#${[0, 1, 2].map((i) => c(i).toString(16).padStart(2, "0")).join("")}`;
+};
+
+/**
+ * A brand colour that is legible as TEXT on the page it is printed on.
+ *
+ * The card can use a shop's accent freely — it sits on that shop's own ground,
+ * and the pair is contrast-checked at the source. The PAGE is a different
+ * problem: it follows the reader's light/dark preference, so the same accent
+ * has to read on white and on near-black, and plenty of real brand colours read
+ * on neither. A pale mint headline on white is not a design choice, it is an
+ * unreadable one.
+ *
+ * So the hue is kept and the lightness is walked towards the page's ink until
+ * it clears AA. Nudged in steps rather than solved analytically because the
+ * answer only has to be right, and this is a handful of arithmetic on a colour
+ * that changes when a shop uploads a new logo.
+ */
+export const readableOn = (color: string, ground: string): string => {
+  if (!HEX.test(color) || !HEX.test(ground)) return color;
+  // Legible already: hand back the shop's own value, untouched. Mixing by zero
+  // would return an equal colour spelled differently, and a caller comparing
+  // strings would think we had changed it.
+  if (contrast(color, ground) >= AA) return color;
+  // Toward the opposite end from the ground: darker on a light page, lighter on
+  // a dark one, which is the direction that keeps the hue recognisable.
+  const target = luminance(ground) > 0.5 ? "#000000" : "#ffffff";
+  let out = color;
+  for (let t = 0.08; t <= 1.0001; t += 0.08) {
+    out = mix(color, target, t);
+    if (contrast(out, ground) >= AA) return out;
+  }
+  return out;
+};
+
 export interface ResolvedBrand {
   orgName: string;
   programName: string;
@@ -74,6 +113,14 @@ export interface ResolvedBrand {
   accent: string;
   /** True when the ground is dark, so the caller can pick matching assets. */
   isDark: boolean;
+  /**
+   * The accent, made legible on the PAGE rather than on the card.
+   *
+   * `accent` is for things sitting on the card's own ground. This is for
+   * headings, icons and links on the page around it, which follows the
+   * reader's theme and not the shop's.
+   */
+  pageAccent: (ground: string) => string;
 }
 
 export function resolveBrand(
@@ -121,5 +168,7 @@ export function resolveBrand(
     muted: dark ? "rgba(255,255,255,0.72)" : "rgba(0,0,0,0.60)",
     accent: safe(brand?.label_color, dark ? MADAR_TEAL_LIGHT : MADAR_TEAL),
     isDark: dark,
+    pageAccent: (ground: string) =>
+      readableOn(safe(brand?.label_color, MADAR_TEAL), ground),
   };
 }

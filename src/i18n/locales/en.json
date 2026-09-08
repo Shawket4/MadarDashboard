@@ -4129,7 +4129,7 @@
     "youreIn": "You're in",
     "welcomeBack": "Welcome back",
     "alreadyMember": "You're already a member — here's your card again.",
-    "joinedBody": "Add your card to your phone and show it when you pay.",
+    "joinedBody": "Show this when you pay, and it starts counting.",
     "viewCard": "View my card",
     "addToApple": "Add to Apple Wallet",
     "addToGoogle": "Save to Google Wallet",
@@ -4170,6 +4170,10 @@
     "birthdayMessagePlaceholder": "Leave empty to use ours. {name} becomes their name.",
     "birthdayMessageAr": "Message (Arabic)",
     "birthdayMessageArPlaceholder": "Leave empty and Arabic members get the English one.",
-    "birthdayPreview": "What they'll receive"
+    "birthdayPreview": "What they'll receive",
+    "yourCard": "Your card",
+    "yourDetails": "Your details",
+    "keepItHandy": "Keep it handy",
+    "whatYouCanClaim": "What you can claim"
   }
 }

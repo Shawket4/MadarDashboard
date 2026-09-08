@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveBrand } from "./brand";
+import { readableOn, resolveBrand } from "./brand";
 
 /** The AA floor both sides of the wire hold to. */
 const AA = 4.5;
@@ -17,6 +17,31 @@ const contrast = (a: string, b: string) => {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
 };
+
+describe("readableOn", () => {
+  it("makes any brand colour legible on a light page and a dark one", () => {
+    // Real brand colours that read on one ground and not the other: a pale
+    // mint, a near-black navy, a mid yellow.
+    for (const c of ["#9BE8C8", "#0B1B3A", "#E9C46A", "#0D6273", "#FFFFFF", "#000000"]) {
+      for (const ground of ["#FFFFFF", "#0B0B0C", "#F5F5F4"]) {
+        const out = readableOn(c, ground);
+        expect(
+          contrast(out, ground),
+          `${c} on ${ground} became ${out}`,
+        ).toBeGreaterThanOrEqual(AA);
+      }
+    }
+  });
+
+  it("leaves a colour that already reads alone", () => {
+    // No point darkening something legible — the hue is the shop's.
+    expect(readableOn("#0B1B3A", "#FFFFFF")).toBe("#0B1B3A");
+  });
+
+  it("passes junk through rather than inventing a colour", () => {
+    expect(readableOn("not-a-colour", "#FFFFFF")).toBe("not-a-colour");
+  });
+});
 
 describe("resolveBrand", () => {
   it("keeps a readable foreground the backend derived", () => {
