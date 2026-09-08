@@ -113,6 +113,10 @@ export function WalletStatusPanel({ branchId }: { branchId: string | null }) {
       {status ? (
         <div className="grid gap-2 sm:grid-cols-2">
           <Provider name="Apple Wallet" p={status.apple} />
+          {/* Separate from pass signing, and separately configured: a pass can
+              be issued perfectly and never change on anyone's phone. This panel
+              used to report Apple as fine while every update went nowhere. */}
+          <Provider name="Apple push (updates)" p={status.apns} />
           <Provider name="Google Wallet" p={status.google} />
         </div>
       ) : null}

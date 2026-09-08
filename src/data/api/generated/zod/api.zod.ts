@@ -4443,6 +4443,12 @@ export const GetLoyaltyWalletStatusQueryParams = zod.object({
 })
 
 export const GetLoyaltyWalletStatusResponse = zod.object({
+  "apns": zod.object({
+  "configured": zod.boolean().describe('Everything present. False means the button is not offered at all.'),
+  "detail": zod.string().nullish(),
+  "missing": zod.array(zod.string()).describe('The settings still missing, by name. Empty when `configured`.'),
+  "reachable": zod.boolean().nullish().describe('Google only: what Google itself said when asked. `None` for Apple, which\nsigns locally and has nobody to ask.')
+}).describe('Apple\'s push channel, which is SEPARATE from pass signing.\n\nA pass can be issued perfectly and never change on anyone\'s phone,\nbecause the two are configured independently — and this panel used to\nreport Apple as fine while every balance update went nowhere.'),
   "apple": zod.object({
   "configured": zod.boolean().describe('Everything present. False means the button is not offered at all.'),
   "detail": zod.string().nullish(),
