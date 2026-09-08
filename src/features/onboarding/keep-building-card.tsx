@@ -29,7 +29,13 @@ export function KeepBuildingCard() {
     }
   });
 
-  const q = useGetOnboarding(orgId ?? "", { query: { enabled: !!orgId && role === "org_admin" && !dismissed } });
+  // A super admin scoped to a shop sees this too: it is the list of what is
+  // still unset in the shop they are looking at, which is exactly what someone
+  // setting a shop up on its owner's behalf needs — and it is dismissible. The
+  // full-screen onboarding REDIRECT stays org-admin only; being thrown into a
+  // setup wizard for someone else's half-built shop is not help.
+  const canSeeSetup = role === "org_admin" || role === "super_admin";
+  const q = useGetOnboarding(orgId ?? "", { query: { enabled: !!orgId && canSeeSetup && !dismissed } });
   const steps = q.data?.steps ?? [];
   const total = steps.length;
   const done = steps.filter((s) => s.done).length;

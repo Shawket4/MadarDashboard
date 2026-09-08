@@ -16,6 +16,7 @@ import { useListBranches } from "@/data/api/generated/api";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useScope } from "@/data/scope/use-scope";
+import { OrgPicker } from "./org-picker";
 import { SCOPE_PRESETS, type ScopePreset } from "@/data/scope/presets";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +70,10 @@ function ScopeControls({ className }: { className?: string }) {
 
   return (
     <div className={className}>
+      {/* Which shop, then which branch of it. Super admins only — every other
+          role's org is fixed by their token, and the control would be a
+          one-item list they could not change. */}
+      <OrgPicker />
       {canPickBranch && branchesLoading && !singleBranch ? (
         <div
           className="flex h-8 w-auto min-w-32 items-center gap-2 rounded-md border bg-card px-3 text-sm text-muted-foreground"
@@ -127,7 +132,7 @@ export function ScopeBarMobile({ className }: { className?: string }) {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-60">
-        <ScopeControls className="flex flex-col gap-2 [&_[data-slot=select-trigger]]:w-full" />
+        <ScopeControls className="flex flex-col gap-2 [&_[data-slot=select-trigger]]:w-full [&_[role=combobox]]:w-full" />
       </PopoverContent>
     </Popover>
   );

@@ -297,7 +297,8 @@
     "editDescription": "Update the details for this organization.",
     "newDescription": "Fill in the details to create a new organization.",
     "customBranding": "Custom branding",
-    "customBrandingHint": "Puts this organisation's own logo and colours on customer loyalty cards and the signup page. Off, they use Madar's. Madar stays in the footer either way."
+    "customBrandingHint": "Puts this organisation's own logo and colours on customer loyalty cards and the signup page. Off, they use Madar's. Madar stays in the footer either way.",
+    "inactive": "Inactive"
   },
   "branches": {
     "title": "Branches",
@@ -2734,7 +2735,10 @@
       "30d": "Last 30 days",
       "mtd": "Month to date",
       "custom": "Custom"
-    }
+    },
+    "pickOrg": "Select a shop",
+    "searchOrgs": "Search shops…",
+    "noOrgs": "No shops found"
   },
   "menuEngineering": {
     "title": "Menu Engineering",
