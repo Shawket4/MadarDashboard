@@ -197,6 +197,7 @@ import type {
   GetRoutingModeParams,
   GetScheduledDayParams,
   GoodsReceipt,
+  GoogleObjectDump,
   GroupOptionOut,
   GroupOut,
   GuestOrderHistoryParams,
@@ -11330,6 +11331,109 @@ export function useGetLoyaltyMember<TData = Awaited<ReturnType<typeof getLoyalty
 
 
 
+/**
+ * The nearby-notification question has been answered three times by reasoning
+ * and never by looking: either the `locations` are on the object Google holds
+ * and the gap is in what Google does with them, or they never arrived and the
+ * gap is ours. Both stories fit every symptom from the outside; only the object
+ * separates them. This returns it verbatim, unsummarised, because a summary
+ * would be one more layer of my guessing between the evidence and the reader.
+ *
+ * Super admin for the same reason as `wallet_status`: it is Madar's plumbing,
+ * named in Google's vocabulary, and there is nothing an org manager could do
+ * with it.
+ * @summary What Google is actually holding for one member's card. **Super admin only.**
+ */
+export const getLoyaltyGoogleObject = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<GoogleObjectDump>(
+      {url: `/loyalty/members/${id}/google-object`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLoyaltyGoogleObjectQueryKey = (id: string,) => {
+    return [
+    `/loyalty/members/${id}/google-object`
+    ] as const;
+    }
+
+
+export const getGetLoyaltyGoogleObjectQueryOptions = <TData = Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoyaltyGoogleObjectQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoyaltyGoogleObject>>> = ({ signal }) => getLoyaltyGoogleObject(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLoyaltyGoogleObjectQueryResult = NonNullable<Awaited<ReturnType<typeof getLoyaltyGoogleObject>>>
+export type GetLoyaltyGoogleObjectQueryError = ErrorBody
+
+
+export function useGetLoyaltyGoogleObject<TData = Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyGoogleObject>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyGoogleObject>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyGoogleObject<TData = Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyGoogleObject>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyGoogleObject>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyGoogleObject<TData = Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary What Google is actually holding for one member's card. **Super admin only.**
+ */
+
+export function useGetLoyaltyGoogleObject<TData = Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyGoogleObject>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLoyaltyGoogleObjectQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getLoyaltyRewardItems = (
     params?: GetLoyaltyRewardItemsParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -11691,7 +11795,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
  *
  * This asks, on demand, and reports what it finds. It makes live calls to
  * Google, so it is deliberately not part of any page load.
- * @summary Why there is no "Add to Wallet" button.
+ * @summary Why there is no "Add to Wallet" button. **Super admin only.**
  */
 export const getLoyaltyWalletStatus = (
     params?: GetLoyaltyWalletStatusParams,
@@ -11763,7 +11867,7 @@ export function useGetLoyaltyWalletStatus<TData = Awaited<ReturnType<typeof getL
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Why there is no "Add to Wallet" button.
+ * @summary Why there is no "Add to Wallet" button. **Super admin only.**
  */
 
 export function useGetLoyaltyWalletStatus<TData = Awaited<ReturnType<typeof getLoyaltyWalletStatus>>, TError = ErrorBody>(

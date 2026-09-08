@@ -251,6 +251,8 @@ export * from './getRoutingModeParams';
 export * from './getScheduledDayParams';
 export * from './goodsReceipt';
 export * from './goodsReceiptLine';
+export * from './googleObjectDump';
+export * from './googleObjectDumpObject';
 export * from './grain';
 export * from './groupAttachInput';
 export * from './groupOptionOut';

@@ -4181,6 +4181,10 @@
     "orgQr": "Sign-up code",
     "qrOrgHint": "One code for the whole shop — for a poster, a receipt footer or a link in a bio. Members belong to the shop, not to a branch, so their card works everywhere either way.",
     "month": "Month",
-    "day": "Day"
+    "day": "Day",
+    "googleObject": "Google Wallet object",
+    "googleObjectFor": "What Google is holding for {{name}}.",
+    "branchesExpected": "Branches we send",
+    "branchesStored": "Branches Google has"
   }
 }

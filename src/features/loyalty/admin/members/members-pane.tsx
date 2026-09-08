@@ -7,25 +7,41 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Search } from "lucide-react";
+import { Search, Wallet } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/empty-state";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { useListLoyaltyMembers } from "@/data/api/generated/api";
+import { useAuthStore } from "@/data/stores/auth.store";
 import { fmtDate } from "@/lib/format";
 
 import { currencyLabel } from "../../shared/util";
 import type { ProgramScope } from "../use-program";
+import { GoogleObjectDialog } from "./google-object-dialog";
 
 export function MembersPane({ scope }: { scope: ProgramScope }) {
   const { branchId } = scope;
   const { t } = useTranslation();
   const [q, setQ] = useState("");
+  // Super admin only: it reads Madar's plumbing out of Google in Google's own
+  // vocabulary, which is nothing an org manager could act on. The endpoint
+  // refuses them too, so this is presentation, not the guard.
+  const isSuperAdmin = useAuthStore((s) => s.user?.role) === "super_admin";
+  const [inspecting, setInspecting] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const page = useListLoyaltyMembers({
     ...(branchId ? { branch_id: branchId } : {}),
     ...(q.trim() ? { q: q.trim() } : {}),
@@ -63,6 +79,7 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
                 <TableHead>{t("loyalty.balance", "Balance")}</TableHead>
                 <TableHead>{t("loyalty.progress", "To next reward")}</TableHead>
                 <TableHead>{t("loyalty.joined", "Joined")}</TableHead>
+                {isSuperAdmin ? <TableHead className="w-0" /> : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -77,18 +94,39 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
                   </TableCell>
                   <TableCell>
                     {m.can_redeem ? (
-                      <Badge variant="outline" className="border-transparent bg-success/15 text-success">
+                      <Badge
+                        variant="outline"
+                        className="border-transparent bg-success/15 text-success"
+                      >
                         {t("loyalty.rewardReady", "Reward earned")}
                       </Badge>
                     ) : (
                       <span className="text-xs text-muted-foreground">
-                        {m.points_to_next_reward} {currencyLabel(m.mode, m.points_to_next_reward)}
+                        {m.points_to_next_reward}{" "}
+                        {currencyLabel(m.mode, m.points_to_next_reward)}
                       </span>
                     )}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {fmtDate(m.enrolled_at)}
                   </TableCell>
+                  {isSuperAdmin ? (
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t(
+                          "loyalty.googleObject",
+                          "Google Wallet object",
+                        )}
+                        onClick={() =>
+                          setInspecting({ id: m.id, name: m.name })
+                        }
+                      >
+                        <Wallet className="size-4" />
+                      </Button>
+                    </TableCell>
+                  ) : null}
                 </TableRow>
               ))}
             </TableBody>
@@ -105,6 +143,12 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
           })}
         </p>
       ) : null}
+
+      <GoogleObjectDialog
+        memberId={inspecting?.id ?? null}
+        memberName={inspecting?.name ?? ""}
+        onOpenChange={(o) => !o && setInspecting(null)}
+      />
     </div>
   );
 }

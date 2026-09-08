@@ -12,6 +12,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import type { ProgramValues } from "./form-schema";
 import { TextRow } from "./fields";
+import { useAuthStore } from "@/data/stores/auth.store";
+
 import { WalletStatusPanel } from "./wallet-status";
 
 export function PassesCard({
@@ -22,6 +24,7 @@ export function PassesCard({
   branchId: string | null;
 }) {
   const { t } = useTranslation();
+  const isSuperAdmin = useAuthStore((s) => s.user?.role) === "super_admin";
   return (
     <Card>
       <CardContent className="space-y-5 p-5">
@@ -30,9 +33,17 @@ export function PassesCard({
           name="terms"
           label={t("loyalty.terms", "Terms (shown on the pass)")}
         />
-        <div className="border-t pt-4">
-          <WalletStatusPanel branchId={branchId} />
-        </div>
+        {/* Super admin only, and not because it is dangerous — because it is
+            not the shop's business. It names Madar's environment variables and
+            reports what Apple and Google said about our service accounts;
+            "LOYALTY_GOOGLE_SA_KEY_FILE is not set" tells an org manager nothing
+            they can act on and everything about plumbing they never asked to
+            know. The endpoint refuses them too. */}
+        {isSuperAdmin ? (
+          <div className="border-t pt-4">
+            <WalletStatusPanel branchId={branchId} />
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

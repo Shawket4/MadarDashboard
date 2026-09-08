@@ -4306,6 +4306,39 @@ export const GetLoyaltyMemberResponse = zod.object({
 })
 
 
+/**
+ * The nearby-notification question has been answered three times by reasoning
+ * and never by looking: either the `locations` are on the object Google holds
+ * and the gap is in what Google does with them, or they never arrived and the
+ * gap is ours. Both stories fit every symptom from the outside; only the object
+ * separates them. This returns it verbatim, unsummarised, because a summary
+ * would be one more layer of my guessing between the evidence and the reader.
+ *
+ * Super admin for the same reason as `wallet_status`: it is Madar's plumbing,
+ * named in Google's vocabulary, and there is nothing an org manager could do
+ * with it.
+ * @summary What Google is actually holding for one member's card. **Super admin only.**
+ */
+export const GetLoyaltyGoogleObjectParams = zod.object({
+  "id": zod.uuid().describe('Loyalty member id')
+})
+
+export const getLoyaltyGoogleObjectResponseExpectedLocationsMin = 0;
+
+export const getLoyaltyGoogleObjectResponseStoredLocationsMin = 0;
+
+
+
+export const GetLoyaltyGoogleObjectResponse = zod.object({
+  "error": zod.string().nullish().describe('Why there is no object, in Google\'s words.'),
+  "expected_locations": zod.number().min(getLoyaltyGoogleObjectResponseExpectedLocationsMin).describe('Branches this member\'s card should be pinned to, from our own side.'),
+  "object": zod.looseObject({
+
+}).nullish().describe('Google\'s object, untouched. `None` when the read itself failed.'),
+  "stored_locations": zod.number().min(getLoyaltyGoogleObjectResponseStoredLocationsMin).describe('Branches Google says are on it. A gap between the two is the answer.')
+}).describe('The card Google holds, plus the two counts that make it readable at a glance.')
+
+
 export const GetLoyaltyRewardItemsQueryParams = zod.object({
   "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')
 })
@@ -4436,7 +4469,7 @@ export const DeleteLoyaltySettingsResponse = zod.void()
  *
  * This asks, on demand, and reports what it finds. It makes live calls to
  * Google, so it is deliberately not part of any page load.
- * @summary Why there is no "Add to Wallet" button.
+ * @summary Why there is no "Add to Wallet" button. **Super admin only.**
  */
 export const GetLoyaltyWalletStatusQueryParams = zod.object({
   "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')

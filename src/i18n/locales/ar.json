@@ -4279,6 +4279,10 @@
     "orgQr": "رمز التسجيل",
     "qrOrgHint": "رمز واحد للمتجر كله — لملصق أو تذييل إيصال أو رابط في الحساب. العضوية للمتجر وليست للفرع، فبطاقتهم تعمل في كل الفروع على أي حال.",
     "month": "الشهر",
-    "day": "اليوم"
+    "day": "اليوم",
+    "googleObject": "بطاقة Google Wallet",
+    "googleObjectFor": "ما تحتفظ به Google لـ {{name}}.",
+    "branchesExpected": "الفروع التي نرسلها",
+    "branchesStored": "الفروع لدى Google"
   }
 }
