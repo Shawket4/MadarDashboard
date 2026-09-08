@@ -4143,6 +4143,11 @@
     "walletStatusHint": "Checks whether Apple and Google will issue a card for this shop.",
     "walletCheck": "Check",
     "walletMissing": "Not set on the server:",
-    "walletReady": "Configured."
+    "walletReady": "Configured.",
+    "anyItem": "Any item can be a reward",
+    "anyItemHint": "Opens the whole menu at the price below, instead of only the Rewards list. Off by default — a list lets you offer an espresso without also offering the steak.",
+    "andMoreReady": "+{{n}} more ready",
+    "rewardsReadyN_one": "1 reward earned — ask at the counter.",
+    "rewardsReadyN_other": "{{count}} rewards earned — ask at the counter."
   }
 }

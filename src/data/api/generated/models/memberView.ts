@@ -31,7 +31,24 @@ export interface MemberView {
   org_id: string;
   phone: string;
   points_balance: number;
-  /** `next_reward_cost - balance`, floored at zero. */
+  /**
+     * What that next reward still needs. Equals `next_reward_cost` on an exact
+     * multiple, because a fresh card is the honest thing to show there.
+     */
   points_to_next_reward: number;
+  /**
+     * Progress towards the NEXT reward, after the earned ones are set aside.
+     * `balance % next_reward_cost`.
+     */
+  progress_to_next: number;
+  /**
+     * How many rewards the balance has ALREADY earned.
+     *
+     * A card does not stop at full. Six stamps against a five-stamp reward is
+     * one reward earned and one stamp towards the next, not "five and a bit
+     * wasted" — and a customer who has been in eleven times is owed two
+     * rewards, whether or not they claimed the first.
+     */
+  rewards_ready: number;
   visits_balance: number;
 }

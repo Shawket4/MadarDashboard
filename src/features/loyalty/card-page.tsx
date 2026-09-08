@@ -68,6 +68,8 @@ export function CardPage({ token }: { token: string }) {
           target={target}
           toGo={data.points_to_next_reward}
           canRedeem={data.can_redeem}
+          rewardsReady={data.rewards_ready}
+          progress={data.progress_to_next}
           memberName={data.name}
           qrUrl={`/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png`}
         />

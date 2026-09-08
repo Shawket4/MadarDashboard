@@ -47,6 +47,7 @@ const schema = z.object({
   earn_include_tax: z.boolean(),
   default_reward_cost: z.coerce.number<number>().int().positive(),
   require_otp: z.boolean(),
+  reward_any_item: z.boolean(),
   terms: z.string().optional(),
 });
 
@@ -80,6 +81,7 @@ export function ProgramSettings({
           earn_include_tax: settings.earn_include_tax,
           default_reward_cost: settings.default_reward_cost,
           require_otp: settings.require_otp,
+          reward_any_item: settings.reward_any_item ?? false,
           terms: settings.terms ?? "",
         }
       : undefined,
@@ -118,6 +120,7 @@ export function ProgramSettings({
           earn_include_tax: v.earn_include_tax,
           default_reward_cost: v.default_reward_cost,
           require_otp: v.require_otp,
+          reward_any_item: v.reward_any_item,
           terms: v.terms || null,
           terms_ar: settings?.terms_ar ?? null,
         },
@@ -292,6 +295,26 @@ export function ProgramSettings({
             <Switch
               checked={form.watch("require_otp")}
               onCheckedChange={(v) => form.setValue("require_otp", v, { shouldDirty: true })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold">
+                {t("loyalty.anyItem", "Any item can be a reward")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t(
+                  "loyalty.anyItemHint",
+                  "Opens the whole menu at the price below, instead of only the Rewards list. Off by default — a list lets you offer an espresso without also offering the steak.",
+                )}
+              </p>
+            </div>
+            <Switch
+              checked={form.watch("reward_any_item")}
+              onCheckedChange={(v) =>
+                form.setValue("reward_any_item", v, { shouldDirty: true })
+              }
             />
           </div>
 

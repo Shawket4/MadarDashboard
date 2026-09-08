@@ -4085,7 +4085,9 @@ export const LoyaltyAdjustResponse = zod.object({
   "org_id": zod.uuid(),
   "phone": zod.string(),
   "points_balance": zod.number(),
-  "points_to_next_reward": zod.number().describe('`next_reward_cost - balance`, floored at zero.'),
+  "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
+  "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
+  "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')
 
@@ -4120,7 +4122,9 @@ export const LoyaltyAwardResponse = zod.object({
   "org_id": zod.uuid(),
   "phone": zod.string(),
   "points_balance": zod.number(),
-  "points_to_next_reward": zod.number().describe('`next_reward_cost - balance`, floored at zero.'),
+  "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
+  "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
+  "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.'),
   "order_id": zod.uuid(),
@@ -4155,7 +4159,9 @@ export const LoyaltyLookupResponse = zod.object({
   "org_id": zod.uuid(),
   "phone": zod.string(),
   "points_balance": zod.number(),
-  "points_to_next_reward": zod.number().describe('`next_reward_cost - balance`, floored at zero.'),
+  "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
+  "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
+  "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.'),
   "recent": zod.array(zod.object({
@@ -4205,7 +4211,9 @@ export const ListLoyaltyMembersResponse = zod.object({
   "org_id": zod.uuid(),
   "phone": zod.string(),
   "points_balance": zod.number(),
-  "points_to_next_reward": zod.number().describe('`next_reward_cost - balance`, floored at zero.'),
+  "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
+  "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
+  "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')),
   "total": zod.number()
@@ -4251,7 +4259,9 @@ export const GetLoyaltyMemberResponse = zod.object({
   "org_id": zod.uuid(),
   "phone": zod.string(),
   "points_balance": zod.number(),
-  "points_to_next_reward": zod.number().describe('`next_reward_cost - balance`, floored at zero.'),
+  "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
+  "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
+  "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')
 })
@@ -4318,6 +4328,7 @@ export const GetLoyaltySettingsResponse = zod.object({
   "program_name": zod.string(),
   "program_name_ar": zod.string().nullish(),
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
+  "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
   "terms": zod.string().nullish(),
   "terms_ar": zod.string().nullish()
 })
@@ -4335,6 +4346,7 @@ export const PutLoyaltySettingsBody = zod.object({
   "program_name": zod.string(),
   "program_name_ar": zod.string().nullish(),
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
+  "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
   "terms": zod.string().nullish(),
   "terms_ar": zod.string().nullish()
 })
@@ -4351,6 +4363,7 @@ export const PutLoyaltySettingsResponse = zod.object({
   "program_name": zod.string(),
   "program_name_ar": zod.string().nullish(),
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
+  "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
   "terms": zod.string().nullish(),
   "terms_ar": zod.string().nullish()
 })
@@ -7787,11 +7800,13 @@ export const LoyaltyCardResponse = zod.object({
   "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
 }).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.'),
   "points_to_next_reward": zod.number(),
+  "progress_to_next": zod.number().describe('Progress towards the next one, after the earned ones are set aside.'),
   "rewards": zod.array(zod.object({
   "cost_amount": zod.number(),
   "cost_currency": zod.string(),
   "name": zod.string()
-}).describe('A reward as the signup page lists it: what it is, and what it costs.'))
+}).describe('A reward as the signup page lists it: what it is, and what it costs.')),
+  "rewards_ready": zod.number().describe('Rewards the balance has already earned — a card does not stop at full.')
 }).describe('The member\'s own card page — what they see when they open the link again.\n\nThe token in the path is the member\'s secret, which is why this returns only\nwhat the pass already shows and never the phone number in full.')
 
 

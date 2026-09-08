@@ -24,6 +24,15 @@ import { useTranslation } from "react-i18next";
 import type { ResolvedBrand } from "./brand";
 import { StampRow, stampable } from "./stamp-row";
 
+/**
+ * Completed cards drawn before the rest become a count.
+ *
+ * Someone who has not claimed in months could be owed a dozen; a dozen full
+ * rows is a wall, and the point of drawing them at all is that a small number
+ * reads instantly.
+ */
+const MAX_COMPLETE_SHOWN = 3;
+
 export function CardFace({
   brand,
   mode,
@@ -33,6 +42,8 @@ export function CardFace({
   canRedeem,
   memberName,
   qrUrl,
+  rewardsReady = 0,
+  progress,
 }: {
   brand: ResolvedBrand;
   mode: string;
@@ -43,10 +54,22 @@ export function CardFace({
   memberName?: string | null;
   /** The member's code. Omitted where there is no member — the settings preview. */
   qrUrl?: string | null;
+  /**
+   * Rewards already earned and not yet claimed. A card does not stop at full:
+   * six stamps against a five-stamp reward is one earned and one towards the
+   * next, and showing only a full card tells someone their sixth visit did not
+   * count.
+   */
+  rewardsReady?: number;
+  /** Steps on the CURRENT card, after the earned ones are set aside. */
+  progress?: number;
 }) {
   const { t } = useTranslation();
   const isVisits = mode === "visits";
   const isSteps = isVisits && stampable(target);
+  // What the live card shows. `progress` is the server's remainder; falling back
+  // to the raw balance keeps an older payload rendering sensibly.
+  const onCard = progress ?? balance;
   const pct = target > 0 ? Math.min(100, Math.round((balance / target) * 100)) : 0;
   const unit = t(
     `loyalty.unit.${isVisits ? "orders" : "points"}`,
@@ -131,7 +154,7 @@ export function CardFace({
             rather than floating beside it. */}
         <p className="flex items-baseline gap-2">
           <span className="font-serif text-[52px] leading-none tabular-nums">
-            {balance}
+            {isSteps ? onCard : balance}
           </span>
           <span className="min-w-0 truncate text-sm" style={{ color: brand.muted }}>
             {isSteps
@@ -144,9 +167,42 @@ export function CardFace({
           </span>
         </p>
 
+        {isSteps && rewardsReady > 0 ? (
+          // The cards already filled. Drawn, not merely counted, because "you
+          // have 2 rewards" and a row of completed steps are different
+          // sentences — one is a number, the other is the thing they earned.
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: Math.min(rewardsReady, MAX_COMPLETE_SHOWN) }, (_, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <StampRow
+                  earned={target}
+                  target={target}
+                  accent={brand.accent}
+                  onAccent={brand.background}
+                  muted={brand.muted}
+                />
+              </div>
+            ))}
+            {rewardsReady > MAX_COMPLETE_SHOWN ? (
+              <p className="text-xs" style={{ color: brand.muted }}>
+                {t("loyalty.andMoreReady", {
+                  defaultValue: "+{{n}} more ready",
+                  n: rewardsReady - MAX_COMPLETE_SHOWN,
+                })}
+              </p>
+            ) : null}
+            {/* The line between what is finished and what is being collected. */}
+            <div
+              aria-hidden
+              className="my-1 h-px w-full"
+              style={{ backgroundColor: brand.muted, opacity: 0.4 }}
+            />
+          </div>
+        ) : null}
+
         {isSteps ? (
           <StampRow
-            earned={balance}
+            earned={onCard}
             target={target}
             accent={brand.accent}
             onAccent={brand.background}
@@ -168,7 +224,15 @@ export function CardFace({
         )}
 
         <p className="text-sm">
-          {canRedeem ? (
+          {rewardsReady > 0 ? (
+            <span className="font-semibold">
+              {t("loyalty.rewardsReadyN", {
+                defaultValue_one: "1 reward earned — ask at the counter.",
+                defaultValue_other: "{{count}} rewards earned — ask at the counter.",
+                count: rewardsReady,
+              })}
+            </span>
+          ) : canRedeem ? (
             <span className="font-semibold">
               {t("loyalty.rewardReady", "Reward earned — ask at the counter.")}
             </span>

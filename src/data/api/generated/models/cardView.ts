@@ -22,5 +22,9 @@ export interface CardView {
   next_reward_cost: number;
   passes: PassLinks;
   points_to_next_reward: number;
+  /** Progress towards the next one, after the earned ones are set aside. */
+  progress_to_next: number;
   rewards: PublicReward[];
+  /** Rewards the balance has already earned — a card does not stop at full. */
+  rewards_ready: number;
 }
