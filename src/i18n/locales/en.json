@@ -2035,7 +2035,10 @@
     "brandTierOff": "Custom branding is not enabled",
     "brandTierOffHint": "Your logo still appears on receipts. Customer cards and the signup page use Madar's colours until custom branding is switched on for your organisation — talk to us about it.",
     "brandTier": "Custom branding (super admin)",
-    "brandTierHint": "Lets this organisation put its own logo and colours on customer cards and the signup page. Madar stays in the footer either way."
+    "brandTierHint": "Lets this organisation put its own logo and colours on customer cards and the signup page. Madar stays in the footer either way.",
+    "cardImage": "Card image",
+    "cardImageHint": "A wide photo across the customer's card, in Apple Wallet and Google Wallet alike. It is cropped to a band, so put the subject in the middle. Optional.",
+    "cardImageSaved": "Card image updated"
   },
   "meta": {
     "publication": "Capability Portfolio",

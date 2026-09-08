@@ -12,6 +12,11 @@ export interface Org {
      * @nullable
      */
   brand_background?: string | null;
+  /**
+     * A wide photograph for the loyalty card. Own-org editable, like the logo.
+     * @nullable
+     */
+  brand_card_image?: string | null;
   /** @nullable */
   brand_foreground?: string | null;
   /**

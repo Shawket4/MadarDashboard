@@ -6952,6 +6952,7 @@ export const VoidOrderResponse = zod.object({
 export const ListOrgsResponseItem = zod.object({
   "brand_accent": zod.string().nullish(),
   "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_card_image": zod.string().nullish().describe('A wide photograph for the loyalty card. Own-org editable, like the logo.'),
   "brand_foreground": zod.string().nullish(),
   "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
   "currency_code": zod.string(),
@@ -6981,6 +6982,7 @@ export const CreateOrgBody = zod.object({
 export const CreateOrgResponse = zod.object({
   "brand_accent": zod.string().nullish(),
   "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_card_image": zod.string().nullish().describe('A wide photograph for the loyalty card. Own-org editable, like the logo.'),
   "brand_foreground": zod.string().nullish(),
   "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
   "currency_code": zod.string(),
@@ -7003,6 +7005,7 @@ export const GetOrgParams = zod.object({
 export const GetOrgResponse = zod.object({
   "brand_accent": zod.string().nullish(),
   "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_card_image": zod.string().nullish().describe('A wide photograph for the loyalty card. Own-org editable, like the logo.'),
   "brand_foreground": zod.string().nullish(),
   "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
   "currency_code": zod.string(),
@@ -7044,6 +7047,7 @@ export const UpdateOrgBody = zod.object({
 export const UpdateOrgResponse = zod.object({
   "brand_accent": zod.string().nullish(),
   "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_card_image": zod.string().nullish().describe('A wide photograph for the loyalty card. Own-org editable, like the logo.'),
   "brand_foreground": zod.string().nullish(),
   "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
   "currency_code": zod.string(),
@@ -7088,6 +7092,45 @@ export const OrgBookingQrResponse = zod.object({
 }).describe('JSON returned from every QR-generation endpoint.')
 
 
+/**
+ * Own-org, like the logo: it is the shop's own picture of its own coffee, and
+ * waiting on a super admin to change it helps nobody. It is stored whatever
+ * the branding tier says; whether it REACHES a card is decided later, by the
+ * same gate as the logo and the palette.
+ *
+ * No palette is derived from it. A photograph has no dominant colour worth
+ * painting a card with — that is what the logo is for — and a card whose
+ * scheme changed because someone swapped the picture would be a surprise
+ * nobody asked for.
+ * @summary The photograph across the loyalty card — Apple's strip, Google's hero image.
+ */
+export const UploadOrgCardImageParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const UploadOrgCardImageBody = zod.object({
+  "image": zod.instanceof(File)
+})
+
+export const UploadOrgCardImageResponse = zod.object({
+  "brand_accent": zod.string().nullish(),
+  "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_card_image": zod.string().nullish().describe('A wide photograph for the loyalty card. Own-org editable, like the logo.'),
+  "brand_foreground": zod.string().nullish(),
+  "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
+  "currency_code": zod.string(),
+  "custom_branding": zod.boolean().describe('The branding tier. Super admin only — see `UpdateOrgRequest`.'),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "logo_url": zod.string().nullish(),
+  "name": zod.string(),
+  "receipt_footer": zod.string().nullish(),
+  "slug": zod.string(),
+  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
+  "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
+})
+
+
 export const UploadOrgLogoParams = zod.object({
   "id": zod.uuid().describe('Organization ID')
 })
@@ -7099,6 +7142,7 @@ export const UploadOrgLogoBody = zod.object({
 export const UploadOrgLogoResponse = zod.object({
   "brand_accent": zod.string().nullish(),
   "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_card_image": zod.string().nullish().describe('A wide photograph for the loyalty card. Own-org editable, like the logo.'),
   "brand_foreground": zod.string().nullish(),
   "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
   "currency_code": zod.string(),
@@ -7875,6 +7919,7 @@ export const LoyaltyCardResponse = zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
   "brand": zod.object({
   "background_color": zod.string().nullish().describe('`#RRGGBB`, validated on write.'),
+  "card_image_url": zod.string().nullish().describe('The wide photograph across the card — Apple\'s strip, Google\'s hero\nimage, and the band at the top of the web card. Absent is a finished\ncard, not a broken one.'),
   "foreground_color": zod.string().nullish(),
   "label_color": zod.string().nullish(),
   "logo_is_mark": zod.boolean().describe('True when the logo is a shape on transparency, so the card may repaint\nit in the foreground for contrast. False for a logo with its background\nbaked in, which gets a plate to sit on instead — repainting that one\nwould give a solid rectangle. See `orgs::branding::is_mark`.'),
@@ -7938,6 +7983,7 @@ export const LoyaltyJoinResponse = zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency. Zero for a fresh member.'),
   "brand": zod.object({
   "background_color": zod.string().nullish().describe('`#RRGGBB`, validated on write.'),
+  "card_image_url": zod.string().nullish().describe('The wide photograph across the card — Apple\'s strip, Google\'s hero\nimage, and the band at the top of the web card. Absent is a finished\ncard, not a broken one.'),
   "foreground_color": zod.string().nullish(),
   "label_color": zod.string().nullish(),
   "logo_is_mark": zod.boolean().describe('True when the logo is a shape on transparency, so the card may repaint\nit in the foreground for contrast. False for a logo with its background\nbaked in, which gets a plate to sit on instead — repainting that one\nwould give a solid rectangle. See `orgs::branding::is_mark`.'),
@@ -7970,6 +8016,7 @@ export const LoyaltyJoinInfoResponse = zod.object({
   "branch_name": zod.string().nullish(),
   "brand": zod.object({
   "background_color": zod.string().nullish().describe('`#RRGGBB`, validated on write.'),
+  "card_image_url": zod.string().nullish().describe('The wide photograph across the card — Apple\'s strip, Google\'s hero\nimage, and the band at the top of the web card. Absent is a finished\ncard, not a broken one.'),
   "foreground_color": zod.string().nullish(),
   "label_color": zod.string().nullish(),
   "logo_is_mark": zod.boolean().describe('True when the logo is a shape on transparency, so the card may repaint\nit in the foreground for contrast. False for a logo with its background\nbaked in, which gets a plate to sit on instead — repainting that one\nwould give a solid rectangle. See `orgs::branding::is_mark`.'),

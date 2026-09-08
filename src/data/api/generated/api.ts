@@ -430,6 +430,7 @@ import type {
   UpdateTillRequest,
   UpdateTransferRequest,
   UpdateUserRequest,
+  UploadCardImageMultipart,
   UploadImageMultipart,
   UploadLogoMultipart,
   UploadResponse,
@@ -15674,6 +15675,83 @@ export function useOrgBookingQr<TData = Awaited<ReturnType<typeof orgBookingQr>>
 
 
 
+
+/**
+ * Own-org, like the logo: it is the shop's own picture of its own coffee, and
+ * waiting on a super admin to change it helps nobody. It is stored whatever
+ * the branding tier says; whether it REACHES a card is decided later, by the
+ * same gate as the logo and the palette.
+ *
+ * No palette is derived from it. A photograph has no dominant colour worth
+ * painting a card with — that is what the logo is for — and a card whose
+ * scheme changed because someone swapped the picture would be a surprise
+ * nobody asked for.
+ * @summary The photograph across the loyalty card — Apple's strip, Google's hero image.
+ */
+export const uploadOrgCardImage = (
+    id: string,
+    uploadCardImageMultipart: UploadCardImageMultipart,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+      const formData = new FormData();
+formData.append(`image`, uploadCardImageMultipart.image);
+
+      return customInstance<Org>(
+      {url: `/orgs/${id}/card-image`, method: 'PUT',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
+    },
+      options);
+    }
+
+
+
+
+export const getUploadOrgCardImageMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadOrgCardImage>>, TError,{id: string;data: UploadCardImageMultipart}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadOrgCardImage>>, TError,{id: string;data: UploadCardImageMultipart}, TContext> => {
+
+const mutationKey = ['uploadOrgCardImage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadOrgCardImage>>, {id: string;data: UploadCardImageMultipart}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  uploadOrgCardImage(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadOrgCardImageMutationResult = NonNullable<Awaited<ReturnType<typeof uploadOrgCardImage>>>
+    export type UploadOrgCardImageMutationBody = UploadCardImageMultipart
+    export type UploadOrgCardImageMutationError = ErrorBody
+
+    /**
+ * @summary The photograph across the loyalty card — Apple's strip, Google's hero image.
+ */
+export const useUploadOrgCardImage = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadOrgCardImage>>, TError,{id: string;data: UploadCardImageMultipart}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadOrgCardImage>>,
+        TError,
+        {id: string;data: UploadCardImageMultipart},
+        TContext
+      > => {
+      return useMutation(getUploadOrgCardImageMutationOptions(options), queryClient);
+    }
 
 export const uploadOrgLogo = (
     id: string,

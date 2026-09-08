@@ -149,6 +149,19 @@ export function CardFace({
         </div>
       </header>
 
+      {/* The band, where the wallets put it: under the header, across the card.
+          Cropped rather than letterboxed, because bars down the sides of a
+          photograph look like a mistake. */}
+      {brand.cardImageUrl ? (
+        <div className="-mx-6 mt-5 aspect-[2.6/1] overflow-hidden">
+          <img
+            src={brand.cardImageUrl}
+            alt=""
+            className="size-full object-cover"
+          />
+        </div>
+      ) : null}
+
       <div className="mt-6 flex flex-col gap-4">
         {/* The figure. Baseline-aligned so the unit sits on the numeral's foot
             rather than floating beside it. */}

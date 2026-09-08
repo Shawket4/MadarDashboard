@@ -104,6 +104,11 @@ export interface ResolvedBrand {
    * Decided by the backend, which has the pixels (`orgs::branding::is_mark`).
    */
   logoIsMark: boolean;
+  /**
+   * The wide photograph across the card — Apple's strip, Google's hero image.
+   * `null` is a finished card, not a broken one; it simply has no band.
+   */
+  cardImageUrl: string | null;
   background: string;
   /** Text on `background`, contrast-checked rather than trusted. */
   foreground: string;
@@ -163,6 +168,7 @@ export function resolveBrand(
       "Rewards",
     logoUrl: brand?.logo_url?.trim() || null,
     logoIsMark: brand?.logo_is_mark ?? false,
+    cardImageUrl: brand?.card_image_url?.trim() || null,
     background,
     foreground,
     muted: dark ? "rgba(255,255,255,0.72)" : "rgba(0,0,0,0.60)",

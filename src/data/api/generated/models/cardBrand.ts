@@ -15,6 +15,13 @@ export interface CardBrand {
      * @nullable
      */
   background_color?: string | null;
+  /**
+     * The wide photograph across the card — Apple's strip, Google's hero
+     * image, and the band at the top of the web card. Absent is a finished
+     * card, not a broken one.
+     * @nullable
+     */
+  card_image_url?: string | null;
   /** @nullable */
   foreground_color?: string | null;
   /** @nullable */

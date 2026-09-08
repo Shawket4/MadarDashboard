@@ -593,6 +593,7 @@ export * from './updateSupplierRequest';
 export * from './updateTillRequest';
 export * from './updateTransferRequest';
 export * from './updateUserRequest';
+export * from './uploadCardImageMultipart';
 export * from './uploadImageMultipart';
 export * from './uploadLogoMultipart';
 export * from './uploadResponse';

@@ -19,7 +19,7 @@ import { PageHeader } from "@/components/app/page";
 import { ImageUploader } from "@/components/app/image-uploader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getOrg, uploadOrgLogo } from "@/data/api/generated/api";
+import { getOrg, uploadOrgCardImage, uploadOrgLogo } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -55,6 +55,18 @@ export function BrandPane() {
     }
   };
 
+  const uploadCardImage = async (file: File): Promise<string> => {
+    try {
+      const updated = await uploadOrgCardImage(orgId, { image: file });
+      await queryClient.invalidateQueries({ queryKey: ["org-brand", orgId] });
+      toast.success(t("settings.cardImageSaved", "Card image updated"));
+      return updated.brand_card_image ?? "";
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+      throw e;
+    }
+  };
+
   // The preview is the REAL card component with the real derived colours, not a
   // mock-up: a preview that renders differently from the thing it previews is
   // worse than none.
@@ -65,6 +77,7 @@ export function BrandPane() {
       program_name_ar: null,
       logo_url: org.data?.logo_url ?? null,
       logo_is_mark: org.data?.brand_logo_is_mark ?? false,
+      card_image_url: org.data?.brand_card_image ?? null,
       background_color: org.data?.brand_background ?? null,
       foreground_color: org.data?.brand_foreground ?? null,
       label_color: org.data?.brand_accent ?? null,
@@ -112,6 +125,23 @@ export function BrandPane() {
               "PNG or JPG, square works best. The card's colours are taken from it automatically.",
             )}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="space-y-4 p-5">
+          <div>
+            <p className="text-sm font-medium">
+              {t("settings.cardImage", "Card image")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t(
+                "settings.cardImageHint",
+                "A wide photo across the customer's card, in Apple Wallet and Google Wallet alike. It is cropped to a band, so put the subject in the middle. Optional.",
+              )}
+            </p>
+          </div>
+          <ImageUploader value={org.data?.brand_card_image} onUpload={uploadCardImage} />
         </CardContent>
       </Card>
 
