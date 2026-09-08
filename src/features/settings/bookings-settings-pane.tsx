@@ -12,6 +12,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useOrgId } from "@/hooks/use-org-id";
+
 import { PageHeader } from "@/components/app/page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,12 +21,14 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useListBranches } from "@/data/api/generated/api";
-import { useAuthStore } from "@/data/stores/auth.store";
 import { BookingSettingsDialog } from "@/features/bookings/settings-dialog";
 
 export function BookingsSettingsPane() {
   const { t } = useTranslation();
-  const orgId = useAuthStore((s) => s.user?.org_id) ?? "";
+  // The scoped org, not the token's: a super admin's token carries none, and
+  // reading it directly left them looking at an empty shop on a page they are
+  // entitled to use.
+  const orgId = useOrgId() ?? "";
   const branches = useListBranches({ org_id: orgId }, { query: { enabled: !!orgId } });
   const [branchId, setBranchId] = useState<string>("");
   const [open, setOpen] = useState(false);

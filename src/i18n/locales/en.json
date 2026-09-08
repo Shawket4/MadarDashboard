@@ -4079,9 +4079,9 @@
     "tabProgram": "Program",
     "tabRewards": "Rewards",
     "tabMembers": "Members",
-    "wholeOrg": "Whole organisation (default)",
+    "wholeOrg": "Whole organisation",
     "counterQr": "Counter code",
-    "qrPerBranch": "This branch's counter code. It signs people up under this branch's settings.",
+    "qrPerBranch": "This branch's counter code. It signs people up under this branch's settings, and tells you they joined here.",
     "enabled": "Program is running",
     "enabledHint": "Customers can join and collect here.",
     "programName": "Program name",
@@ -4183,12 +4183,14 @@
     "keepItHandy": "Keep it handy",
     "whatYouCanClaim": "What you can claim",
     "orgQr": "Sign-up code",
-    "qrOrgHint": "One code for the whole shop — for a poster, a receipt footer or a link in a bio. Members belong to the shop, not to a branch, so their card works everywhere either way.",
     "month": "Month",
     "day": "Day",
     "googleObject": "Google Wallet object",
     "googleObjectFor": "What Google is holding for {{name}}.",
     "branchesExpected": "Branches we send",
-    "branchesStored": "Branches Google has"
+    "branchesStored": "Branches Google has",
+    "scopeLocked": "Set by the branch picker in the header",
+    "qrSingleBranch": "One branch, so this is the whole shop's code. Open a second branch and you can give each its own, to see where members join.",
+    "qrOrgTip": "One code for the whole shop — a poster, a receipt footer, a link in a bio. Pick a branch in the header to print that branch its own code instead: members belong to the shop either way, but a per-branch code is the only way to see where they signed up."
   }
 }

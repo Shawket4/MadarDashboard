@@ -1,17 +1,24 @@
 /**
- * The loyalty admin screen: pick a scope, then edit its programme, its rewards
- * or look at its members.
+ * The loyalty admin screen: edit the programme in scope, its rewards, or look
+ * at its members.
  *
- * The scope is owned here and passed down, rather than each pane deriving its
- * own — three panes independently deciding what "this branch" meant is how one
- * of them ended up showing the organisation's rewards next to a branch's rules.
+ * The scope is read once here and passed down, rather than each pane deriving
+ * its own — three panes independently deciding what "this branch" meant is how
+ * one of them ended up showing the organisation's rewards next to a branch's
+ * rules.
+ *
+ * It comes from the app-wide picker in the header, not from a second one on
+ * this page. Two pickers for one idea is two chances to be looking at a
+ * different shop from the one you think you are.
  */
-import { useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { useListBranches } from "@/data/api/generated/api";
+import { useScope } from "@/data/scope/use-scope";
+import { useOrgId } from "@/hooks/use-org-id";
 
 import { MembersPane } from "./members/members-pane";
 import { ProgramPane } from "./program/program-pane";
@@ -21,8 +28,28 @@ import type { ProgramScope } from "./use-program";
 
 export function LoyaltyPage() {
   const { t } = useTranslation();
-  const orgId = useAuthStore((s) => s.user?.org_id) ?? "";
-  const [branchId, setBranchId] = useState<string | null>(null);
+  // A super admin's token carries no org; the one they picked in the header
+  // does. Reading the token directly left them with an empty org id, which is
+  // why no code would print for a shop they had selected.
+  const orgId = useOrgId() ?? "";
+  const { branchId: scopedBranchId } = useScope();
+  const branches = useListBranches(
+    { org_id: orgId },
+    { query: { enabled: !!orgId } },
+  );
+  const activeBranches = useMemo(
+    () => (branches.data ?? []).filter((b) => b.is_active),
+    [branches.data],
+  );
+
+  // A shop with one branch has its scope PINNED to that branch by the header
+  // picker — there is nothing else to select. Following that literally would
+  // mean such a shop could only ever write a branch override, never the
+  // organisation defaults every future branch inherits, and could never print
+  // the org-wide sign-up code. So one branch reads as the whole shop, which is
+  // also what it is.
+  const singleBranch = activeBranches.length === 1;
+  const branchId = singleBranch ? null : scopedBranchId;
   const scope: ProgramScope = { orgId, branchId };
 
   return (
@@ -35,7 +62,11 @@ export function LoyaltyPage() {
         )}
       />
 
-      <SignUpCode scope={scope} onScopeChange={setBranchId} />
+      <SignUpCode
+        scope={scope}
+        branchName={activeBranches.find((b) => b.id === branchId)?.name ?? null}
+        singleBranch={singleBranch}
+      />
 
       <Tabs defaultValue="program">
         <TabsList>

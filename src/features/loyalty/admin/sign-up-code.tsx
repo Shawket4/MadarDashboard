@@ -1,51 +1,47 @@
 /**
  * Which programme you are editing, and the code that signs people up for it.
  *
- * The two belong together: the scope decides both which rules the tabs below
- * show AND which code this button prints, and separating them made "whole
- * organisation" a scope with nothing to hand a customer.
+ * The scope is SHOWN here, not chosen here. It decides both which rules the
+ * tabs below show and which code this button prints, and it is the same scope
+ * the rest of the dashboard is in — so it is set once, in the header, and this
+ * card reports it. A second picker for the same idea is a second chance to be
+ * editing a different branch from the one you are reading.
+ *
+ * Locked, therefore, but explained: a shop that never scopes a code to a branch
+ * cannot tell where its members signed up, and that is worth knowing before you
+ * print the poster.
  *
  * A membership belongs to the SHOP, not to a branch — the pass has always
  * carried the org's programme and every branch's location — so the
- * organisation scope has a code of its own. Picking a branch you did not mean,
- * purely to get something printable, was the only way to do that before.
+ * organisation scope has a code of its own, and a member who joins at one
+ * branch is a member at all of them either way.
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Loader2, QrCode } from "lucide-react";
+import { Loader2, Lock, QrCode } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { branchLoyaltyQr, orgLoyaltyQr, useListBranches } from "@/data/api/generated/api";
+import { branchLoyaltyQr, orgLoyaltyQr } from "@/data/api/generated/api";
 import type { QrResponse } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { QrPreviewDialog } from "@/features/qr/qr-preview-dialog";
 
 import type { ProgramScope } from "./use-program";
 
-/** The select's value for "no branch". A sentinel, because "" is not selectable. */
-export const ORG_SCOPE = "__org__";
-
 export function SignUpCode({
   scope,
-  onScopeChange,
+  branchName,
+  singleBranch,
 }: {
   scope: ProgramScope;
-  onScopeChange: (branchId: string | null) => void;
+  /** The scoped branch's name, or null when the scope is the whole shop. */
+  branchName: string | null;
+  /** The shop has exactly one branch, so there is no scope to separate. */
+  singleBranch: boolean;
 }) {
   const { t } = useTranslation();
-  const branches = useListBranches(
-    { org_id: scope.orgId },
-    { query: { enabled: !!scope.orgId } },
-  );
   const [qr, setQr] = useState<QrResponse | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -69,35 +65,33 @@ export function SignUpCode({
   return (
     <Card>
       <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-        <Select
-          value={scope.branchId ?? ORG_SCOPE}
-          onValueChange={(v) => onScopeChange(v === ORG_SCOPE ? null : v)}
+        {/* Reads as a field, behaves as a label: this is what the header
+            picker currently says, not something to set twice. */}
+        <div
+          className="flex w-full items-center gap-2 rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground sm:w-64"
+          title={t("loyalty.scopeLocked", "Set by the branch picker in the header")}
         >
-          <SelectTrigger className="w-full sm:w-64">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ORG_SCOPE}>
-              {t("loyalty.wholeOrg", "Whole organisation (default)")}
-            </SelectItem>
-            {(branches.data ?? []).map((b) => (
-              <SelectItem key={b.id} value={b.id}>
-                {b.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Lock className="size-3.5 shrink-0" aria-hidden />
+          <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+            {branchName ?? t("loyalty.wholeOrg", "Whole organisation")}
+          </span>
+        </div>
 
         <p className="min-w-0 flex-1 text-xs text-muted-foreground">
-          {scope.branchId
+          {branchName
             ? t(
                 "loyalty.qrPerBranch",
-                "This branch's counter code. It signs people up under this branch's settings.",
+                "This branch's counter code. It signs people up under this branch's settings, and tells you they joined here.",
               )
-            : t(
-                "loyalty.qrOrgHint",
-                "One code for the whole shop — for a poster, a receipt footer or a link in a bio. Members belong to the shop, not to a branch, so their card works everywhere either way.",
-              )}
+            : singleBranch
+              ? t(
+                  "loyalty.qrSingleBranch",
+                  "One branch, so this is the whole shop's code. Open a second branch and you can give each its own, to see where members join.",
+                )
+              : t(
+                  "loyalty.qrOrgTip",
+                  "One code for the whole shop — a poster, a receipt footer, a link in a bio. Pick a branch in the header to print that branch its own code instead: members belong to the shop either way, but a per-branch code is the only way to see where they signed up.",
+                )}
         </p>
 
         <Button

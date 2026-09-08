@@ -13,6 +13,8 @@
  */
 import { Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+import { useOrgId } from "@/hooks/use-org-id";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/app/page";
@@ -21,7 +23,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getOrg, uploadOrgCardImage, uploadOrgLogo } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
-import { useAuthStore } from "@/data/stores/auth.store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { resolveBrand } from "@/features/loyalty/shared/brand";
@@ -29,7 +30,10 @@ import { CardFace } from "@/features/loyalty/public/card-face";
 
 export function BrandPane() {
   const { t, i18n } = useTranslation();
-  const orgId = useAuthStore((s) => s.user?.org_id) ?? "";
+  // The scoped org, not the token's: a super admin's token carries none, and
+  // reading it directly left them looking at an empty shop on a page they are
+  // entitled to use.
+  const orgId = useOrgId() ?? "";
   const queryClient = useQueryClient();
 
 
