@@ -19,9 +19,11 @@ import {
 import { useListLoyaltyMembers } from "@/data/api/generated/api";
 import { fmtDate } from "@/lib/format";
 
-import { currencyLabel } from "./util";
+import { currencyLabel } from "../../shared/util";
+import type { ProgramScope } from "../use-program";
 
-export function MembersList({ branchId }: { branchId: string | null }) {
+export function MembersPane({ scope }: { scope: ProgramScope }) {
+  const { branchId } = scope;
   const { t } = useTranslation();
   const [q, setQ] = useState("");
   const page = useListLoyaltyMembers({

@@ -24,8 +24,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { resolveBrand } from "@/features/loyalty/brand";
-import { CardFace } from "@/features/loyalty/card-face";
+import { resolveBrand } from "@/features/loyalty/shared/brand";
+import { CardFace } from "@/features/loyalty/public/card-face";
 
 export function BrandPane() {
   const { t, i18n } = useTranslation();

@@ -38,9 +38,9 @@ import "@/styles/globals.css";
 import "@/lib/theme";
 
 import { queryClient } from "@/data/api/query";
-import { JoinPage } from "@/features/loyalty/join-page";
-import { CardPage } from "@/features/loyalty/card-page";
-import { ScanToJoin } from "@/features/loyalty/scan-to-join";
+import { JoinPage } from "@/features/loyalty/public/join-page";
+import { CardPage } from "@/features/loyalty/public/card-page";
+import { ScanToJoin } from "@/features/loyalty/public/scan-to-join";
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
 

@@ -18,11 +18,11 @@ import { useLoyaltyCard } from "@/data/api/generated/api";
 import type { CardView } from "@/data/api/generated/models";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 
-import { resolveBrand } from "./brand";
+import { resolveBrand } from "../shared/brand";
 import { CardFace } from "./card-face";
 import { LoyaltyPage, Panel, Section, usePageAccent } from "./page-shell";
 import { WalletButtons } from "./wallet-buttons";
-import { costLabel } from "./util";
+import { costLabel } from "../shared/util";
 
 export function CardPage({ token }: { token: string }) {
   const { t, i18n } = useTranslation();

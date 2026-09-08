@@ -25,7 +25,7 @@ import type { ReactNode } from "react";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 
-import type { ResolvedBrand } from "./brand";
+import type { ResolvedBrand } from "../shared/brand";
 
 /** The page ground each theme actually paints, for contrast decisions. */
 const GROUND = { light: "#FFFFFF", dark: "#0B0B0C" } as const;

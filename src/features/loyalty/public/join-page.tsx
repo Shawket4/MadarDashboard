@@ -25,11 +25,11 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { PhoneVerify } from "@/features/reservations/phone-verify";
 import { fmtMoney } from "@/lib/format";
 
-import { resolveBrand } from "./brand";
+import { resolveBrand } from "../shared/brand";
 import { CardFace } from "./card-face";
 import { LoyaltyPage, Panel, Section, usePageAccent } from "./page-shell";
 import { WalletButtons } from "./wallet-buttons";
-import { costLabel } from "./util";
+import { costLabel } from "../shared/util";
 
 export function JoinPage({
   branchId,

@@ -30,7 +30,8 @@ import {
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtMoney } from "@/lib/format";
 
-import { currencyLabel, modeOf } from "./util";
+import { currencyLabel, modeOf } from "../../shared/util";
+import type { ProgramScope } from "../use-program";
 
 interface Row {
   menu_item_id: string;
@@ -38,13 +39,8 @@ interface Row {
   cost_amount: number;
 }
 
-export function RewardCatalogue({
-  orgId,
-  branchId,
-}: {
-  orgId: string;
-  branchId: string | null;
-}) {
+export function RewardsPane({ scope }: { scope: ProgramScope }) {
+  const { orgId, branchId } = scope;
   const { t } = useTranslation();
   const params = branchId ? { branch_id: branchId } : {};
   const catalogue = useGetLoyaltyRewardItems(params);

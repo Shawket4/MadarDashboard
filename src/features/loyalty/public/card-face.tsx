@@ -21,7 +21,7 @@
  */
 import { useTranslation } from "react-i18next";
 
-import type { ResolvedBrand } from "./brand";
+import type { ResolvedBrand } from "../shared/brand";
 import { StampRow, stampable } from "./stamp-row";
 
 /**
