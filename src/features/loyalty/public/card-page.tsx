@@ -21,6 +21,7 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { resolveBrand } from "../shared/brand";
 import { CardFace } from "./card-face";
 import { LoyaltyPage, Panel, Section, usePageAccent } from "./page-shell";
+import { NearbyAlerts } from "./nearby-alerts";
 import { WalletButtons } from "./wallet-buttons";
 import { costLabel } from "../shared/util";
 
@@ -45,7 +46,9 @@ export function CardPage({ token }: { token: string }) {
       <StorefrontShell>
         <div className="flex flex-col items-center gap-3 pt-16 text-center">
           <AlertCircle className="size-7 text-muted-foreground" />
-          <h1 className="font-serif text-2xl">{t("loyalty.noCard", "Card not found")}</h1>
+          <h1 className="font-serif text-2xl">
+            {t("loyalty.noCard", "Card not found")}
+          </h1>
           <p className="max-w-[300px] text-sm text-muted-foreground">
             {t(
               "loyalty.noCardBody",
@@ -94,17 +97,30 @@ function Card({
       />
 
       {data.passes.any ? (
-        <Section title={t("loyalty.keepItHandy", "Keep it handy")} accent={accent}>
-          <WalletButtons passes={data.passes} />
+        <Section
+          title={t("loyalty.keepItHandy", "Keep it handy")}
+          accent={accent}
+        >
+          <div className="flex flex-col gap-4">
+            <WalletButtons passes={data.passes} />
+            {/* Only once the pass has somewhere to fire — see NearbyAlerts. */}
+            {data.passes.nearby ? <NearbyAlerts accent={accent} /> : null}
+          </div>
         </Section>
       ) : null}
 
       {data.rewards.length > 0 ? (
-        <Section title={t("loyalty.whatYouCanClaim", "What you can claim")} accent={accent}>
+        <Section
+          title={t("loyalty.whatYouCanClaim", "What you can claim")}
+          accent={accent}
+        >
           <Panel className="p-0">
             <ul className="divide-y divide-border/70">
               {data.rewards.map((r) => (
-                <li key={r.name} className="flex items-center gap-3 px-4 py-3 text-sm">
+                <li
+                  key={r.name}
+                  className="flex items-center gap-3 px-4 py-3 text-sm"
+                >
                   <Gift className="size-4 shrink-0" style={{ color: accent }} />
                   <span className="min-w-0 flex-1">{r.name}</span>
                   <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
