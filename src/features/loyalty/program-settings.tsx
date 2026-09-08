@@ -19,6 +19,7 @@ import { Loader2, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { WalletStatusPanel } from "./wallet-status";
+import { BirthdayPreview } from "./birthday-preview";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +53,7 @@ const schema = z.object({
   // Empty means a greeting and no gift, which is the common case.
   birthday_reward_amount: z.string().optional(),
   birthday_message: z.string().optional(),
+  birthday_message_ar: z.string().optional(),
   terms: z.string().optional(),
 });
 
@@ -91,10 +93,26 @@ export function ProgramSettings({
             ? String(settings.birthday_reward_amount)
             : "",
           birthday_message: settings.birthday_message ?? "",
+          birthday_message_ar: settings.birthday_message_ar ?? "",
           terms: settings.terms ?? "",
         }
       : undefined,
   });
+
+  // What the preview renders: the saved settings with the form's live edits on
+  // top, so it shows what SAVING would send rather than what was last saved.
+  const watched = form.watch();
+  const previewSettings =
+    settings && watched.birthday_enabled
+      ? {
+          ...settings,
+          program_name: watched.program_name || settings.program_name,
+          mode: watched.mode,
+          birthday_reward_amount: Number(watched.birthday_reward_amount) || null,
+          birthday_message: watched.birthday_message || null,
+          birthday_message_ar: watched.birthday_message_ar || null,
+        }
+      : null;
 
   const mode = form.watch("mode");
 
@@ -135,7 +153,7 @@ export function ProgramSettings({
             ? Number(v.birthday_reward_amount) || null
             : null,
           birthday_message: v.birthday_enabled ? v.birthday_message || null : null,
-          birthday_message_ar: settings?.birthday_message_ar ?? null,
+          birthday_message_ar: v.birthday_enabled ? v.birthday_message_ar || null : null,
           terms: v.terms || null,
           terms_ar: settings?.terms_ar ?? null,
         },
@@ -374,7 +392,7 @@ export function ProgramSettings({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="birthday_message">
-                  {t("loyalty.birthdayMessage", "Message")}
+                  {t("loyalty.birthdayMessage", "Message (English)")}
                 </Label>
                 <Input
                   id="birthday_message"
@@ -385,6 +403,23 @@ export function ProgramSettings({
                   {...form.register("birthday_message")}
                 />
               </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="birthday_message_ar">
+                  {t("loyalty.birthdayMessageAr", "Message (Arabic)")}
+                </Label>
+                <Input
+                  id="birthday_message_ar"
+                  dir="rtl"
+                  placeholder={t(
+                    "loyalty.birthdayMessageArPlaceholder",
+                    "Leave empty and Arabic members get the English one.",
+                  )}
+                  {...form.register("birthday_message_ar")}
+                />
+              </div>
+
+              <BirthdayPreview settings={previewSettings} />
             </div>
           ) : null}
 

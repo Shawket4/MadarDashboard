@@ -54,6 +54,16 @@ export function OrgsPage() {
       { accessorKey: "currency_code", header: t("orgs.currency", "Currency"), cell: ({ row }) => <Badge variant="outline" className="font-mono">{row.original.currency_code}</Badge> },
       { accessorKey: "tax_rate", header: t("orgs.taxRate", "Tax Rate (%)"), cell: ({ row }) => <span className="font-mono text-sm">{row.original.tax_rate}%</span> },
       {
+        accessorKey: "custom_branding",
+        header: t("orgs.customBranding", "Custom branding"),
+        cell: ({ row }) =>
+          row.original.custom_branding ? (
+            <Badge variant="outline">{t("common.on", "On")}</Badge>
+          ) : (
+            <span className="text-xs text-muted-foreground">{t("common.off", "Off")}</span>
+          ),
+      },
+      {
         accessorKey: "is_active", header: t("common.status", "Status"),
         cell: ({ row }) => row.original.is_active
           ? <Badge variant="outline" className="border-transparent bg-success/10 text-success"><CheckCircle className="size-3" /> {t("common.active", "Active")}</Badge>

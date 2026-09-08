@@ -92,7 +92,9 @@
     "copyLink": "نسخ الرابط",
     "copy": "نسخ",
     "rename": "إعادة تسمية",
-    "more": "المزيد"
+    "more": "المزيد",
+    "on": "مفعّل",
+    "off": "متوقف"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -293,7 +295,9 @@
     "logoRemoved": "تم حذف الشعار",
     "loadError": "تعذّر تحميل المؤسسات",
     "editDescription": "عدّل تفاصيل هذه المؤسسة.",
-    "newDescription": "أدخل التفاصيل لإنشاء مؤسسة جديدة."
+    "newDescription": "أدخل التفاصيل لإنشاء مؤسسة جديدة.",
+    "customBranding": "علامة مخصصة",
+    "customBrandingHint": "يضع شعار هذه المؤسسة وألوانها على بطاقات ولاء العملاء وصفحة التسجيل. عند الإيقاف تُستخدم ألوان مدار. تبقى مدار في التذييل في الحالتين."
   },
   "branches": {
     "title": "الفروع",
@@ -4260,7 +4264,10 @@
     "birthdayGift": "هدية عيد الميلاد",
     "birthdayGiftNone": "اتركه فارغاً للتهنئة فقط",
     "birthdayGiftHint": "نقاط أو أختام تُضاف في اليوم. اختياري — كثير من المحلات تهنئ دون تقديم شيء.",
-    "birthdayMessage": "الرسالة",
-    "birthdayMessagePlaceholder": "اتركه فارغاً لاستخدام رسالتنا. {name} يصبح اسمه."
+    "birthdayMessage": "الرسالة (بالإنجليزية)",
+    "birthdayMessagePlaceholder": "اتركه فارغاً لاستخدام رسالتنا. {name} يصبح اسمه.",
+    "birthdayMessageAr": "الرسالة (بالعربية)",
+    "birthdayMessageArPlaceholder": "اتركه فارغاً وسيصل الأعضاء العرب النص الإنجليزي.",
+    "birthdayPreview": "ما الذي سيصلهم"
   }
 }

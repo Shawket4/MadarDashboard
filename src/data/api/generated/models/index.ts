@@ -34,6 +34,7 @@ export * from './availabilityResponse';
 export * from './availableBundlesParams';
 export * from './awardRequest';
 export * from './awardResult';
+export * from './birthdayPreview';
 export * from './boardInfo';
 export * from './bookingAvailabilityParams';
 export * from './bookingBranchesParams';

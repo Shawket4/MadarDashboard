@@ -44,6 +44,7 @@ import type {
   AvailableBundlesParams,
   AwardRequest,
   AwardResult,
+  BirthdayPreview,
   BookingAvailabilityParams,
   BookingBranchesParams,
   BookingSettings,
@@ -11002,6 +11003,78 @@ export const useLoyaltyAward = <TError = ErrorBody,
         TContext
       > => {
       return useMutation(getLoyaltyAwardMutationOptions(options), queryClient);
+    }
+
+/**
+ * Rendered by the server, from the same `message_for` the sweep uses, because
+ * a preview reimplemented in the dashboard is a preview that drifts — and the
+ * thing it would drift from is a message sent once a year to a customer, where
+ * nobody would ever catch it.
+ *
+ * Takes the settings being edited rather than reading the stored ones: the
+ * point is to see what you are about to save.
+ * @summary Render the greeting for settings that have NOT been saved yet.
+ */
+export const previewLoyaltyBirthdayMessage = (
+    loyaltySettings: LoyaltySettings,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BirthdayPreview>(
+      {url: `/loyalty/birthday-preview`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: loyaltySettings, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPreviewLoyaltyBirthdayMessageMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewLoyaltyBirthdayMessage>>, TError,{data: LoyaltySettings}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewLoyaltyBirthdayMessage>>, TError,{data: LoyaltySettings}, TContext> => {
+
+const mutationKey = ['previewLoyaltyBirthdayMessage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewLoyaltyBirthdayMessage>>, {data: LoyaltySettings}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewLoyaltyBirthdayMessage(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewLoyaltyBirthdayMessageMutationResult = NonNullable<Awaited<ReturnType<typeof previewLoyaltyBirthdayMessage>>>
+    export type PreviewLoyaltyBirthdayMessageMutationBody = LoyaltySettings
+    export type PreviewLoyaltyBirthdayMessageMutationError = ErrorBody
+
+    /**
+ * @summary Render the greeting for settings that have NOT been saved yet.
+ */
+export const usePreviewLoyaltyBirthdayMessage = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewLoyaltyBirthdayMessage>>, TError,{data: LoyaltySettings}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof previewLoyaltyBirthdayMessage>>,
+        TError,
+        {data: LoyaltySettings},
+        TContext
+      > => {
+      return useMutation(getPreviewLoyaltyBirthdayMessageMutationOptions(options), queryClient);
     }
 
 /**

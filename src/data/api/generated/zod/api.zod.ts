@@ -4133,6 +4133,43 @@ export const LoyaltyAwardResponse = zod.object({
 
 
 /**
+ * Rendered by the server, from the same `message_for` the sweep uses, because
+ * a preview reimplemented in the dashboard is a preview that drifts — and the
+ * thing it would drift from is a message sent once a year to a customer, where
+ * nobody would ever catch it.
+ *
+ * Takes the settings being edited rather than reading the stored ones: the
+ * point is to see what you are about to save.
+ * @summary Render the greeting for settings that have NOT been saved yet.
+ */
+export const PreviewLoyaltyBirthdayMessageBody = zod.object({
+  "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
+  "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
+  "birthday_message_ar": zod.string().nullish(),
+  "birthday_reward_amount": zod.number().nullish().describe('Points or stamps given on the day. `None` is a greeting and nothing else,\nwhich is deliberately the default: plenty of shops want to say happy\nbirthday without giving away a drink.'),
+  "branch_id": zod.uuid().nullish().describe('`null` = the org-wide default. A branch id = that branch\'s override.'),
+  "default_reward_cost": zod.number().describe('The cost offered by default when an admin adds a reward, in whatever this\nscope collects. Each reward may override it, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\". Also the pass\'s fallback\ntarget when no rewards have been curated yet.'),
+  "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
+  "earn_on_discounted": zod.boolean().describe('Earn on what was actually paid rather than the pre-discount subtotal.'),
+  "earn_piastres_per_point": zod.number().describe('One point per this many piastres. 1000 = a point per 10 EGP. The\ndashboard shows and accepts EGP; the wire is always piastres.'),
+  "enabled": zod.boolean().describe('The program switch for this scope.'),
+  "mode": zod.string().describe('What this scope collects: `\"points\"` (from money spent) or `\"visits\"`\n(one stamp per sale). One or the other — never both.'),
+  "org_id": zod.uuid(),
+  "program_name": zod.string(),
+  "program_name_ar": zod.string().nullish(),
+  "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
+  "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
+  "terms": zod.string().nullish(),
+  "terms_ar": zod.string().nullish()
+})
+
+export const PreviewLoyaltyBirthdayMessageResponse = zod.object({
+  "ar": zod.string(),
+  "en": zod.string()
+}).describe('The birthday greeting as it would actually be sent, in both languages.')
+
+
+/**
  * A POST rather than a GET because the member token is a bearer-ish secret: in
  * a query string it would land in access logs, browser history and any proxy
  * in between.

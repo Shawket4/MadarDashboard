@@ -92,7 +92,9 @@
     "copyLink": "Copy link",
     "copy": "Copy",
     "rename": "Rename",
-    "more": "More"
+    "more": "More",
+    "on": "On",
+    "off": "Off"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -293,7 +295,9 @@
     "logoRemoved": "Logo removed",
     "loadError": "Couldn't load organizations",
     "editDescription": "Update the details for this organization.",
-    "newDescription": "Fill in the details to create a new organization."
+    "newDescription": "Fill in the details to create a new organization.",
+    "customBranding": "Custom branding",
+    "customBrandingHint": "Puts this organisation's own logo and colours on customer loyalty cards and the signup page. Off, they use Madar's. Madar stays in the footer either way."
   },
   "branches": {
     "title": "Branches",
@@ -4162,7 +4166,10 @@
     "birthdayGift": "Birthday gift",
     "birthdayGiftNone": "Leave empty for a greeting only",
     "birthdayGiftHint": "Points or stamps added on the day. Optional — plenty of shops greet without giving anything away.",
-    "birthdayMessage": "Message",
-    "birthdayMessagePlaceholder": "Leave empty to use ours. {name} becomes their name."
+    "birthdayMessage": "Message (English)",
+    "birthdayMessagePlaceholder": "Leave empty to use ours. {name} becomes their name.",
+    "birthdayMessageAr": "Message (Arabic)",
+    "birthdayMessageArPlaceholder": "Leave empty and Arabic members get the English one.",
+    "birthdayPreview": "What they'll receive"
   }
 }

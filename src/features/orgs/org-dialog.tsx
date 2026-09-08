@@ -51,6 +51,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         receipt_footer: z.string().optional(),
         timezone: z.string().min(1, t("common.requiredField", "This field is required")),
         is_active: z.boolean(),
+        custom_branding: z.boolean(),
       }),
     [t],
   );
@@ -58,7 +59,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true },
+    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false },
   });
 
   useEffect(() => {
@@ -74,6 +75,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         receipt_footer: org?.receipt_footer ?? "",
         timezone: org?.timezone ?? "Africa/Cairo",
         is_active: org?.is_active ?? true,
+        custom_branding: org?.custom_branding ?? false,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,6 +90,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         await updateOrg(org.id, {
           name: v.name, slug: v.slug, currency_code: v.currency_code,
           tax_rate: v.tax_rate, receipt_footer: v.receipt_footer || null, timezone: v.timezone, is_active: v.is_active,
+          custom_branding: v.custom_branding,
         });
       } else {
         await createOrg({
@@ -187,6 +190,26 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
                 </FormItem>
               )} />
             ) : null}
+
+            {/* A paid tier, and this dialog is super-admin only — which is why
+                the switch lives on the ORGANISATION rather than in the settings
+                an org manager can reach. */}
+            <FormField control={form.control} name="custom_branding" render={({ field }) => (
+              <FormItem className="rounded-lg bg-muted p-3">
+                <div className="flex items-center justify-between gap-4">
+                  <FormLabel className="font-normal">
+                    {t("orgs.customBranding", "Custom branding")}
+                  </FormLabel>
+                  <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t(
+                    "orgs.customBrandingHint",
+                    "Puts this organisation's own logo and colours on customer loyalty cards and the signup page. Off, they use Madar's. Madar stays in the footer either way.",
+                  )}
+                </p>
+              </FormItem>
+            )} />
 
             <DialogFooter>
               <Button type="button" variant="outline" disabled={busy} onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>

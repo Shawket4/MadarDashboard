@@ -18,9 +18,8 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/app/page";
 import { ImageUploader } from "@/components/app/image-uploader";
 import { Card, CardContent } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getOrg, updateOrg, uploadOrgLogo } from "@/data/api/generated/api";
+import { getOrg, uploadOrgLogo } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,20 +30,8 @@ import { CardFace } from "@/features/loyalty/card-face";
 export function BrandPane() {
   const { t, i18n } = useTranslation();
   const orgId = useAuthStore((s) => s.user?.org_id) ?? "";
-  const isSuperAdmin = useAuthStore((s) => s.user?.role) === "super_admin";
   const queryClient = useQueryClient();
 
-  /// Super admin only — the endpoint enforces it too, and this is the visible
-  /// half of that.
-  const setTier = async (on: boolean) => {
-    try {
-      await updateOrg(orgId, { custom_branding: on });
-      await queryClient.invalidateQueries({ queryKey: ["org-brand", orgId] });
-      toast.success(t("settings.saved", "Saved"));
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-    }
-  };
 
   const org = useQuery({
     queryKey: ["org-brand", orgId],
@@ -112,26 +99,6 @@ export function BrandPane() {
               )}
             </p>
           </div>
-        </div>
-      ) : null}
-
-      {isSuperAdmin && org.data ? (
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-dashed border-border p-3">
-          <div>
-            <p className="text-sm font-medium">
-              {t("settings.brandTier", "Custom branding (super admin)")}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t(
-                "settings.brandTierHint",
-                "Lets this organisation put its own logo and colours on customer cards and the signup page. Madar stays in the footer either way.",
-              )}
-            </p>
-          </div>
-          <Switch
-            checked={org.data.custom_branding}
-            onCheckedChange={(v) => void setTier(v)}
-          />
         </div>
       ) : null}
 
