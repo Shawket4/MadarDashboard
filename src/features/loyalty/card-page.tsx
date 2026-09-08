@@ -59,7 +59,7 @@ export function CardPage({ token }: { token: string }) {
   const target = data.next_reward_cost;
 
   return (
-    <StorefrontShell>
+    <StorefrontShell brand={brand}>
       <div className="flex flex-col gap-5 pt-4">
         <CardFace
           brand={brand}

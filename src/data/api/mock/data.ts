@@ -69,6 +69,7 @@ export const MOCK_ORG: Org = {
   logo_url: null,
   receipt_footer: "Thank you — see you again soon.",
   is_active: true,
+  custom_branding: true,
 };
 
 export const MOCK_BRANCHES: Branch[] = BRANCH_SEEDS.map((b) => ({

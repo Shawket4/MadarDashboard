@@ -48,6 +48,10 @@ const schema = z.object({
   default_reward_cost: z.coerce.number<number>().int().positive(),
   require_otp: z.boolean(),
   reward_any_item: z.boolean(),
+  birthday_enabled: z.boolean(),
+  // Empty means a greeting and no gift, which is the common case.
+  birthday_reward_amount: z.string().optional(),
+  birthday_message: z.string().optional(),
   terms: z.string().optional(),
 });
 
@@ -82,6 +86,11 @@ export function ProgramSettings({
           default_reward_cost: settings.default_reward_cost,
           require_otp: settings.require_otp,
           reward_any_item: settings.reward_any_item ?? false,
+          birthday_enabled: settings.birthday_enabled ?? false,
+          birthday_reward_amount: settings.birthday_reward_amount
+            ? String(settings.birthday_reward_amount)
+            : "",
+          birthday_message: settings.birthday_message ?? "",
           terms: settings.terms ?? "",
         }
       : undefined,
@@ -121,6 +130,12 @@ export function ProgramSettings({
           default_reward_cost: v.default_reward_cost,
           require_otp: v.require_otp,
           reward_any_item: v.reward_any_item,
+          birthday_enabled: v.birthday_enabled,
+          birthday_reward_amount: v.birthday_enabled
+            ? Number(v.birthday_reward_amount) || null
+            : null,
+          birthday_message: v.birthday_enabled ? v.birthday_message || null : null,
+          birthday_message_ar: settings?.birthday_message_ar ?? null,
           terms: v.terms || null,
           terms_ar: settings?.terms_ar ?? null,
         },
@@ -317,6 +332,61 @@ export function ProgramSettings({
               }
             />
           </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold">
+                {t("loyalty.birthdays", "Birthdays")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t(
+                  "loyalty.birthdaysHint",
+                  "Asks for a date of birth at signup and sends a WhatsApp greeting on the day. Off means the form does not ask at all.",
+                )}
+              </p>
+            </div>
+            <Switch
+              checked={form.watch("birthday_enabled")}
+              onCheckedChange={(v) =>
+                form.setValue("birthday_enabled", v, { shouldDirty: true })
+              }
+            />
+          </div>
+
+          {form.watch("birthday_enabled") ? (
+            <div className="space-y-4 rounded-lg border border-border/70 p-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="birthday_reward_amount">
+                  {t("loyalty.birthdayGift", "Birthday gift")}
+                </Label>
+                <Input
+                  id="birthday_reward_amount"
+                  inputMode="numeric"
+                  placeholder={t("loyalty.birthdayGiftNone", "Leave empty for a greeting only")}
+                  {...form.register("birthday_reward_amount")}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t(
+                    "loyalty.birthdayGiftHint",
+                    "Points or stamps added on the day. Optional — plenty of shops greet without giving anything away.",
+                  )}
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="birthday_message">
+                  {t("loyalty.birthdayMessage", "Message")}
+                </Label>
+                <Input
+                  id="birthday_message"
+                  placeholder={t(
+                    "loyalty.birthdayMessagePlaceholder",
+                    "Leave empty to use ours. {name} becomes their name.",
+                  )}
+                  {...form.register("birthday_message")}
+                />
+              </div>
+            </div>
+          ) : null}
 
           <div className="space-y-1.5">
             <Label htmlFor="terms">{t("loyalty.terms", "Terms (shown on the pass)")}</Label>

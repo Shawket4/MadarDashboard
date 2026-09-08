@@ -4145,6 +4145,8 @@ export const LoyaltyLookupBody = zod.object({
 })
 
 export const LoyaltyLookupResponse = zod.object({
+  "any_item": zod.boolean().describe('The whole menu is claimable, not just `rewards`.\n\nWhen on, `rewards` stops being the list of what MAY be claimed — it is\nonly what happens to be curated — and the till offers every line at\n`any_item_cost`. Sent rather than inferred, because a till cannot tell\n\"no catalogue\" apart from \"any item\" without being told.'),
+  "any_item_cost": zod.number().describe('What one line costs when `any_item` is on, in the branch\'s currency.'),
   "member": zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
   "can_redeem": zod.boolean().describe('The balance affords at least one reward on offer here.'),
@@ -4317,6 +4319,10 @@ export const GetLoyaltySettingsQueryParams = zod.object({
 })
 
 export const GetLoyaltySettingsResponse = zod.object({
+  "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
+  "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
+  "birthday_message_ar": zod.string().nullish(),
+  "birthday_reward_amount": zod.number().nullish().describe('Points or stamps given on the day. `None` is a greeting and nothing else,\nwhich is deliberately the default: plenty of shops want to say happy\nbirthday without giving away a drink.'),
   "branch_id": zod.uuid().nullish().describe('`null` = the org-wide default. A branch id = that branch\'s override.'),
   "default_reward_cost": zod.number().describe('The cost offered by default when an admin adds a reward, in whatever this\nscope collects. Each reward may override it, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\". Also the pass\'s fallback\ntarget when no rewards have been curated yet.'),
   "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
@@ -4335,6 +4341,10 @@ export const GetLoyaltySettingsResponse = zod.object({
 
 
 export const PutLoyaltySettingsBody = zod.object({
+  "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
+  "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
+  "birthday_message_ar": zod.string().nullish(),
+  "birthday_reward_amount": zod.number().nullish().describe('Points or stamps given on the day. `None` is a greeting and nothing else,\nwhich is deliberately the default: plenty of shops want to say happy\nbirthday without giving away a drink.'),
   "branch_id": zod.uuid().nullish().describe('`null` = the org-wide default. A branch id = that branch\'s override.'),
   "default_reward_cost": zod.number().describe('The cost offered by default when an admin adds a reward, in whatever this\nscope collects. Each reward may override it, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\". Also the pass\'s fallback\ntarget when no rewards have been curated yet.'),
   "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
@@ -4352,6 +4362,10 @@ export const PutLoyaltySettingsBody = zod.object({
 })
 
 export const PutLoyaltySettingsResponse = zod.object({
+  "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
+  "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
+  "birthday_message_ar": zod.string().nullish(),
+  "birthday_reward_amount": zod.number().nullish().describe('Points or stamps given on the day. `None` is a greeting and nothing else,\nwhich is deliberately the default: plenty of shops want to say happy\nbirthday without giving away a drink.'),
   "branch_id": zod.uuid().nullish().describe('`null` = the org-wide default. A branch id = that branch\'s override.'),
   "default_reward_cost": zod.number().describe('The cost offered by default when an admin adds a reward, in whatever this\nscope collects. Each reward may override it, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\". Also the pass\'s fallback\ntarget when no rewards have been curated yet.'),
   "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
@@ -6904,6 +6918,7 @@ export const ListOrgsResponseItem = zod.object({
   "brand_foreground": zod.string().nullish(),
   "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
   "currency_code": zod.string(),
+  "custom_branding": zod.boolean().describe('The branding tier. Super admin only — see `UpdateOrgRequest`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
@@ -6932,6 +6947,7 @@ export const CreateOrgResponse = zod.object({
   "brand_foreground": zod.string().nullish(),
   "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
   "currency_code": zod.string(),
+  "custom_branding": zod.boolean().describe('The branding tier. Super admin only — see `UpdateOrgRequest`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
@@ -6953,6 +6969,7 @@ export const GetOrgResponse = zod.object({
   "brand_foreground": zod.string().nullish(),
   "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
   "currency_code": zod.string(),
+  "custom_branding": zod.boolean().describe('The branding tier. Super admin only — see `UpdateOrgRequest`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
@@ -6977,6 +6994,7 @@ export const UpdateOrgParams = zod.object({
 
 export const UpdateOrgBody = zod.object({
   "currency_code": zod.string().nullish(),
+  "custom_branding": zod.boolean().nullish().describe('May this organisation wear its own mark and colours on the customer\'s\ncard and signup page? A paid tier, and this endpoint is already\nsuper-admin only — which is the whole reason it lives here rather than\nwith the other branding controls an org manager can reach.'),
   "is_active": zod.boolean().nullish(),
   "logo_url": zod.string().nullish().describe('`null` clears the logo; absent leaves it unchanged. To set a new\nlogo, use `PUT \/orgs\/{id}\/logo` (multipart) instead — JSON updates\nonly accept the clear-to-null case here.'),
   "name": zod.string().nullish(),
@@ -6992,6 +7010,7 @@ export const UpdateOrgResponse = zod.object({
   "brand_foreground": zod.string().nullish(),
   "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
   "currency_code": zod.string(),
+  "custom_branding": zod.boolean().describe('The branding tier. Super admin only — see `UpdateOrgRequest`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
@@ -7046,6 +7065,7 @@ export const UploadOrgLogoResponse = zod.object({
   "brand_foreground": zod.string().nullish(),
   "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
   "currency_code": zod.string(),
+  "custom_branding": zod.boolean().describe('The branding tier. Super admin only — see `UpdateOrgRequest`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
@@ -7829,6 +7849,7 @@ export const LoyaltyCardQrResponse = zod.unknown()
 
 
 export const LoyaltyJoinBody = zod.object({
+  "birthday": zod.iso.date().nullish().describe('Date of birth, `YYYY-MM-DD`. Accepted ONLY where the org asked for one:\na field the shop turned off must not be storable by posting past the\nform, and the year is kept because a date without one is not a date.'),
   "branch_id": zod.uuid(),
   "device_token": zod.string().nullish().describe('Device-trust token from `\/public\/otp\/verify`. Required only when the\nbranch\'s `require_otp` is on.'),
   "locale": zod.string().nullish().describe('\'en\' or \'ar\' — the language the pass is written in.'),
@@ -7866,6 +7887,8 @@ export const LoyaltyJoinInfoQueryParams = zod.object({
 })
 
 export const LoyaltyJoinInfoResponse = zod.object({
+  "birthday_enabled": zod.boolean().describe('Ask for a date of birth. False means the form does not show the field —\na shop that does not run birthday rewards is not given one to hold.'),
+  "birthday_reward_amount": zod.number().nullish().describe('What the birthday is worth here, so the page can say what it is FOR\nrather than asking for a date of birth and explaining nothing.'),
   "branch_id": zod.uuid(),
   "branch_name": zod.string(),
   "brand": zod.object({

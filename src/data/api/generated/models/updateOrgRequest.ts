@@ -4,6 +4,14 @@
 export interface UpdateOrgRequest {
   /** @nullable */
   currency_code?: string | null;
+  /**
+     * May this organisation wear its own mark and colours on the customer's
+     * card and signup page? A paid tier, and this endpoint is already
+     * super-admin only — which is the whole reason it lives here rather than
+     * with the other branding controls an org manager can reach.
+     * @nullable
+     */
+  custom_branding?: boolean | null;
   /** @nullable */
   is_active?: boolean | null;
   /**

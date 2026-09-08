@@ -29,6 +29,7 @@ export function JoinPage({ branchId }: { branchId: string }) {
   const isAr = (i18n.resolvedLanguage ?? "en").startsWith("ar");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [birthday, setBirthday] = useState("");
   const [joined, setJoined] = useState<JoinResult | null>(null);
 
   const info = useLoyaltyJoinInfo({ branch_id: branchId });
@@ -72,7 +73,7 @@ export function JoinPage({ branchId }: { branchId: string }) {
   // Already done — show the card and the wallet buttons, nothing else.
   if (joined) {
     return (
-      <StorefrontShell>
+      <StorefrontShell brand={brand}>
         <div className="flex flex-col gap-6 pt-6">
           <div className="flex flex-col items-center gap-2 text-center">
             <PartyPopper className="size-7 text-muted-foreground" />
@@ -131,6 +132,9 @@ export function JoinPage({ branchId }: { branchId: string }) {
           phone,
           device_token: deviceToken ?? undefined,
           locale: isAr ? "ar" : "en",
+          // Only ever sent where the shop asked for it; the server drops it
+          // otherwise, so this is convenience rather than the guard.
+          birthday: data.birthday_enabled && birthday ? birthday : undefined,
         },
       });
       setJoined(res);
@@ -140,7 +144,7 @@ export function JoinPage({ branchId }: { branchId: string }) {
   };
 
   return (
-    <StorefrontShell>
+    <StorefrontShell brand={brand}>
       <div className="flex flex-col gap-6 pt-4">
         <header className="flex flex-col gap-2">
           {brand.logoUrl ? (
@@ -201,6 +205,41 @@ export function JoinPage({ branchId }: { branchId: string }) {
             placeholder={t("loyalty.namePlaceholder", "So we know who to thank")}
           />
         </div>
+
+        {data.birthday_enabled ? (
+          <div className="flex flex-col gap-2">
+            <label htmlFor="loyalty-birthday" className="text-sm font-medium">
+              {t("loyalty.yourBirthday", "Your birthday")}
+              <span className="ms-1 font-normal text-muted-foreground">
+                {t("loyalty.optional", "(optional)")}
+              </span>
+            </label>
+            <Input
+              id="loyalty-birthday"
+              type="date"
+              value={birthday}
+              onChange={(e) => setBirthday(e.target.value)}
+              // Nobody's birthday is tomorrow, and a date of birth in the
+              // future is a typo that would silently never fire.
+              max={new Date().toISOString().slice(0, 10)}
+              autoComplete="bday"
+            />
+            <p className="text-xs text-muted-foreground">
+              {/* Say what it is FOR. Asking for a date of birth and explaining
+                  nothing is how a signup form loses people. */}
+              {data.birthday_reward_amount
+                ? t("loyalty.birthdayWithGift", {
+                    defaultValue:
+                      "We'll wish you a happy birthday and put {{n}} on your card.",
+                    n: data.birthday_reward_amount,
+                  })
+                : t(
+                    "loyalty.birthdayNoGift",
+                    "So we can wish you a happy birthday. Nothing else.",
+                  )}
+            </p>
+          </div>
+        ) : null}
 
         {/* The very same component (and the very same OTP endpoints and device
             token) the ordering and booking flows use. */}

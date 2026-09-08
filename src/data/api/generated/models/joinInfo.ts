@@ -7,6 +7,17 @@ import type { PublicReward } from './publicReward';
  * What the signup page needs to render itself before anyone types anything.
  */
 export interface JoinInfo {
+  /**
+     * Ask for a date of birth. False means the form does not show the field —
+     * a shop that does not run birthday rewards is not given one to hold.
+     */
+  birthday_enabled: boolean;
+  /**
+     * What the birthday is worth here, so the page can say what it is FOR
+     * rather than asking for a date of birth and explaining nothing.
+     * @nullable
+     */
+  birthday_reward_amount?: number | null;
   branch_id: string;
   branch_name: string;
   /** Whose programme this is, and how the page should look. */

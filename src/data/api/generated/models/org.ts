@@ -21,6 +21,8 @@ export interface Org {
      */
   brand_logo_is_mark?: boolean | null;
   currency_code: string;
+  /** The branding tier. Super admin only — see `UpdateOrgRequest`. */
+  custom_branding: boolean;
   id: string;
   is_active: boolean;
   /** @nullable */

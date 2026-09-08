@@ -11,14 +11,16 @@
  * shop cannot pick two colours nobody can read, and the card and the logo can
  * never disagree about what the brand is.
  */
+import { Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/app/page";
 import { ImageUploader } from "@/components/app/image-uploader";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getOrg, uploadOrgLogo } from "@/data/api/generated/api";
+import { getOrg, updateOrg, uploadOrgLogo } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,7 +31,20 @@ import { CardFace } from "@/features/loyalty/card-face";
 export function BrandPane() {
   const { t, i18n } = useTranslation();
   const orgId = useAuthStore((s) => s.user?.org_id) ?? "";
+  const isSuperAdmin = useAuthStore((s) => s.user?.role) === "super_admin";
   const queryClient = useQueryClient();
+
+  /// Super admin only — the endpoint enforces it too, and this is the visible
+  /// half of that.
+  const setTier = async (on: boolean) => {
+    try {
+      await updateOrg(orgId, { custom_branding: on });
+      await queryClient.invalidateQueries({ queryKey: ["org-brand", orgId] });
+      toast.success(t("settings.saved", "Saved"));
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
 
   const org = useQuery({
     queryKey: ["org-brand", orgId],
@@ -79,6 +94,46 @@ export function BrandPane() {
           "Your mark, on receipts and on your customers' loyalty cards.",
         )}
       />
+
+      {org.data && !org.data.custom_branding ? (
+        // Said plainly, and next to the preview it explains. The alternative is
+        // a manager uploading a logo, seeing Madar's colours, and reporting it
+        // as a bug — which is what a silent tier gate produces.
+        <div className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-muted/40 p-3">
+          <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium">
+              {t("settings.brandTierOff", "Custom branding is not enabled")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t(
+                "settings.brandTierOffHint",
+                "Your logo still appears on receipts. Customer cards and the signup page use Madar's colours until custom branding is switched on for your organisation — talk to us about it.",
+              )}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {isSuperAdmin && org.data ? (
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-dashed border-border p-3">
+          <div>
+            <p className="text-sm font-medium">
+              {t("settings.brandTier", "Custom branding (super admin)")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t(
+                "settings.brandTierHint",
+                "Lets this organisation put its own logo and colours on customer cards and the signup page. Madar stays in the footer either way.",
+              )}
+            </p>
+          </div>
+          <Switch
+            checked={org.data.custom_branding}
+            onCheckedChange={(v) => void setTier(v)}
+          />
+        </div>
+      ) : null}
 
       <Card>
         <CardContent className="space-y-4 p-5">

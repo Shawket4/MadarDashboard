@@ -2,6 +2,13 @@
 // @ts-nocheck
 
 export interface JoinInput {
+  /**
+     * Date of birth, `YYYY-MM-DD`. Accepted ONLY where the org asked for one:
+     * a field the shop turned off must not be storable by posting past the
+     * form, and the year is kept because a date without one is not a date.
+     * @nullable
+     */
+  birthday?: string | null;
   branch_id: string;
   /**
      * Device-trust token from `/public/otp/verify`. Required only when the

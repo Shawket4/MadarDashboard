@@ -3,6 +3,28 @@
 
 export interface LoyaltySettings {
   /**
+     * Ask for a birthday at signup, and greet them on the day.
+     *
+     * Off means the form does not ASK — not that it asks and ignores. A date of
+     * birth is the most sensitive thing this feature collects, and a shop that
+     * does not run birthday rewards has no business holding one.
+     */
+  birthday_enabled?: boolean;
+  /**
+     * Overrides the built-in greeting. `{name}` is substituted; nothing else is.
+     * @nullable
+     */
+  birthday_message?: string | null;
+  /** @nullable */
+  birthday_message_ar?: string | null;
+  /**
+     * Points or stamps given on the day. `None` is a greeting and nothing else,
+     * which is deliberately the default: plenty of shops want to say happy
+     * birthday without giving away a drink.
+     * @nullable
+     */
+  birthday_reward_amount?: number | null;
+  /**
      * `null` = the org-wide default. A branch id = that branch's override.
      * @nullable
      */

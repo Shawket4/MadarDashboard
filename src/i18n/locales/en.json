@@ -2027,7 +2027,11 @@
     "logoHint": "PNG or JPG, square works best. The card's colours are taken from it automatically.",
     "cardPreview": "How the loyalty card will look",
     "previewMember": "Member name",
-    "brandDerived": "Colours are read from your logo and adjusted so the text stays readable. Upload a new logo to change them."
+    "brandDerived": "Colours are read from your logo and adjusted so the text stays readable. Upload a new logo to change them.",
+    "brandTierOff": "Custom branding is not enabled",
+    "brandTierOffHint": "Your logo still appears on receipts. Customer cards and the signup page use Madar's colours until custom branding is switched on for your organisation — talk to us about it.",
+    "brandTier": "Custom branding (super admin)",
+    "brandTierHint": "Lets this organisation put its own logo and colours on customer cards and the signup page. Madar stays in the footer either way."
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -4148,6 +4152,17 @@
     "anyItemHint": "Opens the whole menu at the price below, instead of only the Rewards list. Off by default — a list lets you offer an espresso without also offering the steak.",
     "andMoreReady": "+{{n}} more ready",
     "rewardsReadyN_one": "1 reward earned — ask at the counter.",
-    "rewardsReadyN_other": "{{count}} rewards earned — ask at the counter."
+    "rewardsReadyN_other": "{{count}} rewards earned — ask at the counter.",
+    "yourBirthday": "Your birthday",
+    "optional": "(optional)",
+    "birthdayWithGift": "We'll wish you a happy birthday and put {{n}} on your card.",
+    "birthdayNoGift": "So we can wish you a happy birthday. Nothing else.",
+    "birthdays": "Birthdays",
+    "birthdaysHint": "Asks for a date of birth at signup and sends a WhatsApp greeting on the day. Off means the form does not ask at all.",
+    "birthdayGift": "Birthday gift",
+    "birthdayGiftNone": "Leave empty for a greeting only",
+    "birthdayGiftHint": "Points or stamps added on the day. Optional — plenty of shops greet without giving anything away.",
+    "birthdayMessage": "Message",
+    "birthdayMessagePlaceholder": "Leave empty to use ours. {name} becomes their name."
   }
 }
