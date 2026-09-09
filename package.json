@@ -25,7 +25,9 @@
     "tauri:build": "tauri build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generate:api": "orval"
+    "generate:api": "orval",
+    "build:order:shop": "MADAR_MOUNT=/order/ vite build --config vite.order.config.ts",
+    "build:reservations:shop": "MADAR_MOUNT=/book/ vite build --config vite.reservations.config.ts"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",

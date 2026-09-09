@@ -62,6 +62,28 @@ export function hostSlug(hostname: string): string | null {
  * looked up by the hostname's first label instead, and a page on one of our own
  * generic origins simply stays unbranded rather than firing a doomed request.
  */
+/**
+ * The shop this page is being served FOR, when the hostname is the only clue.
+ *
+ * A shop on the branding tier gets its own hostname, and on it the URL carries
+ * no org id: `drops.madar-pos.cloud/` is the Drops sign-up page, not a prompt
+ * to scan something. So the index of every guest bundle asks this first, and
+ * falls back to what it has always shown when the answer is "no shop here" —
+ * which is every request on our own generic hosts, and every path that already
+ * names its org.
+ *
+ * `resolving` matters: rendering the generic prompt for a moment and then
+ * replacing it with a shop's page is a worse first paint than waiting, and the
+ * wait is one cached request.
+ */
+export function useHostOrg(): { orgId: string | null; resolving: boolean } {
+  const slug = hostSlug(typeof window === "undefined" ? "" : window.location.hostname);
+  const q = usePublicOrgBrand(slug ? { slug } : undefined, {
+    query: { enabled: !!slug, staleTime: 5 * 60_000, retry: false },
+  });
+  return { orgId: q.data?.org_id ?? null, resolving: !!slug && q.isPending };
+}
+
 export function usePublicBrand(orgId?: string | null): ShellBrand | null {
   const slug =
     orgId ? null : hostSlug(typeof window === "undefined" ? "" : window.location.hostname);

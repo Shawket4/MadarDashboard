@@ -13,7 +13,21 @@ import path from "node:path";
 import compression from "vite-plugin-compression";
 import { constants as zlibConstants } from "node:zlib";
 
+// Where this build will be mounted.
+//
+// The same bundle has to serve two places: the root of its own hostname, and a
+// sub-path on a shop's own hostname (`drops.madar-pos.cloud/order`). A base is
+// baked into every asset URL at build time and there is only one of it, so this
+// is built twice rather than made clever at runtime — the alternatives were a
+// `<base href>` injected per mount, which re-anchors every relative URL in the
+// document including the router's, and relative asset paths, which break the
+// moment a route has depth. Both of those fail in production and pass locally.
+//
+// `MADAR_MOUNT=/book/` selects the shop build; unset is the standalone host.
+const mount = process.env.MADAR_MOUNT ?? "/";
+
 export default defineConfig({
+  base: mount,
   plugins: [
     react(),
     tailwindcss(),
@@ -46,7 +60,7 @@ export default defineConfig({
     alias: { "@": path.resolve(__dirname, "./src") },
   },
   build: {
-    outDir: "dist-reservations",
+    outDir: mount === "/" ? "dist-reservations" : "dist-reservations-shop",
     emptyOutDir: true,
     sourcemap: false,
     rollupOptions: {

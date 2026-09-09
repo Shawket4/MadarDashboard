@@ -40,6 +40,7 @@ import "@/lib/theme";
 import { queryClient } from "@/data/api/query";
 import { JoinPage } from "@/features/loyalty/public/join-page";
 import { CardPage } from "@/features/loyalty/public/card-page";
+import { useHostOrg } from "@/features/public-shell/use-brand";
 import { ScanToJoin } from "@/features/loyalty/public/scan-to-join";
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
@@ -47,7 +48,15 @@ const rootRoute = createRootRoute({ component: () => <Outlet /> });
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: ScanToJoin,
+  // On a shop's own hostname this IS the shop's sign-up page — the URL has no
+  // org id to carry one, and telling someone standing on `drops.madar-pos.cloud`
+  // to go and scan a code would be absurd. Everywhere else it is what it has
+  // always been.
+  component: function Index() {
+    const { orgId, resolving } = useHostOrg();
+    if (resolving) return null;
+    return orgId ? <JoinPage orgId={orgId} /> : <ScanToJoin />;
+  },
 });
 
 const joinRoute = createRoute({

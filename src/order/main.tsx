@@ -40,6 +40,7 @@ import "@/lib/theme";
 
 import { queryClient } from "@/data/api/query";
 import { PublicOrderingPage } from "@/features/public-ordering/public-ordering-page";
+import { useHostOrg } from "@/features/public-shell/use-brand";
 import { ScanToOrder } from "@/features/public-ordering/scan-to-order";
 import { OrderTrackingPage } from "@/features/order-tracking/tracking-page";
 
@@ -61,7 +62,27 @@ const rootRoute = createRootRoute({ component: () => <Outlet /> });
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: ScanToOrder,
+  validateSearch: orderSearchSchema,
+  // On a shop's own hostname this is that shop's menu. The URL carries no org
+  // id there — the hostname is the id — so it is looked up once and the same
+  // page renders as if it had been in the path all along.
+  component: function Index() {
+    const { orgId, resolving } = useHostOrg();
+    const s = indexRoute.useSearch();
+    if (resolving) return null;
+    if (!orgId) return <ScanToOrder />;
+    return (
+      <PublicOrderingPage
+        orgId={orgId}
+        branch={s.branch}
+        channel={s.channel}
+        preview={s.preview}
+        prefillPlaceName={s.place_name}
+        prefillFloor={s.floor}
+        prefillUnitNumber={s.unit_number}
+      />
+    );
+  },
 });
 
 const trackRoute = createRoute({
@@ -151,6 +172,14 @@ const routeTree = rootRoute.addChildren([
 
 const router = createRouter({
   routeTree,
+  // Where this bundle is mounted, which is not always the root.
+  //
+  // On a shop's own hostname the ordering pages are served under a sub-path, so
+  // the browser's pathname carries a prefix the routes know nothing about —
+  // without this, `/order` would match `/$orgId` and the shop would be told its
+  // id is the word "order". Vite writes the build's base here, so the router
+  // and the assets can never disagree about where they are.
+  basepath: import.meta.env.BASE_URL,
   defaultPreload: "intent",
   scrollRestoration: true,
   defaultViewTransition: true,

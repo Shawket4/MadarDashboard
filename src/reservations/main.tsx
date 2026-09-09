@@ -37,6 +37,7 @@ import "@/styles/globals.css";
 import "@/lib/theme";
 
 import { queryClient } from "@/data/api/query";
+import { useHostOrg } from "@/features/public-shell/use-brand";
 import { ScanToBook } from "@/features/reservations/scan-to-book";
 import { ManagePage } from "@/features/reservations/manage-page";
 import { ReservePage } from "@/features/reservations/reserve-page";
@@ -46,7 +47,13 @@ const rootRoute = createRootRoute({ component: () => <Outlet /> });
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: ScanToBook,
+  // The shop's own booking page when the hostname names a shop; the scan
+  // prompt everywhere else. See `useHostOrg`.
+  component: function Index() {
+    const { orgId, resolving } = useHostOrg();
+    if (resolving) return null;
+    return orgId ? <ReservePage orgId={orgId} /> : <ScanToBook />;
+  },
 });
 
 const manageRoute = createRoute({
@@ -78,6 +85,14 @@ const branchRoute = createRoute({
 
 const router = createRouter({
   routeTree: rootRoute.addChildren([indexRoute, manageRoute, orgRoute, branchRoute]),
+  // Where this bundle is mounted, which is not always the root.
+  //
+  // On a shop's own hostname the ordering pages are served under a sub-path, so
+  // the browser's pathname carries a prefix the routes know nothing about —
+  // without this, `/order` would match `/$orgId` and the shop would be told its
+  // id is the word "order". Vite writes the build's base here, so the router
+  // and the assets can never disagree about where they are.
+  basepath: import.meta.env.BASE_URL,
   defaultPreload: "intent",
 });
 

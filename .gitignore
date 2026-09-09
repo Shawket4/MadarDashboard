@@ -48,3 +48,5 @@ dist-loyalty
 
 # Rendered reel videos — large binaries, never commit to git history
 brag-output/*.mp4
+dist-order-shop
+dist-reservations-shop
