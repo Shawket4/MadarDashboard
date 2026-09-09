@@ -298,7 +298,19 @@
     "newDescription": "Fill in the details to create a new organization.",
     "customBranding": "Custom branding",
     "customBrandingHint": "Puts this organisation's own logo and colours on customer loyalty cards and the signup page. Off, they use Madar's. Madar stays in the footer either way.",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "socialLinks": "Where else to find you",
+    "socialLinksHint": "These print on your customers' loyalty cards. Paste the full address, starting with https://. Clear a box to remove that link.",
+    "socialInvalid": "Use the full address, starting with https://",
+    "social": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "tiktok": "TikTok",
+      "x": "X",
+      "youtube": "YouTube",
+      "whatsapp": "WhatsApp",
+      "website": "Website"
+    }
   },
   "branches": {
     "title": "Branches",
@@ -2026,8 +2038,8 @@
     "pickBranch": "Pick a branch",
     "editRules": "Edit rules",
     "bookingsPerBranch": "Every branch has its own rules. A branch you have not set up takes no online bookings.",
-    "brand": "Logo",
-    "brandDesc": "Your mark, on receipts and on your customers' loyalty cards.",
+    "brand": "Brand",
+    "brandDesc": "Your mark and your links, on receipts and on your customers' loyalty cards.",
     "logoSaved": "Logo updated",
     "logoHint": "PNG or JPG, square works best. The card's colours are taken from it automatically.",
     "cardPreview": "How the loyalty card will look",
@@ -2039,7 +2051,8 @@
     "brandTierHint": "Lets this organisation put its own logo and colours on customer cards and the signup page. Madar stays in the footer either way.",
     "cardImage": "Card image",
     "cardImageHint": "A wide photo across the customer's card, in Apple Wallet and Google Wallet alike. It is cropped to a band, so put the subject in the middle. Optional.",
-    "cardImageSaved": "Card image updated"
+    "cardImageSaved": "Card image updated",
+    "socialSaved": "Links updated"
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -4206,6 +4219,8 @@
     "winbackGiftHint": "Points or stamps added with the message. A nudge carrying something converts far better than one that does not.",
     "winbackMessage": "Your own wording",
     "winbackMessagePlaceholder": "Leave empty to use ours, written in each language. {name} becomes their name.",
-    "winbackMessageHint": "One message, in whichever language you write it — it replaces both of ours. A link to their card is always added, so they can stop the messages."
+    "winbackMessageHint": "One message, in whichever language you write it — it replaces both of ours. A link to their card is always added, so they can stop the messages.",
+    "yourVisits": "What you've had",
+    "noVisitsYet": "Nothing here yet — your visits will show up after your first order."
   }
 }

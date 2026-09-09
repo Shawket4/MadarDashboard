@@ -5,6 +5,7 @@ import { CalendarCheck, ScanLine } from "lucide-react";
 
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
+import { usePublicBrand } from "@/features/public-shell/use-brand";
 
 /**
  * The reservations app's landing at `/` (reservations.madar-pos.cloud root),
@@ -22,6 +23,11 @@ export function ScanToBook() {
   const { t } = useTranslation();
   const reduced = useReducedMotion();
 
+  // Nothing in this URL says which venue, so the only thing that can: the
+  // host. On a shop's own domain this landing wears their mark; on our
+  // generic origin it stays Madar's, which is what it has always been.
+  const brand = usePublicBrand();
+
   // Scope the storefront (light-by-default) theme to this page, restoring the
   // dashboard theme on unmount.
   useLayoutEffect(() => {
@@ -30,7 +36,7 @@ export function ScanToBook() {
   }, []);
 
   return (
-    <StorefrontShell>
+    <StorefrontShell brand={brand}>
       <motion.div
         initial={reduced ? false : { opacity: 0, y: 18 }}
         animate={reduced ? undefined : { opacity: 1, y: 0 }}

@@ -7,7 +7,12 @@ import i18n from "@/i18n";
 
 import type { Step } from "../types";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
-import { LegalLinks } from "@/components/legal-links";
+import {
+  BrandMark,
+  BrandWash,
+  MadarFooter,
+  type ShellBrand,
+} from "@/features/public-shell/storefront-shell";
 
 const PROGRESS_STEPS: Step[] = ["branch", "channel", "phone", "location", "menu", "checkout"];
 
@@ -33,6 +38,15 @@ interface StepShellProps {
   onOpenHistory?: () => void;
   /** Number of past orders — used to badge the history icon. */
   historyCount?: number;
+  /**
+   * Whose shop this is.
+   *
+   * The ordering flow needs its own frame — a progress row, a branch chip, a
+   * floating cart — so it cannot simply be a `StorefrontShell`. It wears the
+   * shop's identity through the same three pieces that shell does, rather than
+   * a second implementation of them.
+   */
+  brand?: ShellBrand | null;
 }
 
 /** A circular, white, bordered header icon button — matches the mockup chrome. */
@@ -76,6 +90,7 @@ export function StepShell({
   children,
   onOpenHistory,
   historyCount = 0,
+  brand,
 }: StepShellProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
@@ -107,11 +122,24 @@ export function StepShell({
 
   return (
     <div className="relative flex min-h-[100dvh] flex-col bg-background text-foreground">
+      <BrandWash brand={brand} />
+
       {variant !== "bare" && (
         <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
           <div className={cn("mx-auto flex w-full items-center gap-2 py-3", widthClass, padClass)}>
             {variant === "menu" ? (
-              branchSelector ?? <span aria-hidden className="size-9 shrink-0" />
+              // The branch chip already says which of the shop's rooms you are
+              // in; only when it is hidden (a locked QR branch) does the mark
+              // take its place, so the header never names the shop twice.
+              branchSelector ??
+              (brand ? (
+                // Shrink-to-fit here: the wide menu's centred search owns the
+                // middle of the bar, and a mark that grew into it would take
+                // the search off the desktop layout.
+                <BrandMark brand={brand} className="min-w-0 max-w-[14rem]" />
+              ) : (
+                <span aria-hidden className="size-9 shrink-0" />
+              ))
             ) : onBack ? (
               <HeaderIcon onClick={onBack} label={t("common.back")}>
                 <ArrowLeft className="size-4 rtl:rotate-180" />
@@ -121,9 +149,14 @@ export function StepShell({
             )}
 
             {variant === "flow" ? (
-              // Title moves into the content as a bold display heading; the bar
-              // stays minimal (back · toggles · progress).
-              <span aria-hidden className="flex-1" />
+              // Title moves into the content as a bold display heading, so the
+              // bar has room for the shop's mark between the back button and
+              // the toggles.
+              brand ? (
+                <BrandMark brand={brand} />
+              ) : (
+                <span aria-hidden className="flex-1" />
+              )
             ) : variant === "menu" ? (
               <div className="flex flex-1 justify-center px-2">
                 {headerSearch && <div className="hidden w-full max-w-md xl:block">{headerSearch}</div>}
@@ -196,24 +229,7 @@ export function StepShell({
 
         <div className="flex-1">{children}</div>
 
-        {variant !== "bare" && (
-          <footer className="mt-12 flex flex-col items-center gap-2 border-t border-border/60 pt-6 text-center">
-            <img
-              src={lang.startsWith("ar") ? "/madar_ar.svg" : "/madar.svg"}
-              alt={t("app.name")}
-              className="h-6 opacity-80 dark:brightness-0 dark:invert"
-            />
-            <p className="text-xs text-muted-foreground">{t("order.footer.poweredBy")}</p>
-            <p className="text-[11px] text-muted-foreground/70">
-              {t("order.footer.rights", {
-                year: new Date().getFullYear(),
-                name: t("app.name"),
-                defaultValue: "© {{year}} {{name}}. All rights reserved.",
-              })}
-            </p>
-            <LegalLinks className="mt-1" />
-          </footer>
-        )}
+        {variant !== "bare" && <MadarFooter brand={brand} />}
       </main>
 
       {footer && (

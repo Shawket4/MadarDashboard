@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { OrgSocialLinks } from './orgSocialLinks';
 
 export interface Org {
   /** @nullable */
@@ -36,6 +37,8 @@ export interface Org {
   /** @nullable */
   receipt_footer?: string | null;
   slug: string;
+  /** Where else to find the shop, keyed by platform. See `orgs::social`. */
+  social_links: OrgSocialLinks;
   /**
      * Tax rate as a decimal (e.g. `0.14` for 14% VAT).
      * Stored as `BigDecimal` internally; transmitted as a JSON number.

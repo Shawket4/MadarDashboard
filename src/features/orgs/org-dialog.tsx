@@ -18,6 +18,12 @@ import { createOrg, updateOrg, uploadOrgLogo } from "@/data/api/generated/api";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAppStore } from "@/data/stores/app.store";
+import {
+  SocialLinksFields,
+  socialLinksPatch,
+  socialLinksSchema,
+  socialLinksToForm,
+} from "./social-links";
 import { invalidateOrgs } from "./util";
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
@@ -52,6 +58,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         timezone: z.string().min(1, t("common.requiredField", "This field is required")),
         is_active: z.boolean(),
         custom_branding: z.boolean(),
+        social: socialLinksSchema(t),
       }),
     [t],
   );
@@ -59,7 +66,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false },
+    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, social: socialLinksToForm(null) },
   });
 
   useEffect(() => {
@@ -76,6 +83,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         timezone: org?.timezone ?? "Africa/Cairo",
         is_active: org?.is_active ?? true,
         custom_branding: org?.custom_branding ?? false,
+        social: socialLinksToForm(org?.social_links),
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,6 +99,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
           name: v.name, slug: v.slug, currency_code: v.currency_code,
           tax_rate: v.tax_rate, receipt_footer: v.receipt_footer || null, timezone: v.timezone, is_active: v.is_active,
           custom_branding: v.custom_branding,
+          social_links: socialLinksPatch(v.social, org.social_links),
         });
       } else {
         await createOrg({
@@ -210,6 +219,15 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
                 </p>
               </FormItem>
             )} />
+
+            {/* Editable here as well as in the shop's own brand settings: an
+                org manager owns their links, and support has to be able to fix
+                a bad one without borrowing the manager's login.
+
+                Edit only — `POST /orgs` is multipart and takes no social links,
+                and fields that quietly discard what was typed are worse than
+                fields that are not there yet. */}
+            {editing ? <SocialLinksFields /> : null}
 
             <DialogFooter>
               <Button type="button" variant="outline" disabled={busy} onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>

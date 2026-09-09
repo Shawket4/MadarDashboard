@@ -318,6 +318,7 @@ import type {
   PaginatedMenuItems,
   PaginatedOrders,
   PaginatedShifts,
+  PastOrders,
   PatchGroupRequest,
   PatchOptionRequest,
   PauseInput,
@@ -340,8 +341,10 @@ import type {
   PublicBookingView,
   PublicBranch,
   PublicBranchesParams,
+  PublicBrand,
   PublicMenuParams,
   PublicOrg,
+  PublicOrgBrandParams,
   PublicSlots,
   PurchaseOrder,
   PurchaseOrderFull,
@@ -18408,6 +18411,108 @@ export function useLoyaltyCard<TData = Awaited<ReturnType<typeof loyaltyCard>>, 
 
 
 
+/**
+ * Authenticated by the token in the URL — the same one their pass carries and
+ * the till scans — because that is the only credential a loyalty member has.
+ * Which means anyone holding the link can read it, and that is worth stating
+ * rather than glossing: a forwarded card link forwards the history with it.
+ * The shop decides whether to run a programme on those terms, and the privacy
+ * policy says so plainly.
+ *
+ * Voided orders are excluded. A sale that was reversed is not something the
+ * customer bought, and showing it invites a question the page cannot answer.
+ * @summary The member's own purchase history.
+ */
+export const loyaltyCardOrders = (
+    token: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PastOrders>(
+      {url: `/public/loyalty/card/${token}/orders`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyCardOrdersQueryKey = (token: string,) => {
+    return [
+    `/public/loyalty/card/${token}/orders`
+    ] as const;
+    }
+
+
+export const getLoyaltyCardOrdersQueryOptions = <TData = Awaited<ReturnType<typeof loyaltyCardOrders>>, TError = ErrorBody>(token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLoyaltyCardOrdersQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof loyaltyCardOrders>>> = ({ signal }) => loyaltyCardOrders(token, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LoyaltyCardOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof loyaltyCardOrders>>>
+export type LoyaltyCardOrdersQueryError = ErrorBody
+
+
+export function useLoyaltyCardOrders<TData = Awaited<ReturnType<typeof loyaltyCardOrders>>, TError = ErrorBody>(
+ token: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardOrders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyCardOrders>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyCardOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyCardOrders<TData = Awaited<ReturnType<typeof loyaltyCardOrders>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardOrders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyCardOrders>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyCardOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyCardOrders<TData = Awaited<ReturnType<typeof loyaltyCardOrders>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The member's own purchase history.
+ */
+
+export function useLoyaltyCardOrders<TData = Awaited<ReturnType<typeof loyaltyCardOrders>>, TError = ErrorBody>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCardOrders>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLoyaltyCardOrdersQueryOptions(token,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const setLoyaltyCardPreferences = (
     token: string,
     cardPreferences: CardPreferences,
@@ -18887,6 +18992,103 @@ export function useListPublicOrgs<TData = Awaited<ReturnType<typeof listPublicOr
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListPublicOrgsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * Public and unauthenticated by necessity: it is the first request a customer's
+ * browser makes, before there is any notion of a session. Nothing here is
+ * private — a name, a logo and three colours are on the shopfront.
+ * @summary The shop behind a guest page.
+ */
+export const publicOrgBrand = (
+    params?: PublicOrgBrandParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PublicBrand>(
+      {url: `/public/orgs/brand`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicOrgBrandQueryKey = (params?: PublicOrgBrandParams,) => {
+    return [
+    `/public/orgs/brand`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPublicOrgBrandQueryOptions = <TData = Awaited<ReturnType<typeof publicOrgBrand>>, TError = ErrorBody>(params?: PublicOrgBrandParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgBrand>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicOrgBrandQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicOrgBrand>>> = ({ signal }) => publicOrgBrand(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicOrgBrand>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicOrgBrandQueryResult = NonNullable<Awaited<ReturnType<typeof publicOrgBrand>>>
+export type PublicOrgBrandQueryError = ErrorBody
+
+
+export function usePublicOrgBrand<TData = Awaited<ReturnType<typeof publicOrgBrand>>, TError = ErrorBody>(
+ params: undefined |  PublicOrgBrandParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgBrand>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicOrgBrand>>,
+          TError,
+          Awaited<ReturnType<typeof publicOrgBrand>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicOrgBrand<TData = Awaited<ReturnType<typeof publicOrgBrand>>, TError = ErrorBody>(
+ params?: PublicOrgBrandParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgBrand>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicOrgBrand>>,
+          TError,
+          Awaited<ReturnType<typeof publicOrgBrand>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicOrgBrand<TData = Awaited<ReturnType<typeof publicOrgBrand>>, TError = ErrorBody>(
+ params?: PublicOrgBrandParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgBrand>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The shop behind a guest page.
+ */
+
+export function usePublicOrgBrand<TData = Awaited<ReturnType<typeof publicOrgBrand>>, TError = ErrorBody>(
+ params?: PublicOrgBrandParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgBrand>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicOrgBrandQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

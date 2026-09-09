@@ -5,6 +5,7 @@ import { QrCode, ScanLine } from "lucide-react";
 
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
+import { usePublicBrand } from "@/features/public-shell/use-brand";
 
 /**
  * The order app's landing / empty state at `/` (order.madar-pos.cloud root) — and
@@ -17,6 +18,11 @@ export function ScanToOrder() {
   const { t } = useTranslation();
   const reduced = useReducedMotion();
 
+  // Nothing in this URL says which shop, so the only thing that can: the
+  // host. On a shop's own domain the landing wears their mark; on our
+  // generic origin it stays Madar's, which is what it has always been.
+  const brand = usePublicBrand();
+
   // Scope the storefront (light-by-default) theme to this page like the rest of
   // the ordering flow, restoring the dashboard theme on unmount.
   useLayoutEffect(() => {
@@ -25,7 +31,7 @@ export function ScanToOrder() {
   }, []);
 
   return (
-    <StorefrontShell>
+    <StorefrontShell brand={brand}>
       <motion.div
         initial={reduced ? false : { opacity: 0, y: 18 }}
         animate={reduced ? undefined : { opacity: 1, y: 0 }}

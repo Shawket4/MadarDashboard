@@ -29,6 +29,7 @@ import { asChannel, calcDiscount, cartSubtotal, clearCart, loadCart, newUid, sav
 import { getDeviceToken, isValidPhone, normalizePhone, setDeviceToken } from "@/features/public-shell/guest";
 import { FIELD_LIMITS } from "./limits";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
+import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { StepShell } from "./components/step-shell";
 import { BranchStep } from "./components/branch-step";
 import { BranchSelector } from "./components/branch-selector";
@@ -78,6 +79,11 @@ export function PublicOrderingPage({
     usePublicTheme.getState().apply();
     return () => usePublicTheme.getState().restoreGlobal();
   }, []);
+
+  // Whose shop this is. The tier is resolved server-side, so this is simply
+  // "the shop's identity" — a shop off the branding tier gets Madar's palette
+  // back under its own name, and the page never asks which it received.
+  const brand = usePublicBrand(orgId);
 
   // ── URL-bound selection (branch + channel) ───────────────────────────────
   // The route validates ?branch=&channel=; we mirror selection back into the URL
@@ -724,6 +730,7 @@ export function PublicOrderingPage({
         footer={footer}
         onOpenHistory={orders.length > 0 ? () => setHistoryOpen(true) : undefined}
         historyCount={orders.length}
+        brand={brand}
       >
         <AnimatePresence mode="wait">
           <motion.div key={step} variants={fadeIn} initial="hidden" animate="show" exit="hidden">

@@ -1,29 +1,44 @@
 /**
- * The organisation's logo — the one piece of an organisation a manager owns.
+ * The organisation's own look — its mark, its card image, and where else to
+ * find it.
  *
- * Logo only, deliberately. Name, currency, tax rate and the rest stay
- * super-admin territory; this exists so a shop can change its own mark without
- * filing a request, because the mark is theirs and it is on their receipts and
- * their loyalty cards.
+ * Deliberately narrow. Name, currency, tax rate and the rest stay super-admin
+ * territory; this exists so a shop can change the things that are THEIRS
+ * without filing a request, because they are on their receipts, their loyalty
+ * cards and their customers' wallet passes. A shop should not need a support
+ * ticket to fix a moved Instagram handle.
  *
  * There are no colour controls and there should not be: the card's palette is
  * DERIVED from this image when it uploads (`orgs::branding`), which means a
  * shop cannot pick two colours nobody can read, and the card and the logo can
  * never disagree about what the brand is.
  */
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { z } from "zod";
 
 import { useOrgId } from "@/hooks/use-org-id";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/app/page";
 import { ImageUploader } from "@/components/app/image-uploader";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getOrg, uploadOrgCardImage, uploadOrgLogo } from "@/data/api/generated/api";
+import { getOrg, updateOrg, uploadOrgCardImage, uploadOrgLogo } from "@/data/api/generated/api";
+import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  SocialLinksFields,
+  socialLinksPatch,
+  socialLinksSchema,
+  socialLinksToForm,
+} from "@/features/orgs/social-links";
 
 import { resolveBrand } from "@/features/loyalty/shared/brand";
 import { CardFace } from "@/features/loyalty/public/card-face";
@@ -92,10 +107,10 @@ export function BrandPane() {
   return (
     <div className="max-w-2xl space-y-4">
       <PageHeader
-        title={t("settings.brand", "Logo")}
+        title={t("settings.brand", "Brand")}
         description={t(
           "settings.brandDesc",
-          "Your mark, on receipts and on your customers' loyalty cards.",
+          "Your mark and your links, on receipts and on your customers' loyalty cards.",
         )}
       />
 
@@ -149,6 +164,8 @@ export function BrandPane() {
         </CardContent>
       </Card>
 
+      {org.data ? <SocialLinksCard org={org.data} /> : null}
+
       <div className="space-y-2">
         <p className="text-sm font-medium">
           {t("settings.cardPreview", "How the loyalty card will look")}
@@ -170,5 +187,69 @@ export function BrandPane() {
         </p>
       </div>
     </div>
+  );
+}
+
+/**
+ * Where else to find the shop.
+ *
+ * Its own component so the form's hooks live below the pane's loading branch
+ * and reset cleanly when the org read lands — the pane returns a skeleton
+ * before `org.data` exists, and a form declared above that would have to be
+ * written around it.
+ *
+ * The same seven fields the super admin's org dialog shows, from the same
+ * definition. Saving them is `PATCH /orgs/{id}` with nothing but
+ * `social_links`, so this cannot touch a field a manager is not entitled to.
+ */
+function SocialLinksCard({ org }: { org: Org }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  const schema = useMemo(() => z.object({ social: socialLinksSchema(t) }), [t]);
+  type Values = z.infer<typeof schema>;
+
+  const form = useForm<z.input<typeof schema>, unknown, Values>({
+    resolver: zodResolver(schema),
+    defaultValues: { social: socialLinksToForm(org.social_links) },
+  });
+
+  const saved = org.social_links;
+  useEffect(() => {
+    form.reset({ social: socialLinksToForm(saved) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saved]);
+
+  const submit = async (v: Values) => {
+    setBusy(true);
+    try {
+      await updateOrg(org.id, { social_links: socialLinksPatch(v.social, org.social_links) });
+      await queryClient.invalidateQueries({ queryKey: ["org-brand", org.id] });
+      toast.success(t("settings.socialSaved", "Links updated"));
+    } catch (e) {
+      // The server holds the same closed list and the same https rule, and it
+      // is the one that decides. Whatever it objects to, the shop hears it.
+      toast.error(getErrorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-5">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(submit)} className="space-y-4">
+            <SocialLinksFields />
+            <div className="flex justify-end">
+              <Button type="submit" loading={busy}>
+                {t("common.save", "Save")}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

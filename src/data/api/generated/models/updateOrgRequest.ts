@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { UpdateOrgRequestSocialLinks } from './updateOrgRequestSocialLinks';
 
 export interface UpdateOrgRequest {
   /** @nullable */
@@ -27,6 +28,14 @@ export interface UpdateOrgRequest {
   receipt_footer?: string | null;
   /** @nullable */
   slug?: string | null;
+  /**
+     * Where else to find the shop. Validated against a closed list of
+     * platforms and `https` only — these are printed onto a customer's wallet
+     * pass, and a card that renders whatever was typed can be made to say
+     * anything. See `orgs::social`.
+     * @nullable
+     */
+  social_links?: UpdateOrgRequestSocialLinks;
   /** @nullable */
   tax_rate?: number | null;
   /**

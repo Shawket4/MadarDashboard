@@ -24,6 +24,7 @@ import type { PublicBookingView } from "@/data/api/generated/models/publicBookin
 import { getErrorMessage } from "@/data/api/errors";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
+import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { getGuestPhone, setGuestPhone } from "@/features/public-shell/guest";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +47,10 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
     usePublicTheme.getState().apply();
     return () => usePublicTheme.getState().restoreGlobal();
   }, []);
+
+  // Whose venue this is. The branding tier is applied server-side, so a shop
+  // off it simply comes back wearing Madar's palette under its own name.
+  const brand = usePublicBrand(orgId);
 
   const [branchId, setBranchId] = useState<string | null>(initialBranch ?? null);
   const [step, setStep] = useState<Step>(initialBranch ? "when" : "branch");
@@ -115,7 +120,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
   };
 
   return (
-    <StorefrontShell>
+    <StorefrontShell brand={brand}>
       <div className="mx-auto w-full max-w-[480px] px-4 pb-10">
         {step !== "done" && (step === "you" || (step === "when" && !initialBranch)) ? (
           <button type="button" onClick={back} className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">

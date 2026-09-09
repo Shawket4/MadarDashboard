@@ -303,6 +303,22 @@ export const handlers = [
   http.post("*/otp/verify", () => HttpResponse.json({ device_token: "mock_device_token_abc123" })),
 
   // ── Public ordering ───────────────────────────────────────────────────────
+  // Whose shop a guest page belongs to. The real endpoint has already applied
+  // the branding tier, so this answers with the shop's own palette either way.
+  http.get("*/public/orgs/brand", () =>
+    HttpResponse.json({
+      org_id: MOCK_ORG.id,
+      name: MOCK_ORG.name,
+      slug: MOCK_ORG.slug,
+      custom_branding: MOCK_ORG.custom_branding,
+      logo_url: MOCK_ORG.logo_url,
+      logo_is_mark: false,
+      card_image_url: null,
+      background_color: "#0D6273",
+      foreground_color: "#EFF3F4",
+      accent_color: "#2E94A6",
+    }),
+  ),
   http.get("*/public/branches/:branchId/menu", () => HttpResponse.json(MOCK_PUBLIC_MENU)),
   http.get("*/public/branches/:branchId/delivery-quote", () =>
     HttpResponse.json({ status: "ok", fee: 1500, distance_meters: 2400, zone_id: "z1", zone_name: "Zone A" }),

@@ -20,6 +20,7 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 
 import { resolveBrand } from "../shared/brand";
 import { CardFace } from "./card-face";
+import { CardOrders } from "./card-orders";
 import { CardPreferences } from "./card-preferences";
 import { LoyaltyPage, Panel, Section, usePageAccent } from "./page-shell";
 import { WalletButtons } from "./wallet-buttons";
@@ -130,6 +131,11 @@ function Card({
           </Panel>
         </Section>
       ) : null}
+
+      {/* Last on the page: the least urgent block, and the longest. A member
+          opening this at the counter needs the code and the balance, and those
+          are at the top; the receipts are for the moment after. */}
+      <CardOrders token={token} accent={accent} />
     </LoyaltyPage>
   );
 }

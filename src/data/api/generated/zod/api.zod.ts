@@ -7063,6 +7063,9 @@ export const ListOrgsResponseItem = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
+  "social_links": zod.looseObject({
+
+}).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -7093,6 +7096,9 @@ export const CreateOrgResponse = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
+  "social_links": zod.looseObject({
+
+}).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -7116,6 +7122,9 @@ export const GetOrgResponse = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
+  "social_links": zod.looseObject({
+
+}).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -7140,6 +7149,9 @@ export const UpdateOrgBody = zod.object({
   "name": zod.string().nullish(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string().nullish(),
+  "social_links": zod.looseObject({
+
+}).nullish().describe('Where else to find the shop. Validated against a closed list of\nplatforms and `https` only — these are printed onto a customer\'s wallet\npass, and a card that renders whatever was typed can be made to say\nanything. See `orgs::social`.'),
   "tax_rate": zod.number().nullish(),
   "timezone": zod.string().nullish().describe('IANA timezone name (e.g. `Africa\/Cairo`). Validated against the\nPostgreSQL timezone database. Branches inherit this when their own\ntimezone is unset.')
 })
@@ -7158,6 +7170,9 @@ export const UpdateOrgResponse = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
+  "social_links": zod.looseObject({
+
+}).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -7226,6 +7241,9 @@ export const UploadOrgCardImageResponse = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
+  "social_links": zod.looseObject({
+
+}).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -7253,6 +7271,9 @@ export const UploadOrgLogoResponse = zod.object({
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "slug": zod.string(),
+  "social_links": zod.looseObject({
+
+}).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -8050,6 +8071,33 @@ export const LoyaltyCardResponse = zod.object({
 }).describe('The member\'s own card page — what they see when they open the link again.\n\nThe token in the path is the member\'s secret, which is why this returns only\nwhat the pass already shows and never the phone number in full.')
 
 
+/**
+ * Authenticated by the token in the URL — the same one their pass carries and
+ * the till scans — because that is the only credential a loyalty member has.
+ * Which means anyone holding the link can read it, and that is worth stating
+ * rather than glossing: a forwarded card link forwards the history with it.
+ * The shop decides whether to run a programme on those terms, and the privacy
+ * policy says so plainly.
+ *
+ * Voided orders are excluded. A sale that was reversed is not something the
+ * customer bought, and showing it invites a question the page cannot answer.
+ * @summary The member's own purchase history.
+ */
+export const LoyaltyCardOrdersParams = zod.object({
+  "token": zod.string().describe('Member token from the pass barcode')
+})
+
+export const LoyaltyCardOrdersResponse = zod.object({
+  "orders": zod.array(zod.object({
+  "branch_name": zod.string(),
+  "id": zod.uuid(),
+  "items": zod.array(zod.string()).describe('What they had. The customer asked for this to be here; see the note on\nthe handler about who else can see it.'),
+  "placed_at": zod.iso.datetime({"offset":true}),
+  "total": zod.number().describe('In piastres, like every other figure on the wire.')
+}).describe('One past visit, as the customer\'s own page shows it.'))
+})
+
+
 export const SetLoyaltyCardPreferencesParams = zod.object({
   "token": zod.string().describe('Member token from the pass barcode')
 })
@@ -8174,6 +8222,31 @@ export const ListPublicOrgsResponseItem = zod.object({
   "name": zod.string()
 })
 export const ListPublicOrgsResponse = zod.array(ListPublicOrgsResponseItem)
+
+
+/**
+ * Public and unauthenticated by necessity: it is the first request a customer's
+ * browser makes, before there is any notion of a session. Nothing here is
+ * private — a name, a logo and three colours are on the shopfront.
+ * @summary The shop behind a guest page.
+ */
+export const PublicOrgBrandQueryParams = zod.object({
+  "org_id": zod.uuid().optional().describe('The shop, when the page already knows which one it is.'),
+  "slug": zod.string().optional().describe('The first label of the hostname, when it does not — `rue` for\n`rue.madar-pos.cloud`.')
+})
+
+export const PublicOrgBrandResponse = zod.object({
+  "accent_color": zod.string(),
+  "background_color": zod.string().describe('`#RRGGBB`. Madar\'s own when the shop is not on the tier.'),
+  "card_image_url": zod.string().nullish(),
+  "custom_branding": zod.boolean().describe('Whether the rest of this is the shop\'s or Madar\'s.\n\nThe page does not need it to render — the palette below is already\nresolved — but it decides how loudly Madar signs the footer.'),
+  "foreground_color": zod.string(),
+  "logo_is_mark": zod.boolean().describe('True when the logo is a shape on transparency and may be repainted for\ncontrast. See `orgs::branding::is_mark`.'),
+  "logo_url": zod.string().nullish(),
+  "name": zod.string().describe('Always the shop\'s own name, at every tier. A page that does not say\nwhose it is helps nobody, and that was never the thing being sold.'),
+  "org_id": zod.uuid(),
+  "slug": zod.string()
+}).describe('A shop, as a guest page needs to know it.')
 
 
 export const OtpRequestBody = zod.object({

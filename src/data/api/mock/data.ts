@@ -70,6 +70,11 @@ export const MOCK_ORG: Org = {
   receipt_footer: "Thank you — see you again soon.",
   is_active: true,
   custom_branding: true,
+  social_links: {
+    instagram: "https://instagram.com/madarcoffee",
+    whatsapp: "https://wa.me/201000000000",
+    website: "https://madar-coffee.example",
+  },
 };
 
 export const MOCK_BRANCHES: Branch[] = BRANCH_SEEDS.map((b) => ({

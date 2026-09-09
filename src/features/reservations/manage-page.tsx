@@ -17,6 +17,7 @@ import { queryClient } from "@/data/api/query";
 import { getErrorMessage } from "@/data/api/errors";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
+import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { cn } from "@/lib/utils";
 
 import { fmtDay, fmtSlot, fmtWhen, pickableDates } from "./util";
@@ -36,6 +37,11 @@ export function ManagePage({ token }: { token: string }) {
     usePublicTheme.getState().apply();
     return () => usePublicTheme.getState().restoreGlobal();
   }, []);
+
+  // A manage link is keyed by its own token and `PublicBookingView` carries no
+  // org id, so the shop can only be found by the host it is being served from —
+  // which brands a shop's own domain and leaves our generic origin as Madar's.
+  const brand = usePublicBrand();
 
   const q = useGetPublicBooking(token, { query: { retry: false } });
   const b = q.data;
@@ -79,7 +85,7 @@ export function ManagePage({ token }: { token: string }) {
   };
 
   return (
-    <StorefrontShell>
+    <StorefrontShell brand={brand}>
       <div className="mx-auto w-full max-w-[480px] px-4 pb-10">
         {q.isLoading ? (
           <div className="space-y-3"><Skeleton className="h-8 w-2/3" /><Skeleton className="h-32 rounded-2xl" /></div>

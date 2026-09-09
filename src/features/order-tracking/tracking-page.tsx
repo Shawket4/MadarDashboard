@@ -26,6 +26,7 @@ import { listItem, riseIn, spring, staggerContainer } from "@/lib/motion";
 import { Totals } from "../public-ordering/components/cart-sheet";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
+import { usePublicBrand } from "@/features/public-shell/use-brand";
 
 interface OrderTrackingPageProps {
   id: string;
@@ -71,9 +72,14 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
     },
   });
 
+  // The shop this order belongs to. Known only once the order is — a tracking
+  // link carries nothing but an opaque id — so the first paint is Madar's
+  // chrome and the brand arrives with the order.
+  const brand = usePublicBrand(data?.org_id);
+
   if (isLoading) {
     return (
-      <StorefrontShell>
+      <StorefrontShell brand={brand}>
         <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground" role="status">
           <Loader2 className="size-6 animate-spin motion-reduce:animate-none" />
           <p className="text-sm">{t("order.track.loading", "Loading your order…")}</p>
@@ -84,7 +90,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
 
   if (isError || !data) {
     return (
-      <StorefrontShell>
+      <StorefrontShell brand={brand}>
         <div className="flex flex-col items-center gap-3 py-16 text-center">
           <XCircle className="size-12 text-destructive" />
           <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
@@ -105,7 +111,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
   const priceChanged = estimate != null && estimate !== order.total;
 
   return (
-    <StorefrontShell>
+    <StorefrontShell brand={brand}>
       <motion.div variants={staggerContainer(0.06)} initial="hidden" animate="show" className="space-y-5">
         {/* Headline + ref */}
         <motion.div variants={riseIn} className="text-center">

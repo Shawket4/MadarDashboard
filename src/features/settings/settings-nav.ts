@@ -57,13 +57,13 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         icon: Palette,
       },
       {
-        // A manager owns their own mark; everything else about an organisation
-        // stays super-admin territory.
+        // A manager owns their own mark and their own links; everything else
+        // about an organisation stays super-admin territory.
         to: "/settings/brand",
         labelKey: "settings.brand",
-        fallback: "Logo",
+        fallback: "Brand",
         descKey: "settings.brandDesc",
-        desc: "Your mark, on receipts and on your customers' loyalty cards.",
+        desc: "Your mark and your links, on receipts and on your customers' loyalty cards.",
         icon: ImageIcon,
       },
     ],
