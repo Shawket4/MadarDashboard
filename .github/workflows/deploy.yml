@@ -42,6 +42,19 @@ jobs:
         env:
           VITE_API_URL: https://order.madar-pos.cloud/api
 
+      - name: Build ordering app for a shop's own hostname
+        run: npm run build:order:shop
+        env:
+          # Relative, and it has to be: this artifact is served from EVERY shop's
+          # hostname, so there is no one origin to name. The shop vhost proxies
+          # /api/ to the backend exactly as the loyalty host does.
+          VITE_API_URL: /api
+
+      - name: Build reservations app for a shop's own hostname
+        run: npm run build:reservations:shop
+        env:
+          VITE_API_URL: /api
+
       - name: Build landing app (separate, isolated bundle)
         run: npm run build:get
         env:
@@ -83,6 +96,26 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "dist-order/*"
           target: "/var/www/madar-order"
+          strip_components: 1
+
+      - name: Deploy shop ordering bundle to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "dist-order-shop/*"
+          target: "/var/www/madar-order-shop"
+          strip_components: 1
+
+      - name: Deploy shop reservations bundle to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "dist-reservations-shop/*"
+          target: "/var/www/madar-reservations-shop"
           strip_components: 1
 
       - name: Deploy landing app to VPS
