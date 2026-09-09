@@ -42,14 +42,12 @@ export function LoyaltyPage() {
     [branches.data],
   );
 
-  // A shop with one branch has its scope PINNED to that branch by the header
-  // picker — there is nothing else to select. Following that literally would
-  // mean such a shop could only ever write a branch override, never the
-  // organisation defaults every future branch inherits, and could never print
-  // the org-wide sign-up code. So one branch reads as the whole shop, which is
-  // also what it is.
-  const singleBranch = activeBranches.length === 1;
-  const branchId = singleBranch ? null : scopedBranchId;
+  // Whatever the header says, with no special case for a shop that happens to
+  // have one branch: "All branches" is the organisation's own row, and picking
+  // a branch is that branch's override. The header used to pin a one-branch
+  // shop to its only branch, which took away the org scope entirely — so this
+  // page had to invent it back. The pin is gone; nothing to invent.
+  const branchId = scopedBranchId;
   const scope: ProgramScope = { orgId, branchId };
 
   return (
@@ -65,7 +63,6 @@ export function LoyaltyPage() {
       <SignUpCode
         scope={scope}
         branchName={activeBranches.find((b) => b.id === branchId)?.name ?? null}
-        singleBranch={singleBranch}
       />
 
       <Tabs defaultValue="program">

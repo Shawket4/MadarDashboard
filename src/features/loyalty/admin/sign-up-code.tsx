@@ -33,13 +33,10 @@ import type { ProgramScope } from "./use-program";
 export function SignUpCode({
   scope,
   branchName,
-  singleBranch,
 }: {
   scope: ProgramScope;
   /** The scoped branch's name, or null when the scope is the whole shop. */
   branchName: string | null;
-  /** The shop has exactly one branch, so there is no scope to separate. */
-  singleBranch: boolean;
 }) {
   const { t } = useTranslation();
   const [qr, setQr] = useState<QrResponse | null>(null);
@@ -83,15 +80,10 @@ export function SignUpCode({
                 "loyalty.qrPerBranch",
                 "This branch's counter code. It signs people up under this branch's settings, and tells you they joined here.",
               )
-            : singleBranch
-              ? t(
-                  "loyalty.qrSingleBranch",
-                  "One branch, so this is the whole shop's code. Open a second branch and you can give each its own, to see where members join.",
-                )
-              : t(
-                  "loyalty.qrOrgTip",
-                  "One code for the whole shop — a poster, a receipt footer, a link in a bio. Pick a branch in the header to print that branch its own code instead: members belong to the shop either way, but a per-branch code is the only way to see where they signed up.",
-                )}
+            : t(
+                "loyalty.qrOrgTip",
+                "One code for the whole shop — a poster, a receipt footer, a link in a bio. Pick a branch in the header to print that branch its own code instead: members belong to the shop either way, but a per-branch code is the only way to see where they signed up.",
+              )}
         </p>
 
         <Button

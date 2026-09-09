@@ -56,13 +56,6 @@ function ScopeControls({ className }: { className?: string }) {
     if (branchId && !activeBranches.some((b) => b.id === branchId)) setBranch(null);
   }, [canPickBranch, orgId, branchesLoading, branches, activeBranches, branchId, setBranch]);
 
-  // An org with a single branch has nothing to pick: pin scope to it and drop
-  // the "All branches" multi-select for a static label.
-  const singleBranch = activeBranches.length === 1 ? activeBranches[0] : null;
-  useEffect(() => {
-    if (singleBranch && branchId !== singleBranch.id) setBranch(singleBranch.id);
-  }, [singleBranch, branchId, setBranch]);
-
   const presetOptions = useMemo(
     () => SCOPE_PRESETS.map((p) => ({ value: p, label: t(`scope.preset.${p}`, presetFallback[p]) })),
     [t],
@@ -74,7 +67,7 @@ function ScopeControls({ className }: { className?: string }) {
           role's org is fixed by their token, and the control would be a
           one-item list they could not change. */}
       <OrgPicker />
-      {canPickBranch && branchesLoading && !singleBranch ? (
+      {canPickBranch && branchesLoading ? (
         <div
           className="flex h-8 w-auto min-w-32 items-center gap-2 rounded-md border bg-card px-3 text-sm text-muted-foreground"
           aria-busy="true"
@@ -82,12 +75,14 @@ function ScopeControls({ className }: { className?: string }) {
           <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
           <span>{t("common.loading", "Loading…")}</span>
         </div>
-      ) : canPickBranch && singleBranch ? (
-        <div className="flex h-8 items-center gap-2 rounded-md border bg-card px-3 text-sm font-medium" title={singleBranch.name}>
-          <Store className="size-4 text-muted-foreground" />
-          <span className="max-w-40 truncate">{singleBranch.name}</span>
-        </div>
       ) : canPickBranch ? (
+        // One branch or twenty, the control is the same. It used to pin a
+        // single-branch shop to its only branch and show a static label — on
+        // the reasoning that there was nothing to choose — which quietly took
+        // away the one scope that means "the organisation". Loyalty settings
+        // live on an ORG row that branches inherit, so a shop pinned to its
+        // branch could only ever write an override, and the defaults its second
+        // branch would inherit stayed empty and unreachable.
         <Select value={branchId ?? ALL_BRANCHES} onValueChange={(v) => setBranch(v === ALL_BRANCHES ? null : v)}>
           <SelectTrigger className="h-8 w-auto min-w-32 gap-2">
             <Store className="size-4 text-muted-foreground" />
