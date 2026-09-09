@@ -4229,5 +4229,9 @@
       "reservations": "Reservations powered by Madar",
       "generic": "Powered by Madar"
     }
+  },
+  "export": {
+    "tooLarge": "That is about {{rows}} rows, and a spreadsheet built in the browser tops out around {{max}}. Narrow the dates or the branch and try again.",
+    "preparing": "Gathering every row that matches your filters…"
   }
 }
