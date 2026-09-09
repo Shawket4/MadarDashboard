@@ -72,7 +72,7 @@ export function GoogleObjectDialog({
         onOpenChange(o);
       }}
     >
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl">
+      <DialogContent className="max-w-[calc(100vw-2rem)] overflow-hidden sm:max-w-2xl">
         <DialogHeader className="min-w-0">
           <DialogTitle className="truncate">
             {t("loyalty.googleObject", "Google Wallet object")}
@@ -114,7 +114,7 @@ export function GoogleObjectDialog({
         ) : null}
 
         {report ? (
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             <div className="flex flex-wrap gap-4 rounded-lg bg-muted px-3 py-2 text-sm">
               <span>
                 {t("loyalty.branchesSent", "Sent")}:{" "}
@@ -146,9 +146,9 @@ export function GoogleObjectDialog({
                 {report.error}
               </p>
             ) : null}
-            <ol className="space-y-2">
+            <ol className="min-w-0 space-y-2">
               {report.steps.map((s, i) => (
-                <li key={`${s.step}-${i}`} className="rounded-lg border">
+                <li key={`${s.step}-${i}`} className="min-w-0 overflow-hidden rounded-lg border">
                   <div className="flex items-center gap-2 border-b px-3 py-1.5 text-xs">
                     <span className="font-medium">{s.step}</span>
                     <span
@@ -161,18 +161,18 @@ export function GoogleObjectDialog({
                       {s.status || "—"}
                     </span>
                   </div>
-                  <pre className="max-h-48 overflow-auto px-3 py-2 text-[11px] leading-relaxed">
+                  <pre className="max-h-48 min-w-0 overflow-auto whitespace-pre-wrap px-3 py-2 text-[11px] leading-relaxed [overflow-wrap:anywhere]">
                     {s.body}
                   </pre>
                 </li>
               ))}
             </ol>
             {report.class ? (
-              <details className="rounded-lg border">
+              <details className="min-w-0 overflow-hidden rounded-lg border">
                 <summary className="cursor-pointer px-3 py-2 text-xs font-medium">
                   {t("loyalty.classNow", "The class, as Google holds it")}
                 </summary>
-                <pre className="max-h-72 overflow-auto border-t px-3 py-2 text-[11px]">
+                <pre className="max-h-72 min-w-0 overflow-auto whitespace-pre-wrap border-t px-3 py-2 text-[11px] [overflow-wrap:anywhere]">
                   {JSON.stringify(report.class, null, 2)}
                 </pre>
               </details>
@@ -185,7 +185,7 @@ export function GoogleObjectDialog({
         ) : q.error ? (
           <p className="text-sm text-destructive">{getErrorMessage(q.error)}</p>
         ) : d ? (
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             {/* The verdict, before the JSON — the counts are the whole point. */}
             <div className="flex flex-wrap gap-4 rounded-lg bg-muted px-3 py-2 text-sm">
               <span>
@@ -209,7 +209,7 @@ export function GoogleObjectDialog({
               </p>
             ) : null}
             {d.object ? (
-              <pre className="max-h-96 overflow-auto rounded-lg border bg-card p-3 text-xs">
+              <pre className="max-h-96 min-w-0 overflow-auto whitespace-pre-wrap rounded-lg border bg-card p-3 text-xs [overflow-wrap:anywhere]">
                 {JSON.stringify(d.object, null, 2)}
               </pre>
             ) : null}

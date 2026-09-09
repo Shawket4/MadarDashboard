@@ -16,7 +16,17 @@ interface ImageUploaderProps {
   disabled?: boolean;
 }
 
-/** Uniform drag-drop image upload (menu items, org logos, …). Owns preview + progress. */
+/**
+ * Uniform drag-drop image upload (menu items, org logos, …).
+ *
+ * It shows the URL its own upload returned, not only the one the caller passes
+ * back down. The prop is the truth once it arrives, but it arrives on the
+ * caller's schedule — a cache invalidation that misses the query this dialog is
+ * reading, or simply a refetch in flight — and in the meantime the field a
+ * moment ago showed a picture and now shows an empty dashed box. That read as
+ * the upload having failed; the image would then appear the moment the editor
+ * was closed, which is the one place it was not wanted.
+ */
 export function ImageUploader({
   value,
   onUpload,
@@ -33,6 +43,10 @@ export function ImageUploader({
   const [removing, setRemoving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
+  /// What we just uploaded, held only until the caller's own value catches up.
+  const [justUploaded, setJustUploaded] = React.useState<string | null>(null);
+  React.useEffect(() => setJustUploaded(null), [value]);
+  const shown = justUploaded ?? value;
 
   const handleFile = async (file: File | null | undefined) => {
     if (!file) return;
@@ -47,7 +61,8 @@ export function ImageUploader({
     }
     setUploading(true);
     try {
-      await onUpload(file);
+      const url = await onUpload(file);
+      if (url) setJustUploaded(url);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -61,6 +76,7 @@ export function ImageUploader({
     setError(null);
     try {
       await onRemove();
+      setJustUploaded(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -93,11 +109,23 @@ export function ImageUploader({
           disabled && "opacity-50",
         )}
       >
-        {value ? (
+        {shown ? (
           <>
-            <img src={value} alt="" className="size-full object-cover" draggable={false} />
+            <img src={shown} alt="" className="size-full object-cover" draggable={false} />
             {!disabled ? (
-              <div className="absolute inset-0 flex items-center justify-center gap-1 bg-foreground/0 opacity-0 transition-colors hover:bg-foreground/40 hover:opacity-100">
+              // Visible by default, and hidden until hover ONLY where hovering
+              // is a thing the device does. On a phone there is no hover, so
+              // replace and remove were invisible and reachable — if at all —
+              // by a tap that emulates one. `focus-within` covers a keyboard,
+              // which had the same problem for the same reason.
+              <div
+                className={cn(
+                  "absolute inset-0 flex items-center justify-center gap-1 bg-foreground/40 opacity-100 transition-colors",
+                  "focus-within:opacity-100",
+                  "[@media(hover:hover)]:bg-foreground/0 [@media(hover:hover)]:opacity-0",
+                  "[@media(hover:hover)]:hover:bg-foreground/40 [@media(hover:hover)]:hover:opacity-100",
+                )}
+              >
                 <Button
                   type="button"
                   size="icon-sm"

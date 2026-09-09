@@ -337,7 +337,12 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                 <p className="text-sm font-medium">{t("menu.itemImage", "Image")}</p>
                 {item ? (
                   <ImageUploader
-                    value={liveItem?.image_url ?? item.image_url}
+                    // `||`, not `??`: the detail read and the list row can
+                    // disagree, and an empty string is not an image URL — it
+                    // is a field that has been touched and left blank. `??`
+                    // takes it as an answer and renders an empty box beside a
+                    // row that clearly has a picture.
+                    value={liveItem?.image_url || item.image_url}
                     onUpload={async (file) => {
                       const res = await uploadMenuItemImage(item.id, { image: file });
                       void invalidateCatalog();
