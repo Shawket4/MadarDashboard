@@ -40,6 +40,8 @@ import {
   socialLinksToForm,
 } from "@/features/orgs/social-links";
 
+import { ShopAddressCard } from "./shop-address-card";
+
 import { resolveBrand } from "@/features/loyalty/shared/brand";
 import { CardFace } from "@/features/loyalty/public/card-face";
 
@@ -163,6 +165,10 @@ export function BrandPane() {
           <ImageUploader value={org.data?.brand_card_image} onUpload={uploadCardImage} />
         </CardContent>
       </Card>
+
+      {org.data ? (
+        <ShopAddressCard slug={org.data.slug} customBranding={org.data.custom_branding} />
+      ) : null}
 
       {org.data ? <SocialLinksCard org={org.data} /> : null}
 

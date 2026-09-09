@@ -94,7 +94,8 @@
     "rename": "إعادة تسمية",
     "more": "المزيد",
     "on": "مفعّل",
-    "off": "متوقف"
+    "off": "متوقف",
+    "open": "فتح"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -876,7 +877,8 @@
       "unsaved": "تغييرات غير محفوظة",
       "saveAll": "حفظ الوصفة",
       "saved": "تم حفظ الوصفة",
-      "removeIngredient": "حذف المكوّن"
+      "removeIngredient": "حذف المكوّن",
+      "scaleHint": "اضرب كميات {{base}} في:"
     },
     "slots": {
       "title": "خانات الإضافات",
@@ -1944,7 +1946,11 @@
   "excel": {
     "generating": "جارٍ تجميع البيانات…",
     "downloading": "جارٍ التنزيل…",
-    "done": "تم تصدير صف واحد",
+    "done_zero": "لم يتم تصدير أي صفوف",
+    "done_one": "تم تصدير صف واحد",
+    "done_two": "تم تصدير صفين",
+    "done_few": "تم تصدير {{count}} صفوف",
+    "done_many": "تم تصدير {{count}} صفًا",
     "done_other": "تم تصدير {{count}} صف",
     "failed": "فشل التصدير",
     "nothingToExport": "لا شيء للتصدير",
@@ -2055,7 +2061,17 @@
     "cardImage": "صورة البطاقة",
     "cardImageHint": "صورة عريضة تظهر على بطاقة العميل في Apple Wallet و Google Wallet. تُقصّ إلى شريط، لذا اجعل الموضوع في المنتصف. اختياري.",
     "cardImageSaved": "تم تحديث صورة البطاقة",
-    "socialSaved": "تم تحديث الروابط"
+    "socialSaved": "تم تحديث الروابط",
+    "address": {
+      "title": "عنوانك على الويب",
+      "hint": "صفحات عملائك على عنوانك الخاص. هذه العناوين آمنة للطباعة — لا تتغير.",
+      "card": "بطاقة الولاء",
+      "cardHint": "حيث يسجّل العملاء ويفتحون بطاقتهم.",
+      "order": "القائمة والطلب",
+      "orderHint": "قائمتك، لرمز QR على الطاولة أو رابط في نبذتك.",
+      "book": "الحجوزات",
+      "bookHint": "حيث يحجز الضيوف طاولة."
+    }
   },
   "meta": {
     "publication": "دليل القدرات",
@@ -3087,8 +3103,12 @@
       "qty": "× {{count}}",
       "estimate": "يتم تأكيد الإجمالي النهائي عند الدفع.",
       "discount": "خصم",
+      "units_zero": "أصناف",
       "units_one": "صنف",
-      "units_other": "أصناف"
+      "units_two": "صنفان",
+      "units_few": "أصناف",
+      "units_many": "صنفًا",
+      "units_other": "صنف"
     },
     "checkout": {
       "title": "إتمام الطلب",
@@ -4018,8 +4038,12 @@
     "deleteBody": "الأسئلة والإجابات هتتشال. بياناتك مش هتتأثر.",
     "conversations": "المحادثات",
     "showConversations": "المحادثات",
-    "turnCount": "سؤال واحد",
-    "turnCount_other": "{{count}} أسئلة",
+    "turnCount_zero": "لا أسئلة",
+    "turnCount_one": "سؤال واحد",
+    "turnCount_two": "سؤالان",
+    "turnCount_few": "{{count}} أسئلة",
+    "turnCount_many": "{{count}} سؤالًا",
+    "turnCount_other": "{{count}} سؤال",
     "asAt": "أرقام بتاريخ {{when}}",
     "stored": "محفوظ"
   },

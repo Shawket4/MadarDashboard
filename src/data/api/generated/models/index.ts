@@ -464,7 +464,6 @@ export * from './publicBranch';
 export * from './publicBranchesParams';
 export * from './publicBrand';
 export * from './publicMenuParams';
-export * from './publicOrg';
 export * from './publicOrgBrandParams';
 export * from './publicReward';
 export * from './publicSlot';

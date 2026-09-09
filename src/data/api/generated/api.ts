@@ -343,7 +343,6 @@ import type {
   PublicBranchesParams,
   PublicBrand,
   PublicMenuParams,
-  PublicOrg,
   PublicOrgBrandParams,
   PublicSlots,
   PurchaseOrder,
@@ -18905,93 +18904,6 @@ export function useLoyaltyApplePass<TData = Awaited<ReturnType<typeof loyaltyApp
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getLoyaltyApplePassQueryOptions(token,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const listPublicOrgs = (
-
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PublicOrg[]>(
-      {url: `/public/orgs`, method: 'GET', signal
-    },
-      options);
-    }
-
-
-
-
-export const getListPublicOrgsQueryKey = () => {
-    return [
-    `/public/orgs`
-    ] as const;
-    }
-
-
-export const getListPublicOrgsQueryOptions = <TData = Awaited<ReturnType<typeof listPublicOrgs>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublicOrgs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListPublicOrgsQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPublicOrgs>>> = ({ signal }) => listPublicOrgs(requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPublicOrgs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListPublicOrgsQueryResult = NonNullable<Awaited<ReturnType<typeof listPublicOrgs>>>
-export type ListPublicOrgsQueryError = ErrorBody
-
-
-export function useListPublicOrgs<TData = Awaited<ReturnType<typeof listPublicOrgs>>, TError = ErrorBody>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublicOrgs>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listPublicOrgs>>,
-          TError,
-          Awaited<ReturnType<typeof listPublicOrgs>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPublicOrgs<TData = Awaited<ReturnType<typeof listPublicOrgs>>, TError = ErrorBody>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublicOrgs>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listPublicOrgs>>,
-          TError,
-          Awaited<ReturnType<typeof listPublicOrgs>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPublicOrgs<TData = Awaited<ReturnType<typeof listPublicOrgs>>, TError = ErrorBody>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublicOrgs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListPublicOrgs<TData = Awaited<ReturnType<typeof listPublicOrgs>>, TError = ErrorBody>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublicOrgs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListPublicOrgsQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

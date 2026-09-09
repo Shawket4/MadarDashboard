@@ -150,7 +150,6 @@ import type {
   PublicBookingView,
   PublicBranch,
   PublicBrand,
-  PublicOrg,
   PublicSlots,
   PurchaseOrder,
   PurchaseOrderFull,
@@ -666,8 +665,6 @@ export const getLoyaltyCardOrdersResponseMock = (overrideResponse: Partial<Extra
 export const getLoyaltyJoinResponseMock = (overrideResponse: Partial<Extract<JoinResult, object>> = {}): JoinResult => ({already_member: faker.datatype.boolean(), balance: faker.number.int(), brand: {background_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), card_image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), foreground_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), label_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), logo_is_mark: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_name: faker.string.alpha({length: {min: 10, max: 20}}), program_name: faker.string.alpha({length: {min: 10, max: 20}}), program_name_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, member_token: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), passes: {any: faker.datatype.boolean(), apple_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), google_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, ...overrideResponse})
 
 export const getLoyaltyJoinInfoResponseMock = (overrideResponse: Partial<Extract<JoinInfo, object>> = {}): JoinInfo => ({birthday_enabled: faker.datatype.boolean(), birthday_reward_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand: {background_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), card_image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), foreground_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), label_color: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), logo_is_mark: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_name: faker.string.alpha({length: {min: 10, max: 20}}), program_name: faker.string.alpha({length: {min: 10, max: 20}}), program_name_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, earn_piastres_per_point: faker.number.int(), enabled: faker.datatype.boolean(), mode: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), require_otp: faker.datatype.boolean(), rewards: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({cost_amount: faker.number.int(), cost_currency: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}})})), terms: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), terms_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
-
-export const getListPublicOrgsResponseMock = (): PublicOrg[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({address: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_count: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}})})))
 
 export const getPublicOrgBrandResponseMock = (overrideResponse: Partial<Extract<PublicBrand, object>> = {}): PublicBrand => ({accent_color: faker.string.alpha({length: {min: 10, max: 20}}), background_color: faker.string.alpha({length: {min: 10, max: 20}}), card_image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), custom_branding: faker.datatype.boolean(), foreground_color: faker.string.alpha({length: {min: 10, max: 20}}), logo_is_mark: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), slug: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
@@ -3928,18 +3925,6 @@ export const getLoyaltyApplePassMockHandler = (overrideResponse?: void | ((info:
   }, options)
 }
 
-export const getListPublicOrgsMockHandler = (overrideResponse?: PublicOrg[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PublicOrg[]> | PublicOrg[]), options?: RequestHandlerOptions) => {
-  return http.get('*/public/orgs', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-
-
-    return HttpResponse.json(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getListPublicOrgsResponseMock(),
-      { status: 200
-      })
-  }, options)
-}
-
 export const getPublicOrgBrandMockHandler = (overrideResponse?: PublicBrand | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PublicBrand> | PublicBrand), options?: RequestHandlerOptions) => {
   return http.get('*/public/orgs/brand', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -6014,7 +5999,6 @@ export const getMadarAPIMock = () => [
   getLoyaltyJoinMockHandler(),
   getLoyaltyJoinInfoMockHandler(),
   getLoyaltyApplePassMockHandler(),
-  getListPublicOrgsMockHandler(),
   getPublicOrgBrandMockHandler(),
   getOtpRequestMockHandler(),
   getOtpVerifyMockHandler(),

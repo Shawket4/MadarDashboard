@@ -94,7 +94,8 @@
     "rename": "Rename",
     "more": "More",
     "on": "On",
-    "off": "Off"
+    "off": "Off",
+    "open": "Open"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -877,7 +878,8 @@
       "unsaved": "Unsaved changes",
       "saveAll": "Save recipe",
       "saved": "Recipe saved",
-      "removeIngredient": "Remove ingredient"
+      "removeIngredient": "Remove ingredient",
+      "scaleHint": "Multiply {{base}} quantities by:"
     },
     "slots": {
       "title": "Add-on slots",
@@ -1941,7 +1943,7 @@
   "excel": {
     "generating": "Gathering data…",
     "downloading": "Downloading file…",
-    "done": "Exported {{count}} row",
+    "done_one": "Exported {{count}} row",
     "done_other": "Exported {{count}} rows",
     "failed": "Export failed",
     "nothingToExport": "Nothing to export",
@@ -2052,7 +2054,17 @@
     "cardImage": "Card image",
     "cardImageHint": "A wide photo across the customer's card, in Apple Wallet and Google Wallet alike. It is cropped to a band, so put the subject in the middle. Optional.",
     "cardImageSaved": "Card image updated",
-    "socialSaved": "Links updated"
+    "socialSaved": "Links updated",
+    "address": {
+      "title": "Your web address",
+      "hint": "Your customer pages are on your own address. These are safe to print — they do not change.",
+      "card": "Loyalty card",
+      "cardHint": "Where customers sign up and open their card.",
+      "order": "Menu and ordering",
+      "orderHint": "Your menu, for a QR code on the table or a link in a bio.",
+      "book": "Bookings",
+      "bookHint": "Where guests reserve a table."
+    }
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -3920,7 +3932,7 @@
     "deleteBody": "The questions and answers are removed. Your data is not affected.",
     "conversations": "Conversations",
     "showConversations": "Conversations",
-    "turnCount": "{{count}} question",
+    "turnCount_one": "{{count}} question",
     "turnCount_other": "{{count}} questions",
     "asAt": "Figures as at {{when}}",
     "stored": "stored"

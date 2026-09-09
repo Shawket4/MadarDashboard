@@ -8214,16 +8214,6 @@ export const LoyaltyApplePassParams = zod.object({
 export const LoyaltyApplePassResponse = zod.unknown()
 
 
-export const ListPublicOrgsResponseItem = zod.object({
-  "address": zod.string().nullish(),
-  "branch_count": zod.number().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "logo_url": zod.string().nullish(),
-  "name": zod.string()
-})
-export const ListPublicOrgsResponse = zod.array(ListPublicOrgsResponseItem)
-
-
 /**
  * Public and unauthenticated by necessity: it is the first request a customer's
  * browser makes, before there is any notion of a session. Nothing here is

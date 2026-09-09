@@ -206,7 +206,10 @@ export function RecipeBuilder({
       {scaling && sizes.length > 1 ? (
         <div className="rounded-lg border bg-muted/30 p-3">
           <p className="mb-2.5 text-xs text-muted-foreground">
-            {t("recipes.builder.scaleHint", { base: sizes[0], defaultValue: `Multiply ${sizes[0]} quantities by:` })}
+            {t("recipes.builder.scaleHint", {
+              base: sizes[0],
+              defaultValue: "Multiply {{base}} quantities by:",
+            })}
           </p>
           <div className="flex flex-wrap items-end gap-3">
             {sizes.slice(1).map((size) => (
