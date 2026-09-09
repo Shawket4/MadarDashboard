@@ -16,6 +16,8 @@ export interface CardView {
   /** Whose card this is, and how it should look. */
   brand: CardBrand;
   can_redeem: boolean;
+  /** They have asked this shop to stop sending them things. */
+  marketing_opt_out: boolean;
   member_token: string;
   mode: string;
   name: string;

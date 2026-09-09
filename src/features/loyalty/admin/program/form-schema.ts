@@ -33,6 +33,10 @@ export const programSchema = z.object({
   birthday_reward_amount: z.string(),
   birthday_message: z.string(),
   birthday_message_ar: z.string(),
+  winback_enabled: z.boolean(),
+  /** One override, in whichever language the shop writes it. Empty = the built-ins. */
+  winback_message: z.string(),
+  winback_reward_amount: z.string(),
   terms: z.string(),
 });
 
@@ -59,6 +63,11 @@ export function fromWire(s: LoyaltySettings): ProgramValues {
       : "",
     birthday_message: s.birthday_message ?? "",
     birthday_message_ar: s.birthday_message_ar ?? "",
+    winback_enabled: s.winback_enabled ?? false,
+    winback_message: s.winback_message ?? "",
+    winback_reward_amount: s.winback_reward_amount
+      ? String(s.winback_reward_amount)
+      : "",
     terms: s.terms ?? "",
   };
 }
@@ -80,6 +89,7 @@ export function toWire(
   // feature is off would mean turning it back on silently restores whatever
   // was configured a year ago.
   const birthday = v.birthday_enabled;
+  const winback = v.winback_enabled;
   return {
     ...saved,
     org_id: scope.orgId,
@@ -98,6 +108,11 @@ export function toWire(
     birthday_reward_amount: birthday ? Number(v.birthday_reward_amount) || null : null,
     birthday_message: birthday ? v.birthday_message || null : null,
     birthday_message_ar: birthday ? v.birthday_message_ar || null : null,
+    winback_enabled: winback,
+    winback_message: winback ? v.winback_message || null : null,
+    winback_reward_amount: winback
+      ? Number(v.winback_reward_amount) || null
+      : null,
     terms: v.terms || null,
   };
 }

@@ -4160,7 +4160,10 @@ export const PreviewLoyaltyBirthdayMessageBody = zod.object({
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
   "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
   "terms": zod.string().nullish(),
-  "terms_ar": zod.string().nullish()
+  "terms_ar": zod.string().nullish(),
+  "winback_enabled": zod.boolean().optional().describe('Nudge a member who has not been in for a while. Off by default, like\neverything here that speaks to a customer unprompted.\n\nThe timing is not a per-shop setting: how long \"a while\" is, whether it\nrepeats, and how stale is too stale are one operational judgement across\nthe estate, and they live in the environment\n(`LOYALTY_WINBACK_\*`) rather than in a form where a shop could set it to\na day and burn its own list down.'),
+  "winback_message": zod.string().nullish().describe('ONE override, in whichever language the shop writes it, replacing the\nbuilt-in English and Arabic both. `{name}` is substituted; nothing else.\n\nUnset is the better default: the built-ins are written in each language\nrather than translated into one, so a customer reads a sentence that was\ncomposed for them.'),
+  "winback_reward_amount": zod.number().nullish().describe('Points or stamps to arrive with the nudge. `None` is words only.')
 })
 
 export const PreviewLoyaltyBirthdayMessageResponse = zod.object({
@@ -4455,7 +4458,10 @@ export const GetLoyaltySettingsResponse = zod.object({
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
   "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
   "terms": zod.string().nullish(),
-  "terms_ar": zod.string().nullish()
+  "terms_ar": zod.string().nullish(),
+  "winback_enabled": zod.boolean().optional().describe('Nudge a member who has not been in for a while. Off by default, like\neverything here that speaks to a customer unprompted.\n\nThe timing is not a per-shop setting: how long \"a while\" is, whether it\nrepeats, and how stale is too stale are one operational judgement across\nthe estate, and they live in the environment\n(`LOYALTY_WINBACK_\*`) rather than in a form where a shop could set it to\na day and burn its own list down.'),
+  "winback_message": zod.string().nullish().describe('ONE override, in whichever language the shop writes it, replacing the\nbuilt-in English and Arabic both. `{name}` is substituted; nothing else.\n\nUnset is the better default: the built-ins are written in each language\nrather than translated into one, so a customer reads a sentence that was\ncomposed for them.'),
+  "winback_reward_amount": zod.number().nullish().describe('Points or stamps to arrive with the nudge. `None` is words only.')
 })
 
 
@@ -4477,7 +4483,10 @@ export const PutLoyaltySettingsBody = zod.object({
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
   "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
   "terms": zod.string().nullish(),
-  "terms_ar": zod.string().nullish()
+  "terms_ar": zod.string().nullish(),
+  "winback_enabled": zod.boolean().optional().describe('Nudge a member who has not been in for a while. Off by default, like\neverything here that speaks to a customer unprompted.\n\nThe timing is not a per-shop setting: how long \"a while\" is, whether it\nrepeats, and how stale is too stale are one operational judgement across\nthe estate, and they live in the environment\n(`LOYALTY_WINBACK_\*`) rather than in a form where a shop could set it to\na day and burn its own list down.'),
+  "winback_message": zod.string().nullish().describe('ONE override, in whichever language the shop writes it, replacing the\nbuilt-in English and Arabic both. `{name}` is substituted; nothing else.\n\nUnset is the better default: the built-ins are written in each language\nrather than translated into one, so a customer reads a sentence that was\ncomposed for them.'),
+  "winback_reward_amount": zod.number().nullish().describe('Points or stamps to arrive with the nudge. `None` is words only.')
 })
 
 export const PutLoyaltySettingsResponse = zod.object({
@@ -4498,7 +4507,10 @@ export const PutLoyaltySettingsResponse = zod.object({
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
   "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
   "terms": zod.string().nullish(),
-  "terms_ar": zod.string().nullish()
+  "terms_ar": zod.string().nullish(),
+  "winback_enabled": zod.boolean().optional().describe('Nudge a member who has not been in for a while. Off by default, like\neverything here that speaks to a customer unprompted.\n\nThe timing is not a per-shop setting: how long \"a while\" is, whether it\nrepeats, and how stale is too stale are one operational judgement across\nthe estate, and they live in the environment\n(`LOYALTY_WINBACK_\*`) rather than in a form where a shop could set it to\na day and burn its own list down.'),
+  "winback_message": zod.string().nullish().describe('ONE override, in whichever language the shop writes it, replacing the\nbuilt-in English and Arabic both. `{name}` is substituted; nothing else.\n\nUnset is the better default: the built-ins are written in each language\nrather than translated into one, so a customer reads a sentence that was\ncomposed for them.'),
+  "winback_reward_amount": zod.number().nullish().describe('Points or stamps to arrive with the nudge. `None` is words only.')
 })
 
 
@@ -8017,6 +8029,7 @@ export const LoyaltyCardResponse = zod.object({
   "program_name_ar": zod.string().nullish()
 }).describe('Whose card this is, and how it should look.'),
   "can_redeem": zod.boolean(),
+  "marketing_opt_out": zod.boolean().describe('They have asked this shop to stop sending them things.'),
   "member_token": zod.string(),
   "mode": zod.string(),
   "name": zod.string(),
@@ -8035,6 +8048,18 @@ export const LoyaltyCardResponse = zod.object({
 }).describe('A reward as the signup page lists it: what it is, and what it costs.')),
   "rewards_ready": zod.number().describe('Rewards the balance has already earned — a card does not stop at full.')
 }).describe('The member\'s own card page — what they see when they open the link again.\n\nThe token in the path is the member\'s secret, which is why this returns only\nwhat the pass already shows and never the phone number in full.')
+
+
+export const SetLoyaltyCardPreferencesParams = zod.object({
+  "token": zod.string().describe('Member token from the pass barcode')
+})
+
+export const SetLoyaltyCardPreferencesBody = zod.object({
+  "locale": zod.string().nullish().describe('The language they are reading this page in.\n\nSent by the page itself rather than chosen in a form. We stored whatever\ntheir phone said at signup, and a phone that has since changed language\nis a customer still being written to in the wrong one. Opening their own\ncard is the moment we can tell.'),
+  "marketing_opt_out": zod.boolean().nullish().describe('Stop sending marketing. Covers the birthday greeting as well as the\nwin-back: someone asking us to stop is asking the SHOP to stop, not to\nbe excluded from one campaign.')
+}).describe('What a customer can change about their own card, without an account.\n\nThe token in the URL is the credential — the same one their pass carries and\nthe till scans. That is deliberate: a person who has just been messaged must\nbe able to stop the messages by tapping the link in the message, not by\nremembering a password they never made.')
+
+export const SetLoyaltyCardPreferencesResponse = zod.void()
 
 
 /**

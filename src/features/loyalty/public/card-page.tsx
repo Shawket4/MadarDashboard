@@ -20,6 +20,7 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 
 import { resolveBrand } from "../shared/brand";
 import { CardFace } from "./card-face";
+import { CardPreferences } from "./card-preferences";
 import { LoyaltyPage, Panel, Section, usePageAccent } from "./page-shell";
 import { WalletButtons } from "./wallet-buttons";
 import { costLabel } from "../shared/util";
@@ -103,6 +104,8 @@ function Card({
           <WalletButtons passes={data.passes} />
         </Section>
       ) : null}
+
+      <CardPreferences token={token} optedOut={data.marketing_opt_out} />
 
       {data.rewards.length > 0 ? (
         <Section

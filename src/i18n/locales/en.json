@@ -4196,6 +4196,16 @@
     "branchesSent": "Sent",
     "branchesOnClass": "Kept on the class",
     "branchesOnObject": "Kept on the card",
-    "classNow": "The class, as Google holds it"
+    "classNow": "The class, as Google holds it",
+    "noMessages": "Stop messages from this shop",
+    "noMessagesHint": "Your card and your balance stay exactly as they are.",
+    "winback": "Win back quiet customers",
+    "winbackHint": "Messages a member who has not been in for a week, and once more a week later. Never a third time, and never someone who has asked you to stop.",
+    "winbackGift": "Something to come back for",
+    "winbackGiftNone": "Leave empty for words only",
+    "winbackGiftHint": "Points or stamps added with the message. A nudge carrying something converts far better than one that does not.",
+    "winbackMessage": "Your own wording",
+    "winbackMessagePlaceholder": "Leave empty to use ours, written in each language. {name} becomes their name.",
+    "winbackMessageHint": "One message, in whichever language you write it — it replaces both of ours. A link to their card is always added, so they can stop the messages."
   }
 }

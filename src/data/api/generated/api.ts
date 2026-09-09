@@ -84,6 +84,7 @@ import type {
   BundleWithComponents,
   CancelBookingRequest,
   CancelInput,
+  CardPreferences,
   CardView,
   CashMovement,
   CashMovementRequest,
@@ -18406,6 +18407,66 @@ export function useLoyaltyCard<TData = Awaited<ReturnType<typeof loyaltyCard>>, 
 
 
 
+
+export const setLoyaltyCardPreferences = (
+    token: string,
+    cardPreferences: CardPreferences,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/public/loyalty/card/${token}/preferences`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: cardPreferences, signal
+    },
+      options);
+    }
+
+
+
+
+export const getSetLoyaltyCardPreferencesMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setLoyaltyCardPreferences>>, TError,{token: string;data: CardPreferences}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof setLoyaltyCardPreferences>>, TError,{token: string;data: CardPreferences}, TContext> => {
+
+const mutationKey = ['setLoyaltyCardPreferences'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setLoyaltyCardPreferences>>, {token: string;data: CardPreferences}> = (props) => {
+          const {token,data} = props ?? {};
+
+          return  setLoyaltyCardPreferences(token,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetLoyaltyCardPreferencesMutationResult = NonNullable<Awaited<ReturnType<typeof setLoyaltyCardPreferences>>>
+    export type SetLoyaltyCardPreferencesMutationBody = CardPreferences
+    export type SetLoyaltyCardPreferencesMutationError = ErrorBody
+
+    export const useSetLoyaltyCardPreferences = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setLoyaltyCardPreferences>>, TError,{token: string;data: CardPreferences}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setLoyaltyCardPreferences>>,
+        TError,
+        {token: string;data: CardPreferences},
+        TContext
+      > => {
+      return useMutation(getSetLoyaltyCardPreferencesMutationOptions(options), queryClient);
+    }
 
 /**
  * Rendered server-side with the same renderer the printed cards use, rather

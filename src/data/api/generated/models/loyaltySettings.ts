@@ -81,4 +81,30 @@ export interface LoyaltySettings {
   terms?: string | null;
   /** @nullable */
   terms_ar?: string | null;
+  /**
+     * Nudge a member who has not been in for a while. Off by default, like
+     * everything here that speaks to a customer unprompted.
+     *
+     * The timing is not a per-shop setting: how long "a while" is, whether it
+     * repeats, and how stale is too stale are one operational judgement across
+     * the estate, and they live in the environment
+     * (`LOYALTY_WINBACK_*`) rather than in a form where a shop could set it to
+     * a day and burn its own list down.
+     */
+  winback_enabled?: boolean;
+  /**
+     * ONE override, in whichever language the shop writes it, replacing the
+     * built-in English and Arabic both. `{name}` is substituted; nothing else.
+     *
+     * Unset is the better default: the built-ins are written in each language
+     * rather than translated into one, so a customer reads a sentence that was
+     * composed for them.
+     * @nullable
+     */
+  winback_message?: string | null;
+  /**
+     * Points or stamps to arrive with the nudge. `None` is words only.
+     * @nullable
+     */
+  winback_reward_amount?: number | null;
 }

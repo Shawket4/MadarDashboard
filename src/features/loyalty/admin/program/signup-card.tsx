@@ -83,6 +83,47 @@ export function SignupCard({
             <BirthdayPreview settings={previewOf(values, saved)} />
           </div>
         ) : null}
+
+        <ToggleRow
+          form={form}
+          name="winback_enabled"
+          label={t("loyalty.winback", "Win back quiet customers")}
+          hint={t(
+            "loyalty.winbackHint",
+            "Messages a member who has not been in for a week, and once more a week later. Never a third time, and never someone who has asked you to stop.",
+          )}
+        />
+
+        {values.winback_enabled ? (
+          <div className="space-y-4 rounded-lg border border-border/70 p-3">
+            <TextRow
+              form={form}
+              name="winback_reward_amount"
+              label={t("loyalty.winbackGift", "Something to come back for")}
+              placeholder={t(
+                "loyalty.winbackGiftNone",
+                "Leave empty for words only",
+              )}
+              hint={t(
+                "loyalty.winbackGiftHint",
+                "Points or stamps added with the message. A nudge carrying something converts far better than one that does not.",
+              )}
+            />
+            <TextRow
+              form={form}
+              name="winback_message"
+              label={t("loyalty.winbackMessage", "Your own wording")}
+              placeholder={t(
+                "loyalty.winbackMessagePlaceholder",
+                "Leave empty to use ours, written in each language. {name} becomes their name.",
+              )}
+              hint={t(
+                "loyalty.winbackMessageHint",
+                "One message, in whichever language you write it — it replaces both of ours. A link to their card is always added, so they can stop the messages.",
+              )}
+            />
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
