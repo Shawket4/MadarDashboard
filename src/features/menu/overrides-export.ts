@@ -34,6 +34,12 @@ interface AddonRow {
 
 export interface BranchOverridesExportCtx {
   qc: QueryClient;
+  /**
+   * The shop's mark when it is on the branding tier, Madar's otherwise. This is
+   * not a module that can call a hook, so the caller passes `useExportLogo()`
+   * straight through — never its own reading of the tier flag.
+   */
+  logoUrl?: string;
   orgId: string;
   branchId: string;
   branchName: string;
@@ -50,7 +56,7 @@ export interface BranchOverridesExportCtx {
  * overridden catalog (overridden-only keeps the fetch small) and join locally.
  */
 export async function exportBranchOverrides(ctx: BranchOverridesExportCtx): Promise<void> {
-  const { qc, orgId, branchId, branchName, lang, t, categories, itemOverrides, addonOverrides } = ctx;
+  const { qc, orgId, branchId, branchName, lang, t, logoUrl, categories, itemOverrides, addonOverrides } = ctx;
 
   const [items, addons] = await Promise.all([
     fetchAllMenuCatalog(qc, { org_id: orgId, branch_id: branchId, overridden: true }),
@@ -117,6 +123,7 @@ export async function exportBranchOverrides(ctx: BranchOverridesExportCtx): Prom
   await exportToExcel({
     filename: `Madar-Branch-Overrides-${branchName}`.replace(/\s+/g, "-"),
     meta: subtitle,
+    logoUrl,
     sheets: [
       asSheet({
         name: t("menu.overrides.menuItems", "Menu items"),

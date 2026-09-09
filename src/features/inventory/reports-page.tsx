@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Boxes, Store } from "lucide-react";
+import { toast } from "sonner";
 import { ProgressBar } from "@/components/app/progress-bar";
 
 import { Page } from "@/components/app/page";
@@ -20,6 +21,8 @@ import {
   useBranchWasteReport, useListCatalog, useOrgConsumption, useOrgInventoryValuation, useOrgShrinkage,
   useOrgWasteReport,
 } from "@/data/api/generated/api";
+import { getErrorMessage } from "@/data/api/errors";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
@@ -34,6 +37,8 @@ export function ReportsPage() {
 
   const [scope, setScope] = useState<ReportScope>(branchId ? "branch" : "org");
   const [tab, setTab] = useState("valuation");
+  const [exporting, setExporting] = useState(false);
+  const logoUrl = useExportLogo();
 
   const isBranch = scope === "branch";
   const scopeId = isBranch ? branchId : orgId;
@@ -75,8 +80,10 @@ export function ReportsPage() {
     return { rows, max };
   }, [catalog.data, valuation.data, t]);
 
-  // Export the currently-visible report tab.
-  const handleExport = () => {
+  // Export the currently-visible report tab. Every one of these endpoints
+  // returns its whole aggregate for the scope and date range in one response —
+  // they are roll-ups, not row listings — so there is no paging to walk.
+  const handleExport = async () => {
     type Row = Record<string, string | number | null>;
     let title = "";
     let cols: ExcelColumn<Row>[] = [];
@@ -131,7 +138,14 @@ export function ReportsPage() {
       }));
     }
     const scopeLabel = isBranch ? t("inventory.reports.branch", "This branch") : t("inventory.reports.org", "Whole organization");
-    void exportToExcel({ filename: `Madar-${title}`, sheets: [{ name: title, title, subtitle: scopeLabel, rows: rows as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: `Madar-${title}`, logoUrl, sheets: [{ name: title, title, subtitle: scopeLabel, rows: rows as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   const currentCount =
@@ -160,7 +174,7 @@ export function ReportsPage() {
           <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.reports.title", "Inventory reports")}</h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <ExportButton onExport={handleExport} disabled={branchGate || !currentCount} />
+          <ExportButton onExport={handleExport} loading={exporting} disabled={branchGate || !currentCount} />
           <SegmentedControl<ReportScope>
             value={scope}
             onChange={setScope}

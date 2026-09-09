@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Page } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { DataTable } from "@/components/app/data-table";
+import { ExportButton } from "@/components/app/export-button";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,8 @@ import { deleteTill, useListTills } from "@/data/api/generated/api";
 import type { Till } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useScope } from "@/data/scope/use-scope";
+import { useExportLogo } from "@/hooks/use-export-logo";
+import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { invalidateTills } from "./util";
 
 export function TillsPage() {
@@ -25,6 +28,8 @@ export function TillsPage() {
 
   const list = useListTills({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } });
   const tills = useMemo(() => list.data ?? [], [list.data]);
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const [editing, setEditing] = useState<Till | null>(null);
   const [dlgOpen, setDlgOpen] = useState(false);
@@ -44,6 +49,38 @@ export function TillsPage() {
       } catch (e) {
         toast.error(getErrorMessage(e));
       }
+    }
+  };
+
+  // A branch has a handful of registers and the endpoint is unpaged, so the
+  // list already in hand IS the whole set — nothing to re-fetch or walk.
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const cols: ExcelColumn<Till>[] = [
+        { header: t("tills.name", "Name"), accessor: (x) => x.name, type: "text", width: 28 },
+        { header: t("tills.default", "Default"), accessor: (x) => x.is_default, type: "bool", width: 12 },
+        {
+          header: t("common.status", "Status"),
+          accessor: (x) => (x.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")),
+          type: "text",
+          width: 14,
+        },
+      ];
+      await exportToExcel({
+        filename: "Madar-Tills",
+        logoUrl,
+        sheets: [{
+          name: t("tills.title", "Tills"),
+          title: t("tills.title", "Tills"),
+          rows: tills as unknown as Record<string, unknown>[],
+          columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
+        }],
+      });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -97,7 +134,12 @@ export function TillsPage() {
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t("tills.title", "Tills")}</h1>
           <p className="text-sm text-muted-foreground">{t("tills.pageSubtitle", "Cash drawers / registers for this branch. Each open shift runs on one till.")}</p>
         </div>
-        {branchId ? <Button onClick={openNew}><Plus className="size-4" /> {t("tills.newTill", "New till")}</Button> : null}
+        {branchId ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <ExportButton onExport={handleExport} loading={exporting} disabled={!tills.length} />
+            <Button onClick={openNew}><Plus className="size-4" /> {t("tills.newTill", "New till")}</Button>
+          </div>
+        ) : null}
       </div>
       {!branchId ? (
         <EmptyState icon={Store} title={t("tills.pickBranch", "Select a branch in the top bar to manage its tills")} />

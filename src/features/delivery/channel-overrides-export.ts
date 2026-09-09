@@ -30,6 +30,12 @@ interface AddonRow {
 
 export interface ChannelOverridesExportCtx {
   qc: QueryClient;
+  /**
+   * The shop's mark when it is on the branding tier, Madar's otherwise. This is
+   * not a module that can call a hook, so the caller passes `useExportLogo()`
+   * straight through — never its own reading of the tier flag.
+   */
+  logoUrl?: string;
   orgId: string;
   branchName: string;
   channel: Channel;
@@ -45,7 +51,7 @@ export interface ChannelOverridesExportCtx {
  * names/org prices and join locally. `is_available === null` means "inherit".
  */
 export async function exportChannelOverrides(ctx: ChannelOverridesExportCtx): Promise<void> {
-  const { qc, orgId, branchName, channel, lang, t, itemOverrides, addonOverrides } = ctx;
+  const { qc, orgId, branchName, channel, lang, t, logoUrl, itemOverrides, addonOverrides } = ctx;
 
   const [items, addons] = await Promise.all([
     fetchAllMenuCatalog(qc, { org_id: orgId }),
@@ -112,6 +118,7 @@ export async function exportChannelOverrides(ctx: ChannelOverridesExportCtx): Pr
   await exportToExcel({
     filename: `Madar-Channel-Overrides-${branchName}-${channel}`.replace(/\s+/g, "-"),
     meta: subtitle,
+    logoUrl,
     sheets: [
       asSheet({
         name: t("delivery.menuItems", "Menu items"),

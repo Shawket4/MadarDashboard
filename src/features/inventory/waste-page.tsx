@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Page } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
@@ -12,16 +13,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { StockMovement } from "@/data/api/generated/models";
-import { useBranchWasteReport, useListWaste } from "@/data/api/generated/api";
+import { listWaste, useBranchWasteReport, useListWaste } from "@/data/api/generated/api";
+import { getErrorMessage } from "@/data/api/errors";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { WasteDialog } from "./waste-dialog";
 
 export function WastePage() {
   const { t } = useTranslation();
   const { branchId, scopeBranchId, isAllBranches, from, to } = useScope();
   const [logOpen, setLogOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const logoUrl = useExportLogo();
 
   // The waste log scopes to the selected branch or rolls up across the org
   // ("All branches"). Logging waste needs a concrete branch (gated below).
@@ -89,17 +95,31 @@ export function WastePage() {
     [t, isAllBranches],
   );
 
-  const handleExport = () => {
-    const rows = waste.data ?? [];
-    const cols: ExcelColumn<StockMovement>[] = [
-      { header: t("common.date", "Date"), accessor: (m) => m.created_at, type: "dateTime", width: 20 },
-      { header: t("inventory.waste.ingredient", "Ingredient"), accessor: (m) => m.ingredient_name, type: "text", width: 28 },
-      { header: t("inventory.waste.quantity", "Quantity"), accessor: (m) => Math.abs(m.quantity), type: "number", width: 14 },
-      { header: t("inventory.catalog.unit", "Unit"), accessor: (m) => fmtUnit(m.unit), type: "text", width: 10 },
-      { header: t("inventory.waste.reason", "Reason"), accessor: (m) => (m.reason ? t(`inventory.waste.reasons.${m.reason}`, m.reason) : "—"), type: "text", width: 18 },
-      { header: t("inventory.waste.by", "By"), accessor: (m) => m.created_by_name ?? "—", type: "text", width: 18 },
-    ];
-    void exportToExcel({ filename: "Madar-Waste", sheets: [{ name: t("inventory.waste.title", "Waste log"), title: t("inventory.waste.title", "Waste log"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+  /**
+   * The log endpoint is offset-paged and the table asks for one page, so the
+   * export re-runs the same branch-scoped query and walks it to the end. Taking
+   * `waste.data` instead would file the first page under the whole log's name.
+   */
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const rows = await fetchAllPages<StockMovement>(async (offset, limit) => ({
+        rows: await listWaste(scopeBranchId, { limit, offset }, EXPORT_REQUEST),
+      }));
+      const cols: ExcelColumn<StockMovement>[] = [
+        { header: t("common.date", "Date"), accessor: (m) => m.created_at, type: "dateTime", width: 20 },
+        { header: t("inventory.waste.ingredient", "Ingredient"), accessor: (m) => m.ingredient_name, type: "text", width: 28 },
+        { header: t("inventory.waste.quantity", "Quantity"), accessor: (m) => Math.abs(m.quantity), type: "number", width: 14 },
+        { header: t("inventory.catalog.unit", "Unit"), accessor: (m) => fmtUnit(m.unit), type: "text", width: 10 },
+        { header: t("inventory.waste.reason", "Reason"), accessor: (m) => (m.reason ? t(`inventory.waste.reasons.${m.reason}`, m.reason) : "—"), type: "text", width: 18 },
+        { header: t("inventory.waste.by", "By"), accessor: (m) => m.created_by_name ?? "—", type: "text", width: 18 },
+      ];
+      await exportToExcel({ filename: "Madar-Waste", logoUrl, sheets: [{ name: t("inventory.waste.title", "Waste log"), title: t("inventory.waste.title", "Waste log"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -109,7 +129,7 @@ export function WastePage() {
           <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.waste.title", "Waste log")}</h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <ExportButton onExport={handleExport} disabled={!(waste.data?.length)} />
+          <ExportButton onExport={handleExport} loading={exporting} disabled={!(waste.data?.length)} />
           {branchId ? (
             <Button onClick={() => setLogOpen(true)}>
               <Trash2 className="size-4" />

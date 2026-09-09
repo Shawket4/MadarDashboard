@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
+import { ExportButton } from "@/components/app/export-button";
 import { StatCard } from "@/components/app/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,12 +20,15 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  correctRecord, createManualRecord,
+  correctRecord, createManualRecord, listAttendance,
   useAttendanceSummary, useListAttendance, useListEmployees, useListWorkShifts,
 } from "@/data/api/generated/api";
 import type { AttendanceRecord } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useScope } from "@/data/scope/use-scope";
+import { useExportLogo } from "@/hooks/use-export-logo";
+import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { EXPORT_REQUEST } from "@/lib/export-all";
 import { fmtDateTime } from "@/lib/format";
 import {
   ATTENDANCE_STATUS_CLASS, fmtMinutes, invalidateAttendance, isoDaysFromToday, todayIso,
@@ -40,6 +44,8 @@ export function AttendancePage() {
   const [status, setStatus] = useState(ALL);
   const [manualOpen, setManualOpen] = useState(false);
   const [correcting, setCorrecting] = useState<AttendanceRecord | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const logoUrl = useExportLogo();
 
   const params = {
     from,
@@ -64,6 +70,56 @@ export function AttendancePage() {
       { present: 0, late: 0, absent: 0, overtime: 0 },
     );
   }, [summaryQ.data]);
+
+  // `/staff/attendance` answers a window in one unpaged response, so the export
+  // re-runs the page's own query rather than walking pages — with the same
+  // from/to/branch/status, so the file is the window the operator is looking at.
+  //
+  // Worked, late and overtime travel as MINUTES, not as the "7h 30m" the table
+  // renders: a payroll sheet's whole point is to add these up, and a duration
+  // written as prose is a column of text to Excel.
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const rows = await listAttendance(params, EXPORT_REQUEST);
+      const cols: ExcelColumn<AttendanceRecord>[] = [
+        { header: t("staff.name", "Name"), accessor: (r) => r.user_name ?? "—", type: "text", width: 24 },
+        { header: t("staff.workShift", "Work shift"), accessor: (r) => r.work_shift_name ?? t("staff.unscheduled", "Unscheduled"), type: "text", width: 20 },
+        { header: t("staff.date", "Date"), accessor: (r) => r.business_date, type: "date", width: 14 },
+        { header: t("staff.attendanceStatus", "Status"), accessor: (r) => t(`staff.att_${r.status}`, r.status), type: "text", width: 14 },
+        { header: t("staff.checkIn", "In"), accessor: (r) => r.check_in_at ?? null, type: "dateTime", width: 22 },
+        {
+          header: t("staff.checkInDistance", "In distance (m)"),
+          accessor: (r) => (r.check_in_distance_meters == null ? null : Math.round(r.check_in_distance_meters)),
+          type: "integer",
+          width: 16,
+        },
+        { header: t("staff.checkOut", "Out"), accessor: (r) => r.check_out_at ?? null, type: "dateTime", width: 22 },
+        { header: t("staff.autoClosedColumn", "Auto-closed"), accessor: (r) => r.check_out_method === "auto", type: "bool", width: 14 },
+        { header: t("staff.workedMinutes", "Worked (minutes)"), accessor: (r) => r.worked_minutes, type: "integer", width: 16, total: true },
+        { header: t("staff.lateMinutes", "Late (minutes)"), accessor: (r) => r.late_minutes, type: "integer", width: 16, total: true },
+        { header: t("staff.overtimeMinutes", "Overtime (minutes)"), accessor: (r) => r.overtime_minutes, type: "integer", width: 18, total: true },
+      ];
+      const title = t("staff.attendance", "Attendance");
+      await exportToExcel({
+        filename: "Madar-Attendance",
+        logoUrl,
+        meta: `${from} → ${to}`,
+        sheets: [{
+          name: title,
+          title,
+          subtitle: status === ALL ? t("staff.allStatuses", "All statuses") : t(`staff.att_${status}`, status),
+          rows: rows as unknown as Record<string, unknown>[],
+          columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
+          totals: true,
+        }],
+      });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const columns: ColumnDef<AttendanceRecord>[] = useMemo(
     () => [
@@ -180,10 +236,13 @@ export function AttendancePage() {
           "Every clock-in is verified against the branch's location by the server. Records can be corrected here; corrections are audited.",
         )}
         actions={
-          <Button onClick={() => setManualOpen(true)}>
-            <Plus className="size-4" />
-            {t("staff.addRecord", "Add record")}
-          </Button>
+          <>
+            <ExportButton onExport={handleExport} loading={exporting} disabled={!records.length} />
+            <Button onClick={() => setManualOpen(true)}>
+              <Plus className="size-4" />
+              {t("staff.addRecord", "Add record")}
+            </Button>
+          </>
         }
       />
 

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Building2, CheckCircle, Pencil, Plus, Trash2, XCircle } from "lucide-react";
@@ -18,14 +18,20 @@ import { deleteOrg, useListOrgs } from "@/data/api/generated/api";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { usePageSearch } from "@/data/scope/use-page-search";
 
 export function OrgsPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
 
+  // `/orgs` is unpaginated, so the table already holds every organization the
+  // caller can see and the export has nothing extra to fetch.
   const list = useListOrgs();
   const orgs = useMemo(() => list.data ?? [], [list.data]);
+
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const [s, update] = usePageSearch<{ edit: string }>();
   const editId = s.edit ?? null;
@@ -83,7 +89,7 @@ export function OrgsPage() {
     [t, update],
   );
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const cols: ExcelColumn<Org>[] = [
       { header: t("common.name", "Name"), accessor: (o) => o.name, type: "text", width: 28 },
       { header: t("orgs.slug", "Slug"), accessor: (o) => o.slug, type: "text", width: 20 },
@@ -91,7 +97,14 @@ export function OrgsPage() {
       { header: t("orgs.taxRate", "Tax Rate (%)"), accessor: (o) => o.tax_rate, type: "number", width: 12 },
       { header: t("common.status", "Status"), accessor: (o) => (o.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
-    void exportToExcel({ filename: "Madar-Organizations", sheets: [{ name: t("orgs.title", "Organizations"), title: t("orgs.title", "Organizations"), rows: orgs as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: "Madar-Organizations", logoUrl, sheets: [{ name: t("orgs.title", "Organizations"), title: t("orgs.title", "Organizations"), rows: orgs as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   // tax_rate is stored as a percent number (e.g. 14). StatCard's percent format
@@ -103,7 +116,7 @@ export function OrgsPage() {
       <PageHeader
         title={t("orgs.title", "Organizations")}
         description={t("orgs.subtitle", "Manage all coffee brands and franchises")}
-        actions={<><ExportButton onExport={handleExport} disabled={!orgs.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button></>}
+        actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={!orgs.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button></>}
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("common.total", "Total")} value={orgs.length} loading={list.isLoading} />

@@ -25,6 +25,8 @@ import { fmtMoney, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { useDebounced } from "@/lib/use-debounced";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
 
@@ -43,6 +45,8 @@ export function BundlesPage() {
   const [statusFilter, setStatusFilter] = useState(ALL);
   const [sort, setSort] = useState("created_desc");
   const [pageIndex, setPageIndex] = useState(0);
+  const [exporting, setExporting] = useState(false);
+  const logoUrl = useExportLogo();
 
   useEffect(() => { setPageIndex(0); }, [searchQ, statusFilter, sort]);
 
@@ -154,10 +158,21 @@ export function BundlesPage() {
     [t, i18n.language, update],
   );
 
+  /**
+   * Re-run the grid's own query — same search, status and sort — and walk it to
+   * the end. The old single request capped at 1000 rows and dropped the sort,
+   * so a large catalog silently exported a differently-ordered prefix.
+   */
   const handleExport = async () => {
+    setExporting(true);
     try {
-      // Export the full (unpaginated) set, honouring the active search/status.
-      const all = await listBundles({ org_id: orgId ?? "", search: searchQ || undefined, status: statusFilter === ALL ? undefined : (statusFilter as BundleStatus), page: 1, per_page: 1000 });
+      const all = await fetchAllPages<BundleWithComponents>(async (offset, limit) => {
+        const res = await listBundles(
+          { ...params, page: Math.floor(offset / limit) + 1, per_page: limit },
+          EXPORT_REQUEST,
+        );
+        return { rows: res.data, total: res.total };
+      });
       const cols: ExcelColumn<BundleWithComponents>[] = [
         { header: t("bundles.bundleName", "Bundle name"), accessor: (b) => tname(b), type: "text", width: 28 },
         { header: t("bundles.price", "Price"), accessor: (b) => piastresToEgp(b.price), type: "number", width: 14 },
@@ -165,9 +180,11 @@ export function BundlesPage() {
         { header: t("bundles.components", "Items"), accessor: (b) => b.components.map((c) => `${c.item_name} (x${c.quantity})`).join(", "), type: "text", width: 40 },
         { header: t("common.status", "Status"), accessor: (b) => t(`bundles.status.${b.status}`, b.status), type: "text", width: 12 },
       ];
-      await exportToExcel({ filename: "Madar-Bundles", sheets: [{ name: t("bundles.title", "Bundles"), title: t("bundles.title", "Bundles"), rows: all.data as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      await exportToExcel({ filename: "Madar-Bundles", logoUrl, sheets: [{ name: t("bundles.title", "Bundles"), title: t("bundles.title", "Bundles"), rows: all as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       onErr(e);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -180,7 +197,7 @@ export function BundlesPage() {
       <PageHeader
         title={t("bundles.title", "Bundles")}
         description={t("bundles.subtitle", "Combo deals that group items at a special price")}
-        actions={<><ExportButton onExport={handleExport} disabled={totalCount === 0} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("bundles.new", "New bundle")}</Button></>}
+        actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={totalCount === 0} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("bundles.new", "New bundle")}</Button></>}
       />
 
       <LedgerStrip

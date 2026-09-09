@@ -36,6 +36,7 @@ import { useAuthStore } from "@/data/stores/auth.store";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDateTime, fmtDuration, fmtMoney } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { getErrorMessage } from "@/data/api/errors";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +78,9 @@ export function ShiftsPage() {
   // No page/per_page params → the backend returns every shift in one envelope
   // (the export below needs the full set, and this page has no pagination UI).
   const shifts = useListShifts(scopeBranchId, undefined, { query: { enabled: !!scopeBranchId } });
+
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const forceClose = useForceCloseShift({
     mutation: {
@@ -238,7 +242,7 @@ export function ShiftsPage() {
     [t, canManage, isAllBranches],
   );
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const rows = shifts.data?.data ?? [];
     const cols: ExcelColumn<Shift>[] = [
       { header: t("shifts.opened", "Opened"), accessor: (s) => s.opened_at, type: "dateTime", width: 20 },
@@ -250,7 +254,14 @@ export function ShiftsPage() {
       { header: t("shifts.closingCash", "Closing"), accessor: (s) => s.closing_cash_declared ?? null, type: "money", width: 14 },
       { header: t("shifts.discrepancy", "Discrepancy"), accessor: (s) => s.cash_discrepancy ?? null, type: "money", width: 14 },
     ];
-    void exportToExcel({ filename: "Madar-Shifts", sheets: [{ name: t("nav.shifts", "Shifts"), title: t("nav.shifts", "Shifts"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: "Madar-Shifts", logoUrl, sheets: [{ name: t("nav.shifts", "Shifts"), title: t("nav.shifts", "Shifts"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   // No current-shift banner / "Open shift" action in the all-branches roll-up —
@@ -265,7 +276,7 @@ export function ShiftsPage() {
           <p className="text-sm text-muted-foreground">{t("shifts.subtitle", "Open and close shifts and reconcile the cash drawer")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <ExportButton onExport={handleExport} disabled={!(shifts.data?.data?.length)} />
+          <ExportButton onExport={handleExport} loading={exporting} disabled={!(shifts.data?.data?.length)} />
           {branchId && !openShiftData ? (
             <Button onClick={() => setOpenShift(true)}>
               <PlusCircle className="size-4" />

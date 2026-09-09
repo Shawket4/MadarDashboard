@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -23,6 +23,7 @@ import type { UserPublic, UserRole } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { initials } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
 
@@ -40,8 +41,13 @@ export function UsersPage() {
   const orgId = useOrgId();
   const confirm = useConfirm();
 
+  // `/users` is unpaginated, so the table holds every account in scope and the
+  // export has nothing extra to fetch.
   const list = useListUsers({ org_id: orgId || undefined }, { query: { enabled: !!orgId } });
   const users = useMemo(() => list.data ?? [], [list.data]);
+
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const [s, update] = usePageSearch<{ edit: string; branches: string }>();
   const editId = s.edit ?? null;
@@ -98,7 +104,7 @@ export function UsersPage() {
     [t, update],
   );
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const cols: ExcelColumn<UserPublic>[] = [
       { header: t("common.name", "Name"), accessor: (u) => u.name, type: "text", width: 28 },
       { header: t("auth.email", "Email"), accessor: (u) => u.email ?? "—", type: "text", width: 30 },
@@ -106,7 +112,14 @@ export function UsersPage() {
       { header: t("users.role", "Role"), accessor: (u) => t(`roles.${u.role}`, u.role), type: "text", width: 18 },
       { header: t("common.status", "Status"), accessor: (u) => (u.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
-    void exportToExcel({ filename: "Madar-Users", sheets: [{ name: t("users.title", "Users"), title: t("users.title", "Users"), rows: users as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: "Madar-Users", logoUrl, sheets: [{ name: t("users.title", "Users"), title: t("users.title", "Users"), rows: users as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (!orgId) return <Page><div className="space-y-1.5"><h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("users.title", "Users")}</h1></div><EmptyState icon={UsersIcon} title={t("users.pickOrg", "Select an organization")} /></Page>;
@@ -119,7 +132,7 @@ export function UsersPage() {
           <p className="text-sm text-muted-foreground">{t("users.subtitle", "Manage staff accounts and access")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <ExportButton onExport={handleExport} disabled={!users.length} />
+          <ExportButton onExport={handleExport} loading={exporting} disabled={!users.length} />
           <Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button>
         </div>
       </div>

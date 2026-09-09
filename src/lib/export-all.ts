@@ -29,7 +29,12 @@ import i18n from "@/i18n";
  */
 export const EXPORT_ROW_CEILING = 50_000;
 
-/** How many rows to ask for per request while walking. */
+/**
+ * How many rows to ask for per request while walking.
+ *
+ * A ceiling on the ask, not a promise about the answer: endpoints clamp this
+ * to their own maximum and the walk copes — see the loop.
+ */
 const PAGE = 500;
 
 /**
@@ -76,11 +81,19 @@ export async function fetchAllPages<T>(
       throw new ExportTooLargeError(total);
     }
     out.push(...rows);
-    // An endpoint that reports no total is walked until it returns a short
-    // page, which is the only end-of-data signal it gives.
-    if (rows.length < PAGE) break;
+
+    // Stop on an EMPTY page, never on a short one, and advance by what
+    // actually arrived rather than by what was asked for.
+    //
+    // Endpoints clamp `limit` — the members list at 200, some inventory reads
+    // at 1000, and there is no reason to think that set is closed. Asking for
+    // 500 and treating 200 as "that's the end" would have exported the first
+    // two hundred members of a programme and said nothing about the rest. A
+    // clamp should cost an extra request, not the data.
+    if (rows.length === 0) break;
+    if (total !== undefined && out.length >= total) break;
     if (out.length > EXPORT_ROW_CEILING) throw new ExportTooLargeError(out.length);
-    offset += PAGE;
+    offset += rows.length;
   }
   return out;
 }

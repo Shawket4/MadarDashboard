@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Check, CheckCircle, ChevronRight, MinusCircle, Shield, X, XCircle } from "lucide-react";
 
 import { Page } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
+import { ExportButton } from "@/components/app/export-button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -17,6 +18,8 @@ import {
 import type { PermissionMatrix } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { queryClient } from "@/data/api/query";
+import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { usePageSearch } from "@/data/scope/use-page-search";
@@ -41,6 +44,8 @@ export function PermissionsPage() {
   const { t } = useTranslation();
   const orgId = useOrgId();
   const authUserId = useAuthStore((s) => s.user?.id);
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const [s, update] = usePageSearch<{ user: string }>();
   const selUser = s.user ?? null;
@@ -74,11 +79,69 @@ export function PermissionsPage() {
     }
   };
 
+
+  // The file is the matrix on screen: one row per resource, one column per
+  // action, and in each cell the effective answer plus whether an override is
+  // what made it so — which is the only thing this screen exists to show.
+  // A user's matrix arrives whole in one request, so there is nothing to page.
+  const handleExport = async () => {
+    if (!selUser || !selected) return;
+    setExporting(true);
+    try {
+      const cols: ExcelColumn<string>[] = [
+        {
+          header: t("permissions.resource", "Resource"),
+          accessor: (resource) => t(`permissions.resources.${resource}`, { defaultValue: resource.replace(/_/g, " ") }),
+          type: "text",
+          width: 26,
+        },
+        ...actions.map((action): ExcelColumn<string> => ({
+          header: t(`permissions.actions.${action}`, action),
+          accessor: (resource) => {
+            const cell = cellOf(resource, action);
+            if (!cell) return "—";
+            const verdict = cell.effective ? t("permissions.allowed", "Allowed") : t("permissions.denied", "Denied");
+            const hasOverride = cell.user_override !== null && cell.user_override !== undefined;
+            return hasOverride
+              ? `${verdict} (${t("permissions.override", "Override")})`
+              : `${verdict} (${t("permissions.roleDefault", "Role default")})`;
+          },
+          type: "text",
+          width: 22,
+        })),
+      ];
+      await exportToExcel({
+        filename: `Madar-Permissions-${selected.name}`,
+        logoUrl,
+        meta: t(`roles.${selected.role}`, selected.role),
+        sheets: [{
+          name: t("permissions.title", "Permissions"),
+          title: t("permissions.title", "Permissions"),
+          subtitle: selected.name,
+          rows: resources as unknown as Record<string, unknown>[],
+          columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
+        }],
+      });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <Page>
-      <div className="space-y-1.5">
-        <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("permissions.title", "Permissions")}</h1>
-        <p className="text-sm text-muted-foreground">{t("permissions.subtitle", "Manage per-user access overrides")}</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("permissions.title", "Permissions")}</h1>
+          <p className="text-sm text-muted-foreground">{t("permissions.subtitle", "Manage per-user access overrides")}</p>
+        </div>
+        <ExportButton
+          onExport={handleExport}
+          loading={exporting}
+          disabled={!selUser || resources.length === 0}
+          className="shrink-0"
+        />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
         {/* User picker */}

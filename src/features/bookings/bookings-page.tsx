@@ -18,6 +18,7 @@ import {
 
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
+import { ExportButton } from "@/components/app/export-button";
 import { StatCard } from "@/components/app/stat-card";
 import { DatePicker } from "@/components/app/date-picker";
 import { SegmentedControl } from "@/components/app/segmented-control";
@@ -33,12 +34,15 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  cancelBooking, completeBooking, noShowBooking, seatBooking,
+  cancelBooking, completeBooking, listBookings, noShowBooking, seatBooking,
   useGetBookingSettings, useListBookings, useListFloorTables,
 } from "@/data/api/generated/api";
 import type { BookingView } from "@/data/api/generated/models/bookingView";
 import { getErrorMessage } from "@/data/api/errors";
 import { useScope } from "@/data/scope/use-scope";
+import { useExportLogo } from "@/hooks/use-export-logo";
+import { EXPORT_REQUEST } from "@/lib/export-all";
+import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { fmtTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -73,6 +77,8 @@ export function BookingsPage() {
   const [editing, setEditing] = useState<BookingView | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const logoUrl = useExportLogo();
 
   // The hold and "late" flags flip by the clock, not by an event.
   const [now, setNow] = useState(() => new Date());
@@ -136,6 +142,57 @@ export function BookingsPage() {
     if (ok) await act(t("bookings.cancelled", "Booking cancelled"), () => cancelBooking(b.id, { reason: null, notify_guest: true }));
   };
 
+  // The day's list is one unpaged request, so the export re-runs that request
+  // rather than walking pages — but it re-runs it all the same, both to declare
+  // the export intent and so a file never reports a list that has since moved.
+  // The status filter is the page's own, applied here the way the table does.
+  const handleExport = async () => {
+    if (!branchId) return;
+    setExporting(true);
+    try {
+      const day = await listBookings({ branch_id: branchId, date }, EXPORT_REQUEST);
+      const picked = filter === "all" ? day : filter === "active" ? day.filter(isActive) : day.filter((b) => b.status === filter);
+      const cols: ExcelColumn<BookingView>[] = [
+        { header: t("bookings.time", "Time"), accessor: (b) => b.starts_at, type: "dateTime", width: 22 },
+        { header: t("bookings.endsAt", "Ends"), accessor: (b) => b.ends_at, type: "dateTime", width: 22 },
+        { header: t("bookings.guest", "Guest"), accessor: (b) => b.guest_name, type: "text", width: 24 },
+        { header: t("bookings.phone", "Phone"), accessor: (b) => `+${b.guest_phone}`, type: "text", width: 18 },
+        { header: t("bookings.party", "Party"), accessor: (b) => b.party_size, type: "integer", width: 10 },
+        {
+          header: t("bookings.tables", "Tables"),
+          accessor: (b) => (b.needs_table ? t("bookings.needsTable", "Needs a table") : b.table_labels.join(" + ") || "—"),
+          type: "text",
+          width: 20,
+        },
+        { header: t("common.status", "Status"), accessor: (b) => t(`bookings.status.${b.status}`, b.status), type: "text", width: 16 },
+        {
+          header: t("bookings.source", "Source"),
+          accessor: (b) => (b.source === "public" ? t("bookings.online", "Online") : t("bookings.byPhone", "Taken here")),
+          type: "text",
+          width: 14,
+        },
+        { header: t("bookings.notes", "Notes"), accessor: (b) => b.notes ?? "", type: "text", width: 36 },
+      ];
+      const title = t("bookings.title", "Bookings");
+      await exportToExcel({
+        filename: `Madar-Bookings-${date}`,
+        logoUrl,
+        meta: date,
+        sheets: [{
+          name: title,
+          title,
+          subtitle: filter === "all" ? t("common.all", "All") : filter === "active" ? t("bookings.filterActive", "Active") : t(`bookings.status.${filter}`, filter),
+          rows: picked as unknown as Record<string, unknown>[],
+          columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
+        }],
+      });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (!branchId) {
     return (
       <Page>
@@ -155,6 +212,7 @@ export function BookingsPage() {
         description={t("bookings.description", "Reserve tables for guests, then seat them from the POS when they arrive.")}
         actions={
           <>
+            <ExportButton onExport={handleExport} loading={exporting} disabled={!all.length} />
             <Button variant="outline" onClick={() => setSettingsOpen(true)}>
               <Settings2 className="size-4" />
               {t("bookings.settings", "Settings")}

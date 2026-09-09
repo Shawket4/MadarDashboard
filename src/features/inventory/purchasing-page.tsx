@@ -27,6 +27,7 @@ import {
   useListCatalog, useListPurchaseOrders, useListSuppliers, useReorderSuggestions,
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
@@ -63,6 +64,9 @@ export function PurchasingPage() {
     { query: { enabled: !!scopeBranchId } },
   );
   const reorder = useReorderSuggestions(branchId ?? "", { query: { enabled: tab === "reorder" && !!branchId } });
+
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const onSubmitPo = async (po: PurchaseOrder) => {
     setSubmittingId(po.id);
@@ -250,7 +254,10 @@ export function PurchasingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [t]);
 
-  const handleExport = () => {
+  // Both endpoints are unpaginated: the purchase-order list already carries the
+  // active status filter server-side, and suppliers are an org-wide list. So the
+  // visible tab's data IS the file's data.
+  const handleExport = async () => {
     if (tab === "orders") {
       const cols: ExcelColumn<PurchaseOrder>[] = [
         { header: t("inventory.purchasing.reference", "Reference"), accessor: (po) => po.reference || `#${po.id.slice(0, 8)}`, type: "text", width: 20 },
@@ -259,7 +266,14 @@ export function PurchasingPage() {
         { header: t("inventory.purchasing.expectedAt", "Expected"), accessor: (po) => po.expected_at ?? "", type: "date", width: 16 },
         { header: t("inventory.purchasing.createdAt", "Created"), accessor: (po) => po.created_at, type: "date", width: 16 },
       ];
-      void exportToExcel({ filename: "Madar-PurchaseOrders", sheets: [{ name: t("inventory.purchasing.orders", "Purchase orders"), title: t("inventory.purchasing.orders", "Purchase orders"), rows: (orders.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      setExporting(true);
+      try {
+        await exportToExcel({ filename: "Madar-PurchaseOrders", logoUrl, sheets: [{ name: t("inventory.purchasing.orders", "Purchase orders"), title: t("inventory.purchasing.orders", "Purchase orders"), rows: (orders.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      } catch (e) {
+        toast.error(getErrorMessage(e));
+      } finally {
+        setExporting(false);
+      }
     } else {
       const cols: ExcelColumn<Supplier>[] = [
         { header: t("inventory.purchasing.supplier", "Supplier"), accessor: (s) => s.name, type: "text", width: 26 },
@@ -268,7 +282,14 @@ export function PurchasingPage() {
         { header: t("inventory.purchasing.phone", "Phone"), accessor: (s) => s.phone ?? "—", type: "text", width: 18 },
         { header: t("common.status", "Status"), accessor: (s) => (s.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
       ];
-      void exportToExcel({ filename: "Madar-Suppliers", sheets: [{ name: t("inventory.purchasing.suppliers", "Suppliers"), title: t("inventory.purchasing.suppliers", "Suppliers"), rows: (suppliers.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      setExporting(true);
+      try {
+        await exportToExcel({ filename: "Madar-Suppliers", logoUrl, sheets: [{ name: t("inventory.purchasing.suppliers", "Suppliers"), title: t("inventory.purchasing.suppliers", "Suppliers"), rows: (suppliers.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      } catch (e) {
+        toast.error(getErrorMessage(e));
+      } finally {
+        setExporting(false);
+      }
     }
   };
 
@@ -290,7 +311,7 @@ export function PurchasingPage() {
           <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.purchasing.title", "Purchasing")}</h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <ExportButton onExport={handleExport} disabled={tab === "orders" ? !(orders.data?.length) : !(suppliers.data?.length)} />
+          <ExportButton onExport={handleExport} loading={exporting} disabled={tab === "orders" ? !(orders.data?.length) : !(suppliers.data?.length)} />
           {tab === "orders" ? (
             <Button onClick={() => setPoDialogOpen(true)} disabled={!branchId}>
               <PlusCircle className="size-4" />

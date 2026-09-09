@@ -21,13 +21,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { StockTransfer } from "@/data/api/generated/models";
 import {
-  deleteTransfer, updateTransfer, useListBranches, useListTransfers,
+  deleteTransfer, listTransfers, updateTransfer, useListBranches, useListTransfers,
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDateTime, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { TransferDialog } from "./transfer-dialog";
 import { invalidateInventory } from "./lib";
 
@@ -43,6 +45,8 @@ export function TransfersPage() {
   const [editNote, setEditNote] = useState<StockTransfer | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [savingNote, setSavingNote] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const logoUrl = useExportLogo();
 
   const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const activeBranches = useMemo(() => (branches.data ?? []).filter((b) => b.is_active), [branches.data]);
@@ -149,19 +153,37 @@ export function TransfersPage() {
     [t],
   );
 
-  const handleExport = () => {
-    const rows = transfers.data ?? [];
-    const cols: ExcelColumn<StockTransfer>[] = [
-      { header: t("common.date", "Date"), accessor: (tr) => tr.initiated_at, type: "dateTime", width: 20 },
-      { header: t("inventory.transfers.ingredient", "Ingredient"), accessor: (tr) => tr.ingredient_name, type: "text", width: 28 },
-      { header: t("inventory.transfers.quantity", "Quantity"), accessor: (tr) => tr.quantity, type: "number", width: 12 },
-      { header: t("inventory.catalog.unit", "Unit"), accessor: (tr) => fmtUnit(tr.unit), type: "text", width: 10 },
-      { header: t("inventory.transfers.from", "From"), accessor: (tr) => tr.source_branch_name, type: "text", width: 22 },
-      { header: t("inventory.transfers.to", "To"), accessor: (tr) => tr.destination_branch_name, type: "text", width: 22 },
-      { header: t("inventory.transfers.by", "By"), accessor: (tr) => tr.initiated_by_name ?? "—", type: "text", width: 18 },
-      { header: t("inventory.transfers.note", "Note"), accessor: (tr) => tr.note ?? "", type: "text", width: 30 },
-    ];
-    void exportToExcel({ filename: "Madar-Transfers", sheets: [{ name: t("inventory.transfers.title", "Transfers"), title: t("inventory.transfers.title", "Transfers"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+  /**
+   * The transfer list is offset-paged, so the export re-runs it with the same
+   * branch scope and direction filter and walks every page — the table alone
+   * would only ever describe its first one.
+   */
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const rows = await fetchAllPages<StockTransfer>(async (offset, limit) => ({
+        rows: await listTransfers(
+          scopeBranchId,
+          { direction: dir === "all" ? undefined : dir, limit, offset },
+          EXPORT_REQUEST,
+        ),
+      }));
+      const cols: ExcelColumn<StockTransfer>[] = [
+        { header: t("common.date", "Date"), accessor: (tr) => tr.initiated_at, type: "dateTime", width: 20 },
+        { header: t("inventory.transfers.ingredient", "Ingredient"), accessor: (tr) => tr.ingredient_name, type: "text", width: 28 },
+        { header: t("inventory.transfers.quantity", "Quantity"), accessor: (tr) => tr.quantity, type: "number", width: 12 },
+        { header: t("inventory.catalog.unit", "Unit"), accessor: (tr) => fmtUnit(tr.unit), type: "text", width: 10 },
+        { header: t("inventory.transfers.from", "From"), accessor: (tr) => tr.source_branch_name, type: "text", width: 22 },
+        { header: t("inventory.transfers.to", "To"), accessor: (tr) => tr.destination_branch_name, type: "text", width: 22 },
+        { header: t("inventory.transfers.by", "By"), accessor: (tr) => tr.initiated_by_name ?? "—", type: "text", width: 18 },
+        { header: t("inventory.transfers.note", "Note"), accessor: (tr) => tr.note ?? "", type: "text", width: 30 },
+      ];
+      await exportToExcel({ filename: "Madar-Transfers", logoUrl, sheets: [{ name: t("inventory.transfers.title", "Transfers"), title: t("inventory.transfers.title", "Transfers"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -171,7 +193,7 @@ export function TransfersPage() {
           <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.transfers.title", "Transfers")}</h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <ExportButton onExport={handleExport} disabled={!(transfers.data?.length)} />
+          <ExportButton onExport={handleExport} loading={exporting} disabled={!(transfers.data?.length)} />
           {/* Creating a transfer needs a concrete source branch, so the action
               is gated to a selected branch — hidden in the all-branches roll-up. */}
           {branchId ? (

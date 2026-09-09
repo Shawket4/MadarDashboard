@@ -7,19 +7,24 @@ import { toast } from "sonner";
 import { Page } from "@/components/app/page";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
+import { ExportButton } from "@/components/app/export-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
-  deleteCategoryRoute, deleteItemRoute, putCategoryRoute, putItemRoute,
+  deleteCategoryRoute, deleteItemRoute, listMenuCatalog, putCategoryRoute, putItemRoute,
   useListCategories, useListMenuCatalog, useListRoutes, useListStations,
 } from "@/data/api/generated/api";
+import type { MenuItemWithCosts } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { getTranslatedName } from "@/lib/translation";
 import { useDebounced } from "@/lib/use-debounced";
 import { useScope } from "@/data/scope/use-scope";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { invalidateRouting } from "./util";
 
@@ -34,6 +39,8 @@ export function RoutingPage() {
   const orgId = useOrgId();
 
   const [tab, setTab] = useState("categories");
+  const [exporting, setExporting] = useState(false);
+  const logoUrl = useExportLogo();
   const [itemsSearch, setItemsSearch] = useState("");
   const [itemsPage, setItemsPage] = useState(0);
   const itemsSearchQ = useDebounced(itemsSearch, 300);
@@ -86,11 +93,91 @@ export function RoutingPage() {
     } catch (e) { toast.error(getErrorMessage(e)); }
   };
 
+  // Routing is one configuration read two ways, so the file carries both: the
+  // category assignments and every item, with what it inherits and what
+  // overrides it. The item catalog is paged fifty at a time behind a search
+  // box, so it is walked to the end under the SAME search — a routing sheet
+  // that stopped at the first page would read as "these items have no station".
+  const handleExport = async () => {
+    if (!branchId || !orgId) return;
+    setExporting(true);
+    try {
+      const allItems = await fetchAllPages<MenuItemWithCosts>(async (offset, limit) => {
+        const res = await listMenuCatalog(
+          { org_id: orgId, search: itemsSearchQ || undefined, page: Math.floor(offset / limit) + 1, per_page: limit },
+          EXPORT_REQUEST,
+        );
+        return { rows: res.data, total: res.total };
+      });
+
+      const unassigned = t("kitchen.unassigned", "Default / unassigned");
+      const catCols: ExcelColumn<(typeof categories)[number]>[] = [
+        { header: t("kitchen.category", "Category"), accessor: (c) => getTranslatedName(c, lang), type: "text", width: 30 },
+        { header: t("kitchen.station", "Station"), accessor: (c) => stationName(routeByCat.get(c.id)) ?? unassigned, type: "text", width: 26 },
+      ];
+      const itemCols: ExcelColumn<MenuItemWithCosts>[] = [
+        { header: t("kitchen.item", "Item"), accessor: (it) => getTranslatedName(it, lang), type: "text", width: 32 },
+        {
+          header: t("kitchen.inheritedStation", "Inherited station"),
+          accessor: (it) => stationName(it.category_id ? routeByCat.get(it.category_id) : undefined) ?? "—",
+          type: "text",
+          width: 24,
+        },
+        {
+          header: t("kitchen.overrideStation", "Override"),
+          accessor: (it) => stationName(routeByItem.get(it.id)) ?? "—",
+          type: "text",
+          width: 24,
+        },
+        {
+          header: t("kitchen.routedTo", "Routed to"),
+          accessor: (it) =>
+            stationName(routeByItem.get(it.id))
+            ?? stationName(it.category_id ? routeByCat.get(it.category_id) : undefined)
+            ?? unassigned,
+          type: "text",
+          width: 26,
+        },
+      ];
+
+      const title = t("kitchen.routingTitle", "Order routing");
+      await exportToExcel({
+        filename: "Madar-Order-Routing",
+        logoUrl,
+        sheets: [
+          {
+            name: t("kitchen.byCategory", "By category"),
+            title,
+            subtitle: t("kitchen.byCategory", "By category"),
+            rows: categories as unknown as Record<string, unknown>[],
+            columns: catCols as unknown as ExcelColumn<Record<string, unknown>>[],
+          },
+          {
+            name: t("kitchen.byItem", "Per item"),
+            title,
+            subtitle: itemsSearchQ || t("kitchen.byItem", "Per item"),
+            rows: allItems as unknown as Record<string, unknown>[],
+            columns: itemCols as unknown as ExcelColumn<Record<string, unknown>>[],
+          },
+        ],
+      });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <Page>
-      <div className="space-y-1.5">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t("kitchen.routingTitle", "Order routing")}</h1>
-        <p className="text-sm text-muted-foreground">{t("kitchen.routingSubtitle", "Send each menu category to a kitchen station. Items inherit their category unless overridden.")}</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t("kitchen.routingTitle", "Order routing")}</h1>
+          <p className="text-sm text-muted-foreground">{t("kitchen.routingSubtitle", "Send each menu category to a kitchen station. Items inherit their category unless overridden.")}</p>
+        </div>
+        {branchId && stations.length > 0 ? (
+          <ExportButton onExport={handleExport} loading={exporting} className="shrink-0" />
+        ) : null}
       </div>
       {!branchId ? (
         <EmptyState icon={Store} title={t("kitchen.pickBranch", "Select a branch in the top bar to manage its kitchen")} />

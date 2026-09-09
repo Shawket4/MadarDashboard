@@ -19,9 +19,10 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { exportOrders, useGetBranch } from "@/data/api/generated/api";
 import type { ExportOrdersParams } from "@/data/api/generated/models";
-import { useAppStore } from "@/data/stores/app.store";
 import { getErrorMessage } from "@/data/api/errors";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel } from "@/lib/excel";
+import { EXPORT_REQUEST } from "@/lib/export-all";
 import { cn } from "@/lib/utils";
 
 import { PRESETS } from "./export/presets";
@@ -42,7 +43,10 @@ interface Props {
 export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0 }: Props) {
   const { t, i18n } = useTranslation();
   const side = i18n.dir() === "rtl" ? "left" : "right";
-  const orgLogo = useAppStore((s) => s.selectedOrgLogo);
+  // The app store's logo is whatever the org uploaded, tier or no tier. The
+  // hook reads the tier-gated endpoint instead and returns undefined off the
+  // tier, which the Excel engine already understands as "use Madar's".
+  const logoUrl = useExportLogo();
 
   const { data: branch } = useGetBranch(filters.branch_id ?? "", {
     query: { enabled: open && !!filters.branch_id },
@@ -101,7 +105,7 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
     }
     setBusy(true);
     try {
-      const res = await exportOrders(mergedFilters);
+      const res = await exportOrders(mergedFilters, EXPORT_REQUEST);
       if (!res.data || res.data.length === 0) {
         toast.error(t("ordersExport.noOrders", "No orders to export"));
         return;
@@ -119,7 +123,7 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
         filename: customFilename || defaultFilename,
         sheets,
         meta,
-        logoUrl: orgLogo || undefined,
+        logoUrl,
       });
       onOpenChange(false);
     } catch (e) {

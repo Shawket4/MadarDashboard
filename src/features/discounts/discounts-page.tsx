@@ -21,6 +21,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { fmtMoney, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
 
@@ -29,8 +30,13 @@ export function DiscountsPage() {
   const orgId = useOrgId();
   const confirm = useConfirm();
 
+  // `/discounts` is unpaginated, so the table holds every discount in the org
+  // and the export has nothing extra to fetch.
   const list = useListDiscounts({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const discounts = useMemo(() => list.data ?? [], [list.data]);
+
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
   const tname = (d: Discount) => getTranslatedName(d, i18n.language);
 
   const [s, update] = usePageSearch<{ edit: string }>();
@@ -107,14 +113,21 @@ export function DiscountsPage() {
     [t, i18n.language, update, toggling],
   );
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const cols: ExcelColumn<Discount>[] = [
       { header: t("discounts.discountName", "Discount name"), accessor: (d) => tname(d), type: "text", width: 28 },
       { header: t("common.type", "Type"), accessor: (d) => (d.dtype === "percentage" ? t("discounts.percentage", "Percentage") : t("discounts.fixed", "Fixed amount")), type: "text", width: 16 },
       { header: t("discounts.value", "Value"), accessor: (d) => (d.dtype === "percentage" ? d.value : piastresToEgp(d.value)), type: "number", width: 14 },
       { header: t("common.status", "Status"), accessor: (d) => (d.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
-    void exportToExcel({ filename: "Madar-Discounts", sheets: [{ name: t("discounts.title", "Discounts"), title: t("discounts.title", "Discounts"), rows: discounts as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: "Madar-Discounts", logoUrl, sheets: [{ name: t("discounts.title", "Discounts"), title: t("discounts.title", "Discounts"), rows: discounts as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      onErr(e);
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (!orgId) return <Page><div className="space-y-1.5"><h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("discounts.title", "Discounts")}</h1></div><EmptyState icon={Tag} title={t("discounts.pickOrg", "Select an organization")} /></Page>;
@@ -131,7 +144,7 @@ export function DiscountsPage() {
           <p className="text-sm text-muted-foreground">{t("discounts.subtitle", "Percentage and fixed-amount discounts")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <ExportButton onExport={handleExport} disabled={!discounts.length} />
+          <ExportButton onExport={handleExport} loading={exporting} disabled={!discounts.length} />
           <Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("discounts.new", "New discount")}</Button>
         </div>
       </div>

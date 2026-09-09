@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { CheckCircle, GitBranch, MapPin, Pencil, Phone, Plus, Printer, Trash2, XCircle } from "lucide-react";
@@ -18,6 +18,7 @@ import { deleteBranch, useListBranches } from "@/data/api/generated/api";
 import type { Branch } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
 
@@ -26,8 +27,13 @@ export function BranchesPage() {
   const orgId = useOrgId();
   const confirm = useConfirm();
 
+  // `/branches` is unpaginated — one request returns every branch in the org —
+  // so the table already holds the whole set and the export has nothing to walk.
   const list = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const branches = useMemo(() => list.data ?? [], [list.data]);
+
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const [s, update] = usePageSearch<{ edit: string }>();
   const editId = s.edit ?? null;
@@ -87,7 +93,7 @@ export function BranchesPage() {
     [t, update],
   );
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const cols: ExcelColumn<Branch>[] = [
       { header: t("common.name", "Name"), accessor: (b) => b.name, type: "text", width: 28 },
       { header: t("branches.address", "Address"), accessor: (b) => b.address ?? "—", type: "text", width: 32 },
@@ -96,7 +102,14 @@ export function BranchesPage() {
       { header: t("branches.printer", "Printer"), accessor: (b) => (b.printer_brand ? `${b.printer_brand} @ ${b.printer_ip}:${b.printer_port}` : "—"), type: "text", width: 26 },
       { header: t("common.status", "Status"), accessor: (b) => (b.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
-    void exportToExcel({ filename: "Madar-Branches", sheets: [{ name: t("branches.title", "Branches"), title: t("branches.title", "Branches"), rows: branches as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: "Madar-Branches", logoUrl, sheets: [{ name: t("branches.title", "Branches"), title: t("branches.title", "Branches"), rows: branches as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (!orgId) return <Page><PageHeader title={t("branches.title", "Branches")} /><EmptyState icon={GitBranch} title={t("branches.pickOrg", "Select an organization")} description={t("branches.pickOrgDescription", "Choose an organization from the sidebar to view and manage its branches.")} /></Page>;
@@ -106,7 +119,7 @@ export function BranchesPage() {
       <PageHeader
         title={t("branches.title", "Branches")}
         description={t("branches.subtitle", "Manage your branch locations and printer config")}
-        actions={<><ExportButton onExport={handleExport} disabled={!branches.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button></>}
+        actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={!branches.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button></>}
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("common.total", "Total")} value={branches.length} loading={list.isLoading} />

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import type { BranchStockRow, OrgIngredient } from "@/data/api/generated/models";
 import { createStocktake, useListBranchStock, useListBranches, useListCatalog, useListStocktakes } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
@@ -45,6 +46,9 @@ export function ItemsPage() {
   const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const stock = useListBranchStock(branchId ?? "", { query: { enabled: !!branchId } });
   const stocktakes = useListStocktakes(branchId ?? "", { query: { enabled: !!branchId } });
+
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const stockByIngredient = useMemo(() => {
     const map = new Map<string, BranchStockRow>();
@@ -151,7 +155,9 @@ export function ItemsPage() {
     return base;
   }, [t, branchId, stockByIngredient]);
 
-  const handleExport = () => {
+  // The catalog and the branch's stock both arrive unpaginated, so `rows` — the
+  // catalog already narrowed by the low/uncounted filter — is the whole answer.
+  const handleExport = async () => {
     const cols: ExcelColumn<OrgIngredient>[] = [
       { header: t("inventory.catalog.name", "Name"), accessor: (it) => it.name, type: "text", width: 28 },
       { header: t("inventory.catalog.category", "Category"), accessor: (it) => it.category_name, type: "text", width: 16 },
@@ -166,7 +172,14 @@ export function ItemsPage() {
         { header: t("inventory.stock.status", "Status"), accessor: (it) => { const s = stockByIngredient.get(it.id); return !s || !s.last_counted_at ? t("inventory.stock.neverCounted", "Never counted") : s.below_par ? t("inventory.stock.low", "Low") : t("inventory.stock.ok", "OK"); }, type: "text", width: 14 },
       );
     }
-    void exportToExcel({ filename: "Madar-Ingredients", sheets: [{ name: t("inventory.catalog.title", "Ingredients"), title: t("inventory.catalog.title", "Ingredients"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: "Madar-Ingredients", logoUrl, sheets: [{ name: t("inventory.catalog.title", "Ingredients"), title: t("inventory.catalog.title", "Ingredients"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (!orgId) {
@@ -185,7 +198,7 @@ export function ItemsPage() {
         description={t("inventory.catalog.subtitle", "The organization's catalog. Every branch counts from this list.")}
         actions={
           <div className="flex shrink-0 items-center gap-2">
-            <ExportButton onExport={handleExport} disabled={!rows.length} />
+            <ExportButton onExport={handleExport} loading={exporting} disabled={!rows.length} />
             <Button onClick={openCreate}>
               <PackagePlus className="size-4" />
               {t("inventory.catalog.newItem", "New ingredient")}

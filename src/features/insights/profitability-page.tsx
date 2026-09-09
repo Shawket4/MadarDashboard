@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/table";
 import { useCreateDecision, useMenuMarginLedger } from "@/data/api/generated/api";
 import type { MarginLedgerRow, Signal } from "@/data/api/generated/models";
+import { getErrorMessage } from "@/data/api/errors";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
@@ -108,6 +110,9 @@ export function ProfitabilityPage() {
     { query: { enabled: !!orgId } },
   );
   const createDecision = useCreateDecision();
+
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const report = ledger.data;
   const totals = report?.totals;
@@ -209,8 +214,14 @@ export function ProfitabilityPage() {
       (classFilter === ALL_CLASSES || r.class === classFilter),
   );
 
-  /** Export the currently-visible (filtered) ledger. */
-  const handleExport = () => {
+  /**
+   * Export the currently-visible (filtered) ledger.
+   *
+   * The margin ledger arrives as ONE report for the whole date range — there is
+   * no paging to walk — so `rows` above, already narrowed by the flagged/class
+   * filters, is exactly what the file should say.
+   */
+  const handleExport = async () => {
     type Row = Record<string, string | number | null>;
     const cols: ExcelColumn<Row>[] = [
       { header: t("insights.columns.item", "Item"), accessor: (r) => r.item, type: "text", width: 28 },
@@ -235,10 +246,18 @@ export function ProfitabilityPage() {
       flags: r.flags.map((f) => f.kind).join(", "),
     }));
     const title = t("insights.profitability.title", "Menu profitability");
-    void exportToExcel({
-      filename: `Madar-${title}`,
-      sheets: [{ name: title, title, rows: data as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],
-    });
+    setExporting(true);
+    try {
+      await exportToExcel({
+        filename: `Madar-${title}`,
+        logoUrl,
+        sheets: [{ name: title, title, rows: data as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],
+      });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -291,7 +310,7 @@ export function ProfitabilityPage() {
 
         <TabsContent value="ledger" className="space-y-3">
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <ExportButton size="sm" onExport={handleExport} disabled={rows.length === 0} />
+            <ExportButton size="sm" onExport={handleExport} loading={exporting} disabled={rows.length === 0} />
             <Select value={classFilter} onValueChange={setClassFilter}>
               <SelectTrigger className="h-8 w-auto min-w-36 text-sm">
                 <SelectValue />

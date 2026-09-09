@@ -10,6 +10,7 @@ import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { EditableCardGrid, type EditableField } from "@/components/app/editable-cards";
+import { ExportButton } from "@/components/app/export-button";
 import { AddonCostCell, ItemCostCell } from "@/components/app/cost-cells";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,7 @@ import {
   getListAddonCostsQueryOptions,
   getListAddonItemsQueryOptions,
   getListMenuCatalogQueryOptions,
-  listMenuItems,
+  listMenuCatalog,
   patchOption,
   updateCategory,
   updateMenuItem,
@@ -61,6 +62,8 @@ import { getTranslatedName } from "@/lib/translation";
 import { runBulk } from "@/lib/bulk-runner";
 import { useDebounced } from "@/lib/use-debounced";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 
@@ -94,6 +97,8 @@ export function MenuItemsPage() {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [bulkRows, setBulkRows] = useState<MenuItem[] | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const logoUrl = useExportLogo();
 
   // Reset to first page when filters change.
   useEffect(() => {
@@ -271,10 +276,24 @@ export function MenuItemsPage() {
     if (await confirm({ title: t("common.confirmDelete", { name, defaultValue: `Delete "${name}"?` }), destructive: true, confirmLabel: t("common.delete", "Delete") })) run();
   };
 
+  /**
+   * The Items sheet re-runs the grid's own catalog query — same category, same
+   * search — and walks every page. The grid shows 24 rows at a time, and a file
+   * titled "Items" holding 24 of three hundred is worse than no file at all.
+   * Categories and add-ons come from unpaginated endpoints, so those two sheets
+   * are already whole in memory.
+   */
   const handleExport = async () => {
+    setExporting(true);
     try {
-      const allItems = await listMenuItems({ org_id: orgId ?? "" });
-      const itemCols: ExcelColumn<MenuItem>[] = [
+      const allItems = await fetchAllPages<MenuItemWithCosts>(async (offset, limit) => {
+        const res = await listMenuCatalog(
+          { ...itemsParams, page: Math.floor(offset / limit) + 1, per_page: limit },
+          EXPORT_REQUEST,
+        );
+        return { rows: res.data, total: res.total };
+      });
+      const itemCols: ExcelColumn<MenuItemWithCosts>[] = [
         { header: t("common.name", "Name"), accessor: (m) => tname(m), type: "text", width: 26 },
         { header: t("common.category", "Category"), accessor: (m) => catName(m.category_id), type: "text", width: 20 },
         { header: t("common.price", "Price"), accessor: (m) => m.base_price, type: "money", width: 14, total: true },
@@ -292,6 +311,7 @@ export function MenuItemsPage() {
       ];
       await exportToExcel({
         filename: "Madar-Menu",
+        logoUrl,
         sheets: [
           { name: t("nav.items", "Items"), title: t("nav.items", "Items"), rows: allItems as unknown as Record<string, unknown>[], columns: itemCols as unknown as ExcelColumn<Record<string, unknown>>[], totals: true },
           { name: t("menu.categories", "Categories"), title: t("menu.categories", "Categories"), rows: catList as unknown as Record<string, unknown>[], columns: catCols as unknown as ExcelColumn<Record<string, unknown>>[] },
@@ -300,6 +320,8 @@ export function MenuItemsPage() {
       });
     } catch (e) {
       onErr(e);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -368,16 +390,22 @@ export function MenuItemsPage() {
             isLoading={items.isLoading || (items.isFetching && !items.data)}
             onAdd={() => { setEditingItem(null); setItemOpen(true); }}
             addLabel={t("menu.newItem", "New item")}
-            onExport={handleExport}
             emptyState={<EmptyState icon={UtensilsCrossed} title={t("menu.noItems", "No items yet")} />}
             toolbar={
-              <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setItemsPage(0); }}>
-                <SelectTrigger className="h-9 w-auto min-w-36"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL}>{t("menu.allCategories", "All categories")}</SelectItem>
-                  {catList.map((c) => <SelectItem key={c.id} value={c.id}>{tname(c)}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <>
+                <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setItemsPage(0); }}>
+                  <SelectTrigger className="h-9 w-auto min-w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL}>{t("menu.allCategories", "All categories")}</SelectItem>
+                    {catList.map((c) => <SelectItem key={c.id} value={c.id}>{tname(c)}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {/* Rendered here rather than through the grid's own `onExport`
+                    slot: that one cannot show a busy state, and walking the
+                    whole catalog takes long enough that a button which looks
+                    ignored is a real complaint. */}
+                <ExportButton onExport={handleExport} loading={exporting} />
+              </>
             }
             bulkActions={(selected, clear) => (
               <Button size="sm" variant="outline" onClick={() => { setBulkRows(selected); clear(); }}>

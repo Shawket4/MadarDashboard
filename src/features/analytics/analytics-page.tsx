@@ -29,6 +29,7 @@ import {
 } from "@/data/api/generated/api";
 import type { PeakHourPoint, TimeseriesPoint } from "@/data/api/generated/models";
 import { GRANULARITIES, type Granularity, type MethodMap, tName } from "./lib";
+import { AnalyticsExportButton } from "./analytics-export-button";
 
 type Range = { from?: string; to?: string };
 
@@ -697,12 +698,21 @@ export function AnalyticsPage() {
   return (
     <Page>
       {/* Editorial masthead */}
-      <div className="space-y-1.5">
-        <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("analytics.title", "Analytics")}</h1>
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <CalendarRange className="size-3.5" />
-          {periodLabel}
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("analytics.title", "Analytics")}</h1>
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <CalendarRange className="size-3.5" />
+            {periodLabel}
+          </p>
+        </div>
+        <AnalyticsExportButton
+          tab={tab}
+          branchId={scopeBranchId}
+          orgId={orgId ?? ""}
+          range={range}
+          periodLabel={periodLabel}
+        />
       </div>
 
       <Tabs value={tab} onValueChange={(v) => update({ tab: v as TabKey })}>

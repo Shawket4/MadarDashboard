@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { OrgIngredient, Stocktake } from "@/data/api/generated/models";
 import { createStocktake, useListCatalog, useListIngredientCategories, useListStocktakes } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDateTime } from "@/lib/format";
@@ -45,6 +46,8 @@ export function CountsPage() {
   const [scopeItems, setScopeItems] = useState<string[]>([]);
   const [starting, setStarting] = useState(false);
   const [reportId, setReportId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const logoUrl = useExportLogo();
 
   const stocktakes = useListStocktakes(scopeBranchId, { query: { enabled: !!scopeBranchId } });
   const categories = useListIngredientCategories(orgId ?? "", { query: { enabled: scopeDialogOpen && !!orgId } });
@@ -150,7 +153,9 @@ export function CountsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [t, isAllBranches]);
 
-  const handleExport = () => {
+  // `/stocktakes/branches/{id}` is unpaginated, so `history` — every count for
+  // the scoped branch bar the open one — is already the complete set.
+  const handleExport = async () => {
     const cols: ExcelColumn<Stocktake>[] = [
       { header: t("inventory.stocktakes.started", "Started"), accessor: (s) => s.started_at, type: "dateTime", width: 20 },
       { header: t("inventory.transfers.by", "By"), accessor: (s) => s.started_by_name ?? "—", type: "text", width: 20 },
@@ -159,7 +164,14 @@ export function CountsPage() {
       { header: t("inventory.stocktakes.finalized", "Finalized"), accessor: (s) => s.finalized_at ?? "", type: "dateTime", width: 20 },
       { header: t("inventory.transfers.note", "Note"), accessor: (s) => s.note ?? "", type: "text", width: 30 },
     ];
-    void exportToExcel({ filename: "Madar-Stocktakes", sheets: [{ name: t("inventory.stocktakes.title", "Stock counts"), title: t("inventory.stocktakes.title", "Stock counts"), rows: history as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: "Madar-Stocktakes", logoUrl, sheets: [{ name: t("inventory.stocktakes.title", "Stock counts"), title: t("inventory.stocktakes.title", "Stock counts"), rows: history as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -169,7 +181,7 @@ export function CountsPage() {
         description={t("inventory.stocktakes.subtitle", "Count the shelf; everything else follows from the count.")}
         actions={
           <div className="flex shrink-0 items-center gap-2">
-            <ExportButton onExport={handleExport} disabled={!history.length} />
+            <ExportButton onExport={handleExport} loading={exporting} disabled={!history.length} />
             {branchId && !openCount ? (
               <Button onClick={openScopeDialog}>
                 <PlusCircle className="size-4" />

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { CreditCard, EyeOff, Pencil, Plus } from "lucide-react";
@@ -18,6 +18,7 @@ import { activatePaymentMethod, deactivatePaymentMethod, useListPaymentMethods }
 import type { OrgPaymentMethod } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
 
@@ -25,8 +26,13 @@ export function PaymentMethodsPage() {
   const { t, i18n } = useTranslation();
   const orgId = useOrgId();
 
+  // A short configuration list on an unpaginated endpoint: what the table shows
+  // IS the whole set, so the export reads it straight from memory.
   const list = useListPaymentMethods({ query: { enabled: !!orgId } });
   const methods = useMemo(() => list.data ?? [], [list.data]);
+
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
   const label = (m: OrgPaymentMethod) => labelOf(m, i18n.language);
 
   const [s, update] = usePageSearch<{ edit: string }>();
@@ -102,14 +108,21 @@ export function PaymentMethodsPage() {
     [t, i18n.language, update],
   );
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const cols: ExcelColumn<OrgPaymentMethod>[] = [
       { header: t("settings.pm.id", "Identifier"), accessor: (m) => m.name, type: "text", width: 22 },
       { header: t("common.name", "Name"), accessor: (m) => label(m), type: "text", width: 28 },
       { header: t("common.type", "Type"), accessor: (m) => (m.is_cash ? t("settings.pm.cashBase", "Cash") : t("settings.pm.nonCash", "Non-cash")), type: "text", width: 14 },
       { header: t("common.status", "Status"), accessor: (m) => (m.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
-    void exportToExcel({ filename: "Madar-PaymentMethods", sheets: [{ name: t("settings.paymentMethods", "Payment Methods"), title: t("settings.paymentMethods", "Payment Methods"), rows: methods as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: "Madar-PaymentMethods", logoUrl, sheets: [{ name: t("settings.paymentMethods", "Payment Methods"), title: t("settings.paymentMethods", "Payment Methods"), rows: methods as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (!orgId) return <Page><PageHeader title={t("settings.paymentMethods", "Payment Methods")} /><EmptyState icon={CreditCard} title={t("users.pickOrg", "Select an organization")} /></Page>;
@@ -121,7 +134,7 @@ export function PaymentMethodsPage() {
       <PageHeader
         title={t("settings.paymentMethods", "Payment Methods")}
         description={t("settings.paymentMethodsHint", "Manage payment methods available for checkout.")}
-        actions={<><ExportButton onExport={handleExport} disabled={!methods.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.add", "Add")}</Button></>}
+        actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={!methods.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.add", "Add")}</Button></>}
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("common.total", "Total")} value={methods.length} loading={list.isLoading} />
