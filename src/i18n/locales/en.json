@@ -4191,18 +4191,6 @@
     "branchesStored": "Branches Google has",
     "scopeLocked": "Set by the branch picker in the header",
     "qrSingleBranch": "One branch, so this is the whole shop's code. Open a second branch and you can give each its own, to see where members join.",
-    "qrOrgTip": "One code for the whole shop — a poster, a receipt footer, a link in a bio. Pick a branch in the header to print that branch its own code instead: members belong to the shop either way, but a per-branch code is the only way to see where they signed up.",
-    "nearby": {
-      "title": "Get a reminder when you're here",
-      "subtitle": "Your card can appear on your lock screen near the shop.",
-      "why": "Your wallet app decides this, not us — it needs permission to use your location. It takes a few seconds:",
-      "openWallet": "Open Google Wallet",
-      "g1": "Open Google Wallet and tap your profile picture.",
-      "g2": "Go to Settings, then turn on notifications for passes.",
-      "g3": "Allow Google Wallet to use your location — “While using the app” is enough.",
-      "a1": "Open Settings, then Privacy & Security, then Location Services.",
-      "a2": "Choose Wallet and set it to “While Using the App”.",
-      "a3": "In Wallet, tap the card, then the three dots, and turn on Allow Notifications."
-    }
+    "qrOrgTip": "One code for the whole shop — a poster, a receipt footer, a link in a bio. Pick a branch in the header to print that branch its own code instead: members belong to the shop either way, but a per-branch code is the only way to see where they signed up."
   }
 }

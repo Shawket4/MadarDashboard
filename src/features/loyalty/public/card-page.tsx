@@ -21,7 +21,6 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { resolveBrand } from "../shared/brand";
 import { CardFace } from "./card-face";
 import { LoyaltyPage, Panel, Section, usePageAccent } from "./page-shell";
-import { NearbyAlerts } from "./nearby-alerts";
 import { WalletButtons } from "./wallet-buttons";
 import { costLabel } from "../shared/util";
 
@@ -101,11 +100,7 @@ function Card({
           title={t("loyalty.keepItHandy", "Keep it handy")}
           accent={accent}
         >
-          <div className="flex flex-col gap-4">
-            <WalletButtons passes={data.passes} />
-            {/* Only once the pass has somewhere to fire — see NearbyAlerts. */}
-            {data.passes.nearby ? <NearbyAlerts accent={accent} /> : null}
-          </div>
+          <WalletButtons passes={data.passes} />
         </Section>
       ) : null}
 

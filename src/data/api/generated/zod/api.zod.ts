@@ -7975,8 +7975,7 @@ export const LoyaltyCardResponse = zod.object({
   "passes": zod.object({
   "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
   "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
-  "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.'),
-  "nearby": zod.boolean().describe('This pass carries at least one branch location, so the phone CAN surface\nit near a shop — if the customer has let their wallet app do that.\n\nThe permission belongs to the wallet app and no web page can grant it,\nso the card page can only explain where it lives. Explaining it to\nsomeone whose shop has no coordinates on any branch would be worse than\nsaying nothing: the steps would work and the card still would not\nappear. Hence a flag rather than an assumption.')
+  "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
 }).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.'),
   "points_to_next_reward": zod.number(),
   "progress_to_next": zod.number().describe('Progress towards the next one, after the earned ones are set aside.'),
@@ -8039,8 +8038,7 @@ export const LoyaltyJoinResponse = zod.object({
   "passes": zod.object({
   "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
   "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
-  "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.'),
-  "nearby": zod.boolean().describe('This pass carries at least one branch location, so the phone CAN surface\nit near a shop — if the customer has let their wallet app do that.\n\nThe permission belongs to the wallet app and no web page can grant it,\nso the card page can only explain where it lives. Explaining it to\nsomeone whose shop has no coordinates on any branch would be worse than\nsaying nothing: the steps would work and the card still would not\nappear. Hence a flag rather than an assumption.')
+  "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
 }).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.')
 }).describe('What the customer sees after signing up: their card, and the buttons.')
 
