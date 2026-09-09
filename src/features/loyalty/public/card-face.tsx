@@ -70,7 +70,8 @@ export function CardFace({
   // What the live card shows. `progress` is the server's remainder; falling back
   // to the raw balance keeps an older payload rendering sensibly.
   const onCard = progress ?? balance;
-  const pct = target > 0 ? Math.min(100, Math.round((balance / target) * 100)) : 0;
+  const pct =
+    target > 0 ? Math.min(100, Math.round((balance / target) * 100)) : 0;
   const unit = t(
     `loyalty.unit.${isVisits ? "orders" : "points"}`,
     isVisits ? "orders" : "points",
@@ -98,41 +99,27 @@ export function CardFace({
 
       <header className="flex items-center gap-3">
         {brand.logoUrl ? (
-          brand.logoIsMark ? (
-            // Repainted in the card's own foreground. The ground was derived
-            // FROM this logo, so leaving it in its own colours is what put a
-            // blue mark on a blue card; the foreground is the one colour
-            // already guaranteed to read on that ground.
-            //
-            // A mask rather than a filter: alpha carries the shape, so
-            // anti-aliased edges survive and it stays the same mark rather
-            // than a traced one.
-            <span
-              aria-hidden
-              className="size-12 shrink-0"
-              style={{
-                backgroundColor: brand.foreground,
-                maskImage: `url(${JSON.stringify(brand.logoUrl)})`,
-                WebkitMaskImage: `url(${JSON.stringify(brand.logoUrl)})`,
-                maskSize: "contain",
-                WebkitMaskSize: "contain",
-                maskRepeat: "no-repeat",
-                WebkitMaskRepeat: "no-repeat",
-                maskPosition: "center",
-                WebkitMaskPosition: "center",
-              }}
+          // One rendering, on a plate, whatever kind of logo it is.
+          //
+          // This used to repaint a "mark" through a CSS `mask-image`, which is
+          // the right idea and the wrong mechanism: when the mask does not
+          // apply — and it silently did not, here, on Chrome for Android — the
+          // element is masked to nothing and the shop's logo is simply absent
+          // from its own card. A logo that sometimes disappears is worse than
+          // one that always sits on a white tile.
+          //
+          // The tile also solves what the repainting was FOR. The ground is
+          // derived from the logo's own dominant colour, so a logo drawn on it
+          // is close to invisible by construction — blue on blue. An opaque
+          // plate breaks that without touching the artwork, which is the same
+          // answer both wallet passes reached.
+          <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-1.5 shadow-sm">
+            <img
+              src={brand.logoUrl}
+              alt=""
+              className="max-h-full max-w-full object-contain"
             />
-          ) : (
-            // Its background is baked in, so it cannot be repainted. A plate
-            // gives it an edge against a ground that may be its own colour.
-            <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-1.5 shadow-sm">
-              <img
-                src={brand.logoUrl}
-                alt=""
-                className="max-h-full max-w-full object-contain"
-              />
-            </span>
-          )
+          </span>
         ) : null}
         <div className="min-w-0 flex-1">
           {/* The shop's name is always here. Whose card this is must be on it,
@@ -169,7 +156,10 @@ export function CardFace({
           <span className="font-serif text-[52px] leading-none tabular-nums">
             {isSteps ? onCard : balance}
           </span>
-          <span className="min-w-0 truncate text-sm" style={{ color: brand.muted }}>
+          <span
+            className="min-w-0 truncate text-sm"
+            style={{ color: brand.muted }}
+          >
             {isSteps
               ? t("loyalty.ofTarget", {
                   defaultValue: "of {{n}} {{unit}}",
@@ -185,17 +175,20 @@ export function CardFace({
           // have 2 rewards" and a row of completed steps are different
           // sentences — one is a number, the other is the thing they earned.
           <div className="flex flex-col gap-2">
-            {Array.from({ length: Math.min(rewardsReady, MAX_COMPLETE_SHOWN) }, (_, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <StampRow
-                  earned={target}
-                  target={target}
-                  accent={brand.accent}
-                  onAccent={brand.background}
-                  muted={brand.muted}
-                />
-              </div>
-            ))}
+            {Array.from(
+              { length: Math.min(rewardsReady, MAX_COMPLETE_SHOWN) },
+              (_, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <StampRow
+                    earned={target}
+                    target={target}
+                    accent={brand.accent}
+                    onAccent={brand.background}
+                    muted={brand.muted}
+                  />
+                </div>
+              ),
+            )}
             {rewardsReady > MAX_COMPLETE_SHOWN ? (
               <p className="text-xs" style={{ color: brand.muted }}>
                 {t("loyalty.andMoreReady", {
@@ -241,7 +234,8 @@ export function CardFace({
             <span className="font-semibold">
               {t("loyalty.rewardsReadyN", {
                 defaultValue_one: "1 reward earned — ask at the counter.",
-                defaultValue_other: "{{count}} rewards earned — ask at the counter.",
+                defaultValue_other:
+                  "{{count}} rewards earned — ask at the counter.",
                 count: rewardsReady,
               })}
             </span>
