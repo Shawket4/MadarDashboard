@@ -4191,6 +4191,12 @@
     "branchesStored": "Branches Google has",
     "scopeLocked": "Set by the branch picker in the header",
     "qrSingleBranch": "One branch, so this is the whole shop's code. Open a second branch and you can give each its own, to see where members join.",
-    "qrOrgTip": "One code for the whole shop — a poster, a receipt footer, a link in a bio. Pick a branch in the header to print that branch its own code instead: members belong to the shop either way, but a per-branch code is the only way to see where they signed up."
+    "qrOrgTip": "One code for the whole shop — a poster, a receipt footer, a link in a bio. Pick a branch in the header to print that branch its own code instead: members belong to the shop either way, but a per-branch code is the only way to see where they signed up.",
+    "refreshFromGoogle": "Send it again, and show me",
+    "refreshHint": "Writes the class and the card, then reports every request and Google's answer.",
+    "branchesSent": "Sent",
+    "branchesOnClass": "Kept on the class",
+    "branchesOnObject": "Kept on the card",
+    "classNow": "The class, as Google holds it"
   }
 }

@@ -4339,6 +4339,55 @@ export const GetLoyaltyGoogleObjectResponse = zod.object({
 }).describe('The card Google holds, plus the two counts that make it readable at a glance.')
 
 
+/**
+ * Reading the object back says what Google HOLDS. It does not say why, and by
+ * the time you are reading it the write that mattered is over — a refused
+ * class refresh is deliberately only a warning, because a customer must keep
+ * the card they have, so the reason goes to a log rather than to the person
+ * asking the question.
+ *
+ * This runs the real provisioning through the real code path, keeping a
+ * transcript: every request, its status, and Google's answer verbatim. Then it
+ * reads both resources back, so the transcript and the outcome sit together.
+ *
+ * It WRITES, which is why it is a POST and why it is not part of any page
+ * load. Everything it does, opening a customer's card page does too.
+ * @summary Provision this member's Google card and report every word of it.
+**Super admin only.**
+ */
+export const RefreshLoyaltyGooglePassParams = zod.object({
+  "id": zod.uuid().describe('Loyalty member id')
+})
+
+export const refreshLoyaltyGooglePassResponseClassLocationsMin = 0;
+
+export const refreshLoyaltyGooglePassResponseObjectLocationsMin = 0;
+
+export const refreshLoyaltyGooglePassResponseSentLocationsMin = 0;
+
+export const refreshLoyaltyGooglePassResponseStepsItemStatusMin = 0;
+
+
+
+export const RefreshLoyaltyGooglePassResponse = zod.object({
+  "class": zod.looseObject({
+
+}).nullish().describe('The class as Google holds it now.'),
+  "class_locations": zod.number().min(refreshLoyaltyGooglePassResponseClassLocationsMin).describe('Branches Google kept on the shop\'s class.'),
+  "error": zod.string().nullish().describe('The first thing that went wrong, if anything did.'),
+  "object": zod.looseObject({
+
+}).nullish().describe('The object as Google holds it now.'),
+  "object_locations": zod.number().min(refreshLoyaltyGooglePassResponseObjectLocationsMin).describe('Branches Google kept on this member\'s object.'),
+  "sent_locations": zod.number().min(refreshLoyaltyGooglePassResponseSentLocationsMin).describe('Branches this member\'s card was sent, from our side.'),
+  "steps": zod.array(zod.object({
+  "body": zod.string().describe('Google\'s answer, as it came. Truncated only if it is enormous.'),
+  "status": zod.number().min(refreshLoyaltyGooglePassResponseStepsItemStatusMin).describe('HTTP status, or 0 when the request never reached Google.'),
+  "step": zod.string().describe('What was attempted, in words: \"insert the class\", \"update the object\".')
+}).describe('One request to Google and what it answered, kept verbatim.\n\nProvisioning is four requests deep and every one of them can fail in a way\nthe customer never sees: a refused class, an image Google will not fetch, a\nfield it silently drops. A failed REFRESH is deliberately only a warning —\nthe customer keeps the card they have — which means the reason lands in a\nlog nobody is reading at the moment it matters.\n\nSo the same code path can be asked to keep a transcript. `save_url` throws\nit away; the super-admin diagnostic returns it. One path, so what the\ndiagnostic reports is what actually happens, rather than a second\nimplementation that agrees with the first until it doesn\'t.')).describe('Every request and Google\'s answer, in order.')
+}).describe('A provisioning run, in full.')
+
+
 export const GetLoyaltyRewardItemsQueryParams = zod.object({
   "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')
 })

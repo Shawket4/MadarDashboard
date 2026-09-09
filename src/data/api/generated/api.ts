@@ -198,6 +198,7 @@ import type {
   GetScheduledDayParams,
   GoodsReceipt,
   GoogleObjectDump,
+  GoogleRefreshReport,
   GroupOptionOut,
   GroupOut,
   GuestOrderHistoryParams,
@@ -11433,6 +11434,83 @@ export function useGetLoyaltyGoogleObject<TData = Awaited<ReturnType<typeof getL
 
 
 
+
+/**
+ * Reading the object back says what Google HOLDS. It does not say why, and by
+ * the time you are reading it the write that mattered is over — a refused
+ * class refresh is deliberately only a warning, because a customer must keep
+ * the card they have, so the reason goes to a log rather than to the person
+ * asking the question.
+ *
+ * This runs the real provisioning through the real code path, keeping a
+ * transcript: every request, its status, and Google's answer verbatim. Then it
+ * reads both resources back, so the transcript and the outcome sit together.
+ *
+ * It WRITES, which is why it is a POST and why it is not part of any page
+ * load. Everything it does, opening a customer's card page does too.
+ * @summary Provision this member's Google card and report every word of it.
+**Super admin only.**
+ */
+export const refreshLoyaltyGooglePass = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<GoogleRefreshReport>(
+      {url: `/loyalty/members/${id}/google-refresh`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getRefreshLoyaltyGooglePassMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshLoyaltyGooglePass>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof refreshLoyaltyGooglePass>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['refreshLoyaltyGooglePass'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshLoyaltyGooglePass>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  refreshLoyaltyGooglePass(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RefreshLoyaltyGooglePassMutationResult = NonNullable<Awaited<ReturnType<typeof refreshLoyaltyGooglePass>>>
+
+    export type RefreshLoyaltyGooglePassMutationError = ErrorBody
+
+    /**
+ * @summary Provision this member's Google card and report every word of it.
+**Super admin only.**
+ */
+export const useRefreshLoyaltyGooglePass = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshLoyaltyGooglePass>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof refreshLoyaltyGooglePass>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getRefreshLoyaltyGooglePassMutationOptions(options), queryClient);
+    }
 
 export const getLoyaltyRewardItems = (
     params?: GetLoyaltyRewardItemsParams,

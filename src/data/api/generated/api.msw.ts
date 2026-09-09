@@ -86,6 +86,7 @@ import type {
   FloorTable,
   GoodsReceipt,
   GoogleObjectDump,
+  GoogleRefreshReport,
   GroupOptionOut,
   GroupOut,
   GuestSavedLocation,
@@ -473,6 +474,8 @@ export const getListLoyaltyMembersResponseMock = (overrideResponse: Partial<Extr
 export const getGetLoyaltyMemberResponseMock = (overrideResponse: Partial<Extract<MemberDetail, object>> = {}): MemberDetail => ({ledger: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({basis_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', currency: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), points: faker.number.int(), reward_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), member: {balance: faker.number.int(), can_redeem: faker.datatype.boolean(), enrolled_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), lifetime_points: faker.number.int(), lifetime_visits: faker.number.int(), locale: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), org_id: faker.string.uuid(), phone: faker.string.alpha({length: {min: 10, max: 20}}), points_balance: faker.number.int(), points_to_next_reward: faker.number.int(), progress_to_next: faker.number.int(), rewards_ready: faker.number.int(), visits_balance: faker.number.int()}, ...overrideResponse})
 
 export const getGetLoyaltyGoogleObjectResponseMock = (overrideResponse: Partial<Extract<GoogleObjectDump, object>> = {}): GoogleObjectDump => ({error: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), expected_locations: faker.number.int({min: 0}), object: faker.helpers.arrayElement([faker.helpers.arrayElement([{}, null]), undefined]), stored_locations: faker.number.int({min: 0}), ...overrideResponse})
+
+export const getRefreshLoyaltyGooglePassResponseMock = (overrideResponse: Partial<Extract<GoogleRefreshReport, object>> = {}): GoogleRefreshReport => ({class: faker.helpers.arrayElement([faker.helpers.arrayElement([{}, null]), undefined]), class_locations: faker.number.int({min: 0}), error: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), object: faker.helpers.arrayElement([faker.helpers.arrayElement([{}, null]), undefined]), object_locations: faker.number.int({min: 0}), sent_locations: faker.number.int({min: 0}), steps: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({body: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.number.int({min: 0}), step: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
 
 export const getGetLoyaltyRewardItemsResponseMock = (overrideResponse: Partial<Extract<RewardCatalogue, object>> = {}): RewardCatalogue => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), inherited: faker.datatype.boolean(), items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({base_price: faker.number.int(), cost_amount: faker.number.int(), cost_currency: faker.string.alpha({length: {min: 10, max: 20}}), image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), menu_item_id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), sort_order: faker.number.int()})), org_id: faker.string.uuid(), ...overrideResponse})
 
@@ -2706,6 +2709,18 @@ export const getGetLoyaltyGoogleObjectMockHandler = (overrideResponse?: GoogleOb
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getGetLoyaltyGoogleObjectResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getRefreshLoyaltyGooglePassMockHandler = (overrideResponse?: GoogleRefreshReport | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<GoogleRefreshReport> | GoogleRefreshReport), options?: RequestHandlerOptions) => {
+  return http.post('*/loyalty/members/:id/google-refresh', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getRefreshLoyaltyGooglePassResponseMock(),
       { status: 200
       })
   }, options)
@@ -5856,6 +5871,7 @@ export const getMadarAPIMock = () => [
   getListLoyaltyMembersMockHandler(),
   getGetLoyaltyMemberMockHandler(),
   getGetLoyaltyGoogleObjectMockHandler(),
+  getRefreshLoyaltyGooglePassMockHandler(),
   getGetLoyaltyRewardItemsMockHandler(),
   getPutLoyaltyRewardItemsMockHandler(),
   getGetLoyaltySettingsMockHandler(),
