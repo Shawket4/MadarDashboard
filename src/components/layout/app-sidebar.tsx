@@ -25,6 +25,8 @@ import {
 import { NAV, isParent, type NavLeaf } from "@/config/nav";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
+import { useOrgId } from "@/hooks/use-org-id";
+import { usePublicBrand } from "@/features/public-shell/use-brand";
 
 // Every leaf destination in the nav, so active-matching can pick the MOST
 // SPECIFIC one: a parent-ish link like `/settings` must not light up when a
@@ -49,6 +51,7 @@ const useIsActive = () => {
 
 export function AppSidebar() {
   const { t, i18n } = useTranslation();
+  const brand = usePublicBrand(useOrgId());
   const side = i18n.dir() === "rtl" ? "right" : "left";
   const { setOpenMobile } = useSidebar();
   const isActive = useIsActive();
@@ -77,14 +80,30 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg" className="px-2 hover:bg-transparent active:bg-transparent">
               <Link to="/" search={keepScope} onClick={close} aria-label={t("app.name", "Madar")}>
-                {/* The real wordmark (navy + terracotta dot). Goes monochrome
-                    white on the navy rail in dark mode. */}
-                <img
-                  src={i18n.dir() === "rtl" ? "/madar_ar.svg" : "/madar.svg"}
-                  alt={t("app.name", "Madar")}
-                  className="h-7 w-auto dark:brightness-0 dark:invert"
-                  draggable={false}
-                />
+                {/* The shop's own mark where it is on the branding tier, and
+                    Madar's wordmark otherwise. Read through the tier-gated
+                    endpoint rather than the org row, so an org off the tier
+                    cannot get here by accident — and so this needs no
+                    permission a teller might not have.
+
+                    Not inverted in dark mode the way the wordmark is: that
+                    trick works on a two-colour wordmark and would flatten a
+                    shop's logo to a silhouette. */}
+                {brand?.ownBranding && brand.logoUrl ? (
+                  <img
+                    src={brand.logoUrl}
+                    alt={brand.orgName}
+                    className="h-7 w-auto object-contain"
+                    draggable={false}
+                  />
+                ) : (
+                  <img
+                    src={i18n.dir() === "rtl" ? "/madar_ar.svg" : "/madar.svg"}
+                    alt={t("app.name", "Madar")}
+                    className="h-7 w-auto dark:brightness-0 dark:invert"
+                    draggable={false}
+                  />
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
