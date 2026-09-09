@@ -105,7 +105,7 @@ export function LoyaltyPage({
   const accent = usePageAccent(brand);
 
   return (
-    <StorefrontShell brand={brand}>
+    <StorefrontShell brand={brand} product="loyalty">
       <div className="flex flex-col gap-7 pb-2 pt-2">
         <header className="flex flex-col gap-2">
           {eyebrow ? (

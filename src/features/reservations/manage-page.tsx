@@ -85,7 +85,7 @@ export function ManagePage({ token }: { token: string }) {
   };
 
   return (
-    <StorefrontShell brand={brand}>
+    <StorefrontShell brand={brand} product="reservations">
       <div className="mx-auto w-full max-w-[480px] px-4 pb-10">
         {q.isLoading ? (
           <div className="space-y-3"><Skeleton className="h-8 w-2/3" /><Skeleton className="h-32 rounded-2xl" /></div>

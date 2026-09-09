@@ -120,7 +120,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
   };
 
   return (
-    <StorefrontShell brand={brand}>
+    <StorefrontShell brand={brand} product="reservations">
       <div className="mx-auto w-full max-w-[480px] px-4 pb-10">
         {step !== "done" && (step === "you" || (step === "when" && !initialBranch)) ? (
           <button type="button" onClick={back} className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">

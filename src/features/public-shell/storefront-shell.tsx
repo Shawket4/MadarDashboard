@@ -113,7 +113,30 @@ export function BrandMark({
  * two brands shouting at the same size is a page that belongs to neither. Off
  * the tier the page IS Madar's, and it signs at full size.
  */
-export function MadarFooter({ brand }: { brand?: ShellBrand | null }) {
+/**
+ * Which of Madar's products this page is.
+ *
+ * The signature names it. A restaurateur who sees "Reservations powered by
+ * Madar" on a booking page has learnt something they might act on; "powered by
+ * Madar" alone tells them nothing about what we would sell them. Recognition
+ * rides on the MARK above the line, which is identical everywhere, so naming
+ * the product costs nothing and buys the only thing a signature on someone
+ * else's page is for.
+ *
+ * The default is the generic line, because a page that has not said which
+ * product it is should not claim to be one — this used to be hardcoded to
+ * online ordering, so a customer's loyalty card told them their stamp card was
+ * powered by online ordering.
+ */
+export type MadarProduct = "loyalty" | "ordering" | "reservations";
+
+export function MadarFooter({
+  brand,
+  product,
+}: {
+  brand?: ShellBrand | null;
+  product?: MadarProduct;
+}) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const quiet = brand?.ownBranding === true;
@@ -130,7 +153,10 @@ export function MadarFooter({ brand }: { brand?: ShellBrand | null }) {
         }
       />
       <p className={quiet ? "text-[11px] text-muted-foreground/80" : "text-xs text-muted-foreground"}>
-        {t("order.footer.poweredBy")}
+        {t(
+          product ? `publicShell.poweredBy.${product}` : "publicShell.poweredBy.generic",
+          "Powered by Madar",
+        )}
       </p>
       {quiet ? null : (
         <p className="text-[11px] text-muted-foreground/70">
@@ -160,8 +186,11 @@ export function MadarFooter({ brand }: { brand?: ShellBrand | null }) {
 export function StorefrontShell({
   children,
   brand,
+  product,
 }: {
   children: ReactNode;
+  /** Which product this page is, for the footer's signature. */
+  product?: MadarProduct;
   /**
    * Whose page this is.
    *
@@ -205,7 +234,7 @@ export function StorefrontShell({
 
       <main className="relative z-10 mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-10 pt-5">
         <div className="flex-1">{children}</div>
-        <MadarFooter brand={brand} />
+        <MadarFooter brand={brand} product={product} />
       </main>
     </div>
   );

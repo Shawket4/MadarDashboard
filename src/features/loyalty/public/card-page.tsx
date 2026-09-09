@@ -32,7 +32,7 @@ export function CardPage({ token }: { token: string }) {
 
   if (card.isLoading) {
     return (
-      <StorefrontShell>
+      <StorefrontShell product="loyalty">
         <div className="flex flex-col gap-4 pt-8">
           <Skeleton className="h-64 w-full rounded-3xl" />
           <Skeleton className="h-11 w-full" />
@@ -44,7 +44,7 @@ export function CardPage({ token }: { token: string }) {
   const data = card.data;
   if (!data) {
     return (
-      <StorefrontShell>
+      <StorefrontShell product="loyalty">
         <div className="flex flex-col items-center gap-3 pt-16 text-center">
           <AlertCircle className="size-7 text-muted-foreground" />
           <h1 className="font-serif text-2xl">

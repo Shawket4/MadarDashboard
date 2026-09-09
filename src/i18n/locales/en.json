@@ -3111,7 +3111,6 @@
     },
     "theme": "Toggle theme",
     "footer": {
-      "poweredBy": "Online ordering powered by Madar",
       "rights": "© {{year}} {{name}}"
     },
     "track": {
@@ -4222,5 +4221,13 @@
     "winbackMessageHint": "One message, in whichever language you write it — it replaces both of ours. A link to their card is always added, so they can stop the messages.",
     "yourVisits": "What you've had",
     "noVisitsYet": "Nothing here yet — your visits will show up after your first order."
+  },
+  "publicShell": {
+    "poweredBy": {
+      "loyalty": "Loyalty cards powered by Madar",
+      "ordering": "Online ordering powered by Madar",
+      "reservations": "Reservations powered by Madar",
+      "generic": "Powered by Madar"
+    }
   }
 }

@@ -31,7 +31,7 @@ export function ScanToOrder() {
   }, []);
 
   return (
-    <StorefrontShell brand={brand}>
+    <StorefrontShell brand={brand} product="ordering">
       <motion.div
         initial={reduced ? false : { opacity: 0, y: 18 }}
         animate={reduced ? undefined : { opacity: 1, y: 0 }}

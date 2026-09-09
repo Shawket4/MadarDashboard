@@ -229,7 +229,7 @@ export function StepShell({
 
         <div className="flex-1">{children}</div>
 
-        {variant !== "bare" && <MadarFooter brand={brand} />}
+        {variant !== "bare" && <MadarFooter brand={brand} product="ordering" />}
       </main>
 
       {footer && (

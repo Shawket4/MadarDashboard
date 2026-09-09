@@ -13,7 +13,7 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 export function ScanToJoin() {
   const { t } = useTranslation();
   return (
-    <StorefrontShell>
+    <StorefrontShell product="loyalty">
       <div className="flex flex-col items-center gap-4 pt-16 text-center">
         <div className="flex size-16 items-center justify-center rounded-2xl border border-border/70 bg-card">
           <QrCode className="size-7 text-muted-foreground" />

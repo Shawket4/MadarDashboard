@@ -49,7 +49,7 @@ export function JoinPage({
 
   if (info.isLoading) {
     return (
-      <StorefrontShell>
+      <StorefrontShell product="loyalty">
         <div className="flex flex-col gap-4 pt-8">
           <Skeleton className="h-24 w-full rounded-2xl" />
           <Skeleton className="h-40 w-full rounded-2xl" />
@@ -61,7 +61,7 @@ export function JoinPage({
   const data = info.data;
   if (!data || !data.enabled) {
     return (
-      <StorefrontShell>
+      <StorefrontShell product="loyalty">
         <div className="flex flex-col items-center gap-3 pt-16 text-center">
           <AlertCircle className="size-7 text-muted-foreground" />
           <h1 className="font-serif text-2xl">
