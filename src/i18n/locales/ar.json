@@ -1456,7 +1456,13 @@
     "saved": "اتحفظ",
     "notSaved": "مااتحفظش",
     "reload": "إعادة تحميل",
-    "tone_held": "محجوزة"
+    "tone_held": "محجوزة",
+    "addSection": "منطقة",
+    "sectionActions": "إجراءات المنطقة",
+    "renameSection": "إعادة تسمية",
+    "deleteSectionTitle": "حذف «{{name}}»؟",
+    "deleteSectionBody": "تُحذف المنطقة. لا تحتوي على أي طاولات.",
+    "deleteSectionBodyTables": "تنتقل طاولاتها ({{count}}) إلى «غير محدّدة» — لا يُحذف شيء ولا يتأثر أي طلب."
   },
   "shifts": {
     "teller": "الصراف",

@@ -21,8 +21,8 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   AlignHorizontalJustifyCenter, AlignVerticalJustifyCenter, Armchair, Check,
-  CloudOff, Copy, Loader2, Lock, LockOpen, Maximize2, Minus, Plus, Redo2,
-  Trash2, Undo2,
+  ChevronDown, CloudOff, Copy, Loader2, Lock, LockOpen, Maximize2, Minus, Pencil,
+  Plus, Redo2, Trash2, Undo2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,14 +30,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/empty-state";
 import { Page, PageHeader } from "@/components/app/page";
 import { useConfirm } from "@/components/app/confirm-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { SectionDialog } from "./section-dialog";
+import type { FloorSection } from "@/data/api/generated/models";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useScope } from "@/data/scope/use-scope";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtTime } from "@/lib/format";
 import {
-  createFloorTable, deleteFloorTable, useListFloorTables, useListFloorTransfers,
-  useListOpenTickets, useListSections,
+  createFloorTable, deleteFloorTable, deleteSection, useListFloorTables,
+  useListFloorTransfers, useListOpenTickets, useListSections,
 } from "@/data/api/generated/api";
 
 import { AddTableDialog } from "./add-table-dialog";
@@ -238,6 +243,47 @@ export function FloorPage() {
     viewport.view.x, viewport.view.y, viewport.rect.w, viewport.rect.h,
   ]);
 
+  // ── Sections ──────────────────────────────────────────────────────────────
+  //
+  // The API has had create/rename/delete all along and the dialog was written;
+  // nothing ever rendered it, so a branch could filter by section and never
+  // make one. A room's areas are authored here, beside the tables they hold.
+  const [sectionEdit, setSectionEdit] = useState<{ section: FloorSection | null } | null>(null);
+  const activeSection = useMemo(
+    () => (sectionKey && sectionKey !== UNASSIGNED
+      ? sections.find((x) => x.id === sectionKey) ?? null
+      : null),
+    [sectionKey, sections],
+  );
+
+  const removeSection = useCallback(async () => {
+    if (!activeSection) return;
+    // Tables are NOT deleted with the section — the FK sets their `section_id`
+    // to NULL, so they land in Unassigned. Saying so is the difference between
+    // a confident click and a support ticket.
+    const held = allTables.filter((tb) => tb.section_id === activeSection.id).length;
+    const ok = await confirm({
+      title: t("floor.deleteSectionTitle", "Delete “{{name}}”?", { name: activeSection.name }),
+      description: held
+        ? t("floor.deleteSectionBodyTables", {
+            defaultValue:
+              "Its {{count}} table(s) move to Unassigned — nothing is deleted and no order is affected.",
+            count: held,
+          })
+        : t("floor.deleteSectionBody", "The area is removed. It holds no tables."),
+      confirmLabel: t("common.delete", "Delete"),
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      await deleteSection(activeSection.id);
+      setSectionKey(null);
+      await invalidateFloor();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
+  }, [activeSection, allTables, confirm, t]);
+
   const deleteSelection = useCallback(async () => {
     if (!editable || selectedTables.length === 0) return;
     const ok = await confirm({
@@ -385,6 +431,47 @@ export function FloorPage() {
             >
               {t("floor.unassigned", "Unassigned")}
             </SectionChip>
+          ) : null}
+
+          {/* Authoring sits with the filter rather than in a settings page
+              elsewhere: the chips ARE the list of areas, so this is where a
+              person looks for the one that is missing. Edit and delete hang off
+              the SELECTED chip, so the row stays a filter until you mean
+              otherwise. */}
+          {editable ? (
+            <>
+              <SectionChip active={false} onClick={() => setSectionEdit({ section: null })}>
+                <span className="flex items-center gap-1">
+                  <Plus className="size-3" />
+                  {t("floor.addSection", "Area")}
+                </span>
+              </SectionChip>
+              {activeSection ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={t("floor.sectionActions", "Area actions")}
+                      className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <ChevronDown className="size-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem
+                      onSelect={() => setSectionEdit({ section: activeSection })}
+                    >
+                      <Pencil className="size-4" />
+                      {t("floor.renameSection", "Rename")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem variant="destructive" onSelect={() => void removeSection()}>
+                      <Trash2 className="size-4" />
+                      {t("common.delete", "Delete")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
+            </>
           ) : null}
         </div>
 
@@ -546,6 +633,23 @@ export function FloorPage() {
         tables={allTables}
         onCreated={() => void invalidateFloor()}
       />
+
+      {sectionEdit ? (
+        <SectionDialog
+          open
+          onOpenChange={(o) => {
+            if (!o) setSectionEdit(null);
+          }}
+          branchId={branchId ?? ""}
+          section={sectionEdit.section}
+          // Append: sections are ordered, and a new one belongs after the ones
+          // already there rather than fighting an existing slot.
+          nextOrdering={sections.length}
+          // Select what was just made, so the next thing a person does — adding
+          // tables to it — happens in the area they created.
+          onCreated={(id) => setSectionKey(id)}
+        />
+      ) : null}
     </div>
   );
 }

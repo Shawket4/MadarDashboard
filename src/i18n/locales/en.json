@@ -1457,7 +1457,13 @@
     "saved": "Saved",
     "notSaved": "Not saved",
     "reload": "Reload",
-    "tone_held": "Reserved"
+    "tone_held": "Reserved",
+    "addSection": "Area",
+    "sectionActions": "Area actions",
+    "renameSection": "Rename",
+    "deleteSectionTitle": "Delete “{{name}}”?",
+    "deleteSectionBody": "The area is removed. It holds no tables.",
+    "deleteSectionBodyTables": "Its {{count}} table(s) move to Unassigned — nothing is deleted and no order is affected."
   },
   "shifts": {
     "teller": "Teller",
