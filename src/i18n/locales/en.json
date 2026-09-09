@@ -285,7 +285,7 @@
     "orgName": "Organization Name",
     "slug": "Slug",
     "currency": "Currency",
-    "taxRate": "Tax Rate (%)",
+    "taxRate": "Tax rate (%)",
     "receiptFooter": "Receipt Footer",
     "avgTax": "Avg Tax",
     "createdToast": "Organization created",
@@ -311,7 +311,13 @@
       "youtube": "YouTube",
       "whatsapp": "WhatsApp",
       "website": "Website"
-    }
+    },
+    "taxRateRange": "Enter a rate between 0 and 100",
+    "taxInclusive": "Menu prices include tax",
+    "taxInclusiveHint": "On, the price on the menu is what the customer pays and the receipt shows the tax it already contained. Off, tax is added at checkout.",
+    "serviceCharge": "Service charge (%)",
+    "serviceChargeHint": "0 for none. Shown as its own line on the bill.",
+    "serviceChargeTaxable": "Tax the service charge"
   },
   "branches": {
     "title": "Branches",
@@ -345,7 +351,9 @@
     "activeHint": "Inactive branches are hidden from the POS.",
     "pickOrg": "Select an organization",
     "loadError": "Couldn't load branches",
-    "pickOrgDescription": "Choose an organization from the sidebar to view and manage its branches."
+    "pickOrgDescription": "Choose an organization from the sidebar to view and manage its branches.",
+    "taxOverride": "This branch taxes differently",
+    "taxOverrideHint": "Off, it follows the organisation's tax settings and changes to them apply here automatically."
   },
   "users": {
     "title": "Users",
@@ -4232,7 +4240,19 @@
     "winbackMessagePlaceholder": "Leave empty to use ours, written in each language. {name} becomes their name.",
     "winbackMessageHint": "One message, in whichever language you write it — it replaces both of ours. A link to their card is always added, so they can stop the messages.",
     "yourVisits": "What you've had",
-    "noVisitsYet": "Nothing here yet — your visits will show up after your first order."
+    "noVisitsYet": "Nothing here yet — your visits will show up after your first order.",
+    "limits": "Limits",
+    "limitsHint": "Off, a card collects without end and a customer can spend the lot in one visit.",
+    "capBalance": "Stop collecting at a maximum",
+    "capBalanceHint": "A full card still goes through the till — the sale never fails — it just stops adding until something is redeemed.",
+    "capBalanceMax": "Most a customer can hold",
+    "oneRewardPerOrder": "One reward per order",
+    "oneRewardPerOrderHint": "Off, a customer with 30 stamps and a 5-stamp reward can take six free items in one visit — the giveaway you meant to spread over six.",
+    "noGeofence": "Cards will not notify customers nearby",
+    "noGeofenceHint": "Apple and Google surface a saved card when the customer is at your shop, using the branch coordinates on the pass. No branch has any set, so the phone never asks for location and the card stays silent. Add them on the Branches page.",
+    "capBalanceMaxHint": "Leave empty to use your dearest reward, so the ceiling follows the list instead of going stale when you add or reprice one.",
+    "capBalanceDerived": "Currently {{amount}} — your dearest reward. Collecting past it buys nothing.",
+    "capBalanceNoRewards": "Add a reward and the ceiling follows the dearest one."
   },
   "publicShell": {
     "poweredBy": {

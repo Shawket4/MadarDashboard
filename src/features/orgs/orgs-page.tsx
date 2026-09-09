@@ -21,6 +21,7 @@ import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { usePageSearch } from "@/data/scope/use-page-search";
 
+import { formatRate, fractionToPercent } from "./tax-rate";
 export function OrgsPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
@@ -58,7 +59,7 @@ export function OrgsPage() {
         ),
       },
       { accessorKey: "currency_code", header: t("orgs.currency", "Currency"), cell: ({ row }) => <Badge variant="outline" className="font-mono">{row.original.currency_code}</Badge> },
-      { accessorKey: "tax_rate", header: t("orgs.taxRate", "Tax Rate (%)"), cell: ({ row }) => <span className="font-mono text-sm">{row.original.tax_rate}%</span> },
+      { accessorKey: "tax_rate", header: t("orgs.taxRate", "Tax Rate (%)"), cell: ({ row }) => <span className="font-mono text-sm">{formatRate(row.original.tax_rate)}</span> },
       {
         accessorKey: "custom_branding",
         header: t("orgs.customBranding", "Custom branding"),
@@ -94,7 +95,7 @@ export function OrgsPage() {
       { header: t("common.name", "Name"), accessor: (o) => o.name, type: "text", width: 28 },
       { header: t("orgs.slug", "Slug"), accessor: (o) => o.slug, type: "text", width: 20 },
       { header: t("orgs.currency", "Currency"), accessor: (o) => o.currency_code, type: "text", width: 12 },
-      { header: t("orgs.taxRate", "Tax Rate (%)"), accessor: (o) => o.tax_rate, type: "number", width: 12 },
+      { header: t("orgs.taxRate", "Tax Rate (%)"), accessor: (o) => fractionToPercent(o.tax_rate), type: "number", width: 12 },
       { header: t("common.status", "Status"), accessor: (o) => (o.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
     setExporting(true);
@@ -107,9 +108,11 @@ export function OrgsPage() {
     }
   };
 
-  // tax_rate is stored as a percent number (e.g. 14). StatCard's percent format
-  // expects a 0..1 ratio, so divide by 100 and let it format + count up.
-  const avgTaxRatio = orgs.length ? orgs.reduce((a, o) => a + o.tax_rate, 0) / orgs.length / 100 : null;
+  // tax_rate is stored as a FRACTION (0.14 = 14%), which is already the 0..1
+  // ratio StatCard's percent format wants. This used to divide by 100 as well,
+  // on the belief that the column held a percentage — the same belief that made
+  // the settings field unusable.
+  const avgTaxRatio = orgs.length ? orgs.reduce((a, o) => a + o.tax_rate, 0) / orgs.length : null;
 
   return (
     <Page>

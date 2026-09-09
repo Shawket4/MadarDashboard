@@ -76,6 +76,12 @@ export interface Order {
      * methods; treat this as a display badge only.
      */
   payment_method: string;
+  /**
+     * The service charge on this bill; `0` where the branch charges none.
+     * Its own field, and its own receipt line: a charge the customer did not
+     * choose is stated separately from the tax rather than folded into it.
+     */
+  service_charge_amount?: number;
   shift_id: string;
   status: string;
   subtotal: number;

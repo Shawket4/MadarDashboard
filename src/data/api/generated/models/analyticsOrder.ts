@@ -23,8 +23,10 @@ export interface AnalyticsOrder {
      */
   order_ref?: string | null;
   /**
-     * Always 0: Madar has no service-charge concept. Present so the field is
-     * stable if one is ever introduced.
+     * The service charge added to this order, `0` where the branch charges
+     * none. This was a hard-coded `0` for every order — the field was
+     * published as if it meant something while a service charge did not
+     * exist. It does now, and this is it.
      */
   service_charge: number;
   status: string;
@@ -32,7 +34,7 @@ export interface AnalyticsOrder {
   subtotal: number;
   tax_amount: number;
   /**
-     * `subtotal - discount_amount + tax_amount`. Deliberately COMPUTED rather
+     * `subtotal - discount_amount + service_charge + tax_amount`. Deliberately COMPUTED rather
      * than read from `orders.total_amount`, which also carries the delivery
      * fee — this figure is the order's own value and nothing else. Tips are
      * excluded too (they are not part of `total_amount` in the first place).

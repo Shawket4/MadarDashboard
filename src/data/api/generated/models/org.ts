@@ -36,9 +36,18 @@ export interface Org {
   name: string;
   /** @nullable */
   receipt_footer?: string | null;
+  /** Fraction of the bill added as a service charge; `0` disables it. */
+  service_charge_rate: number;
+  /** Whether the service charge is itself taxed. */
+  service_charge_taxable: boolean;
   slug: string;
   /** Where else to find the shop, keyed by platform. See `orgs::social`. */
   social_links: OrgSocialLinks;
+  /**
+     * `true` = menu prices already contain the tax, and the receipt breaks it
+     * out backwards rather than adding it on at the till.
+     */
+  tax_inclusive: boolean;
   /**
      * Tax rate as a decimal (e.g. `0.14` for 14% VAT).
      * Stored as `BigDecimal` internally; transmitted as a JSON number.

@@ -3,6 +3,28 @@
 
 export interface LoyaltySettings {
   /**
+     * The ceiling, when `balance_cap_enabled`. `None` = derive it.
+     *
+     * A `None` here is NOT "no cap" — that is what the switch is for. It means
+     * the most expensive reward on offer at this scope, read from the
+     * catalogue at award time. Once a customer can claim anything in the
+     * programme, collecting more buys them nothing and leaves the shop
+     * carrying a liability it never chose; and because it is derived, adding a
+     * dearer reward raises the ceiling without anyone retyping it.
+     *
+     * Earning at the cap is DROPPED, not refused: the sale is not the
+     * customer's doing and must not fail because their card is full.
+     * @nullable
+     */
+  balance_cap?: number | null;
+  /**
+     * Whether a ceiling applies to what a member may hold at all.
+     *
+     * Separate from the figure below, because "no number" has to be able to
+     * mean something. Off, a card collects without end.
+     */
+  balance_cap_enabled?: boolean;
+  /**
      * Ask for a birthday at signup, and greet them on the day.
      *
      * Off means the form does not ASK — not that it asks and ignores. A date of
@@ -45,8 +67,47 @@ export interface LoyaltySettings {
      * dashboard shows and accepts EGP; the wire is always piastres.
      */
   earn_piastres_per_point: number;
+  /**
+     * The ceiling actually in force, once derived. **Read-only.**
+     *
+     * `balance_cap` is what the shop TYPED, which is usually nothing; this is
+     * what that resolves to against the current catalogue. The dashboard shows
+     * it so "leave it empty" is a visible number rather than a promise, and so
+     * the figure on screen is the one the award path will use rather than the
+     * dashboard's own guess at it.
+     *
+     * `null` when no ceiling applies.
+     * @nullable
+     */
+  effective_balance_cap?: number | null;
   /** The program switch for this scope. */
   enabled: boolean;
+  /**
+     * How many active branches have coordinates set. **Read-only.**
+     *
+     * The one thing that decides whether a saved card can notify a customer
+     * when they are at the shop. Both wallets geofence from the branch
+     * coordinates on the pass, so a programme whose branches have none gets no
+     * location prompt on the phone and no nearby notification — and nothing
+     * anywhere said so, which reads as the wallet being broken rather than as
+     * a field nobody filled in.
+     *
+     * Read-only in effect: this type doubles as the PUT body, and the write
+     * path binds its columns explicitly, so a value sent here is parsed and
+     * then ignored. It is a fact about `branches`, answered on this page
+     * because this is where someone wonders why the card is silent.
+     */
+  geofenced_branches?: number;
+  /**
+     * How many rewards one order may claim. `None` = unlimited.
+     *
+     * `Some(1)` is the setting most shops mean when they ask for this: a
+     * member with thirty stamps and a five-stamp reward can otherwise take six
+     * free items in one visit, which is the same giveaway the shop believed it
+     * was spreading over six.
+     * @nullable
+     */
+  max_rewards_per_order?: number | null;
   /**
      * What this scope collects: `"points"` (from money spent) or `"visits"`
      * (one stamp per sale). One or the other — never both.

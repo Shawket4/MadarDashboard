@@ -118,9 +118,13 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
         </CardContent>
       </Card>
 
-      <CollectingCard form={form} />
+      <CollectingCard form={form} derivedCap={settings?.effective_balance_cap ?? null} />
       <SignupCard form={form} saved={settings} />
-      <PassesCard form={form} branchId={scope.branchId} />
+      <PassesCard
+        form={form}
+        branchId={scope.branchId}
+        geofencedBranches={settings?.geofenced_branches ?? 0}
+      />
 
       <div className="flex items-center gap-2">
         <Button type="submit" disabled={save.isPending}>

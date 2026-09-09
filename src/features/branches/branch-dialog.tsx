@@ -20,6 +20,7 @@ import type { Branch } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { invalidateBranches } from "./util";
 
+import { MAX_PERCENT, fractionToPercent, percentToFraction } from "@/features/orgs/tax-rate";
 const numOrNull = (v: number | undefined) => (v === undefined || Number.isNaN(v) ? null : v);
 
 interface Props {
@@ -48,6 +49,15 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
         latitude: z.coerce.number<number>().optional(),
         longitude: z.coerce.number<number>().optional(),
         geo_radius_meters: z.coerce.number<number>().optional(),
+        // Off = inherit the organisation. The fields below only mean anything
+        // when this is on, and are sent as explicit nulls when it is off — a
+        // branch must be able to go BACK to inheriting, which is why the API
+        // distinguishes "absent" from "null".
+        tax_override: z.boolean(),
+        tax_rate: z.coerce.number<number>().min(0).max(MAX_PERCENT).optional(),
+        tax_inclusive: z.boolean(),
+        service_charge_rate: z.coerce.number<number>().min(0).max(MAX_PERCENT).optional(),
+        service_charge_taxable: z.boolean(),
       }),
     [t],
   );
@@ -59,9 +69,12 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
       name: "", phone: "", address: "", timezone: "Africa/Cairo", is_active: true,
       printer_brand: "none", printer_ip: "", printer_port: 9100,
       latitude: undefined, longitude: undefined, geo_radius_meters: 200,
+      tax_override: false, tax_rate: 0, tax_inclusive: false,
+      service_charge_rate: 0, service_charge_taxable: true,
     },
   });
   const printerBrand = form.watch("printer_brand");
+  const taxOverride = form.watch("tax_override");
 
   useEffect(() => {
     if (open) {
@@ -77,6 +90,17 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
         latitude: branch?.latitude ?? undefined,
         longitude: branch?.longitude ?? undefined,
         geo_radius_meters: branch?.geo_radius_meters ?? 200,
+        // Any override present means this branch has opted out of the org's
+        // policy; the switch reflects that rather than being stored separately.
+        tax_override:
+          branch?.tax_rate != null ||
+          branch?.tax_inclusive != null ||
+          branch?.service_charge_rate != null ||
+          branch?.service_charge_taxable != null,
+        tax_rate: fractionToPercent(branch?.tax_rate),
+        tax_inclusive: branch?.tax_inclusive ?? false,
+        service_charge_rate: fractionToPercent(branch?.service_charge_rate),
+        service_charge_taxable: branch?.service_charge_taxable ?? true,
       });
     }
   }, [open, branch, form]);
@@ -94,6 +118,13 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
       latitude: numOrNull(v.latitude),
       longitude: numOrNull(v.longitude),
       geo_radius_meters: numOrNull(v.geo_radius_meters),
+      // Explicit nulls when the override is off: that is what returns the
+      // branch to inheriting, and it is why these are sent on every save
+      // rather than only when set.
+      tax_rate: v.tax_override ? percentToFraction(v.tax_rate) : null,
+      tax_inclusive: v.tax_override ? v.tax_inclusive : null,
+      service_charge_rate: v.tax_override ? percentToFraction(v.service_charge_rate) : null,
+      service_charge_taxable: v.tax_override ? v.service_charge_taxable : null,
     };
     setBusy(true);
     try {
@@ -180,6 +211,61 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
                 )} />
               </div>
             </div>
+
+            {/* Tax. Off, this branch follows its organisation — which is the
+                right default and the one almost every branch wants. It is here
+                at all because an org can trade across jurisdictions, and a
+                branch in a free zone or a different country cannot be made to
+                charge its head office's rate. */}
+            <FormField control={form.control} name="tax_override" render={({ field }) => (
+              <FormItem className="rounded-lg bg-muted p-3">
+                <div className="flex items-center justify-between gap-4">
+                  <FormLabel className="font-normal">
+                    {t("branches.taxOverride", "This branch taxes differently")}
+                  </FormLabel>
+                  <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t(
+                    "branches.taxOverrideHint",
+                    "Off, it follows the organisation's tax settings and changes to them apply here automatically.",
+                  )}
+                </p>
+              </FormItem>
+            )} />
+
+            {taxOverride ? (
+              <div className="space-y-4 rounded-lg border border-border/70 p-3">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField control={form.control} name="tax_rate" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("orgs.taxRate", "Tax rate (%)")}</FormLabel>
+                      <FormControl><Input type="number" step="0.1" min="0" max={MAX_PERCENT} {...field} value={field.value ?? ""} className="font-mono" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="service_charge_rate" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("orgs.serviceCharge", "Service charge (%)")}</FormLabel>
+                      <FormControl><Input type="number" step="0.1" min="0" max={MAX_PERCENT} {...field} value={field.value ?? ""} className="font-mono" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+                <FormField control={form.control} name="tax_inclusive" render={({ field }) => (
+                  <FormItem className="flex items-center justify-between gap-4">
+                    <FormLabel className="font-normal">{t("orgs.taxInclusive", "Menu prices include tax")}</FormLabel>
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="service_charge_taxable" render={({ field }) => (
+                  <FormItem className="flex items-center justify-between gap-4">
+                    <FormLabel className="font-normal">{t("orgs.serviceChargeTaxable", "Tax the service charge")}</FormLabel>
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                  </FormItem>
+                )} />
+              </div>
+            ) : null}
 
             {editing ? (
               <FormField control={form.control} name="is_active" render={({ field }) => (

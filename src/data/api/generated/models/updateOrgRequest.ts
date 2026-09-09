@@ -27,6 +27,10 @@ export interface UpdateOrgRequest {
   /** @nullable */
   receipt_footer?: string | null;
   /** @nullable */
+  service_charge_rate?: number | null;
+  /** @nullable */
+  service_charge_taxable?: boolean | null;
+  /** @nullable */
   slug?: string | null;
   /**
      * Where else to find the shop. Validated against a closed list of
@@ -36,6 +40,8 @@ export interface UpdateOrgRequest {
      * @nullable
      */
   social_links?: UpdateOrgRequestSocialLinks;
+  /** @nullable */
+  tax_inclusive?: boolean | null;
   /** @nullable */
   tax_rate?: number | null;
   /**

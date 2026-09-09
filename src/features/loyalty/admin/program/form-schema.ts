@@ -27,6 +27,10 @@ export const programSchema = z.object({
   earn_include_tax: z.boolean(),
   default_reward_cost: z.coerce.number<number>().int().positive(),
   reward_any_item: z.boolean(),
+  /** Off = no ceiling. Strings so "no cap" is an empty field, like the gifts. */
+  balance_cap_enabled: z.boolean(),
+  balance_cap: z.string(),
+  one_reward_per_order: z.boolean(),
   require_otp: z.boolean(),
   birthday_enabled: z.boolean(),
   /** A string so "no gift" is expressible as an empty field, which is the common case. */
@@ -56,6 +60,14 @@ export function fromWire(s: LoyaltySettings): ProgramValues {
     // Optional on the wire — the server defaults it so older clients keep
     // working — so it is optional here too rather than trusted to be present.
     reward_any_item: s.reward_any_item ?? false,
+    // The switch and the figure are separate: with the switch on, an empty
+    // figure means "the dearest reward", not "no ceiling".
+    balance_cap_enabled: s.balance_cap_enabled ?? false,
+    balance_cap: s.balance_cap != null ? String(s.balance_cap) : "",
+    // Stored as a number so a shop could allow two or three, but the toggle
+    // offers the only value anyone has asked for. A value already set by hand
+    // still reads as "on" rather than being silently discarded.
+    one_reward_per_order: (s.max_rewards_per_order ?? 0) > 0,
     require_otp: s.require_otp,
     birthday_enabled: s.birthday_enabled ?? false,
     birthday_reward_amount: s.birthday_reward_amount
@@ -103,6 +115,11 @@ export function toWire(
     earn_include_tax: v.earn_include_tax,
     default_reward_cost: v.default_reward_cost,
     reward_any_item: v.reward_any_item,
+    balance_cap_enabled: v.balance_cap_enabled,
+    // Null is not "no ceiling" here — the switch above is. It means "work it
+    // out from the reward list", which is what an empty field should do.
+    balance_cap: v.balance_cap_enabled ? Number(v.balance_cap) || null : null,
+    max_rewards_per_order: v.one_reward_per_order ? 1 : null,
     require_otp: v.require_otp,
     birthday_enabled: birthday,
     birthday_reward_amount: birthday ? Number(v.birthday_reward_amount) || null : null,

@@ -452,6 +452,12 @@ export const LoginBody = zod.object({
 
 export const LoginResponse = zod.object({
   "currency_code": zod.string(),
+  "tax_policy": zod.object({
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax.'),
+  "tax_rate": zod.number().describe('Fraction, NOT a percentage: `0.14` is 14%.')
+}).describe('The full policy, including tax-inclusive pricing and service charge.\nPrefer this over the flat `tax_rate` above.'),
   "tax_rate": zod.number().describe('Org tax rate as a decimal (e.g. 0.14 = 14% VAT); 0.0 when no org. Mirrors\n\/auth\/me so the POS has it immediately after login.'),
   "token": zod.string().describe('JWT to send as `Authorization: Bearer <token>` on subsequent requests.'),
   "user": zod.object({
@@ -469,6 +475,12 @@ export const LoginResponse = zod.object({
 
 export const MeResponse = zod.object({
   "currency_code": zod.string().describe('Org currency code (e.g. \"EGP\").'),
+  "tax_policy": zod.object({
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax.'),
+  "tax_rate": zod.number().describe('Fraction, NOT a percentage: `0.14` is 14%.')
+}).describe('The full policy, including tax-inclusive pricing and service charge.\n\nA till re-reads this whenever it syncs, which is what makes a rate\nchanged in the dashboard reach a device that has not signed in for\nweeks. Without it the till prices under a stale rate and — now that the\nserver refuses totals it disagrees with — cannot sell at all.'),
   "tax_rate": zod.number().describe('Org tax rate as a decimal (e.g. 0.14 = 14% VAT); 0.0 when the user has no\norg. Exposed so the POS can compute a tax-inclusive cart total client-side.'),
   "user": zod.object({
   "branch_id": zod.uuid().nullish(),
@@ -1062,6 +1074,10 @@ export const ListBranchesResponseItem = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
+  "service_charge_rate": zod.number().nullish(),
+  "service_charge_taxable": zod.boolean().nullish(),
+  "tax_inclusive": zod.boolean().nullish(),
+  "tax_rate": zod.number().nullish().describe('Tax policy OVERRIDES. `null` means inherit the organisation\'s setting —\nwhich is not the same as `0`. An org that changes its rate still moves\nevery branch that never asked to differ; a branch that genuinely charges\nno tax says so with an explicit `0`.'),
   "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -1098,6 +1114,10 @@ export const CreateBranchResponse = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
+  "service_charge_rate": zod.number().nullish(),
+  "service_charge_taxable": zod.boolean().nullish(),
+  "tax_inclusive": zod.boolean().nullish(),
+  "tax_rate": zod.number().nullish().describe('Tax policy OVERRIDES. `null` means inherit the organisation\'s setting —\nwhich is not the same as `0`. An org that changes its rate still moves\nevery branch that never asked to differ; a branch that genuinely charges\nno tax says so with an explicit `0`.'),
   "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -1123,6 +1143,10 @@ export const GetBranchResponse = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
+  "service_charge_rate": zod.number().nullish(),
+  "service_charge_taxable": zod.boolean().nullish(),
+  "tax_inclusive": zod.boolean().nullish(),
+  "tax_rate": zod.number().nullish().describe('Tax policy OVERRIDES. `null` means inherit the organisation\'s setting —\nwhich is not the same as `0`. An org that changes its rate still moves\nevery branch that never asked to differ; a branch that genuinely charges\nno tax says so with an explicit `0`.'),
   "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -1143,6 +1167,10 @@ export const UpdateBranchBody = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
+  "service_charge_rate": zod.number().nullish(),
+  "service_charge_taxable": zod.boolean().nullish(),
+  "tax_inclusive": zod.boolean().nullish(),
+  "tax_rate": zod.number().nullish(),
   "timezone": zod.string().nullish()
 }).describe('PATCH-style update. Fields fall into three categories:\n\n- \*\*Absent\*\* from JSON → keep existing value.\n- \*\*Present as `null`\*\* (only the `printer_\*` fields) → clear the column.\n- \*\*Present as a value\*\* → set to that value.\n\nOpenAPI cannot express the absent-vs-null distinction cleanly, so all\nfields are documented as optional and nullable. Clients targeting this\nendpoint should send only the fields they want to change.')
 
@@ -1162,6 +1190,10 @@ export const UpdateBranchResponse = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
+  "service_charge_rate": zod.number().nullish(),
+  "service_charge_taxable": zod.boolean().nullish(),
+  "tax_inclusive": zod.boolean().nullish(),
+  "tax_rate": zod.number().nullish().describe('Tax policy OVERRIDES. `null` means inherit the organisation\'s setting —\nwhich is not the same as `0`. An org that changes its rate still moves\nevery branch that never asked to differ; a branch that genuinely charges\nno tax says so with an explicit `0`.'),
   "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -3325,11 +3357,11 @@ export const AnalyticsOrdersResponse = zod.object({
   "order_id": zod.uuid(),
   "order_number": zod.number().describe('Per-shift sequence number shown on the POS.'),
   "order_ref": zod.string().nullish().describe('The human-readable reference printed on the receipt\n(`<BRANCHCODE>-<YYMMDD>-<NNNN>`). Null for orders predating it.'),
-  "service_charge": zod.number().describe('Always 0: Madar has no service-charge concept. Present so the field is\nstable if one is ever introduced.'),
+  "service_charge": zod.number().describe('The service charge added to this order, `0` where the branch charges\nnone. This was a hard-coded `0` for every order — the field was\npublished as if it meant something while a service charge did not\nexist. It does now, and this is it.'),
   "status": zod.string(),
   "subtotal": zod.number().describe('Piastres. Sum of the line items before discount and tax.'),
   "tax_amount": zod.number(),
-  "total_amount": zod.number().describe('`subtotal - discount_amount + tax_amount`. Deliberately COMPUTED rather\nthan read from `orders.total_amount`, which also carries the delivery\nfee — this figure is the order\'s own value and nothing else. Tips are\nexcluded too (they are not part of `total_amount` in the first place).')
+  "total_amount": zod.number().describe('`subtotal - discount_amount + service_charge + tax_amount`. Deliberately COMPUTED rather\nthan read from `orders.total_amount`, which also carries the delivery\nfee — this figure is the order\'s own value and nothing else. Tips are\nexcluded too (they are not part of `total_amount` in the first place).')
 }).describe('One order, reduced to the money that belongs to the order itself.')),
   "returned": zod.number(),
   "subtotal": zod.number(),
@@ -4143,6 +4175,8 @@ export const LoyaltyAwardResponse = zod.object({
  * @summary Render the greeting for settings that have NOT been saved yet.
  */
 export const PreviewLoyaltyBirthdayMessageBody = zod.object({
+  "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
+  "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
   "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
   "birthday_message_ar": zod.string().nullish(),
@@ -4152,7 +4186,10 @@ export const PreviewLoyaltyBirthdayMessageBody = zod.object({
   "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
   "earn_on_discounted": zod.boolean().describe('Earn on what was actually paid rather than the pre-discount subtotal.'),
   "earn_piastres_per_point": zod.number().describe('One point per this many piastres. 1000 = a point per 10 EGP. The\ndashboard shows and accepts EGP; the wire is always piastres.'),
+  "effective_balance_cap": zod.number().nullish().describe('The ceiling actually in force, once derived. \*\*Read-only.\*\*\n\n`balance_cap` is what the shop TYPED, which is usually nothing; this is\nwhat that resolves to against the current catalogue. The dashboard shows\nit so \"leave it empty\" is a visible number rather than a promise, and so\nthe figure on screen is the one the award path will use rather than the\ndashboard\'s own guess at it.\n\n`null` when no ceiling applies.'),
   "enabled": zod.boolean().describe('The program switch for this scope.'),
+  "geofenced_branches": zod.number().optional().describe('How many active branches have coordinates set. \*\*Read-only.\*\*\n\nThe one thing that decides whether a saved card can notify a customer\nwhen they are at the shop. Both wallets geofence from the branch\ncoordinates on the pass, so a programme whose branches have none gets no\nlocation prompt on the phone and no nearby notification — and nothing\nanywhere said so, which reads as the wallet being broken rather than as\na field nobody filled in.\n\nRead-only in effect: this type doubles as the PUT body, and the write\npath binds its columns explicitly, so a value sent here is parsed and\nthen ignored. It is a fact about `branches`, answered on this page\nbecause this is where someone wonders why the card is silent.'),
+  "max_rewards_per_order": zod.number().nullish().describe('How many rewards one order may claim. `None` = unlimited.\n\n`Some(1)` is the setting most shops mean when they ask for this: a\nmember with thirty stamps and a five-stamp reward can otherwise take six\nfree items in one visit, which is the same giveaway the shop believed it\nwas spreading over six.'),
   "mode": zod.string().describe('What this scope collects: `\"points\"` (from money spent) or `\"visits\"`\n(one stamp per sale). One or the other — never both.'),
   "org_id": zod.uuid(),
   "program_name": zod.string(),
@@ -4441,6 +4478,8 @@ export const GetLoyaltySettingsQueryParams = zod.object({
 })
 
 export const GetLoyaltySettingsResponse = zod.object({
+  "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
+  "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
   "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
   "birthday_message_ar": zod.string().nullish(),
@@ -4450,7 +4489,10 @@ export const GetLoyaltySettingsResponse = zod.object({
   "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
   "earn_on_discounted": zod.boolean().describe('Earn on what was actually paid rather than the pre-discount subtotal.'),
   "earn_piastres_per_point": zod.number().describe('One point per this many piastres. 1000 = a point per 10 EGP. The\ndashboard shows and accepts EGP; the wire is always piastres.'),
+  "effective_balance_cap": zod.number().nullish().describe('The ceiling actually in force, once derived. \*\*Read-only.\*\*\n\n`balance_cap` is what the shop TYPED, which is usually nothing; this is\nwhat that resolves to against the current catalogue. The dashboard shows\nit so \"leave it empty\" is a visible number rather than a promise, and so\nthe figure on screen is the one the award path will use rather than the\ndashboard\'s own guess at it.\n\n`null` when no ceiling applies.'),
   "enabled": zod.boolean().describe('The program switch for this scope.'),
+  "geofenced_branches": zod.number().optional().describe('How many active branches have coordinates set. \*\*Read-only.\*\*\n\nThe one thing that decides whether a saved card can notify a customer\nwhen they are at the shop. Both wallets geofence from the branch\ncoordinates on the pass, so a programme whose branches have none gets no\nlocation prompt on the phone and no nearby notification — and nothing\nanywhere said so, which reads as the wallet being broken rather than as\na field nobody filled in.\n\nRead-only in effect: this type doubles as the PUT body, and the write\npath binds its columns explicitly, so a value sent here is parsed and\nthen ignored. It is a fact about `branches`, answered on this page\nbecause this is where someone wonders why the card is silent.'),
+  "max_rewards_per_order": zod.number().nullish().describe('How many rewards one order may claim. `None` = unlimited.\n\n`Some(1)` is the setting most shops mean when they ask for this: a\nmember with thirty stamps and a five-stamp reward can otherwise take six\nfree items in one visit, which is the same giveaway the shop believed it\nwas spreading over six.'),
   "mode": zod.string().describe('What this scope collects: `\"points\"` (from money spent) or `\"visits\"`\n(one stamp per sale). One or the other — never both.'),
   "org_id": zod.uuid(),
   "program_name": zod.string(),
@@ -4466,6 +4508,8 @@ export const GetLoyaltySettingsResponse = zod.object({
 
 
 export const PutLoyaltySettingsBody = zod.object({
+  "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
+  "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
   "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
   "birthday_message_ar": zod.string().nullish(),
@@ -4475,7 +4519,10 @@ export const PutLoyaltySettingsBody = zod.object({
   "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
   "earn_on_discounted": zod.boolean().describe('Earn on what was actually paid rather than the pre-discount subtotal.'),
   "earn_piastres_per_point": zod.number().describe('One point per this many piastres. 1000 = a point per 10 EGP. The\ndashboard shows and accepts EGP; the wire is always piastres.'),
+  "effective_balance_cap": zod.number().nullish().describe('The ceiling actually in force, once derived. \*\*Read-only.\*\*\n\n`balance_cap` is what the shop TYPED, which is usually nothing; this is\nwhat that resolves to against the current catalogue. The dashboard shows\nit so \"leave it empty\" is a visible number rather than a promise, and so\nthe figure on screen is the one the award path will use rather than the\ndashboard\'s own guess at it.\n\n`null` when no ceiling applies.'),
   "enabled": zod.boolean().describe('The program switch for this scope.'),
+  "geofenced_branches": zod.number().optional().describe('How many active branches have coordinates set. \*\*Read-only.\*\*\n\nThe one thing that decides whether a saved card can notify a customer\nwhen they are at the shop. Both wallets geofence from the branch\ncoordinates on the pass, so a programme whose branches have none gets no\nlocation prompt on the phone and no nearby notification — and nothing\nanywhere said so, which reads as the wallet being broken rather than as\na field nobody filled in.\n\nRead-only in effect: this type doubles as the PUT body, and the write\npath binds its columns explicitly, so a value sent here is parsed and\nthen ignored. It is a fact about `branches`, answered on this page\nbecause this is where someone wonders why the card is silent.'),
+  "max_rewards_per_order": zod.number().nullish().describe('How many rewards one order may claim. `None` = unlimited.\n\n`Some(1)` is the setting most shops mean when they ask for this: a\nmember with thirty stamps and a five-stamp reward can otherwise take six\nfree items in one visit, which is the same giveaway the shop believed it\nwas spreading over six.'),
   "mode": zod.string().describe('What this scope collects: `\"points\"` (from money spent) or `\"visits\"`\n(one stamp per sale). One or the other — never both.'),
   "org_id": zod.uuid(),
   "program_name": zod.string(),
@@ -4490,6 +4537,8 @@ export const PutLoyaltySettingsBody = zod.object({
 })
 
 export const PutLoyaltySettingsResponse = zod.object({
+  "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
+  "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
   "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
   "birthday_message_ar": zod.string().nullish(),
@@ -4499,7 +4548,10 @@ export const PutLoyaltySettingsResponse = zod.object({
   "earn_include_tax": zod.boolean().describe('Add tax to the basis. Tips never earn and have no toggle.'),
   "earn_on_discounted": zod.boolean().describe('Earn on what was actually paid rather than the pre-discount subtotal.'),
   "earn_piastres_per_point": zod.number().describe('One point per this many piastres. 1000 = a point per 10 EGP. The\ndashboard shows and accepts EGP; the wire is always piastres.'),
+  "effective_balance_cap": zod.number().nullish().describe('The ceiling actually in force, once derived. \*\*Read-only.\*\*\n\n`balance_cap` is what the shop TYPED, which is usually nothing; this is\nwhat that resolves to against the current catalogue. The dashboard shows\nit so \"leave it empty\" is a visible number rather than a promise, and so\nthe figure on screen is the one the award path will use rather than the\ndashboard\'s own guess at it.\n\n`null` when no ceiling applies.'),
   "enabled": zod.boolean().describe('The program switch for this scope.'),
+  "geofenced_branches": zod.number().optional().describe('How many active branches have coordinates set. \*\*Read-only.\*\*\n\nThe one thing that decides whether a saved card can notify a customer\nwhen they are at the shop. Both wallets geofence from the branch\ncoordinates on the pass, so a programme whose branches have none gets no\nlocation prompt on the phone and no nearby notification — and nothing\nanywhere said so, which reads as the wallet being broken rather than as\na field nobody filled in.\n\nRead-only in effect: this type doubles as the PUT body, and the write\npath binds its columns explicitly, so a value sent here is parsed and\nthen ignored. It is a fact about `branches`, answered on this page\nbecause this is where someone wonders why the card is silent.'),
+  "max_rewards_per_order": zod.number().nullish().describe('How many rewards one order may claim. `None` = unlimited.\n\n`Some(1)` is the setting most shops mean when they ask for this: a\nmember with thirty stamps and a five-stamp reward can otherwise take six\nfree items in one visit, which is the same giveaway the shop believed it\nwas spreading over six.'),
   "mode": zod.string().describe('What this scope collects: `\"points\"` (from money spent) or `\"visits\"`\n(one stamp per sale). One or the other — never both.'),
   "org_id": zod.uuid(),
   "program_name": zod.string(),
@@ -6279,6 +6331,7 @@ export const SettleOpenTicketResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -6419,6 +6472,7 @@ export const ListOrdersResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -6547,6 +6601,7 @@ export const CreateOrderResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -6700,6 +6755,7 @@ export const ExportOrdersResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -6879,6 +6935,7 @@ export const GetOrderResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -7031,6 +7088,7 @@ export const VoidOrderResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "subtotal": zod.number(),
@@ -7062,10 +7120,13 @@ export const ListOrgsResponseItem = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax, and the receipt breaks it\nout backwards rather than adding it on at the till.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -7095,10 +7156,13 @@ export const CreateOrgResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax, and the receipt breaks it\nout backwards rather than adding it on at the till.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -7121,10 +7185,13 @@ export const GetOrgResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax, and the receipt breaks it\nout backwards rather than adding it on at the till.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -7148,10 +7215,13 @@ export const UpdateOrgBody = zod.object({
   "logo_url": zod.string().nullish().describe('`null` clears the logo; absent leaves it unchanged. To set a new\nlogo, use `PUT \/orgs\/{id}\/logo` (multipart) instead — JSON updates\nonly accept the clear-to-null case here.'),
   "name": zod.string().nullish(),
   "receipt_footer": zod.string().nullish(),
+  "service_charge_rate": zod.number().nullish(),
+  "service_charge_taxable": zod.boolean().nullish(),
   "slug": zod.string().nullish(),
   "social_links": zod.looseObject({
 
 }).nullish().describe('Where else to find the shop. Validated against a closed list of\nplatforms and `https` only — these are printed onto a customer\'s wallet\npass, and a card that renders whatever was typed can be made to say\nanything. See `orgs::social`.'),
+  "tax_inclusive": zod.boolean().nullish(),
   "tax_rate": zod.number().nullish(),
   "timezone": zod.string().nullish().describe('IANA timezone name (e.g. `Africa\/Cairo`). Validated against the\nPostgreSQL timezone database. Branches inherit this when their own\ntimezone is unset.')
 })
@@ -7169,10 +7239,13 @@ export const UpdateOrgResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax, and the receipt breaks it\nout backwards rather than adding it on at the till.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -7240,10 +7313,13 @@ export const UploadOrgCardImageResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax, and the receipt breaks it\nout backwards rather than adding it on at the till.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
@@ -7270,10 +7346,13 @@ export const UploadOrgLogoResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax, and the receipt breaks it\nout backwards rather than adding it on at the till.'),
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })

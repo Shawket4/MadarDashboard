@@ -34,5 +34,13 @@ export interface UpdateBranchRequest {
   /** @nullable */
   printer_port?: number | null;
   /** @nullable */
+  service_charge_rate?: number | null;
+  /** @nullable */
+  service_charge_taxable?: boolean | null;
+  /** @nullable */
+  tax_inclusive?: boolean | null;
+  /** @nullable */
+  tax_rate?: number | null;
+  /** @nullable */
   timezone?: string | null;
 }

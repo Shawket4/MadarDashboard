@@ -18,6 +18,7 @@ import { createOrg, updateOrg, uploadOrgLogo } from "@/data/api/generated/api";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAppStore } from "@/data/stores/app.store";
+import { MAX_PERCENT, fractionToPercent, percentToFraction } from "./tax-rate";
 import {
   SocialLinksFields,
   socialLinksPatch,
@@ -53,11 +54,24 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         name: z.string().min(1, t("common.requiredField", "This field is required")),
         slug: z.string().min(1, t("common.requiredField", "This field is required")),
         currency_code: z.string().min(1, t("common.requiredField", "This field is required")),
-        tax_rate: z.coerce.number<number>().min(0),
+        // A PERCENT here, converted to the fraction the API stores on submit.
+        // The max is the guard that was missing: without it, `14` sailed
+        // through the form and came back a 400 from the server.
+        tax_rate: z.coerce
+          .number<number>()
+          .min(0, t("orgs.taxRateRange", "Enter a rate between 0 and 100"))
+          .max(MAX_PERCENT, t("orgs.taxRateRange", "Enter a rate between 0 and 100")),
         receipt_footer: z.string().optional(),
         timezone: z.string().min(1, t("common.requiredField", "This field is required")),
         is_active: z.boolean(),
         custom_branding: z.boolean(),
+        tax_inclusive: z.boolean(),
+        // A percent here too, for the same reason the tax rate is.
+        service_charge_rate: z.coerce
+          .number<number>()
+          .min(0, t("orgs.taxRateRange", "Enter a rate between 0 and 100"))
+          .max(MAX_PERCENT, t("orgs.taxRateRange", "Enter a rate between 0 and 100")),
+        service_charge_taxable: z.boolean(),
         social: socialLinksSchema(t),
       }),
     [t],
@@ -66,7 +80,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, social: socialLinksToForm(null) },
+    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, social: socialLinksToForm(null) },
   });
 
   useEffect(() => {
@@ -78,11 +92,14 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         name: org?.name ?? "",
         slug: org?.slug ?? "",
         currency_code: org?.currency_code ?? "EGP",
-        tax_rate: org?.tax_rate ?? 0,
+        tax_rate: fractionToPercent(org?.tax_rate),
         receipt_footer: org?.receipt_footer ?? "",
         timezone: org?.timezone ?? "Africa/Cairo",
         is_active: org?.is_active ?? true,
         custom_branding: org?.custom_branding ?? false,
+        tax_inclusive: org?.tax_inclusive ?? false,
+        service_charge_rate: fractionToPercent(org?.service_charge_rate),
+        service_charge_taxable: org?.service_charge_taxable ?? true,
         social: socialLinksToForm(org?.social_links),
       });
     }
@@ -97,14 +114,17 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
       if (org) {
         await updateOrg(org.id, {
           name: v.name, slug: v.slug, currency_code: v.currency_code,
-          tax_rate: v.tax_rate, receipt_footer: v.receipt_footer || null, timezone: v.timezone, is_active: v.is_active,
+          tax_rate: percentToFraction(v.tax_rate), receipt_footer: v.receipt_footer || null, timezone: v.timezone, is_active: v.is_active,
           custom_branding: v.custom_branding,
+          tax_inclusive: v.tax_inclusive,
+          service_charge_rate: percentToFraction(v.service_charge_rate),
+          service_charge_taxable: v.service_charge_taxable,
           social_links: socialLinksPatch(v.social, org.social_links),
         });
       } else {
         await createOrg({
           name: v.name, slug: v.slug, currency_code: v.currency_code,
-          tax_rate: v.tax_rate, receipt_footer: v.receipt_footer || null, timezone: v.timezone, logo: pendingLogo ?? undefined,
+          tax_rate: percentToFraction(v.tax_rate), receipt_footer: v.receipt_footer || null, timezone: v.timezone, logo: pendingLogo ?? undefined,
         });
       }
       void invalidateOrgs();
@@ -177,7 +197,50 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
                 <FormItem><FormLabel>{t("orgs.currency", "Currency")}</FormLabel><FormControl><Input {...field} className="font-mono uppercase" /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="tax_rate" render={({ field }) => (
-                <FormItem><FormLabel>{t("orgs.taxRate", "Tax Rate (%)")}</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>{t("orgs.taxRate", "Tax Rate (%)")}</FormLabel><FormControl><Input type="number" step="0.1" min="0" max={MAX_PERCENT} {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+
+            {/* How the rate above is applied, and the charge that shares its
+                base. Both are org-wide defaults; a branch trading under a
+                different regime overrides them on the branch itself. */}
+            <FormField control={form.control} name="tax_inclusive" render={({ field }) => (
+              <FormItem className="rounded-lg bg-muted p-3">
+                <div className="flex items-center justify-between gap-4">
+                  <FormLabel className="font-normal">
+                    {t("orgs.taxInclusive", "Menu prices include tax")}
+                  </FormLabel>
+                  <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t(
+                    "orgs.taxInclusiveHint",
+                    "On, the price on the menu is what the customer pays and the receipt shows the tax it already contained. Off, tax is added at checkout.",
+                  )}
+                </p>
+              </FormItem>
+            )} />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField control={form.control} name="service_charge_rate" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("orgs.serviceCharge", "Service charge (%)")}</FormLabel>
+                  <FormControl><Input type="number" step="0.1" min="0" max={MAX_PERCENT} {...field} /></FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {t("orgs.serviceChargeHint", "0 for none. Shown as its own line on the bill.")}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="service_charge_taxable" render={({ field }) => (
+                <FormItem className="flex flex-col justify-center rounded-lg bg-muted p-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <FormLabel className="font-normal">
+                      {t("orgs.serviceChargeTaxable", "Tax the service charge")}
+                    </FormLabel>
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                  </div>
+                </FormItem>
               )} />
             </div>
             <FormField control={form.control} name="timezone" render={({ field }) => (

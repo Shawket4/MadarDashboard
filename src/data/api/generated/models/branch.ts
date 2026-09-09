@@ -44,6 +44,20 @@ export interface Branch {
   printer_ip?: string | null;
   /** @nullable */
   printer_port?: number | null;
+  /** @nullable */
+  service_charge_rate?: number | null;
+  /** @nullable */
+  service_charge_taxable?: boolean | null;
+  /** @nullable */
+  tax_inclusive?: boolean | null;
+  /**
+     * Tax policy OVERRIDES. `null` means inherit the organisation's setting —
+     * which is not the same as `0`. An org that changes its rate still moves
+     * every branch that never asked to differ; a branch that genuinely charges
+     * no tax says so with an explicit `0`.
+     * @nullable
+     */
+  tax_rate?: number | null;
   /**
      * Effective IANA timezone name for this branch, resolved as
      * `branch.timezone → org.timezone → Africa/Cairo`. Always present;

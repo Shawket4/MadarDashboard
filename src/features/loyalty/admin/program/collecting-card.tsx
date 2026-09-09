@@ -16,9 +16,23 @@ import { currencyLabel } from "../../shared/util";
 import type { ProgramValues } from "./form-schema";
 import { Group, TextRow, ToggleRow } from "./fields";
 
-export function CollectingCard({ form }: { form: UseFormReturn<ProgramValues> }) {
+export function CollectingCard({
+  form,
+  derivedCap,
+}: {
+  form: UseFormReturn<ProgramValues>;
+  /**
+   * What an empty ceiling resolves to, as the SERVER computes it.
+   *
+   * Passed in rather than worked out here: the award path reads the catalogue
+   * to derive this, and a second implementation on this side could quietly
+   * disagree with the number that actually applies.
+   */
+  derivedCap: number | null;
+}) {
   const { t } = useTranslation();
   const mode = form.watch("mode");
+  const capEnabled = form.watch("balance_cap_enabled");
 
   return (
     <Card>
@@ -103,6 +117,70 @@ export function CollectingCard({ form }: { form: UseFormReturn<ProgramValues> })
             "Opens the whole menu at the price above, instead of only the Rewards list. Off by default — a list lets you offer an espresso without also offering the steak.",
           )}
         />
+
+        {/* Two limits on how far a card can run. Both off by default: an
+            existing programme must not start capping anything because this
+            section appeared. */}
+        <Group
+          title={t("loyalty.limits", "Limits")}
+          hint={t(
+            "loyalty.limitsHint",
+            "Off, a card collects without end and a customer can spend the lot in one visit.",
+          )}
+        >
+          <div className="space-y-3">
+            <ToggleRow
+              form={form}
+              name="balance_cap_enabled"
+              label={t("loyalty.capBalance", "Stop collecting at a maximum")}
+              hint={t(
+                "loyalty.capBalanceHint",
+                "A full card still goes through the till — the sale never fails — it just stops adding until something is redeemed.",
+              )}
+            />
+            {capEnabled ? (
+              <>
+                <TextRow
+                  form={form}
+                  name="balance_cap"
+                  type="number"
+                  mono
+                  label={`${t("loyalty.capBalanceMax", "Most a customer can hold")} (${currencyLabel(
+                    mode,
+                    Number(form.watch("balance_cap")) || 0,
+                  )})`}
+                  hint={t(
+                    "loyalty.capBalanceMaxHint",
+                    "Leave empty to use your dearest reward, so the ceiling follows the list instead of going stale when you add or reprice one.",
+                  )}
+                />
+                {!form.watch("balance_cap") ? (
+                  <p className="text-xs text-muted-foreground">
+                    {derivedCap != null
+                      ? t("loyalty.capBalanceDerived", {
+                          defaultValue:
+                            "Currently {{amount}} — your dearest reward. Collecting past it buys nothing.",
+                          amount: `${derivedCap} ${currencyLabel(mode, derivedCap)}`,
+                        })
+                      : t(
+                          "loyalty.capBalanceNoRewards",
+                          "Add a reward and the ceiling follows the dearest one.",
+                        )}
+                  </p>
+                ) : null}
+              </>
+            ) : null}
+            <ToggleRow
+              form={form}
+              name="one_reward_per_order"
+              label={t("loyalty.oneRewardPerOrder", "One reward per order")}
+              hint={t(
+                "loyalty.oneRewardPerOrderHint",
+                "Off, a customer with 30 stamps and a 5-stamp reward can take six free items in one visit — the giveaway you meant to spread over six.",
+              )}
+            />
+          </div>
+        </Group>
       </CardContent>
     </Card>
   );

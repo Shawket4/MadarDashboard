@@ -565,6 +565,7 @@ export * from './syncSize';
 export * from './tableBookingHint';
 export * from './tablePosition';
 export * from './tableQrParams';
+export * from './taxPolicyPublic';
 export * from './teamPresence';
 export * from './teamPresenceParams';
 export * from './tellerStats';
