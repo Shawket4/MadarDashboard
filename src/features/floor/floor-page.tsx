@@ -107,9 +107,16 @@ export function FloorPage() {
   }, [allTables, sectionKey]);
 
   /**
-   * Who is sitting where. An occupant is always an open ticket now: a parked
-   * order is a POS-local draft with no server presence, so there is exactly one
-   * source to read and no precedence rule to get wrong.
+   * Who is sitting where — the NAME on the table. An occupant is always an open
+   * ticket: a parked order is a POS-local draft whose contents never leave the
+   * till, so there is exactly one source to read and no precedence rule to get
+   * wrong.
+   *
+   * A table a till is holding for one of those drafts therefore has no name,
+   * but it is not free: the POS pushes the occupancy alone, so the table
+   * arrives here `seated` with nobody in this map. `isTableTaken` reads the
+   * status as well as the occupant for exactly that reason — otherwise the
+   * floor would invite someone to seat a party on top of a waiting order.
    */
   const occupants = useMemo(() => {
     const map = new Map<string, string>();
