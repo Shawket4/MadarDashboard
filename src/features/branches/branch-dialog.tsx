@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { MapPin, Printer } from "lucide-react";
+
+import { useAuthStore } from "@/data/stores/auth.store";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -75,6 +77,7 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
   });
   const printerBrand = form.watch("printer_brand");
   const taxOverride = form.watch("tax_override");
+  const isSuperAdmin = useAuthStore((s) => s.user?.role) === "super_admin";
 
   useEffect(() => {
     if (open) {
@@ -212,59 +215,70 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
               </div>
             </div>
 
-            {/* Tax. Off, this branch follows its organisation — which is the
-                right default and the one almost every branch wants. It is here
-                at all because an org can trade across jurisdictions, and a
-                branch in a free zone or a different country cannot be made to
-                charge its head office's rate. */}
-            <FormField control={form.control} name="tax_override" render={({ field }) => (
-              <FormItem className="rounded-lg bg-muted p-3">
-                <div className="flex items-center justify-between gap-4">
-                  <FormLabel className="font-normal">
-                    {t("branches.taxOverride", "This branch taxes differently")}
-                  </FormLabel>
-                  <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t(
-                    "branches.taxOverrideHint",
-                    "Off, it follows the organisation's tax settings and changes to them apply here automatically.",
-                  )}
-                </p>
-              </FormItem>
-            )} />
+            {/* Tax is not the shop's to choose.
+                A rate is a legal fact about a jurisdiction and a registration,
+                not a preference — so like the organisation's own tax settings,
+                this is SUPER ADMIN ONLY. `/orgs` was already gated; this was
+                not, which left the branch override as a way for an org admin to
+                set the very rate the org page keeps out of their hands.
 
-            {taxOverride ? (
-              <div className="space-y-4 rounded-lg border border-border/70 p-3">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <FormField control={form.control} name="tax_rate" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("orgs.taxRate", "Tax rate (%)")}</FormLabel>
-                      <FormControl><Input type="number" step="0.1" min="0" max={MAX_PERCENT} {...field} value={field.value ?? ""} className="font-mono" /></FormControl>
-                      <FormMessage />
+                Off, the branch follows its organisation — the right default and
+                the one almost every branch wants. It exists at all because an
+                org can trade across jurisdictions, and a branch in a free zone
+                or another country cannot be made to charge its head office's
+                rate. */}
+            {isSuperAdmin ? (
+              <>
+              <FormField control={form.control} name="tax_override" render={({ field }) => (
+                <FormItem className="rounded-lg bg-muted p-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <FormLabel className="font-normal">
+                      {t("branches.taxOverride", "This branch taxes differently")}
+                    </FormLabel>
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t(
+                      "branches.taxOverrideHint",
+                      "Off, it follows the organisation's tax settings and changes to them apply here automatically.",
+                    )}
+                  </p>
+                </FormItem>
+              )} />
+
+              {taxOverride ? (
+                <div className="space-y-4 rounded-lg border border-border/70 p-3">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField control={form.control} name="tax_rate" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("orgs.taxRate", "Tax rate (%)")}</FormLabel>
+                        <FormControl><Input type="number" step="0.1" min="0" max={MAX_PERCENT} {...field} value={field.value ?? ""} className="font-mono" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="service_charge_rate" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("orgs.serviceCharge", "Service charge (%)")}</FormLabel>
+                        <FormControl><Input type="number" step="0.1" min="0" max={MAX_PERCENT} {...field} value={field.value ?? ""} className="font-mono" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <FormField control={form.control} name="tax_inclusive" render={({ field }) => (
+                    <FormItem className="flex items-center justify-between gap-4">
+                      <FormLabel className="font-normal">{t("orgs.taxInclusive", "Menu prices include tax")}</FormLabel>
+                      <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                     </FormItem>
                   )} />
-                  <FormField control={form.control} name="service_charge_rate" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("orgs.serviceCharge", "Service charge (%)")}</FormLabel>
-                      <FormControl><Input type="number" step="0.1" min="0" max={MAX_PERCENT} {...field} value={field.value ?? ""} className="font-mono" /></FormControl>
-                      <FormMessage />
+                  <FormField control={form.control} name="service_charge_taxable" render={({ field }) => (
+                    <FormItem className="flex items-center justify-between gap-4">
+                      <FormLabel className="font-normal">{t("orgs.serviceChargeTaxable", "Tax the service charge")}</FormLabel>
+                      <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                     </FormItem>
                   )} />
                 </div>
-                <FormField control={form.control} name="tax_inclusive" render={({ field }) => (
-                  <FormItem className="flex items-center justify-between gap-4">
-                    <FormLabel className="font-normal">{t("orgs.taxInclusive", "Menu prices include tax")}</FormLabel>
-                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="service_charge_taxable" render={({ field }) => (
-                  <FormItem className="flex items-center justify-between gap-4">
-                    <FormLabel className="font-normal">{t("orgs.serviceChargeTaxable", "Tax the service charge")}</FormLabel>
-                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                  </FormItem>
-                )} />
-              </div>
+              ) : null}
+              </>
             ) : null}
 
             {editing ? (

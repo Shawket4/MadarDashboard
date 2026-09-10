@@ -125,9 +125,19 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
           social_links: socialLinksPatch(v.social, org.social_links),
         });
       } else {
+        // Everything the form collects, not just the six fields create used to
+        // take. A shop set up with a 12% service charge and tax-inclusive
+        // pricing got neither, was told the organisation had been created, and
+        // discovered in the edit dialog that half of what it typed had been
+        // dropped.
         await createOrg({
           name: v.name, slug: v.slug, currency_code: v.currency_code,
-          tax_rate: percentToFraction(v.tax_rate), receipt_footer: v.receipt_footer || null, timezone: v.timezone, logo: pendingLogo ?? undefined,
+          tax_rate: percentToFraction(v.tax_rate),
+          tax_inclusive: v.tax_inclusive,
+          service_charge_rate: percentToFraction(v.service_charge_rate),
+          service_charge_taxable: v.service_charge_taxable,
+          require_table_for_orders: v.require_table_for_orders,
+          receipt_footer: v.receipt_footer || null, timezone: v.timezone, logo: pendingLogo ?? undefined,
         });
       }
       void invalidateOrgs();

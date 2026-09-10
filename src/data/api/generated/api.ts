@@ -205,6 +205,7 @@ import type {
   GuestOrderHistoryParams,
   GuestPastLocationsParams,
   GuestSavedLocation,
+  HoldTableRequest,
   IngredientCategory,
   InventoryValuationReport,
   ItemOptionOut,
@@ -367,6 +368,7 @@ import type {
   RecipeStep,
   RecipeStepPreset,
   RegistryInfo,
+  ReleaseTableRequest,
   RenameConversationRequest,
   ReorderSuggestion,
   RepricingReport,
@@ -7402,6 +7404,163 @@ export const useClearTable = <TError = ErrorBody,
         TContext
       > => {
       return useMutation(getClearTableMutationOptions(options), queryClient);
+    }
+
+/**
+ * Occupancy travels on its own here, carrying nothing about why. Two things
+ * use it:
+ *
+ *   * A PARTY SITTING DOWN. They have ordered nothing yet, so there is no
+ *     bill — a ticket starts with their first round and claims this table on
+ *     the way in. Seating used to open an empty ticket instead, which put a
+ *     zero-value bill in every report and made a party who changed their mind
+ *     and left something you had to VOID.
+ *   * A PARKED CART. Device-local by design: the order, its lines and its
+ *     money never leave the till. But the table is not the till's private
+ *     business, and while it stayed local the dashboard's floor and every
+ *     other terminal were told a table with somebody's order waiting on it was
+ *     free.
+ *
+ * In both cases the server learns that the table is taken and nothing
+ * whatever about what is on it.
+ *
+ * Like `clear_table`, and for the reason written there, this is not a
+ * set-status endpoint: exactly one transition, `free` -> `seated`, refused
+ * from anything else. A table a ticket is already on stays the ticket's.
+ * @summary Take a table. THE seating primitive.
+ */
+export const holdTable = (
+    id: string,
+    holdTableRequest: HoldTableRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/floor/tables/${id}/hold`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: holdTableRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getHoldTableMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof holdTable>>, TError,{id: string;data: HoldTableRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof holdTable>>, TError,{id: string;data: HoldTableRequest}, TContext> => {
+
+const mutationKey = ['holdTable'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof holdTable>>, {id: string;data: HoldTableRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  holdTable(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HoldTableMutationResult = NonNullable<Awaited<ReturnType<typeof holdTable>>>
+    export type HoldTableMutationBody = HoldTableRequest
+    export type HoldTableMutationError = ErrorBody
+
+    /**
+ * @summary Take a table. THE seating primitive.
+ */
+export const useHoldTable = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof holdTable>>, TError,{id: string;data: HoldTableRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof holdTable>>,
+        TError,
+        {id: string;data: HoldTableRequest},
+        TContext
+      > => {
+      return useMutation(getHoldTableMutationOptions(options), queryClient);
+    }
+
+/**
+ * The counterpart to `hold_table`: the hold moved to another table, was
+ * checked out, or was discarded. Exactly one transition out of `seated` --
+ * to `free`, or to `dirty` when `bus` says the party ate -- and never over a
+ * live ticket — if one has landed since, the ticket owns the
+ * table and this is a no-op rather than a way to free an occupied table.
+ * @summary Give back a table a till was holding for its own parked order.
+ */
+export const releaseTable = (
+    id: string,
+    releaseTableRequest: ReleaseTableRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/floor/tables/${id}/release`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: releaseTableRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getReleaseTableMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof releaseTable>>, TError,{id: string;data: ReleaseTableRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof releaseTable>>, TError,{id: string;data: ReleaseTableRequest}, TContext> => {
+
+const mutationKey = ['releaseTable'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof releaseTable>>, {id: string;data: ReleaseTableRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  releaseTable(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReleaseTableMutationResult = NonNullable<Awaited<ReturnType<typeof releaseTable>>>
+    export type ReleaseTableMutationBody = ReleaseTableRequest
+    export type ReleaseTableMutationError = ErrorBody
+
+    /**
+ * @summary Give back a table a till was holding for its own parked order.
+ */
+export const useReleaseTable = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof releaseTable>>, TError,{id: string;data: ReleaseTableRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof releaseTable>>,
+        TError,
+        {id: string;data: ReleaseTableRequest},
+        TContext
+      > => {
+      return useMutation(getReleaseTableMutationOptions(options), queryClient);
     }
 
 export const listFloorTransfers = (
@@ -15501,7 +15660,19 @@ formData.append(`name`, createOrgMultipart.name);
 if(createOrgMultipart.receipt_footer !== undefined && createOrgMultipart.receipt_footer !== null) {
  formData.append(`receipt_footer`, createOrgMultipart.receipt_footer);
  }
+if(createOrgMultipart.require_table_for_orders !== undefined && createOrgMultipart.require_table_for_orders !== null) {
+ formData.append(`require_table_for_orders`, createOrgMultipart.require_table_for_orders.toString())
+ }
+if(createOrgMultipart.service_charge_rate !== undefined && createOrgMultipart.service_charge_rate !== null) {
+ formData.append(`service_charge_rate`, createOrgMultipart.service_charge_rate.toString())
+ }
+if(createOrgMultipart.service_charge_taxable !== undefined && createOrgMultipart.service_charge_taxable !== null) {
+ formData.append(`service_charge_taxable`, createOrgMultipart.service_charge_taxable.toString())
+ }
 formData.append(`slug`, createOrgMultipart.slug);
+if(createOrgMultipart.tax_inclusive !== undefined && createOrgMultipart.tax_inclusive !== null) {
+ formData.append(`tax_inclusive`, createOrgMultipart.tax_inclusive.toString())
+ }
 if(createOrgMultipart.tax_rate !== undefined && createOrgMultipart.tax_rate !== null) {
  formData.append(`tax_rate`, createOrgMultipart.tax_rate.toString())
  }

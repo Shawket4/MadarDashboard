@@ -2969,6 +2969,60 @@ export const ClearTableBody = zod.object({
 export const ClearTableResponse = zod.unknown()
 
 
+/**
+ * Occupancy travels on its own here, carrying nothing about why. Two things
+ * use it:
+ *
+ *   * A PARTY SITTING DOWN. They have ordered nothing yet, so there is no
+ *     bill — a ticket starts with their first round and claims this table on
+ *     the way in. Seating used to open an empty ticket instead, which put a
+ *     zero-value bill in every report and made a party who changed their mind
+ *     and left something you had to VOID.
+ *   * A PARKED CART. Device-local by design: the order, its lines and its
+ *     money never leave the till. But the table is not the till's private
+ *     business, and while it stayed local the dashboard's floor and every
+ *     other terminal were told a table with somebody's order waiting on it was
+ *     free.
+ *
+ * In both cases the server learns that the table is taken and nothing
+ * whatever about what is on it.
+ *
+ * Like `clear_table`, and for the reason written there, this is not a
+ * set-status endpoint: exactly one transition, `free` -> `seated`, refused
+ * from anything else. A table a ticket is already on stays the ticket's.
+ * @summary Take a table. THE seating primitive.
+ */
+export const HoldTableParams = zod.object({
+  "id": zod.uuid().describe('Table ID')
+})
+
+export const HoldTableBody = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const HoldTableResponse = zod.unknown()
+
+
+/**
+ * The counterpart to `hold_table`: the hold moved to another table, was
+ * checked out, or was discarded. Exactly one transition out of `seated` --
+ * to `free`, or to `dirty` when `bus` says the party ate -- and never over a
+ * live ticket — if one has landed since, the ticket owns the
+ * table and this is a no-op rather than a way to free an occupied table.
+ * @summary Give back a table a till was holding for its own parked order.
+ */
+export const ReleaseTableParams = zod.object({
+  "id": zod.uuid().describe('Table ID')
+})
+
+export const ReleaseTableBody = zod.object({
+  "branch_id": zod.uuid(),
+  "bus": zod.boolean().optional().describe('The party ATE here and has paid: the table needs bussing before anyone\nelse sits, so it lands `dirty` rather than `free`. The same fork the\ntill makes locally when a parked order checks out versus is discarded --\na discard means nobody ever sat, and the table goes straight back to the\nroom. Without this the dashboard would show a table with dirty plates on\nit as ready for the next party.')
+})
+
+export const ReleaseTableResponse = zod.unknown()
+
+
 export const ListFloorTransfersQueryParams = zod.object({
   "branch_id": zod.uuid(),
   "since": zod.iso.datetime({"offset":true}).optional().describe('Sync cursor (as on \/held-orders). Omit for the waiting queue only.')
@@ -6105,6 +6159,7 @@ export const ListOpenTicketsResponseItem = zod.object({
   "line": zod.unknown().describe('The frozen priced SnapshotLine (name, size, addons, totals).'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
+  "round_fired_at": zod.iso.datetime({"offset":true}).describe('When the round this line came in on was fired. A bill is read as a\nsequence of visits to the table — \"the drinks at seven, the food at\nhalf past\" — and without the clock a till can only show a flat list\nthat says nothing about how the evening went.'),
   "round_number": zod.number(),
   "voided": zod.boolean()
 })),
@@ -6173,6 +6228,7 @@ export const CreateOpenTicketResponse = zod.object({
   "line": zod.unknown().describe('The frozen priced SnapshotLine (name, size, addons, totals).'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
+  "round_fired_at": zod.iso.datetime({"offset":true}).describe('When the round this line came in on was fired. A bill is read as a\nsequence of visits to the table — \"the drinks at seven, the food at\nhalf past\" — and without the clock a till can only show a flat list\nthat says nothing about how the evening went.'),
   "round_number": zod.number(),
   "voided": zod.boolean()
 })),
@@ -6205,6 +6261,7 @@ export const GetOpenTicketResponse = zod.object({
   "line": zod.unknown().describe('The frozen priced SnapshotLine (name, size, addons, totals).'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
+  "round_fired_at": zod.iso.datetime({"offset":true}).describe('When the round this line came in on was fired. A bill is read as a\nsequence of visits to the table — \"the drinks at seven, the food at\nhalf past\" — and without the clock a till can only show a flat list\nthat says nothing about how the evening went.'),
   "round_number": zod.number(),
   "voided": zod.boolean()
 })),
@@ -6266,6 +6323,7 @@ export const AddRoundResponse = zod.object({
   "line": zod.unknown().describe('The frozen priced SnapshotLine (name, size, addons, totals).'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
+  "round_fired_at": zod.iso.datetime({"offset":true}).describe('When the round this line came in on was fired. A bill is read as a\nsequence of visits to the table — \"the drinks at seven, the food at\nhalf past\" — and without the clock a till can only show a flat list\nthat says nothing about how the evening went.'),
   "round_number": zod.number(),
   "voided": zod.boolean()
 })),
@@ -6377,6 +6435,7 @@ export const MoveTicketTableResponse = zod.object({
   "line": zod.unknown().describe('The frozen priced SnapshotLine (name, size, addons, totals).'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
+  "round_fired_at": zod.iso.datetime({"offset":true}).describe('When the round this line came in on was fired. A bill is read as a\nsequence of visits to the table — \"the drinks at seven, the food at\nhalf past\" — and without the clock a till can only show a flat list\nthat says nothing about how the evening went.'),
   "round_number": zod.number(),
   "voided": zod.boolean()
 })),
@@ -6413,6 +6472,7 @@ export const VoidOpenTicketResponse = zod.object({
   "line": zod.unknown().describe('The frozen priced SnapshotLine (name, size, addons, totals).'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
+  "round_fired_at": zod.iso.datetime({"offset":true}).describe('When the round this line came in on was fired. A bill is read as a\nsequence of visits to the table — \"the drinks at seven, the food at\nhalf past\" — and without the clock a till can only show a flat list\nthat says nothing about how the evening went.'),
   "round_number": zod.number(),
   "voided": zod.boolean()
 })),
@@ -7141,8 +7201,12 @@ export const CreateOrgBody = zod.object({
   "logo": zod.instanceof(File).nullish().describe('Logo image file. PNG, JPEG, or WebP. Optional — omit the field\nentirely to create the org without a logo.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "require_table_for_orders": zod.boolean().nullish().describe('Must every sale name a table? Default false.'),
+  "service_charge_rate": zod.number().nullish().describe('A fraction, like the tax rate: 0.12 is 12%. Default 0.'),
+  "service_charge_taxable": zod.boolean().nullish().describe('Is the service charge itself taxed? Default true.'),
   "slug": zod.string(),
-  "tax_rate": zod.number().nullish(),
+  "tax_inclusive": zod.boolean().nullish().describe('Are menu prices tax-inclusive? Default false (tax added on top).'),
+  "tax_rate": zod.number().nullish().describe('A FRACTION: 0.14 is 14%. Same unit as `PATCH \/orgs\/{id}`.'),
   "timezone": zod.string().nullish()
 })
 
