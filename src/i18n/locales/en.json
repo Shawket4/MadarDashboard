@@ -317,7 +317,9 @@
     "taxInclusiveHint": "On, the price on the menu is what the customer pays and the receipt shows the tax it already contained. Off, tax is added at checkout.",
     "serviceCharge": "Service charge (%)",
     "serviceChargeHint": "0 for none. Shown as its own line on the bill.",
-    "serviceChargeTaxable": "Tax the service charge"
+    "serviceChargeTaxable": "Tax the service charge",
+    "requireTable": "Every dine-in sale belongs to a table",
+    "requireTableHint": "The till stops ringing up dine-in sales on their own — staff seat the party from the floor, add their items, then settle. Branches with no floor are unaffected, and a queued offline sale still replays."
   },
   "branches": {
     "title": "Branches",

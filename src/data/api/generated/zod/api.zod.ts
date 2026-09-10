@@ -452,6 +452,7 @@ export const LoginBody = zod.object({
 
 export const LoginResponse = zod.object({
   "currency_code": zod.string(),
+  "require_table_for_orders": zod.boolean().optional().describe('Every dine-in sale belongs to a table.\n\nThe till needs this, not just the server: the rule changes what the POS\nputs in front of a teller — the floor becomes the home screen and a sale\nstarts by picking a table — and a refusal AFTER the items are rung up is\nfar too late to be useful.'),
   "tax_policy": zod.object({
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
@@ -475,6 +476,7 @@ export const LoginResponse = zod.object({
 
 export const MeResponse = zod.object({
   "currency_code": zod.string().describe('Org currency code (e.g. \"EGP\").'),
+  "require_table_for_orders": zod.boolean().optional().describe('Every dine-in sale belongs to a table. Re-read on every `\/auth\/me`, so\nswitching it on reaches a till that has been running for weeks.'),
   "tax_policy": zod.object({
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
@@ -7120,6 +7122,7 @@ export const ListOrgsResponseItem = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
@@ -7156,6 +7159,7 @@ export const CreateOrgResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
@@ -7185,6 +7189,7 @@ export const GetOrgResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
@@ -7215,6 +7220,7 @@ export const UpdateOrgBody = zod.object({
   "logo_url": zod.string().nullish().describe('`null` clears the logo; absent leaves it unchanged. To set a new\nlogo, use `PUT \/orgs\/{id}\/logo` (multipart) instead — JSON updates\nonly accept the clear-to-null case here.'),
   "name": zod.string().nullish(),
   "receipt_footer": zod.string().nullish(),
+  "require_table_for_orders": zod.boolean().nullish(),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
   "slug": zod.string().nullish(),
@@ -7239,6 +7245,7 @@ export const UpdateOrgResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
@@ -7313,6 +7320,7 @@ export const UploadOrgCardImageResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),
@@ -7346,6 +7354,7 @@ export const UploadOrgLogoResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
+  "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
   "slug": zod.string(),

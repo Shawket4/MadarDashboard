@@ -7,6 +7,11 @@ export interface MeResponse {
   /** Org currency code (e.g. "EGP"). */
   currency_code: string;
   /**
+     * Every dine-in sale belongs to a table. Re-read on every `/auth/me`, so
+     * switching it on reaches a till that has been running for weeks.
+     */
+  require_table_for_orders?: boolean;
+  /**
      * The full policy, including tax-inclusive pricing and service charge.
      *
      * A till re-reads this whenever it syncs, which is what makes a rate

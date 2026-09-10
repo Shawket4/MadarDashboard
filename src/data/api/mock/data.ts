@@ -68,6 +68,7 @@ export const MOCK_ORG: Org = {
   tax_inclusive: false,
   service_charge_rate: 0,
   service_charge_taxable: true,
+  require_table_for_orders: false,
   timezone: "Africa/Cairo",
   logo_url: null,
   receipt_footer: "Thank you — see you again soon.",

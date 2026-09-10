@@ -72,6 +72,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
           .min(0, t("orgs.taxRateRange", "Enter a rate between 0 and 100"))
           .max(MAX_PERCENT, t("orgs.taxRateRange", "Enter a rate between 0 and 100")),
         service_charge_taxable: z.boolean(),
+        require_table_for_orders: z.boolean(),
         social: socialLinksSchema(t),
       }),
     [t],
@@ -80,7 +81,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, social: socialLinksToForm(null) },
+    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, require_table_for_orders: false, social: socialLinksToForm(null) },
   });
 
   useEffect(() => {
@@ -100,6 +101,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         tax_inclusive: org?.tax_inclusive ?? false,
         service_charge_rate: fractionToPercent(org?.service_charge_rate),
         service_charge_taxable: org?.service_charge_taxable ?? true,
+        require_table_for_orders: org?.require_table_for_orders ?? false,
         social: socialLinksToForm(org?.social_links),
       });
     }
@@ -119,6 +121,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
           tax_inclusive: v.tax_inclusive,
           service_charge_rate: percentToFraction(v.service_charge_rate),
           service_charge_taxable: v.service_charge_taxable,
+          require_table_for_orders: v.require_table_for_orders,
           social_links: socialLinksPatch(v.social, org.social_links),
         });
       } else {
@@ -262,6 +265,23 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
                 </FormItem>
               )} />
             ) : null}
+
+            <FormField control={form.control} name="require_table_for_orders" render={({ field }) => (
+              <FormItem className="rounded-lg bg-muted p-3">
+                <div className="flex items-center justify-between gap-4">
+                  <FormLabel className="font-normal">
+                    {t("orgs.requireTable", "Every dine-in sale belongs to a table")}
+                  </FormLabel>
+                  <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t(
+                    "orgs.requireTableHint",
+                    "The till stops ringing up dine-in sales on their own — staff seat the party from the floor, add their items, then settle. Branches with no floor are unaffected, and a queued offline sale still replays.",
+                  )}
+                </p>
+              </FormItem>
+            )} />
 
             {/* A paid tier, and this dialog is super-admin only — which is why
                 the switch lives on the ORGANISATION rather than in the settings

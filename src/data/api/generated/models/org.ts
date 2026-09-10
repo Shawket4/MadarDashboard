@@ -36,6 +36,12 @@ export interface Org {
   name: string;
   /** @nullable */
   receipt_footer?: string | null;
+  /**
+     * Every dine-in sale must belong to a table. No effect where a branch has
+     * no floor authored — a shop cannot be made to seat somebody in a room
+     * with no seats.
+     */
+  require_table_for_orders: boolean;
   /** Fraction of the bill added as a service charge; `0` disables it. */
   service_charge_rate: number;
   /** Whether the service charge is itself taxed. */

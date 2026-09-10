@@ -6,6 +6,15 @@ import type { UserPublic } from './userPublic';
 export interface LoginResponse {
   currency_code: string;
   /**
+     * Every dine-in sale belongs to a table.
+     *
+     * The till needs this, not just the server: the rule changes what the POS
+     * puts in front of a teller — the floor becomes the home screen and a sale
+     * starts by picking a table — and a refusal AFTER the items are rung up is
+     * far too late to be useful.
+     */
+  require_table_for_orders?: boolean;
+  /**
      * The full policy, including tax-inclusive pricing and service charge.
      * Prefer this over the flat `tax_rate` above.
      */

@@ -27,6 +27,8 @@ export interface UpdateOrgRequest {
   /** @nullable */
   receipt_footer?: string | null;
   /** @nullable */
+  require_table_for_orders?: boolean | null;
+  /** @nullable */
   service_charge_rate?: number | null;
   /** @nullable */
   service_charge_taxable?: boolean | null;
