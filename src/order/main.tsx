@@ -36,13 +36,17 @@ import "@/styles/globals.css";
 // Side effects: i18n + RTL and the theme class. NOTE: the admin auth/app stores are
 // intentionally NOT imported — this origin never holds a session.
 import "@/i18n";
-import "@/lib/theme";
+import { initPublicTheme } from "@/features/public-shell/use-public-theme";
 
 import { queryClient } from "@/data/api/query";
 import { PublicOrderingPage } from "@/features/public-ordering/public-ordering-page";
 import { useHostOrg } from "@/features/public-shell/use-brand";
 import { ScanToOrder } from "@/features/public-ordering/scan-to-order";
 import { OrderTrackingPage } from "@/features/order-tracking/tracking-page";
+
+// LIGHT unless this visitor chose otherwise on this shop — not the device's
+// preference. A storefront should look the same to every customer.
+initPublicTheme();
 
 const orderSearchSchema = z.object({
   branch: z.string().optional(),

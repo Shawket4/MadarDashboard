@@ -52,16 +52,31 @@ export const useTheme = create<ThemeStore>((set) => ({
   },
 }));
 
-// Apply immediately on module load to avoid a flash of the wrong theme.
-applyClass(useTheme.getState().resolvedTheme);
+/**
+ * Paint the operator's theme and follow the device from then on.
+ *
+ * CALLED, not a module side effect. It used to run on import, and every public
+ * bundle imports this module — for `restoreGlobal`, transitively — so a
+ * customer opening a menu on a dark phone got the dark dashboard theme painted
+ * before any page could say otherwise, and the OS listener below then fought
+ * the storefront's own light theme for the life of the page.
+ *
+ * A storefront is not the operator's console: it should look the same to every
+ * customer whatever their phone is set to. Only the dashboard and the marketing
+ * site call this; the guest surfaces call `initPublicTheme` instead.
+ */
+export function initDeviceTheme(): void {
+  // Immediately, to avoid a flash of the wrong theme.
+  applyClass(useTheme.getState().resolvedTheme);
 
-// Follow the OS when in "system" mode.
-if (typeof window !== "undefined") {
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    if (useTheme.getState().theme === "system") {
-      const resolvedTheme = resolve("system");
-      applyClass(resolvedTheme);
-      useTheme.setState({ resolvedTheme });
-    }
-  });
+  // Follow the OS when in "system" mode.
+  if (typeof window !== "undefined") {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      if (useTheme.getState().theme === "system") {
+        const resolvedTheme = resolve("system");
+        applyClass(resolvedTheme);
+        useTheme.setState({ resolvedTheme });
+      }
+    });
+  }
 }

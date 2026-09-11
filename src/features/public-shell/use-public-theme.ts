@@ -60,3 +60,15 @@ export const usePublicTheme = create<PublicThemeStore>((set, get) => ({
   toggle: () => get().setMode(get().mode === "dark" ? "light" : "dark"),
   restoreGlobal: () => applyClass(useTheme.getState().resolvedTheme),
 }));
+
+/**
+ * Paint the storefront theme at boot — light unless this visitor has chosen
+ * otherwise on this shop before.
+ *
+ * The guest bundles' equivalent of `initDeviceTheme`, and deliberately not the
+ * device's preference: a storefront should look the same to every customer
+ * whatever their phone is set to, which is what the toggle is for.
+ */
+export function initPublicTheme(): void {
+  usePublicTheme.getState().apply();
+}

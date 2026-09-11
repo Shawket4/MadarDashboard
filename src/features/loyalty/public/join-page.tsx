@@ -233,7 +233,8 @@ function Form({
           <PhoneVerify
             otpRequired={data.require_otp}
             onVerified={submit}
-            busy={join.isPending || !name.trim()}
+            busy={join.isPending}
+            disabled={!name.trim()}
             submitLabel={t("loyalty.join", "Join")}
           />
 

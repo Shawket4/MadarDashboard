@@ -21,9 +21,11 @@ import "@/styles/globals.css";
 // Side effects: i18n + RTL, and the theme class. NOTE: the admin auth/app stores
 // are intentionally NOT imported — this origin never holds a session.
 import "@/i18n";
-import "@/lib/theme";
+import { initDeviceTheme } from "@/lib/theme";
 
 import { LandingPage } from "@/features/landing/landing-page";
+
+initDeviceTheme();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

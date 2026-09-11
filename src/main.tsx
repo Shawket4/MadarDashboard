@@ -20,7 +20,7 @@ import "@/styles/globals.css";
 // Side-effect modules: i18n + RTL, theme class, and the stores that wire
 // themselves into the axios ambient context.
 import "@/i18n";
-import "@/lib/theme";
+import { initDeviceTheme } from "@/lib/theme";
 import "@/data/stores/auth.store";
 import "@/data/stores/app.store";
 
@@ -30,6 +30,8 @@ import { AppErrorBoundary } from "@/components/app/app-error-boundary";
 import { initSentry } from "@/lib/sentry";
 import { queryClient } from "@/data/api/query";
 import { routeTree } from "./routeTree.gen";
+
+initDeviceTheme();
 
 const router = createRouter({
   routeTree,

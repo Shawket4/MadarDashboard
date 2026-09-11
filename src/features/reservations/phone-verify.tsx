@@ -21,11 +21,31 @@ interface Props {
   otpRequired: boolean;
   initialPhone?: string;
   onVerified: (phone: string, deviceToken: string | null) => void;
+  /** A request is IN FLIGHT. Spins the button. */
   busy?: boolean;
+  /**
+   * The form behind this one is not ready — a missing name, say. Greys the
+   * button WITHOUT spinning it.
+   *
+   * Separate from `busy` because folding the two together is a lie to the
+   * customer: the sign-up page passed `busy={join.isPending || !name.trim()}`
+   * and an untouched form sat there spinning, as though something were being
+   * worked on, before anyone had typed anything. It stopped the moment a
+   * letter was entered, which is a strange enough behaviour that the page
+   * looks broken either way round.
+   */
+  disabled?: boolean;
   submitLabel: string;
 }
 
-export function PhoneVerify({ otpRequired, initialPhone = "", onVerified, busy = false, submitLabel }: Props) {
+export function PhoneVerify({
+  otpRequired,
+  initialPhone = "",
+  onVerified,
+  busy = false,
+  disabled = false,
+  submitLabel,
+}: Props) {
   const { t } = useTranslation();
   const [phone, setPhone] = useState(initialPhone);
   const [stage, setStage] = useState<"phone" | "otp">("phone");
@@ -168,7 +188,13 @@ export function PhoneVerify({ otpRequired, initialPhone = "", onVerified, busy =
         </div>
         {error ? <p className="mt-2 flex items-center gap-1.5 text-xs text-destructive"><AlertCircle className="size-3.5" />{error}</p> : null}
       </div>
-      <Button className="w-full" size="lg" onClick={() => void start()} loading={loading}>
+      <Button
+        className="w-full"
+        size="lg"
+        onClick={() => void start()}
+        loading={loading}
+        disabled={disabled}
+      >
         {submitLabel}
       </Button>
     </div>

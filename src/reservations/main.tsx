@@ -46,13 +46,17 @@ import "@fontsource-variable/inter";
 // intentionally NOT imported — this origin never holds a session.
 import "@/i18n";
 import "@/styles/globals.css";
-import "@/lib/theme";
+import { initPublicTheme } from "@/features/public-shell/use-public-theme";
 
 import { queryClient } from "@/data/api/query";
 import { useHostOrg } from "@/features/public-shell/use-brand";
 import { ScanToBook } from "@/features/reservations/scan-to-book";
 import { ManagePage } from "@/features/reservations/manage-page";
 import { ReservePage } from "@/features/reservations/reserve-page";
+
+// LIGHT unless this visitor chose otherwise on this shop — not the device's
+// preference. A storefront should look the same to every customer.
+initPublicTheme();
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
 
