@@ -69,9 +69,19 @@ jobs:
       - name: Build loyalty app (separate, isolated bundle)
         run: npm run build:loyalty
         env:
-          # Same-origin, so the member token in a card URL never crosses origins
-          # and the page needs no CORS grant.
-          VITE_API_URL: https://loyalty.madar-pos.cloud/api
+          # RELATIVE, because this one artifact is served from TWO kinds of
+          # host: `loyalty.madar-pos.cloud`, and the root of every branded
+          # shop's own hostname, where it is the loyalty card mount. Both proxy
+          # `/api/` to the backend.
+          #
+          # It used to name `https://loyalty.madar-pos.cloud/api` absolutely,
+          # which is same-origin on the shared host and CROSS-origin on every
+          # shop host — where `CORS_ALLOWED_ORIGINS` is an explicit list with no
+          # wildcard, so the browser blocked it. Relative is same-origin on
+          # both, which is what the note below always claimed: the member token
+          # in a card URL never crosses origins and the page needs no CORS
+          # grant.
+          VITE_API_URL: /api
 
       - name: Build demo dashboard (VITE_DEMO — talks to the isolated demo API)
         run: npm run build:demo
