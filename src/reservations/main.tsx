@@ -4,16 +4,28 @@
 // admin code ships here), a different origin (no shared cookies / localStorage
 // / auth token), and a tighter CSP at the edge.
 //
-// URL scheme (path-based org + branch), mirroring the ordering app so a QR code
-// generated for one reads the same as the other:
+// URL scheme, mirroring the ordering app so a QR code generated for one reads
+// the same as the other.
+//
+// On a SHOP'S OWN hostname the org is the hostname, so it is not in the path:
+//   /                      — this shop's booking page
+//   /?branch=<branchId>    — branch pre-selected (QR deep link)
+//
+// On the shared host the org has to be named, so it is:
 //   /                      — landing (scan a QR / pick a venue)
 //   /<orgId>               — org-level: guest picks a branch
 //   /<orgId>/<branchId>    — branch pre-selected (QR deep link)
+//
+// And either way:
 //   /manage/<token>        — the guest's booking (from the WhatsApp link)
+//
+// The org-in-path forms are not legacy and are not going away: the shared host
+// still needs them, and every code already printed uses them.
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "motion/react";
+import { z } from "zod";
 import {
   Outlet,
   RouterProvider,
@@ -47,12 +59,18 @@ const rootRoute = createRootRoute({ component: () => <Outlet /> });
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
+  // `?branch=` rather than a path segment, because on a shop's own hostname
+  // there is no org in the path to tell a single segment apart from — `/<uuid>`
+  // would be read as an org id. The ordering bundle names its branch the same
+  // way, so the two QR codes for one table read alike.
+  validateSearch: z.object({ branch: z.string().optional() }),
   // The shop's own booking page when the hostname names a shop; the scan
   // prompt everywhere else. See `useHostOrg`.
   component: function Index() {
     const { orgId, resolving } = useHostOrg();
+    const { branch } = indexRoute.useSearch();
     if (resolving) return null;
-    return orgId ? <ReservePage orgId={orgId} /> : <ScanToBook />;
+    return orgId ? <ReservePage key={branch} orgId={orgId} branchId={branch} /> : <ScanToBook />;
   },
 });
 
