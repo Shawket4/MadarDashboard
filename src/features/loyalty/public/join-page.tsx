@@ -3,34 +3,47 @@
  *   what you get → your details → your card.
  *
  * Deliberately short. This is filled in standing at a till with a queue behind
- * you, so it asks for as little as the shop has configured and nothing more.
- * Honest, too: a branch with the program switched off says so instead of
- * showing a dead form.
+ * you, so it asks for as little as the shop has configured and nothing more,
+ * and the form comes BEFORE the reward list: the pitch is two figures and one
+ * sentence, and the detail is there for the moment after. Honest, too: a
+ * branch with the program switched off says so instead of showing a dead form.
+ *
+ * Every flag on `JoinInfo` drives something visible here:
+ *   `enabled`          off → a notice in the shop's chrome, no form
+ *   `require_otp`      whether `PhoneVerify` collects a code first
+ *   `mode`             the intro sentence, the tiles, and a stamp preview
+ *   `next_reward_cost` / `earn_piastres_per_point`  the tiles' figures
+ *   `rewards[]`        the list, absent when empty
+ *   `birthday_enabled` / `birthday_reward_amount`   the picker, and its WHY
+ *   `terms` / `terms_ar`   the small print, in the reader's language
+ *   `branch_name`      the eyebrow, or the shop's name for an org-wide code
+ *   `brand`            the palette, the names, the logo, the links
  *
  * Built on the same shell as the member's card (`page-shell`), because to the
- * customer they are one thing — you scan a code, you sign up, you get a card —
- * and they used to agree on almost nothing.
+ * customer they are one thing — you scan a code, you sign up, you get a card.
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
-import { AlertCircle, Gift, Loader2, PartyPopper } from "lucide-react";
+import { AlertCircle, ArrowRight, Loader2, UserRound } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useLoyaltyJoinInfo, useLoyaltyJoin } from "@/data/api/generated/api";
 import type { JoinInfo, JoinResult } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { PhoneVerify } from "@/features/reservations/phone-verify";
-import { fmtMoney } from "@/lib/format";
+import { DURATION, easeOutExpo } from "@/lib/motion";
 
-import { resolveBrand } from "../shared/brand";
-import { CardFace } from "./card-face";
+import { resolveBrand, type ResolvedBrand } from "../shared/brand";
 import { BirthdayPicker, isComplete, type Birthday } from "./birthday-picker";
-import { LoyaltyPage, Panel, Section, usePageAccent } from "./page-shell";
+import { CardFace } from "./card-face";
+import { HowItWorks } from "./how-it-works";
+import { LoyaltyPage, PageNotice, PageSkeleton, Panel, Section, usePageAccent } from "./page-shell";
+import { RewardsList } from "./rewards-list";
+import { SocialLinks } from "./social-links";
 import { WalletButtons } from "./wallet-buttons";
-import { costLabel } from "../shared/util";
 
 export function JoinPage({
   branchId,
@@ -47,38 +60,44 @@ export function JoinPage({
   );
   const [joined, setJoined] = useState<JoinResult | null>(null);
 
-  if (info.isLoading) {
-    return (
-      <StorefrontShell product="loyalty">
-        <div className="flex flex-col gap-4 pt-8">
-          <Skeleton className="h-24 w-full rounded-2xl" />
-          <Skeleton className="h-40 w-full rounded-2xl" />
-        </div>
-      </StorefrontShell>
-    );
-  }
+  if (info.isLoading) return <PageSkeleton />;
 
   const data = info.data;
-  if (!data || !data.enabled) {
+  if (!data) {
+    // A code that leads nowhere — a branch since closed, a link mistyped —
+    // is not a network fault, and "try again" would be a lie. It gets the
+    // same honest notice as a programme that is switched off.
+    const status = info.error instanceof AxiosError ? info.error.response?.status : undefined;
+    if (status === 404) {
+      return (
+        <PageNotice
+          title={t("loyalty.offTitle", "No rewards program here")}
+          body={t("loyalty.offBody", "This branch isn't running a rewards program at the moment.")}
+        />
+      );
+    }
     return (
-      <StorefrontShell product="loyalty">
-        <div className="flex flex-col items-center gap-3 pt-16 text-center">
-          <AlertCircle className="size-7 text-muted-foreground" />
-          <h1 className="font-serif text-2xl">
-            {t("loyalty.noProgram", "No rewards here yet")}
-          </h1>
-          <p className="max-w-[300px] text-sm text-muted-foreground">
-            {t(
-              "loyalty.noProgramBody",
-              "This branch isn't running a rewards program at the moment.",
-            )}
-          </p>
-        </div>
-      </StorefrontShell>
+      <PageNotice
+        title={t("loyalty.couldntLoad", "We couldn't load this page")}
+        body={t("loyalty.couldntLoadBody", "Check your connection and try again.")}
+        onRetry={() => void info.refetch()}
+      />
     );
   }
 
   const brand = resolveBrand(data.brand, i18n.resolvedLanguage ?? "en");
+  if (!data.enabled) {
+    // In the shop's own chrome: it is still their page, there is simply
+    // nothing to join here today.
+    return (
+      <PageNotice
+        brand={brand}
+        title={t("loyalty.offTitle", "No rewards program here")}
+        body={t("loyalty.offBody", "This branch isn't running a rewards program at the moment.")}
+      />
+    );
+  }
+
   return joined ? (
     <Joined data={data} joined={joined} brand={brand} />
   ) : (
@@ -92,24 +111,6 @@ export function JoinPage({
   );
 }
 
-/** How the programme works, in its own terms. */
-function howItWorks(data: JoinInfo, t: ReturnType<typeof useTranslation>["t"]) {
-  // A stamp card that talked about EGP per point would be a card nobody could
-  // follow at the counter. Piastres on the wire, EGP on the page.
-  return data.mode === "visits"
-    ? t("loyalty.stampLine", {
-        defaultValue: "Every order earns a stamp, and {{n}} of them gets you a reward.",
-        n: data.next_reward_cost,
-      })
-    : `${t("loyalty.earnLine", {
-        defaultValue: "Earn a point for every {{amount}} you spend.",
-        amount: fmtMoney(data.earn_piastres_per_point),
-      })} ${t("loyalty.rewardLine", {
-        defaultValue: "{{points}} points gets you a reward.",
-        points: data.next_reward_cost,
-      })}`;
-}
-
 function Form({
   data,
   brand,
@@ -118,7 +119,7 @@ function Form({
   onJoined,
 }: {
   data: JoinInfo;
-  brand: ReturnType<typeof resolveBrand>;
+  brand: ResolvedBrand;
   branchId?: string;
   orgId?: string;
   onJoined: (r: JoinResult) => void;
@@ -158,35 +159,31 @@ function Form({
     }
   };
 
+  const terms = (isAr && data.terms_ar) || data.terms;
+
   return (
     <LoyaltyPage
       brand={brand}
-      eyebrow={data.branch_name ?? undefined}
+      // The branch, when the code was a branch's; the shop, when it was the
+      // shop's. Never blank: the eyebrow is what makes the headline read as a
+      // programme's name rather than a page title.
+      eyebrow={data.branch_name ?? brand.orgName}
       title={brand.programName}
-      intro={howItWorks(data, t)}
+      intro={
+        data.mode === "visits"
+          ? t("loyalty.introVisits", "A stamp for every order, and a reward when the card is full.")
+          : t("loyalty.introPoints", "Points on everything you buy here, and a reward when they add up.")
+      }
     >
-      {data.rewards.length > 0 ? (
-        <Section title={t("loyalty.whatYouCanClaim", "What you can claim")} accent={accent}>
-          <Panel className="p-0">
-            <ul className="divide-y divide-border/70">
-              {data.rewards.map((r) => (
-                <li key={r.name} className="flex items-center gap-3 px-4 py-3 text-sm">
-                  <Gift className="size-4 shrink-0" style={{ color: accent }} />
-                  <span className="min-w-0 flex-1">{r.name}</span>
-                  <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                    {costLabel(r.cost_amount, r.cost_currency)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Panel>
-        </Section>
-      ) : null}
+      <HowItWorks info={data} accent={accent} />
 
-      <Section title={t("loyalty.yourDetails", "Your details")} accent={accent}>
-        <Panel className="flex flex-col gap-4">
+      <Section title={t("loyalty.yourDetails", "Your details")}>
+        <Panel className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label htmlFor="loyalty-name" className="text-sm font-medium">
+            <label htmlFor="loyalty-name" className="flex items-center gap-2 text-sm font-medium">
+              <span className="grid size-7 place-items-center rounded-lg bg-muted text-muted-foreground">
+                <UserRound className="size-4" aria-hidden />
+              </span>
               {t("loyalty.yourName", "Your name")}
             </label>
             <Input
@@ -195,69 +192,82 @@ function Form({
               onChange={(e) => setName(e.target.value)}
               autoComplete="name"
               maxLength={80}
+              enterKeyHint="next"
               placeholder={t("loyalty.namePlaceholder", "So we know who to thank")}
+              className="h-12 rounded-xl px-4 text-base"
             />
           </div>
 
-          {/* Only where the shop turned birthdays on. A date of birth is the
-              most sensitive thing this form collects, and a shop not running
-              birthday rewards is never given one to hold. */}
           {/* Only where the shop turned birthdays on. A birthday is the most
               sensitive thing this form collects, and a shop not running
               birthday rewards is never given one to hold. */}
           {data.birthday_enabled ? (
-            <BirthdayPicker
-              value={birthday}
-              onChange={setBirthday}
-              label={t("loyalty.yourBirthday", "Your birthday")}
-              hint={
-                // Say what it is FOR, and what is not being asked. Requesting a
-                // date of birth and explaining nothing is how a form loses
-                // people.
-                data.birthday_reward_amount
-                  ? t("loyalty.birthdayWithGift", {
-                      defaultValue:
-                        "We'll wish you a happy birthday and put {{n}} on your card. We don't ask for the year.",
-                      n: data.birthday_reward_amount,
-                    })
-                  : t(
-                      "loyalty.birthdayNoGift",
-                      "So we can wish you a happy birthday. We don't ask for the year.",
-                    )
-              }
-            />
-          ) : null}
-
-          {/* The very same component (and the very same OTP endpoints and
-              device token) the ordering and booking flows use. */}
-          <PhoneVerify
-            otpRequired={data.require_otp}
-            onVerified={submit}
-            busy={join.isPending}
-            disabled={!name.trim()}
-            submitLabel={t("loyalty.join", "Join")}
-          />
-
-          {error ? (
-            <p className="flex items-center gap-2 text-sm text-destructive">
-              <AlertCircle className="size-4 shrink-0" />
-              {error}
-            </p>
-          ) : null}
-          {join.isPending ? (
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
-              {t("loyalty.creating", "Making your card…")}
-            </p>
+            <div className="border-t border-border/70 pt-5">
+              <BirthdayPicker
+                value={birthday}
+                onChange={setBirthday}
+                label={t("loyalty.yourBirthday", "Your birthday")}
+                hint={
+                  // Say what it is FOR, and what is not being asked. Requesting
+                  // a date of birth and explaining nothing is how a form loses
+                  // people.
+                  data.birthday_reward_amount
+                    ? t("loyalty.birthdayWithGift", {
+                        defaultValue:
+                          "We'll wish you a happy birthday and put {{n}} on your card. We don't ask for the year.",
+                        n: data.birthday_reward_amount,
+                      })
+                    : t(
+                        "loyalty.birthdayNoGift",
+                        "So we can wish you a happy birthday. We don't ask for the year.",
+                      )
+                }
+              />
+            </div>
           ) : null}
         </Panel>
+
+        {/* The very same component (and the very same OTP endpoints and
+            device token) the ordering and booking flows use. It draws its
+            own panel and the submit button; `busy` is the join in flight,
+            `disabled` is a form not yet ready — two different things, and
+            the button must never spin for the second. */}
+        <PhoneVerify
+          otpRequired={data.require_otp}
+          onVerified={submit}
+          busy={join.isPending}
+          disabled={!name.trim()}
+          submitLabel={t("loyalty.join", "Join")}
+          hint={
+            data.require_otp
+              ? t("loyalty.phoneHintOtp", "We'll send a code to confirm it, then make your card.")
+              : t("loyalty.phoneHint", "Your card is tied to this number — it's how the counter finds you.")
+          }
+        />
+
+        {error ? (
+          <p role="alert" className="flex items-start gap-2 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+            {error}
+          </p>
+        ) : null}
+        {join.isPending ? (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+            {t("loyalty.creating", "Making your card…")}
+          </p>
+        ) : null}
       </Section>
 
-      {data.terms ? (
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          {(isAr && data.terms_ar) || data.terms}
-        </p>
+      <RewardsList rewards={data.rewards} accent={accent} />
+
+      {terms ? (
+        <Section title={t("loyalty.termsHeading", "Terms")}>
+          <p className="whitespace-pre-line text-[13px] leading-relaxed text-muted-foreground">{terms}</p>
+        </Section>
       ) : null}
+
+      <SocialLinks links={data.brand.social_links} accent={accent} />
     </LoyaltyPage>
   );
 }
@@ -270,56 +280,70 @@ function Joined({
 }: {
   data: JoinInfo;
   joined: JoinResult;
-  brand: ReturnType<typeof resolveBrand>;
+  brand: ResolvedBrand;
 }) {
   const { t } = useTranslation();
   const accent = usePageAccent(brand);
+  const reduced = useReducedMotion();
   const target = joined.next_reward_cost;
+  const cardHref = `/card/${encodeURIComponent(joined.member_token)}`;
 
   return (
     <LoyaltyPage
       brand={brand}
-      eyebrow={data.branch_name ?? undefined}
+      eyebrow={data.branch_name ?? brand.orgName}
       title={
         joined.already_member
           ? t("loyalty.welcomeBack", "Welcome back")
           : t("loyalty.youreIn", "You're in")
       }
       intro={
-        <span className="flex items-center gap-2">
-          <PartyPopper className="size-4 shrink-0" style={{ color: accent }} />
-          {joined.already_member
-            ? t("loyalty.alreadyMember", "You're already a member — here's your card again.")
-            : t("loyalty.joinedBody", "Show this when you pay, and it starts counting.")}
-        </span>
+        joined.already_member
+          ? t("loyalty.alreadyMember", "You're already a member — here's your card again.")
+          : t("loyalty.joinedBody", "Show this when you pay, and it starts counting.")
       }
     >
-      <CardFace
-        brand={brand}
-        mode={joined.mode}
-        balance={joined.balance}
-        target={target}
-        toGo={Math.max(target - joined.balance, 0)}
-        canRedeem={joined.balance >= target}
-        rewardsReady={target > 0 ? Math.floor(joined.balance / target) : 0}
-        progress={target > 0 ? joined.balance % target : joined.balance}
-        memberName={joined.name}
-        qrUrl={`/api/public/loyalty/card/${encodeURIComponent(joined.member_token)}/qr.png`}
-      />
+      {/* The card arrives, rather than appears: the one moment on this page
+          that earns a little motion, and none for a reader who asked for
+          none. */}
+      <motion.div
+        initial={reduced ? false : { opacity: 0, y: 16 }}
+        animate={reduced ? undefined : { opacity: 1, y: 0 }}
+        transition={{ duration: DURATION.brand, ease: easeOutExpo }}
+      >
+        <CardFace
+          brand={brand}
+          mode={joined.mode}
+          balance={joined.balance}
+          target={target}
+          toGo={Math.max(target - joined.balance, 0)}
+          canRedeem={target > 0 && joined.balance >= target}
+          rewardsReady={target > 0 ? Math.floor(joined.balance / target) : 0}
+          progress={target > 0 ? joined.balance % target : joined.balance}
+          memberName={joined.name}
+          qrUrl={`/api/public/loyalty/card/${encodeURIComponent(joined.member_token)}/qr.png`}
+        />
+      </motion.div>
 
       {joined.passes.any ? (
-        <Section title={t("loyalty.keepItHandy", "Keep it handy")} accent={accent}>
-          <WalletButtons passes={joined.passes} />
+        <Section
+          title={t("loyalty.keepItHandy", "Keep it handy")}
+          hint={t("loyalty.walletHint", "It updates itself every time you earn, and it's there when you're back.")}
+        >
+          <Panel>
+            <WalletButtons passes={joined.passes} />
+          </Panel>
         </Section>
       ) : null}
 
-      <a
-        href={`/card/${encodeURIComponent(joined.member_token)}`}
-        className="text-center text-sm underline underline-offset-4"
-        style={{ color: accent }}
-      >
-        {t("loyalty.viewCard", "View my card")}
-      </a>
+      <Button asChild variant="outline" size="lg" className="h-12 w-full rounded-xl text-base">
+        <a href={cardHref}>
+          {t("loyalty.viewCard", "View my card")}
+          <ArrowRight className="rtl:rotate-180" aria-hidden />
+        </a>
+      </Button>
+
+      <SocialLinks links={joined.brand.social_links ?? data.brand.social_links} accent={accent} />
     </LoyaltyPage>
   );
 }

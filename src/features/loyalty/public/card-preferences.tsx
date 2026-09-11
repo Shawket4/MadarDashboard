@@ -44,16 +44,17 @@ export function CardPreferences({
 
   return (
     <Panel>
-      <label className="flex items-center gap-3">
-        <BellOff
-          className="size-4 shrink-0 text-muted-foreground"
-          aria-hidden
-        />
+      {/* The whole row is the label, so the tap target is the row and not a
+          32px switch at the end of it. */}
+      <label className="flex cursor-pointer items-center gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground">
+          <BellOff className="size-4" aria-hidden />
+        </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium">
+          <span className="block text-[15px] font-medium leading-snug">
             {t("loyalty.noMessages", "Stop messages from this shop")}
           </span>
-          <span className="block text-xs text-muted-foreground">
+          <span className="block text-[13px] leading-snug text-muted-foreground">
             {t(
               "loyalty.noMessagesHint",
               "Your card and your balance stay exactly as they are.",

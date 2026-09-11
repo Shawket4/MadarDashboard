@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { PublicSocialLink } from './publicSocialLink';
 
 /**
  * How a tenant's card should look.
@@ -41,4 +42,14 @@ export interface CardBrand {
   program_name: string;
   /** @nullable */
   program_name_ar?: string | null;
+  /**
+     * Where else to find the shop, in the order a card prints them. Empty is
+     * the common case, and the page draws nothing for it — no row, no
+     * placeholder.
+     *
+     * NOT gated on the branding tier, like `OrgBrand::social_links` it is read
+     * from: a shop's Instagram is a fact about the shop in the way its name
+     * is, so a Madar-coloured card carries the links too.
+     */
+  social_links: PublicSocialLink[];
 }

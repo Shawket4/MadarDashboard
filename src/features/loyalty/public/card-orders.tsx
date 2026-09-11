@@ -31,23 +31,23 @@ import { Panel, Section } from "./page-shell";
 export const newestFirst = (orders: PastOrder[]): PastOrder[] =>
   [...orders].sort((a, b) => Date.parse(b.placed_at) - Date.parse(a.placed_at));
 
-export function CardOrders({ token, accent }: { token: string; accent?: string }) {
+export function CardOrders({ token }: { token: string }) {
   const { t } = useTranslation();
   const q = useLoyaltyCardOrders(token, { query: { retry: false } });
 
   if (q.isError) return null;
 
   return (
-    <Section title={t("loyalty.yourVisits", "What you've had")} accent={accent}>
+    <Section title={t("loyalty.yourVisits", "What you've had")}>
       {q.isLoading ? (
-        <Panel className="flex flex-col gap-3">
+        <Panel className="flex flex-col gap-3" aria-busy>
           <Skeleton className="h-4 w-2/3" />
           <Skeleton className="h-4 w-1/2" />
         </Panel>
       ) : (q.data?.orders.length ?? 0) === 0 ? (
         <Panel className="flex items-center gap-3">
-          <Receipt className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-          <p className="text-sm text-muted-foreground">
+          <Receipt className="size-[18px] shrink-0 text-muted-foreground" aria-hidden />
+          <p className="text-[15px] leading-snug text-muted-foreground">
             {t("loyalty.noVisitsYet", "Nothing here yet — your visits will show up after your first order.")}
           </p>
         </Panel>
@@ -66,13 +66,14 @@ export function CardOrders({ token, accent }: { token: string; accent?: string }
 
 function PastVisit({ order }: { order: PastOrder }) {
   return (
-    <li className="flex flex-col gap-1 px-4 py-3">
+    <li className="flex flex-col gap-1 px-5 py-3.5">
       <div className="flex items-baseline gap-3">
-        <span className="min-w-0 flex-1 truncate text-sm font-medium">{order.branch_name}</span>
-        <span className="shrink-0 text-sm tabular-nums">{fmtMoney(order.total)}</span>
+        <span className="min-w-0 flex-1 truncate text-[15px] font-medium">{order.branch_name}</span>
+        {/* Money in the mono cut, so a column of receipts lines up on the point. */}
+        <span className="shrink-0 font-mono text-[15px] tabular-nums">{fmtMoney(order.total)}</span>
       </div>
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <time dateTime={order.placed_at} className="shrink-0">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[13px] leading-snug text-muted-foreground">
+        <time dateTime={order.placed_at} className="shrink-0 tabular-nums">
           {fmtDateTime(order.placed_at)}
         </time>
         {/* Gap rather than margins or punctuation glued to a word: these strings

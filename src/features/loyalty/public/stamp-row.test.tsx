@@ -50,9 +50,13 @@ describe("StampRow", () => {
     const [track, done] = Array.from(
       c.container.querySelectorAll("div[aria-hidden]"),
     ) as HTMLDivElement[];
-    // Half a step in from each end — the centres, not the edges.
-    expect(track.style.left).toBe(track.style.right);
-    expect(track.style.left).toContain("var(--step)");
+    // Half a step in from each end — the centres, not the edges. Inline
+    // ends, not left and right: in Arabic the first step is on the right, and
+    // a run pinned to the left grew from the last step towards the first.
+    expect(track.style.insetInlineStart).toBe(track.style.insetInlineEnd);
+    expect(track.style.insetInlineStart).toContain("var(--step)");
+    expect(track.style.left).toBe("");
+    expect(done.style.insetInlineStart).toBe(track.style.insetInlineStart);
     // The completed run reaches the centre of the last DONE step: two gaps of
     // the four between five centres.
     expect(done.style.width).toContain("0.5");

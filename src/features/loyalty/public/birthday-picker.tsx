@@ -12,7 +12,7 @@
  * a leap day can say so, and the server greets them on the 28th in a common
  * year.
  */
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -47,6 +47,7 @@ export function BirthdayPicker({
 }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.resolvedLanguage ?? "en";
+  const hintId = useId();
 
   // The reader's own month names, from the platform rather than a table we
   // would have to translate and keep in step.
@@ -69,19 +70,26 @@ export function BirthdayPicker({
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-sm font-medium">
+    // A fieldset, because the two selects are one question. Each trigger still
+    // carries its own name ("Month", "Day") so a screen reader announces both
+    // the question and which half it is on.
+    <fieldset className="flex min-w-0 flex-col gap-2">
+      <legend className="mb-2 text-sm font-medium">
         {label}
-        <span className="ms-1 font-normal text-muted-foreground">
+        <span className="ms-1.5 font-normal text-muted-foreground">
           {t("loyalty.optional", "(optional)")}
         </span>
-      </p>
+      </legend>
       <div className="grid grid-cols-[1.6fr_1fr] gap-2">
         <Select
           value={value.month ? String(value.month) : NONE}
           onValueChange={(v) => setMonth(v === NONE ? null : Number(v))}
         >
-          <SelectTrigger aria-label={t("loyalty.month", "Month")}>
+          <SelectTrigger
+            aria-label={t("loyalty.month", "Month")}
+            aria-describedby={hint ? hintId : undefined}
+            className="h-12 w-full rounded-xl px-4 text-base"
+          >
             <SelectValue placeholder={t("loyalty.month", "Month")} />
           </SelectTrigger>
           <SelectContent>
@@ -100,21 +108,29 @@ export function BirthdayPicker({
             onChange({ ...value, day: v === NONE ? null : Number(v) })
           }
         >
-          <SelectTrigger aria-label={t("loyalty.day", "Day")}>
+          <SelectTrigger
+            aria-label={t("loyalty.day", "Day")}
+            aria-describedby={hint ? hintId : undefined}
+            className="h-12 w-full rounded-xl px-4 text-base tabular-nums"
+          >
             <SelectValue placeholder={t("loyalty.day", "Day")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={NONE}>{t("loyalty.day", "Day")}</SelectItem>
             {Array.from({ length: days }, (_, i) => (
-              <SelectItem key={i + 1} value={String(i + 1)}>
+              <SelectItem key={i + 1} value={String(i + 1)} className="tabular-nums">
                 {i + 1}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
-    </div>
+      {hint ? (
+        <p id={hintId} className="text-[13px] leading-snug text-muted-foreground">
+          {hint}
+        </p>
+      ) : null}
+    </fieldset>
   );
 }
 

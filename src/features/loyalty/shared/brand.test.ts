@@ -55,6 +55,7 @@ describe("resolveBrand", () => {
         background_color: "#7B1E3A",
         foreground_color: "#EFF3F4",
         label_color: "#C8607F",
+        social_links: [],
       },
       "en",
     );
@@ -82,6 +83,7 @@ describe("resolveBrand", () => {
         background_color: ground,
         foreground_color: ink,
         label_color: null,
+        social_links: [],
       },
       "en",
     );
@@ -100,6 +102,7 @@ describe("resolveBrand", () => {
         background_color: "#0D6273",
         foreground_color: "#12222A",
         label_color: null,
+        social_links: [],
       },
       "en",
     );
@@ -121,6 +124,7 @@ describe("resolveBrand", () => {
         background_color: ground,
         foreground_color: null,
         label_color: null,
+        social_links: [],
       },
       "en",
     );

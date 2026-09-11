@@ -75,6 +75,11 @@ export function StampRow({
   // From the first step's centre to the last completed one's. Both ends are
   // inset by half a step, so the run between the centres measures the row less
   // one whole step — no pixel anywhere, so it holds at any width.
+  //
+  // Anchored to the INLINE start, not the left. Flex lays the steps out in
+  // reading order, so in Arabic step 1 is on the right — and a completed run
+  // pinned to the left edge grew from the LAST step towards the first, which
+  // told an Arabic reader with two stamps that they had the final two.
   const done =
     filled > 1 && target > 1
       ? `calc((100% - var(--step)) * ${(filled - 1) / (target - 1)})`
@@ -94,8 +99,8 @@ export function StampRow({
         aria-hidden
         className="pointer-events-none absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full"
         style={{
-          left: half,
-          right: half,
+          insetInlineStart: half,
+          insetInlineEnd: half,
           backgroundColor: muted,
           opacity: 0.4,
         }}
@@ -103,7 +108,7 @@ export function StampRow({
       <div
         aria-hidden
         className="pointer-events-none absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full transition-[width] duration-500 motion-reduce:transition-none"
-        style={{ left: half, width: done, backgroundColor: accent }}
+        style={{ insetInlineStart: half, width: done, backgroundColor: accent }}
       />
 
       {Array.from({ length: target }, (_, i) => {

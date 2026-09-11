@@ -469,6 +469,7 @@ export * from './publicOrgBrandParams';
 export * from './publicReward';
 export * from './publicSlot';
 export * from './publicSlots';
+export * from './publicSocialLink';
 export * from './purchaseOrder';
 export * from './purchaseOrderFull';
 export * from './purchaseOrderLine';

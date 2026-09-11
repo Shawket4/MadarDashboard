@@ -4260,7 +4260,32 @@
     "noGeofenceHint": "Apple and Google surface a saved card when the customer is at your shop, using the branch coordinates on the pass. No branch has any set, so the phone never asks for location and the card stays silent. Add them on the Branches page.",
     "capBalanceMaxHint": "Leave empty to use your dearest reward, so the ceiling follows the list instead of going stale when you add or reprice one.",
     "capBalanceDerived": "Currently {{amount}} — your dearest reward. Collecting past it buys nothing.",
-    "capBalanceNoRewards": "Add a reward and the ceiling follows the dearest one."
+    "capBalanceNoRewards": "Add a reward and the ceiling follows the dearest one.",
+    "howItWorks": "How it works",
+    "tile": {
+      "earnPoint": "point for every {{amount}}",
+      "earnStamp": "stamp for every order",
+      "rewardPoints": "points for a reward",
+      "rewardStamps": "stamps for a reward"
+    },
+    "introPoints": "Points on everything you buy here, and a reward when they add up.",
+    "introVisits": "A stamp for every order, and a reward when the card is full.",
+    "phoneHint": "Your card is tied to this number — it's how the counter finds you.",
+    "phoneHintOtp": "We'll send a code to confirm it, then make your card.",
+    "termsHeading": "Terms",
+    "walletHint": "It updates itself every time you earn, and it's there when you're back.",
+    "couldntLoad": "We couldn't load this page",
+    "couldntLoadBody": "Check your connection and try again.",
+    "findUs": "Find us",
+    "social": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "tiktok": "TikTok",
+      "x": "X",
+      "youtube": "YouTube",
+      "whatsapp": "WhatsApp",
+      "website": "Website"
+    }
   },
   "publicShell": {
     "poweredBy": {

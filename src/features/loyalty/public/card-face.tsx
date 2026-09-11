@@ -79,7 +79,7 @@ export function CardFace({
 
   return (
     <section
-      className="relative isolate overflow-hidden rounded-[26px] px-6 pb-5 pt-6 shadow-lg"
+      className="relative isolate overflow-hidden rounded-[28px] px-6 pb-5 pt-6 shadow-lg"
       style={{ backgroundColor: brand.background, color: brand.foreground }}
     >
       {/* Two blooms in the accent, so a flat fill reads as a printed card
@@ -88,12 +88,12 @@ export function CardFace({
           is ever carried by them. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-16 -top-24 -z-10 size-56 rounded-full opacity-[0.20]"
+        className="pointer-events-none absolute -end-16 -top-24 -z-10 size-56 rounded-full opacity-[0.20]"
         style={{ backgroundColor: brand.accent }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-28 -left-20 -z-10 size-56 rounded-full opacity-[0.10]"
+        className="pointer-events-none absolute -bottom-28 -start-20 -z-10 size-56 rounded-full opacity-[0.10]"
         style={{ backgroundColor: brand.accent }}
       />
 
@@ -124,11 +124,11 @@ export function CardFace({
         <div className="min-w-0 flex-1">
           {/* The shop's name is always here. Whose card this is must be on it,
               however little else has been configured. */}
-          <p className="truncate text-[15px] font-semibold leading-tight">
+          <p className="truncate text-[15px] font-semibold leading-tight tracking-[-0.01em]">
             {brand.orgName}
           </p>
           <p
-            className="truncate text-[11px] uppercase tracking-[0.14em]"
+            className="mt-0.5 truncate text-[11px] font-medium uppercase tracking-[0.16em]"
             style={{ color: brand.muted }}
           >
             {brand.programName}
@@ -150,10 +150,12 @@ export function CardFace({
       ) : null}
 
       <div className="mt-6 flex flex-col gap-4">
-        {/* The figure. Baseline-aligned so the unit sits on the numeral's foot
-            rather than floating beside it. */}
+        {/* The figure, in the mono cut: every number on this product is, and a
+            balance that changes by one should not change width. Baseline-
+            aligned so the unit sits on the numeral's foot rather than floating
+            beside it. */}
         <p className="flex items-baseline gap-2">
-          <span className="font-serif text-[52px] leading-none tabular-nums">
+          <span className="font-mono text-[56px] font-semibold leading-none tabular-nums">
             {isSteps ? onCard : balance}
           </span>
           <span
@@ -229,7 +231,7 @@ export function CardFace({
           </div>
         )}
 
-        <p className="text-sm">
+        <p className="text-[15px] leading-snug">
           {rewardsReady > 0 ? (
             <span className="font-semibold">
               {t("loyalty.rewardsReadyN", {
@@ -270,12 +272,12 @@ export function CardFace({
           {memberName ? (
             <div className="min-w-0 flex-1">
               <p
-                className="text-[10px] uppercase tracking-[0.18em]"
+                className="text-[10px] font-medium uppercase tracking-[0.18em]"
                 style={{ color: brand.muted }}
               >
                 {t("loyalty.member", "Member")}
               </p>
-              <p className="truncate text-[13px] font-medium uppercase tracking-[0.08em]">
+              <p className="mt-0.5 truncate text-[13px] font-semibold uppercase tracking-[0.08em]">
                 {memberName}
               </p>
             </div>

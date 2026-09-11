@@ -36,6 +36,14 @@ interface Props {
    */
   disabled?: boolean;
   submitLabel: string;
+  /**
+   * The line under "Your WhatsApp number", when the caller has something truer
+   * to say than the booking default. The loyalty sign-up used to tell people
+   * "we'll send your booking details there", which was the reservations copy
+   * leaking through a shared component — and nobody signing up for a stamp
+   * card is booking anything.
+   */
+  hint?: string;
 }
 
 export function PhoneVerify({
@@ -45,6 +53,7 @@ export function PhoneVerify({
   busy = false,
   disabled = false,
   submitLabel,
+  hint,
 }: Props) {
   const { t } = useTranslation();
   const [phone, setPhone] = useState(initialPhone);
@@ -168,9 +177,10 @@ export function PhoneVerify({
           <p className="font-serif text-sm font-semibold">{t("reservations.phoneTitle", "Your WhatsApp number")}</p>
         </div>
         <p className="mb-3 text-sm text-muted-foreground">
-          {otpRequired
-            ? t("reservations.phoneHintOtp", "We’ll send a code to confirm it, then your booking details.")
-            : t("reservations.phoneHint", "We’ll send your booking details there.")}
+          {hint ??
+            (otpRequired
+              ? t("reservations.phoneHintOtp", "We’ll send a code to confirm it, then your booking details.")
+              : t("reservations.phoneHint", "We’ll send your booking details there."))}
         </p>
         <div className="relative">
           <span aria-hidden className="pointer-events-none absolute inset-y-0 start-0 flex select-none items-center ps-3 text-sm font-medium text-muted-foreground" dir="ltr">+20</span>

@@ -102,6 +102,9 @@ export function BrandPane() {
       background_color: org.data?.brand_background ?? null,
       foreground_color: org.data?.brand_foreground ?? null,
       label_color: org.data?.brand_accent ?? null,
+      // The preview is the card, not the page under it; the links are edited
+      // in `SocialLinksCard` below and never drawn on the card face.
+      social_links: [],
     },
     i18n.resolvedLanguage ?? "en",
   );

@@ -5,12 +5,14 @@
 // / auth token), and a tighter CSP at the edge.
 //
 // URL scheme:
-//   /join/<branchId>   — the counter QR's target: sign up at this branch
-//   /card/<token>      — the member's own card (what their pass links back to)
-//   /                  — landing: "scan the code on the counter"
+//   /join/<branchId>    — the counter QR's target: sign up at this branch
+//   /join/org/<orgId>   — the shop's own code: a poster, a receipt, a bio link
+//   /card/<token>       — the member's own card (what their pass links back to)
+//   /                   — on a shop's hostname, that shop's sign-up page;
+//                         on ours, "scan the code on the counter"
 //
-// There is deliberately no org-level route. Unlike booking, joining always
-// happens at a counter with a printed code, so the branch is always known.
+// Membership belongs to the SHOP either way; a branch code only records where
+// someone joined.
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";

@@ -35,6 +35,20 @@ const BADGE: Record<WalletKind, { src: string; alt: string }> = {
   google: { src: "/wallet/add-to-google-wallet.svg", alt: "Add to Google Wallet" },
 };
 
+/** The badge as a link, at the vendors' minimum tap height, focus-ringed like every other control. */
+function Badge({ kind, href, className = "" }: { kind: WalletKind; href: string; className?: string }) {
+  return (
+    <a
+      href={href}
+      aria-label={BADGE[kind].alt}
+      className={`inline-block rounded-lg focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 ${className}`}
+    >
+      {/* Height set, width free: both vendors' guidelines forbid stretching. */}
+      <img src={BADGE[kind].src} alt={BADGE[kind].alt} className="block h-full w-auto" />
+    </a>
+  );
+}
+
 export function WalletButtons({ passes }: Props) {
   const { t } = useTranslation();
   const urls: Record<WalletKind, string | null> = {
@@ -51,21 +65,17 @@ export function WalletButtons({ passes }: Props) {
 
   // The device has a wallet we cannot serve — an Android phone with no Google
   // Wallet configured, most often. Leading with an Apple badge there would be
-  // worse than useless, so the QR leads: it works on every device and is what
-  // the till scans anyway.
+  // worse than useless, so the card leads: its code works on every device and
+  // is what the till scans anyway. The other wallet's badge stays, smaller,
+  // for the customer who knows they want it.
   if (detected && !urls[detected]) {
     const other = available[0]!;
     return (
-      <div className="flex flex-col items-center gap-2">
-        <p className="text-center text-xs text-muted-foreground">
-          {t(
-            "loyalty.noWalletHere",
-            "Your card is above — show it at the counter. No wallet app needed.",
-          )}
+      <div className="flex flex-col items-center gap-3">
+        <p className="text-center text-[13px] leading-snug text-muted-foreground">
+          {t("loyalty.noWalletHere", "Show this code at the counter — it works without a wallet app.")}
         </p>
-        <a href={urls[other]!} aria-label={BADGE[other].alt}>
-          <img src={BADGE[other].src} alt={BADGE[other].alt} className="h-11 w-auto" />
-        </a>
+        <Badge kind={other} href={urls[other]!} className="h-11" />
       </div>
     );
   }
@@ -77,14 +87,11 @@ export function WalletButtons({ passes }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <a href={urls[primary]!} aria-label={BADGE[primary].alt}>
-        {/* Height set, width free: both vendors' guidelines forbid stretching. */}
-        <img src={BADGE[primary].src} alt={BADGE[primary].alt} className="h-[52px] w-auto" />
-      </a>
+      <Badge kind={primary} href={urls[primary]!} className="h-[52px]" />
       {secondary ? (
         <a
           href={urls[secondary]!}
-          className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          className="rounded text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
           {secondary === "apple"
             ? t("loyalty.useAppleInstead", "Use Apple Wallet instead")

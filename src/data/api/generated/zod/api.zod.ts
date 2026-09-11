@@ -8199,7 +8199,12 @@ export const LoyaltyCardResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "org_name": zod.string().describe('The organisation\'s name. Always present.'),
   "program_name": zod.string().describe('What the programme calls itself (\"Rewards\", \"Bean Club\").'),
-  "program_name_ar": zod.string().nullish()
+  "program_name_ar": zod.string().nullish(),
+  "social_links": zod.array(zod.object({
+  "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
+  "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
+  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+}).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('Whose card this is, and how it should look.'),
   "can_redeem": zod.boolean(),
   "marketing_opt_out": zod.boolean().describe('They have asked this shop to stop sending them things.'),
@@ -8303,7 +8308,12 @@ export const LoyaltyJoinResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "org_name": zod.string().describe('The organisation\'s name. Always present.'),
   "program_name": zod.string().describe('What the programme calls itself (\"Rewards\", \"Bean Club\").'),
-  "program_name_ar": zod.string().nullish()
+  "program_name_ar": zod.string().nullish(),
+  "social_links": zod.array(zod.object({
+  "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
+  "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
+  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+}).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('How a tenant\'s card should look.\n\nEvery field is optional and the site falls back to Madar\'s own palette, so a\ntenant who has set nothing still gets a finished card rather than an\nunstyled one. `org_name` is NOT optional: whose card this is must always be\non it, however little else has been configured.'),
   "member_token": zod.string(),
   "mode": zod.string(),
@@ -8336,7 +8346,12 @@ export const LoyaltyJoinInfoResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "org_name": zod.string().describe('The organisation\'s name. Always present.'),
   "program_name": zod.string().describe('What the programme calls itself (\"Rewards\", \"Bean Club\").'),
-  "program_name_ar": zod.string().nullish()
+  "program_name_ar": zod.string().nullish(),
+  "social_links": zod.array(zod.object({
+  "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
+  "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
+  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+}).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('Whose programme this is, and how the page should look.'),
   "earn_piastres_per_point": zod.number().describe('EGP that earns one point — the page\'s \"a point for every N EGP\" line.\nPiastres on the wire, as everywhere; the page divides by 100. Only\nmeaningful when `mode` is `\"points\"`.'),
   "enabled": zod.boolean().describe('False when the program is off here — the page says so instead of taking\na signup that would go nowhere.'),
