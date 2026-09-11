@@ -7185,7 +7185,7 @@ export const ListOrgsResponseItem = zod.object({
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
-  "slug": zod.string(),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
@@ -7226,7 +7226,7 @@ export const CreateOrgResponse = zod.object({
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
-  "slug": zod.string(),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
@@ -7256,7 +7256,7 @@ export const GetOrgResponse = zod.object({
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
-  "slug": zod.string(),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
@@ -7312,7 +7312,7 @@ export const UpdateOrgResponse = zod.object({
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
-  "slug": zod.string(),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
@@ -7387,7 +7387,7 @@ export const UploadOrgCardImageResponse = zod.object({
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
-  "slug": zod.string(),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
@@ -7421,7 +7421,7 @@ export const UploadOrgLogoResponse = zod.object({
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
-  "slug": zod.string(),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
 }).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
@@ -8387,7 +8387,7 @@ export const PublicOrgBrandResponse = zod.object({
   "logo_url": zod.string().nullish(),
   "name": zod.string().describe('Always the shop\'s own name, at every tier. A page that does not say\nwhose it is helps nobody, and that was never the thing being sold.'),
   "org_id": zod.uuid(),
-  "slug": zod.string()
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own — reached by `org_id`,\nwhich every page that already knows the shop uses.')
 }).describe('A shop, as a guest page needs to know it.')
 
 

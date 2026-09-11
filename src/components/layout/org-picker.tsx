@@ -46,7 +46,8 @@ export function OrgPicker({ className }: { className?: string }) {
         label: o.name,
         // The slug is how a shop is named in a URL and in support threads, so
         // it is worth being able to type even though it is not on the chip.
-        keywords: o.slug,
+        // A shop with no address of its own has none — search it by name.
+        keywords: o.slug ?? undefined,
         hint: o.is_active ? undefined : t("orgs.inactive", "Inactive"),
       })),
     [orgs, t],

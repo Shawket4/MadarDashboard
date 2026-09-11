@@ -31,5 +31,10 @@ export interface PublicBrand {
      */
   name: string;
   org_id: string;
-  slug: string;
+  /**
+     * `None` when the shop has no address of its own — reached by `org_id`,
+     * which every page that already knows the shop uses.
+     * @nullable
+     */
+  slug?: string | null;
 }

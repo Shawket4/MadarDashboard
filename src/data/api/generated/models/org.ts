@@ -46,7 +46,12 @@ export interface Org {
   service_charge_rate: number;
   /** Whether the service charge is itself taxed. */
   service_charge_taxable: boolean;
-  slug: string;
+  /**
+     * `None` when the shop has no address of its own. Never an empty string —
+     * the column holds NULL for that and a CHECK keeps it so.
+     * @nullable
+     */
+  slug?: string | null;
   /** Where else to find the shop, keyed by platform. See `orgs::social`. */
   social_links: OrgSocialLinks;
   /**
