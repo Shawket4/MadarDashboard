@@ -2,6 +2,15 @@
 // @ts-nocheck
 
 export interface BranchDeliverySettings {
+  /**
+     * Minutes a `received` order may wait for a teller before the sweeper
+     * rejects it and tells the customer. `null` = never: the order waits until
+     * someone acts on it. Read at sweep time rather than frozen on the order,
+     * so a branch that shortens it means the change to apply to what is
+     * already waiting.
+     * @nullable
+     */
+  auto_reject_minutes?: number | null;
   branch_id: string;
   /** @nullable */
   in_mall_close_time?: string | null;

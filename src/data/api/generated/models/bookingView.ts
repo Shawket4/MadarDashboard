@@ -30,7 +30,12 @@ export interface BookingView {
   no_show_at?: string | null;
   /** @nullable */
   notes?: string | null;
-  /** @nullable */
+  /**
+     * The ticket this party is (or was) eating on. DERIVED from
+     * `open_tickets.booking_id` — the live one if there is one, else the
+     * latest — never stored on the booking.
+     * @nullable
+     */
   open_ticket_id?: string | null;
   party_size: number;
   phone_verified: boolean;

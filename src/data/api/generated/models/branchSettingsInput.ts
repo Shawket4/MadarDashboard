@@ -2,6 +2,12 @@
 // @ts-nocheck
 
 export interface BranchSettingsInput {
+  /**
+     * Minutes before an unaccepted order is rejected automatically. `null`
+     * (and omitted, for older clients) = never.
+     * @nullable
+     */
+  auto_reject_minutes?: number | null;
   branch_id: string;
   /** @nullable */
   in_mall_close_time?: string | null;

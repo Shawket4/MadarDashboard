@@ -50,6 +50,19 @@ export const setDeviceToken = (phone: string, token: string): void => {
   }
 };
 
+/**
+ * Forget a device token the server no longer honours — a loyalty sign-up that
+ * came back `verify_required` for a phone we thought was proved. Left in
+ * place, `getDeviceToken` would keep skipping the OTP and the page would loop.
+ */
+export const clearDeviceToken = (phone: string): void => {
+  try {
+    localStorage.removeItem(DEVICE_KEY_PREFIX + normalizePhone(phone));
+  } catch {
+    /* storage unavailable — nothing was stored to forget */
+  }
+};
+
 const GUEST_PHONE_KEY_PREFIX = "madar_guest_phone:";
 
 /** Recall the last phone used for this org (pre-fills the phone step). */

@@ -44,6 +44,16 @@ export interface Branch {
   printer_ip?: string | null;
   /** @nullable */
   printer_port?: number | null;
+  /**
+     * Whether every dine-in sale here must belong to a table. Same shape as
+     * the tax overrides: `null` inherits the organisation, which is not the
+     * same as `false`. An explicit `false` lets a counter with two stools by
+     * the window keep ringing walk-ups while the org's dining rooms seat
+     * everyone; an explicit `true` does the reverse. This is the OVERRIDE —
+     * the resolved answer is `branches::policy::require_table_for_orders`.
+     * @nullable
+     */
+  require_table_for_orders?: boolean | null;
   /** @nullable */
   service_charge_rate?: number | null;
   /** @nullable */

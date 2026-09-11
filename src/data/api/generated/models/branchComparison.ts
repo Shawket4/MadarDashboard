@@ -7,9 +7,15 @@ export interface BranchComparison {
   branch_name: string;
   /** The cash slice of `total_tips`. */
   cash_tips?: number;
-  /** Goods only, by method actually tendered. Tips are in `total_tips`. */
+  gross_sales?: number;
+  refunded_amount?: number;
+  /**
+     * Goods only, by method actually tendered — money in. Tips are in
+     * `total_tips`; refunds are not netted from the buckets.
+     */
   revenue_by_method: unknown;
   total_orders: number;
+  /** Net of refunds: `gross_sales − refunded_amount`. */
   total_revenue: number;
   /** Tips, standalone — same definition as on the branch sales + shift reports. */
   total_tips?: number;

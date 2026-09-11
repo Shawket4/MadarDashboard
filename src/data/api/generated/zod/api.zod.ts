@@ -545,7 +545,7 @@ export const ListBookingsResponseItem = zod.object({
   "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
   "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
   "notes": zod.string().nullish(),
-  "open_ticket_id": zod.uuid().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The ticket this party is (or was) eating on. DERIVED from\n`open_tickets.booking_id` — the live one if there is one, else the\nlatest — never stored on the booking.'),
   "party_size": zod.number(),
   "phone_verified": zod.boolean(),
   "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -593,7 +593,7 @@ export const CreateBookingResponse = zod.object({
   "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
   "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
   "notes": zod.string().nullish(),
-  "open_ticket_id": zod.uuid().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The ticket this party is (or was) eating on. DERIVED from\n`open_tickets.booking_id` — the live one if there is one, else the\nlatest — never stored on the booking.'),
   "party_size": zod.number(),
   "phone_verified": zod.boolean(),
   "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -752,7 +752,7 @@ export const GetBookingResponse = zod.object({
   "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
   "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
   "notes": zod.string().nullish(),
-  "open_ticket_id": zod.uuid().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The ticket this party is (or was) eating on. DERIVED from\n`open_tickets.booking_id` — the live one if there is one, else the\nlatest — never stored on the booking.'),
   "party_size": zod.number(),
   "phone_verified": zod.boolean(),
   "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -800,7 +800,7 @@ export const UpdateBookingResponse = zod.object({
   "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
   "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
   "notes": zod.string().nullish(),
-  "open_ticket_id": zod.uuid().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The ticket this party is (or was) eating on. DERIVED from\n`open_tickets.booking_id` — the live one if there is one, else the\nlatest — never stored on the booking.'),
   "party_size": zod.number(),
   "phone_verified": zod.boolean(),
   "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -841,7 +841,7 @@ export const CancelBookingResponse = zod.object({
   "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
   "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
   "notes": zod.string().nullish(),
-  "open_ticket_id": zod.uuid().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The ticket this party is (or was) eating on. DERIVED from\n`open_tickets.booking_id` — the live one if there is one, else the\nlatest — never stored on the booking.'),
   "party_size": zod.number(),
   "phone_verified": zod.boolean(),
   "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -856,6 +856,12 @@ export const CancelBookingResponse = zod.object({
 })
 
 
+/**
+ * @summary `seated` → `completed` by hand. The party is done with the booking; if
+they never started a bill under it, the hold seating placed is let go of
+too (a bill, had there been one, would have ended it `seated` already and
+its settle buses the table). Already `completed` is a clean 200.
+ */
 export const CompleteBookingParams = zod.object({
   "id": zod.uuid().describe('Booking ID')
 })
@@ -877,7 +883,7 @@ export const CompleteBookingResponse = zod.object({
   "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
   "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
   "notes": zod.string().nullish(),
-  "open_ticket_id": zod.uuid().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The ticket this party is (or was) eating on. DERIVED from\n`open_tickets.booking_id` — the live one if there is one, else the\nlatest — never stored on the booking.'),
   "party_size": zod.number(),
   "phone_verified": zod.boolean(),
   "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -913,7 +919,7 @@ export const NoShowBookingResponse = zod.object({
   "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
   "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
   "notes": zod.string().nullish(),
-  "open_ticket_id": zod.uuid().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The ticket this party is (or was) eating on. DERIVED from\n`open_tickets.booking_id` — the live one if there is one, else the\nlatest — never stored on the booking.'),
   "party_size": zod.number(),
   "phone_verified": zod.boolean(),
   "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -953,7 +959,7 @@ export const SeatBookingResponse = zod.object({
   "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
   "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
   "notes": zod.string().nullish(),
-  "open_ticket_id": zod.uuid().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The ticket this party is (or was) eating on. DERIVED from\n`open_tickets.booking_id` — the live one if there is one, else the\nlatest — never stored on the booking.'),
   "party_size": zod.number(),
   "phone_verified": zod.boolean(),
   "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -1076,6 +1082,7 @@ export const ListBranchesResponseItem = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
+  "require_table_for_orders": zod.boolean().nullish().describe('Whether every dine-in sale here must belong to a table. Same shape as\nthe tax overrides: `null` inherits the organisation, which is not the\nsame as `false`. An explicit `false` lets a counter with two stools by\nthe window keep ringing walk-ups while the org\'s dining rooms seat\neveryone; an explicit `true` does the reverse. This is the OVERRIDE —\nthe resolved answer is `branches::policy::require_table_for_orders`.'),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
   "tax_inclusive": zod.boolean().nullish(),
@@ -1116,6 +1123,7 @@ export const CreateBranchResponse = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
+  "require_table_for_orders": zod.boolean().nullish().describe('Whether every dine-in sale here must belong to a table. Same shape as\nthe tax overrides: `null` inherits the organisation, which is not the\nsame as `false`. An explicit `false` lets a counter with two stools by\nthe window keep ringing walk-ups while the org\'s dining rooms seat\neveryone; an explicit `true` does the reverse. This is the OVERRIDE —\nthe resolved answer is `branches::policy::require_table_for_orders`.'),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
   "tax_inclusive": zod.boolean().nullish(),
@@ -1145,6 +1153,7 @@ export const GetBranchResponse = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
+  "require_table_for_orders": zod.boolean().nullish().describe('Whether every dine-in sale here must belong to a table. Same shape as\nthe tax overrides: `null` inherits the organisation, which is not the\nsame as `false`. An explicit `false` lets a counter with two stools by\nthe window keep ringing walk-ups while the org\'s dining rooms seat\neveryone; an explicit `true` does the reverse. This is the OVERRIDE —\nthe resolved answer is `branches::policy::require_table_for_orders`.'),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
   "tax_inclusive": zod.boolean().nullish(),
@@ -1169,6 +1178,7 @@ export const UpdateBranchBody = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
+  "require_table_for_orders": zod.boolean().nullish(),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
   "tax_inclusive": zod.boolean().nullish(),
@@ -1192,6 +1202,7 @@ export const UpdateBranchResponse = zod.object({
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
+  "require_table_for_orders": zod.boolean().nullish().describe('Whether every dine-in sale here must belong to a table. Same shape as\nthe tax overrides: `null` inherits the organisation, which is not the\nsame as `false`. An explicit `false` lets a counter with two stools by\nthe window keep ringing walk-ups while the org\'s dining rooms seat\neveryone; an explicit `true` does the reverse. This is the OVERRIDE —\nthe resolved answer is `branches::policy::require_table_for_orders`.'),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
   "tax_inclusive": zod.boolean().nullish(),
@@ -1977,9 +1988,10 @@ export const ListDeliveryOrdersResponseItem = zod.object({
   "delivery_ref": zod.string().nullish(),
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
-  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal (`total == subtotal -\ndiscount_amount + delivery_fee`). `discount_amount` is 0 when none.'),
+  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().optional(),
+  "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
   "id": zod.uuid(),
@@ -1988,16 +2000,22 @@ export const ListDeliveryOrdersResponseItem = zod.object({
   "org_id": zod.uuid(),
   "otp_verified": zod.boolean(),
   "out_for_delivery_at": zod.iso.datetime({"offset":true}).nullish(),
-  "payment_method_hint": zod.string().nullish(),
+  "payment_method": zod.string().nullish().describe('What was actually taken at the door. Set at finalize and only then;\n`Some` exactly when the order is `delivered`.'),
+  "payment_method_hint": zod.string().nullish().describe('What the customer SAID they would pay with, at checkout. Display only.'),
   "place_name": zod.string().nullish(),
   "preparing_at": zod.iso.datetime({"offset":true}).nullish(),
   "ready_at": zod.iso.datetime({"offset":true}).nullish(),
   "receipt_printed_at": zod.iso.datetime({"offset":true}).nullish(),
   "rejected_at": zod.iso.datetime({"offset":true}).nullish(),
   "road_distance_meters": zod.number().nullish(),
+  "service_charge_amount": zod.number().optional().describe('Always 0: the service charge is dine-in only. Present so the till can\nrender the same breakdown for every kind of sale.'),
+  "service_charge_rate_applied": zod.number().optional(),
   "status": zod.string(),
   "subtotal": zod.number(),
-  "total": zod.number(),
+  "tax_amount": zod.number().optional().describe('The tax as priced at intake, under the policy frozen beside it. Inside\n`total` when `tax_inclusive`, added to it otherwise. Finalize does not\nre-price: a rate the shop changes between the quote and the door does\nnot move a bill the customer already agreed.'),
+  "tax_inclusive": zod.boolean().optional().describe('Copy of the ONE inclusivity flag (org, branch override) as it stood at\nintake — not a setting of its own.'),
+  "tax_rate_applied": zod.number().optional().describe('Fraction, not a percentage: `0.14` is 14%.'),
+  "total": zod.number().describe('The quote: `subtotal - discount_amount + delivery_fee`, plus\n`tax_amount` when the tax is exclusive. Replayed verbatim at finalize.'),
   "unit_number": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -2030,9 +2048,10 @@ export const GetDeliveryOrderResponse = zod.object({
   "delivery_ref": zod.string().nullish(),
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
-  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal (`total == subtotal -\ndiscount_amount + delivery_fee`). `discount_amount` is 0 when none.'),
+  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().optional(),
+  "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
   "id": zod.uuid(),
@@ -2041,16 +2060,22 @@ export const GetDeliveryOrderResponse = zod.object({
   "org_id": zod.uuid(),
   "otp_verified": zod.boolean(),
   "out_for_delivery_at": zod.iso.datetime({"offset":true}).nullish(),
-  "payment_method_hint": zod.string().nullish(),
+  "payment_method": zod.string().nullish().describe('What was actually taken at the door. Set at finalize and only then;\n`Some` exactly when the order is `delivered`.'),
+  "payment_method_hint": zod.string().nullish().describe('What the customer SAID they would pay with, at checkout. Display only.'),
   "place_name": zod.string().nullish(),
   "preparing_at": zod.iso.datetime({"offset":true}).nullish(),
   "ready_at": zod.iso.datetime({"offset":true}).nullish(),
   "receipt_printed_at": zod.iso.datetime({"offset":true}).nullish(),
   "rejected_at": zod.iso.datetime({"offset":true}).nullish(),
   "road_distance_meters": zod.number().nullish(),
+  "service_charge_amount": zod.number().optional().describe('Always 0: the service charge is dine-in only. Present so the till can\nrender the same breakdown for every kind of sale.'),
+  "service_charge_rate_applied": zod.number().optional(),
   "status": zod.string(),
   "subtotal": zod.number(),
-  "total": zod.number(),
+  "tax_amount": zod.number().optional().describe('The tax as priced at intake, under the policy frozen beside it. Inside\n`total` when `tax_inclusive`, added to it otherwise. Finalize does not\nre-price: a rate the shop changes between the quote and the door does\nnot move a bill the customer already agreed.'),
+  "tax_inclusive": zod.boolean().optional().describe('Copy of the ONE inclusivity flag (org, branch override) as it stood at\nintake — not a setting of its own.'),
+  "tax_rate_applied": zod.number().optional().describe('Fraction, not a percentage: `0.14` is 14%.'),
+  "total": zod.number().describe('The quote: `subtotal - discount_amount + delivery_fee`, plus\n`tax_amount` when the tax is exclusive. Replayed verbatim at finalize.'),
   "unit_number": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -2087,9 +2112,10 @@ export const CancelDeliveryOrderResponse = zod.object({
   "delivery_ref": zod.string().nullish(),
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
-  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal (`total == subtotal -\ndiscount_amount + delivery_fee`). `discount_amount` is 0 when none.'),
+  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().optional(),
+  "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
   "id": zod.uuid(),
@@ -2098,16 +2124,22 @@ export const CancelDeliveryOrderResponse = zod.object({
   "org_id": zod.uuid(),
   "otp_verified": zod.boolean(),
   "out_for_delivery_at": zod.iso.datetime({"offset":true}).nullish(),
-  "payment_method_hint": zod.string().nullish(),
+  "payment_method": zod.string().nullish().describe('What was actually taken at the door. Set at finalize and only then;\n`Some` exactly when the order is `delivered`.'),
+  "payment_method_hint": zod.string().nullish().describe('What the customer SAID they would pay with, at checkout. Display only.'),
   "place_name": zod.string().nullish(),
   "preparing_at": zod.iso.datetime({"offset":true}).nullish(),
   "ready_at": zod.iso.datetime({"offset":true}).nullish(),
   "receipt_printed_at": zod.iso.datetime({"offset":true}).nullish(),
   "rejected_at": zod.iso.datetime({"offset":true}).nullish(),
   "road_distance_meters": zod.number().nullish(),
+  "service_charge_amount": zod.number().optional().describe('Always 0: the service charge is dine-in only. Present so the till can\nrender the same breakdown for every kind of sale.'),
+  "service_charge_rate_applied": zod.number().optional(),
   "status": zod.string(),
   "subtotal": zod.number(),
-  "total": zod.number(),
+  "tax_amount": zod.number().optional().describe('The tax as priced at intake, under the policy frozen beside it. Inside\n`total` when `tax_inclusive`, added to it otherwise. Finalize does not\nre-price: a rate the shop changes between the quote and the door does\nnot move a bill the customer already agreed.'),
+  "tax_inclusive": zod.boolean().optional().describe('Copy of the ONE inclusivity flag (org, branch override) as it stood at\nintake — not a setting of its own.'),
+  "tax_rate_applied": zod.number().optional().describe('Fraction, not a percentage: `0.14` is 14%.'),
+  "total": zod.number().describe('The quote: `subtotal - discount_amount + delivery_fee`, plus\n`tax_amount` when the tax is exclusive. Replayed verbatim at finalize.'),
   "unit_number": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -2145,9 +2177,10 @@ export const FinalizeDeliveryOrderResponse = zod.object({
   "delivery_ref": zod.string().nullish(),
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
-  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal (`total == subtotal -\ndiscount_amount + delivery_fee`). `discount_amount` is 0 when none.'),
+  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().optional(),
+  "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
   "id": zod.uuid(),
@@ -2156,16 +2189,22 @@ export const FinalizeDeliveryOrderResponse = zod.object({
   "org_id": zod.uuid(),
   "otp_verified": zod.boolean(),
   "out_for_delivery_at": zod.iso.datetime({"offset":true}).nullish(),
-  "payment_method_hint": zod.string().nullish(),
+  "payment_method": zod.string().nullish().describe('What was actually taken at the door. Set at finalize and only then;\n`Some` exactly when the order is `delivered`.'),
+  "payment_method_hint": zod.string().nullish().describe('What the customer SAID they would pay with, at checkout. Display only.'),
   "place_name": zod.string().nullish(),
   "preparing_at": zod.iso.datetime({"offset":true}).nullish(),
   "ready_at": zod.iso.datetime({"offset":true}).nullish(),
   "receipt_printed_at": zod.iso.datetime({"offset":true}).nullish(),
   "rejected_at": zod.iso.datetime({"offset":true}).nullish(),
   "road_distance_meters": zod.number().nullish(),
+  "service_charge_amount": zod.number().optional().describe('Always 0: the service charge is dine-in only. Present so the till can\nrender the same breakdown for every kind of sale.'),
+  "service_charge_rate_applied": zod.number().optional(),
   "status": zod.string(),
   "subtotal": zod.number(),
-  "total": zod.number(),
+  "tax_amount": zod.number().optional().describe('The tax as priced at intake, under the policy frozen beside it. Inside\n`total` when `tax_inclusive`, added to it otherwise. Finalize does not\nre-price: a rate the shop changes between the quote and the door does\nnot move a bill the customer already agreed.'),
+  "tax_inclusive": zod.boolean().optional().describe('Copy of the ONE inclusivity flag (org, branch override) as it stood at\nintake — not a setting of its own.'),
+  "tax_rate_applied": zod.number().optional().describe('Fraction, not a percentage: `0.14` is 14%.'),
+  "total": zod.number().describe('The quote: `subtotal - discount_amount + delivery_fee`, plus\n`tax_amount` when the tax is exclusive. Replayed verbatim at finalize.'),
   "unit_number": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 }),
@@ -2205,9 +2244,10 @@ export const SetPrepTimeResponse = zod.object({
   "delivery_ref": zod.string().nullish(),
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
-  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal (`total == subtotal -\ndiscount_amount + delivery_fee`). `discount_amount` is 0 when none.'),
+  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().optional(),
+  "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
   "id": zod.uuid(),
@@ -2216,16 +2256,22 @@ export const SetPrepTimeResponse = zod.object({
   "org_id": zod.uuid(),
   "otp_verified": zod.boolean(),
   "out_for_delivery_at": zod.iso.datetime({"offset":true}).nullish(),
-  "payment_method_hint": zod.string().nullish(),
+  "payment_method": zod.string().nullish().describe('What was actually taken at the door. Set at finalize and only then;\n`Some` exactly when the order is `delivered`.'),
+  "payment_method_hint": zod.string().nullish().describe('What the customer SAID they would pay with, at checkout. Display only.'),
   "place_name": zod.string().nullish(),
   "preparing_at": zod.iso.datetime({"offset":true}).nullish(),
   "ready_at": zod.iso.datetime({"offset":true}).nullish(),
   "receipt_printed_at": zod.iso.datetime({"offset":true}).nullish(),
   "rejected_at": zod.iso.datetime({"offset":true}).nullish(),
   "road_distance_meters": zod.number().nullish(),
+  "service_charge_amount": zod.number().optional().describe('Always 0: the service charge is dine-in only. Present so the till can\nrender the same breakdown for every kind of sale.'),
+  "service_charge_rate_applied": zod.number().optional(),
   "status": zod.string(),
   "subtotal": zod.number(),
-  "total": zod.number(),
+  "tax_amount": zod.number().optional().describe('The tax as priced at intake, under the policy frozen beside it. Inside\n`total` when `tax_inclusive`, added to it otherwise. Finalize does not\nre-price: a rate the shop changes between the quote and the door does\nnot move a bill the customer already agreed.'),
+  "tax_inclusive": zod.boolean().optional().describe('Copy of the ONE inclusivity flag (org, branch override) as it stood at\nintake — not a setting of its own.'),
+  "tax_rate_applied": zod.number().optional().describe('Fraction, not a percentage: `0.14` is 14%.'),
+  "total": zod.number().describe('The quote: `subtotal - discount_amount + delivery_fee`, plus\n`tax_amount` when the tax is exclusive. Replayed verbatim at finalize.'),
   "unit_number": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -2290,9 +2336,10 @@ export const SetStatusResponse = zod.object({
   "delivery_ref": zod.string().nullish(),
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
-  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal (`total == subtotal -\ndiscount_amount + delivery_fee`). `discount_amount` is 0 when none.'),
+  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().optional(),
+  "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
   "id": zod.uuid(),
@@ -2301,16 +2348,22 @@ export const SetStatusResponse = zod.object({
   "org_id": zod.uuid(),
   "otp_verified": zod.boolean(),
   "out_for_delivery_at": zod.iso.datetime({"offset":true}).nullish(),
-  "payment_method_hint": zod.string().nullish(),
+  "payment_method": zod.string().nullish().describe('What was actually taken at the door. Set at finalize and only then;\n`Some` exactly when the order is `delivered`.'),
+  "payment_method_hint": zod.string().nullish().describe('What the customer SAID they would pay with, at checkout. Display only.'),
   "place_name": zod.string().nullish(),
   "preparing_at": zod.iso.datetime({"offset":true}).nullish(),
   "ready_at": zod.iso.datetime({"offset":true}).nullish(),
   "receipt_printed_at": zod.iso.datetime({"offset":true}).nullish(),
   "rejected_at": zod.iso.datetime({"offset":true}).nullish(),
   "road_distance_meters": zod.number().nullish(),
+  "service_charge_amount": zod.number().optional().describe('Always 0: the service charge is dine-in only. Present so the till can\nrender the same breakdown for every kind of sale.'),
+  "service_charge_rate_applied": zod.number().optional(),
   "status": zod.string(),
   "subtotal": zod.number(),
-  "total": zod.number(),
+  "tax_amount": zod.number().optional().describe('The tax as priced at intake, under the policy frozen beside it. Inside\n`total` when `tax_inclusive`, added to it otherwise. Finalize does not\nre-price: a rate the shop changes between the quote and the door does\nnot move a bill the customer already agreed.'),
+  "tax_inclusive": zod.boolean().optional().describe('Copy of the ONE inclusivity flag (org, branch override) as it stood at\nintake — not a setting of its own.'),
+  "tax_rate_applied": zod.number().optional().describe('Fraction, not a percentage: `0.14` is 14%.'),
+  "total": zod.number().describe('The quote: `subtotal - discount_amount + delivery_fee`, plus\n`tax_amount` when the tax is exclusive. Replayed verbatim at finalize.'),
   "unit_number": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -2323,6 +2376,7 @@ export const SetAcceptingBody = zod.object({
 })
 
 export const SetAcceptingResponse = zod.object({
+  "auto_reject_minutes": zod.number().nullish().describe('Minutes a `received` order may wait for a teller before the sweeper\nrejects it and tells the customer. `null` = never: the order waits until\nsomeone acts on it. Read at sweep time rather than frozen on the order,\nso a branch that shortens it means the change to apply to what is\nalready waiting.'),
   "branch_id": zod.uuid(),
   "in_mall_close_time": zod.string().nullish(),
   "in_mall_discount_id": zod.uuid().nullish().describe('Optional discount applied to each channel\'s item subtotal (reuses the\norg `discounts` table). Frozen onto the order at intake. `null` = none.'),
@@ -2441,6 +2495,7 @@ export const GetBranchSettingsQueryParams = zod.object({
 })
 
 export const GetBranchSettingsResponse = zod.object({
+  "auto_reject_minutes": zod.number().nullish().describe('Minutes a `received` order may wait for a teller before the sweeper\nrejects it and tells the customer. `null` = never: the order waits until\nsomeone acts on it. Read at sweep time rather than frozen on the order,\nso a branch that shortens it means the change to apply to what is\nalready waiting.'),
   "branch_id": zod.uuid(),
   "in_mall_close_time": zod.string().nullish(),
   "in_mall_discount_id": zod.uuid().nullish().describe('Optional discount applied to each channel\'s item subtotal (reuses the\norg `discounts` table). Frozen onto the order at intake. `null` = none.'),
@@ -2473,6 +2528,7 @@ export const GetBranchSettingsResponse = zod.object({
 
 
 export const PutBranchSettingsBody = zod.object({
+  "auto_reject_minutes": zod.number().nullish().describe('Minutes before an unaccepted order is rejected automatically. `null`\n(and omitted, for older clients) = never.'),
   "branch_id": zod.uuid(),
   "in_mall_close_time": zod.string().nullish(),
   "in_mall_discount_id": zod.uuid().nullish().describe('Optional per-channel discount ids (must be active discounts in the\ncaller\'s org). `null` clears the channel\'s discount.'),
@@ -2500,6 +2556,7 @@ export const PutBranchSettingsBody = zod.object({
 })
 
 export const PutBranchSettingsResponse = zod.object({
+  "auto_reject_minutes": zod.number().nullish().describe('Minutes a `received` order may wait for a teller before the sweeper\nrejects it and tells the customer. `null` = never: the order waits until\nsomeone acts on it. Read at sweep time rather than frozen on the order,\nso a branch that shortens it means the change to apply to what is\nalready waiting.'),
   "branch_id": zod.uuid(),
   "in_mall_close_time": zod.string().nullish(),
   "in_mall_discount_id": zod.uuid().nullish().describe('Optional discount applied to each channel\'s item subtotal (reuses the\norg `discounts` table). Frozen onto the order at intake. `null` = none.'),
@@ -2947,10 +3004,10 @@ export const UpdateFloorTableResponse = zod.object({
 
 
 /**
- * The ONE human act the derived-status model needs. Everything else about a
- * table's status follows from the ticket on it: seated when one lands, free
- * when nobody vacated, dirty after a checkout. But no server can see that the
- * plates have been cleared, so a person says so.
+ * The ONE human act the ledger cannot derive. Everything else about a
+ * table's status follows from its rows: seated while one is live, dirty
+ * after a checkout ended it. But no server can see that the plates have been
+ * cleared, so a person says so, and the row records who.
  *
  * Deliberately not a set-status endpoint. Its predecessor took any status and
  * wrote it with no lock and no occupancy check, so it could declare a table
@@ -2970,8 +3027,10 @@ export const ClearTableResponse = zod.unknown()
 
 
 /**
- * Occupancy travels on its own here, carrying nothing about why. Two things
- * use it:
+ * Occupancy travels on its own here, carrying nothing about what is on the
+ * table -- but always who took it: the hold is a `party` row in the ledger
+ * owned by the hand that placed it, so there is no such thing as a table held
+ * by nobody. Two things use it:
  *
  *   * A PARTY SITTING DOWN. They have ordered nothing yet, so there is no
  *     bill — a ticket starts with their first round and claims this table on
@@ -2984,13 +3043,14 @@ export const ClearTableResponse = zod.unknown()
  *     other terminal were told a table with somebody's order waiting on it was
  *     free.
  *
- * In both cases the server learns that the table is taken and nothing
- * whatever about what is on it.
+ * In both cases the server learns that the table is taken, by whom and from
+ * which till, and nothing whatever about what is on it.
  *
  * Like `clear_table`, and for the reason written there, this is not a
  * set-status endpoint: exactly one transition, `free` -> `seated`, refused
- * from anything else. A table a ticket is already on stays the ticket's.
- * @summary Take a table. THE seating primitive.
+ * from anything else with a `code` the till can act on. A table a ticket is
+ * already on stays the ticket's; a table another till holds stays theirs.
+ * @summary Take a table for a party with no bill yet.
  */
 export const HoldTableParams = zod.object({
   "id": zod.uuid().describe('Table ID')
@@ -3005,10 +3065,14 @@ export const HoldTableResponse = zod.unknown()
 
 /**
  * The counterpart to `hold_table`: the hold moved to another table, was
- * checked out, or was discarded. Exactly one transition out of `seated` --
- * to `free`, or to `dirty` when `bus` says the party ate -- and never over a
- * live ticket — if one has landed since, the ticket owns the
- * table and this is a no-op rather than a way to free an occupied table.
+ * checked out, or was discarded. Ends the `party` row -- leaving the table
+ * `free`, or `dirty` when `bus` says the party ate -- and never touches a
+ * ticket's: if one has landed since, the ticket owns the table and this is a
+ * no-op rather than a way to free an occupied table.
+ *
+ * Not owner-gated on purpose. The draft is device-local and outlives a shift
+ * handover, so the teller who checks it out is often not the one who parked
+ * it; the ledger records who released it instead of refusing them.
  * @summary Give back a table a till was holding for its own parked order.
  */
 export const ReleaseTableParams = zod.object({
@@ -3962,9 +4026,13 @@ export const UnbumpResponse = zod.void()
 
 
 /**
- * @summary Outstanding kitchen tickets for a branch (those with at least one un-bumped,
-un-voided line — for the given station if provided), oldest first. Seed for
-the KDS; live updates arrive on `/realtime/stream?topics=kitchen`.
+ * "Live" is `closed_at IS NULL`, not "has an un-bumped line": a ticket at a
+ * branch that never bumps stays on the till queue until its bill settles or
+ * the shift closes, and a ticket the kitchen finished is closed `bumped` the
+ * moment its last line is.
+ * @summary The branch's LIVE kitchen tickets — not closed, oldest first — optionally
+narrowed to those with un-bumped work for one station. Seed for the KDS;
+live updates arrive on `/realtime/stream?topics=kitchen`.
  */
 export const FeedQueryParams = zod.object({
   "branch_id": zod.uuid(),
@@ -3973,6 +4041,8 @@ export const FeedQueryParams = zod.object({
 
 export const FeedResponseItem = zod.object({
   "branch_id": zod.uuid(),
+  "close_reason": zod.string().nullish().describe('`bumped`, `settled`, `voided` or `retired` — see [`CloseReason`].'),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the ticket left the kitchen\'s attention for good; `null` while it\nis live. A till queue that shows history renders closed tickets greyed;\nthe KDS feed never returns them.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
   "items": zod.array(zod.object({
@@ -3987,7 +4057,7 @@ export const FeedResponseItem = zod.object({
   "round_number": zod.number(),
   "source_id": zod.uuid(),
   "source_type": zod.string(),
-  "status": zod.string(),
+  "status": zod.string().describe('The state of the cooking: `firing`, `ready`, `voided`.'),
   "table_label": zod.string().nullish()
 }).describe('One fire event projected for the kitchen (a round or a counter order).')
 export const FeedResponse = zod.array(FeedResponseItem)
@@ -4231,6 +4301,7 @@ export const LoyaltyAwardResponse = zod.object({
  * @summary Render the greeting for settings that have NOT been saved yet.
  */
 export const PreviewLoyaltyBirthdayMessageBody = zod.object({
+  "allow_negative_balance": zod.boolean().optional().describe('When a void or refund claws back points the member has already spent,\nmay the balance go below zero?\n\nOff (the default) clamps at zero: the shop eats the reward that was\nalready handed over, and the earn stays visibly part-reversed on the\nledger against an order that says `voided`, so a report can list who\nbenefited and by how much. On, the balance goes negative and the next\nvisits earn into the hole — the books balance, and the customer sees a\nminus on their card for what was nearly always the shop\'s own mistake.\n\nClawbacks ONLY. A redemption or a manual deduction can never overdraw\nwhatever this says: you cannot spend what you do not have; you can only\nowe because a sale you were paid for was undone. Enforced in the\ndatabase (`loyalty_apply_txn`), not here.'),
   "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
   "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
@@ -4306,11 +4377,13 @@ export const LoyaltyLookupResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string().describe('`\"points\"` or `\"visits\"` — which balance this row moved.'),
   "id": zod.uuid(),
-  "kind": zod.string(),
+  "kind": zod.string().describe('`earn`, `redeem`, `adjust`, or `reverse_earn` \/ `reverse_redeem` \/\n`reverse_adjust` — the last three undo the row named in `reverses_id`.'),
   "note": zod.string().nullish(),
   "order_id": zod.uuid().nullish(),
   "points": zod.number(),
-  "reward_name": zod.string().nullish()
+  "reverses_id": zod.uuid().nullish().describe('For a reversal, the row it undoes.'),
+  "reward_name": zod.string().nullish(),
+  "source": zod.string().describe('Why the row exists: `sale`, `redemption`, `void`, `refund`, `birthday`,\n`winback` or `manual`. What a till or a dashboard should print as the\nreason, instead of guessing from the kind and the note.')
 }).describe('One line of a member\'s history.')).describe('Recent history, so a teller can answer \"where did my points go?\".'),
   "rewards": zod.array(zod.object({
   "base_price": zod.number().describe('Menu price in piastres — what the reward is worth, for the admin\'s sake.'),
@@ -4374,11 +4447,13 @@ export const GetLoyaltyMemberResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string().describe('`\"points\"` or `\"visits\"` — which balance this row moved.'),
   "id": zod.uuid(),
-  "kind": zod.string(),
+  "kind": zod.string().describe('`earn`, `redeem`, `adjust`, or `reverse_earn` \/ `reverse_redeem` \/\n`reverse_adjust` — the last three undo the row named in `reverses_id`.'),
   "note": zod.string().nullish(),
   "order_id": zod.uuid().nullish(),
   "points": zod.number(),
-  "reward_name": zod.string().nullish()
+  "reverses_id": zod.uuid().nullish().describe('For a reversal, the row it undoes.'),
+  "reward_name": zod.string().nullish(),
+  "source": zod.string().describe('Why the row exists: `sale`, `redemption`, `void`, `refund`, `birthday`,\n`winback` or `manual`. What a till or a dashboard should print as the\nreason, instead of guessing from the kind and the note.')
 }).describe('One line of a member\'s history.')),
   "member": zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
@@ -4534,6 +4609,7 @@ export const GetLoyaltySettingsQueryParams = zod.object({
 })
 
 export const GetLoyaltySettingsResponse = zod.object({
+  "allow_negative_balance": zod.boolean().optional().describe('When a void or refund claws back points the member has already spent,\nmay the balance go below zero?\n\nOff (the default) clamps at zero: the shop eats the reward that was\nalready handed over, and the earn stays visibly part-reversed on the\nledger against an order that says `voided`, so a report can list who\nbenefited and by how much. On, the balance goes negative and the next\nvisits earn into the hole — the books balance, and the customer sees a\nminus on their card for what was nearly always the shop\'s own mistake.\n\nClawbacks ONLY. A redemption or a manual deduction can never overdraw\nwhatever this says: you cannot spend what you do not have; you can only\nowe because a sale you were paid for was undone. Enforced in the\ndatabase (`loyalty_apply_txn`), not here.'),
   "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
   "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
@@ -4564,6 +4640,7 @@ export const GetLoyaltySettingsResponse = zod.object({
 
 
 export const PutLoyaltySettingsBody = zod.object({
+  "allow_negative_balance": zod.boolean().optional().describe('When a void or refund claws back points the member has already spent,\nmay the balance go below zero?\n\nOff (the default) clamps at zero: the shop eats the reward that was\nalready handed over, and the earn stays visibly part-reversed on the\nledger against an order that says `voided`, so a report can list who\nbenefited and by how much. On, the balance goes negative and the next\nvisits earn into the hole — the books balance, and the customer sees a\nminus on their card for what was nearly always the shop\'s own mistake.\n\nClawbacks ONLY. A redemption or a manual deduction can never overdraw\nwhatever this says: you cannot spend what you do not have; you can only\nowe because a sale you were paid for was undone. Enforced in the\ndatabase (`loyalty_apply_txn`), not here.'),
   "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
   "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
@@ -4593,6 +4670,7 @@ export const PutLoyaltySettingsBody = zod.object({
 })
 
 export const PutLoyaltySettingsResponse = zod.object({
+  "allow_negative_balance": zod.boolean().optional().describe('When a void or refund claws back points the member has already spent,\nmay the balance go below zero?\n\nOff (the default) clamps at zero: the shop eats the reward that was\nalready handed over, and the earn stays visibly part-reversed on the\nledger against an order that says `voided`, so a report can list who\nbenefited and by how much. On, the balance goes negative and the next\nvisits earn into the hole — the books balance, and the customer sees a\nminus on their card for what was nearly always the shop\'s own mistake.\n\nClawbacks ONLY. A redemption or a manual deduction can never overdraw\nwhatever this says: you cannot spend what you do not have; you can only\nowe because a sale you were paid for was undone. Enforced in the\ndatabase (`loyalty_apply_txn`), not here.'),
   "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
   "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
@@ -6149,9 +6227,22 @@ export const ListOpenTicketsQueryParams = zod.object({
 })
 
 export const ListOpenTicketsResponseItem = zod.object({
+  "bill": zod.object({
+  "discount_amount": zod.number().describe('The waiter\'s discount, resolved (a `discount_id` is looked up the way\nthe settle looks it up). A cashier who clears it at settle will see a\ndifferent total than this one, and that is the point of showing it.'),
+  "service_charge_amount": zod.number(),
+  "service_charge_rate": zod.number(),
+  "subtotal": zod.number().describe('Live lines as charged, before discount. Gross when tax-inclusive.'),
+  "tax_amount": zod.number().describe('Inside the total when `tax_inclusive`, on top of it otherwise.'),
+  "tax_inclusive": zod.boolean(),
+  "tax_rate": zod.number().describe('The rates the figures were computed under, for the printed bill.'),
+  "total": zod.number().describe('What the drawer must collect.')
+}).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
+  "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
+  "discount_type": zod.string().nullish(),
+  "discount_value": zod.number().nullish(),
   "guest_count": zod.number().nullish(),
   "id": zod.uuid(),
   "items": zod.array(zod.object({
@@ -6168,12 +6259,16 @@ export const ListOpenTicketsResponseItem = zod.object({
   "opened_by": zod.uuid(),
   "opened_by_name": zod.string().nullish(),
   "order_id": zod.uuid().nullish(),
-  "ready_at": zod.iso.datetime({"offset":true}).nullish(),
+  "ready": zod.boolean().optional().describe('The kitchen has plated every line of every round. DERIVED from the\nticket\'s `kitchen_tickets` at read time, so it is always what the KDS\nsays now. `false` for a ticket nothing was ever fired to the kitchen for\n(routing mode `off`): there is nothing to be ready.'),
+  "ready_at": zod.iso.datetime({"offset":true}).nullish().describe('The last moment the kitchen had the whole ticket plated. History for\nthe timing reports; `ready` is the live fact.'),
   "settled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string(),
+  "status": zod.string().describe('The bill: `open`, `settled` or `voided`. Never `ready` — see [`Self::ready`].'),
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
-  "ticket_ref": zod.string().nullish()
+  "ticket_ref": zod.string().nullish(),
+  "void_note": zod.string().nullish(),
+  "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
+  "voided_at": zod.iso.datetime({"offset":true}).nullish()
 })
 export const ListOpenTicketsResponse = zod.array(ListOpenTicketsResponseItem)
 
@@ -6218,9 +6313,22 @@ export const CreateOpenTicketBody = zod.object({
 })
 
 export const CreateOpenTicketResponse = zod.object({
+  "bill": zod.object({
+  "discount_amount": zod.number().describe('The waiter\'s discount, resolved (a `discount_id` is looked up the way\nthe settle looks it up). A cashier who clears it at settle will see a\ndifferent total than this one, and that is the point of showing it.'),
+  "service_charge_amount": zod.number(),
+  "service_charge_rate": zod.number(),
+  "subtotal": zod.number().describe('Live lines as charged, before discount. Gross when tax-inclusive.'),
+  "tax_amount": zod.number().describe('Inside the total when `tax_inclusive`, on top of it otherwise.'),
+  "tax_inclusive": zod.boolean(),
+  "tax_rate": zod.number().describe('The rates the figures were computed under, for the printed bill.'),
+  "total": zod.number().describe('What the drawer must collect.')
+}).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
+  "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
+  "discount_type": zod.string().nullish(),
+  "discount_value": zod.number().nullish(),
   "guest_count": zod.number().nullish(),
   "id": zod.uuid(),
   "items": zod.array(zod.object({
@@ -6237,12 +6345,16 @@ export const CreateOpenTicketResponse = zod.object({
   "opened_by": zod.uuid(),
   "opened_by_name": zod.string().nullish(),
   "order_id": zod.uuid().nullish(),
-  "ready_at": zod.iso.datetime({"offset":true}).nullish(),
+  "ready": zod.boolean().optional().describe('The kitchen has plated every line of every round. DERIVED from the\nticket\'s `kitchen_tickets` at read time, so it is always what the KDS\nsays now. `false` for a ticket nothing was ever fired to the kitchen for\n(routing mode `off`): there is nothing to be ready.'),
+  "ready_at": zod.iso.datetime({"offset":true}).nullish().describe('The last moment the kitchen had the whole ticket plated. History for\nthe timing reports; `ready` is the live fact.'),
   "settled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string(),
+  "status": zod.string().describe('The bill: `open`, `settled` or `voided`. Never `ready` — see [`Self::ready`].'),
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
-  "ticket_ref": zod.string().nullish()
+  "ticket_ref": zod.string().nullish(),
+  "void_note": zod.string().nullish(),
+  "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
+  "voided_at": zod.iso.datetime({"offset":true}).nullish()
 })
 
 
@@ -6251,9 +6363,22 @@ export const GetOpenTicketParams = zod.object({
 })
 
 export const GetOpenTicketResponse = zod.object({
+  "bill": zod.object({
+  "discount_amount": zod.number().describe('The waiter\'s discount, resolved (a `discount_id` is looked up the way\nthe settle looks it up). A cashier who clears it at settle will see a\ndifferent total than this one, and that is the point of showing it.'),
+  "service_charge_amount": zod.number(),
+  "service_charge_rate": zod.number(),
+  "subtotal": zod.number().describe('Live lines as charged, before discount. Gross when tax-inclusive.'),
+  "tax_amount": zod.number().describe('Inside the total when `tax_inclusive`, on top of it otherwise.'),
+  "tax_inclusive": zod.boolean(),
+  "tax_rate": zod.number().describe('The rates the figures were computed under, for the printed bill.'),
+  "total": zod.number().describe('What the drawer must collect.')
+}).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
+  "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
+  "discount_type": zod.string().nullish(),
+  "discount_value": zod.number().nullish(),
   "guest_count": zod.number().nullish(),
   "id": zod.uuid(),
   "items": zod.array(zod.object({
@@ -6270,12 +6395,16 @@ export const GetOpenTicketResponse = zod.object({
   "opened_by": zod.uuid(),
   "opened_by_name": zod.string().nullish(),
   "order_id": zod.uuid().nullish(),
-  "ready_at": zod.iso.datetime({"offset":true}).nullish(),
+  "ready": zod.boolean().optional().describe('The kitchen has plated every line of every round. DERIVED from the\nticket\'s `kitchen_tickets` at read time, so it is always what the KDS\nsays now. `false` for a ticket nothing was ever fired to the kitchen for\n(routing mode `off`): there is nothing to be ready.'),
+  "ready_at": zod.iso.datetime({"offset":true}).nullish().describe('The last moment the kitchen had the whole ticket plated. History for\nthe timing reports; `ready` is the live fact.'),
   "settled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string(),
+  "status": zod.string().describe('The bill: `open`, `settled` or `voided`. Never `ready` — see [`Self::ready`].'),
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
-  "ticket_ref": zod.string().nullish()
+  "ticket_ref": zod.string().nullish(),
+  "void_note": zod.string().nullish(),
+  "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
+  "voided_at": zod.iso.datetime({"offset":true}).nullish()
 })
 
 
@@ -6313,9 +6442,22 @@ export const AddRoundBody = zod.object({
 })
 
 export const AddRoundResponse = zod.object({
+  "bill": zod.object({
+  "discount_amount": zod.number().describe('The waiter\'s discount, resolved (a `discount_id` is looked up the way\nthe settle looks it up). A cashier who clears it at settle will see a\ndifferent total than this one, and that is the point of showing it.'),
+  "service_charge_amount": zod.number(),
+  "service_charge_rate": zod.number(),
+  "subtotal": zod.number().describe('Live lines as charged, before discount. Gross when tax-inclusive.'),
+  "tax_amount": zod.number().describe('Inside the total when `tax_inclusive`, on top of it otherwise.'),
+  "tax_inclusive": zod.boolean(),
+  "tax_rate": zod.number().describe('The rates the figures were computed under, for the printed bill.'),
+  "total": zod.number().describe('What the drawer must collect.')
+}).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
+  "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
+  "discount_type": zod.string().nullish(),
+  "discount_value": zod.number().nullish(),
   "guest_count": zod.number().nullish(),
   "id": zod.uuid(),
   "items": zod.array(zod.object({
@@ -6332,12 +6474,16 @@ export const AddRoundResponse = zod.object({
   "opened_by": zod.uuid(),
   "opened_by_name": zod.string().nullish(),
   "order_id": zod.uuid().nullish(),
-  "ready_at": zod.iso.datetime({"offset":true}).nullish(),
+  "ready": zod.boolean().optional().describe('The kitchen has plated every line of every round. DERIVED from the\nticket\'s `kitchen_tickets` at read time, so it is always what the KDS\nsays now. `false` for a ticket nothing was ever fired to the kitchen for\n(routing mode `off`): there is nothing to be ready.'),
+  "ready_at": zod.iso.datetime({"offset":true}).nullish().describe('The last moment the kitchen had the whole ticket plated. History for\nthe timing reports; `ready` is the live fact.'),
   "settled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string(),
+  "status": zod.string().describe('The bill: `open`, `settled` or `voided`. Never `ready` — see [`Self::ready`].'),
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
-  "ticket_ref": zod.string().nullish()
+  "ticket_ref": zod.string().nullish(),
+  "void_note": zod.string().nullish(),
+  "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
+  "voided_at": zod.iso.datetime({"offset":true}).nullish()
 })
 
 
@@ -6351,7 +6497,8 @@ export const settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin = 0;
 
 export const SettleOpenTicketBody = zod.object({
   "amount_tendered": zod.number().nullish(),
-  "discount_id": zod.uuid().nullish().describe('Settle-time overrides (else the ticket\'s own discount \/ no tip).'),
+  "change_given": zod.number().nullish().describe('What the till handed back. Recorded as the drawer saw it, like a\ncounter sale\'s; absent, it is derived from `amount_tendered` and the\nserver\'s total.'),
+  "discount_id": zod.uuid().nullish().describe('Settle-time discount. ABSENT (all three fields) means the waiter\'s\nticket discount is inherited, as it always was — but the till can now\nsee that discount on the ticket view. The literal `discount_type:\n\"none\"` settles with no discount at all; any other value (or a\n`discount_id`) replaces the waiter\'s.'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().nullish(),
   "loyalty_customer_id": zod.uuid().nullish().describe('The member spending a balance on this settle, when rewards are applied.'),
@@ -6361,9 +6508,16 @@ export const SettleOpenTicketBody = zod.object({
   "units": zod.number().nullish().describe('How many of that line\'s units the reward covers. Defaults to one.')
 }).describe('One reward applied to one line of the cart.')).optional().describe('Rewards covering lines of the ticket. A table-service bill redeems\nexactly like a counter one — the cashier scans at settle either way.'),
   "payment_method": zod.string(),
+  "payment_splits": zod.array(zod.object({
+  "amount": zod.number(),
+  "method": zod.string(),
+  "reference": zod.string().nullish()
+})).nullish().describe('Split tenders, when the party paid with more than one. Carried to the\norder\'s payment legs like a counter sale\'s; they must sum to the total.'),
+  "settled_at": zod.iso.datetime({"offset":true}).nullish().describe('When the bill was paid, as the till says. An offline settle replayed\nlater keeps its real time — it becomes the order\'s `created_at` and the\nticket\'s `settled_at`, one instant on both rows. Absent means now; a\nfuture clock is refused.'),
   "shift_id": zod.uuid(),
   "tip_amount": zod.number().nullish(),
-  "tip_payment_method": zod.string().nullish()
+  "tip_payment_method": zod.string().nullish(),
+  "total_amount": zod.number().nullish().describe('What the till says the bill came to — the figure its drawer collected.\nChecked against the server\'s own total exactly as a counter checkout is\n(`create_order_inner`\'s drift check); a disagreement is refused, not\nrecorded. Absent on older builds, which then get no check. The figure\nto send is `OpenTicketView::bill.total`, which is priced by the same\nengine under the same policy — a till that shows that number cannot\ndisagree with the books.')
 })
 
 export const SettleOpenTicketResponse = zod.object({
@@ -6385,7 +6539,7 @@ export const SettleOpenTicketResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
-  "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
+  "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
   "method": zod.string()
@@ -6425,9 +6579,22 @@ export const MoveTicketTableBody = zod.object({
 })
 
 export const MoveTicketTableResponse = zod.object({
+  "bill": zod.object({
+  "discount_amount": zod.number().describe('The waiter\'s discount, resolved (a `discount_id` is looked up the way\nthe settle looks it up). A cashier who clears it at settle will see a\ndifferent total than this one, and that is the point of showing it.'),
+  "service_charge_amount": zod.number(),
+  "service_charge_rate": zod.number(),
+  "subtotal": zod.number().describe('Live lines as charged, before discount. Gross when tax-inclusive.'),
+  "tax_amount": zod.number().describe('Inside the total when `tax_inclusive`, on top of it otherwise.'),
+  "tax_inclusive": zod.boolean(),
+  "tax_rate": zod.number().describe('The rates the figures were computed under, for the printed bill.'),
+  "total": zod.number().describe('What the drawer must collect.')
+}).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
+  "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
+  "discount_type": zod.string().nullish(),
+  "discount_value": zod.number().nullish(),
   "guest_count": zod.number().nullish(),
   "id": zod.uuid(),
   "items": zod.array(zod.object({
@@ -6444,12 +6611,16 @@ export const MoveTicketTableResponse = zod.object({
   "opened_by": zod.uuid(),
   "opened_by_name": zod.string().nullish(),
   "order_id": zod.uuid().nullish(),
-  "ready_at": zod.iso.datetime({"offset":true}).nullish(),
+  "ready": zod.boolean().optional().describe('The kitchen has plated every line of every round. DERIVED from the\nticket\'s `kitchen_tickets` at read time, so it is always what the KDS\nsays now. `false` for a ticket nothing was ever fired to the kitchen for\n(routing mode `off`): there is nothing to be ready.'),
+  "ready_at": zod.iso.datetime({"offset":true}).nullish().describe('The last moment the kitchen had the whole ticket plated. History for\nthe timing reports; `ready` is the live fact.'),
   "settled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string(),
+  "status": zod.string().describe('The bill: `open`, `settled` or `voided`. Never `ready` — see [`Self::ready`].'),
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
-  "ticket_ref": zod.string().nullish()
+  "ticket_ref": zod.string().nullish(),
+  "void_note": zod.string().nullish(),
+  "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
+  "voided_at": zod.iso.datetime({"offset":true}).nullish()
 })
 
 
@@ -6458,13 +6629,27 @@ export const VoidOpenTicketParams = zod.object({
 })
 
 export const VoidOpenTicketBody = zod.object({
-  "reason": zod.string().nullish()
-})
+  "note": zod.string().nullish(),
+  "reason": zod.union([zod.null(),zod.enum(['customer_request', 'wrong_order', 'quality_issue', 'other']).describe('Why a sale or a bill was torn up — the `void_reason` enum, shared by\n`orders` and `open_tickets` so a void-rate report reads counter and dine-in\nalike without a translation layer. Bound as text and cast in SQL\n(`$n::void_reason`), the way the order void has always done it.')]).optional()
+}).describe('Why a bill is torn up. `reason` is typed; `note` is what actually happened,\nrequired when the reason is `other`.\n\nDeserialised leniently, because a void queued offline by an older till\narrives here months later with the picker\'s LABEL (`\"Order mistake\"`, or\n`\"Order mistake — burnt\"`) where the enum now is, and a queued op that fails\nto parse dead-letters. Those spellings map exactly as migration\n`20260912020000` mapped the stored rows; an unrecognised string is `other`\nwith the whole text as the note, so nothing the waiter wrote is lost.')
 
 export const VoidOpenTicketResponse = zod.object({
+  "bill": zod.object({
+  "discount_amount": zod.number().describe('The waiter\'s discount, resolved (a `discount_id` is looked up the way\nthe settle looks it up). A cashier who clears it at settle will see a\ndifferent total than this one, and that is the point of showing it.'),
+  "service_charge_amount": zod.number(),
+  "service_charge_rate": zod.number(),
+  "subtotal": zod.number().describe('Live lines as charged, before discount. Gross when tax-inclusive.'),
+  "tax_amount": zod.number().describe('Inside the total when `tax_inclusive`, on top of it otherwise.'),
+  "tax_inclusive": zod.boolean(),
+  "tax_rate": zod.number().describe('The rates the figures were computed under, for the printed bill.'),
+  "total": zod.number().describe('What the drawer must collect.')
+}).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
   "customer_name": zod.string().nullish(),
+  "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
+  "discount_type": zod.string().nullish(),
+  "discount_value": zod.number().nullish(),
   "guest_count": zod.number().nullish(),
   "id": zod.uuid(),
   "items": zod.array(zod.object({
@@ -6481,12 +6666,16 @@ export const VoidOpenTicketResponse = zod.object({
   "opened_by": zod.uuid(),
   "opened_by_name": zod.string().nullish(),
   "order_id": zod.uuid().nullish(),
-  "ready_at": zod.iso.datetime({"offset":true}).nullish(),
+  "ready": zod.boolean().optional().describe('The kitchen has plated every line of every round. DERIVED from the\nticket\'s `kitchen_tickets` at read time, so it is always what the KDS\nsays now. `false` for a ticket nothing was ever fired to the kitchen for\n(routing mode `off`): there is nothing to be ready.'),
+  "ready_at": zod.iso.datetime({"offset":true}).nullish().describe('The last moment the kitchen had the whole ticket plated. History for\nthe timing reports; `ready` is the live fact.'),
   "settled_at": zod.iso.datetime({"offset":true}).nullish(),
-  "status": zod.string(),
+  "status": zod.string().describe('The bill: `open`, `settled` or `voided`. Never `ready` — see [`Self::ready`].'),
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
-  "ticket_ref": zod.string().nullish()
+  "ticket_ref": zod.string().nullish(),
+  "void_note": zod.string().nullish(),
+  "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
+  "voided_at": zod.iso.datetime({"offset":true}).nullish()
 })
 
 
@@ -6528,7 +6717,7 @@ export const ListOrdersResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
-  "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
+  "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
   "method": zod.string()
@@ -6657,7 +6846,7 @@ export const CreateOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
-  "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
+  "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
   "method": zod.string()
@@ -6811,7 +7000,7 @@ export const ExportOrdersResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
-  "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
+  "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
   "method": zod.string()
@@ -6991,7 +7180,7 @@ export const GetOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
-  "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
+  "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
   "method": zod.string()
@@ -7144,7 +7333,7 @@ export const VoidOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
-  "order_type": zod.string().describe('Order origin: \"dine_in\" (POS sale) or \"delivery\" (finalized delivery\norder). Defaults to \"dine_in\" for every POS sale.'),
+  "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
   "method": zod.string()
@@ -7862,6 +8051,10 @@ export const PublicBranchesResponseItem = zod.object({
   "outside_open_now": zod.boolean(),
   "pickup_enabled": zod.boolean(),
   "pickup_open_now": zod.boolean(),
+  "tax_policy": zod.object({
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax; the total will not grow.'),
+  "tax_rate": zod.number().describe('Fraction, NOT a percentage: `0.14` is 14%.')
+}).describe('The tax this branch prices online orders under. The storefront renders\na tax line from it (exclusive) or an \"includes VAT\" note (inclusive) —\nthe same policy intake will freeze onto the order.'),
   "umbrella_enabled": zod.boolean(),
   "umbrella_open_now": zod.boolean()
 })
@@ -7932,6 +8125,10 @@ export const DeliveryQuoteResponse = zod.object({
   "distance_meters": zod.number().nullish(),
   "fee": zod.number().nullish(),
   "status": zod.string().describe('\"ok\" | \"out_of_range\" | \"unavailable\"'),
+  "tax_policy": zod.object({
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax; the total will not grow.'),
+  "tax_rate": zod.number().describe('Fraction, NOT a percentage: `0.14` is 14%.')
+}).describe('The tax the cart will be priced under at this branch. A quote is a fee\nquote — it has no cart, so no tax amount — but the page rendering the\ncheckout total needs the rate and the inclusivity beside the fee, or it\nshows the customer one number and intake records another. Present on\nevery outcome: the policy is the branch\'s, not the address\'s.'),
   "zone_id": zod.uuid().nullish(),
   "zone_name": zod.string().nullish()
 })
@@ -8074,9 +8271,10 @@ export const CreateDeliveryOrderResponse = zod.object({
   "delivery_ref": zod.string().nullish(),
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
-  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal (`total == subtotal -\ndiscount_amount + delivery_fee`). `discount_amount` is 0 when none.'),
+  "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().optional(),
+  "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
   "id": zod.uuid(),
@@ -8085,16 +8283,22 @@ export const CreateDeliveryOrderResponse = zod.object({
   "org_id": zod.uuid(),
   "otp_verified": zod.boolean(),
   "out_for_delivery_at": zod.iso.datetime({"offset":true}).nullish(),
-  "payment_method_hint": zod.string().nullish(),
+  "payment_method": zod.string().nullish().describe('What was actually taken at the door. Set at finalize and only then;\n`Some` exactly when the order is `delivered`.'),
+  "payment_method_hint": zod.string().nullish().describe('What the customer SAID they would pay with, at checkout. Display only.'),
   "place_name": zod.string().nullish(),
   "preparing_at": zod.iso.datetime({"offset":true}).nullish(),
   "ready_at": zod.iso.datetime({"offset":true}).nullish(),
   "receipt_printed_at": zod.iso.datetime({"offset":true}).nullish(),
   "rejected_at": zod.iso.datetime({"offset":true}).nullish(),
   "road_distance_meters": zod.number().nullish(),
+  "service_charge_amount": zod.number().optional().describe('Always 0: the service charge is dine-in only. Present so the till can\nrender the same breakdown for every kind of sale.'),
+  "service_charge_rate_applied": zod.number().optional(),
   "status": zod.string(),
   "subtotal": zod.number(),
-  "total": zod.number(),
+  "tax_amount": zod.number().optional().describe('The tax as priced at intake, under the policy frozen beside it. Inside\n`total` when `tax_inclusive`, added to it otherwise. Finalize does not\nre-price: a rate the shop changes between the quote and the door does\nnot move a bill the customer already agreed.'),
+  "tax_inclusive": zod.boolean().optional().describe('Copy of the ONE inclusivity flag (org, branch override) as it stood at\nintake — not a setting of its own.'),
+  "tax_rate_applied": zod.number().optional().describe('Fraction, not a percentage: `0.14` is 14%.'),
+  "total": zod.number().describe('The quote: `subtotal - discount_amount + delivery_fee`, plus\n`tax_amount` when the tax is exclusive. Replayed verbatim at finalize.'),
   "unit_number": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -8123,6 +8327,8 @@ export const GuestOrderHistoryResponseItem = zod.object({
   "place_name": zod.string().nullish(),
   "status": zod.string(),
   "subtotal": zod.number(),
+  "tax_amount": zod.number().describe('Tax as frozen at intake: inside `total` when `tax_inclusive`, added to\nit otherwise.'),
+  "tax_inclusive": zod.boolean(),
   "total": zod.number()
 })
 export const GuestOrderHistoryResponse = zod.array(GuestOrderHistoryResponseItem)
@@ -8179,6 +8385,9 @@ export const TrackDeliveryOrderResponse = zod.object({
   "rejected_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
   "subtotal": zod.number(),
+  "tax_amount": zod.number().describe('The tax line, frozen at intake. Inside `total` when `tax_inclusive`\n(render \"includes VAT\"), added to it otherwise (render a tax line).'),
+  "tax_inclusive": zod.boolean(),
+  "tax_rate_applied": zod.number(),
   "total": zod.number(),
   "unit_number": zod.string().nullish()
 }).describe('Customer-safe tracking view of a delivery order, keyed by its opaque UUID\n(same capability-URL trust model as the device-token flow). No phone number\nis exposed; the destination fields are the customer\'s own inputs. Powers the\npublic `\/track\/{id}` page (polled, since the public surface has no SSE).')
@@ -8297,8 +8506,8 @@ export const LoyaltyJoinBody = zod.object({
 })
 
 export const LoyaltyJoinResponse = zod.object({
-  "already_member": zod.boolean().describe('True when this phone was already a member — the page says \"welcome back\"\nand shows the existing card rather than pretending to have made a new one.'),
-  "balance": zod.number().describe('The live balance, in `mode`\'s currency. Zero for a fresh member.'),
+  "already_member": zod.boolean().describe('True when this phone was already a member — the page says \"welcome back\"\nrather than pretending to have made a new card.'),
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency. Zero for a fresh member, and zero\n(not the real figure) while `verify_required`.'),
   "brand": zod.object({
   "background_color": zod.string().nullish().describe('`#RRGGBB`, validated on write.'),
   "card_image_url": zod.string().nullish().describe('The wide photograph across the card — Apple\'s strip, Google\'s hero\nimage, and the band at the top of the web card. Absent is a finished\ncard, not a broken one.'),
@@ -8315,16 +8524,18 @@ export const LoyaltyJoinResponse = zod.object({
   "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('How a tenant\'s card should look.\n\nEvery field is optional and the site falls back to Madar\'s own palette, so a\ntenant who has set nothing still gets a finished card rather than an\nunstyled one. `org_name` is NOT optional: whose card this is must always be\non it, however little else has been configured.'),
-  "member_token": zod.string(),
+  "card_link_sent": zod.boolean().describe('While `verify_required`: the card link was also sent to the number on\nfile, by WhatsApp — the one channel that proves possession without a\ncode. False when no gateway is configured or there is no public base to\nbuild a link on; the page then offers only the OTP.'),
+  "member_token": zod.string().nullish().describe('Absent when `verify_required`: the page has nothing to show yet.'),
   "mode": zod.string(),
-  "name": zod.string(),
+  "name": zod.string().describe('The name as the caller typed it. For a returning member the name ON FILE\nis not echoed until they have verified — it is a fact about the person\nwho owns the phone, not about the person typing it.'),
   "next_reward_cost": zod.number(),
-  "passes": zod.object({
+  "passes": zod.union([zod.null(),zod.object({
   "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
   "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
   "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
-}).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.')
-}).describe('What the customer sees after signing up: their card, and the buttons.')
+}).describe('Absent when `verify_required`.')]).optional(),
+  "verify_required": zod.boolean().describe('This phone already has a card and the device has not proved it owns the\nphone. The page should run the ordinary OTP flow (`\/public\/otp\/request`\nthen `\/public\/otp\/verify`) and POST here again with the `device_token`\nit is handed; the card comes back on that call.')
+}).describe('What the customer sees after signing up: their card, and the buttons — or,\nfor a phone that is already a member and has not been proved, an invitation\nto prove it.\n\nThe member token is a bearer credential: whoever holds it holds the card,\nthe balance, the purchase history and the wallet passes. So it is handed out\non exactly two occasions — to a NEW member, whose token nobody else could\nwant yet, and to an existing member whose device has verified THIS phone by\nOTP. Typing a phone number is not proof of owning it; anyone who knows a\ncustomer\'s number can type it.')
 
 
 export const LoyaltyJoinInfoQueryParams = zod.object({
@@ -9040,6 +9251,166 @@ export const PutRecipeStepsResponseItem = zod.object({
 export const PutRecipeStepsResponse = zod.array(PutRecipeStepsResponseItem)
 
 
+export const CreateRefundBody = zod.object({
+  "amount": zod.number().describe('Minor units, > 0. Together with every refund already on the order it\nmay not exceed `orders.total_amount`.'),
+  "client_ref": zod.uuid().nullish().describe('Client-minted idempotency key. A retried request or a replayed offline\nqueue carrying the same key gets the original refund back instead of\nhanding the money out again.'),
+  "issued_at": zod.iso.datetime({"offset":true}).nullish().describe('When the refund was issued. Omit for live requests — the server stamps\n`now()`. An offline till sends the real time; future values are rejected.'),
+  "lines": zod.array(zod.object({
+  "amount": zod.number().describe('The share of the refund\'s amount attributed to this line, minor units.\nZero is allowed (a reward line sent back for nothing). The lines of a\nrefund may not add up to more than the refund.'),
+  "order_item_id": zod.uuid(),
+  "quantity": zod.number().describe('How many of the line\'s units this refund is for. Held, cumulatively\nacross every refund of the order, to what the line sold.')
+}).describe('One line of the order a refund is for. Optional detail: an overcharge or a\ngoodwill gesture is an amount with no line behind it.')).optional(),
+  "method": zod.string().describe('How the money went back — a name from the org\'s payment-method\nvocabulary. One tender per refund; a split is two refunds.'),
+  "note": zod.string().nullish().describe('Free-text explanation. Required when `reason` is `other`.'),
+  "order_id": zod.uuid().describe('The settled sale the money goes back against.'),
+  "reason": zod.enum(['customer_request', 'wrong_order', 'quality_issue', 'overcharged', 'late_or_undelivered', 'goodwill', 'other']).describe('Why money went back. The first three share their spelling with\n[`crate::orders::VoidReason`] so a report reads \"wrong order\" across voids\nand refunds alike; the rest exist only for refunds (you do not void a sale\nfor being late). Bound as text; the table\'s CHECK is the authority on the\nvocabulary and this enum mirrors it.'),
+  "shift_id": zod.uuid().nullish().describe('The shift whose drawer the money leaves. Omit for a live request and the\nactor\'s own open shift at the order\'s branch is used; a replayed offline\nrefund must name the shift it was issued in, the way a queued sale does.')
+})
+
+export const CreateRefundResponse = zod.object({
+  "amount": zod.number(),
+  "branch_id": zod.uuid(),
+  "client_ref": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_cash": zod.boolean().describe('Whether `method` meant cash when the refund was issued. Snapshotted.'),
+  "issued_at": zod.iso.datetime({"offset":true}),
+  "issued_by": zod.uuid(),
+  "issued_by_name": zod.string(),
+  "method": zod.string(),
+  "note": zod.string().nullish(),
+  "order_id": zod.uuid(),
+  "reason": zod.string().describe('One of the [`RefundReason`] spellings.'),
+  "shift_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the shift the order was sold in.')
+}).and(zod.object({
+  "lines": zod.array(zod.object({
+  "amount": zod.number(),
+  "id": zod.uuid(),
+  "item_name": zod.string().describe('`order_items.item_name`, so a receipt reprint names the dish without a\nsecond lookup.'),
+  "order_item_id": zod.uuid(),
+  "quantity": zod.number(),
+  "restock": zod.boolean().describe('Whether the goods came back. Recorded per line; nothing in this module\nwrites it `true` yet (see the module docs on restock).')
+}))
+})).and(zod.object({
+  "refund_count": zod.number(),
+  "refunded_amount": zod.number(),
+  "refunded_cash": zod.number().describe('The cash slice of `refunded_amount` — what left a drawer.')
+}).describe('\"Everything returned\" — against one order, or in one shift. Read from\n`v_order_refund_totals` for an order and summed by `shift_id` for a shift.')).and(zod.object({
+  "order_status": zod.string().describe('`orders.status` after this refund — `refunded` only when the cumulative\namount reached the total (the trigger\'s rule, not this module\'s).'),
+  "refundable_remaining": zod.number().describe('`total_amount − refunded_amount`: what may still be returned.')
+})).describe('What `POST \/refunds` returns: the refund, plus where the order now stands\nso the till can print \"fully refunded\" without a second request.')
+
+
+export const ListOrderRefundsParams = zod.object({
+  "order_id": zod.uuid().describe('Order ID')
+})
+
+export const ListOrderRefundsResponse = zod.object({
+  "refund_count": zod.number(),
+  "refunded_amount": zod.number(),
+  "refunded_cash": zod.number().describe('The cash slice of `refunded_amount` — what left a drawer.')
+}).describe('\"Everything returned\" — against one order, or in one shift. Read from\n`v_order_refund_totals` for an order and summed by `shift_id` for a shift.').and(zod.object({
+  "order_id": zod.uuid(),
+  "order_status": zod.string(),
+  "refundable_remaining": zod.number(),
+  "refunds": zod.array(zod.object({
+  "amount": zod.number(),
+  "branch_id": zod.uuid(),
+  "client_ref": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_cash": zod.boolean().describe('Whether `method` meant cash when the refund was issued. Snapshotted.'),
+  "issued_at": zod.iso.datetime({"offset":true}),
+  "issued_by": zod.uuid(),
+  "issued_by_name": zod.string(),
+  "method": zod.string(),
+  "note": zod.string().nullish(),
+  "order_id": zod.uuid(),
+  "reason": zod.string().describe('One of the [`RefundReason`] spellings.'),
+  "shift_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the shift the order was sold in.')
+}).and(zod.object({
+  "lines": zod.array(zod.object({
+  "amount": zod.number(),
+  "id": zod.uuid(),
+  "item_name": zod.string().describe('`order_items.item_name`, so a receipt reprint names the dish without a\nsecond lookup.'),
+  "order_item_id": zod.uuid(),
+  "quantity": zod.number(),
+  "restock": zod.boolean().describe('Whether the goods came back. Recorded per line; nothing in this module\nwrites it `true` yet (see the module docs on restock).')
+}))
+}))),
+  "total_amount": zod.number()
+}))
+
+
+export const ListShiftRefundsParams = zod.object({
+  "shift_id": zod.uuid().describe('Shift ID')
+})
+
+export const ListShiftRefundsResponse = zod.object({
+  "refund_count": zod.number(),
+  "refunded_amount": zod.number(),
+  "refunded_cash": zod.number().describe('The cash slice of `refunded_amount` — what left a drawer.')
+}).describe('\"Everything returned\" — against one order, or in one shift. Read from\n`v_order_refund_totals` for an order and summed by `shift_id` for a shift.').and(zod.object({
+  "refunds": zod.array(zod.object({
+  "amount": zod.number(),
+  "branch_id": zod.uuid(),
+  "client_ref": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_cash": zod.boolean().describe('Whether `method` meant cash when the refund was issued. Snapshotted.'),
+  "issued_at": zod.iso.datetime({"offset":true}),
+  "issued_by": zod.uuid(),
+  "issued_by_name": zod.string(),
+  "method": zod.string(),
+  "note": zod.string().nullish(),
+  "order_id": zod.uuid(),
+  "reason": zod.string().describe('One of the [`RefundReason`] spellings.'),
+  "shift_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the shift the order was sold in.')
+}).and(zod.object({
+  "lines": zod.array(zod.object({
+  "amount": zod.number(),
+  "id": zod.uuid(),
+  "item_name": zod.string().describe('`order_items.item_name`, so a receipt reprint names the dish without a\nsecond lookup.'),
+  "order_item_id": zod.uuid(),
+  "quantity": zod.number(),
+  "restock": zod.boolean().describe('Whether the goods came back. Recorded per line; nothing in this module\nwrites it `true` yet (see the module docs on restock).')
+}))
+}))),
+  "shift_id": zod.uuid()
+}))
+
+
+export const GetRefundParams = zod.object({
+  "id": zod.uuid().describe('Refund ID')
+})
+
+export const GetRefundResponse = zod.object({
+  "amount": zod.number(),
+  "branch_id": zod.uuid(),
+  "client_ref": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_cash": zod.boolean().describe('Whether `method` meant cash when the refund was issued. Snapshotted.'),
+  "issued_at": zod.iso.datetime({"offset":true}),
+  "issued_by": zod.uuid(),
+  "issued_by_name": zod.string(),
+  "method": zod.string(),
+  "note": zod.string().nullish(),
+  "order_id": zod.uuid(),
+  "reason": zod.string().describe('One of the [`RefundReason`] spellings.'),
+  "shift_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the shift the order was sold in.')
+}).and(zod.object({
+  "lines": zod.array(zod.object({
+  "amount": zod.number(),
+  "id": zod.uuid(),
+  "item_name": zod.string().describe('`order_items.item_name`, so a receipt reprint names the dish without a\nsecond lookup.'),
+  "order_item_id": zod.uuid(),
+  "quantity": zod.number(),
+  "restock": zod.boolean().describe('Whether the goods came back. Recorded per line; nothing in this module\nwrites it `true` yet (see the module docs on restock).')
+}))
+}))
+
+
 export const BranchAddonSalesParams = zod.object({
   "branch_id": zod.uuid()
 })
@@ -9118,17 +9489,19 @@ export const BranchDeliverySalesResponse = zod.object({
   "channels": zod.array(zod.object({
   "avg_order_value": zod.number(),
   "cancelled_orders": zod.number(),
-  "channel": zod.string().describe('Delivery channel: `in_mall` or `outside`.'),
-  "delivery_fees": zod.number().describe('Sum of `delivery_fee` (piastres) over delivered orders.'),
+  "channel": zod.string().describe('Delivery channel: `in_mall`, `outside`, `umbrella` or `pickup`.'),
+  "delivery_fees": zod.number().describe('Sum of `delivery_fee` (piastres) over delivered orders. Outside the tax\nbase and not food revenue; a pickup carries none.'),
+  "goods_revenue": zod.number().optional().describe('`revenue − delivery_fees`: the bill for the goods (tax included), the\nfigure comparable with dine-in and takeaway revenue.'),
   "orders": zod.number(),
-  "revenue": zod.number().describe('Sum of `total` (piastres) over delivered orders on this channel.')
-}).describe('Delivery sales for one delivery channel (`in_mall` \/ `outside`). Revenue and\norder counts are over \*\*delivered\*\* orders only; `cancelled_orders` is shown\nseparately so the UI can surface drop-off without inflating revenue.')),
+  "revenue": zod.number().describe('Sum of `total` (piastres) over delivered orders on this channel — the\nwhole bill, delivery fee included.')
+}).describe('Delivery sales for one delivery channel. Revenue and order counts are over\n\*\*delivered\*\* orders only; `cancelled_orders` is shown separately so the UI\ncan surface drop-off without inflating revenue.\n\nRead from `delivery_orders` — the quote — not from `orders`: a delivery that\nnever settled into a sale still tells the shop something about its\nchannels. Refunds are against the sale and are not netted here.')),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_delivery_fees": zod.number(),
+  "total_goods_revenue": zod.number().optional().describe('`total_revenue − total_delivery_fees`.'),
   "total_orders": zod.number(),
   "total_revenue": zod.number()
-}).describe('Delivery sales rolled up across channels, plus a per-channel breakdown.\nAlways returns both `in_mall` and `outside` channels (zero-filled) so the\ndashboard renders a stable shape.')
+}).describe('Delivery sales rolled up across channels, plus a per-channel breakdown.\nAlways returns every channel in [`DELIVERY_CHANNELS`] (zero-filled) so the\ndashboard renders a stable shape.')
 
 
 export const BranchInventoryValuationParams = zod.object({
@@ -9227,7 +9600,9 @@ export const BranchSalesResponse = zod.object({
 })),
   "cash_tips": zod.number().optional().describe('The cash slice of `total_tips` (snapshotted `tip_is_cash`).'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
-  "revenue_by_method": zod.unknown().describe('Money collected FOR GOODS, bucketed by the method actually tendered\n(`order_payments`). Tips are not in here — see `total_tips`.'),
+  "gross_sales": zod.number().optional().describe('Sales in range as rung up, before any refund. Was what `total_revenue`\nmeant until 2026-09.'),
+  "refunded_amount": zod.number().optional().describe('Money refunded against the sales in range (partial refunds; a fully\nrefunded order is out of every figure here by status).'),
+  "revenue_by_method": zod.unknown().describe('Money collected FOR GOODS, bucketed by the method actually tendered\n(`order_payments`) — money IN. Tips are not in here — see `total_tips`\n— and refunds are not netted out: they are money OUT with a tender of\ntheir own, on `GET \/shifts\/{id}\/refunds` and the refunds dataset.'),
   "subtotal": zod.number(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "top_items": zod.array(zod.object({
@@ -9239,10 +9614,12 @@ export const BranchSalesResponse = zod.object({
   "quantity_sold": zod.number(),
   "revenue": zod.number()
 })),
+  "total_delivery_fees": zod.number().optional().describe('Delivery fees on the sales in range — inside `total_revenue`, outside\nthe tax base, not food revenue.'),
   "total_discount": zod.number(),
   "total_line_items": zod.number().optional().describe('Units sold (SUM of order_items.quantity) across non-voided orders in\nrange. Counts units, not distinct lines (\"3× burger\" contributes 3),\nmatching quantity_sold in the item\/category breakdowns.'),
   "total_orders": zod.number(),
-  "total_revenue": zod.number(),
+  "total_revenue": zod.number().describe('What the sales in range are worth after refunds: `gross_sales` less\n`refunded_amount`. A refund is attributed to the sale it was against,\nwhenever it was issued — the same restatement a full refund makes by\nflipping the order\'s status out of the sold set.'),
+  "total_service_charge": zod.number().optional().describe('Service charge on the dine-in bills in range — inside `total_revenue`\nas the shop\'s income, not a pass-through.'),
   "total_tax": zod.number(),
   "total_tips": zod.number().optional().describe('Tips, standalone — never folded into a method bucket and never part of\n`total_revenue`. Same definition as `total_tips` on the shift report, so\nthe two screens can be reconciled line for line.'),
   "voided_orders": zod.number()
@@ -9288,7 +9665,8 @@ export const BranchSalesTimeseriesResponseItem = zod.object({
   "discount": zod.number(),
   "orders": zod.number(),
   "period": zod.string(),
-  "revenue": zod.number(),
+  "refunded": zod.number().optional(),
+  "revenue": zod.number().describe('Net of refunds against the period\'s sales; `refunded` is what came off.'),
   "revenue_by_method": zod.unknown(),
   "tax": zod.number(),
   "voided": zod.number()
@@ -9347,9 +9725,9 @@ export const BranchTellerStatsQueryParams = zod.object({
 })
 
 export const BranchTellerStatsResponseItem = zod.object({
-  "avg_order_value": zod.number(),
+  "avg_order_value": zod.number().describe('Average bill as rung up — a refund does not shrink what was ordered.'),
   "orders": zod.number(),
-  "revenue": zod.number(),
+  "revenue": zod.number().describe('Net of refunds against this teller\'s sales.'),
   "shifts": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
@@ -9373,10 +9751,10 @@ export const BranchWaiterStatsResponse = zod.object({
   "total_orders": zod.number().describe('All non-voided orders in range (waiter or not).'),
   "waiters": zod.array(zod.object({
   "avg_items_per_order": zod.number().describe('line_items \/ orders; 0 when the waiter has no non-voided orders.'),
-  "avg_order_value": zod.number(),
+  "avg_order_value": zod.number().describe('Average bill as rung up — a refund does not shrink what was ordered.'),
   "line_items": zod.number().describe('Units sold (SUM of order_items.quantity) on this waiter\'s non-voided\norders — the upsell signal behind avg_items_per_order.'),
   "orders": zod.number(),
-  "revenue": zod.number(),
+  "revenue": zod.number().describe('Net of refunds against this waiter\'s sales.'),
   "voided": zod.number(),
   "waiter_id": zod.uuid(),
   "waiter_name": zod.string()
@@ -9421,9 +9799,11 @@ export const OrgBranchComparisonResponse = zod.object({
   "branch_id": zod.uuid(),
   "branch_name": zod.string(),
   "cash_tips": zod.number().optional().describe('The cash slice of `total_tips`.'),
-  "revenue_by_method": zod.unknown().describe('Goods only, by method actually tendered. Tips are in `total_tips`.'),
+  "gross_sales": zod.number().optional(),
+  "refunded_amount": zod.number().optional(),
+  "revenue_by_method": zod.unknown().describe('Goods only, by method actually tendered — money in. Tips are in\n`total_tips`; refunds are not netted from the buckets.'),
   "total_orders": zod.number(),
-  "total_revenue": zod.number(),
+  "total_revenue": zod.number().describe('Net of refunds: `gross_sales − refunded_amount`.'),
   "total_tips": zod.number().optional().describe('Tips, standalone — same definition as on the branch sales + shift reports.'),
   "void_rate_pct": zod.number(),
   "voided_orders": zod.number()
@@ -9564,16 +9944,23 @@ export const ShiftSummaryResponse = zod.object({
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
+  "gross_sales": zod.number().optional().describe('This shift\'s sales as rung up, before any refund. Was what\n`total_revenue` meant until 2026-09.'),
   "opened_at": zod.iso.datetime({"offset":true}),
   "opening_cash": zod.number(),
-  "revenue_by_method": zod.unknown().describe('Goods only, by method actually tendered. Tips are in `total_tips`.'),
+  "refunded_amount": zod.number().optional().describe('Money refunded AGAINST this shift\'s sales, whenever and from whichever\ndrawer it was issued. `gross_sales − refunded_amount = total_revenue`.\nA fully refunded sale is out of all three (its status is `refunded`).'),
+  "refunds_issued_amount": zod.number().optional(),
+  "refunds_issued_cash": zod.number().optional(),
+  "refunds_issued_count": zod.number().optional().describe('Refunds ISSUED IN THIS SHIFT — keyed on `order_refunds.shift_id`, the\ndrawer the money left, which need not be the shift that made the sale.\nThis is the Z-report\'s money-out line: `refunds_issued_cash` is what the\ndrawer is short by relative to its cash sales.'),
+  "revenue_by_method": zod.unknown().describe('Goods only, by method actually tendered — money IN. Tips are in\n`total_tips`; refunds are not netted from these buckets (they are money\nOUT, with their own tender — see `refunds_issued_\*`).'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "total_delivery_fees": zod.number().optional().describe('Delivery fees on this shift\'s sales. Inside `total_revenue` (the\ncustomer paid them) but outside the tax base and not food revenue.'),
   "total_discount": zod.number(),
   "total_orders": zod.number(),
-  "total_revenue": zod.number(),
+  "total_revenue": zod.number().describe('What this shift\'s sales are worth after refunds: `gross_sales` less\n`refunded_amount`. Same definition as `total_revenue` on the branch\nsales report, so the two reconcile.'),
+  "total_service_charge": zod.number().optional().describe('Service charge added to this shift\'s dine-in bills. Inside\n`total_revenue` as the shop\'s income; see `analytics::schema` for why.'),
   "total_tax": zod.number(),
   "total_tips": zod.number().optional().describe('Tips, standalone — matches `total_tips` on `GET \/shifts\/{id}\/report`.'),
   "voided_orders": zod.number()
@@ -9742,8 +10129,10 @@ export const ListCashMovementsParams = zod.object({
 export const ListCashMovementsResponseItem = zod.object({
   "amount": zod.number(),
   "client_ref": zod.uuid().nullish().describe('Client-minted idempotency \/ reconciliation key, echoed back so an\noffline client can map its queued movement to the server row. NULL for\nlive online movements.'),
+  "corrects_id": zod.uuid().nullish().describe('For a `correction`: the movement it reverses. NULL for every other kind,\nand for a correction of something never recorded as a row.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "kind": zod.string().describe('One of `pay_in` \/ `pay_out` \/ `safe_drop` \/ `correction` — see\n[`CashMovementKind`].'),
   "moved_by": zod.uuid(),
   "moved_by_name": zod.string(),
   "note": zod.string(),
@@ -9759,15 +10148,19 @@ export const AddCashMovementParams = zod.object({
 export const AddCashMovementBody = zod.object({
   "amount": zod.number(),
   "client_ref": zod.uuid().nullish().describe('Client-minted idempotency \/ reconciliation key. The POS sends a stable\nUUID per movement so a replayed offline movement dedupes instead of\ndouble-applying. Omit for live online movements.'),
+  "corrects_id": zod.uuid().nullish().describe('For a `correction` only: the movement on this shift it reverses. The\namount must be the exact opposite of that row\'s, and a row may be\ncorrected once. Omit for a correction of something never recorded.'),
   "created_at": zod.iso.datetime({"offset":true}).nullish().describe('When the movement actually happened. Omit for live (online) movements —\nthe server stamps `now()`. The POS sends this for movements made OFFLINE\nso they keep their real time after syncing. Future values are rejected.'),
+  "kind": zod.union([zod.null(),zod.enum(['pay_in', 'pay_out', 'safe_drop', 'correction']).describe('What the movement is. Optional for the clients already in the field,\nwhich send only a signed amount: an omitted kind resolves by sign\n(negative → `pay_out`, positive → `pay_in`), exactly what the In\/Out\nchips have always meant. A supplied kind must agree with the sign.')]).optional(),
   "note": zod.string()
 })
 
 export const AddCashMovementResponse = zod.object({
   "amount": zod.number(),
   "client_ref": zod.uuid().nullish().describe('Client-minted idempotency \/ reconciliation key, echoed back so an\noffline client can map its queued movement to the server row. NULL for\nlive online movements.'),
+  "corrects_id": zod.uuid().nullish().describe('For a `correction`: the movement it reverses. NULL for every other kind,\nand for a correction of something never recorded as a row.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "kind": zod.string().describe('One of `pay_in` \/ `pay_out` \/ `safe_drop` \/ `correction` — see\n[`CashMovementKind`].'),
   "moved_by": zod.uuid(),
   "moved_by_name": zod.string(),
   "note": zod.string(),
@@ -9852,15 +10245,21 @@ export const GetShiftReportParams = zod.object({
 })
 
 export const GetShiftReportResponse = zod.object({
+  "cash_adjustments": zod.number().describe('Signed sum of corrections that reverse nothing on record (a miscounted\nfloat). Kept apart so a fix-up is never mistaken for a receipt or a cost.'),
+  "cash_in_refunded_sales": zod.number().optional().describe('Cash tenders and cash tips on this shift\'s sales that were later FULLY\nrefunded. `payment_summary` and `cash_tips` leave those sales out (they\nare revenue figures and match the sales report), but the notes did go\ninto the drawer, so `expected_cash` counts them. Reported so the sheet\nadds up: `expected_cash = opening_cash + cash bucket + cash_tips +\ncash_in_refunded_sales + cash_movements_net − refunds_issued_cash`.'),
   "cash_movements": zod.array(zod.object({
   "amount": zod.number(),
+  "corrects_id": zod.uuid().nullish(),
+  "corrects_kind": zod.string().nullish().describe('The kind of the movement `corrects_id` points at, so a printed report\ncan say \"correction of pay-out\" and the totals can net the pair inside\nthe bucket the mistake was made in.'),
   "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.string(),
   "moved_by_name": zod.string(),
   "note": zod.string()
 })),
-  "cash_movements_in": zod.number(),
-  "cash_movements_net": zod.number().describe('Net of all cash movements (in - out) as a signed integer'),
-  "cash_movements_out": zod.number(),
+  "cash_movements_in": zod.number().describe('Non-sale cash placed in the drawer (`pay_in`), net of any correction\nthat reversed one. Positive.'),
+  "cash_movements_net": zod.number().describe('Signed net effect of EVERY movement on the drawer — the figure\n`compute_system_cash` adds to the float and the cash sales:\n`in − out − safe_drops + cash_adjustments`.'),
+  "cash_movements_out": zod.number().describe('What the shift SPENT (`pay_out`), net of corrections. Positive. A safe\ndrop is NOT in here — that money left the drawer but not the shop.'),
   "cash_tips": zod.number().describe('The cash slice of `total_tips` (snapshotted `tip_is_cash`). This IS in\nthe drawer, so it is counted by `expected_cash` even though it is not\npart of `net_payments`.'),
   "expected_cash": zod.number().describe('Authoritative system (expected) cash in the drawer. For a closed shift\nthis is the snapshot taken at close (`closing_cash_system`); for an open\nshift it is computed live via the same formula. Clients should display\nthis directly instead of re-deriving it from the payment breakdown.'),
   "net_payments": zod.number(),
@@ -9872,6 +10271,10 @@ export const GetShiftReportResponse = zod.object({
   "total": zod.number()
 })).describe('Money COLLECTED FOR GOODS, bucketed by the method actually tendered\n(`order_payments`, so a split order contributes to each leg it really\nused). Tips are NOT in here — see `total_tips`.'),
   "printed_at": zod.iso.datetime({"offset":true}),
+  "refunds_issued_amount": zod.number().optional(),
+  "refunds_issued_cash": zod.number().optional(),
+  "refunds_issued_count": zod.number().optional().describe('Refunds ISSUED FROM THIS DRAWER — keyed on `order_refunds.shift_id`,\nwhich need not be the shift that made the sale. Money OUT; the Z-report\'s\nreturns line. `refunds_issued_cash` is what `compute_system_cash`\nsubtracts.'),
+  "safe_drops": zod.number().describe('Cash moved from the drawer to the safe (`safe_drop`), net of\ncorrections. Positive. Out of the drawer, still the shop\'s.'),
   "shift": zod.object({
   "branch_id": zod.uuid(),
   "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
@@ -9896,6 +10299,8 @@ export const GetShiftReportResponse = zod.object({
   "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
   "till_name": zod.string().nullish()
 }),
+  "standard_float": zod.number().nullish().describe('The till\'s standard float, when the shop has set one: what should stay\nin the drawer at close. `None` means \"not decided\" — propose nothing.'),
+  "suggested_safe_drop": zod.number().nullish().describe('For an OPEN shift on a till with a standard float: how much of\n`expected_cash` to drop into the safe so the drawer closes at the\nfloat. Never negative — a drawer under its float has nothing to drop.\n`None` when the shift is closed or the till has no float.'),
   "total_payments": zod.number(),
   "total_tips": zod.number().describe('Tips, as a standalone figure — never folded into a method bucket, and\nnever part of `total_payments`\/`net_payments`. Mirrors `total_tips` on\nthe sales reports so the two screens agree on what \"revenue\" means.'),
   "voided_amount": zod.number()
@@ -11952,6 +12357,7 @@ export const ListTillsResponseItem = zod.object({
   "is_default": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
+  "standard_float": zod.number().nullish().describe('The cash that should be in this drawer at the start of a shift, in\nminor units. The shift report proposes closing at it (\"leave the float,\ndrop the rest into the safe\"); `None` means the shop has not decided\nand nothing is proposed.'),
   "updated_at": zod.iso.datetime({"offset":true})
 })
 export const ListTillsResponse = zod.array(ListTillsResponseItem)
@@ -11961,7 +12367,8 @@ export const CreateTillBody = zod.object({
   "branch_id": zod.uuid(),
   "is_active": zod.boolean().nullish(),
   "is_default": zod.boolean().nullish(),
-  "name": zod.string()
+  "name": zod.string(),
+  "standard_float": zod.number().nullish().describe('Standard float in minor units; must not be negative. Omit or `null`\nfor \"not decided\".')
 })
 
 export const CreateTillResponse = zod.object({
@@ -11972,6 +12379,7 @@ export const CreateTillResponse = zod.object({
   "is_default": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
+  "standard_float": zod.number().nullish().describe('The cash that should be in this drawer at the start of a shift, in\nminor units. The shift report proposes closing at it (\"leave the float,\ndrop the rest into the safe\"); `None` means the shop has not decided\nand nothing is proposed.'),
   "updated_at": zod.iso.datetime({"offset":true})
 })
 
@@ -11990,7 +12398,8 @@ export const UpdateTillParams = zod.object({
 export const UpdateTillBody = zod.object({
   "is_active": zod.boolean().nullish(),
   "is_default": zod.boolean().nullish(),
-  "name": zod.string().nullish()
+  "name": zod.string().nullish(),
+  "standard_float": zod.number().nullish().describe('Standard float in minor units. Absent → unchanged; `null` → cleared\n(the shop no longer proposes a closing figure); a value → set. Same\n`Option<Option<T>>` shape as the branch printer fields.')
 })
 
 export const UpdateTillResponse = zod.object({
@@ -12001,6 +12410,7 @@ export const UpdateTillResponse = zod.object({
   "is_default": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
+  "standard_float": zod.number().nullish().describe('The cash that should be in this drawer at the start of a shift, in\nminor units. The shift report proposes closing at it (\"leave the float,\ndrop the rest into the safe\"); `None` means the shop has not decided\nand nothing is proposed.'),
   "updated_at": zod.iso.datetime({"offset":true})
 })
 

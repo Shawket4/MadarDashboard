@@ -12,14 +12,31 @@ export interface BranchSalesReport {
   /** @nullable */
   from?: string | null;
   /**
+     * Sales in range as rung up, before any refund. Was what `total_revenue`
+     * meant until 2026-09.
+     */
+  gross_sales?: number;
+  /**
+     * Money refunded against the sales in range (partial refunds; a fully
+     * refunded order is out of every figure here by status).
+     */
+  refunded_amount?: number;
+  /**
      * Money collected FOR GOODS, bucketed by the method actually tendered
-     * (`order_payments`). Tips are not in here — see `total_tips`.
+     * (`order_payments`) — money IN. Tips are not in here — see `total_tips`
+     * — and refunds are not netted out: they are money OUT with a tender of
+     * their own, on `GET /shifts/{id}/refunds` and the refunds dataset.
      */
   revenue_by_method: unknown;
   subtotal: number;
   /** @nullable */
   to?: string | null;
   top_items: ItemSales[];
+  /**
+     * Delivery fees on the sales in range — inside `total_revenue`, outside
+     * the tax base, not food revenue.
+     */
+  total_delivery_fees?: number;
   total_discount: number;
   /**
      * Units sold (SUM of order_items.quantity) across non-voided orders in
@@ -28,7 +45,18 @@ export interface BranchSalesReport {
      */
   total_line_items?: number;
   total_orders: number;
+  /**
+     * What the sales in range are worth after refunds: `gross_sales` less
+     * `refunded_amount`. A refund is attributed to the sale it was against,
+     * whenever it was issued — the same restatement a full refund makes by
+     * flipping the order's status out of the sold set.
+     */
   total_revenue: number;
+  /**
+     * Service charge on the dine-in bills in range — inside `total_revenue`
+     * as the shop's income, not a pass-through.
+     */
+  total_service_charge?: number;
   total_tax: number;
   /**
      * Tips, standalone — never folded into a method bucket and never part of

@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { OnlineTaxPolicy } from './onlineTaxPolicy';
 
 export interface PublicBranch {
   code: string;
@@ -16,6 +17,12 @@ export interface PublicBranch {
   outside_open_now: boolean;
   pickup_enabled: boolean;
   pickup_open_now: boolean;
+  /**
+     * The tax this branch prices online orders under. The storefront renders
+     * a tax line from it (exclusive) or an "includes VAT" note (inclusive) —
+     * the same policy intake will freeze onto the order.
+     */
+  tax_policy: OnlineTaxPolicy;
   umbrella_enabled: boolean;
   umbrella_open_now: boolean;
 }

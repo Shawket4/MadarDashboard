@@ -137,6 +137,7 @@ import type {
   CreatePaymentMethodRequest,
   CreatePeriodRequest,
   CreatePurchaseOrderRequest,
+  CreateRefundRequest,
   CreateReturnRequest,
   CreateSectionRequest,
   CreateStaffRequest,
@@ -297,6 +298,7 @@ import type {
   Order,
   OrderFull,
   OrderHistorySummary,
+  OrderRefunds,
   Org,
   OrgBookingQrParams,
   OrgBranchComparisonParams,
@@ -367,6 +369,8 @@ import type {
   RecipeCostResult,
   RecipeStep,
   RecipeStepPreset,
+  RefundFull,
+  RefundIssued,
   RegistryInfo,
   ReleaseTableRequest,
   RenameConversationRequest,
@@ -391,6 +395,7 @@ import type {
   SettleOpenTicketRequest,
   Shift,
   ShiftPreFill,
+  ShiftRefunds,
   ShiftReportResponse,
   ShiftSummary,
   ShrinkageRow,
@@ -2226,6 +2231,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCancelBookingMutationOptions(options), queryClient);
     }
 
+/**
+ * @summary `seated` → `completed` by hand. The party is done with the booking; if
+they never started a bill under it, the hold seating placed is let go of
+too (a bill, had there been one, would have ended it `seated` already and
+its settle buses the table). Already `completed` is a clean 200.
+ */
 export const completeBooking = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -2272,7 +2283,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CompleteBookingMutationError = ErrorBody
 
-    export const useCompleteBooking = <TError = ErrorBody,
+    /**
+ * @summary `seated` → `completed` by hand. The party is done with the booking; if
+they never started a bill under it, the hold seating placed is let go of
+too (a bill, had there been one, would have ended it `seated` already and
+its settle buses the table). Already `completed` is a clean 200.
+ */
+export const useCompleteBooking = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeBooking>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof completeBooking>>,
@@ -7332,10 +7349,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 /**
- * The ONE human act the derived-status model needs. Everything else about a
- * table's status follows from the ticket on it: seated when one lands, free
- * when nobody vacated, dirty after a checkout. But no server can see that the
- * plates have been cleared, so a person says so.
+ * The ONE human act the ledger cannot derive. Everything else about a
+ * table's status follows from its rows: seated while one is live, dirty
+ * after a checkout ended it. But no server can see that the plates have been
+ * cleared, so a person says so, and the row records who.
  *
  * Deliberately not a set-status endpoint. Its predecessor took any status and
  * wrote it with no lock and no occupancy check, so it could declare a table
@@ -7407,8 +7424,10 @@ export const useClearTable = <TError = ErrorBody,
     }
 
 /**
- * Occupancy travels on its own here, carrying nothing about why. Two things
- * use it:
+ * Occupancy travels on its own here, carrying nothing about what is on the
+ * table -- but always who took it: the hold is a `party` row in the ledger
+ * owned by the hand that placed it, so there is no such thing as a table held
+ * by nobody. Two things use it:
  *
  *   * A PARTY SITTING DOWN. They have ordered nothing yet, so there is no
  *     bill — a ticket starts with their first round and claims this table on
@@ -7421,13 +7440,14 @@ export const useClearTable = <TError = ErrorBody,
  *     other terminal were told a table with somebody's order waiting on it was
  *     free.
  *
- * In both cases the server learns that the table is taken and nothing
- * whatever about what is on it.
+ * In both cases the server learns that the table is taken, by whom and from
+ * which till, and nothing whatever about what is on it.
  *
  * Like `clear_table`, and for the reason written there, this is not a
  * set-status endpoint: exactly one transition, `free` -> `seated`, refused
- * from anything else. A table a ticket is already on stays the ticket's.
- * @summary Take a table. THE seating primitive.
+ * from anything else with a `code` the till can act on. A table a ticket is
+ * already on stays the ticket's; a table another till holds stays theirs.
+ * @summary Take a table for a party with no bill yet.
  */
 export const holdTable = (
     id: string,
@@ -7479,7 +7499,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type HoldTableMutationError = ErrorBody
 
     /**
- * @summary Take a table. THE seating primitive.
+ * @summary Take a table for a party with no bill yet.
  */
 export const useHoldTable = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof holdTable>>, TError,{id: string;data: HoldTableRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -7494,10 +7514,14 @@ export const useHoldTable = <TError = ErrorBody,
 
 /**
  * The counterpart to `hold_table`: the hold moved to another table, was
- * checked out, or was discarded. Exactly one transition out of `seated` --
- * to `free`, or to `dirty` when `bus` says the party ate -- and never over a
- * live ticket — if one has landed since, the ticket owns the
- * table and this is a no-op rather than a way to free an occupied table.
+ * checked out, or was discarded. Ends the `party` row -- leaving the table
+ * `free`, or `dirty` when `bus` says the party ate -- and never touches a
+ * ticket's: if one has landed since, the ticket owns the table and this is a
+ * no-op rather than a way to free an occupied table.
+ *
+ * Not owner-gated on purpose. The draft is device-local and outlives a shift
+ * handover, so the teller who checks it out is often not the one who parked
+ * it; the ledger records who released it instead of refusing them.
  * @summary Give back a table a till was holding for its own parked order.
  */
 export const releaseTable = (
@@ -10215,9 +10239,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 /**
- * @summary Outstanding kitchen tickets for a branch (those with at least one un-bumped,
-un-voided line — for the given station if provided), oldest first. Seed for
-the KDS; live updates arrive on `/realtime/stream?topics=kitchen`.
+ * "Live" is `closed_at IS NULL`, not "has an un-bumped line": a ticket at a
+ * branch that never bumps stays on the till queue until its bill settles or
+ * the shift closes, and a ticket the kitchen finished is closed `bumped` the
+ * moment its last line is.
+ * @summary The branch's LIVE kitchen tickets — not closed, oldest first — optionally
+narrowed to those with un-bumped work for one station. Seed for the KDS;
+live updates arrive on `/realtime/stream?topics=kitchen`.
  */
 export const feed = (
     params: FeedParams,
@@ -10289,9 +10317,9 @@ export function useFeed<TData = Awaited<ReturnType<typeof feed>>, TError = Error
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Outstanding kitchen tickets for a branch (those with at least one un-bumped,
-un-voided line — for the given station if provided), oldest first. Seed for
-the KDS; live updates arrive on `/realtime/stream?topics=kitchen`.
+ * @summary The branch's LIVE kitchen tickets — not closed, oldest first — optionally
+narrowed to those with un-bumped work for one station. Seed for the KDS;
+live updates arrive on `/realtime/stream?topics=kitchen`.
  */
 
 export function useFeed<TData = Awaited<ReturnType<typeof feed>>, TError = ErrorBody>(
@@ -21249,6 +21277,326 @@ export const usePutRecipeSteps = <TError = ErrorBody,
       > => {
       return useMutation(getPutRecipeStepsMutationOptions(options), queryClient);
     }
+
+export const createRefund = (
+    createRefundRequest: CreateRefundRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RefundIssued>(
+      {url: `/refunds`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createRefundRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getCreateRefundMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRefund>>, TError,{data: CreateRefundRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createRefund>>, TError,{data: CreateRefundRequest}, TContext> => {
+
+const mutationKey = ['createRefund'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRefund>>, {data: CreateRefundRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createRefund(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateRefundMutationResult = NonNullable<Awaited<ReturnType<typeof createRefund>>>
+    export type CreateRefundMutationBody = CreateRefundRequest
+    export type CreateRefundMutationError = ErrorBody
+
+    export const useCreateRefund = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRefund>>, TError,{data: CreateRefundRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createRefund>>,
+        TError,
+        {data: CreateRefundRequest},
+        TContext
+      > => {
+      return useMutation(getCreateRefundMutationOptions(options), queryClient);
+    }
+
+export const listOrderRefunds = (
+    orderId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrderRefunds>(
+      {url: `/refunds/order/${orderId}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListOrderRefundsQueryKey = (orderId: string,) => {
+    return [
+    `/refunds/order/${orderId}`
+    ] as const;
+    }
+
+
+export const getListOrderRefundsQueryOptions = <TData = Awaited<ReturnType<typeof listOrderRefunds>>, TError = ErrorBody>(orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderRefunds>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOrderRefundsQueryKey(orderId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOrderRefunds>>> = ({ signal }) => listOrderRefunds(orderId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orderId !== null && orderId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOrderRefunds>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListOrderRefundsQueryResult = NonNullable<Awaited<ReturnType<typeof listOrderRefunds>>>
+export type ListOrderRefundsQueryError = ErrorBody
+
+
+export function useListOrderRefunds<TData = Awaited<ReturnType<typeof listOrderRefunds>>, TError = ErrorBody>(
+ orderId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderRefunds>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOrderRefunds>>,
+          TError,
+          Awaited<ReturnType<typeof listOrderRefunds>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOrderRefunds<TData = Awaited<ReturnType<typeof listOrderRefunds>>, TError = ErrorBody>(
+ orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderRefunds>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOrderRefunds>>,
+          TError,
+          Awaited<ReturnType<typeof listOrderRefunds>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOrderRefunds<TData = Awaited<ReturnType<typeof listOrderRefunds>>, TError = ErrorBody>(
+ orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderRefunds>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListOrderRefunds<TData = Awaited<ReturnType<typeof listOrderRefunds>>, TError = ErrorBody>(
+ orderId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrderRefunds>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListOrderRefundsQueryOptions(orderId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const listShiftRefunds = (
+    shiftId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ShiftRefunds>(
+      {url: `/refunds/shift/${shiftId}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListShiftRefundsQueryKey = (shiftId: string,) => {
+    return [
+    `/refunds/shift/${shiftId}`
+    ] as const;
+    }
+
+
+export const getListShiftRefundsQueryOptions = <TData = Awaited<ReturnType<typeof listShiftRefunds>>, TError = ErrorBody>(shiftId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShiftRefunds>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListShiftRefundsQueryKey(shiftId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listShiftRefunds>>> = ({ signal }) => listShiftRefunds(shiftId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: shiftId !== null && shiftId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listShiftRefunds>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListShiftRefundsQueryResult = NonNullable<Awaited<ReturnType<typeof listShiftRefunds>>>
+export type ListShiftRefundsQueryError = ErrorBody
+
+
+export function useListShiftRefunds<TData = Awaited<ReturnType<typeof listShiftRefunds>>, TError = ErrorBody>(
+ shiftId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShiftRefunds>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShiftRefunds>>,
+          TError,
+          Awaited<ReturnType<typeof listShiftRefunds>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShiftRefunds<TData = Awaited<ReturnType<typeof listShiftRefunds>>, TError = ErrorBody>(
+ shiftId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShiftRefunds>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listShiftRefunds>>,
+          TError,
+          Awaited<ReturnType<typeof listShiftRefunds>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListShiftRefunds<TData = Awaited<ReturnType<typeof listShiftRefunds>>, TError = ErrorBody>(
+ shiftId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShiftRefunds>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListShiftRefunds<TData = Awaited<ReturnType<typeof listShiftRefunds>>, TError = ErrorBody>(
+ shiftId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShiftRefunds>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListShiftRefundsQueryOptions(shiftId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRefund = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RefundFull>(
+      {url: `/refunds/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetRefundQueryKey = (id: string,) => {
+    return [
+    `/refunds/${id}`
+    ] as const;
+    }
+
+
+export const getGetRefundQueryOptions = <TData = Awaited<ReturnType<typeof getRefund>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRefund>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRefundQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRefund>>> = ({ signal }) => getRefund(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRefund>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRefundQueryResult = NonNullable<Awaited<ReturnType<typeof getRefund>>>
+export type GetRefundQueryError = ErrorBody
+
+
+export function useGetRefund<TData = Awaited<ReturnType<typeof getRefund>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRefund>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRefund>>,
+          TError,
+          Awaited<ReturnType<typeof getRefund>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRefund<TData = Awaited<ReturnType<typeof getRefund>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRefund>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRefund>>,
+          TError,
+          Awaited<ReturnType<typeof getRefund>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRefund<TData = Awaited<ReturnType<typeof getRefund>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRefund>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRefund<TData = Awaited<ReturnType<typeof getRefund>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRefund>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRefundQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const branchAddonSales = (
     branchId: string,

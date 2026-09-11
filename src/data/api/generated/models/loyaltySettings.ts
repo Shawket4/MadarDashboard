@@ -3,6 +3,23 @@
 
 export interface LoyaltySettings {
   /**
+     * When a void or refund claws back points the member has already spent,
+     * may the balance go below zero?
+     *
+     * Off (the default) clamps at zero: the shop eats the reward that was
+     * already handed over, and the earn stays visibly part-reversed on the
+     * ledger against an order that says `voided`, so a report can list who
+     * benefited and by how much. On, the balance goes negative and the next
+     * visits earn into the hole — the books balance, and the customer sees a
+     * minus on their card for what was nearly always the shop's own mistake.
+     *
+     * Clawbacks ONLY. A redemption or a manual deduction can never overdraw
+     * whatever this says: you cannot spend what you do not have; you can only
+     * owe because a sale you were paid for was undone. Enforced in the
+     * database (`loyalty_apply_txn`), not here.
+     */
+  allow_negative_balance?: boolean;
+  /**
      * The ceiling, when `balance_cap_enabled`. `None` = derive it.
      *
      * A `None` here is NOT "no cap" — that is what the switch is for. It means

@@ -24,5 +24,11 @@ export interface OrderHistorySummary {
   place_name?: string | null;
   status: string;
   subtotal: number;
+  /**
+     * Tax as frozen at intake: inside `total` when `tax_inclusive`, added to
+     * it otherwise.
+     */
+  tax_amount: number;
+  tax_inclusive: boolean;
   total: number;
 }

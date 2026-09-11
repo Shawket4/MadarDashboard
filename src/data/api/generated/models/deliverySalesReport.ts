@@ -4,7 +4,7 @@ import type { DeliveryChannelSales } from './deliveryChannelSales';
 
 /**
  * Delivery sales rolled up across channels, plus a per-channel breakdown.
- * Always returns both `in_mall` and `outside` channels (zero-filled) so the
+ * Always returns every channel in [`DELIVERY_CHANNELS`] (zero-filled) so the
  * dashboard renders a stable shape.
  */
 export interface DeliverySalesReport {
@@ -16,6 +16,8 @@ export interface DeliverySalesReport {
   /** @nullable */
   to?: string | null;
   total_delivery_fees: number;
+  /** `total_revenue − total_delivery_fees`. */
+  total_goods_revenue?: number;
   total_orders: number;
   total_revenue: number;
 }

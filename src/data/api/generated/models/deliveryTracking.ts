@@ -46,6 +46,13 @@ export interface DeliveryTracking {
   rejected_at?: string | null;
   status: string;
   subtotal: number;
+  /**
+     * The tax line, frozen at intake. Inside `total` when `tax_inclusive`
+     * (render "includes VAT"), added to it otherwise (render a tax line).
+     */
+  tax_amount: number;
+  tax_inclusive: boolean;
+  tax_rate_applied: number;
   total: number;
   /** @nullable */
   unit_number?: string | null;

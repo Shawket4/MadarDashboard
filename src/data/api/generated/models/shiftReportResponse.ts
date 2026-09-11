@@ -5,10 +5,36 @@ import type { PaymentSummaryRow } from './paymentSummaryRow';
 import type { Shift } from './shift';
 
 export interface ShiftReportResponse {
+  /**
+     * Signed sum of corrections that reverse nothing on record (a miscounted
+     * float). Kept apart so a fix-up is never mistaken for a receipt or a cost.
+     */
+  cash_adjustments: number;
+  /**
+     * Cash tenders and cash tips on this shift's sales that were later FULLY
+     * refunded. `payment_summary` and `cash_tips` leave those sales out (they
+     * are revenue figures and match the sales report), but the notes did go
+     * into the drawer, so `expected_cash` counts them. Reported so the sheet
+     * adds up: `expected_cash = opening_cash + cash bucket + cash_tips +
+     * cash_in_refunded_sales + cash_movements_net − refunds_issued_cash`.
+     */
+  cash_in_refunded_sales?: number;
   cash_movements: CashMovementSummaryRow[];
+  /**
+     * Non-sale cash placed in the drawer (`pay_in`), net of any correction
+     * that reversed one. Positive.
+     */
   cash_movements_in: number;
-  /** Net of all cash movements (in - out) as a signed integer */
+  /**
+     * Signed net effect of EVERY movement on the drawer — the figure
+     * `compute_system_cash` adds to the float and the cash sales:
+     * `in − out − safe_drops + cash_adjustments`.
+     */
   cash_movements_net: number;
+  /**
+     * What the shift SPENT (`pay_out`), net of corrections. Positive. A safe
+     * drop is NOT in here — that money left the drawer but not the shop.
+     */
   cash_movements_out: number;
   /**
      * The cash slice of `total_tips` (snapshotted `tip_is_cash`). This IS in
@@ -33,7 +59,35 @@ export interface ShiftReportResponse {
      */
   payment_summary: PaymentSummaryRow[];
   printed_at: string;
+  refunds_issued_amount?: number;
+  refunds_issued_cash?: number;
+  /**
+     * Refunds ISSUED FROM THIS DRAWER — keyed on `order_refunds.shift_id`,
+     * which need not be the shift that made the sale. Money OUT; the Z-report's
+     * returns line. `refunds_issued_cash` is what `compute_system_cash`
+     * subtracts.
+     */
+  refunds_issued_count?: number;
+  /**
+     * Cash moved from the drawer to the safe (`safe_drop`), net of
+     * corrections. Positive. Out of the drawer, still the shop's.
+     */
+  safe_drops: number;
   shift: Shift;
+  /**
+     * The till's standard float, when the shop has set one: what should stay
+     * in the drawer at close. `None` means "not decided" — propose nothing.
+     * @nullable
+     */
+  standard_float?: number | null;
+  /**
+     * For an OPEN shift on a till with a standard float: how much of
+     * `expected_cash` to drop into the safe so the drawer closes at the
+     * float. Never negative — a drawer under its float has nothing to drop.
+     * `None` when the shift is closed or the till has no float.
+     * @nullable
+     */
+  suggested_safe_drop?: number | null;
   total_payments: number;
   /**
      * Tips, as a standalone figure — never folded into a method bucket, and

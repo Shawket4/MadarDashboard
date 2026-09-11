@@ -57,8 +57,10 @@ export interface Order {
      */
   order_ref?: string | null;
   /**
-     * Order origin: "dine_in" (POS sale) or "delivery" (finalized delivery
-     * order). Defaults to "dine_in" for every POS sale.
+     * What kind of sale: "dine_in" (settled from a waiter's ticket — the only
+     * kind that carries a service charge), "takeaway" (rung straight through
+     * the till) or "delivery" (a finalized delivery order). Till sales before
+     * 2026-09 say "dine_in" because "takeaway" could not be expressed.
      */
   order_type: string;
   /**

@@ -11,6 +11,7 @@
 export interface WaiterStats {
   /** line_items / orders; 0 when the waiter has no non-voided orders. */
   avg_items_per_order: number;
+  /** Average bill as rung up — a refund does not shrink what was ordered. */
   avg_order_value: number;
   /**
      * Units sold (SUM of order_items.quantity) on this waiter's non-voided
@@ -18,6 +19,7 @@ export interface WaiterStats {
      */
   line_items: number;
   orders: number;
+  /** Net of refunds against this waiter's sales. */
   revenue: number;
   voided: number;
   waiter_id: string;

@@ -31,6 +31,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLoyaltyJoinInfo, useLoyaltyJoin } from "@/data/api/generated/api";
+import { clearDeviceToken } from "@/features/public-shell/guest";
 import type { JoinInfo, JoinResult } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { PhoneVerify } from "@/features/reservations/phone-verify";
@@ -131,12 +132,17 @@ function Form({
   const [name, setName] = useState("");
   const [birthday, setBirthday] = useState<Birthday>({ month: null, day: null });
   const [error, setError] = useState<string | null>(null);
+  // The server answered "this number already has a card, and this device has
+  // not proved it owns the number". The card is not shown; the ordinary OTP
+  // step runs instead, and the same POST with the device token it hands back
+  // returns the card. Any token we held for the phone is stale — forget it,
+  // or `PhoneVerify` would skip the code again and the page would loop.
+  const [mustVerify, setMustVerify] = useState<JoinResult | null>(null);
 
   const submit = async (phone: string, deviceToken: string | null) => {
     setError(null);
     try {
-      onJoined(
-        await join.mutateAsync({
+      const result = await join.mutateAsync({
           data: {
             branch_id: branchId,
             org_id: branchId ? undefined : orgId,
@@ -152,8 +158,13 @@ function Form({
             birth_day:
               data.birthday_enabled && isComplete(birthday) ? birthday.day : undefined,
           },
-        }),
-      );
+        });
+      if (result.verify_required) {
+        clearDeviceToken(phone);
+        setMustVerify(result);
+        return;
+      }
+      onJoined(result);
     } catch (e) {
       setError(getErrorMessage(e as AxiosError));
     }
@@ -233,15 +244,25 @@ function Form({
             `disabled` is a form not yet ready — two different things, and
             the button must never spin for the second. */}
         <PhoneVerify
-          otpRequired={data.require_otp}
+          otpRequired={data.require_otp || mustVerify !== null}
           onVerified={submit}
           busy={join.isPending}
           disabled={!name.trim()}
           submitLabel={t("loyalty.join", "Join")}
           hint={
-            data.require_otp
-              ? t("loyalty.phoneHintOtp", "We'll send a code to confirm it, then make your card.")
-              : t("loyalty.phoneHint", "Your card is tied to this number — it's how the counter finds you.")
+            mustVerify
+              ? mustVerify.card_link_sent
+                ? t(
+                    "loyalty.phoneHintVerifySent",
+                    "This number already has a card. We've sent its link to you on WhatsApp — or tap Join again and we'll send a code to confirm it's yours.",
+                  )
+                : t(
+                    "loyalty.phoneHintVerify",
+                    "This number already has a card. Tap Join again and we'll send a code to confirm it's yours.",
+                  )
+              : data.require_otp
+                ? t("loyalty.phoneHintOtp", "We'll send a code to confirm it, then make your card.")
+                : t("loyalty.phoneHint", "Your card is tied to this number — it's how the counter finds you.")
           }
         />
 
@@ -286,7 +307,12 @@ function Joined({
   const accent = usePageAccent(brand);
   const reduced = useReducedMotion();
   const target = joined.next_reward_cost;
-  const cardHref = `/card/${encodeURIComponent(joined.member_token)}`;
+  // `Form` only hands over a result that is not `verify_required`, and that is
+  // the one case the token and the passes are absent; the fallbacks are for
+  // the type, not for a path the page takes.
+  const memberToken = joined.member_token ?? "";
+  const passes = joined.passes ?? null;
+  const cardHref = `/card/${encodeURIComponent(memberToken)}`;
 
   return (
     <LoyaltyPage
@@ -321,17 +347,17 @@ function Joined({
           rewardsReady={target > 0 ? Math.floor(joined.balance / target) : 0}
           progress={target > 0 ? joined.balance % target : joined.balance}
           memberName={joined.name}
-          qrUrl={`/api/public/loyalty/card/${encodeURIComponent(joined.member_token)}/qr.png`}
+          qrUrl={`/api/public/loyalty/card/${encodeURIComponent(memberToken)}/qr.png`}
         />
       </motion.div>
 
-      {joined.passes.any ? (
+      {passes?.any ? (
         <Section
           title={t("loyalty.keepItHandy", "Keep it handy")}
           hint={t("loyalty.walletHint", "It updates itself every time you earn, and it's there when you're back.")}
         >
           <Panel>
-            <WalletButtons passes={joined.passes} />
+            <WalletButtons passes={passes} />
           </Panel>
         </Section>
       ) : null}
