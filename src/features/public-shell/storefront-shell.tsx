@@ -75,11 +75,18 @@ export function BrandWash({ brand }: { brand?: ShellBrand | null }) {
 }
 
 /**
- * The shop's mark and name, as the header wears them.
+ * The shop's mark, as the header wears it.
  *
- * The logo sits on a white plate: it is a shop's own artwork on a page whose
- * ground follows the READER's light/dark preference, and a dark mark on a dark
- * header is a mark nobody can see.
+ * THE LOGO ALONE, with no plate and no name beside it — the same treatment the
+ * dashboard's own sidebar gives a branded org. A logo already says whose shop
+ * this is; setting the name next to it says it twice, and the white disc it
+ * used to sit on announced itself as a component rather than as the shop.
+ *
+ * Free-standing means a dark mark on a dark header would vanish, which is what
+ * the plate was guarding against. It is safe here because a storefront opens in
+ * LIGHT and only goes dark if this visitor chose it — see `initPublicTheme`.
+ * The wordmark fallback keeps its dark-mode inversion; a shop's logo does not
+ * get one, because inverting a full-colour mark flattens it to a silhouette.
  */
 export function BrandMark({
   brand,
@@ -90,15 +97,20 @@ export function BrandMark({
   className?: string;
 }) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center ${className}`}>
       {brand.logoUrl ? (
-        <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-white p-1 shadow-sm">
-          <img src={brand.logoUrl} alt="" className="max-h-full max-w-full object-contain" />
-        </span>
+        // `alt` carries the name the header no longer prints, so the shop is
+        // still announced to a screen reader and still legible if the image
+        // fails.
+        <img
+          src={brand.logoUrl}
+          alt={brand.orgName}
+          className="h-8 w-auto max-w-[60%] object-contain object-start"
+          draggable={false}
+        />
       ) : (
-        <span aria-hidden className="size-9 shrink-0" />
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold">{brand.orgName}</span>
       )}
-      <span className="min-w-0 flex-1 truncate text-sm font-semibold">{brand.orgName}</span>
     </div>
   );
 }
