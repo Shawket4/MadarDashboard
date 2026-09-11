@@ -52,13 +52,20 @@ export type ShopAddress = { key: "card" | "order" | "book"; url: string };
  * Always `https`: these are meant to be copied onto printed things, and a
  * scheme-less or `http` address copied onto a menu outlives the person who
  * printed it.
+ *
+ * And always a TRAILING SLASH on the two mounts. `/order` and `/order/` are
+ * different URLs to nginx: the mount is `location /order/`, deliberately, so
+ * that `/orderfoo` cannot match it — which means `/order` falls through to the
+ * loyalty app at the root and the shop is shown a page that is not its menu.
+ * This card is the address a shop copies onto a menu or a window, so it has to
+ * be the one that resolves, and it matches what the QR codes already encode.
  */
 export function shopAddresses(slug?: string | null, root?: string | null): ShopAddress[] {
   if (!slug || !root) return [];
   const origin = `https://${slug}.${root}`;
   return [
-    { key: "card", url: origin },
-    { key: "order", url: `${origin}${ORDER_MOUNT}` },
-    { key: "book", url: `${origin}${BOOK_MOUNT}` },
+    { key: "card", url: `${origin}/` },
+    { key: "order", url: `${origin}${ORDER_MOUNT}/` },
+    { key: "book", url: `${origin}${BOOK_MOUNT}/` },
   ];
 }

@@ -25,12 +25,23 @@ describe("publicRootDomain", () => {
 });
 
 describe("shopAddresses", () => {
+  // The trailing slashes are the point, not formatting. `/order` and `/order/`
+  // are different URLs to nginx — the mount is `location /order/` so that
+  // `/orderfoo` cannot match it — and `/order` falls through to the loyalty app
+  // at the root, showing the shop a page that is not its menu. This card is
+  // what gets copied onto a printed menu.
   it("mounts the card at the root and the rest under their paths", () => {
     expect(shopAddresses("drops", "madar-pos.cloud")).toEqual([
-      { key: "card", url: "https://drops.madar-pos.cloud" },
-      { key: "order", url: "https://drops.madar-pos.cloud/order" },
-      { key: "book", url: "https://drops.madar-pos.cloud/book" },
+      { key: "card", url: "https://drops.madar-pos.cloud/" },
+      { key: "order", url: "https://drops.madar-pos.cloud/order/" },
+      { key: "book", url: "https://drops.madar-pos.cloud/book/" },
     ]);
+  });
+
+  it("gives every address a trailing slash, so each one resolves", () => {
+    for (const { url } of shopAddresses("drops", "madar-pos.cloud")) {
+      expect(url.endsWith("/")).toBe(true);
+    }
   });
 
   it("shows nothing rather than a broken address", () => {
