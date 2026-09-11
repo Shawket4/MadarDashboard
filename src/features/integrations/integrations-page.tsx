@@ -22,16 +22,31 @@ import { getErrorMessage } from "@/data/api/errors";
 import { fmtDateTime } from "@/lib/format";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
+import { useAuthStore } from "@/data/stores/auth.store";
+import { Restricted } from "@/components/app/restricted";
 
 export function IntegrationsPage() {
   const { t } = useTranslation();
   const orgId = useOrgId();
   const confirm = useConfirm();
+  // A partner credential is an agreement between us and a third party, and the
+  // secret it mints reads this shop's order data. A shop can AUDIT the list —
+  // "who has access?" is a fair question to answer without asking us — and
+  // issue, rotate and revoke are ours. The backend refuses all three for
+  // anyone below super admin; this is so nobody is shown a button that will
+  // only fail.
+  const role = useAuthStore((s) => s.user?.role);
+  const isSuperAdmin = role === "super_admin";
+  // Org admin and above may read; below that there is nothing here at all, not
+  // even the list. `list_credentials` on the backend says the same.
+  const mayView = isSuperAdmin || role === "org_admin";
 
   const list = useListCredentials({ query: { enabled: !!orgId } });
   const credentials = useMemo(() => list.data ?? [], [list.data]);
 
   const [s, update] = usePageSearch<{ edit: string }>();
+  // `?edit=new` is a URL anyone can type. The dialog opens only for the role
+  // whose requests the backend will actually accept.
   const creating = s.edit === "new";
 
   // Held in local state, never refetched and never put in the query cache:
@@ -134,7 +149,7 @@ export function IntegrationsPage() {
         cell: ({ row }) => (
           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
             {/* A revoked credential is a permanent audit record — nothing left to do to it. */}
-            {isRevoked(row.original) ? null : (
+            {isRevoked(row.original) || !isSuperAdmin ? null : (
               <>
                 <Button
                   variant="ghost"
@@ -159,8 +174,12 @@ export function IntegrationsPage() {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t],
+    [t, isSuperAdmin],
   );
+
+  if (!mayView) {
+    return <Restricted title={t("integrations.title", "Integrations")} />;
+  }
 
   if (!orgId) {
     return (
@@ -177,14 +196,23 @@ export function IntegrationsPage() {
     <Page>
       <PageHeader
         title={t("integrations.title", "Integrations")}
-        description={t(
-          "integrations.hint",
-          "Give a partner read-only access to one branch's order analytics.",
-        )}
+        description={
+          isSuperAdmin
+            ? t(
+                "integrations.hint",
+                "Give a partner read-only access to one branch's order analytics.",
+              )
+            : t(
+                "integrations.hintReadOnly",
+                "Partners with read-only access to a branch's order analytics. Ask Madar to add, rotate or revoke one.",
+              )
+        }
         actions={
-          <Button onClick={() => update({ edit: "new" })}>
-            <Plus className="size-4" /> {t("integrations.issue", "Issue credential")}
-          </Button>
+          isSuperAdmin ? (
+            <Button onClick={() => update({ edit: "new" })}>
+              <Plus className="size-4" /> {t("integrations.issue", "Issue credential")}
+            </Button>
+          ) : null
         }
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
@@ -216,7 +244,7 @@ export function IntegrationsPage() {
       />
       <CredentialDialog
         orgId={orgId}
-        open={creating}
+        open={creating && isSuperAdmin}
         onOpenChange={(o) => { if (!o) update({ edit: undefined }); }}
         onIssued={(credential) => setIssued({ credential, mode: "created" })}
       />

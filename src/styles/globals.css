@@ -207,9 +207,10 @@
      whatever `ui-monospace` happens to be — which is a different face on macOS,
      Windows and Linux, inside a desktop app that ships to all three. */
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
-  /* `font-serif` resolves to the same stack. The class is still used on the
-     brand surfaces and is left working rather than swept out of fifty files;
-     there is simply no separate display face any more. */
+  /* `font-serif` is the DISPLAY treatment now, not a family — see the base rule
+     further down. The class is still used on the brand surfaces and is left
+     working rather than swept out of fifty files; there is simply no separate
+     display face any more, so weight does the work the serif used to. */
   --font-serif: "IBM Plex Sans Arabic", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -274,6 +275,19 @@
   .font-mono,
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* The display treatment, where the display FACE used to be.
+     Fraunces was a high-contrast serif: at 400 it still read as a headline,
+     because the shapes did the work. Plex is a neutral sans, and the same
+     markup at 400 reads as body text set large — which is what "the page looks
+     unfinished" turned out to mean. Twenty headings across the brand surfaces
+     carry no weight class of their own, having never needed one.
+     In `@layer base`, so an explicit `font-bold` or `font-medium` on the same
+     element still wins: this is the floor, not an override. */
+  .font-serif {
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 }
 
