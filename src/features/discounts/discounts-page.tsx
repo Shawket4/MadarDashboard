@@ -19,6 +19,7 @@ import { deleteDiscount, updateDiscount, useListDiscounts } from "@/data/api/gen
 import type { Discount } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtMoney, piastresToEgp } from "@/lib/format";
+import { formatRate, fractionToPercent } from "@/features/orgs/tax-rate";
 import { getTranslatedName } from "@/lib/translation";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { useExportLogo } from "@/hooks/use-export-logo";
@@ -46,7 +47,9 @@ export function DiscountsPage() {
 
   const [toggling, setToggling] = useState<Set<string>>(new Set());
   const onErr = (e: unknown) => toast.error(getErrorMessage(e));
-  const valueLabel = (d: Discount) => (d.dtype === "percentage" ? `${d.value}%` : fmtMoney(d.value));
+  // A percentage discount is a FRACTION on the wire (0.14 = 14%), the same as
+  // the tax rate; `formatRate` is the one place that conversion lives.
+  const valueLabel = (d: Discount) => (d.dtype === "percentage" ? formatRate(d.value) : fmtMoney(d.value));
 
   const toggleActive = async (d: Discount) => {
     setToggling((prev) => new Set(prev).add(d.id));
@@ -117,7 +120,7 @@ export function DiscountsPage() {
     const cols: ExcelColumn<Discount>[] = [
       { header: t("discounts.discountName", "Discount name"), accessor: (d) => tname(d), type: "text", width: 28 },
       { header: t("common.type", "Type"), accessor: (d) => (d.dtype === "percentage" ? t("discounts.percentage", "Percentage") : t("discounts.fixed", "Fixed amount")), type: "text", width: 16 },
-      { header: t("discounts.value", "Value"), accessor: (d) => (d.dtype === "percentage" ? d.value : piastresToEgp(d.value)), type: "number", width: 14 },
+      { header: t("discounts.value", "Value"), accessor: (d) => (d.dtype === "percentage" ? fractionToPercent(d.value) : piastresToEgp(d.value)), type: "number", width: 14 },
       { header: t("common.status", "Status"), accessor: (d) => (d.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
     setExporting(true);

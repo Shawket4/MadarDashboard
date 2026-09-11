@@ -19,6 +19,7 @@ import { createDiscount, updateDiscount } from "@/data/api/generated/api";
 import type { Discount } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, piastresToEgp } from "@/lib/format";
+import { MAX_PERCENT, fractionToPercent, percentToFraction } from "@/features/orgs/tax-rate";
 import { invalidateDiscounts } from "./util";
 
 const arOf = (tr: unknown): string => {
@@ -44,7 +45,9 @@ export function DiscountDialog({ orgId, discount, open, onOpenChange }: Props) {
         name: z.string().min(1, t("common.requiredField", "This field is required")),
         name_ar: z.string().optional(),
         dtype: z.enum(["percentage", "fixed"]),
-        value: z.coerce.number<number>().min(0),
+        // Percent on screen, fraction on the wire — the same boundary the tax
+        // rate crosses, and the reason the cap is 100 rather than 1.
+        value: z.coerce.number<number>().min(0).max(MAX_PERCENT),
         is_active: z.boolean(),
       }),
     [t],
@@ -63,14 +66,18 @@ export function DiscountDialog({ orgId, discount, open, onOpenChange }: Props) {
         name: discount?.name ?? "",
         name_ar: arOf(discount?.name_translations),
         dtype: (discount?.dtype as "percentage" | "fixed") ?? "percentage",
-        value: discount ? (discount.dtype === "fixed" ? piastresToEgp(discount.value) : discount.value) : 0,
+        value: discount
+          ? discount.dtype === "fixed"
+            ? piastresToEgp(discount.value)
+            : fractionToPercent(discount.value)
+          : 0,
         is_active: discount?.is_active ?? true,
       });
     }
   }, [open, discount, form]);
 
   const submit = async (v: Values) => {
-    const value = v.dtype === "fixed" ? egpToPiastres(v.value) : Math.round(v.value);
+    const value = v.dtype === "fixed" ? egpToPiastres(v.value) : percentToFraction(v.value);
     const name_translations = v.name_ar ? { ar: v.name_ar } : undefined;
     setBusy(true);
     try {
@@ -112,7 +119,7 @@ export function DiscountDialog({ orgId, discount, open, onOpenChange }: Props) {
               <FormField control={form.control} name="value" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{dtype === "percentage" ? t("discounts.percentageValue", "Percentage (%)") : t("discounts.amountValue", "Amount (EGP)")}</FormLabel>
-                  <FormControl><Input type="number" step={dtype === "percentage" ? "1" : "0.5"} min="0" max={dtype === "percentage" ? "100" : undefined} {...field} /></FormControl>
+                  <FormControl><Input type="number" step="0.5" min="0" max={dtype === "percentage" ? "100" : undefined} {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />

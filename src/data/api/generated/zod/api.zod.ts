@@ -2627,7 +2627,7 @@ export const ListDiscountsResponseItem = zod.object({
 }),
   "org_id": zod.uuid(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "value": zod.number()
+  "value": zod.number().describe('Polymorphic by `dtype`: a FRACTION for `percentage` (0.14 = 14%, like\nevery other rate in this schema), or minor units for `fixed`.')
 })
 export const ListDiscountsResponse = zod.array(ListDiscountsResponseItem)
 
@@ -2654,7 +2654,7 @@ export const CreateDiscountResponse = zod.object({
 }),
   "org_id": zod.uuid(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "value": zod.number()
+  "value": zod.number().describe('Polymorphic by `dtype`: a FRACTION for `percentage` (0.14 = 14%, like\nevery other rate in this schema), or minor units for `fixed`.')
 })
 
 
@@ -2690,7 +2690,7 @@ export const UpdateDiscountResponse = zod.object({
 }),
   "org_id": zod.uuid(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "value": zod.number()
+  "value": zod.number().describe('Polymorphic by `dtype`: a FRACTION for `percentage` (0.14 = 14%, like\nevery other rate in this schema), or minor units for `fixed`.')
 })
 
 
@@ -7972,7 +7972,7 @@ export const PublicMenuResponse = zod.object({
   "name_translations": zod.looseObject({
 
 }),
-  "value": zod.number().describe('Percentage points (0-100) for `percentage`; piastres for `fixed`.')
+  "value": zod.number().describe('A FRACTION for `percentage` (0.14 = 14%, like every other rate here);\npiastres for `fixed`.')
 }).describe('The active discount for this channel (customer-facing) or `null`. Applies\nto the item subtotal only — the delivery fee is always charged in full.')]).optional(),
   "items": zod.array(zod.object({
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist (IDs from `menu_item_allowed_addons`).\nWhen non-empty the customizer filters the global catalog to these IDs by\ndefault, with a \"show all\" escape hatch. Empty = no restriction.'),

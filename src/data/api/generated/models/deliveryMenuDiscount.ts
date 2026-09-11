@@ -12,6 +12,9 @@ export interface DeliveryMenuDiscount {
   id: string;
   name: string;
   name_translations: DeliveryMenuDiscountNameTranslations;
-  /** Percentage points (0-100) for `percentage`; piastres for `fixed`. */
+  /**
+     * A FRACTION for `percentage` (0.14 = 14%, like every other rate here);
+     * piastres for `fixed`.
+     */
   value: number;
 }

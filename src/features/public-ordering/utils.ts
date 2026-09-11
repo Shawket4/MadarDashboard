@@ -24,9 +24,11 @@ export const cartSubtotal = (lines: CartLine[]): number =>
 
 /**
  * Estimated discount (piastres) the channel discount knocks off the subtotal.
- * Mirrors the backend `calc_discount`: percentage rounds half-up, fixed is
- * capped at the subtotal, result clamped to `[0, subtotal]`. The server reprices
- * authoritatively at intake — this is only the customer-facing estimate.
+ * Mirrors the backend `calc_discount`: a percentage `value` is a FRACTION
+ * (0.14 = 14%, the same convention as the tax rate) and is MULTIPLIED, rounding
+ * half-up; fixed is capped at the subtotal; the result is clamped to
+ * `[0, subtotal]`. The server reprices authoritatively at intake — this is only
+ * the customer-facing estimate.
  */
 export const calcDiscount = (
   subtotal: number,
@@ -35,8 +37,8 @@ export const calcDiscount = (
   if (!discount) return 0;
   const d =
     discount.dtype === "percentage"
-      ? Math.round((subtotal * discount.value) / 100)
-      : Math.min(discount.value, subtotal);
+      ? Math.round(subtotal * discount.value)
+      : Math.min(Math.round(discount.value), subtotal);
   return Math.max(0, Math.min(d, subtotal));
 };
 
