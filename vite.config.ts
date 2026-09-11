@@ -7,6 +7,7 @@ import compression from "vite-plugin-compression";
 import { constants as zlibConstants } from "node:zlib";
 import { readFileSync } from "node:fs";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
+import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
 
 const pkgVersion = (
   JSON.parse(readFileSync(path.resolve(__dirname, "package.json"), "utf8")) as { version: string }
@@ -28,6 +29,8 @@ export default defineConfig({
     __SENTRY_RELEASE__: JSON.stringify(sentryRelease),
   },
   plugins: [
+    // `public/` is copied verbatim, so a README beside an asset ships with it.
+    noDocsInTheBundle(),
     // Must precede the React plugin so generated routes are transformed.
     tanstackRouter({ target: "react", autoCodeSplitting: true }),
     react(),

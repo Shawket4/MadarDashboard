@@ -12,9 +12,12 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 import compression from "vite-plugin-compression";
 import { constants as zlibConstants } from "node:zlib";
+import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
 
 export default defineConfig({
   plugins: [
+    // `public/` is copied verbatim, so a README beside an asset ships with it.
+    noDocsInTheBundle(),
     react(),
     tailwindcss(),
     // Dev-only: the entry is loyalty.html (not index.html), so serve it for

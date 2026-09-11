@@ -8,6 +8,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 import compression from "vite-plugin-compression";
 import { constants as zlibConstants } from "node:zlib";
+import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
 
 // Where this build will be mounted.
 //
@@ -25,6 +26,8 @@ const mount = process.env.MADAR_MOUNT ?? "/";
 export default defineConfig({
   base: mount,
   plugins: [
+    // `public/` is copied verbatim, so a README beside an asset ships with it.
+    noDocsInTheBundle(),
     react(),
     tailwindcss(),
     // Dev-only: the entry is order.html (not index.html), so serve it for every
