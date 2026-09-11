@@ -23,13 +23,33 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "motion/react";
 import { z } from "zod";
 
-// Self-hosted fonts (match the dashboard).
-import "@fontsource-variable/inter";
-import "@fontsource-variable/fraunces";
-import "@fontsource/ibm-plex-sans-arabic/400.css";
-import "@fontsource/ibm-plex-sans-arabic/500.css";
-import "@fontsource/ibm-plex-sans-arabic/600.css";
-import "@fontsource/ibm-plex-sans-arabic/700.css";
+// Self-hosted fonts (work offline in Tauri).
+//
+// ONE SUPERFAMILY. The Arabic cut leads and carries Latin too, so a bilingual
+// row sits on one skeleton instead of two faces meeting in the middle of it;
+// the Latin cut backs it up, and the mono carries every figure so columns of
+// money and ids line up. Four static weights — 400/500/600/700 — which is the
+// whole of what the interface uses.
+//
+// LATIN AND ARABIC SUBSETS ONLY. The bare `400.css` entries pull Cyrillic,
+// Greek and Vietnamese as well, which is most of a megabyte this product has no
+// text for — and it is downloaded on a phone, on a counter, over whatever
+// connection the shop has.
+import "@fontsource/ibm-plex-sans-arabic/arabic-400.css";
+import "@fontsource/ibm-plex-sans-arabic/arabic-500.css";
+import "@fontsource/ibm-plex-sans-arabic/arabic-600.css";
+import "@fontsource/ibm-plex-sans-arabic/arabic-700.css";
+import "@fontsource/ibm-plex-sans-arabic/latin-400.css";
+import "@fontsource/ibm-plex-sans-arabic/latin-500.css";
+import "@fontsource/ibm-plex-sans-arabic/latin-600.css";
+import "@fontsource/ibm-plex-sans-arabic/latin-700.css";
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-sans/latin-700.css";
+import "@fontsource/ibm-plex-mono/latin-400.css";
+import "@fontsource/ibm-plex-mono/latin-500.css";
+import "@fontsource/ibm-plex-mono/latin-600.css";
 
 import "@/styles/globals.css";
 

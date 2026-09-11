@@ -16,34 +16,34 @@ colors:
   info: "oklch(0.6 0.13 240)"
 typography:
   display:
-    fontFamily: "Fraunces Variable, IBM Plex Sans Arabic, ui-serif, Georgia, serif"
+    fontFamily: "IBM Plex Sans Arabic, IBM Plex Sans, ui-sans-serif, system-ui, sans-serif"
     fontSize: "clamp(2rem, 4vw, 3.25rem)"
-    fontWeight: 400
+    fontWeight: 600
     lineHeight: 1.05
     letterSpacing: "-0.02em"
   headline:
-    fontFamily: "Inter Variable, IBM Plex Sans Arabic, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "IBM Plex Sans Arabic, IBM Plex Sans, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1.5rem"
     fontWeight: 600
     lineHeight: 1.2
     letterSpacing: "-0.01em"
   title:
-    fontFamily: "Inter Variable, IBM Plex Sans Arabic, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "IBM Plex Sans Arabic, IBM Plex Sans, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1.125rem"
     fontWeight: 600
     lineHeight: 1.3
   body:
-    fontFamily: "Inter Variable, IBM Plex Sans Arabic, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "IBM Plex Sans Arabic, IBM Plex Sans, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.5
   label:
-    fontFamily: "Inter Variable, IBM Plex Sans Arabic, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "IBM Plex Sans Arabic, IBM Plex Sans, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.75rem"
     fontWeight: 500
     lineHeight: 1.4
   numeric:
-    fontFamily: "Inter Variable, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "IBM Plex Mono, ui-monospace, SFMono-Regular, monospace"
     fontSize: "0.875rem"
     fontWeight: 500
     fontFeature: "tabular-nums"
@@ -109,9 +109,9 @@ components:
 
 Madar is an honest accounting book bound in warm materials. Every figure is precise, auditable, and ledger-true — orders, shifts, and inventory are append-only, so the interface never implies a mutation the system can't make. But the surface is hospitable, not clinical: this is a tool for someone's livelihood in F&B, and it should feel like the warm front counter of a good coffee shop, not a grey ERP terminal. Harbor Navy carries trust, Terracotta Clay carries warmth, and Linen Cream carries hospitality.
 
-The system speaks in two complementary volumes, dictated by register. In the **authenticated dashboard** (product) the voice is quiet, professional, and precise — restraint is the feature, density is welcome where operators need it, and the tool disappears into the task. On the **customer surfaces** (brand) — the marketing landing, public ordering at `/order/:orgId`, order tracking at `/track/:id` — the voice turns bold and editorial, carried by the Fraunces display serif and confident terracotta. Never borrow dashboard flatness for the landing page, or landing-page flourish for a data table.
+The system speaks in two complementary volumes, dictated by register. In the **authenticated dashboard** (product) the voice is quiet, professional, and precise — restraint is the feature, density is welcome where operators need it, and the tool disappears into the task. On the **customer surfaces** (brand) — the marketing landing, public ordering at `/order/:orgId`, order tracking at `/track/:id` — the voice turns bold and editorial, carried by weight, scale and confident terracotta rather than a second typeface. Never borrow dashboard flatness for the landing page, or landing-page flourish for a data table.
 
-Everything is bilingual by symmetry. Arabic (IBM Plex Sans Arabic) is a peer of English (Inter), not a translation: layouts use logical properties so they flip cleanly for RTL, numerals localize to `ar-EG`, and dates anchor to Africa/Cairo. A screen that only reads right in one direction is unfinished. Color is the entire OKLCH semantic system in `src/styles/globals.css` — **never raw hex in components**.
+Everything is bilingual by symmetry. Arabic is a peer of English, not a translation — and since one superfamily carries both, they are literally the same face: layouts use logical properties so they flip cleanly for RTL, numerals localize to `ar-EG`, and dates anchor to Africa/Cairo. A screen that only reads right in one direction is unfinished. Color is the entire OKLCH semantic system in `src/styles/globals.css` — **never raw hex in components**.
 
 **Key Characteristics:**
 - **Ledger-honest** — append-only reality is reflected in the UI; no fake edit/delete affordances.
@@ -154,22 +154,42 @@ A warm, coastal-F&B palette — sea, clay, and linen — disciplined into a full
 
 ## 3. Typography
 
-**Display Font:** Fraunces Variable (with IBM Plex Sans Arabic, Georgia, serif fallback)
-**Body / UI Font:** Inter Variable (with IBM Plex Sans Arabic, system-ui fallback)
-**Arabic Font:** IBM Plex Sans Arabic (self-hosted, offline-ready; the default face whenever `dir="rtl"`)
+**Body / UI / Display Font:** IBM Plex Sans Arabic (with IBM Plex Sans, system-ui fallback)
+**Numeric Font:** IBM Plex Mono (with `ui-monospace` fallback)
+**Arabic Font:** the same — IBM Plex Sans Arabic leads the stack in both directions
 
-**Character:** A contrast pairing, not a clash. Fraunces is a warm, high-contrast "old-style" serif reserved for editorial brand moments; Inter is a neutral, highly legible workhorse sans that carries the entire dashboard — headings, labels, data, body. Arabic has no serif partner, so RTL display moments fall back to the dedicated Arabic sans. Metrics and tables use Inter with `tabular-nums` so figures align in columns.
+**Character:** One superfamily, not a pairing. The Arabic cut carries Latin as
+well as Arabic, so a bilingual row — an Arabic item name beside a Latin size
+label — sits on one skeleton instead of two faces meeting in the middle of it.
+That is also why there is no RTL font swap: nothing changes when the direction
+does. Figures go to the monospaced cut of the same family, so a column of
+totals lines up without the digits looking borrowed from somewhere else.
+
+There is deliberately **no display serif**. The product used to pair Fraunces
+with Inter and reserve the serif for brand surfaces; it now speaks in one voice
+everywhere. `font-serif` still resolves — to the same stack — so the class
+survives on the fifty-odd brand surfaces that use it without each one needing
+to be edited, but it selects nothing different.
+
+All four weights are static (400/500/600/700), which is the whole of what the
+interface uses; nothing asks for 800 or 900. Only the **latin and arabic
+subsets** are imported. The bare `400.css` entries pull Cyrillic, Greek and
+Vietnamese too — most of a megabyte of glyphs this product has no text for,
+downloaded on a phone over whatever connection the shop has.
 
 ### Hierarchy
-- **Display** (Fraunces, 400, `clamp(2rem, 4vw, 3.25rem)`, line-height 1.05, tracking -0.02em): Brand/editorial headlines only — public ordering, landing hero moments. Fluid sizing is *only* for brand surfaces.
-- **Headline** (Inter, 600, 1.5rem, line-height 1.2): Dashboard page titles (`PageHeader`). Fixed rem — product headings don't fluid-scale.
-- **Title** (Inter, 600, 1.125rem): Card titles, section headers, dialog titles.
-- **Body** (Inter, 400, 0.875rem, line-height 1.5): The dashboard's default text size. Prose caps at 65–75ch; dense tables may run wider.
-- **Label** (Inter, 500, 0.75rem): Buttons, form labels, badges, table headers.
-- **Numeric** (Inter, 500, `tabular-nums`, via the `.tabular` utility): All money, counts, and metrics. Money is piastres→EGP; Arabic uses `ar-EG` numerals.
+- **Display** (600, brand headlines — public ordering, landing hero moments).
+- **Headline** (600, 1.5rem, line-height 1.2): Dashboard page titles (`PageHeader`). Fixed rem — product headings don't fluid-scale.
+- **Title** (600, 1.125rem): Card titles, section headers, dialog titles.
+- **Body** (400, 0.875rem, line-height 1.5): The dashboard's default text size. Prose caps at 65–75ch; dense tables may run wider.
+- **Label** (500, 0.75rem): Buttons, form labels, badges, table headers.
+- **Numeric** (IBM Plex Mono, 500–600, tabular): All money, counts, and metrics. Money is piastres→EGP; Arabic uses `ar-EG` numerals.
 
 ### Named Rules
-**The Serif-Is-A-Guest Rule.** Fraunces appears only on brand surfaces. It is forbidden in dashboard UI — labels, buttons, table cells, and data are always Inter. A serif in a data table is the tell that the register was confused.
+**The Mono-Means-Tabular Rule.** `font-mono` and `tabular-nums` both switch on
+`font-variant-numeric: tabular-nums`, so asking for the mono face IS asking for
+aligned figures. There is no reason to want one without the other, and two
+names for the same intent is how half a table ends up ragged.
 
 **The Fixed-Scale Rule.** Dashboard type uses a fixed rem scale (≈1.125–1.2 ratio), never `clamp()`. A heading that shrinks inside a sidebar looks worse, not responsive. Fluid type is a brand-surface privilege.
 
@@ -212,7 +232,7 @@ The dashboard component vocabulary is **refined and restrained** — quiet shadc
 ### Navigation (App Sidebar)
 - **Style:** A **permanent deep-navy rail** (`--sidebar` ≈ `oklch(0.24 0.038 256)` light, `oklch(0.18 0.028 252)` dark) in *both* themes — it frames the linen content and echoes the auth/brand panel. Collapses to icons on desktop, becomes a Sheet on mobile. The brand mark sits in a hairline-ringed chip so it reads on navy.
 - **States:** Inactive items are Sidebar Foreground (light text on navy); hover is a quiet lighter-navy wash (`sidebar-accent`); the **active item is a distinct Terracotta Clay pill** — `sidebar-primary/15` fill + terracotta text — clearly separated from hover (the canonical shadcn sidebar makes active == hover; we override it). Active state is role-gated by `usePermissions`. Group labels are quiet, muted (`text-sidebar-foreground/45`).
-- **Typography:** Inter, `text-sm`; the brand wordmark at `text-base font-semibold`.
+- **Typography:** `text-sm`; the brand wordmark at `text-base font-semibold`.
 
 ### StatCard (signature component)
 A dashboard KPI tile: a small rounded icon chip tinted with a semantic accent at 10% (`bg-{accent}/10 text-{accent}` — brand, primary, success, warning, info, destructive), a label, a large **tabular** value that compacts (1.2M / 4.5K) with the full figure in a tooltip/popover, and an optional signed trend (`ArrowUpRight`/`ArrowDownRight`). A `dense` mode tightens padding for crowded mobile grids. This is the canonical "trust the numbers" surface — precision and disclosure over flourish.
@@ -224,7 +244,7 @@ A dashboard KPI tile: a small rounded icon chip tinted with a semantic accent at
 - **Do** use logical properties everywhere (`ps/pe`, `ms/me`, `start/end`, `text-start/end`). Every layout must flip cleanly for Arabic RTL; test in both directions.
 - **Do** keep Terracotta Clay to ≤10% of any dashboard screen — CTA, active nav, focus ring, lead chart series (the One-Voice Accent Rule).
 - **Do** render money with the `.tabular` numeral utility and `fmtMoney`; respect piastres→EGP, `ar-EG` numerals, and Africa/Cairo dates.
-- **Do** reserve Fraunces for brand surfaces; use Inter for all dashboard UI (the Serif-Is-A-Guest Rule).
+- **Do** use the mono cut for every figure, so money and ids align down a column (the Mono-Means-Tabular Rule).
 - **Do** pair every status color with an icon or label (the No-Color-Alone Rule) and push body contrast toward AAA (≥7:1) on Linen Cream.
 - **Do** reflect the append-only ledger: surface voids, force-closes, and compensating reversals as first-class events.
 - **Do** give every interactive component its full state set — default, hover, focus-visible (3px terracotta ring), active, disabled, loading, error — and respect `prefers-reduced-motion`.
