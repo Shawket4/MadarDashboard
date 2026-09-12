@@ -106,6 +106,7 @@ export function usePublicBrand(orgId?: string | null): ShellBrand | null {
     () =>
       brand
         ? {
+            orgId: brand.org_id,
             orgName: brand.name,
             logoUrl: brand.logo_url?.trim() || null,
             background: brand.background_color,

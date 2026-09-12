@@ -470,6 +470,7 @@ export * from './publicBranchesParams';
 export * from './publicBrand';
 export * from './publicMenuParams';
 export * from './publicOrgBrandParams';
+export * from './publicOrgFaviconParams';
 export * from './publicReward';
 export * from './publicSlot';
 export * from './publicSlots';

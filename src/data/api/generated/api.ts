@@ -347,6 +347,7 @@ import type {
   PublicBrand,
   PublicMenuParams,
   PublicOrgBrandParams,
+  PublicOrgFaviconParams,
   PublicSlots,
   PurchaseOrder,
   PurchaseOrderFull,
@@ -14892,6 +14893,67 @@ export function useGetOpenTicket<TData = Awaited<ReturnType<typeof getOpenTicket
 
 
 
+export const voidTicketLine = (
+    id: string,
+    itemId: string,
+    voidOpenTicketRequest: VoidOpenTicketRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OpenTicketView>(
+      {url: `/open-tickets/${id}/items/${itemId}/void`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: voidOpenTicketRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getVoidTicketLineMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof voidTicketLine>>, TError,{id: string;itemId: string;data: VoidOpenTicketRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof voidTicketLine>>, TError,{id: string;itemId: string;data: VoidOpenTicketRequest}, TContext> => {
+
+const mutationKey = ['voidTicketLine'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof voidTicketLine>>, {id: string;itemId: string;data: VoidOpenTicketRequest}> = (props) => {
+          const {id,itemId,data} = props ?? {};
+
+          return  voidTicketLine(id,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VoidTicketLineMutationResult = NonNullable<Awaited<ReturnType<typeof voidTicketLine>>>
+    export type VoidTicketLineMutationBody = VoidOpenTicketRequest
+    export type VoidTicketLineMutationError = ErrorBody
+
+    export const useVoidTicketLine = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof voidTicketLine>>, TError,{id: string;itemId: string;data: VoidOpenTicketRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof voidTicketLine>>,
+        TError,
+        {id: string;itemId: string;data: VoidOpenTicketRequest},
+        TContext
+      > => {
+      return useMutation(getVoidTicketLineMutationOptions(options), queryClient);
+    }
+
 export const addRound = (
     id: string,
     addRoundRequest: AddRoundRequest,
@@ -19200,6 +19262,115 @@ export function usePublicOrgBrand<TData = Awaited<ReturnType<typeof publicOrgBra
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPublicOrgBrandQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * Square, opaque, and on the shop's own ground — the same treatment the
+ * wallet badge gets, and for the same reason: a browser tab and an iOS home
+ * screen both draw this against a background they choose, so a mark on
+ * transparency is a coin flip and a wide wordmark cropped to a square loses
+ * the shop's name. [`crate::orgs::branding::on_ground`] fits the artwork
+ * whole and centres it, which is why a wordmark reads as a band rather than
+ * as two letters.
+ *
+ * The inset is wider than the wallet's. Nothing masks a favicon to a circle,
+ * so there is no reason to leave the corners empty.
+ *
+ * A shop with no logo gets a 404, and the page falls back to whatever icon it
+ * shipped with — Madar's. That is the honest answer: this endpoint serves a
+ * shop's logo, and there isn't one.
+ * @summary The shop's own logo, as a favicon.
+ */
+export const publicOrgFavicon = (
+    params?: PublicOrgFaviconParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Blob>(
+      {url: `/public/orgs/favicon`, method: 'GET',
+        params,
+        responseType: 'blob', signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicOrgFaviconQueryKey = (params?: PublicOrgFaviconParams,) => {
+    return [
+    `/public/orgs/favicon`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPublicOrgFaviconQueryOptions = <TData = Awaited<ReturnType<typeof publicOrgFavicon>>, TError = ErrorBody>(params?: PublicOrgFaviconParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgFavicon>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicOrgFaviconQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicOrgFavicon>>> = ({ signal }) => publicOrgFavicon(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicOrgFavicon>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicOrgFaviconQueryResult = NonNullable<Awaited<ReturnType<typeof publicOrgFavicon>>>
+export type PublicOrgFaviconQueryError = ErrorBody
+
+
+export function usePublicOrgFavicon<TData = Awaited<ReturnType<typeof publicOrgFavicon>>, TError = ErrorBody>(
+ params: undefined |  PublicOrgFaviconParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgFavicon>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicOrgFavicon>>,
+          TError,
+          Awaited<ReturnType<typeof publicOrgFavicon>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicOrgFavicon<TData = Awaited<ReturnType<typeof publicOrgFavicon>>, TError = ErrorBody>(
+ params?: PublicOrgFaviconParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgFavicon>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicOrgFavicon>>,
+          TError,
+          Awaited<ReturnType<typeof publicOrgFavicon>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicOrgFavicon<TData = Awaited<ReturnType<typeof publicOrgFavicon>>, TError = ErrorBody>(
+ params?: PublicOrgFaviconParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgFavicon>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The shop's own logo, as a favicon.
+ */
+
+export function usePublicOrgFavicon<TData = Awaited<ReturnType<typeof publicOrgFavicon>>, TError = ErrorBody>(
+ params?: PublicOrgFaviconParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgFavicon>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicOrgFaviconQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

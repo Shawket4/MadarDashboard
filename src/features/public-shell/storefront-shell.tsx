@@ -4,6 +4,8 @@ import { Languages, Moon, Sun } from "lucide-react";
 
 import { LegalLinks } from "@/components/legal-links";
 
+import { hostSlug } from "./use-brand";
+import { useShopFavicon } from "./use-favicon";
 import { usePublicTheme } from "./use-public-theme";
 
 /**
@@ -14,6 +16,8 @@ import { usePublicTheme } from "./use-public-theme";
  * and neither may reach into the other.
  */
 export interface ShellBrand {
+  /** Which shop, when the page resolved one. Names the favicon's source. */
+  orgId?: string | null;
   orgName: string;
   logoUrl: string | null;
   background: string;
@@ -220,6 +224,14 @@ export function StorefrontShell({
   const toggleLang = () => void i18n.changeLanguage(lang.startsWith("ar") ? "en" : "ar");
   const mode = usePublicTheme((s) => s.mode);
   const toggleTheme = usePublicTheme((s) => s.toggle);
+
+  // The tab, the bookmark and the home screen belong to the shop too. By org
+  // id where the page resolved one, else by the hostname it was served under —
+  // and on our own generic hosts, by neither, so Madar's mark stays.
+  useShopFavicon({
+    orgId: brand?.orgId,
+    slug: hostSlug(typeof window === "undefined" ? "" : window.location.hostname),
+  });
 
   return (
     <div className="relative flex min-h-[100dvh] flex-col bg-background text-foreground">

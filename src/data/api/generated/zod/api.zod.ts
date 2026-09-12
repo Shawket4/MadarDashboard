@@ -6408,6 +6408,62 @@ export const GetOpenTicketResponse = zod.object({
 })
 
 
+export const VoidTicketLineParams = zod.object({
+  "id": zod.uuid().describe('Open ticket ID'),
+  "item_id": zod.uuid().describe('Bill line ID')
+})
+
+export const VoidTicketLineBody = zod.object({
+  "note": zod.string().nullish(),
+  "reason": zod.union([zod.null(),zod.enum(['customer_request', 'wrong_order', 'quality_issue', 'other']).describe('Why a sale or a bill was torn up — the `void_reason` enum, shared by\n`orders` and `open_tickets` so a void-rate report reads counter and dine-in\nalike without a translation layer. Bound as text and cast in SQL\n(`$n::void_reason`), the way the order void has always done it.')]).optional()
+}).describe('Why a bill is torn up. `reason` is typed; `note` is what actually happened,\nrequired when the reason is `other`.\n\nDeserialised leniently, because a void queued offline by an older till\narrives here months later with the picker\'s LABEL (`\"Order mistake\"`, or\n`\"Order mistake — burnt\"`) where the enum now is, and a queued op that fails\nto parse dead-letters. Those spellings map exactly as migration\n`20260912020000` mapped the stored rows; an unrecognised string is `other`\nwith the whole text as the note, so nothing the waiter wrote is lost.')
+
+export const VoidTicketLineResponse = zod.object({
+  "bill": zod.object({
+  "discount_amount": zod.number().describe('The waiter\'s discount, resolved (a `discount_id` is looked up the way\nthe settle looks it up). A cashier who clears it at settle will see a\ndifferent total than this one, and that is the point of showing it.'),
+  "service_charge_amount": zod.number(),
+  "service_charge_rate": zod.number(),
+  "subtotal": zod.number().describe('Live lines as charged, before discount. Gross when tax-inclusive.'),
+  "tax_amount": zod.number().describe('Inside the total when `tax_inclusive`, on top of it otherwise.'),
+  "tax_inclusive": zod.boolean(),
+  "tax_rate": zod.number().describe('The rates the figures were computed under, for the printed bill.'),
+  "total": zod.number().describe('What the drawer must collect.')
+}).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
+  "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
+  "branch_id": zod.uuid(),
+  "customer_name": zod.string().nullish(),
+  "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
+  "discount_type": zod.string().nullish(),
+  "discount_value": zod.number().nullish(),
+  "guest_count": zod.number().nullish(),
+  "id": zod.uuid(),
+  "items": zod.array(zod.object({
+  "id": zod.uuid(),
+  "line": zod.unknown().describe('The frozen priced SnapshotLine (name, size, addons, totals).'),
+  "line_total": zod.number(),
+  "menu_item_id": zod.uuid().nullish(),
+  "round_fired_at": zod.iso.datetime({"offset":true}).describe('When the round this line came in on was fired. A bill is read as a\nsequence of visits to the table — \"the drinks at seven, the food at\nhalf past\" — and without the clock a till can only show a flat list\nthat says nothing about how the evening went.'),
+  "round_number": zod.number(),
+  "voided": zod.boolean()
+})),
+  "notes": zod.string().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_by": zod.uuid(),
+  "opened_by_name": zod.string().nullish(),
+  "order_id": zod.uuid().nullish(),
+  "ready": zod.boolean().optional().describe('The kitchen has plated every line of every round. DERIVED from the\nticket\'s `kitchen_tickets` at read time, so it is always what the KDS\nsays now. `false` for a ticket nothing was ever fired to the kitchen for\n(routing mode `off`): there is nothing to be ready.'),
+  "ready_at": zod.iso.datetime({"offset":true}).nullish().describe('The last moment the kitchen had the whole ticket plated. History for\nthe timing reports; `ready` is the live fact.'),
+  "settled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('The bill: `open`, `settled` or `voided`. Never `ready` — see [`Self::ready`].'),
+  "subtotal": zod.number(),
+  "table_id": zod.uuid().nullish(),
+  "ticket_ref": zod.string().nullish(),
+  "void_note": zod.string().nullish(),
+  "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
+  "voided_at": zod.iso.datetime({"offset":true}).nullish()
+})
+
+
 export const AddRoundParams = zod.object({
   "id": zod.uuid().describe('Open ticket ID')
 })
@@ -8615,6 +8671,36 @@ export const PublicOrgBrandResponse = zod.object({
   "org_id": zod.uuid(),
   "slug": zod.string().nullish().describe('`None` when the shop has no address of its own — reached by `org_id`,\nwhich every page that already knows the shop uses.')
 }).describe('A shop, as a guest page needs to know it.')
+
+
+/**
+ * Square, opaque, and on the shop's own ground — the same treatment the
+ * wallet badge gets, and for the same reason: a browser tab and an iOS home
+ * screen both draw this against a background they choose, so a mark on
+ * transparency is a coin flip and a wide wordmark cropped to a square loses
+ * the shop's name. [`crate::orgs::branding::on_ground`] fits the artwork
+ * whole and centres it, which is why a wordmark reads as a band rather than
+ * as two letters.
+ *
+ * The inset is wider than the wallet's. Nothing masks a favicon to a circle,
+ * so there is no reason to leave the corners empty.
+ *
+ * A shop with no logo gets a 404, and the page falls back to whatever icon it
+ * shipped with — Madar's. That is the honest answer: this endpoint serves a
+ * shop's logo, and there isn't one.
+ * @summary The shop's own logo, as a favicon.
+ */
+export const publicOrgFaviconQuerySizeMin = 0;
+
+
+
+export const PublicOrgFaviconQueryParams = zod.object({
+  "org_id": zod.uuid().optional(),
+  "slug": zod.string().optional(),
+  "size": zod.number().min(publicOrgFaviconQuerySizeMin).optional().describe('Rounded up to 32, 180 or 512. Defaults to 180 — big enough for a home\nscreen, and a browser downsamples for the tab perfectly well.')
+})
+
+export const PublicOrgFaviconResponse = zod.unknown()
 
 
 export const OtpRequestBody = zod.object({
