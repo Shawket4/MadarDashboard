@@ -4301,5 +4301,24 @@
   "export": {
     "tooLarge": "That is about {{rows}} rows, and a spreadsheet built in the browser tops out around {{max}}. Narrow the dates or the branch and try again.",
     "preparing": "Gathering every row that matches your filters…"
+  },
+  "table": {
+    "basket": "Basket",
+    "billSoFar": "Your bill so far",
+    "closed": "The kitchen is closed right now",
+    "closedHint": "You can still look at the menu. A member of staff can take your order.",
+    "menuEmpty": "There is nothing on the menu right now.",
+    "payAtTill": "Pay at the counter when you're ready.",
+    "ready": "Ready",
+    "round": "Round {{n}}",
+    "seatedHours": "{{h}}h {{m}}m",
+    "seatedMinutes": "{{count}} min",
+    "send": "Send to kitchen",
+    "sendFailed": "That didn't send. Try again.",
+    "sent": "Sent to the kitchen",
+    "title": "Table {{label}}",
+    "total": "Total",
+    "unknown": "We can't find that table",
+    "unknownHint": "Ask a member of staff — this code may have been replaced."
   }
 }

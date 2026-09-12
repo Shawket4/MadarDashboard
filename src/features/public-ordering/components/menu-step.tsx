@@ -23,6 +23,22 @@ import { ItemCustomizer } from "./item-customizer";
 interface MenuStepProps {
   branchId: string;
   channel: Channel;
+  /**
+   * A menu supplied by the caller instead of fetched here.
+   *
+   * The table-ordering page reads a DIFFERENT menu — the dine-in one, from
+   * `/public/tables/{id}/menu` — because a table's order settles as a dine-in
+   * bill and a delivery channel's prices would quote the customer one number
+   * and charge them another. Everything below this line renders the same
+   * either way, which is the point: one menu surface, two sources.
+   */
+  menu?: DeliveryMenu;
+  /**
+   * What the empty state says when there is nothing to show. Defaults to the
+   * delivery wording; a table's menu is not a delivery menu and must not say
+   * so to someone sitting in the shop.
+   */
+  emptyHint?: string;
   /** count per menu_item_id, for the little badge on item cards. */
   countByItem: Record<string, number>;
   onAdd: (line: CartLine) => void;
@@ -43,10 +59,19 @@ interface Group {
   items: DeliveryMenuItem[];
 }
 
-export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQueryChange, cartSlot, browseOnly, onExitBrowse }: MenuStepProps) {
+export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAdd, query, onQueryChange, cartSlot, browseOnly, onExitBrowse }: MenuStepProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
-  const { data, isLoading, isError } = usePublicMenu(branchId, { channel, preview: browseOnly || undefined });
+  const fetched = usePublicMenu(
+    branchId,
+    { channel, preview: browseOnly || undefined },
+    // A caller that brought its own menu must not also fire this query: it
+    // would ask for a channel menu the shop may not even have enabled.
+    { query: { enabled: !menu } },
+  );
+  const { data, isLoading, isError } = menu
+    ? { data: menu, isLoading: false, isError: false }
+    : fetched;
   const channelLabel =
     channel === "in_mall"
       ? t("order.channel.inMall", "In-mall")
@@ -110,7 +135,7 @@ export function MenuStep({ branchId, channel, countByItem, onAdd, query, onQuery
     return (
       <Empty
         title={t("order.menu.empty")}
-        hint={t("order.menu.emptyHint")}
+        hint={emptyHint ?? t("order.menu.emptyHint")}
       />
     );
   }

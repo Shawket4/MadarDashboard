@@ -23,8 +23,11 @@ interface CartSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   lines: CartLine[];
-  /** delivery fee estimate (piastres); null when unknown/not yet quoted. */
-  deliveryFee: number | null;
+  /**
+   * Delivery fee estimate (piastres); null when unknown or not yet quoted.
+   * Absent entirely for a table's basket, which has no delivery to charge for.
+   */
+  deliveryFee?: number | null;
   /** estimated channel discount on the subtotal (piastres); 0/undefined = none. */
   discountAmount?: number;
   onEdit: (line: CartLine) => void;
@@ -32,6 +35,14 @@ interface CartSheetProps {
   onSetQty: (uid: string, qty: number) => void;
   onCheckout: () => void;
   onAddMore: () => void;
+  /**
+   * What the button says. A delivery basket checks out; a table's goes to the
+   * kitchen and is paid for at the counter afterwards, so "Checkout" would be
+   * a promise this page cannot keep.
+   */
+  checkoutLabel?: string;
+  /** The shop is not serving, or a send is already in flight. */
+  checkoutDisabled?: boolean;
 }
 
 /** A short, human summary of a configured line's selections. */
@@ -61,6 +72,8 @@ export function CartSheet({
   onSetQty,
   onCheckout,
   onAddMore,
+  checkoutLabel,
+  checkoutDisabled,
 }: CartSheetProps) {
   const { t } = useTranslation();
   const subtotal = cartSubtotal(lines);
@@ -103,9 +116,15 @@ export function CartSheet({
 
         {lines.length > 0 && (
           <div className="border-t border-border/60 bg-background px-4 py-3">
-            <Totals subtotal={subtotal} deliveryFee={deliveryFee} total={total} discount={discountAmount} />
-            <Button variant="brand" className="mt-3 w-full" size="lg" onClick={onCheckout}>
-              {t("order.cart.checkout")}
+            <Totals subtotal={subtotal} deliveryFee={deliveryFee ?? null} total={total} discount={discountAmount} />
+            <Button
+              variant="brand"
+              className="mt-3 w-full"
+              size="lg"
+              onClick={onCheckout}
+              disabled={checkoutDisabled}
+            >
+              {checkoutLabel ?? t("order.cart.checkout")}
             </Button>
           </div>
         )}
@@ -126,6 +145,8 @@ export function CartPanel({
   onRemove,
   onSetQty,
   onCheckout,
+  checkoutLabel,
+  checkoutDisabled,
 }: CartPanelProps) {
   const { t } = useTranslation();
   const subtotal = cartSubtotal(lines);
@@ -148,9 +169,15 @@ export function CartPanel({
 
       {lines.length > 0 && (
         <div className="border-t border-border/60 px-4 py-3">
-          <Totals subtotal={subtotal} deliveryFee={deliveryFee} total={total} discount={discountAmount} />
-          <Button variant="brand" className="mt-3 w-full" size="lg" onClick={onCheckout}>
-            {t("order.cart.checkout")}
+          <Totals subtotal={subtotal} deliveryFee={deliveryFee ?? null} total={total} discount={discountAmount} />
+          <Button
+            variant="brand"
+            className="mt-3 w-full"
+            size="lg"
+            onClick={onCheckout}
+            disabled={checkoutDisabled}
+          >
+            {checkoutLabel ?? t("order.cart.checkout")}
           </Button>
         </div>
       )}

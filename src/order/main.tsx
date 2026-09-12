@@ -60,6 +60,7 @@ import { initPublicTheme } from "@/features/public-shell/use-public-theme";
 
 import { queryClient } from "@/data/api/query";
 import { PublicOrderingPage } from "@/features/public-ordering/public-ordering-page";
+import { TableOrderingPage } from "@/features/public-ordering/table-ordering-page";
 import { useHostOrg } from "@/features/public-shell/use-brand";
 import { ScanToOrder } from "@/features/public-ordering/scan-to-order";
 import { OrderTrackingPage } from "@/features/order-tracking/tracking-page";
@@ -93,6 +94,10 @@ const indexRoute = createRoute({
   component: function Index() {
     const { orgId, resolving } = useHostOrg();
     const s = indexRoute.useSearch();
+    // The code on a table answers everything the delivery flow would ask, so
+    // it gets its own page rather than a fifth mode inside that one. It needs
+    // no org either: the table names its own branch, and the branch its shop.
+    if (s.table) return <TableOrderingPage tableId={s.table} />;
     if (resolving) return null;
     if (!orgId) return <ScanToOrder />;
     return (
@@ -128,6 +133,9 @@ const orderCompatRoute = createRoute({
   component: function OrderCompat() {
     const { orgId } = orderCompatRoute.useParams();
     const s = orderCompatRoute.useSearch();
+    // A table's code on our own generic host lands here (`/order/<org>?table=`),
+    // and means the same thing it means on a shop's own hostname.
+    if (s.table) return <TableOrderingPage tableId={s.table} />;
     return (
       <PublicOrderingPage
         orgId={orgId}
@@ -149,6 +157,7 @@ const orgRoute = createRoute({
   component: function OrgOrder() {
     const { orgId } = orgRoute.useParams();
     const s = orgRoute.useSearch();
+    if (s.table) return <TableOrderingPage tableId={s.table} />;
     return (
       <PublicOrderingPage
         orgId={orgId}
