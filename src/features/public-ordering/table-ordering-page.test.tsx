@@ -19,6 +19,10 @@ vi.mock("@/data/api/generated/api", () => ({
   usePublicMenu: () => ({ data: undefined, isLoading: false, isError: false }),
 }));
 
+// The real i18n instance — see the note in `qr/table-codes.test.tsx`. Without
+// it `t` hands back a key's inline default with its placeholders unsubstituted,
+// which looks exactly like a missing translation and passes anyway.
+await import("@/i18n");
 const { TableOrderingPage } = await import("./table-ordering-page");
 
 function wrap(node: ReactNode) {

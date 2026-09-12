@@ -308,7 +308,8 @@ function SeatedSince({ since }: { since: string }) {
   const mins = Math.max(0, Math.floor((now - start) / 60_000));
   const text =
     mins < 60
-      ? t("table.seatedMinutes", "{{count}} min", { count: mins })
+      // `count`, so Arabic can say "دقيقتان" for two rather than "2 دقيقة".
+      ? t("table.seatedMinutes", { count: mins })
       : t("table.seatedHours", "{{h}}h {{m}}m", {
           h: Math.floor(mins / 60),
           m: mins % 60,

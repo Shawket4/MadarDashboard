@@ -3314,26 +3314,9 @@
     "forbidden": "Only super admins can manage the WhatsApp connection."
   },
   "qr": {
-    "title": "QR Codes",
-    "subtitle": "Generate scannable QR codes for your online ordering page",
+    "enlarge": "Enlarge QR code",
     "generate": "Generate QR",
-    "pickBranch": "Select a branch from the scope bar above",
-    "opts": {
-      "brandedCard": "Branded card",
-      "dpiLabel": "DPI"
-    },
-    "tabs": {
-      "standard": "Standard menu",
-      "inMall": "In-mall delivery"
-    },
-    "org": {
-      "title": "All-branches QR",
-      "description": "One QR that lets customers browse and pick any of your branches, then place an order."
-    },
-    "standard": {
-      "title": "Branch menu QR",
-      "description": "Customers scan this to open your branch's ordering page. Works for both in-mall and outside delivery."
-    },
+    "imageAlt": "QR code for {{title}}",
     "inMall": {
       "title": "In-mall delivery QR",
       "description": "Place this QR at a specific spot inside the mall. When customers scan it, the delivery type is locked to in-mall and the location is pre-filled.",
@@ -3344,11 +3327,48 @@
       "unit": "Unit / office",
       "unitPlaceholder": "Unit 42"
     },
+    "opts": {
+      "brandedCard": "Branded card",
+      "dpiLabel": "DPI"
+    },
+    "org": {
+      "title": "All-branches QR",
+      "description": "One QR that lets customers browse and pick any of your branches, then place an order."
+    },
+    "pickBranch": "Select a branch from the scope bar above",
     "preview": {
       "title": "QR Code"
     },
-    "enlarge": "Enlarge QR code",
-    "imageAlt": "QR code for {{title}}"
+    "section": {
+      "branch": "For one branch",
+      "org": "For the whole organization",
+      "tables": "For each table"
+    },
+    "standard": {
+      "title": "Branch menu QR",
+      "description": "Customers scan this to open your branch's ordering page. Works for both in-mall and outside delivery."
+    },
+    "subtitle": "Generate scannable QR codes for your online ordering page",
+    "tables": {
+      "description": "One code per table. A customer scans the one on their table and orders straight onto its bill — no branch to pick, no address to give.",
+      "failed": "Could not make the codes. Try again.",
+      "imageAlt": "Code for table {{label}}",
+      "make_one": "Make 1 code",
+      "make_other": "Make {{count}} codes",
+      "making_one": "Making 1 code…",
+      "making_other": "Making {{count}} codes…",
+      "none": "This branch has no tables yet. Add them on the floor plan first.",
+      "pickBranch": "Choose a branch to see its tables.",
+      "previewHint": "Open this table's code",
+      "previewTitle": "Table {{label}}",
+      "print": "Print sheet",
+      "title": "Table codes"
+    },
+    "tabs": {
+      "standard": "Standard menu",
+      "inMall": "In-mall delivery"
+    },
+    "title": "QR Codes"
   },
   "ui": {
     "sidebar": {
@@ -4312,7 +4332,8 @@
     "ready": "Ready",
     "round": "Round {{n}}",
     "seatedHours": "{{h}}h {{m}}m",
-    "seatedMinutes": "{{count}} min",
+    "seatedMinutes_one": "1 min",
+    "seatedMinutes_other": "{{count}} min",
     "send": "Send to kitchen",
     "sendFailed": "That didn't send. Try again.",
     "sent": "Sent to the kitchen",

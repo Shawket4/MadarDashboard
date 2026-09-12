@@ -48,6 +48,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { QrPreviewDialog } from "./qr-preview-dialog";
+import { TableCodes } from "./table-codes";
 
 /**
  * Every scannable code the product makes, on one page.
@@ -512,6 +513,15 @@ export function QrPage() {
           {t("qr.section.branch", "For one branch")}
         </h2>
         <div className="grid gap-4">{branchKinds.map(renderKind)}</div>
+      </section>
+
+      {/* Its own section: these are not ONE code but one per table, and a room
+          full of them is printed together rather than made one at a time. */}
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          {t("qr.section.tables", "For each table")}
+        </h2>
+        <TableCodes branchId={branchId ?? null} />
       </section>
 
       <QrPreviewDialog
