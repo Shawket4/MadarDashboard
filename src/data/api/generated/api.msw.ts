@@ -196,6 +196,7 @@ import type {
   StudioAggregate,
   Supplier,
   TableBookingHint,
+  TableHistory,
   TeamPresence,
   TellerStats,
   Till,
@@ -392,6 +393,8 @@ export const getCreateFloorTableResponseMock = (overrideResponse: Partial<Extrac
 export const getUpdateFloorTableResponseTableBookingHintMock = (overrideResponse: Partial<TableBookingHint> = {}): TableBookingHint => ({...{booking_id: faker.string.uuid(), ends_at: faker.date.past().toISOString().slice(0, 19) + 'Z', guest_name: faker.string.alpha({length: {min: 10, max: 20}}), held_from: faker.date.past().toISOString().slice(0, 19) + 'Z', party_size: faker.number.int(), starts_at: faker.date.past().toISOString().slice(0, 19) + 'Z', status: faker.string.alpha({length: {min: 10, max: 20}})}, ...overrideResponse});
 
 export const getUpdateFloorTableResponseMock = (overrideResponse: Partial<Extract<FloorTable, object>> = {}): FloorTable => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', height: faker.number.float({fractionDigits: 2}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), label: faker.string.alpha({length: {min: 10, max: 20}}), next_booking: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getUpdateFloorTableResponseTableBookingHintMock()},]), undefined]), org_id: faker.string.uuid(), pos_x: faker.number.float({fractionDigits: 2}), pos_y: faker.number.float({fractionDigits: 2}), rotation: faker.number.float({fractionDigits: 2}), seats: faker.number.int(), section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), shape: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', width: faker.number.float({fractionDigits: 2}), ...overrideResponse})
+
+export const getTableHistoryResponseMock = (overrideResponse: Partial<Extract<TableHistory, object>> = {}): TableHistory => ({average_bill_minor: faker.number.int(), average_minutes: faker.number.int(), covers: faker.number.int(), from: faker.date.past().toISOString().slice(0, 19) + 'Z', label: faker.string.alpha({length: {min: 10, max: 20}}), settled_count: faker.number.int(), sittings: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), customer_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), guest_count: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), minutes: faker.number.int(), open_ticket_id: faker.string.uuid(), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), order_number: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), ticket_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined])})), table_id: faker.string.uuid(), to: faker.date.past().toISOString().slice(0, 19) + 'Z', total_minor: faker.number.int(), turns_per_day_x100: faker.number.int(), ...overrideResponse})
 
 export const getListFloorTransfersResponseMock = (overrideResponse: Partial<Extract<TransfersSyncResponse, object>> = {}): TransfersSyncResponse => ({server_time: faker.date.past().toISOString().slice(0, 19) + 'Z', transfers: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', from_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), fulfilled_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), occupant_id: faker.string.uuid(), occupant_kind: faker.string.alpha({length: {min: 10, max: 20}}), occupant_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), requested_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), resolved_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), target_section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), target_table_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})), ...overrideResponse})
 
@@ -2093,6 +2096,18 @@ export const getClearTableMockHandler = (overrideResponse?: void | ((info: Param
   if (typeof overrideResponse === 'function') {await overrideResponse(info); }
 
     return new HttpResponse(null,
+      { status: 200
+      })
+  }, options)
+}
+
+export const getTableHistoryMockHandler = (overrideResponse?: TableHistory | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TableHistory> | TableHistory), options?: RequestHandlerOptions) => {
+  return http.get('*/floor/tables/:id/history', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getTableHistoryResponseMock(),
       { status: 200
       })
   }, options)
@@ -6003,6 +6018,7 @@ export const getMadarAPIMock = () => [
   getDeleteFloorTableMockHandler(),
   getUpdateFloorTableMockHandler(),
   getClearTableMockHandler(),
+  getTableHistoryMockHandler(),
   getHoldTableMockHandler(),
   getReleaseTableMockHandler(),
   getListFloorTransfersMockHandler(),

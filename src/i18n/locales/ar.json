@@ -1464,7 +1464,25 @@
     "renameSection": "إعادة تسمية",
     "deleteSectionTitle": "حذف «{{name}}»؟",
     "deleteSectionBody": "تُحذف المنطقة. لا تحتوي على أي طاولات.",
-    "deleteSectionBodyTables": "تنتقل طاولاتها ({{count}}) إلى «غير محدّدة» — لا يُحذف شيء ولا يتأثر أي طلب."
+    "deleteSectionBodyTables": "تنتقل طاولاتها ({{count}}) إلى «غير محدّدة» — لا يُحذف شيء ولا يتأثر أي طلب.",
+    "history": {
+      "title": "آخر ٣٠ يومًا",
+      "takings": "الإيراد",
+      "avgBill": "متوسط الفاتورة",
+      "avgStay": "متوسط مدة الجلوس",
+      "turns": "دورات في اليوم",
+      "bills": "الفواتير",
+      "stillOpen": "ما زالت مفتوحة",
+      "voided": "مُبطَلة",
+      "empty": "لم يجلس أحد هنا خلال آخر ٣٠ يومًا.",
+      "failed": "تعذّر تحميل سجل هذه الطاولة.",
+      "covers_zero": "عدد الأفراد: {{count}}",
+      "covers_one": "عدد الأفراد: {{count}}",
+      "covers_two": "عدد الأفراد: {{count}}",
+      "covers_few": "عدد الأفراد: {{count}}",
+      "covers_many": "عدد الأفراد: {{count}}",
+      "covers_other": "عدد الأفراد: {{count}}"
+    }
   },
   "shifts": {
     "teller": "الصراف",

@@ -11,6 +11,8 @@
  */
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { TableHistory } from "./table-history";
 import { RotateCcw, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 
@@ -230,6 +232,18 @@ export function InspectorPanel({
           </Button>
         </div>
       </div>
+
+      {/* What this table has actually done. The panel authors geometry; this
+          is the one thing here that is a READING, and it belongs beside the
+          table it is about rather than on a report somebody has to go find. */}
+      {single ? (
+        <div className="-mx-4 border-t">
+          <p className="px-4 pt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {t("floor.history.title", "Last 30 days")}
+          </p>
+          <TableHistory tableId={single.id} />
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1465,7 +1465,21 @@
     "renameSection": "Rename",
     "deleteSectionTitle": "Delete “{{name}}”?",
     "deleteSectionBody": "The area is removed. It holds no tables.",
-    "deleteSectionBodyTables": "Its {{count}} table(s) move to Unassigned — nothing is deleted and no order is affected."
+    "deleteSectionBodyTables": "Its {{count}} table(s) move to Unassigned — nothing is deleted and no order is affected.",
+    "history": {
+      "title": "Last 30 days",
+      "takings": "Takings",
+      "avgBill": "Average bill",
+      "avgStay": "Average stay",
+      "turns": "Turns a day",
+      "bills": "Bills",
+      "stillOpen": "Still open",
+      "voided": "Voided",
+      "empty": "Nothing has sat here in the last 30 days.",
+      "failed": "Couldn't load this table's history.",
+      "covers_one": "{{count}} cover",
+      "covers_other": "{{count}} covers"
+    }
   },
   "shifts": {
     "teller": "Teller",

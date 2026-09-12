@@ -415,6 +415,8 @@ import type {
   StudioAggregate,
   Supplier,
   SwapTablesRequest,
+  TableHistory,
+  TableHistoryParams,
   TableOrderRequest,
   TableQrParams,
   TeamPresence,
@@ -7425,6 +7427,115 @@ export const useClearTable = <TError = ErrorBody,
       > => {
       return useMutation(getClearTableMutationOptions(options), queryClient);
     }
+
+/**
+ * The link was always there and nothing ever read it: a settled bill carries
+ * `orders.open_ticket_id`, and the ticket carries `table_id`. So a table's
+ * takings are one join away, and until now a shop could see a room full of
+ * tables and not answer "which of these actually earns".
+ *
+ * Covers and money count SETTLED bills only. An open bill is still running
+ * and a voided one took nothing — folding either into the averages would
+ * flatter a table that lost money.
+ * @summary A table's history and what it earns.
+ */
+export const tableHistory = (
+    id: string,
+    params?: TableHistoryParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TableHistory>(
+      {url: `/floor/tables/${id}/history`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getTableHistoryQueryKey = (id: string,
+    params?: TableHistoryParams,) => {
+    return [
+    `/floor/tables/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getTableHistoryQueryOptions = <TData = Awaited<ReturnType<typeof tableHistory>>, TError = unknown>(id: string,
+    params?: TableHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tableHistory>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTableHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof tableHistory>>> = ({ signal }) => tableHistory(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof tableHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TableHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof tableHistory>>>
+export type TableHistoryQueryError = unknown
+
+
+export function useTableHistory<TData = Awaited<ReturnType<typeof tableHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  TableHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof tableHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof tableHistory>>,
+          TError,
+          Awaited<ReturnType<typeof tableHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTableHistory<TData = Awaited<ReturnType<typeof tableHistory>>, TError = unknown>(
+ id: string,
+    params?: TableHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tableHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof tableHistory>>,
+          TError,
+          Awaited<ReturnType<typeof tableHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTableHistory<TData = Awaited<ReturnType<typeof tableHistory>>, TError = unknown>(
+ id: string,
+    params?: TableHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tableHistory>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A table's history and what it earns.
+ */
+
+export function useTableHistory<TData = Awaited<ReturnType<typeof tableHistory>>, TError = unknown>(
+ id: string,
+    params?: TableHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tableHistory>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTableHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 /**
  * Occupancy travels on its own here, carrying nothing about what is on the

@@ -3027,6 +3027,53 @@ export const ClearTableResponse = zod.unknown()
 
 
 /**
+ * The link was always there and nothing ever read it: a settled bill carries
+ * `orders.open_ticket_id`, and the ticket carries `table_id`. So a table's
+ * takings are one join away, and until now a shop could see a room full of
+ * tables and not answer "which of these actually earns".
+ *
+ * Covers and money count SETTLED bills only. An open bill is still running
+ * and a voided one took nothing — folding either into the averages would
+ * flatter a table that lost money.
+ * @summary A table's history and what it earns.
+ */
+export const TableHistoryParams = zod.object({
+  "id": zod.uuid().describe('Table id')
+})
+
+export const TableHistoryQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).nullish().describe('Inclusive lower bound; defaults to 30 days back.'),
+  "to": zod.iso.datetime({"offset":true}).nullish().describe('Exclusive upper bound; defaults to now.')
+})
+
+export const TableHistoryResponse = zod.object({
+  "average_bill_minor": zod.number().describe('Mean spend per settled bill, minor units.'),
+  "average_minutes": zod.number().describe('Mean minutes a party occupied the table, over settled bills — the\nnumber that says whether a table turns.'),
+  "covers": zod.number().describe('Settled bills only.'),
+  "from": zod.iso.datetime({"offset":true}),
+  "label": zod.string(),
+  "settled_count": zod.number(),
+  "sittings": zod.array(zod.object({
+  "closed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the bill was settled or voided; `None` while it is still open.'),
+  "customer_name": zod.string().nullish(),
+  "guest_count": zod.number().nullish(),
+  "minutes": zod.number().describe('Minutes between the two, or to now while the bill is still open.'),
+  "open_ticket_id": zod.uuid(),
+  "opened_at": zod.iso.datetime({"offset":true}).describe('When the party\'s bill was opened — the closest thing the server has to\nwhen they sat down.'),
+  "order_id": zod.uuid().nullish().describe('The settled sale, when the bill became one.'),
+  "order_number": zod.number().nullish(),
+  "status": zod.string(),
+  "ticket_ref": zod.string().nullish(),
+  "total_amount": zod.number().nullish().describe('What the sale came to, in minor units. `None` for an unsettled or\nvoided bill — a table\'s takings only count money that was taken.')
+}).describe('One sitting at a table: the bill that was opened on it and what it came to.')).describe('Bills opened on this table in the window, newest first.'),
+  "table_id": zod.uuid(),
+  "to": zod.iso.datetime({"offset":true}),
+  "total_minor": zod.number(),
+  "turns_per_day_x100": zod.number().describe('Settled bills per day over the window, x100 so the wire stays integer.')
+}).describe('What a table has done over the window asked for.')
+
+
+/**
  * Occupancy travels on its own here, carrying nothing about what is on the
  * table -- but always who took it: the hold is a `party` row in the ledger
  * owned by the hand that placed it, so there is no such thing as a table held
