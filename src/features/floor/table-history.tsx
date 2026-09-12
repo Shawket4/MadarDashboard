@@ -79,10 +79,14 @@ function SittingRow({ s }: { s: TableSitting }) {
   );
 }
 
-/** A table's last 30 days: the figures, then what happened. */
-export function TableHistory({ tableId }: { tableId: string }) {
+/** A table's figures, then what happened — the last 30 days unless a window
+ *  is given (the Tables insights page passes the scope's). */
+export function TableHistory({ tableId, from, to }: { tableId: string; from?: string; to?: string }) {
   const { t } = useTranslation();
-  const { data, isLoading, isError } = useTableHistory(tableId);
+  const { data, isLoading, isError } = useTableHistory(
+    tableId,
+    from || to ? { from, to } : undefined,
+  );
 
   if (isLoading) {
     return (
@@ -102,7 +106,9 @@ export function TableHistory({ tableId }: { tableId: string }) {
   if (data.sittings.length === 0) {
     return (
       <p className="p-4 text-xs text-muted-foreground">
-        {t("floor.history.empty", "Nothing has sat here in the last 30 days.")}
+        {from || to
+          ? t("floor.history.emptyPeriod", "Nothing sat here in this period.")
+          : t("floor.history.empty", "Nothing has sat here in the last 30 days.")}
       </p>
     );
   }

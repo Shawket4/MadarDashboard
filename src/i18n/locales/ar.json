@@ -171,7 +171,8 @@
     "basira": "بصيرة",
     "basiraAsk": "اسأل",
     "bookings": "الحجوزات",
-    "loyalty": "الولاء"
+    "loyalty": "الولاء",
+    "tablesInsights": "الطاولات"
   },
   "auth": {
     "welcome": "مرحباً بعودتك",
@@ -1481,7 +1482,8 @@
       "covers_two": "عدد الأفراد: {{count}}",
       "covers_few": "عدد الأفراد: {{count}}",
       "covers_many": "عدد الأفراد: {{count}}",
-      "covers_other": "عدد الأفراد: {{count}}"
+      "covers_other": "عدد الأفراد: {{count}}",
+      "emptyPeriod": "لم يجلس أحد هنا في هذه الفترة."
     }
   },
   "shifts": {
@@ -4479,5 +4481,34 @@
     "total": "الإجمالي",
     "unknown": "لم نتعرّف على هذه الطاولة",
     "unknownHint": "اسأل أحد العاملين — قد يكون هذا الكود قديماً."
+  },
+  "tablesInsights": {
+    "title": "الطاولات",
+    "turns": "الدورات",
+    "perDay": "{{value}} لكل طاولة يوميًا",
+    "covers": "الضيوف",
+    "revenue": "إيراد الطاولات",
+    "revenuePerTable": "الإيراد لكل طاولة",
+    "tablesUsed_zero": "لم تُستخدم أي طاولة",
+    "tablesUsed_one": "طاولة واحدة مستخدمة",
+    "tablesUsed_two": "طاولتان مستخدمتان",
+    "tablesUsed_few": "{{count}} طاولات مستخدمة",
+    "tablesUsed_many": "{{count}} طاولة مستخدمة",
+    "tablesUsed_other": "{{count}} طاولة مستخدمة",
+    "revenuePerCover": "الإيراد لكل ضيف",
+    "avgDwell": "متوسط مدة الجلوس",
+    "table": "الطاولة",
+    "section": "القسم",
+    "branch": "الفرع",
+    "turnsPerDay": "دورات / يوم",
+    "empty": "لا توجد مبيعات طاولات في هذه الفترة",
+    "allSections": "كل الأقسام",
+    "busiestHours": "أكثر الساعات ازدحامًا",
+    "busiestHoursHint": "الجلسات المدفوعة على الطاولات حسب الساعة",
+    "topRevenue": "الإيراد حسب الطاولة",
+    "search": "ابحث عن طاولة",
+    "historyTitle": "طاولة {{label}}",
+    "pickBranch": "اختر فرعًا من شريط النطاق لفتح سجل الطاولة.",
+    "tableGone": "هذه الطاولة لم تعد في مخطط الصالة."
   }
 }

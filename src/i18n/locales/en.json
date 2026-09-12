@@ -171,7 +171,8 @@
     "basira": "Basira",
     "basiraAsk": "Ask",
     "bookings": "Bookings",
-    "loyalty": "Loyalty"
+    "loyalty": "Loyalty",
+    "tablesInsights": "Tables"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -1478,7 +1479,8 @@
       "empty": "Nothing has sat here in the last 30 days.",
       "failed": "Couldn't load this table's history.",
       "covers_one": "{{count}} cover",
-      "covers_other": "{{count}} covers"
+      "covers_other": "{{count}} covers",
+      "emptyPeriod": "Nothing sat here in this period."
     }
   },
   "shifts": {
@@ -4355,5 +4357,30 @@
     "total": "Total",
     "unknown": "We can't find that table",
     "unknownHint": "Ask a member of staff — this code may have been replaced."
+  },
+  "tablesInsights": {
+    "title": "Tables",
+    "turns": "Turns",
+    "perDay": "{{value}} per table a day",
+    "covers": "Covers",
+    "revenue": "Table revenue",
+    "revenuePerTable": "Revenue per table",
+    "tablesUsed_one": "{{count}} table used",
+    "tablesUsed_other": "{{count}} tables used",
+    "revenuePerCover": "Revenue per cover",
+    "avgDwell": "Average stay",
+    "table": "Table",
+    "section": "Section",
+    "branch": "Branch",
+    "turnsPerDay": "Turns / day",
+    "empty": "No table sales in this period",
+    "allSections": "All sections",
+    "busiestHours": "Busiest hours",
+    "busiestHoursHint": "Parties settled at tables, by hour",
+    "topRevenue": "Revenue by table",
+    "search": "Search tables",
+    "historyTitle": "Table {{label}}",
+    "pickBranch": "Choose a branch in the scope bar to open a table's history.",
+    "tableGone": "This table is no longer on the floor plan."
   }
 }

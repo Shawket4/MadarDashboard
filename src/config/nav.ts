@@ -119,6 +119,7 @@ export const NAV: NavGroup[] = [
       // Re-enable by restoring this line and the keys in the backend .env.
       { to: "/insights/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
       { to: "/insights/profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
+      { to: "/insights/tables", labelKey: "nav.tablesInsights", fallback: "Tables", icon: Armchair },
     ],
   },
   {
