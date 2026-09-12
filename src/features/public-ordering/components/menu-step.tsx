@@ -168,13 +168,18 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
   return (
     <>
       <div className={gridClass}>
-        {/* Rail — lg+, only when there are multiple categories */}
+        {/* Rail — lg+, only when there are multiple categories.
+
+            Bounded and scrollable: unbounded, a shop with thirty categories
+            grew this rail past the bottom of the window, and because it is
+            `sticky` the overflow could not be reached by scrolling the page —
+            the last categories were simply unreachable. */}
         {showRail && (
-          <aside className="sticky top-[72px] hidden self-start lg:block">
+          <aside className="sticky top-[72px] hidden max-h-[calc(100dvh-6rem)] flex-col self-start lg:flex">
             <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
               {t("order.menu.categories", "Categories")}
             </p>
-            <nav className="space-y-1">
+            <nav className="no-scrollbar min-h-0 flex-1 space-y-1 overflow-y-auto pb-2">
               {groups.map((group) => (
                 <button
                   key={group.id}
