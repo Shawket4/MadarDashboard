@@ -40,8 +40,18 @@ export interface DeliveryOrder {
      * @nullable
      */
   discount_id?: string | null;
+  /**
+     * The stored value — a fraction for a percentage. Same column as
+     * [`DeliveryOrder::discount_value`].
+     */
+  discount_rate?: number;
   /** @nullable */
   discount_type?: string | null;
+  /**
+     * LEGACY SPELLING on the wire — an integer, 0-100 for a percentage. See
+     * `discounts::wire`: a double here fails to deserialise the whole
+     * DELIVERY ORDER on every shipped till, not just this field.
+     */
   discount_value?: number;
   /**
      * How `road_distance_meters` was measured: `osrm` (routed) or `haversine`

@@ -198,3 +198,24 @@ export const fmtUnit = (unit: string | null | undefined): string => {
   const map: Record<string, string> = { g: "g", kg: "kg", ml: "ml", l: "L", pcs: "pcs" };
   return unit ? (map[unit] ?? unit) : "";
 };
+
+/**
+ * The stored value of a discount — a FRACTION for a percentage, minor units
+ * for a fixed one.
+ *
+ * Read `value_rate`, never `value`. `value` is the LEGACY spelling on the
+ * wire: an integer, 0-100 for a percentage, kept because every till in the
+ * field was generated against `integer` and a double there fails to
+ * deserialise the whole object rather than reading as a small number. Reading
+ * `value` as if it were the fraction shows 14% as 1400%.
+ *
+ * The fallback exists for a server that predates the split, not as a
+ * preference: if `value_rate` is absent, `value` still carries 0-100 and has
+ * to come back down.
+ */
+export const rateOf = (d: {
+  value: number;
+  value_rate?: number;
+  dtype?: string;
+}): number =>
+  d.value_rate ?? (d.dtype === "percentage" ? d.value / 100 : d.value);

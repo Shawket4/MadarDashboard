@@ -1989,8 +1989,9 @@ export const ListDeliveryOrdersResponseItem = zod.object({
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
   "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`DeliveryOrder::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number().optional(),
+  "discount_value": zod.number().optional().describe('LEGACY SPELLING on the wire — an integer, 0-100 for a percentage. See\n`discounts::wire`: a double here fails to deserialise the whole\nDELIVERY ORDER on every shipped till, not just this field.'),
   "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
@@ -2049,8 +2050,9 @@ export const GetDeliveryOrderResponse = zod.object({
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
   "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`DeliveryOrder::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number().optional(),
+  "discount_value": zod.number().optional().describe('LEGACY SPELLING on the wire — an integer, 0-100 for a percentage. See\n`discounts::wire`: a double here fails to deserialise the whole\nDELIVERY ORDER on every shipped till, not just this field.'),
   "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
@@ -2113,8 +2115,9 @@ export const CancelDeliveryOrderResponse = zod.object({
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
   "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`DeliveryOrder::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number().optional(),
+  "discount_value": zod.number().optional().describe('LEGACY SPELLING on the wire — an integer, 0-100 for a percentage. See\n`discounts::wire`: a double here fails to deserialise the whole\nDELIVERY ORDER on every shipped till, not just this field.'),
   "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
@@ -2178,8 +2181,9 @@ export const FinalizeDeliveryOrderResponse = zod.object({
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
   "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`DeliveryOrder::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number().optional(),
+  "discount_value": zod.number().optional().describe('LEGACY SPELLING on the wire — an integer, 0-100 for a percentage. See\n`discounts::wire`: a double here fails to deserialise the whole\nDELIVERY ORDER on every shipped till, not just this field.'),
   "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
@@ -2245,8 +2249,9 @@ export const SetPrepTimeResponse = zod.object({
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
   "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`DeliveryOrder::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number().optional(),
+  "discount_value": zod.number().optional().describe('LEGACY SPELLING on the wire — an integer, 0-100 for a percentage. See\n`discounts::wire`: a double here fails to deserialise the whole\nDELIVERY ORDER on every shipped till, not just this field.'),
   "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
@@ -2337,8 +2342,9 @@ export const SetStatusResponse = zod.object({
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
   "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`DeliveryOrder::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number().optional(),
+  "discount_value": zod.number().optional().describe('LEGACY SPELLING on the wire — an integer, 0-100 for a percentage. See\n`discounts::wire`: a double here fails to deserialise the whole\nDELIVERY ORDER on every shipped till, not just this field.'),
   "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
@@ -2684,7 +2690,8 @@ export const ListDiscountsResponseItem = zod.object({
 }),
   "org_id": zod.uuid(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "value": zod.number().describe('Polymorphic by `dtype`: a FRACTION for `percentage` (0.14 = 14%, like\nevery other rate in this schema), or minor units for `fixed`.')
+  "value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage, minor units for\n`fixed`. What every shipped client was generated against; see\n`discounts::wire`. Read [`Discount::value_rate`] for the real stored\nnumber.'),
+  "value_rate": zod.number().optional().describe('The stored value: a FRACTION for `percentage` (0.14 = 14%, like every\nother rate in this schema), or minor units for `fixed`. The same\ncolumn as [`Discount::value`], spelled the way the engine holds it.')
 })
 export const ListDiscountsResponse = zod.array(ListDiscountsResponseItem)
 
@@ -2711,7 +2718,8 @@ export const CreateDiscountResponse = zod.object({
 }),
   "org_id": zod.uuid(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "value": zod.number().describe('Polymorphic by `dtype`: a FRACTION for `percentage` (0.14 = 14%, like\nevery other rate in this schema), or minor units for `fixed`.')
+  "value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage, minor units for\n`fixed`. What every shipped client was generated against; see\n`discounts::wire`. Read [`Discount::value_rate`] for the real stored\nnumber.'),
+  "value_rate": zod.number().optional().describe('The stored value: a FRACTION for `percentage` (0.14 = 14%, like every\nother rate in this schema), or minor units for `fixed`. The same\ncolumn as [`Discount::value`], spelled the way the engine holds it.')
 })
 
 
@@ -2747,7 +2755,8 @@ export const UpdateDiscountResponse = zod.object({
 }),
   "org_id": zod.uuid(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "value": zod.number().describe('Polymorphic by `dtype`: a FRACTION for `percentage` (0.14 = 14%, like\nevery other rate in this schema), or minor units for `fixed`.')
+  "value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage, minor units for\n`fixed`. What every shipped client was generated against; see\n`discounts::wire`. Read [`Discount::value_rate`] for the real stored\nnumber.'),
+  "value_rate": zod.number().optional().describe('The stored value: a FRACTION for `percentage` (0.14 = 14%, like every\nother rate in this schema), or minor units for `fixed`. The same\ncolumn as [`Discount::value`], spelled the way the engine holds it.')
 })
 
 
@@ -6636,8 +6645,9 @@ export const SettleOpenTicketResponse = zod.object({
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number(),
+  "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
@@ -6816,8 +6826,9 @@ export const ListOrdersResponse = zod.object({
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number(),
+  "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
@@ -6947,8 +6958,9 @@ export const CreateOrderResponse = zod.object({
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number(),
+  "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
@@ -7103,8 +7115,9 @@ export const ExportOrdersResponse = zod.object({
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number(),
+  "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
@@ -7285,8 +7298,9 @@ export const GetOrderResponse = zod.object({
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number(),
+  "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
@@ -7440,8 +7454,9 @@ export const VoidOrderResponse = zod.object({
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number(),
+  "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
@@ -8284,7 +8299,8 @@ export const PublicMenuResponse = zod.object({
   "name_translations": zod.looseObject({
 
 }),
-  "value": zod.number().describe('A FRACTION for `percentage` (0.14 = 14%, like every other rate here);\npiastres for `fixed`.')
+  "value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage; piastres for\n`fixed`. See `discounts::wire`.'),
+  "value_rate": zod.number().describe('The stored fraction, for clients that know to ask.')
 }).describe('The active discount for this channel (customer-facing) or `null`. Applies\nto the item subtotal only — the delivery fee is always charged in full.')]).optional(),
   "items": zod.array(zod.object({
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist (IDs from `menu_item_allowed_addons`).\nWhen non-empty the customizer filters the global catalog to these IDs by\ndefault, with a \"show all\" escape hatch. Empty = no restriction.'),
@@ -8387,8 +8403,9 @@ export const CreateDeliveryOrderResponse = zod.object({
   "delivery_zone_id": zod.uuid().nullish(),
   "discount_amount": zod.number().optional(),
   "discount_id": zod.uuid().nullish().describe('Frozen channel discount on the item subtotal. `discount_amount` is 0\nwhen none.'),
+  "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`DeliveryOrder::discount_value`].'),
   "discount_type": zod.string().nullish(),
-  "discount_value": zod.number().optional(),
+  "discount_value": zod.number().optional().describe('LEGACY SPELLING on the wire — an integer, 0-100 for a percentage. See\n`discounts::wire`: a double here fails to deserialise the whole\nDELIVERY ORDER on every shipped till, not just this field.'),
   "distance_source": zod.string().nullish().describe('How `road_distance_meters` was measured: `osrm` (routed) or `haversine`\n(straight line — the routing fallback, and always the in-mall walking\ndistance). `None` exactly when no distance was recorded.'),
   "extra_prep_minutes": zod.number().describe('Extra prep minutes the teller added on top of the branch base (multiples of 5).'),
   "floor": zod.string().nullish(),
@@ -8933,7 +8950,8 @@ export const PublicTableMenuResponse = zod.object({
   "name_translations": zod.looseObject({
 
 }),
-  "value": zod.number().describe('A FRACTION for `percentage` (0.14 = 14%, like every other rate here);\npiastres for `fixed`.')
+  "value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage; piastres for\n`fixed`. See `discounts::wire`.'),
+  "value_rate": zod.number().describe('The stored fraction, for clients that know to ask.')
 }).describe('The active discount for this channel (customer-facing) or `null`. Applies\nto the item subtotal only — the delivery fee is always charged in full.')]).optional(),
   "items": zod.array(zod.object({
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist (IDs from `menu_item_allowed_addons`).\nWhen non-empty the customizer filters the global catalog to these IDs by\ndefault, with a \"show all\" escape hatch. Empty = no restriction.'),

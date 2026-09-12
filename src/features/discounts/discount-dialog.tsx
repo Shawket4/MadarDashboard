@@ -18,7 +18,7 @@ import { BilingualField } from "@/components/app/bilingual-field";
 import { createDiscount, updateDiscount } from "@/data/api/generated/api";
 import type { Discount } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { egpToPiastres, piastresToEgp } from "@/lib/format";
+import { egpToPiastres, piastresToEgp, rateOf } from "@/lib/format";
 import { MAX_PERCENT, fractionToPercent, percentToFraction } from "@/features/orgs/tax-rate";
 import { invalidateDiscounts } from "./util";
 
@@ -68,8 +68,8 @@ export function DiscountDialog({ orgId, discount, open, onOpenChange }: Props) {
         dtype: (discount?.dtype as "percentage" | "fixed") ?? "percentage",
         value: discount
           ? discount.dtype === "fixed"
-            ? piastresToEgp(discount.value)
-            : fractionToPercent(discount.value)
+            ? piastresToEgp(rateOf(discount))
+            : fractionToPercent(rateOf(discount))
           : 0,
         is_active: discount?.is_active ?? true,
       });

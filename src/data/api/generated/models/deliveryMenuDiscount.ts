@@ -13,8 +13,10 @@ export interface DeliveryMenuDiscount {
   name: string;
   name_translations: DeliveryMenuDiscountNameTranslations;
   /**
-     * A FRACTION for `percentage` (0.14 = 14%, like every other rate here);
-     * piastres for `fixed`.
+     * LEGACY SPELLING — an integer, 0-100 for a percentage; piastres for
+     * `fixed`. See `discounts::wire`.
      */
   value: number;
+  /** The stored fraction, for clients that know to ask. */
+  value_rate: number;
 }

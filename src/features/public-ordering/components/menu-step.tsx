@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { fmtMoney } from "@/lib/format";
+import { fmtMoney, rateOf } from "@/lib/format";
 import { fractionToPercent } from "@/features/orgs/tax-rate";
 import { getTranslatedName, getTranslatedDescription } from "@/lib/translation";
 import { listItem, staggerContainer } from "@/lib/motion";
@@ -271,11 +271,11 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
               {data.discount.dtype === "percentage"
                 ? t("order.menu.discountPct", {
                     defaultValue: "{{value}}% off your order",
-                    value: fractionToPercent(data.discount.value),
+                    value: fractionToPercent(rateOf(data.discount)),
                   })
                 : t("order.menu.discountFixed", {
                     defaultValue: "{{value}} off your order",
-                    value: fmtMoney(data.discount.value),
+                    value: fmtMoney(rateOf(data.discount)),
                   })}
             </div>
           )}

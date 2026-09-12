@@ -42,8 +42,19 @@ export interface Order {
   discount_amount: number;
   /** @nullable */
   discount_id?: string | null;
+  /**
+     * The stored value — a fraction for a percentage. Same column as
+     * [`Order::discount_value`].
+     */
+  discount_rate?: number;
   /** @nullable */
   discount_type?: string | null;
+  /**
+     * LEGACY SPELLING — an integer, 0-100 for a percentage. See
+     * `discounts::wire`: every shipped till was generated against `integer`,
+     * and a double here fails to deserialise the whole ORDER, not just this
+     * field. Read [`Order::discount_rate`] for the stored number.
+     */
   discount_value: number;
   id: string;
   /** @nullable */

@@ -18,7 +18,7 @@ import { invalidateDiscounts } from "./util";
 import { deleteDiscount, updateDiscount, useListDiscounts } from "@/data/api/generated/api";
 import type { Discount } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { fmtMoney, piastresToEgp } from "@/lib/format";
+import { fmtMoney, piastresToEgp, rateOf } from "@/lib/format";
 import { formatRate, fractionToPercent } from "@/features/orgs/tax-rate";
 import { getTranslatedName } from "@/lib/translation";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
@@ -49,7 +49,8 @@ export function DiscountsPage() {
   const onErr = (e: unknown) => toast.error(getErrorMessage(e));
   // A percentage discount is a FRACTION on the wire (0.14 = 14%), the same as
   // the tax rate; `formatRate` is the one place that conversion lives.
-  const valueLabel = (d: Discount) => (d.dtype === "percentage" ? formatRate(d.value) : fmtMoney(d.value));
+  const valueLabel = (d: Discount) =>
+    d.dtype === "percentage" ? formatRate(rateOf(d)) : fmtMoney(rateOf(d));
 
   const toggleActive = async (d: Discount) => {
     setToggling((prev) => new Set(prev).add(d.id));
@@ -120,7 +121,7 @@ export function DiscountsPage() {
     const cols: ExcelColumn<Discount>[] = [
       { header: t("discounts.discountName", "Discount name"), accessor: (d) => tname(d), type: "text", width: 28 },
       { header: t("common.type", "Type"), accessor: (d) => (d.dtype === "percentage" ? t("discounts.percentage", "Percentage") : t("discounts.fixed", "Fixed amount")), type: "text", width: 16 },
-      { header: t("discounts.value", "Value"), accessor: (d) => (d.dtype === "percentage" ? fractionToPercent(d.value) : piastresToEgp(d.value)), type: "number", width: 14 },
+      { header: t("discounts.value", "Value"), accessor: (d) => (d.dtype === "percentage" ? fractionToPercent(rateOf(d)) : piastresToEgp(rateOf(d))), type: "number", width: 14 },
       { header: t("common.status", "Status"), accessor: (d) => (d.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
     setExporting(true);

@@ -3,6 +3,7 @@ import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuI
 import type { DeliveryMenuDiscount } from "@/data/api/generated/models/deliveryMenuDiscount";
 
 import type { CartLine, Channel } from "./types";
+import { rateOf } from "@/lib/format";
 
 /** Narrow an arbitrary string to a supported channel (defaults to in_mall). */
 export const asChannel = (v: string | null | undefined): Channel =>
@@ -37,8 +38,8 @@ export const calcDiscount = (
   if (!discount) return 0;
   const d =
     discount.dtype === "percentage"
-      ? Math.round(subtotal * discount.value)
-      : Math.min(Math.round(discount.value), subtotal);
+      ? Math.round(subtotal * rateOf(discount))
+      : Math.min(Math.round(rateOf(discount)), subtotal);
   return Math.max(0, Math.min(d, subtotal));
 };
 
