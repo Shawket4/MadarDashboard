@@ -1657,7 +1657,10 @@
     "allChannels": "كل القنوات",
     "location": "الموقع",
     "openInMaps": "فتح في الخرائط",
-    "itemsSold": "الأصناف المباعة"
+    "itemsSold": "الأصناف المباعة",
+    "offlinePrice": "سعر غير محدّث",
+    "offlinePriceHint": "سُجّلت دون اتصال بأسعار قائمة أقدم — السعر يختلف عن القائمة الحالية.",
+    "offlinePriceExpected": "القائمة اليوم: {{amount}}"
   },
   "ordersExport": {
     "title": "تصدير الطلبات",

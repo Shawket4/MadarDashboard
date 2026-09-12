@@ -1658,7 +1658,10 @@
     "allChannels": "All channels",
     "location": "Location",
     "openInMaps": "Open in Maps",
-    "itemsSold": "Items Sold"
+    "itemsSold": "Items Sold",
+    "offlinePrice": "Offline price",
+    "offlinePriceHint": "Rung offline against an older menu — the price differs from the menu today.",
+    "offlinePriceExpected": "Menu today: {{amount}}"
   },
   "ordersExport": {
     "title": "Export Orders",

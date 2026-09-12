@@ -349,6 +349,7 @@ import type {
   PublicOrgBrandParams,
   PublicOrgFaviconParams,
   PublicSlots,
+  PublicTable,
   PurchaseOrder,
   PurchaseOrderFull,
   PutAllowedAddonsRequest,
@@ -414,6 +415,7 @@ import type {
   StudioAggregate,
   Supplier,
   SwapTablesRequest,
+  TableOrderRequest,
   TableQrParams,
   TeamPresence,
   TeamPresenceParams,
@@ -19500,6 +19502,259 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getOtpVerifyMutationOptions(options), queryClient);
     }
+
+/**
+ * Opens the bill if the table has none, adds a round if it does. Both answer
+ * with the bill as it now stands, so the page can show what the table has
+ * ordered so far — including the rounds somebody else at the table sent.
+ * @summary Send this table's order to the kitchen.
+ */
+export const publicTableOrder = (
+    tableOrderRequest: TableOrderRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OpenTicketView>(
+      {url: `/public/table-orders`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: tableOrderRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicTableOrderMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publicTableOrder>>, TError,{data: TableOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof publicTableOrder>>, TError,{data: TableOrderRequest}, TContext> => {
+
+const mutationKey = ['publicTableOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof publicTableOrder>>, {data: TableOrderRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  publicTableOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PublicTableOrderMutationResult = NonNullable<Awaited<ReturnType<typeof publicTableOrder>>>
+    export type PublicTableOrderMutationBody = TableOrderRequest
+    export type PublicTableOrderMutationError = ErrorBody
+
+    /**
+ * @summary Send this table's order to the kitchen.
+ */
+export const usePublicTableOrder = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publicTableOrder>>, TError,{data: TableOrderRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof publicTableOrder>>,
+        TError,
+        {data: TableOrderRequest},
+        TContext
+      > => {
+      return useMutation(getPublicTableOrderMutationOptions(options), queryClient);
+    }
+
+export const publicTable = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PublicTable>(
+      {url: `/public/tables/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicTableQueryKey = (id: string,) => {
+    return [
+    `/public/tables/${id}`
+    ] as const;
+    }
+
+
+export const getPublicTableQueryOptions = <TData = Awaited<ReturnType<typeof publicTable>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTable>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicTableQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicTable>>> = ({ signal }) => publicTable(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicTable>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicTableQueryResult = NonNullable<Awaited<ReturnType<typeof publicTable>>>
+export type PublicTableQueryError = ErrorBody
+
+
+export function usePublicTable<TData = Awaited<ReturnType<typeof publicTable>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTable>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicTable>>,
+          TError,
+          Awaited<ReturnType<typeof publicTable>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicTable<TData = Awaited<ReturnType<typeof publicTable>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTable>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicTable>>,
+          TError,
+          Awaited<ReturnType<typeof publicTable>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicTable<TData = Awaited<ReturnType<typeof publicTable>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTable>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePublicTable<TData = Awaited<ReturnType<typeof publicTable>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTable>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicTableQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * The DINE-IN menu — branch prices, the whole catalogue, no channel discount
+ * — because a table's order settles as a dine-in bill. Quoting a customer the
+ * in-mall delivery menu and then charging them the till's prices is the same
+ * class of mistake as letting the till price its own sales, and it would be
+ * invisible until someone compared a receipt to a phone.
+ * @summary The menu at this table.
+ */
+export const publicTableMenu = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DeliveryMenu>(
+      {url: `/public/tables/${id}/menu`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicTableMenuQueryKey = (id: string,) => {
+    return [
+    `/public/tables/${id}/menu`
+    ] as const;
+    }
+
+
+export const getPublicTableMenuQueryOptions = <TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicTableMenuQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicTableMenu>>> = ({ signal }) => publicTableMenu(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicTableMenuQueryResult = NonNullable<Awaited<ReturnType<typeof publicTableMenu>>>
+export type PublicTableMenuQueryError = ErrorBody
+
+
+export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicTableMenu>>,
+          TError,
+          Awaited<ReturnType<typeof publicTableMenu>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicTableMenu>>,
+          TError,
+          Awaited<ReturnType<typeof publicTableMenu>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The menu at this table.
+ */
+
+export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicTableMenuQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const listPurchaseOrders = (
     branchId: string,

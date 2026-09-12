@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Ban, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, Truck, Ban as VoidIcon } from "lucide-react";
+import { Ban, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, TriangleAlert, Truck, Ban as VoidIcon } from "lucide-react";
 
 import { Page } from "@/components/app/page";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
@@ -11,6 +11,7 @@ import { ExcludeItemsControl, excludeItemsParam, useExcludedItems } from "@/comp
 import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { DataTable } from "@/components/app/data-table";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -36,6 +37,49 @@ import { useDebounced } from "@/lib/use-debounced";
 import { cn } from "@/lib/utils";
 
 const ALL = "__all__";
+
+/**
+ * This sale was rung against a catalogue that has since moved.
+ *
+ * It can only happen OFFLINE. A live sale is priced by the server and the till
+ * has no way to name a price of its own — so the badge always means the same
+ * thing: that till was out of touch when a price changed, and it took the
+ * money at the number on its screen. Recorded rather than rejected, because it
+ * already happened; shown here because recording it and never surfacing it is
+ * the same as not recording it.
+ *
+ * The tooltip carries the size of the drift, which is the next question.
+ */
+function PriceFlagBadge({ order }: { order: Order }) {
+  const { t } = useTranslation();
+  const expected = order.price_expected_total;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge
+          variant="secondary"
+          className="gap-1 bg-warning/10 px-1.5 py-0 text-xs text-warning"
+        >
+          <TriangleAlert className="size-3" />
+          {t("orders.offlinePrice", "Offline price")}
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent>
+        {t(
+          "orders.offlinePriceHint",
+          "Rung offline against an older menu — the price differs from the menu today.",
+        )}
+        {expected != null && expected !== order.total_amount ? (
+          <span className="ms-1 tabular">
+            {t("orders.offlinePriceExpected", "Menu today: {{amount}}", {
+              amount: fmtMoney(expected),
+            })}
+          </span>
+        ) : null}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 function OrderStatusBadge({ status }: { status: string }) {
   const { t } = useTranslation();
@@ -181,7 +225,12 @@ export function OrdersPage() {
       {
         accessorKey: "status",
         header: t("common.status", "Status"),
-        cell: ({ row }) => <OrderStatusBadge status={row.original.status} />,
+        cell: ({ row }) => (
+          <span className="flex items-center gap-1.5">
+            <OrderStatusBadge status={row.original.status} />
+            {row.original.price_flagged ? <PriceFlagBadge order={row.original} /> : null}
+          </span>
+        ),
       },
       {
         accessorKey: "payment_method",

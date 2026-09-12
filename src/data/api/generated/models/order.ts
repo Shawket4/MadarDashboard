@@ -79,6 +79,24 @@ export interface Order {
      */
   payment_method: string;
   /**
+     * What the catalogue says this sale should have come to, when it differs.
+     * Beside `subtotal` it is the size of the drift, which is the question
+     * anyone looking at a flagged sale asks next.
+     * @nullable
+     */
+  price_expected_total?: number | null;
+  /**
+     * This sale was rung against a catalogue that has since moved: a line was
+     * charged at a price the menu no longer says, or the item was disabled at
+     * this branch. Both mean a till that was OFFLINE when something changed —
+     * a live sale is priced by the server and cannot deviate.
+     *
+     * Recorded, never rejected: the money already changed hands. It is here so
+     * the POS and the dashboard can SHOW it, which is the whole point of
+     * flagging something.
+     */
+  price_flagged?: boolean;
+  /**
      * The service charge on this bill; `0` where the branch charges none.
      * Its own field, and its own receipt line: a charge the customer did not
      * choose is stated separately from the tax rather than folded into it.

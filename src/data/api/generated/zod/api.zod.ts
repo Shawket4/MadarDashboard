@@ -6305,7 +6305,7 @@ export const CreateOpenTicketBody = zod.object({
   "optional_field_ids": zod.array(zod.uuid()).optional(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this item\/bundle line. When\npresent it is RECORDED as the line\'s unit_price; absent → the server\'s expected\n(catalog + branch override) price is used. Recording what the customer was\nactually charged keeps the DB equal to the printed receipt even when the POS\'s\nsynced menu\/override prices are stale or it was offline at sale time.')
+  "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })).describe('Client-priced items (same shape as a POS order line) — recorded verbatim.'),
   "notes": zod.string().nullish(),
   "round_idempotency_key": zod.uuid().nullish().describe('Per-round dedup key for the first round.'),
@@ -6493,7 +6493,7 @@ export const AddRoundBody = zod.object({
   "optional_field_ids": zod.array(zod.uuid()).optional(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this item\/bundle line. When\npresent it is RECORDED as the line\'s unit_price; absent → the server\'s expected\n(catalog + branch override) price is used. Recording what the customer was\nactually charged keeps the DB equal to the printed receipt even when the POS\'s\nsynced menu\/override prices are stale or it was offline at sale time.')
+  "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 }))
 })
 
@@ -6601,6 +6601,8 @@ export const SettleOpenTicketResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
+  "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
@@ -6779,6 +6781,8 @@ export const ListOrdersResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
+  "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
@@ -6858,7 +6862,7 @@ export const CreateOrderBody = zod.object({
   "optional_field_ids": zod.array(zod.uuid()).optional(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this item\/bundle line. When\npresent it is RECORDED as the line\'s unit_price; absent → the server\'s expected\n(catalog + branch override) price is used. Recording what the customer was\nactually charged keeps the DB equal to the printed receipt even when the POS\'s\nsynced menu\/override prices are stale or it was offline at sale time.')
+  "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member spending a balance on this sale. Required when\n`loyalty_redemptions` is non-empty, and ONLY for that: earning is a\nseparate, later act (`POST \/loyalty\/award`), so a sale that redeems\nnothing never names a member here.'),
   "loyalty_redemptions": zod.array(zod.object({
@@ -6908,6 +6912,8 @@ export const CreateOrderResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
+  "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
@@ -7062,6 +7068,8 @@ export const ExportOrdersResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
+  "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
@@ -7242,6 +7250,8 @@ export const GetOrderResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
+  "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
@@ -7395,6 +7405,8 @@ export const VoidOrderResponse = zod.object({
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
+  "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
+  "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
   "shift_id": zod.uuid(),
   "status": zod.string(),
@@ -8719,6 +8731,209 @@ export const OtpVerifyBody = zod.object({
 
 export const OtpVerifyResponse = zod.object({
   "device_token": zod.string()
+})
+
+
+/**
+ * Opens the bill if the table has none, adds a round if it does. Both answer
+ * with the bill as it now stands, so the page can show what the table has
+ * ordered so far — including the rounds somebody else at the table sent.
+ * @summary Send this table's order to the kitchen.
+ */
+export const PublicTableOrderBody = zod.object({
+  "customer_name": zod.string().nullish().describe('Who is at the table, if they offered a name. Shown on the bill so the\nwaiter can find them.'),
+  "idempotency_key": zod.uuid().nullish().describe('Client-minted, so a phone that resends on a flaky connection does not\norder twice. This is the ONLY protection against a double-send, because\na customer\'s browser has no outbox to dedup against.'),
+  "items": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+})).optional(),
+  "bundle_components": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+})).optional(),
+  "item_id": zod.uuid(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish()
+})).optional(),
+  "bundle_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish(),
+  "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
+})).describe('What they want. Named, never priced — see the module docs.'),
+  "table_id": zod.uuid()
+}).describe('One scan\'s worth of order.')
+
+export const PublicTableOrderResponse = zod.object({
+  "bill": zod.object({
+  "discount_amount": zod.number().describe('The waiter\'s discount, resolved (a `discount_id` is looked up the way\nthe settle looks it up). A cashier who clears it at settle will see a\ndifferent total than this one, and that is the point of showing it.'),
+  "service_charge_amount": zod.number(),
+  "service_charge_rate": zod.number(),
+  "subtotal": zod.number().describe('Live lines as charged, before discount. Gross when tax-inclusive.'),
+  "tax_amount": zod.number().describe('Inside the total when `tax_inclusive`, on top of it otherwise.'),
+  "tax_inclusive": zod.boolean(),
+  "tax_rate": zod.number().describe('The rates the figures were computed under, for the printed bill.'),
+  "total": zod.number().describe('What the drawer must collect.')
+}).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
+  "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
+  "branch_id": zod.uuid(),
+  "customer_name": zod.string().nullish(),
+  "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
+  "discount_type": zod.string().nullish(),
+  "discount_value": zod.number().nullish(),
+  "guest_count": zod.number().nullish(),
+  "id": zod.uuid(),
+  "items": zod.array(zod.object({
+  "id": zod.uuid(),
+  "line": zod.unknown().describe('The frozen priced SnapshotLine (name, size, addons, totals).'),
+  "line_total": zod.number(),
+  "menu_item_id": zod.uuid().nullish(),
+  "round_fired_at": zod.iso.datetime({"offset":true}).describe('When the round this line came in on was fired. A bill is read as a\nsequence of visits to the table — \"the drinks at seven, the food at\nhalf past\" — and without the clock a till can only show a flat list\nthat says nothing about how the evening went.'),
+  "round_number": zod.number(),
+  "voided": zod.boolean()
+})),
+  "notes": zod.string().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_by": zod.uuid(),
+  "opened_by_name": zod.string().nullish(),
+  "order_id": zod.uuid().nullish(),
+  "ready": zod.boolean().optional().describe('The kitchen has plated every line of every round. DERIVED from the\nticket\'s `kitchen_tickets` at read time, so it is always what the KDS\nsays now. `false` for a ticket nothing was ever fired to the kitchen for\n(routing mode `off`): there is nothing to be ready.'),
+  "ready_at": zod.iso.datetime({"offset":true}).nullish().describe('The last moment the kitchen had the whole ticket plated. History for\nthe timing reports; `ready` is the live fact.'),
+  "settled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('The bill: `open`, `settled` or `voided`. Never `ready` — see [`Self::ready`].'),
+  "subtotal": zod.number(),
+  "table_id": zod.uuid().nullish(),
+  "ticket_ref": zod.string().nullish(),
+  "void_note": zod.string().nullish(),
+  "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
+  "voided_at": zod.iso.datetime({"offset":true}).nullish()
+})
+
+
+export const PublicTableParams = zod.object({
+  "id": zod.uuid().describe('Table ID, from the QR')
+})
+
+export const PublicTableResponse = zod.object({
+  "accepting": zod.boolean().describe('The branch is not serving right now — no till is open. The page says so\ninstead of letting someone build a basket the kitchen will refuse.'),
+  "bill": zod.union([zod.null(),zod.object({
+  "opened_at": zod.iso.datetime({"offset":true}).describe('When the party\'s bill was opened. The page counts up from this; a\nduration computed here would be wrong by the time it arrived.'),
+  "ready": zod.boolean().describe('The kitchen has finished everything fired so far.'),
+  "rounds": zod.array(zod.object({
+  "fired_at": zod.iso.datetime({"offset":true}),
+  "items": zod.array(zod.object({
+  "line_total": zod.number(),
+  "name": zod.string(),
+  "quantity": zod.number(),
+  "voided": zod.boolean().describe('Taken off the bill after it was ordered — struck through rather than\nhidden, so a customer who watches a plate go back sees it go.')
+})),
+  "number": zod.number()
+})).describe('Every round fired, oldest first, with what went to the kitchen in each.'),
+  "subtotal": zod.number().describe('Lines as charged, before discount — the bill\'s first line, not the bill.'),
+  "ticket_id": zod.uuid(),
+  "total": zod.number().describe('What the table will be asked to pay, as the SERVER prices it: the\ndiscount, the service charge and the tax are all in here, and none of\nthem is something this page should be recomputing.')
+}).describe('The meal in progress, when there is one. `None` means the table is\nfree and this scan will start the bill.')]).optional(),
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "label": zod.string().describe('What the table is called in the room — \"7\", \"T7\", \"Terrace 2\".'),
+  "org_id": zod.uuid(),
+  "table_id": zod.uuid()
+}).describe('A table, as the page that opened from its code needs to know it.')
+
+
+/**
+ * The DINE-IN menu — branch prices, the whole catalogue, no channel discount
+ * — because a table's order settles as a dine-in bill. Quoting a customer the
+ * in-mall delivery menu and then charging them the till's prices is the same
+ * class of mistake as letting the till price its own sales, and it would be
+ * invisible until someone compared a receipt to a phone.
+ * @summary The menu at this table.
+ */
+export const PublicTableMenuParams = zod.object({
+  "id": zod.uuid().describe('Table ID, from the QR')
+})
+
+export const PublicTableMenuResponse = zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "is_available": zod.boolean(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "price": zod.number().describe('Channel-effective surcharge (piastres). Always present (resolved here).'),
+  "type": zod.string().describe('`milk_type` | `coffee_type` | `extra` — the option\'s category.')
+}).describe('One option in the org-wide addon catalog. The catalog is global (the POS\nmodel): every item can use any addon; swap-vs-additive is decided server-side\nfrom the addon `type` + the item recipe at order time. `price` is the\nchannel-effective surcharge in piastres (branch_channel → branch → catalog\ndefault). Channel-unavailable options are excluded from the catalog entirely.')).describe('Org-wide addon catalog (global, POS model): channel-effective, grouped by\n`type`, applicable to every item. Channel-unavailable options are excluded.'),
+  "categories": zod.array(zod.object({
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+})
+})),
+  "discount": zod.union([zod.null(),zod.object({
+  "dtype": zod.string().describe('\"percentage\" | \"fixed\".'),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "value": zod.number().describe('A FRACTION for `percentage` (0.14 = 14%, like every other rate here);\npiastres for `fixed`.')
+}).describe('The active discount for this channel (customer-facing) or `null`. Applies\nto the item subtotal only — the delivery fee is always charged in full.')]).optional(),
+  "items": zod.array(zod.object({
+  "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist (IDs from `menu_item_allowed_addons`).\nWhen non-empty the customizer filters the global catalog to these IDs by\ndefault, with a \"show all\" escape hatch. Empty = no restriction.'),
+  "category_id": zod.uuid().nullish(),
+  "default_milk_addon_id": zod.uuid().nullish().describe('The item\'s base\/default milk: the `milk_type` addon whose ingredient\nmatches the item recipe\'s milk ingredient. The online customizer\npre-selects it (mirrors the POS default-milk selection). `None` when the\nitem has no milk in its recipe or no matching milk addon exists.'),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "modifier_groups": zod.array(zod.object({
+  "addon_type": zod.string().nullish().describe('The group\'s legacy addon type (`milk_type` \/ `coffee_type` \/ `extra` \/\ncustom) — the swap-family hint the customizer keys its delta-price\nestimate on. `None` for groups with no legacy lineage.'),
+  "group_id": zod.uuid(),
+  "is_required": zod.boolean(),
+  "max_selections": zod.number().nullish(),
+  "min_selections": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "options": zod.array(zod.object({
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "option_id": zod.uuid(),
+  "price": zod.number().describe('Channel-effective surcharge (piastres): branch_channel → branch →\nchannel → catalog default. Unavailable options are excluded entirely.')
+}).describe('One option inside a per-item modifier group. `option_id` is the STABLE id —\nit equals the legacy `addon_item_id`, so order intake accepts it unchanged in\n`addons[].addon_item_id` (menu-unification stable-id rule).')),
+  "selection_type": zod.string().describe('\"single\" | \"multi\".')
+}).describe('A per-item modifier group from the unified model (`menu_item_modifier_groups`\n→ `modifier_groups`\/`modifier_options`), constraints resolved (attachment\noverrides beat group defaults) and options already filtered to the\nattachment\'s `included_option_ids`. Only addon-sourced options appear here —\nthe item\'s priced optionals stay in `optionals`. Empty until the org\'s\ncatalog is backfilled onto the unified tables; the customizer falls back to\nthe flat `addons` catalog + `allowed_addon_ids` in that case.')).describe('The item\'s modifier groups (unified model), channel-effective. Empty ⇒\nthe customizer falls back to `addons` + `allowed_addon_ids`.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "optionals": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "price": zod.number(),
+  "size_label": zod.string().nullish()
+}).describe('A per-item optional toggle (e.g. \"Extra hot\", \"No sugar\"). `price` is the\npiastres surcharge; `size_label` is set when the optional only applies to a\nspecific size.')),
+  "price": zod.number(),
+  "sizes": zod.array(zod.object({
+  "label": zod.string(),
+  "price": zod.number()
+}))
+}))
 })
 
 
