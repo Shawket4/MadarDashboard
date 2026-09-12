@@ -2794,6 +2794,7 @@ export const SaveLayoutResponseItem = zod.object({
   "pos_x": zod.number(),
   "pos_y": zod.number(),
   "rotation": zod.number(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish().describe('When the party at this table sat down — the hold\'s stamp, else the\nbill\'s opening. `null` unless the table is seated. Every device renders\nits table clock from this, so they all agree.'),
   "seats": zod.number(),
   "section_id": zod.uuid().nullish(),
   "shape": zod.string(),
@@ -2898,6 +2899,7 @@ export const ListFloorTablesResponseItem = zod.object({
   "pos_x": zod.number(),
   "pos_y": zod.number(),
   "rotation": zod.number(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish().describe('When the party at this table sat down — the hold\'s stamp, else the\nbill\'s opening. `null` unless the table is seated. Every device renders\nits table clock from this, so they all agree.'),
   "seats": zod.number(),
   "section_id": zod.uuid().nullish(),
   "shape": zod.string(),
@@ -2941,6 +2943,7 @@ export const CreateFloorTableResponse = zod.object({
   "pos_x": zod.number(),
   "pos_y": zod.number(),
   "rotation": zod.number(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish().describe('When the party at this table sat down — the hold\'s stamp, else the\nbill\'s opening. `null` unless the table is seated. Every device renders\nits table clock from this, so they all agree.'),
   "seats": zod.number(),
   "section_id": zod.uuid().nullish(),
   "shape": zod.string(),
@@ -3003,6 +3006,7 @@ export const UpdateFloorTableResponse = zod.object({
   "pos_x": zod.number(),
   "pos_y": zod.number(),
   "rotation": zod.number(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish().describe('When the party at this table sat down — the hold\'s stamp, else the\nbill\'s opening. `null` unless the table is seated. Every device renders\nits table clock from this, so they all agree.'),
   "seats": zod.number(),
   "section_id": zod.uuid().nullish(),
   "shape": zod.string(),
@@ -3066,11 +3070,12 @@ export const TableHistoryResponse = zod.object({
   "closed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the bill was settled or voided; `None` while it is still open.'),
   "customer_name": zod.string().nullish(),
   "guest_count": zod.number().nullish(),
-  "minutes": zod.number().describe('Minutes between the two, or to now while the bill is still open.'),
+  "minutes": zod.number().describe('Minutes from `seated_at` to the close, or to now while still open.'),
   "open_ticket_id": zod.uuid(),
   "opened_at": zod.iso.datetime({"offset":true}).describe('When the party\'s bill was opened — the closest thing the server has to\nwhen they sat down.'),
   "order_id": zod.uuid().nullish().describe('The settled sale, when the bill became one.'),
   "order_number": zod.number().nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).describe('When the party sat down: the seat hold\'s stamp when they were seated\nbefore ordering, else the bill\'s opening.'),
   "status": zod.string(),
   "ticket_ref": zod.string().nullish(),
   "total_amount": zod.number().nullish().describe('What the sale came to, in minor units. `None` for an unsettled or\nvoided bill — a table\'s takings only count money that was taken.')
@@ -3113,7 +3118,8 @@ export const HoldTableParams = zod.object({
 })
 
 export const HoldTableBody = zod.object({
-  "branch_id": zod.uuid()
+  "branch_id": zod.uuid(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish().describe('When the party actually sat down, by the till\'s clock. An offline seat\nreplays later than it happened; this keeps every device\'s table clock\non the seating. Clamped server-side to the last 12 hours, never in the\nfuture, and never before the table\'s previous party left. Recorded only\n-- it moves no status.')
 })
 
 export const HoldTableResponse = zod.unknown()

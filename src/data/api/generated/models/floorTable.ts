@@ -14,6 +14,13 @@ export interface FloorTable {
   pos_x: number;
   pos_y: number;
   rotation: number;
+  /**
+     * When the party at this table sat down — the hold's stamp, else the
+     * bill's opening. `null` unless the table is seated. Every device renders
+     * its table clock from this, so they all agree.
+     * @nullable
+     */
+  seated_at?: string | null;
   seats: number;
   /** @nullable */
   section_id?: string | null;

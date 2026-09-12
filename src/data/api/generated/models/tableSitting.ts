@@ -14,7 +14,7 @@ export interface TableSitting {
   customer_name?: string | null;
   /** @nullable */
   guest_count?: number | null;
-  /** Minutes between the two, or to now while the bill is still open. */
+  /** Minutes from `seated_at` to the close, or to now while still open. */
   minutes: number;
   open_ticket_id: string;
   /**
@@ -29,6 +29,11 @@ export interface TableSitting {
   order_id?: string | null;
   /** @nullable */
   order_number?: number | null;
+  /**
+     * When the party sat down: the seat hold's stamp when they were seated
+     * before ordering, else the bill's opening.
+     */
+  seated_at: string;
   status: string;
   /** @nullable */
   ticket_ref?: string | null;
