@@ -4655,5 +4655,17 @@
     "routing": {
       "till": "طابور نقطة البيع"
     }
+  },
+  "paymentMethods": {
+    "availability": {
+      "title": "الإتاحة",
+      "branch": "الفرع",
+      "tellers": "الكاشيرية",
+      "devices": "الأجهزة",
+      "allMethods": "كل الطرق",
+      "onlySelected": "المحددة فقط",
+      "restrict": "تقييد الطرق",
+      "emptyList": "اختر طريقة واحدة على الأقل، أو اسمح بالكل."
+    }
   }
 }

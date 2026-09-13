@@ -4520,5 +4520,17 @@
     "routing": {
       "till": "POS queue"
     }
+  },
+  "paymentMethods": {
+    "availability": {
+      "title": "Availability",
+      "branch": "Branch",
+      "tellers": "Tellers",
+      "devices": "Devices",
+      "allMethods": "All methods",
+      "onlySelected": "Only selected",
+      "restrict": "Restrict methods",
+      "emptyList": "Pick at least one method, or allow all."
+    }
   }
 }
