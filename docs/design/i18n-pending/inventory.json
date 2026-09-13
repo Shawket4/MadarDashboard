@@ -1,0 +1,94 @@
+{
+  "inventory.today.deliveriesFailed": {
+    "en": "Couldn't load deliveries",
+    "ar": "تعذّر تحميل التوريدات"
+  },
+  "inventory.today.wasteFailed": {
+    "en": "Couldn't load today's waste",
+    "ar": "تعذّر تحميل هالك اليوم"
+  },
+  "inventory.stocktakes.cancelTitle": {
+    "en": "Discard this count?",
+    "ar": "تجاهل هذا الجرد؟"
+  },
+  "inventory.stocktakes.cancelConsequence": {
+    "en": "Every figure entered in this open count is thrown away. Book stock stays as it is.",
+    "ar": "ستُحذف كل الكميات المُدخلة في هذا الجرد المفتوح، ويبقى الرصيد الدفتري كما هو."
+  },
+  "inventory.stocktakes.loadFailed": {
+    "en": "Couldn't load the open count",
+    "ar": "تعذّر تحميل الجرد المفتوح"
+  },
+  "inventory.stocktakes.reportFailed": {
+    "en": "Couldn't load the variance report",
+    "ar": "تعذّر تحميل تقرير الفروقات"
+  },
+  "inventory.movements.loadFailed": {
+    "en": "Couldn't load stock history",
+    "ar": "تعذّر تحميل سجل المخزون"
+  },
+  "inventory.purchasing.cancelTitle": {
+    "en": "Cancel purchase order {{ref}}?",
+    "ar": "إلغاء أمر الشراء {{ref}}؟"
+  },
+  "inventory.purchasing.cancelConsequence": {
+    "en": "The supplier order is voided and nothing more can be received against it.",
+    "ar": "يُلغى الطلب لدى المورّد ولن يمكن استلام أي كمية عليه بعد ذلك."
+  },
+  "inventory.purchasing.deleteSupplierConsequence": {
+    "en": "The supplier is removed from your list. Past purchase orders keep their records.",
+    "ar": "سيُحذف المورّد من قائمتك، وتحتفظ أوامر الشراء السابقة بسجلاتها."
+  },
+  "inventory.purchasing.reorderFailed": {
+    "en": "Couldn't load reorder suggestions",
+    "ar": "تعذّر تحميل اقتراحات إعادة الطلب"
+  },
+  "inventory.transfers.reverseConfirmTitle": {
+    "en": "Reverse the {{name}} transfer?",
+    "ar": "عكس تحويل {{name}}؟"
+  },
+  "inventory.transfers.reverseConsequence": {
+    "en": "A compensating entry moves the stock back to the source branch. The original transfer stays in the history.",
+    "ar": "يُعيد قيدٌ معاكس الكمية إلى الفرع المصدر، ويبقى التحويل الأصلي في السجل."
+  },
+  "inventory.waste.reportFailed": {
+    "en": "Couldn't load waste by reason",
+    "ar": "تعذّر تحميل الهالك حسب السبب"
+  },
+  "inventory.waste.noReasonData": {
+    "en": "Waste by reason appears once waste is logged in this period.",
+    "ar": "يظهر الهالك حسب السبب بمجرد تسجيل هالك في هذه الفترة."
+  },
+  "inventory.reports.noDataPeriod": {
+    "en": "Nothing recorded for this scope and period.",
+    "ar": "لا توجد بيانات مسجّلة لهذا النطاق وهذه الفترة."
+  },
+  "inventory.reports.valuationFailed": {
+    "en": "Couldn't load stock valuation",
+    "ar": "تعذّر تحميل تقييم المخزون"
+  },
+  "inventory.reports.unknownCostLabel": {
+    "en": "Unknown cost",
+    "ar": "تكلفة غير معروفة"
+  },
+  "inventory.reports.noValuation": {
+    "en": "Stock value by category appears after a branch is counted.",
+    "ar": "تظهر قيمة المخزون حسب الفئة بعد جرد الفرع."
+  },
+  "inventory.settings.categoriesFailed": {
+    "en": "Couldn't load ingredient categories",
+    "ar": "تعذّر تحميل فئات المكوّنات"
+  },
+  "inventory.settings.noCategoriesHint": {
+    "en": "Categories you add appear here and in the ingredient form.",
+    "ar": "تظهر الفئات التي تضيفها هنا وفي نموذج المكوّن."
+  },
+  "inventory.settings.deleteCategoryConsequence": {
+    "en": "The category is removed from counts and reports.",
+    "ar": "ستُزال الفئة من الجرد والتقارير."
+  },
+  "common.moreActions": {
+    "en": "More actions",
+    "ar": "إجراءات أخرى"
+  }
+}

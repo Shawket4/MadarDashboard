@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowLeftRight, ArrowRight, MoreHorizontal, PlusCircle, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page } from "@/components/app/page";
+import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
@@ -62,8 +62,8 @@ export function TransfersPage() {
 
   const onReverse = async (tr: StockTransfer) => {
     if (await confirm({
-      title: t("inventory.transfers.reverseTitle", "Reverse transfer"),
-      description: t("inventory.transfers.reverseConfirm", "Reverse this transfer with a compensating entry?"),
+      title: t("inventory.transfers.reverseConfirmTitle", { name: tr.ingredient_name, defaultValue: `Reverse the ${tr.ingredient_name} transfer?` }),
+      description: t("inventory.transfers.reverseConsequence", "A compensating entry moves the stock back to the source branch. The original transfer stays in the history."),
       destructive: true,
       confirmLabel: t("inventory.transfers.reverseTitle", "Reverse transfer"),
     })) {
@@ -97,17 +97,20 @@ export function TransfersPage() {
       {
         accessorKey: "initiated_at",
         header: t("common.date", "Date"),
-        cell: ({ row }) => <span className="tabular">{fmtDateTime(row.original.initiated_at)}</span>,
+        meta: { label: t("common.date", "Date"), numeric: true, align: "start" },
+        cell: ({ row }) => fmtDateTime(row.original.initiated_at),
       },
-      { accessorKey: "ingredient_name", header: t("inventory.transfers.ingredient", "Ingredient") },
+      { accessorKey: "ingredient_name", header: t("inventory.transfers.ingredient", "Ingredient"), meta: { label: t("inventory.transfers.ingredient", "Ingredient"), phone: "title" }, cell: ({ row }) => <span className="font-medium">{row.original.ingredient_name}</span> },
       {
         accessorKey: "quantity",
         header: t("inventory.transfers.quantity", "Quantity"),
-        cell: ({ row }) => <span className="tabular">{fmtNumber(row.original.quantity)} {fmtUnit(row.original.unit)}</span>,
+        meta: { label: t("inventory.transfers.quantity", "Quantity"), numeric: true },
+        cell: ({ row }) => `${fmtNumber(row.original.quantity)} ${fmtUnit(row.original.unit)}`,
       },
       {
         id: "route",
         header: t("inventory.transfers.direction", "Direction"),
+        meta: { label: t("inventory.transfers.direction", "Direction") },
         cell: ({ row }) => (
           <span className="flex items-center gap-1.5 text-sm">
             {row.original.source_branch_name}
@@ -119,38 +122,34 @@ export function TransfersPage() {
       {
         accessorKey: "initiated_by_name",
         header: t("inventory.transfers.by", "By"),
+        meta: { label: t("inventory.transfers.by", "By") },
         cell: ({ row }) => row.original.initiated_by_name ?? "—",
       },
-      {
-        id: "actions",
-        enableHiding: false,
-        cell: ({ row }) => (
-          <div className="text-end">
+    ],
+     
+    [t],
+  );
+
+  const rowActions = (tr: StockTransfer) => (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon-sm" onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon-sm" aria-label={t("common.moreActions", "More actions")}>
                   <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => { setEditNote(row.original); setNoteDraft(row.original.note ?? ""); }}>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => { setEditNote(tr); setNoteDraft(tr.note ?? ""); }}>
                   {t("inventory.transfers.editNote", "Edit note")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                  onClick={() => void onReverse(row.original)}
+                  variant="destructive"
+                  onClick={() => void onReverse(tr)}
                 >
                   <RotateCcw className="size-4" />
                   {t("inventory.transfers.reverseTitle", "Reverse transfer")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        ),
-      },
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t],
   );
 
   /**
@@ -188,11 +187,10 @@ export function TransfersPage() {
 
   return (
     <Page>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.transfers.title", "Transfers")}</h1>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
+      <PageHeader
+        title={t("inventory.transfers.title", "Transfers")}
+        actions={
+          <>
           <ExportButton onExport={handleExport} loading={exporting} disabled={!(transfers.data?.length)} />
           {/* Creating a transfer needs a concrete source branch, so the action
               is gated to a selected branch — hidden in the all-branches roll-up. */}
@@ -202,15 +200,9 @@ export function TransfersPage() {
               {t("inventory.transfers.create", "New transfer")}
             </Button>
           ) : null}
-        </div>
-      </div>
-
-      <DataTable
-        columns={columns}
-        data={transfers.data ?? []}
-        loading={transfers.isLoading}
-        getRowId={(tr) => tr.id}
-        toolbar={
+          </>
+        }
+        below={
           <SegmentedControl<Direction>
             value={dir}
             onChange={setDir}
@@ -221,6 +213,16 @@ export function TransfersPage() {
             ]}
           />
         }
+      />
+
+      <DataTable
+        columns={columns}
+        data={transfers.data ?? []}
+        loading={transfers.isLoading}
+        error={transfers.error}
+        onRetry={() => void transfers.refetch()}
+        getRowId={(tr) => tr.id}
+        rowActions={rowActions}
         emptyState={<EmptyState icon={ArrowLeftRight} title={t("inventory.transfers.noTransfers", "No transfers found")} />}
       />
 
