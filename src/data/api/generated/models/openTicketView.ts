@@ -63,6 +63,12 @@ export interface OpenTicketView {
   table_id?: string | null;
   /** @nullable */
   ticket_ref?: string | null;
+  /**
+     * The branch's effective IANA timezone (see `crate::tz`) — the zone this
+     * ticket's times are shown in. Additive.
+     * @nullable
+     */
+  timezone?: string | null;
   /** @nullable */
   void_note?: string | null;
   /**

@@ -15,6 +15,12 @@ export interface TeamPresence {
   planned_minutes: number;
   present: number;
   rows: PresenceRow[];
+  /**
+     * The IANA timezone this payload's instants are shown in (see `crate::tz`).
+     * Additive; older clients ignore it.
+     * @nullable
+     */
+  timezone?: string | null;
   /** Minutes actually worked so far today across the team. */
   worked_minutes: number;
 }

@@ -36,4 +36,10 @@ export interface MyAttendanceToday {
   open_record?: null | AttendanceRecord;
   /** Shifts rostered for today. Empty = a rest day. */
   scheduled: ResolvedShift[];
+  /**
+     * The IANA timezone this payload's instants are shown in (see `crate::tz`).
+     * Additive; older clients ignore it.
+     * @nullable
+     */
+  timezone?: string | null;
 }

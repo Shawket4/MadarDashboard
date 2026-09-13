@@ -2791,6 +2791,7 @@ export const SaveLayoutResponseItem = zod.object({
   "status": zod.string().describe('`confirmed` | `seated`.')
 }).describe('The next active booking claiming this table (today\'s service, or the\none in progress). The floor renders \"held\" from `held_from` by its own\nclock; nothing here is written to `status`. Only the list endpoint fills\nit — single-row writes return `null`.')]).optional(),
   "org_id": zod.uuid(),
+  "party_size": zod.number().nullish().describe('How many sat down (covers) on the live occupancy, when the host counted\nthem or the bill carries a guest count. `null` when free or unknown.'),
   "pos_x": zod.number(),
   "pos_y": zod.number(),
   "rotation": zod.number(),
@@ -2896,6 +2897,7 @@ export const ListFloorTablesResponseItem = zod.object({
   "status": zod.string().describe('`confirmed` | `seated`.')
 }).describe('The next active booking claiming this table (today\'s service, or the\none in progress). The floor renders \"held\" from `held_from` by its own\nclock; nothing here is written to `status`. Only the list endpoint fills\nit — single-row writes return `null`.')]).optional(),
   "org_id": zod.uuid(),
+  "party_size": zod.number().nullish().describe('How many sat down (covers) on the live occupancy, when the host counted\nthem or the bill carries a guest count. `null` when free or unknown.'),
   "pos_x": zod.number(),
   "pos_y": zod.number(),
   "rotation": zod.number(),
@@ -2940,6 +2942,7 @@ export const CreateFloorTableResponse = zod.object({
   "status": zod.string().describe('`confirmed` | `seated`.')
 }).describe('The next active booking claiming this table (today\'s service, or the\none in progress). The floor renders \"held\" from `held_from` by its own\nclock; nothing here is written to `status`. Only the list endpoint fills\nit — single-row writes return `null`.')]).optional(),
   "org_id": zod.uuid(),
+  "party_size": zod.number().nullish().describe('How many sat down (covers) on the live occupancy, when the host counted\nthem or the bill carries a guest count. `null` when free or unknown.'),
   "pos_x": zod.number(),
   "pos_y": zod.number(),
   "rotation": zod.number(),
@@ -3003,6 +3006,7 @@ export const UpdateFloorTableResponse = zod.object({
   "status": zod.string().describe('`confirmed` | `seated`.')
 }).describe('The next active booking claiming this table (today\'s service, or the\none in progress). The floor renders \"held\" from `held_from` by its own\nclock; nothing here is written to `status`. Only the list endpoint fills\nit — single-row writes return `null`.')]).optional(),
   "org_id": zod.uuid(),
+  "party_size": zod.number().nullish().describe('How many sat down (covers) on the live occupancy, when the host counted\nthem or the bill carries a guest count. `null` when free or unknown.'),
   "pos_x": zod.number(),
   "pos_y": zod.number(),
   "rotation": zod.number(),
@@ -3119,6 +3123,7 @@ export const HoldTableParams = zod.object({
 
 export const HoldTableBody = zod.object({
   "branch_id": zod.uuid(),
+  "party_size": zod.number().nullish().describe('How many people sat down (covers), as the host counted them. Recorded\non the hold and inherited by the bill\'s first round when it carries no\nguest count of its own. Anything not positive is not recorded.'),
   "seated_at": zod.iso.datetime({"offset":true}).nullish().describe('When the party actually sat down, by the till\'s clock. An offline seat\nreplays later than it happened; this keeps every device\'s table clock\non the seating. Clamped server-side to the last 12 hours, never in the\nfuture, and never before the table\'s previous party left. Recorded only\n-- it moves no status.')
 })
 
@@ -6285,7 +6290,7 @@ export const PutOptionRecipeResponse = zod.array(PutOptionRecipeResponseItem)
 
 export const ListOpenTicketsQueryParams = zod.object({
   "branch_id": zod.uuid(),
-  "status": zod.string().optional()
+  "status": zod.string().optional().describe('`open` (the default: live bills only), `settled`, `voided`, or `all`.')
 })
 
 export const ListOpenTicketsResponseItem = zod.object({
@@ -6328,6 +6333,7 @@ export const ListOpenTicketsResponseItem = zod.object({
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
   "ticket_ref": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone this\nticket\'s times are shown in. Additive.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
   "voided_at": zod.iso.datetime({"offset":true}).nullish()
@@ -6414,6 +6420,7 @@ export const CreateOpenTicketResponse = zod.object({
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
   "ticket_ref": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone this\nticket\'s times are shown in. Additive.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
   "voided_at": zod.iso.datetime({"offset":true}).nullish()
@@ -6464,6 +6471,7 @@ export const GetOpenTicketResponse = zod.object({
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
   "ticket_ref": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone this\nticket\'s times are shown in. Additive.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
   "voided_at": zod.iso.datetime({"offset":true}).nullish()
@@ -6520,6 +6528,7 @@ export const VoidTicketLineResponse = zod.object({
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
   "ticket_ref": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone this\nticket\'s times are shown in. Additive.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
   "voided_at": zod.iso.datetime({"offset":true}).nullish()
@@ -6599,6 +6608,7 @@ export const AddRoundResponse = zod.object({
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
   "ticket_ref": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone this\nticket\'s times are shown in. Additive.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
   "voided_at": zod.iso.datetime({"offset":true}).nullish()
@@ -6673,6 +6683,7 @@ export const SettleOpenTicketResponse = zod.object({
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
@@ -6739,6 +6750,7 @@ export const MoveTicketTableResponse = zod.object({
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
   "ticket_ref": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone this\nticket\'s times are shown in. Additive.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
   "voided_at": zod.iso.datetime({"offset":true}).nullish()
@@ -6794,6 +6806,7 @@ export const VoidOpenTicketResponse = zod.object({
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
   "ticket_ref": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone this\nticket\'s times are shown in. Additive.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
   "voided_at": zod.iso.datetime({"offset":true}).nullish()
@@ -6854,6 +6867,7 @@ export const ListOrdersResponse = zod.object({
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
@@ -6986,6 +7000,7 @@ export const CreateOrderResponse = zod.object({
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
@@ -7016,6 +7031,7 @@ export const CreateOrderResponse = zod.object({
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
+  "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
   "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
   "line_total": zod.number(),
@@ -7026,6 +7042,7 @@ export const CreateOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_id": zod.uuid(),
   "quantity": zod.number(),
+  "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
   "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
   "unit_price": zod.number()
@@ -7092,6 +7109,7 @@ export const CreateOrderResponse = zod.object({
   "quantity_deducted": zod.number().nullish()
 }))
 }))),
+  "loyalty_redemption_refused": zod.string().nullish().describe('Set only on the response to a REPLAYED sale whose rewards the points\ncould not pay for: the covered lines stayed covered, no points moved,\nthe order is flagged. The till shows this sentence to the teller.'),
   "warnings": zod.array(zod.string()).optional().describe('Non-fatal warnings raised while placing the order — currently used to\nflag ingredients that were oversold (stock driven below zero). Empty\nfor reads\/refunds.')
 }))
 
@@ -7143,6 +7161,7 @@ export const ExportOrdersResponse = zod.object({
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
@@ -7159,6 +7178,7 @@ export const ExportOrdersResponse = zod.object({
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
+  "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
   "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
   "line_total": zod.number(),
@@ -7169,6 +7189,7 @@ export const ExportOrdersResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_id": zod.uuid(),
   "quantity": zod.number(),
+  "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
   "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
   "unit_price": zod.number()
@@ -7326,6 +7347,7 @@ export const GetOrderResponse = zod.object({
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
@@ -7356,6 +7378,7 @@ export const GetOrderResponse = zod.object({
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
+  "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
   "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
   "line_total": zod.number(),
@@ -7366,6 +7389,7 @@ export const GetOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_id": zod.uuid(),
   "quantity": zod.number(),
+  "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
   "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
   "unit_price": zod.number()
@@ -7432,6 +7456,7 @@ export const GetOrderResponse = zod.object({
   "quantity_deducted": zod.number().nullish()
 }))
 }))),
+  "loyalty_redemption_refused": zod.string().nullish().describe('Set only on the response to a REPLAYED sale whose rewards the points\ncould not pay for: the covered lines stayed covered, no points moved,\nthe order is flagged. The till shows this sentence to the teller.'),
   "warnings": zod.array(zod.string()).optional().describe('Non-fatal warnings raised while placing the order — currently used to\nflag ingredients that were oversold (stock driven below zero). Empty\nfor reads\/refunds.')
 }))
 
@@ -7482,6 +7507,7 @@ export const VoidOrderResponse = zod.object({
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
@@ -8881,6 +8907,7 @@ export const PublicTableOrderResponse = zod.object({
   "subtotal": zod.number(),
   "table_id": zod.uuid().nullish(),
   "ticket_ref": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone this\nticket\'s times are shown in. Additive.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
   "voided_at": zod.iso.datetime({"offset":true}).nullish()
@@ -10371,7 +10398,8 @@ export const ListShiftsResponse = zod.object({
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
   "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish()
+  "till_name": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
 })),
   "page": zod.number(),
   "per_page": zod.number(),
@@ -10412,7 +10440,8 @@ export const GetCurrentShiftResponse = zod.object({
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
   "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish()
+  "till_name": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
 })]).optional(),
   "suggested_opening_cash": zod.number()
 })
@@ -10453,7 +10482,8 @@ export const OpenShiftResponse = zod.object({
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
   "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish()
+  "till_name": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
 })
 
 
@@ -10483,7 +10513,8 @@ export const GetShiftResponse = zod.object({
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
   "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish()
+  "till_name": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
 })
 
 
@@ -10573,7 +10604,8 @@ export const CloseShiftResponse = zod.object({
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
   "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish()
+  "till_name": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
 })
 })
 
@@ -10608,7 +10640,8 @@ export const ForceCloseShiftResponse = zod.object({
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
   "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish()
+  "till_name": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
 })
 
 
@@ -10669,10 +10702,12 @@ export const GetShiftReportResponse = zod.object({
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
   "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish()
+  "till_name": zod.string().nullish(),
+  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
 }),
   "standard_float": zod.number().nullish().describe('The till\'s standard float, when the shop has set one: what should stay\nin the drawer at close. `None` means \"not decided\" — propose nothing.'),
   "suggested_safe_drop": zod.number().nullish().describe('For an OPEN shift on a till with a standard float: how much of\n`expected_cash` to drop into the safe so the drawer closes at the\nfloat. Never negative — a drawer under its float has nothing to drop.\n`None` when the shift is closed or the till has no float.'),
+  "timezone": zod.string().nullish().describe('The zone this report\'s times print in (the shift\'s branch) — see\n`crate::tz`. Additive; mirrors `shift.timezone`.'),
   "total_payments": zod.number(),
   "total_tips": zod.number().describe('Tips, as a standalone figure — never folded into a method bucket, and\nnever part of `total_payments`\/`net_payments`. Mirrors `total_tips` on\nthe sales reports so the two screens agree on what \"revenue\" means.'),
   "voided_amount": zod.number()
@@ -11640,7 +11675,8 @@ export const MyTodayResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}),
   "scheduled_start_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid()
-}).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Shifts rostered for today. Empty = a rest day.')
+}).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Shifts rostered for today. Empty = a rest day.'),
+  "timezone": zod.string().nullish().describe('The IANA timezone this payload\'s instants are shown in (see `crate::tz`).\nAdditive; older clients ignore it.')
 }).describe('What the mobile app shows on its home screen.')
 
 
@@ -12330,6 +12366,7 @@ export const TeamPresenceResponse = zod.object({
   "user_name": zod.string(),
   "worked_minutes": zod.number()
 }).describe('One person\'s state right now, for the manager\'s live team list.')),
+  "timezone": zod.string().nullish().describe('The IANA timezone this payload\'s instants are shown in (see `crate::tz`).\nAdditive; older clients ignore it.'),
   "worked_minutes": zod.number().describe('Minutes actually worked so far today across the team.')
 }).describe('The whole team\'s state right now, plus the day\'s labour against plan.')
 

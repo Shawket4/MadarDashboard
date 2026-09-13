@@ -119,6 +119,13 @@ export interface Order {
   tax_amount: number;
   teller_id: string;
   teller_name: string;
+  /**
+     * The branch's effective IANA timezone (see `crate::tz`) — the zone every
+     * timestamp on this payload is shown and printed in. Additive: older
+     * clients ignore it; `null` only where a write path does not resolve it.
+     * @nullable
+     */
+  timezone?: string | null;
   /** @nullable */
   tip_amount?: number | null;
   /** @nullable */

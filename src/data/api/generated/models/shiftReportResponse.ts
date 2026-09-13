@@ -88,6 +88,12 @@ export interface ShiftReportResponse {
      * @nullable
      */
   suggested_safe_drop?: number | null;
+  /**
+     * The zone this report's times print in (the shift's branch) — see
+     * `crate::tz`. Additive; mirrors `shift.timezone`.
+     * @nullable
+     */
+  timezone?: string | null;
   total_payments: number;
   /**
      * Tips, as a standalone figure — never folded into a method bucket, and

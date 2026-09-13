@@ -48,4 +48,11 @@ export interface Shift {
   till_id?: string | null;
   /** @nullable */
   till_name?: string | null;
+  /**
+     * The branch's effective IANA timezone (see `crate::tz`) — the zone every
+     * timestamp on this payload is shown and printed in. Additive: older
+     * clients ignore it; `null` only where a write path does not resolve it.
+     * @nullable
+     */
+  timezone?: string | null;
 }

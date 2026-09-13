@@ -11,6 +11,11 @@ export interface OrderItem {
   cost_missing: boolean;
   deductions_snapshot: unknown;
   id: string;
+  /**
+     * A loyalty reward paid for some or all of this line. The receipt and the
+     * kitchen say "Reward" beside it.
+     */
+  is_reward?: boolean;
   item_name: string;
   /**
      * Full line COGS in piastres (recipe + addons + optionals + components).
@@ -26,6 +31,8 @@ export interface OrderItem {
   notes?: string | null;
   order_id: string;
   quantity: number;
+  /** How many of `quantity` the reward covered. */
+  reward_units?: number;
   /** @nullable */
   size_label?: string | null;
   /**

@@ -11,6 +11,12 @@ export interface FloorTable {
   label: string;
   next_booking?: null | TableBookingHint;
   org_id: string;
+  /**
+     * How many sat down (covers) on the live occupancy, when the host counted
+     * them or the bill carries a guest count. `null` when free or unknown.
+     * @nullable
+     */
+  party_size?: number | null;
   pos_x: number;
   pos_y: number;
   rotation: number;
