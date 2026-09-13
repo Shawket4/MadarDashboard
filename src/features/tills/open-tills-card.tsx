@@ -19,7 +19,7 @@ export function OpenTillsCard({ branchId }: { branchId: string | null | undefine
 export function OpenTillsList({ tills }: { tills: Till[] }) {
   const { t } = useTranslation();
   return (
-    <Card className="py-0">
+    <Card className="rounded-2xl py-0 shadow-none">
       <CardContent className="space-y-2 p-4">
         <div className="flex items-center justify-between gap-2">
           <p className="flex items-center gap-2 text-sm font-medium">

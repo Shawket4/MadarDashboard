@@ -2,14 +2,14 @@ import { useTranslation } from "react-i18next";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { fmtMoney } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { StatusPill, type StatusTone } from "@/components/app/status-pill";
 
 import type { TillReconciliationLine } from "./api";
 
-const STATUS_TONE: Record<string, string> = {
-  checked: "text-success",
-  disagreed: "text-destructive",
-  unreviewed: "text-muted-foreground",
+const STATUS_TONE: Record<string, StatusTone> = {
+  checked: "success",
+  disagreed: "danger",
+  unreviewed: "neutral",
 };
 
 /** Per-method close check (TILLS decision 11). Empty for tills closed before the rework. */
@@ -17,9 +17,9 @@ export function ReconciliationTable({ lines }: { lines: TillReconciliationLine[]
   const { t } = useTranslation();
   if (lines.length === 0) return null;
   return (
-    <Card className="py-0">
+    <Card className="rounded-2xl py-0 shadow-none">
       <CardContent className="space-y-2 p-4 text-sm">
-        <p className="text-xs font-medium text-muted-foreground">{t("tills.reconciliation.title", "Payment check")}</p>
+        <h3 className="text-sm font-semibold">{t("tills.reconciliation.title", "Payment check")}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm" data-testid="reconciliation-table">
             <thead className="text-xs text-muted-foreground">
@@ -44,10 +44,10 @@ export function ReconciliationTable({ lines }: { lines: TillReconciliationLine[]
                       </p>
                     ) : null}
                   </td>
-                  <td className="py-1.5 text-end tabular">{fmtMoney(l.system_total)}</td>
-                  <td className="py-1.5 text-end tabular">{l.declared_amount != null ? fmtMoney(l.declared_amount) : "—"}</td>
-                  <td className={cn("py-1.5 text-end", STATUS_TONE[l.status])}>
-                    {t(`tills.reconciliation.${l.status}`, l.status)}
+                  <td className="py-1.5 text-end font-mono tabular-nums">{fmtMoney(l.system_total)}</td>
+                  <td className="py-1.5 text-end font-mono tabular-nums">{l.declared_amount != null ? fmtMoney(l.declared_amount) : "—"}</td>
+                  <td className="py-1.5 text-end">
+                    <StatusPill size="sm" tone={STATUS_TONE[l.status] ?? "neutral"}>{t(`tills.reconciliation.${l.status}`, l.status)}</StatusPill>
                   </td>
                 </tr>
               ))}

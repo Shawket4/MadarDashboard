@@ -38,12 +38,9 @@ export function useDevices(branchId: string | null | undefined) {
   return useListDevices({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } });
 }
 
-/** Clients seen in the window; `legacyOnly` keeps those still on pre-rework paths. */
+/** Clients seen in the window (org-wide without a branch); `legacyOnly` keeps those still on pre-rework paths. */
 export function useClientVersions(branchId: string | null | undefined, legacyOnly: boolean, days = 14) {
-  return useListClientVersions(
-    { branch_id: branchId ?? undefined, legacy_only: legacyOnly, days },
-    { query: { enabled: !!branchId } },
-  );
+  return useListClientVersions({ branch_id: branchId || undefined, legacy_only: legacyOnly, days });
 }
 
 export function usePatchDevice() {

@@ -3576,7 +3576,14 @@
       "title": "Stock used",
       "returned": "{{amount}} put back by voids",
       "loadError": "Couldn't load the stock used by this till."
-    }
+    },
+    "openBills": "Open bills",
+    "oldBillsKpi": "Older than {{hours}}h",
+    "flaggedKpi": "Flagged in list",
+    "history": "All tills",
+    "noOpenHint": "A till opens when a teller starts selling on a POS.",
+    "allStatuses": "All statuses",
+    "emptyHint": "Tills appear here once a teller opens one, and stay for the record after they close."
   },
   "aiChat": {
     "title": "Ask your data",
@@ -4639,7 +4646,16 @@
       "allMethods": "All methods",
       "onlySelected": "Only selected",
       "restrict": "Restrict methods",
-      "emptyList": "Pick at least one method, or allow all."
+      "emptyList": "Pick at least one method, or allow all.",
+      "pickBranchHint": "Availability is set per branch, then narrowed per teller and device.",
+      "loadError": "Couldn't load payment method availability",
+      "branchHint": "The methods any charge at this branch can offer.",
+      "tellersHint": "Narrow the branch's methods for one teller.",
+      "noTellers": "No tellers at this branch",
+      "devicesHint": "Narrow the branch's methods for one POS device.",
+      "noDevices": "No devices at this branch yet",
+      "selectedCount": "{{count}} selected",
+      "inherits": "No restriction"
     }
   },
   "devices": {
@@ -4659,6 +4675,31 @@
       "pos": "POS",
       "kds": "Kitchen screen",
       "waiter": "Waiter"
+    },
+    "tabDevices": "Devices",
+    "pickBranchHint": "Devices are registered per branch.",
+    "active": "Active",
+    "emptyHint": "A device appears here the first time it signs in at this branch.",
+    "editHint": "The code prefixes this device's order numbers, e.g. 36B-12.",
+    "retiredHint": "Its code is freed for another device and it leaves the availability lists.",
+    "clients": {
+      "title": "Client versions",
+      "seen": "Clients seen",
+      "onLegacy": "On legacy paths",
+      "versions": "App versions",
+      "window": "Window",
+      "lastDays": "Last {{count}} days",
+      "legacyOnly": "Legacy clients only",
+      "device": "Device",
+      "unregistered": "Unregistered client",
+      "version": "Version",
+      "lastLegacy": "Last legacy hit",
+      "upToDate": "Up to date",
+      "legacy": "Legacy",
+      "noLegacy": "No legacy clients",
+      "noLegacyHint": "Nothing used a pre-rework path in the last {{count}} days.",
+      "none": "No clients seen",
+      "noneHint": "No app has called the server in the last {{count}} days."
     }
   }
 }

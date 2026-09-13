@@ -2,18 +2,22 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDownLeft, ArrowUpRight, CheckCircle2, Clock, MoreHorizontal, PlusCircle, Trash2, Wallet, XCircle } from "lucide-react";
+import { AlertTriangle, Clock, MoreHorizontal, PlusCircle, ReceiptText, Trash2, Wallet, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page } from "@/components/app/page";
+import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
+import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { ListCard, ListRow } from "@/components/app/list-row";
+import { SectionHeader } from "@/components/app/section-header";
+import { StatusPill } from "@/components/app/status-pill";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { queryClient } from "@/data/api/query";
 import { getErrorMessage } from "@/data/api/errors";
@@ -21,7 +25,7 @@ import { useAuthStore } from "@/data/stores/auth.store";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
-import { fmtDateTime, fmtDuration, fmtMoney } from "@/lib/format";
+import { fmtDateTime, fmtDuration, fmtMoney, fmtMoneySigned } from "@/lib/format";
 
 import {
   tillReportQueryOptions,
@@ -207,41 +211,65 @@ export function TillsPage() {
   );
 
   const myOpen = branchId && current.data?.has_open_till ? current.data.open_till : null;
+  const notice = billsNotice.data;
+  const flaggedCount = rows.filter((r) => r.opened_while_another_open || r.reconciliation_status === "disagreed").length;
+
+  const kpis: LedgerItem[] = [
+    { key: "open", label: t("tills.openNow", "Open now"), value: openNow.data?.length ?? 0, icon: Clock, loading: !!branchId && openNow.isLoading },
+    {
+      key: "bills",
+      label: t("tills.openBills", "Open bills"),
+      value: notice?.open_bills_count ?? 0,
+      icon: ReceiptText,
+      hint: notice && notice.open_bills_count > 0 ? fmtMoney(notice.open_bills_amount) : undefined,
+      loading: !!branchId && billsNotice.isLoading,
+    },
+    {
+      key: "old",
+      label: t("tills.oldBillsKpi", { hours: notice?.old_bill_hours ?? 3, defaultValue: "Older than {{hours}}h" }),
+      value: notice?.old_bills_count ?? 0,
+      icon: AlertTriangle,
+      accent: notice?.old_bills_count ? "warning" : "neutral",
+      loading: !!branchId && billsNotice.isLoading,
+    },
+    { key: "flagged", label: t("tills.flaggedKpi", "Flagged in list"), value: flaggedCount, accent: flaggedCount ? "warning" : "neutral", loading: tills.isLoading },
+  ];
 
   return (
     <Page>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("nav.tills", "Tills")}</h1>
-          <p className="text-sm text-muted-foreground">{t("tills.subtitle", "Each teller's sales session and cash drawer")}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <ExportButton onExport={handleExport} loading={exporting} disabled={!rows.length} />
-          {branchId && !myOpen ? (
-            <Button onClick={() => setOpenDialog(true)}>
-              <PlusCircle className="size-4" />
-              {t("tills.openTill", "Open till")}
-            </Button>
-          ) : null}
-        </div>
-      </div>
-
-      {branchId ? <OpenNowStrip tills={openNow.data ?? []} notice={billsNotice.data} onOpen={setReportId} /> : null}
-
-      <TillFilters
-        search={search}
-        tellers={tellers}
-        devices={devices}
-        onChange={setSearch}
+      <PageHeader
+        title={t("nav.tills", "Tills")}
+        subtitle={t("tills.subtitle", "Each teller's sales session and cash drawer")}
+        actions={
+          <>
+            <ExportButton onExport={handleExport} loading={exporting} disabled={!rows.length} />
+            {branchId && !myOpen ? (
+              <Button onClick={() => setOpenDialog(true)}>
+                <PlusCircle className="size-4" />
+                {t("tills.openTill", "Open till")}
+              </Button>
+            ) : null}
+          </>
+        }
+        below={<TillFilters search={search} tellers={tellers} devices={devices} onChange={setSearch} />}
       />
 
-      <TillsTable
-        tills={rows}
-        loading={tills.isLoading}
-        showBranch={isAllBranches}
-        onOpenReport={setReportId}
-        renderActions={actions}
-      />
+      {branchId ? <LedgerStrip items={kpis} /> : null}
+
+      {branchId ? <OpenNowStrip tills={openNow.data ?? []} notice={notice} onOpen={setReportId} /> : null}
+
+      <section className="space-y-3">
+        <SectionHeader title={t("tills.history", "All tills")} count={tills.data?.total ?? rows.length} />
+        <TillsTable
+          tills={rows}
+          loading={tills.isLoading}
+          error={tills.error}
+          onRetry={() => void tills.refetch()}
+          showBranch={isAllBranches}
+          onOpenReport={setReportId}
+          renderActions={actions}
+        />
+      </section>
 
       <OpenTillDialog branchId={branchId ?? ""} open={openDialog} onOpenChange={setOpenDialog} suggestedCash={current.data?.suggested_opening_cash ?? 0} />
       <CloseTillDialog till={closeTill} open={!!closeTill} onOpenChange={(o) => !o && setCloseTill(null)} />
@@ -261,40 +289,41 @@ function uniqueBy<T>(rows: T[], id: (r: T) => string, label: (r: T) => string) {
 export function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenBillsNotice; onOpen: (id: string) => void }) {
   const { t } = useTranslation();
   return (
-    <Card className="py-0">
-      <CardContent className="space-y-2 p-4">
-        <p className="flex items-center gap-2 text-sm font-medium">
-          <Clock className="size-4 text-success" aria-hidden="true" />
-          {t("tills.openNow", "Open now")} <span className="tabular text-muted-foreground">{tills.length}</span>
-        </p>
-        {notice && notice.open_bills_count > 0 ? <OpenBillsLine notice={notice} /> : null}
-        {tills.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("dashboard.noOpenTill", "No open till")}</p>
-        ) : (
-          <ul className="flex flex-wrap gap-2">
-            {tills.map((s) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  onClick={() => onOpen(s.id)}
-                  className="flex flex-col items-start rounded-md border px-3 py-2 text-start text-sm hover:bg-muted"
-                >
-                  <span className="font-medium">
-                    {s.teller_name}
-                    {s.device_code ? <span className="ms-1 text-muted-foreground">· {s.device_code}</span> : null}
-                  </span>
-                  <span className="text-xs text-muted-foreground tabular">{fmtDuration(s.opened_at)}</span>
-                  <span className="mt-1 flex flex-wrap gap-1">
-                    <VerificationBadge verification={s.verification} />
-                    <FlagBadge till={s} />
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+    <section className="space-y-3">
+      <SectionHeader
+        title={t("tills.openNow", "Open now")}
+        count={tills.length}
+        description={notice && notice.open_bills_count > 0 ? <OpenBillsLine notice={notice} /> : undefined}
+      />
+      {tills.length === 0 ? (
+        <EmptyState
+          icon={Wallet}
+          className="py-8"
+          title={t("dashboard.noOpenTill", "No open till")}
+          description={t("tills.noOpenHint", "A till opens when a teller starts selling on a POS.")}
+        />
+      ) : (
+        <ListCard>
+          {tills.map((s) => (
+            <ListRow
+              key={s.id}
+              icon={Wallet}
+              onClick={() => onOpen(s.id)}
+              title={s.teller_name}
+              meta={[s.device_code, s.device_label, fmtDuration(s.opened_at)].filter(Boolean).join(" · ")}
+              trailing={
+                <span className="hidden flex-wrap items-center justify-end gap-1.5 sm:flex">
+                  <VerificationBadge verification={s.verification} />
+                  <FlagBadge till={s} />
+                </span>
+              }
+              value={fmtMoney(s.opening_cash)}
+              numericValue
+            />
+          ))}
+        </ListCard>
+      )}
+    </section>
   );
 }
 
@@ -302,21 +331,25 @@ export function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?
 export function OpenBillsLine({ notice }: { notice: OpenBillsNotice }) {
   const { t } = useTranslation();
   return (
-    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground" data-testid="open-bills-notice">
+    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1" data-testid="open-bills-notice">
       <span>
         {notice.since
           ? t("tills.openBillsNotice", { count: notice.open_bills_count, since: fmtDateTime(notice.since), defaultValue: "{{count}} bills left open since {{since}}" })
           : t("tills.openBillsCount", { count: notice.open_bills_count, defaultValue: "{{count}} open bills" })}
-        <span className="ms-1 tabular">({fmtMoney(notice.open_bills_amount)})</span>
+        <bdi className="ms-1 font-mono tabular-nums">({fmtMoney(notice.open_bills_amount)})</bdi>
       </span>
       {notice.old_bills_count > 0 ? (
-        <span className="font-medium text-warning" data-testid="old-bills">
-          {t("tills.oldBills", { count: notice.old_bills_count, hours: notice.old_bill_hours, defaultValue: "{{count}} older than {{hours}}h" })}
+        <span data-testid="old-bills" className="contents">
+          <StatusPill tone="warning" size="sm">
+            {t("tills.oldBills", { count: notice.old_bills_count, hours: notice.old_bill_hours, defaultValue: "{{count}} older than {{hours}}h" })}
+          </StatusPill>
         </span>
       ) : null}
-    </p>
+    </span>
   );
 }
+
+const ALL = "__all__";
 
 export function TillFilters({
   search,
@@ -330,32 +363,41 @@ export function TillFilters({
   onChange: (p: Partial<TillsSearch>) => void;
 }) {
   const { t } = useTranslation();
-  const selectCls = "h-9 rounded-md border bg-background px-2 text-sm";
+  const pick = (v: string) => (v === ALL ? undefined : v);
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <select aria-label={t("common.status", "Status")} className={selectCls} value={search.status ?? ""} onChange={(e) => onChange({ status: (e.target.value || undefined) as TillStatus | undefined })}>
-        <option value="">{t("common.all", "All")}</option>
-        {STATUSES.map((s) => (
-          <option key={s} value={s}>{t(`tillStatus.${s}`, s)}</option>
-        ))}
-      </select>
-      <select aria-label={t("tills.teller", "Teller")} className={selectCls} value={search.teller ?? ""} onChange={(e) => onChange({ teller: e.target.value || undefined })}>
-        <option value="">{t("tills.allTellers", "All tellers")}</option>
-        {tellers.map((o) => (
-          <option key={o.value} value={o.value}>{o.name}</option>
-        ))}
-      </select>
-      <select aria-label={t("tills.device", "Device")} className={selectCls} value={search.device ?? ""} onChange={(e) => onChange({ device: e.target.value || undefined })}>
-        <option value="">{t("tills.allDevices", "All devices")}</option>
-        {devices.map((o) => (
-          <option key={o.value} value={o.value}>{o.name}</option>
-        ))}
-      </select>
-      <Label className="flex items-center gap-2 text-sm font-normal">
+    <div className="flex flex-wrap items-center gap-2">
+      <Select value={search.status ?? ALL} onValueChange={(v) => onChange({ status: pick(v) as TillStatus | undefined })}>
+        <SelectTrigger className="h-9 w-auto min-w-32" aria-label={t("common.status", "Status")}><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>{t("tills.allStatuses", "All statuses")}</SelectItem>
+          {STATUSES.map((s) => (
+            <SelectItem key={s} value={s}>{t(`tillStatus.${s}`, s)}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={search.teller ?? ALL} onValueChange={(v) => onChange({ teller: pick(v) })}>
+        <SelectTrigger className="h-9 w-auto min-w-36" aria-label={t("tills.teller", "Teller")}><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>{t("tills.allTellers", "All tellers")}</SelectItem>
+          {tellers.map((o) => (
+            <SelectItem key={o.value} value={o.value}>{o.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={search.device ?? ALL} onValueChange={(v) => onChange({ device: pick(v) })}>
+        <SelectTrigger className="h-9 w-auto min-w-36" aria-label={t("tills.device", "Device")}><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>{t("tills.allDevices", "All devices")}</SelectItem>
+          {devices.map((o) => (
+            <SelectItem key={o.value} value={o.value}>{o.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Label className="flex h-9 items-center gap-2 rounded-[10px] border bg-card px-3 text-sm font-normal">
         <Checkbox checked={!!search.today} onCheckedChange={(c) => onChange({ today: c === true || undefined })} />
         {t("tills.filters.today", "Today")}
       </Label>
-      <Label className="flex items-center gap-2 text-sm font-normal">
+      <Label className="flex h-9 items-center gap-2 rounded-[10px] border bg-card px-3 text-sm font-normal">
         <Checkbox checked={!!search.flagged} onCheckedChange={(c) => onChange({ flagged: c === true || undefined })} />
         {t("tills.filters.flagged", "Flagged only")}
       </Label>
@@ -366,12 +408,16 @@ export function TillFilters({
 export function TillsTable({
   tills,
   loading,
+  error,
+  onRetry,
   showBranch,
   onOpenReport,
   renderActions,
 }: {
   tills: Till[];
   loading?: boolean;
+  error?: unknown;
+  onRetry?: () => void;
   showBranch?: boolean;
   onOpenReport: (id: string) => void;
   renderActions?: (t: Till) => React.ReactNode;
@@ -379,30 +425,45 @@ export function TillsTable({
   const { t } = useTranslation();
   const columns = useMemo<ColumnDef<Till>[]>(
     () => [
-      { accessorKey: "opened_at", header: t("tills.opened", "Opened"), cell: ({ row }) => <span className="tabular">{fmtDateTime(row.original.opened_at)}</span> },
-      { accessorKey: "closed_at", header: t("tills.closed", "Closed"), cell: ({ row }) => <span className="tabular">{row.original.closed_at ? fmtDateTime(row.original.closed_at) : "—"}</span> },
-      ...(showBranch ? ([{ accessorKey: "branch_name", header: t("tills.branch", "Branch"), cell: ({ row }) => row.original.branch_name ?? "—" }] as ColumnDef<Till>[]) : []),
-      { accessorKey: "teller_name", header: t("tills.teller", "Teller") },
+      {
+        accessorKey: "teller_name",
+        header: t("tills.teller", "Teller"),
+        meta: { phone: "title", label: t("tills.teller", "Teller") },
+        cell: ({ row }) => (
+          <div className="min-w-0">
+            <p className="truncate font-semibold">{row.original.teller_name}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              <bdi className="font-mono tabular-nums">{fmtDateTime(row.original.opened_at)}</bdi>
+              {row.original.closed_at ? <> → <bdi className="font-mono tabular-nums">{fmtDateTime(row.original.closed_at)}</bdi></> : null}
+            </p>
+          </div>
+        ),
+      },
+      ...(showBranch
+        ? ([{ accessorKey: "branch_name", header: t("tills.branch", "Branch"), meta: { label: t("tills.branch", "Branch") }, cell: ({ row }) => row.original.branch_name ?? "—" }] as ColumnDef<Till>[])
+        : []),
       {
         id: "device",
         header: t("tills.device", "Device"),
+        meta: { label: t("tills.device", "Device") },
         cell: ({ row }) => {
           const s = row.original;
           if (!s.device_code && !s.device_label) return <span className="text-muted-foreground">—</span>;
           return (
-            <span>
-              <span className="font-mono">{s.device_code}</span>
-              {s.device_label ? <span className="ms-1 text-muted-foreground">{s.device_label}</span> : null}
+            <span className="whitespace-nowrap">
+              <span className="font-mono font-medium">{s.device_code}</span>
+              {s.device_label ? <span className="ms-1.5 text-muted-foreground">{s.device_label}</span> : null}
             </span>
           );
         },
       },
-      { accessorKey: "status", header: t("common.status", "Status"), cell: ({ row }) => <TillStatusBadge status={row.original.status} /> },
       {
-        id: "flags",
-        header: t("tills.flags", "Flags"),
+        accessorKey: "status",
+        header: t("common.status", "Status"),
+        meta: { label: t("common.status", "Status") },
         cell: ({ row }) => (
-          <span className="flex flex-wrap gap-1">
+          <span className="flex flex-wrap items-center gap-1.5">
+            <TillStatusBadge status={row.original.status} />
             <VerificationBadge verification={row.original.verification} />
             <FlagBadge till={row.original} onOpenOther={onOpenReport} />
             <DisagreementBadge till={row.original} />
@@ -410,41 +471,48 @@ export function TillsTable({
         ),
       },
       {
+        accessorKey: "opening_cash",
+        header: t("tills.openingCash", "Opening"),
+        meta: { numeric: true, label: t("tills.openingCash", "Opening") },
+        cell: ({ row }) => fmtMoney(row.original.opening_cash),
+      },
+      {
         accessorKey: "cash_discrepancy",
         header: t("tills.discrepancy", "Discrepancy"),
+        meta: { numeric: true, label: t("tills.discrepancy", "Discrepancy") },
         cell: ({ row }) => {
           const d = row.original.cash_discrepancy;
           if (d == null) return <span className="text-muted-foreground">—</span>;
-          if (d === 0)
-            return (
-              <span className="inline-flex items-center gap-1 tabular text-success">
-                <CheckCircle2 className="size-3.5" aria-hidden="true" />
-                {fmtMoney(d)}
-              </span>
-            );
           return (
-            <span className="inline-flex items-center gap-1 tabular text-destructive">
-              {d > 0 ? <ArrowUpRight className="size-3.5" aria-hidden="true" /> : <ArrowDownLeft className="size-3.5" aria-hidden="true" />}
-              {fmtMoney(d)}
+            <span className={d === 0 ? "text-muted-foreground" : "font-semibold text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]"}>
+              {d === 0 ? fmtMoney(0) : fmtMoneySigned(d)}
             </span>
           );
         },
       },
-      ...(renderActions
-        ? ([{ id: "actions", enableHiding: false, cell: ({ row }) => <div className="text-end">{renderActions(row.original)}</div> }] as ColumnDef<Till>[])
-        : []),
     ],
-    [t, showBranch, onOpenReport, renderActions],
+    [t, showBranch, onOpenReport],
   );
   return (
     <DataTable
       columns={columns}
       data={tills}
       loading={loading}
+      error={error}
+      onRetry={onRetry}
       onRowClick={(s) => onOpenReport(s.id)}
       onRowPrefetch={(s) => void queryClient.prefetchQuery(tillReportQueryOptions(s.id))}
       getRowId={(s) => s.id}
-      emptyState={<EmptyState icon={Clock} title={t("tills.empty", "No tills yet")} />}
+      rowActions={renderActions}
+      hideViewOptions
+      pageSize={20}
+      emptyState={
+        <EmptyState
+          icon={Clock}
+          title={t("tills.empty", "No tills yet")}
+          description={t("tills.emptyHint", "Tills appear here once a teller opens one, and stay for the record after they close.")}
+        />
+      }
     />
   );
 }

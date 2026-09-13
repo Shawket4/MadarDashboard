@@ -1,5 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { AlertCircle, AlertTriangle, ArrowDownLeft, ArrowUpRight, X } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
+
+import { ErrorState } from "@/components/app/empty-state";
+import { ListCard, ListRow } from "@/components/app/list-row";
+import { SectionHeader } from "@/components/app/section-header";
 
 import {
   Sheet,
@@ -16,7 +20,7 @@ import { useTillReport, useTillSummary } from "./api";
 import { FlagBadge, VerificationBadge } from "./till-badges";
 import { ReconciliationTable } from "./reconciliation-table";
 import { TillDeductions } from "./till-deductions";
-import { fmtDateTime, fmtMoney } from "@/lib/format";
+import { fmtDateTime, fmtMoney, fmtMoneySigned } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -29,7 +33,7 @@ interface Props {
 export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Props) {
   const { t, i18n } = useTranslation();
   const side = i18n.dir() === "rtl" ? "left" : "right";
-  const { data: report, isLoading, isError } = useTillReport(tillId, open);
+  const { data: report, isLoading, isError, refetch } = useTillReport(tillId, open);
   const { data: summary } = useTillSummary(tillId, open);
   const shift = report?.till;
 
@@ -50,19 +54,16 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
 
         <div className="space-y-4 p-4">
           {isError ? (
-            <div className="flex flex-col items-center gap-3 py-10 text-center">
-              <AlertCircle className="size-8 text-destructive" />
-              <p className="text-sm text-muted-foreground">{t("tills.report.loadError", "Could not load the till report. Please try again.")}</p>
-            </div>
+            <ErrorState title={t("tills.report.loadError", "Could not load the till report. Please try again.")} onRetry={() => void refetch()} />
           ) : isLoading || !report || !shift ? (
             <div className="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                <Skeleton key={i} className="h-24 w-full rounded-2xl" />
               ))}
             </div>
           ) : (
             <>
-              <Card className="py-0">
+              <Card className="rounded-2xl py-0 shadow-none">
                 <CardContent className="space-y-2 p-4 text-sm">
                   <Row label={t("tills.opened", "Opened")} value={fmtDateTime(shift.opened_at)} />
                   {shift.closed_at ? <Row label={t("tills.closed", "Closed")} value={fmtDateTime(shift.closed_at)} /> : null}
@@ -89,9 +90,9 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
               </Card>
 
               {summary ? (
-                <Card className="py-0" data-testid="till-summary">
+                <Card className="rounded-2xl py-0 shadow-none" data-testid="till-summary">
                   <CardContent className="space-y-2 p-4 text-sm">
-                    <p className="text-xs font-medium text-muted-foreground">{t("tills.salesSummary", "Sales")}</p>
+                    <h3 className="text-sm font-semibold">{t("tills.salesSummary", "Sales")}</h3>
                     <Row label={t("dashboard.orders", "Orders")} value={String(summary.total_orders)} />
                     <Row label={t("dashboard.revenue", "Revenue")} value={fmtMoney(summary.total_revenue)} />
                     {summary.total_discount ? <Row label={t("nav.discounts", "Discounts")} value={fmtMoney(summary.total_discount)} /> : null}
@@ -102,11 +103,9 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
               ) : null}
 
               {/* Payment summary */}
-              <Card className="py-0">
+              <Card className="rounded-2xl py-0 shadow-none">
                 <CardContent className="space-y-2 p-4 text-sm">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {t("tills.paymentSummary", "Payment summary")}
-                  </p>
+                  <h3 className="text-sm font-semibold">{t("tills.paymentSummary", "Payment summary")}</h3>
                   {report.payment_summary.length === 0 ? (
                     <p className="text-muted-foreground">{t("common.noResults", "No results found")}</p>
                   ) : (
@@ -148,11 +147,9 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
               <ReconciliationTable lines={report.reconciliation ?? []} />
 
               {/* Cash reconciliation */}
-              <Card className="py-0">
+              <Card className="rounded-2xl py-0 shadow-none">
                 <CardContent className="space-y-2 p-4 text-sm">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {t("tills.cashReconciliation", "Cash reconciliation")}
-                  </p>
+                  <h3 className="text-sm font-semibold">{t("tills.cashReconciliation", "Cash reconciliation")}</h3>
                   <Row label={t("tills.openingCash", "Opening cash")} value={fmtMoney(shift.opening_cash)} />
                   {shift.opening_cash_was_edited ? (
                     <>
@@ -206,29 +203,23 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
 
               {/* Cash movements */}
               {report.cash_movements.length > 0 ? (
-                <Card className="py-0">
-                  <CardContent className="space-y-2 p-4 text-sm">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      {t("tills.cashMovements", "Cash movements")}
-                    </p>
+                <section className="space-y-3">
+                  <SectionHeader as="h3" title={t("tills.cashMovements", "Cash movements")} count={report.cash_movements.length} />
+                  <ListCard>
                     {report.cash_movements.map((m, i) => (
-                      <div key={i} className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="truncate">{m.note}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {m.moved_by_name} · {fmtDateTime(m.created_at)}
-                          </p>
-                        </div>
-                        <span className={cn("inline-flex shrink-0 items-center gap-0.5 tabular", m.amount < 0 ? "text-destructive" : "text-success")}>
-                          {m.amount < 0
-                            ? <ArrowUpRight className="size-3.5" aria-hidden="true" />
-                            : <ArrowDownLeft className="size-3.5" aria-hidden="true" />}
-                          {fmtMoney(m.amount)}
-                        </span>
-                      </div>
+                      <ListRow
+                        key={i}
+                        variant="ledger"
+                        className="sm:px-4"
+                        sign={m.amount < 0 ? "out" : "in"}
+                        title={m.note || t(m.amount < 0 ? "tills.cashOut" : "tills.cashIn")}
+                        meta={`${m.moved_by_name} · ${fmtDateTime(m.created_at)}`}
+                        value={fmtMoneySigned(m.amount)}
+                        numericValue
+                      />
                     ))}
-                  </CardContent>
-                </Card>
+                  </ListCard>
+                </section>
               ) : null}
             </>
           )}
@@ -242,7 +233,7 @@ function Row({ label, value, className }: { label: string; value: string; classN
   return (
     <div className={cn("flex items-center justify-between gap-2", className)}>
       <span className="text-muted-foreground">{label}</span>
-      <span className="tabular">{value}</span>
+      <bdi className="font-mono font-medium tabular-nums">{value}</bdi>
     </div>
   );
 }

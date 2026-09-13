@@ -1,23 +1,22 @@
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ShieldQuestion, Wifi } from "lucide-react";
+import { ShieldQuestion, Wifi } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { StatusPill, type StatusTone } from "@/components/app/status-pill";
 
-import type { Till } from "./api";
+import type { Till, TillStatus } from "./api";
 
-const STATUS_STYLES: Record<string, string> = {
-  open: "bg-success/10 text-success",
-  closed: "bg-muted text-muted-foreground",
-  force_closed: "bg-warning/10 text-warning",
+const STATUS_TONE: Record<TillStatus, StatusTone> = {
+  open: "accent",
+  closed: "neutral",
+  force_closed: "warning",
 };
 
-export function TillStatusBadge({ status }: { status: string }) {
+export function TillStatusBadge({ status }: { status: TillStatus }) {
   const { t } = useTranslation();
   return (
-    <Badge variant="secondary" className={cn(STATUS_STYLES[status] ?? "")}>
+    <StatusPill tone={STATUS_TONE[status] ?? "neutral"} size="sm">
       {t(`tillStatus.${status}`, status.replace("_", " "))}
-    </Badge>
+    </StatusPill>
   );
 }
 
@@ -25,16 +24,16 @@ export function TillStatusBadge({ status }: { status: string }) {
 export function VerificationBadge({ verification }: { verification: Till["verification"] }) {
   const { t } = useTranslation();
   if (verification !== "unverified" && verification !== "lan") return null;
-  const Icon = verification === "lan" ? Wifi : ShieldQuestion;
   return (
-    <Badge
-      variant="secondary"
-      data-testid="verification-badge"
-      className={cn(verification === "unverified" ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground")}
-    >
-      <Icon className="size-3" aria-hidden="true" />
-      {t(`tills.verification.${verification}`, verification === "lan" ? "Verified on LAN" : "Not verified")}
-    </Badge>
+    <span data-testid="verification-badge" className="contents">
+      <StatusPill
+        size="sm"
+        tone={verification === "unverified" ? "warning" : "neutral"}
+        icon={verification === "lan" ? Wifi : ShieldQuestion}
+      >
+        {t(`tills.verification.${verification}`, verification === "lan" ? "Verified on LAN" : "Not verified")}
+      </StatusPill>
+    </span>
   );
 }
 
@@ -42,15 +41,14 @@ export function FlagBadge({ till, onOpenOther }: { till: Pick<Till, "opened_whil
   const { t } = useTranslation();
   if (!till.opened_while_another_open) return null;
   return (
-    <span className="inline-flex flex-wrap items-center gap-1" data-testid="flag-badge">
-      <Badge variant="secondary" className="bg-warning/10 text-warning">
-        <AlertTriangle className="size-3" aria-hidden="true" />
+    <span className="inline-flex flex-wrap items-center gap-1.5" data-testid="flag-badge">
+      <StatusPill size="sm" tone="warning">
         {t("tills.flagged", "Opened while another till was open")}
-      </Badge>
+      </StatusPill>
       {till.other_till_id && onOpenOther ? (
         <button
           type="button"
-          className="text-xs text-primary underline-offset-2 hover:underline"
+          className="text-xs font-medium underline underline-offset-2 hover:text-foreground focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           onClick={(e) => {
             e.stopPropagation();
             onOpenOther(till.other_till_id!);
@@ -67,8 +65,10 @@ export function DisagreementBadge({ till }: { till: Pick<Till, "reconciliation_s
   const { t } = useTranslation();
   if (till.reconciliation_status !== "disagreed" || !till.disagreement_count) return null;
   return (
-    <Badge variant="secondary" data-testid="disagreement-badge" className="bg-destructive/10 text-destructive">
-      {t("tills.reconciliation.disagreements", { count: till.disagreement_count, defaultValue: "{{count}} mismatches" })}
-    </Badge>
+    <span data-testid="disagreement-badge" className="contents">
+      <StatusPill size="sm" tone="danger">
+        {t("tills.reconciliation.disagreements", { count: till.disagreement_count, defaultValue: "{{count}} mismatches" })}
+      </StatusPill>
+    </span>
   );
 }
