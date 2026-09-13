@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTillReport } from "./api";
+import { useTillReport, useTillSummary } from "./api";
 import { FlagBadge, VerificationBadge } from "./till-badges";
 import { ReconciliationTable } from "./reconciliation-table";
 import { fmtDateTime, fmtMoney } from "@/lib/format";
@@ -29,6 +29,7 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
   const { t, i18n } = useTranslation();
   const side = i18n.dir() === "rtl" ? "left" : "right";
   const { data: report, isLoading, isError } = useTillReport(tillId, open);
+  const { data: summary } = useTillSummary(tillId, open);
   const shift = report?.till;
 
   return (
@@ -73,6 +74,9 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
                       value={[report.order_number_range.first, report.order_number_range.last].map((n) => (report.order_number_range.device_code ? `${report.order_number_range.device_code}-${n}` : String(n))).join(" – ")}
                     />
                   ) : null}
+                  {report.open_bills_at_close != null ? (
+                    <Row label={t("tills.openBillsAtClose", "Open bills at close")} value={String(report.open_bills_at_close)} />
+                  ) : null}
                   {report.old_bills_at_close != null ? (
                     <Row label={t("tills.oldBillsAtClose", "Old open bills at close")} value={String(report.old_bills_at_close)} />
                   ) : null}
@@ -82,6 +86,19 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
                   </div>
                 </CardContent>
               </Card>
+
+              {summary ? (
+                <Card className="py-0" data-testid="till-summary">
+                  <CardContent className="space-y-2 p-4 text-sm">
+                    <p className="text-xs font-medium text-muted-foreground">{t("tills.salesSummary", "Sales")}</p>
+                    <Row label={t("dashboard.orders", "Orders")} value={String(summary.total_orders)} />
+                    <Row label={t("dashboard.revenue", "Revenue")} value={fmtMoney(summary.total_revenue)} />
+                    {summary.total_discount ? <Row label={t("nav.discounts", "Discounts")} value={fmtMoney(summary.total_discount)} /> : null}
+                    {summary.total_tax ? <Row label={t("tills.tax", "Tax")} value={fmtMoney(summary.total_tax)} /> : null}
+                    {summary.voided_orders ? <Row label={t("orders.voided", "Voided")} value={String(summary.voided_orders)} className="text-destructive" /> : null}
+                  </CardContent>
+                </Card>
+              ) : null}
 
               {/* Payment summary */}
               <Card className="py-0">

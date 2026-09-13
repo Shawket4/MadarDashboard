@@ -14,6 +14,16 @@ export interface CreateOrderRequest {
   created_at?: string | null;
   /** @nullable */
   customer_name?: string | null;
+  /**
+     * The device's code; with `device_id` + `order_number` the number is stored verbatim.
+     * @nullable
+     */
+  device_code?: string | null;
+  /**
+     * The device ringing the order (else `X-Madar-Device`).
+     * @nullable
+     */
+  device_id?: string | null;
   /** @nullable */
   discount_amount?: number | null;
   /** @nullable */
@@ -62,15 +72,20 @@ export interface CreateOrderRequest {
   payment_method: string;
   /** @nullable */
   payment_splits?: PaymentSplitInput[] | null;
-  shift_id: string;
   /** @nullable */
   subtotal?: number | null;
   /** @nullable */
   tax_amount?: number | null;
+  till_id: string;
   /** @nullable */
   tip_amount?: number | null;
   /** @nullable */
   tip_payment_method?: string | null;
   /** @nullable */
   total_amount?: number | null;
+  /**
+     * `server` | `lan` | `unverified` — the till's verification as the device knew it.
+     * @nullable
+     */
+  verification?: string | null;
 }

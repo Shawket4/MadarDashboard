@@ -123,12 +123,14 @@ export interface Order {
      * choose is stated separately from the tax rather than folded into it.
      */
   service_charge_amount?: number;
+  /** DEPRECATED: same value as `till_id` (required by POS v0.5.1/v0.6.0). */
   shift_id: string;
   status: string;
   subtotal: number;
   tax_amount: number;
   teller_id: string;
   teller_name: string;
+  till_id: string;
   /**
      * The branch's effective IANA timezone (see `crate::tz`) — the zone every
      * timestamp on this payload is shown and printed in. Additive: older

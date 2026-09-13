@@ -51,7 +51,7 @@ export interface SettleOpenTicketRequest {
      * @nullable
      */
   settled_at?: string | null;
-  shift_id: string;
+  till_id: string;
   /** @nullable */
   tip_amount?: number | null;
   /** @nullable */

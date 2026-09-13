@@ -19,9 +19,11 @@ export interface Refund {
   order_id: string;
   /** One of the [`RefundReason`] spellings. */
   reason: string;
+  /** DEPRECATED: same value as `till_id`. */
+  shift_id: string;
   /**
      * The shift the refund was ISSUED in — the drawer the money left. Not
-     * necessarily the shift the order was sold in.
+     * necessarily the till the order was sold in.
      */
-  shift_id: string;
+  till_id: string;
 }

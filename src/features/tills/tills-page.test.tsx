@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { till } from "./fixtures.test-util";
 
 await import("@/i18n");
-const { TillsTable, TillFilters, validateTillsSearch } = await import("./tills-page");
+const { TillsTable, TillFilters, OpenBillsLine, validateTillsSearch } = await import("./tills-page");
 
 describe("TillsTable", () => {
   it("shows the flag badge and links to the other till", async () => {
@@ -56,5 +56,17 @@ describe("TillFilters", () => {
       today: undefined,
     });
     expect(validateTillsSearch({ status: "nope" }).status).toBeUndefined();
+  });
+});
+
+describe("OpenBillsLine", () => {
+  const notice = { open_bills_count: 4, open_bills_amount: 125_00, old_bills_count: 0, old_bill_hours: 3, seated_tables_count: 1, since: "2026-09-13T08:00:00Z" };
+
+  it("counts bills left open and flags only old ones", () => {
+    const { rerender } = render(<OpenBillsLine notice={notice} />);
+    expect(screen.getByTestId("open-bills-notice")).toHaveTextContent(/4/);
+    expect(screen.queryByTestId("old-bills")).toBeNull();
+    rerender(<OpenBillsLine notice={{ ...notice, old_bills_count: 2 }} />);
+    expect(screen.getByTestId("old-bills")).toHaveTextContent(/2.*3/);
   });
 });

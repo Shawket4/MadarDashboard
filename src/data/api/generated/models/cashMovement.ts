@@ -3,28 +3,19 @@
 
 export interface CashMovement {
   amount: number;
-  /**
-     * Client-minted idempotency / reconciliation key, echoed back so an
-     * offline client can map its queued movement to the server row. NULL for
-     * live online movements.
-     * @nullable
-     */
+  /** @nullable */
   client_ref?: string | null;
-  /**
-     * For a `correction`: the movement it reverses. NULL for every other kind,
-     * and for a correction of something never recorded as a row.
-     * @nullable
-     */
+  /** @nullable */
   corrects_id?: string | null;
   created_at: string;
+  /** @nullable */
+  device_id?: string | null;
   id: string;
-  /**
-     * One of `pay_in` / `pay_out` / `safe_drop` / `correction` — see
-     * [`CashMovementKind`].
-     */
   kind: string;
   moved_by: string;
   moved_by_name: string;
   note: string;
+  /** DEPRECATED: same value as `till_id` (kept for POS v0.5.1/v0.6.0). */
   shift_id: string;
+  till_id: string;
 }

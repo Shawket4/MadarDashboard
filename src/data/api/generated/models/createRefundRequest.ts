@@ -17,6 +17,11 @@ export interface CreateRefundRequest {
      */
   client_ref?: string | null;
   /**
+     * The device issuing the refund (else the `X-Madar-Device` header).
+     * @nullable
+     */
+  device_id?: string | null;
+  /**
      * When the refund was issued. Omit for live requests — the server stamps
      * `now()`. An offline till sends the real time; future values are rejected.
      * @nullable
@@ -42,5 +47,5 @@ export interface CreateRefundRequest {
      * refund must name the shift it was issued in, the way a queued sale does.
      * @nullable
      */
-  shift_id?: string | null;
+  till_id?: string | null;
 }

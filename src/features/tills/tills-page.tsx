@@ -28,8 +28,10 @@ import {
   useDeleteTill,
   useForceCloseTill,
   useListTills,
+  useOpenBillsNotice,
   useOpenTills,
   useTillPreFill,
+  type OpenBillsNotice,
   type Till,
   type TillStatus,
 } from "./api";
@@ -90,6 +92,7 @@ export function TillsPage() {
 
   const current = useTillPreFill(branchId);
   const openNow = useOpenTills(branchId);
+  const billsNotice = useOpenBillsNotice(branchId);
   const tills = useListTills(scopeBranchId, {
     status: search.status,
     teller_id: search.teller,
@@ -223,7 +226,7 @@ export function TillsPage() {
         </div>
       </div>
 
-      {branchId ? <OpenNowStrip tills={openNow.data ?? []} onOpen={setReportId} /> : null}
+      {branchId ? <OpenNowStrip tills={openNow.data ?? []} notice={billsNotice.data} onOpen={setReportId} /> : null}
 
       <TillFilters
         search={search}
@@ -255,7 +258,7 @@ function uniqueBy<T>(rows: T[], id: (r: T) => string, label: (r: T) => string) {
 }
 
 /** Open right now at this branch; kept live by the `tills` realtime topic. */
-export function OpenNowStrip({ tills, onOpen }: { tills: Till[]; onOpen: (id: string) => void }) {
+export function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenBillsNotice; onOpen: (id: string) => void }) {
   const { t } = useTranslation();
   return (
     <Card className="py-0">
@@ -264,6 +267,7 @@ export function OpenNowStrip({ tills, onOpen }: { tills: Till[]; onOpen: (id: st
           <Clock className="size-4 text-success" aria-hidden="true" />
           {t("tills.openNow", "Open now")} <span className="tabular text-muted-foreground">{tills.length}</span>
         </p>
+        {notice && notice.open_bills_count > 0 ? <OpenBillsLine notice={notice} /> : null}
         {tills.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("dashboard.noOpenTill", "No open till")}</p>
         ) : (
@@ -291,6 +295,26 @@ export function OpenNowStrip({ tills, onOpen }: { tills: Till[]; onOpen: (id: st
         )}
       </CardContent>
     </Card>
+  );
+}
+
+/** "N bills left open since …" with the old-bill count (branch's old_bill_hours). */
+export function OpenBillsLine({ notice }: { notice: OpenBillsNotice }) {
+  const { t } = useTranslation();
+  return (
+    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground" data-testid="open-bills-notice">
+      <span>
+        {notice.since
+          ? t("tills.openBillsNotice", { count: notice.open_bills_count, since: fmtDateTime(notice.since), defaultValue: "{{count}} bills left open since {{since}}" })
+          : t("tills.openBillsCount", { count: notice.open_bills_count, defaultValue: "{{count}} open bills" })}
+        <span className="ms-1 tabular">({fmtMoney(notice.open_bills_amount)})</span>
+      </span>
+      {notice.old_bills_count > 0 ? (
+        <span className="font-medium text-warning" data-testid="old-bills">
+          {t("tills.oldBills", { count: notice.old_bills_count, hours: notice.old_bill_hours, defaultValue: "{{count}} older than {{hours}}h" })}
+        </span>
+      ) : null}
+    </p>
   );
 }
 

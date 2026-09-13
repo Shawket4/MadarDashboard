@@ -3,7 +3,7 @@
 
 export type ExportOrdersParams = {
 branch_id?: string;
-shift_id?: string;
+till_id?: string;
 teller_name?: string;
 /**
  * Filter by the WAITER who opened the ticket (ILIKE, partial match).

@@ -1,45 +1,30 @@
 /**
- * Devices (TILLS_CONTRACT §2.4) and payment-method availability (§2.3).
- * Hand-typed until the backend exports openapi.json; then orval replaces these.
+ * Devices (TILLS_CONTRACT §2.4) and payment-method availability (§2.3) on top
+ * of the orval-generated client. No hand-written requests live here.
  */
-import { useMutation, useQuery } from "@tanstack/react-query";
+import type { UseQueryResult } from "@tanstack/react-query";
 
-import { customInstance } from "@/data/api/custom-instance";
+import {
+  useGetAvailability,
+  useGetEffective,
+  useListDevices,
+  usePutBranchAvailability,
+  usePutDeviceAvailability,
+  usePutUserAvailability,
+  useUpdateDevice,
+} from "@/data/api/generated/api";
+import type {
+  AllowList,
+  Device as GenDevice,
+  PaymentMethodAvailability,
+  UpdateDeviceRequest,
+} from "@/data/api/generated/models";
 import { queryClient } from "@/data/api/query";
 
-export interface Device {
-  id: string;
-  org_id: string;
-  branch_id: string | null;
-  code: string;
-  label: string | null;
-  kind: "pos" | "kds" | "waiter";
-  platform: string | null;
-  app_version: string | null;
-  first_seen_at: string;
-  last_seen_at: string;
-  retired_at: string | null;
-  code_conflict: boolean;
-}
-
-export interface PatchDeviceRequest {
-  code?: string;
-  label?: string | null;
-  branch_id?: string;
-  retired?: boolean;
-}
-
-export interface AllowList {
-  restricted: boolean;
-  payment_method_ids: string[];
-}
-
-export interface PaymentMethodAvailability {
-  branch_id: string;
-  branch: AllowList;
-  users: { user_id: string; payment_method_ids: string[] }[];
-  devices: { device_id: string; payment_method_ids: string[] }[];
-}
+export type DeviceKind = "pos" | "kds" | "waiter";
+export type Device = Omit<GenDevice, "kind"> & { kind: DeviceKind };
+export type PatchDeviceRequest = UpdateDeviceRequest;
+export type { AllowList, PaymentMethodAvailability };
 
 export type AvailabilityScope = "branches" | "users" | "devices";
 
@@ -51,36 +36,43 @@ const invalidate = (...prefixes: string[]) =>
   });
 
 export function useDevices(branchId: string | null | undefined) {
-  return useQuery({
-    queryKey: ["/devices", branchId],
-    queryFn: () => customInstance<Device[]>({ url: "/devices", method: "GET", params: { branch_id: branchId } }),
-    enabled: !!branchId,
-  });
+  return useListDevices({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } }) as UseQueryResult<Device[]>;
 }
 
 export function usePatchDevice() {
-  return useMutation({
-    mutationFn: (v: { id: string; data: PatchDeviceRequest }) =>
-      customInstance<Device>({ url: `/devices/${v.id}`, method: "PATCH", data: v.data }),
-    onSuccess: () => void invalidate("/devices", "/tills"),
-  });
+  return useUpdateDevice({ mutation: { onSuccess: () => void invalidate("/devices", "/tills") } });
 }
 
 export function useAvailability(branchId: string | null | undefined) {
-  return useQuery({
-    queryKey: ["/payment-methods/availability", branchId],
-    queryFn: () =>
-      customInstance<PaymentMethodAvailability>({ url: "/payment-methods/availability", method: "GET", params: { branch_id: branchId } }),
-    enabled: !!branchId,
-  });
+  return useGetAvailability({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } });
 }
 
+/** The methods a charge would offer for this branch/teller/device. */
+export function useEffectiveMethods(branchId: string | null | undefined, userId?: string, deviceId?: string) {
+  return useGetEffective(
+    { branch_id: branchId ?? "", user_id: userId, device_id: deviceId },
+    { query: { enabled: !!branchId } },
+  );
+}
+
+/** One mutation over the three owner-scoped PUTs. */
 export function usePutAvailability() {
-  return useMutation({
-    mutationFn: (v: { scope: AvailabilityScope; id: string; data: AllowList }) =>
-      customInstance<AllowList>({ url: `/payment-methods/availability/${v.scope}/${v.id}`, method: "PUT", data: v.data }),
-    onSuccess: () => void invalidate("/payment-methods"),
-  });
+  const opts = { mutation: { onSuccess: () => void invalidate("/payment-methods") } };
+  const branch = usePutBranchAvailability(opts);
+  const user = usePutUserAvailability(opts);
+  const device = usePutDeviceAvailability(opts);
+  const pending = branch.isPending || user.isPending || device.isPending;
+  return {
+    isPending: pending,
+    mutate: (
+      v: { scope: AvailabilityScope; id: string; data: AllowList },
+      cb?: { onSuccess?: () => void; onError?: (e: unknown) => void },
+    ) => {
+      if (v.scope === "branches") branch.mutate({ branchId: v.id, data: v.data }, cb);
+      else if (v.scope === "users") user.mutate({ userId: v.id, data: v.data }, cb);
+      else device.mutate({ deviceId: v.id, data: v.data }, cb);
+    },
+  };
 }
 
 /** Wire allow-list for an owner: rows present = restricted. */

@@ -106,7 +106,8 @@
       "accepted": "مقبول",
       "rejected": "مرفوض",
       "ignored": "تم التجاهل"
-    }
+    },
+    "ok": "حسنًا"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -3659,7 +3660,13 @@
       "today": "اليوم"
     },
     "lastTillTitle": "كانت هذه آخر وردية مفتوحة",
-    "lastTillBody": "ما زالت {{bills}} فواتير ({{amount}}) مفتوحة و{{tables}} طاولات مشغولة."
+    "lastTillBody": "ما زالت {{bills}} فواتير ({{amount}}) مفتوحة و{{tables}} طاولات مشغولة.",
+    "openBillsNotice": "{{count}} فواتير متروكة مفتوحة منذ {{since}}",
+    "openBillsCount": "{{count}} فواتير مفتوحة",
+    "oldBills": "{{count}} أقدم من {{hours}} ساعة",
+    "openBillsAtClose": "فواتير مفتوحة عند الإغلاق",
+    "salesSummary": "المبيعات",
+    "tax": "الضريبة"
   },
   "aiChat": {
     "title": "اسأل بياناتك",

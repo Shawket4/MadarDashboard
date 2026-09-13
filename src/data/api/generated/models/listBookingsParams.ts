@@ -4,7 +4,7 @@
 export type ListBookingsParams = {
 branch_id: string;
 /**
- * Service date (`YYYY-MM-DD`, branch-local, midnight→midnight). Defaults to today.
+ * Calendar date (`YYYY-MM-DD`, branch-local, midnight→midnight). Defaults to today.
  */
 date?: string;
 /**

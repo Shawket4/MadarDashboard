@@ -106,7 +106,8 @@
       "accepted": "Accepted",
       "rejected": "Rejected",
       "ignored": "Ignored"
-    }
+    },
+    "ok": "OK"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -3559,7 +3560,13 @@
       "today": "Today"
     },
     "lastTillTitle": "That was the last open till",
-    "lastTillBody": "{{bills}} bills ({{amount}}) are still open and {{tables}} tables are seated."
+    "lastTillBody": "{{bills}} bills ({{amount}}) are still open and {{tables}} tables are seated.",
+    "openBillsNotice": "{{count}} bills left open since {{since}}",
+    "openBillsCount": "{{count}} open bills",
+    "oldBills": "{{count}} older than {{hours}}h",
+    "openBillsAtClose": "Open bills at close",
+    "salesSummary": "Sales",
+    "tax": "Tax"
   },
   "aiChat": {
     "title": "Ask your data",

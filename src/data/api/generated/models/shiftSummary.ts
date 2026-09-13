@@ -14,13 +14,18 @@ export interface ShiftSummary {
   closing_cash_declared?: number | null;
   /** @nullable */
   closing_cash_system?: number | null;
+  /** @nullable */
+  device_code?: string | null;
   /**
      * This shift's sales as rung up, before any refund. Was what
      * `total_revenue` meant until 2026-09.
      */
   gross_sales?: number;
   opened_at: string;
+  opened_while_another_open: boolean;
   opening_cash: number;
+  /** @nullable */
+  reconciliation_status?: string | null;
   /**
      * Money refunded AGAINST this shift's sales, whenever and from whichever
      * drawer it was issued. `gross_sales − refunded_amount = total_revenue`.
@@ -42,10 +47,12 @@ export interface ShiftSummary {
      * OUT, with their own tender — see `refunds_issued_*`).
      */
   revenue_by_method: unknown;
+  /** DEPRECATED: same value as `till_id` (required by POS v0.5.1/v0.6.0). */
   shift_id: string;
   status: string;
   teller_id: string;
   teller_name: string;
+  till_id: string;
   /**
      * Delivery fees on this shift's sales. Inside `total_revenue` (the
      * customer paid them) but outside the tax base and not food revenue.

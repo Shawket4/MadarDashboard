@@ -6,7 +6,8 @@
  * 1. operationIds `list_transfers` / `create_transfer` are used by BOTH the
  *    floor-transfer and inventory-transfer families; orval drops one side of
  *    an operationId collision, which erased the floor-transfer client.
- *    → rename the floor pair.
+ *    → rename the floor pair. Same for `get_bundle` (menu bundle vs asset
+ *    bundle download) and `add_cash_movement` (legacy /shifts vs /tills).
  *
  * 2. The schema name `CreateTransferRequest` is used by both
  *    `held_orders::CreateTransferRequest` (floor) and
@@ -26,6 +27,14 @@ const OPERATION_RENAMES: Record<string, Record<string, string>> = {
   "/floor/transfers": {
     get: "list_floor_transfers",
     post: "create_floor_transfer",
+  },
+  // `get_bundle` is also the asset-bundle download; keep the menu bundle hook.
+  "/sync/asset-bundles/{org_id}/{file_name}": {
+    get: "get_asset_bundle",
+  },
+  // `add_cash_movement` is shared by the legacy /shifts adapter and /tills.
+  "/shifts/{shift_id}/cash-movements": {
+    post: "legacy_add_shift_cash_movement",
   },
 };
 

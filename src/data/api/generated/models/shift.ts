@@ -1,58 +1,15 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { Till } from './till';
 
-export interface Shift {
-  branch_id: string;
-  /**
-     * Branch label — only populated by the shifts list (so the "All branches"
-     * view can show which branch each shift belongs to). Other shift endpoints
-     * leave it `null`.
-     * @nullable
-     */
-  branch_name?: string | null;
+/**
+ * Legacy `Shift` = `Till` + `till_id`/`till_name`: the branch's legacy drawer
+ * entity (the one `GET /tills` synthesizes) and its name, exactly as the
+ * pre-rename backend reported them. Build it with [`legacy_shift`].
+ */
+export type Shift = Till & ({
   /** @nullable */
-  cash_discrepancy?: number | null;
-  /** @nullable */
-  closed_at?: string | null;
-  /** @nullable */
-  closed_by?: string | null;
-  /** @nullable */
-  closing_cash_declared?: number | null;
-  /** @nullable */
-  closing_cash_system?: number | null;
-  /** @nullable */
-  force_close_reason?: string | null;
-  /** @nullable */
-  force_closed_at?: string | null;
-  /** @nullable */
-  force_closed_by?: string | null;
-  id: string;
-  /** @nullable */
-  notes?: string | null;
-  opened_at: string;
-  opening_cash: number;
-  /** @nullable */
-  opening_cash_edit_reason?: string | null;
-  /** @nullable */
-  opening_cash_original?: number | null;
-  opening_cash_was_edited: boolean;
-  status: string;
-  teller_id: string;
-  teller_name: string;
-  /**
-     * The till (drawer) this shift is on. Populated by the read/list/open
-     * endpoints; mutation responses that build the row via RETURNING may leave
-     * `till_name` null (same convention as `branch_name`).
-     * @nullable
-     */
   till_id?: string | null;
   /** @nullable */
   till_name?: string | null;
-  /**
-     * The branch's effective IANA timezone (see `crate::tz`) — the zone every
-     * timestamp on this payload is shown and printed in. Additive: older
-     * clients ignore it; `null` only where a write path does not resolve it.
-     * @nullable
-     */
-  timezone?: string | null;
-}
+});

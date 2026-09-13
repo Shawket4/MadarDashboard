@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { ErrorBodyTill } from './errorBodyTill';
 
 /**
  * Wire shape of every error JSON. Keep in lockstep with
@@ -15,4 +16,10 @@ export interface ErrorBody {
   code?: string | null;
   /** Human-readable error message. */
   error: string;
+  /**
+     * The till a `TILL_OPEN_AT_OTHER_BRANCH` / `TILL_OPEN_ELSEWHERE` refusal
+     * is about (`TillBrief`). Omitted everywhere else.
+     * @nullable
+     */
+  till?: ErrorBodyTill;
 }

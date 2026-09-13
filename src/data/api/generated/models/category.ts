@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { AssetGroupRef } from './assetGroupRef';
 import type { CategoryNameTranslations } from './categoryNameTranslations';
 
 export interface Category {
@@ -7,6 +8,7 @@ export interface Category {
   /** @nullable */
   deleted_at?: string | null;
   id: string;
+  image?: null | AssetGroupRef;
   /** @nullable */
   image_url?: string | null;
   is_active: boolean;
