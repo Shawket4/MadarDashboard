@@ -2,7 +2,6 @@ import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   CheckCircle2,
-  Loader2,
   MessageCircle,
   PauseCircle,
   Power,
@@ -12,12 +11,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { PaneHeader } from "@/features/settings/pane-header";
+import { StatusPill } from "@/components/app/status-pill";
+import { useConfirm } from "@/components/app/confirm-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { getErrorMessage } from "@/data/api/errors";
 import { queryClient } from "@/data/api/query";
@@ -36,6 +37,7 @@ const cacheStatus = (data: WhatsappStatus) =>
 
 export function WhatsappPage() {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const role = useAuthStore((s) => s.user?.role);
   const isSuperAdmin = role === "super_admin";
 
@@ -78,13 +80,13 @@ export function WhatsappPage() {
   // is directly reachable, so block non-super-admins here too.
   if (!isSuperAdmin) {
     return (
-      <Page>
-        <PageHeader title={t("whatsapp.title", "WhatsApp")} />
+      <div className="space-y-3">
+        <PaneHeader title={t("whatsapp.title", "WhatsApp")} />
         <EmptyState
           icon={MessageCircle}
           title={t("whatsapp.forbidden", "Only super admins can manage the WhatsApp connection.")}
         />
-      </Page>
+      </div>
     );
   }
 
@@ -92,8 +94,8 @@ export function WhatsappPage() {
   const busy = pair.isPending || logout.isPending;
 
   return (
-    <Page>
-      <PageHeader
+    <div className="space-y-3">
+      <PaneHeader
         title={t("whatsapp.title", "WhatsApp")}
         description={t(
           "whatsapp.subtitle",
@@ -111,17 +113,17 @@ export function WhatsappPage() {
         }
       />
 
-      <div className="mx-auto w-full max-w-xl space-y-4">
+      <div className="space-y-3">
         {/* ── Connection card ─────────────────────────────────── */}
         <Card>
           <CardContent className="space-y-4 p-5">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-lg bg-success/10 text-success">
-                  <MessageCircle className="size-5" />
+                <span className="grid size-9 place-items-center rounded-[10px] bg-secondary text-muted-foreground">
+                  <MessageCircle className="size-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-bold">{t("whatsapp.connection", "Connection")}</p>
+                  <h3 className="text-base font-semibold">{t("whatsapp.connection", "Connection")}</h3>
                   <p className="text-xs text-muted-foreground">
                     {t("whatsapp.session", "Session")}: <span className="font-mono">{status?.session ?? "—"}</span>
                   </p>
@@ -131,8 +133,9 @@ export function WhatsappPage() {
             </div>
 
             {loading ? (
-              <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" /> {t("common.loading", "Loading…")}
+              <div className="space-y-2 py-2" aria-busy>
+                <Skeleton className="h-12 w-full rounded-xl" />
+                <Skeleton className="h-10 w-full rounded-xl" />
               </div>
             ) : !status?.configured ? (
               <Notice
@@ -154,18 +157,29 @@ export function WhatsappPage() {
               />
             ) : status.logged_in ? (
               <div className="space-y-4">
-                <div className="flex items-center gap-3 rounded-lg bg-success/10 p-3 text-success">
+                <div className="flex items-center gap-3 rounded-xl bg-success/12 p-3 text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]">
                   <CheckCircle2 className="size-5 shrink-0" />
                   <p className="text-sm font-medium">
                     {t("whatsapp.linked", "A number is linked and ready to send.")}
                   </p>
                 </div>
                 <Button
-                  variant="destructive"
-                  className="w-full"
+                  variant="outline"
+                  className="w-full text-destructive sm:w-auto"
                   loading={logout.isPending}
                   disabled={busy}
-                  onClick={() => logout.mutate()}
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: t("whatsapp.unlinkTitle", "Unlink this WhatsApp number?"),
+                      description: t(
+                        "whatsapp.unlinkHint",
+                        "OTP codes and order updates stop sending until a number is linked again by scanning a new QR code.",
+                      ),
+                      confirmLabel: t("whatsapp.unlink", "Unlink number"),
+                      destructive: true,
+                    });
+                    if (ok) logout.mutate();
+                  }}
                 >
                   <Power className="size-4" /> {t("whatsapp.unlink", "Unlink number")}
                 </Button>
@@ -185,7 +199,7 @@ export function WhatsappPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3 py-6 text-center">
-                <span className="grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
+                <span className="grid size-12 place-items-center rounded-full bg-secondary text-muted-foreground">
                   <QrCode className="size-6" />
                 </span>
                 <p className="text-sm text-muted-foreground">
@@ -204,11 +218,11 @@ export function WhatsappPage() {
           <Card>
             <CardContent className="flex items-center justify-between gap-3 p-5">
               <div className="flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-lg bg-warning/10 text-warning">
-                  <PauseCircle className="size-5" />
+                <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-secondary text-muted-foreground">
+                  <PauseCircle className="size-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-bold">{t("whatsapp.pauseTitle", "Pause sending")}</p>
+                  <h3 className="text-base font-semibold">{t("whatsapp.pauseTitle", "Pause sending")}</h3>
                   <p className="max-w-xs text-xs text-muted-foreground">
                     {t(
                       "whatsapp.pauseHint",
@@ -219,9 +233,7 @@ export function WhatsappPage() {
               </div>
               <div className="flex items-center gap-2">
                 {status.paused ? (
-                  <Badge variant="outline" className="border-transparent bg-warning/15 text-warning">
-                    {t("whatsapp.paused", "Paused")}
-                  </Badge>
+                  <StatusPill tone="warning">{t("whatsapp.paused", "Paused")}</StatusPill>
                 ) : null}
                 <Switch
                   checked={status.paused}
@@ -233,7 +245,7 @@ export function WhatsappPage() {
           </Card>
         ) : null}
       </div>
-    </Page>
+    </div>
   );
 }
 
@@ -250,40 +262,32 @@ function StatusBadge({
 }) {
   if (loading || !status) {
     return (
-      <Badge variant="outline" className="gap-1.5">
-        <Loader2 className="size-3 animate-spin" /> {t("whatsapp.checking", "Checking…")}
-      </Badge>
+      <StatusPill tone="neutral">{t("whatsapp.checking", "Checking…")}</StatusPill>
     );
   }
   if (!status.configured || !status.reachable) {
     return (
-      <Badge variant="outline" className="gap-1.5 border-transparent bg-warning/15 text-warning">
-        <AlertTriangle className="size-3" /> {t("whatsapp.offline", "Offline")}
-      </Badge>
+      <StatusPill tone="warning">{t("whatsapp.offline", "Offline")}</StatusPill>
     );
   }
   if (status.logged_in) {
     return (
-      <Badge variant="outline" className="gap-1.5 border-transparent bg-success/15 text-success">
-        <CheckCircle2 className="size-3" /> {t("whatsapp.connected", "Connected")}
-      </Badge>
+      <StatusPill tone="success">{t("whatsapp.connected", "Connected")}</StatusPill>
     );
   }
   return (
-    <Badge variant="outline" className="gap-1.5 border-transparent bg-info/15 text-info">
-      <QrCode className="size-3" /> {t("whatsapp.awaitingScan", "Awaiting scan")}
-    </Badge>
+    <StatusPill tone="accent" icon={QrCode}>{t("whatsapp.awaitingScan", "Awaiting scan")}</StatusPill>
   );
 }
 
 function Notice({ title, body }: { tone: "warning"; title: string; body: string }) {
   // Static classes only — Tailwind's JIT can't see interpolated class names.
   return (
-    <div className="flex items-start gap-3 rounded-lg bg-warning/10 p-3 text-warning">
-      <AlertTriangle className="mt-0.5 size-5 shrink-0" />
+    <div className="flex items-start gap-3 rounded-xl bg-warning/14 p-3">
+      <AlertTriangle className="mt-0.5 size-5 shrink-0 text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]" />
       <div>
         <p className="text-sm font-semibold">{title}</p>
-        <p className="text-xs text-warning-foreground">{body}</p>
+        <p className="text-sm text-muted-foreground">{body}</p>
       </div>
     </div>
   );

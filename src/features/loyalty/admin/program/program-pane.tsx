@@ -26,7 +26,7 @@ import { SignupCard } from "./signup-card";
 import { fromWire, programSchema, toWire, type ProgramValues } from "./form-schema";
 import { TextRow, ToggleRow } from "./fields";
 import { Card, CardContent } from "@/components/ui/card";
-import { EmptyState } from "@/components/app/empty-state";
+import { ErrorState } from "@/components/app/empty-state";
 import { useAuthStore } from "@/data/stores/auth.store";
 
 import { loyaltyAccess } from "../../shared/access";
@@ -54,22 +54,19 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
   if (query.isLoading) {
     return (
       <div className="space-y-3">
-        <Skeleton className="h-9 w-full" />
-        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
+        <Skeleton className="h-48 w-full rounded-2xl" />
       </div>
     );
   }
 
   if (query.isError || !settings) {
     return (
-      <EmptyState
+      <ErrorState
         title={t("loyalty.loadFailed", "Couldn't load the program")}
-        description={query.error ? getErrorMessage(query.error) : undefined}
-        action={
-          <Button variant="outline" onClick={() => void query.refetch()}>
-            {t("common.retry", "Retry")}
-          </Button>
-        }
+        message={query.error ? getErrorMessage(query.error) : undefined}
+        onRetry={() => void query.refetch()}
+        retrying={query.isFetching}
       />
     );
   }
@@ -92,6 +89,8 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
         "loyalty.revertBody",
         "This branch will follow the organisation-wide settings again. Its own rules are removed.",
       ),
+      confirmLabel: t("loyalty.revert", "Follow the organisation"),
+      destructive: true,
     });
     if (!ok) return;
     try {
@@ -106,7 +105,7 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
   return (
     <form onSubmit={form.handleSubmit(submit)} className="space-y-4" noValidate>
       {!canEditProgram ? (
-        <p className="rounded-lg border border-border/60 bg-muted/40 p-3 text-xs text-muted-foreground">
+        <p className="rounded-xl bg-secondary/60 p-3 text-sm text-muted-foreground">
           {t("loyalty.readOnly", "You can view the program here, but only a manager or admin can change it.")}
         </p>
       ) : null}
@@ -114,7 +113,7 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
           read-only viewer cannot half-edit a form they cannot save. */}
       <fieldset disabled={!canEditProgram} className="min-w-0 space-y-4">
       {inherited ? (
-        <p className="rounded-lg border border-border/60 bg-muted/40 p-3 text-xs text-muted-foreground">
+        <p className="rounded-xl bg-secondary/60 p-3 text-sm text-muted-foreground">
           {t(
             "loyalty.inheritedHint",
             "This branch follows the organisation's program. Saving here gives it rules of its own.",

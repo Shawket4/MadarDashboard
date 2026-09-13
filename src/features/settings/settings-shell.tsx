@@ -1,79 +1,107 @@
 /**
- * The Settings shell: a persistent list of panes on one side, the pane itself
- * on the other.
+ * The Settings shell: one page header, a quiet list of panes at the start, and
+ * the pane itself at reading width beside it.
  *
- * Rebuilt around a simple idea — configuration is a *place*, not a pile. The old
- * page was a stack of cards with the real settings scattered across five
- * top-level nav entries, so "where do I change the delivery fee" had no
- * answer you could guess. Now every rule the business sets lives under one
- * roof, grouped by what it affects, and each pane is its own route.
+ * Configuration is a *place*, not a pile: every rule the business sets lives
+ * under one roof, grouped by what it affects, and each pane is its own route.
  *
- * On a phone the rail becomes the index: you see the list, tap through to a
- * pane, and the header takes you back — rather than a rail squeezed into
- * a column too narrow to read.
+ * On a phone the list becomes a picker above the pane — every pane (the index
+ * included) stays one tap away without a rail squeezed into a narrow column.
  */
 import { useTranslation } from "react-i18next";
-import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
+import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { Settings } from "lucide-react";
 
-import { Page } from "@/components/app/page";
+import { Page, PageHeader, PAGE_WIDTH_CLASS } from "@/components/app/page";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { cn } from "@/lib/utils";
 
-import { visibleSettings } from "./settings-nav";
+import { visibleSettings, type SettingsLeaf } from "./settings-nav";
+
+const isActive = (item: SettingsLeaf, pathname: string, onIndex: boolean) =>
+  item.to === "/settings" ? onIndex : pathname === item.to || pathname.startsWith(`${item.to}/`);
+
+/**
+ * Panes owned by other areas may still render their own <Page>/<PageHeader>.
+ * Inside the shell those collapse: no second gutter, no second glyph tile, and
+ * the title drops to section size so the page keeps a single h1-sized title.
+ */
+const NESTED_PAGE_FALLBACK = cn(
+  "[&_[data-page-width]]:max-w-none [&_[data-page-width]]:px-0 [&_[data-page-width]]:pt-0 [&_[data-page-width]]:pb-0 sm:[&_[data-page-width]]:px-0 lg:[&_[data-page-width]]:px-0 lg:[&_[data-page-width]]:pt-0",
+  "[&_[data-slot=page-header]_h1]:text-base [&_[data-slot=page-header]_h1]:font-semibold sm:[&_[data-slot=page-header]_h1]:text-base",
+  "[&_[data-slot=page-header]>div>div:first-child:has([data-slot=page-glyph])]:hidden",
+);
 
 export function SettingsShell() {
   const { t } = useTranslation();
   const role = useAuthStore((s) => s.user?.role);
   const groups = visibleSettings(role);
   const { pathname } = useLocation();
-  // "/settings" is the index; anything deeper is a pane.
+  const navigate = useNavigate();
   const onIndex = pathname === "/settings" || pathname === "/settings/";
 
+  const current = groups.flatMap((g) => g.items).find((i) => isActive(i, pathname, onIndex));
+
   return (
-    <Page>
-      <div className="grid gap-6 lg:grid-cols-[248px_minmax(0,1fr)]">
-        {/* The rail. Hidden on small screens once you are inside a pane, so a
-            phone shows one thing at a time instead of two half-things. */}
-        <nav
-          aria-label={t("nav.settings", "Settings")}
-          className={cn("space-y-6", !onIndex && "hidden lg:block")}
-        >
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-            {t("nav.settings", "Settings")}
-          </h1>
+    <Page width="full">
+      <PageHeader title={t("nav.settings", "Settings")} icon={Settings} />
+
+      {/* Phone / tablet: the pane list as a picker. */}
+      <div className="lg:hidden">
+        <Select value={current?.to ?? ""} onValueChange={(to) => void navigate({ to })}>
+          <SelectTrigger className="w-full sm:w-80" aria-label={t("settings.pickPane", "Settings section")}>
+            <SelectValue placeholder={t("nav.settings", "Settings")} />
+          </SelectTrigger>
+          <SelectContent>
+            {groups.map((group) => (
+              <SelectGroup key={group.labelKey}>
+                <SelectLabel>{t(group.labelKey, group.fallback)}</SelectLabel>
+                {group.items.map((item) => (
+                  <SelectItem key={item.to} value={item.to}>
+                    <item.icon className="size-4 text-muted-foreground" aria-hidden />
+                    {t(item.labelKey, item.fallback)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid items-start gap-8 lg:grid-cols-[232px_minmax(0,1fr)]">
+        <nav aria-label={t("nav.settings", "Settings")} className="hidden space-y-5 lg:sticky lg:top-4 lg:block">
           {groups.map((group) => (
-            <div key={group.labelKey} className="space-y-1">
-              <p className="px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div key={group.labelKey} className="space-y-0.5">
+              <p className="px-3 pb-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
                 {t(group.labelKey, group.fallback)}
               </p>
               {group.items.map((item) => {
-                const active =
-                  item.to === "/settings"
-                    ? onIndex
-                    : pathname.startsWith(item.to);
+                const active = isActive(item, pathname, onIndex);
                 return (
                   <Link
                     key={item.to}
                     to={item.to}
+                    aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex items-start gap-3 rounded-lg px-3 py-2 transition-colors",
+                      "relative flex h-9 items-center gap-2.5 overflow-hidden rounded-lg px-3 text-sm transition-colors duration-150 motion-reduce:transition-none",
+                      "focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
                       active
-                        ? "bg-muted text-foreground"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                        ? "bg-accent font-semibold text-foreground"
+                        : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                     )}
                   >
-                    <item.icon className="mt-0.5 size-4 shrink-0" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium">
-                        {t(item.labelKey, item.fallback)}
-                      </span>
-                      {/* The one-liner is what makes the rail navigable
-                          without opening every pane to find out what it is. */}
-                      <span className="block text-xs text-muted-foreground lg:hidden xl:block">
-                        {t(item.descKey, item.desc)}
-                      </span>
-                    </span>
+                    {active ? <span aria-hidden className="absolute inset-y-1.5 start-0 w-[3px] rounded-full bg-primary" /> : null}
+                    <item.icon aria-hidden className="size-4 shrink-0" />
+                    <span className="truncate">{t(item.labelKey, item.fallback)}</span>
                   </Link>
                 );
               })}
@@ -81,17 +109,7 @@ export function SettingsShell() {
           ))}
         </nav>
 
-        <div className={cn("min-w-0", onIndex && "hidden lg:block")}>
-          {/* Back to the index — the phone's way out of a pane. */}
-          {!onIndex ? (
-            <Link
-              to="/settings"
-              className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground lg:hidden"
-            >
-              <ChevronLeft className="size-4 rtl:rotate-180" />
-              {t("nav.settings", "Settings")}
-            </Link>
-          ) : null}
+        <div className={cn("min-w-0 w-full", PAGE_WIDTH_CLASS.reading, NESTED_PAGE_FALLBACK)}>
           <Outlet />
         </div>
       </div>

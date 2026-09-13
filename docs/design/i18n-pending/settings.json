@@ -1,0 +1,12 @@
+{
+  "settings.pickPane": { "en": "Settings section", "ar": "قسم الإعدادات" },
+  "settings.account": { "en": "Account", "ar": "الحساب" },
+  "settings.about": { "en": "About", "ar": "حول التطبيق" },
+  "settings.logo": { "en": "Logo", "ar": "الشعار" },
+  "settings.links": { "en": "Links", "ar": "الروابط" },
+  "delivery.settingsLoadFailed": { "en": "Couldn't load this branch's delivery settings", "ar": "تعذّر تحميل إعدادات التوصيل لهذا الفرع" },
+  "delivery.deleteZoneTitle": { "en": "Delete the {{name}} zone?", "ar": "حذف منطقة {{name}}؟" },
+  "delivery.deleteZoneHint": { "en": "Addresses in this ring fall to the next zone out, or can no longer order delivery if it was the last one. This can't be undone.", "ar": "العناوين داخل هذه الحلقة تنتقل إلى المنطقة التالية، أو لن يمكنها طلب التوصيل إن كانت الأخيرة. لا يمكن التراجع عن ذلك." },
+  "whatsapp.unlinkTitle": { "en": "Unlink this WhatsApp number?", "ar": "إلغاء ربط رقم واتساب هذا؟" },
+  "whatsapp.unlinkHint": { "en": "OTP codes and order updates stop sending until a number is linked again by scanning a new QR code.", "ar": "يتوقف إرسال رموز التحقق وتحديثات الطلبات حتى يُربط رقم من جديد بمسح رمز QR جديد." }
+}

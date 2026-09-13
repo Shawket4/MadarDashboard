@@ -14,7 +14,6 @@ import { useTranslation } from "react-i18next";
 
 import { useOrgId } from "@/hooks/use-org-id";
 
-import { PageHeader } from "@/components/app/page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -22,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import { useListBranches } from "@/data/api/generated/api";
 import { BookingSettingsDialog } from "@/features/bookings/settings-dialog";
+
+import { PaneHeader } from "./pane-header";
 
 export function BookingsSettingsPane() {
   const { t } = useTranslation();
@@ -34,18 +35,18 @@ export function BookingsSettingsPane() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <div className="space-y-3">
+      <PaneHeader
         title={t("nav.bookings", "Bookings")}
         description={t(
           "settings.bookingsDesc",
           "Slots, party sizes, holds and the phone code.",
         )}
       />
-      <Card>
+      <Card className="py-0">
         <CardContent className="flex flex-wrap items-center gap-3 p-5">
           <Select value={branchId} onValueChange={setBranchId}>
-            <SelectTrigger className="w-64">
+            <SelectTrigger className="w-full sm:w-64">
               <SelectValue placeholder={t("settings.pickBranch", "Pick a branch")} />
             </SelectTrigger>
             <SelectContent>
