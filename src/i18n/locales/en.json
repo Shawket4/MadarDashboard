@@ -4532,5 +4532,24 @@
       "restrict": "Restrict methods",
       "emptyList": "Pick at least one method, or allow all."
     }
+  },
+  "devices": {
+    "title": "Devices",
+    "subtitle": "POS, kitchen and waiter devices that have signed in at this branch.",
+    "empty": "No devices yet",
+    "code": "Code",
+    "label": "Name",
+    "kind": "Type",
+    "app": "App",
+    "lastSeen": "Last seen",
+    "codeConflict": "Another device uses this code",
+    "retired": "Retired",
+    "edit": "Edit device",
+    "codeInvalid": "1–6 letters or digits",
+    "kinds": {
+      "pos": "POS",
+      "kds": "Kitchen screen",
+      "waiter": "Waiter"
+    }
   }
 }
