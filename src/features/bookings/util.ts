@@ -13,12 +13,13 @@ import type { BookingView } from "@/data/api/generated/models/bookingView";
 export const BOOKING_STATUSES = ["confirmed", "seated", "completed", "no_show", "cancelled"] as const;
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
-export const STATUS_STYLES: Record<BookingStatus, string> = {
-  confirmed: "bg-info/10 text-info",
-  seated: "bg-primary/10 text-primary",
-  completed: "bg-muted text-muted-foreground",
-  no_show: "bg-destructive/10 text-destructive",
-  cancelled: "bg-muted text-muted-foreground line-through",
+/** Status tones for StatusPill (glyph + label, never colour alone). */
+export const STATUS_TONES: Record<BookingStatus, "accent" | "success" | "neutral" | "danger"> = {
+  confirmed: "accent",
+  seated: "success",
+  completed: "neutral",
+  no_show: "danger",
+  cancelled: "neutral",
 };
 
 export const isActive = (b: Pick<BookingView, "status">): boolean =>
