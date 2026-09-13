@@ -100,7 +100,12 @@
     "columns": "Columns",
     "loadFailed": "Couldn't load this",
     "moreActions": "More actions",
-    "approve": "Approve"
+    "approve": "Approve",
+    "decision": {
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "ignored": "Ignored"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -281,7 +286,13 @@
     "branchPerformance": "Branch performance",
     "periodTotal": "{{total}} this period",
     "branchRevenueBar": "Revenue share for {{name}}",
-    "tips": "Tips"
+    "tips": "Tips",
+    "trendFailed": "Couldn't load the revenue trend",
+    "paymentsFailed": "Couldn't load the payment mix",
+    "branchesFailed": "Couldn't load branch performance",
+    "deliveryFailed": "Couldn't load delivery sales",
+    "noSalesPeriod": "Sales for this period will appear here.",
+    "ordersWord": "orders"
   },
   "orgs": {
     "title": "Organizations",
@@ -3595,7 +3606,8 @@
       "offMenu": "Off menu",
       "vsPrev": "vs previous period",
       "noFlags": "Nothing flagged — margins look healthy",
-      "noRows": "No sales in this period"
+      "noRows": "No sales in this period",
+      "shareOfRevenue": "{{pct}} of revenue"
     },
     "columns": {
       "item": "Item",
@@ -3668,7 +3680,9 @@
       "sold_other": "{{count}} sold",
       "top": "Top earners",
       "bottom": "Needs attention",
-      "viewAll": "Menu profitability"
+      "viewAll": "Menu profitability",
+      "loadFailed": "Couldn't load margin watch",
+      "empty": "Margins appear here once items sell in this period"
     },
     "class": {
       "all": "All classes",
@@ -4565,6 +4579,7 @@
     "search": "Search tables",
     "historyTitle": "Table {{label}}",
     "pickBranch": "Choose a branch in the scope bar to open a table's history.",
-    "tableGone": "This table is no longer on the floor plan."
+    "tableGone": "This table is no longer on the floor plan.",
+    "loadFailed": "Couldn't load table insights"
   }
 }

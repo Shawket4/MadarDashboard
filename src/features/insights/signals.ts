@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import type { StatusTone } from "@/components/app/status-pill";
 
 import type { Signal } from "@/data/api/generated/models";
 import { fmtMoney, fmtNumber } from "@/lib/format";
@@ -13,13 +14,13 @@ export type SignalKind =
   | "recipe_incomplete";
 
 /** Quiet chip washes — soft tint per severity, no saturated fills. */
-export const SIGNAL_TONE: Record<string, string> = {
-  below_cost: "bg-destructive/10 text-destructive",
-  below_target: "bg-warning/10 text-warning",
-  cost_spike: "bg-warning/10 text-warning",
-  price_candidate: "bg-info/10 text-info",
-  removal_candidate: "bg-muted text-muted-foreground",
-  recipe_incomplete: "bg-muted text-muted-foreground",
+export const SIGNAL_TONE: Record<string, StatusTone> = {
+  below_cost: "danger",
+  below_target: "warning",
+  cost_spike: "warning",
+  price_candidate: "info",
+  removal_candidate: "neutral",
+  recipe_incomplete: "neutral",
 };
 
 /** Short chip label for a signal kind. */

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "motion/react";
-import { AlertCircle, Ban, CalendarRange, Coins, HandCoins, Receipt, Store, TrendingUp } from "lucide-react";
+import { Ban, CalendarRange, Coins, HandCoins, Receipt, Store, TrendingUp } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -15,18 +15,20 @@ import {
   YAxis,
 } from "recharts";
 
-import { Page } from "@/components/app/page";
+import { Page, PageHeader } from "@/components/app/page";
+import { SectionHeader } from "@/components/app/section-header";
 import { ChartCard, chartColor } from "@/components/app/chart-card";
 import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { DeliveryKpis } from "@/components/app/delivery-kpis";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { KeepBuildingCard } from "@/features/onboarding/keep-building-card";
 import { ConciseValue, LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { MarginWatchCard } from "@/features/insights/margin-watch-card";
 import { ProgressBar } from "@/components/app/progress-bar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CHART_AXIS_TICK } from "@/components/app/chart-card";
 import { COUNT_ANIM_MS, fadeInUp, listItem, staggerContainer } from "@/lib/motion";
-import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod } from "@/lib/format";
+import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod, fmtShare } from "@/lib/format";
 import { APP_TZ, PAYMENT_COLORS, type PaymentMethod } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
@@ -159,37 +161,35 @@ export function DashboardPage() {
   // own stat: they are never part of Revenue and never part of a payment-method
   // bucket, so this reads the same way the shift report does.
   const kpiCards: LedgerItem[] = [
-    { key: "revenue", label: t("dashboard.revenue", "Revenue"), icon: Coins, accent: "brand", value: kpis.revenue, formatType: "money", loading: kpiLoading },
-    { key: "orders", label: t("nav.orders", "Orders"), icon: Receipt, accent: "info", value: kpis.orders, formatType: "number", loading: kpiLoading },
-    { key: "avg", label: t("dashboard.avgTicket", "Avg ticket"), icon: TrendingUp, accent: "success", value: avgTicket, formatType: "money", loading: kpiLoading },
-    { key: "voided", label: t("dashboard.voided", "Voided"), icon: Ban, accent: "warning", value: kpis.voided, formatType: "number", loading: kpiLoading },
+    { key: "revenue", label: t("dashboard.revenue", "Revenue"), icon: Coins, value: kpis.revenue, formatType: "money", loading: kpiLoading },
+    { key: "orders", label: t("nav.orders", "Orders"), icon: Receipt, value: kpis.orders, formatType: "number", loading: kpiLoading },
+    { key: "avg", label: t("dashboard.avgTicket", "Avg ticket"), icon: TrendingUp, value: avgTicket, formatType: "money", loading: kpiLoading },
+    { key: "voided", label: t("dashboard.voided", "Voided"), icon: Ban, accent: kpis.voided > 0 ? "warning" : "neutral", value: kpis.voided, formatType: "number", loading: kpiLoading },
     ...(kpis.tips
-      ? [{ key: "tips", label: t("dashboard.tips", "Tips"), icon: HandCoins, accent: "success", value: kpis.tips, formatType: "money", loading: kpiLoading } as LedgerItem]
+      ? [{ key: "tips", label: t("dashboard.tips", "Tips"), icon: HandCoins, value: kpis.tips, formatType: "money", loading: kpiLoading } as LedgerItem]
       : []),
   ];
 
   return (
     <Page>
-      <KeepBuildingCard />
-      {/* Masthead — greeting + the headline KPIs. All four are the canonical
-          StatCard (via LedgerStrip): one scale, one card, fully responsive. The
-          revenue trend lives in its own chart below, so no oversized hero. */}
-      <motion.section variants={fadeInUp} initial="hidden" animate="show" className="space-y-4">
-        <div className="space-y-1.5">
-          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{title}</h1>
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-muted-foreground">
+      <PageHeader
+        title={title}
+        subtitle={
+          <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <span className="inline-flex items-center gap-1.5">
-              <Store className="size-3.5" /> {branchLabel}
+              <Store aria-hidden className="size-3.5" /> {branchLabel}
             </span>
             <span aria-hidden className="text-border">·</span>
             <span className="inline-flex items-center gap-1.5">
-              <CalendarRange className="size-3.5" /> {periodLabel}
+              <CalendarRange aria-hidden className="size-3.5" /> {periodLabel}
             </span>
             <span aria-hidden className="text-border">·</span>
             <span>{tzLabel}</span>
-          </div>
-        </div>
-
+          </span>
+        }
+      />
+      <KeepBuildingCard />
+      <motion.section variants={fadeInUp} initial="hidden" animate="show">
         <LedgerStrip items={kpiCards} dense />
       </motion.section>
 
@@ -205,21 +205,21 @@ export function DashboardPage() {
             {timeseries.isLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : timeseries.isError ? (
-              <EmptyState icon={AlertCircle} title={t("common.somethingWrong", "Something went wrong")} className="h-64 border-0" />
+              <ErrorState title={t("dashboard.trendFailed", "Couldn't load the revenue trend")} onRetry={() => void timeseries.refetch()} className="h-64 border-0 bg-transparent" />
             ) : trendData.length === 0 ? (
-              <EmptyState title={t("common.noResults", "No results found")} className="h-64 border-0" />
+              <EmptyState title={t("dashboard.noSalesPeriod", "Sales for this period will appear here.")} className="h-64 border-0" />
             ) : (
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={trendData}
-                    margin={isRtl ? { top: 8, right: 68, left: 8, bottom: 0 } : { top: 8, right: 8, left: 4, bottom: 0 }}
+                    margin={{ top: 8, right: 8, left: 4, bottom: 0 }}
                   >
                     <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
                     <XAxis
                       dataKey="period"
                       tickFormatter={(v) => fmtPeriod(String(v), granularity)}
-                      tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                      tick={CHART_AXIS_TICK}
                       tickLine={false}
                       axisLine={false}
                       minTickGap={24}
@@ -227,7 +227,7 @@ export function DashboardPage() {
                     <YAxis
                       orientation={isRtl ? "right" : "left"}
                       tickFormatter={(v) => fmtMoneyCompact(Number(v))}
-                      tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                      tick={CHART_AXIS_TICK}
                       tickLine={false}
                       axisLine={false}
                       width={64}
@@ -265,9 +265,13 @@ export function DashboardPage() {
             {kpiLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : (branchId ? branchSales.isError : comparison.isError) ? (
-              <EmptyState icon={AlertCircle} title={t("common.somethingWrong", "Something went wrong")} className="h-64 border-0" />
+              <ErrorState
+                title={t("dashboard.paymentsFailed", "Couldn't load the payment mix")}
+                onRetry={() => void (branchId ? branchSales.refetch() : comparison.refetch())}
+                className="h-64 border-0 bg-transparent"
+              />
             ) : paymentData.length === 0 ? (
-              <EmptyState title={t("common.noResults", "No results found")} className="h-64 border-0" />
+              <EmptyState title={t("dashboard.noSalesPeriod", "Sales for this period will appear here.")} className="h-64 border-0" />
             ) : (
               <div className="space-y-4">
                 <div className="h-40 w-full">
@@ -306,9 +310,9 @@ export function DashboardPage() {
                         style={{ background: PAYMENT_COLORS[d.method as PaymentMethod] ?? chartColor(i) }}
                       />
                       <dt className="truncate text-muted-foreground">{t(`payments.${d.method}`, d.method)}</dt>
-                      <dd className="ms-auto shrink-0 tabular font-medium">{fmtMoney(d.value)}</dd>
-                      <dd className="w-10 shrink-0 text-end tabular text-xs text-muted-foreground">
-                        {paymentTotal ? Math.round((d.value / paymentTotal) * 100) : 0}%
+                      <dd className="ms-auto shrink-0 font-mono font-medium tabular-nums">{fmtMoney(d.value)}</dd>
+                      <dd className="w-10 shrink-0 text-end font-mono text-xs text-muted-foreground tabular-nums">
+                        {fmtShare(d.value, paymentTotal)}
                       </dd>
                     </div>
                   ))}
@@ -324,9 +328,9 @@ export function DashboardPage() {
         {comparison.isLoading ? (
           <Skeleton className="h-40 w-full" />
         ) : comparison.isError ? (
-          <EmptyState icon={AlertCircle} title={t("common.somethingWrong", "Something went wrong")} className="border-0" />
+          <ErrorState title={t("dashboard.branchesFailed", "Couldn't load branch performance")} onRetry={() => void comparison.refetch()} className="border-0 bg-transparent" />
         ) : rankedBranches.length === 0 ? (
-          <EmptyState title={t("common.noResults", "No results found")} className="border-0" />
+          <EmptyState title={t("dashboard.noSalesPeriod", "Sales for this period will appear here.")} className="border-0" />
         ) : (
           <motion.ol
             initial="hidden"
@@ -338,26 +342,27 @@ export function DashboardPage() {
               <motion.li
                 key={b.branch_id}
                 variants={listItem}
-                className="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/50"
+                className="flex items-center gap-3 rounded-lg px-2 py-2.5"
               >
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular text-muted-foreground">
+                <span className="w-5 shrink-0 text-end font-mono text-xs text-muted-foreground tabular-nums">
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <div className="flex items-center justify-between gap-2 text-sm">
                     <span className="truncate font-medium">{b.branch_name}</span>
-                    <span className="shrink-0 tabular text-muted-foreground">
-                      {fmtNumber(b.total_orders)} {t("nav.orders", "Orders").toLowerCase()}
+                    <span className="shrink-0 text-muted-foreground">
+                      <bdi className="font-mono tabular-nums">{fmtNumber(b.total_orders)}</bdi>{" "}
+                      {t("dashboard.ordersWord", "orders")}
                     </span>
                   </div>
                   <ProgressBar
                     value={Math.max(2, b.pct * 100)}
                     max={100}
                     ariaLabel={t("dashboard.branchRevenueBar", { name: b.branch_name, defaultValue: `Revenue share for ${b.branch_name}` })}
-                    accent="brand"
+                    accent="primary"
                   />
                 </div>
-                <span className="shrink-0 text-end tabular text-sm font-semibold">
+                <span className="shrink-0 text-end font-mono text-sm font-semibold tabular-nums">
                   <ConciseValue full={fmtMoney(b.total_revenue)} compact={fmtMoneyCompact(b.total_revenue)} />
                 </span>
               </motion.li>
@@ -371,12 +376,9 @@ export function DashboardPage() {
 
       {/* Delivery + per-channel KPIs */}
       <section className="space-y-3">
-        <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-          <h2 className="text-lg font-semibold tracking-tight">{t("delivery.kpisTitle", "Delivery")}</h2>
-          <span className="text-sm text-muted-foreground">{t("delivery.byChannel", "By channel")}</span>
-        </div>
+        <SectionHeader title={t("delivery.kpisTitle", "Delivery")} description={t("delivery.byChannel", "By channel")} />
         {deliverySales.isError ? (
-          <EmptyState icon={AlertCircle} title={t("common.somethingWrong", "Something went wrong")} className="border-0" />
+          <ErrorState title={t("dashboard.deliveryFailed", "Couldn't load delivery sales")} onRetry={() => void deliverySales.refetch()} />
         ) : (
           <DeliveryKpis data={deliverySales.data} loading={deliverySales.isLoading} />
         )}

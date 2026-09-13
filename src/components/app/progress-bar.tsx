@@ -4,7 +4,8 @@ export type ProgressAccent = "primary" | "brand" | "success" | "warning" | "info
 
 const accentFill: Record<ProgressAccent, string> = {
   primary: "bg-primary",
-  brand: "bg-brand",
+  // Brand teal is reserved for brand marks; a "brand" bar reads as the primary ink.
+  brand: "bg-primary",
   success: "bg-success",
   warning: "bg-warning",
   info: "bg-info",

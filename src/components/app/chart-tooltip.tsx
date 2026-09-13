@@ -25,7 +25,7 @@ export function ChartTooltipContent({
 }: ChartTooltipContentProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border bg-popover px-3 py-2 text-xs shadow-sm">
+    <div className="min-w-36 rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
       {label != null && label !== "" ? (
         <div className="mb-1.5 font-medium text-foreground">
           {labelFormatter ? labelFormatter(label) : label}
@@ -36,7 +36,7 @@ export function ChartTooltipContent({
           <div key={i} className="flex items-center gap-2">
             <span className="size-2 shrink-0 rounded-full" style={{ background: item.color }} />
             {item.name ? <span className="text-muted-foreground">{item.name}</span> : null}
-            <span className="ms-auto font-medium tabular text-foreground">
+            <span className="ms-auto font-mono font-medium tabular-nums text-foreground">
               {formatter ? formatter(Number(item.value ?? 0), item.name) : item.value}
             </span>
           </div>

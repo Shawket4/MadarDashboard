@@ -2,6 +2,9 @@ import type { ReactNode } from "react";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+/** Axis ticks: quiet, small, tabular — shared by every Recharts axis. */
+export const CHART_AXIS_TICK = { fontSize: 11, fill: "var(--muted-foreground)", fontVariantNumeric: "tabular-nums" } as const;
+
 /** Categorical palette wired to the themed chart tokens — updates with light/dark. */
 export const CHART_COLORS = [
   "var(--chart-1)",
@@ -25,15 +28,16 @@ interface ChartCardProps {
 
 export function ChartCard({ title, description, actions, children, className, contentClassName }: ChartCardProps) {
   return (
-    <Card className={cn(className)}>
+    <Card className={cn("gap-4 py-5 shadow-none", className)}>
       {(title || description || actions) && (
-        <CardHeader>
-          {title ? <CardTitle>{title}</CardTitle> : null}
+        <CardHeader className="px-5">
+          {title ? <CardTitle className="text-base tracking-[-0.005em]">{title}</CardTitle> : null}
           {description ? <CardDescription>{description}</CardDescription> : null}
           {actions ? <CardAction>{actions}</CardAction> : null}
         </CardHeader>
       )}
-      <CardContent className={cn("px-2 sm:px-4", contentClassName)}>{children}</CardContent>
+      {/* SVG text anchors break under dir=rtl: plots stay LTR, surrounding copy stays RTL. */}
+      <CardContent className={cn("px-3 sm:px-5 [&_.recharts-wrapper]:[direction:ltr]", contentClassName)}>{children}</CardContent>
     </Card>
   );
 }
