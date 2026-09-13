@@ -1,3 +1,4 @@
+import { fmtElapsedMs } from "@/lib/format";
 import type { StatusTone } from "@/components/app/status-pill";
 import { queryClient } from "@/data/api/query";
 
@@ -83,12 +84,10 @@ export const WEEKDAYS: { value: number; labelKey: string; fallback: string }[] =
  *  hours only exist for display. */
 export const fmtMinutes = (minutes: number | null | undefined): string => {
   if (minutes === null || minutes === undefined) return "—";
-  if (minutes === 0) return "0m";
   const sign = minutes < 0 ? "\u2212" : "";
-  const abs = Math.abs(minutes);
-  const h = Math.floor(abs / 60);
-  const m = abs % 60;
-  return h > 0 ? `${sign}${h}h ${m}m` : `${sign}${m}m`;
+  const out = fmtElapsedMs(Math.abs(minutes) * 60_000);
+  // fmtElapsedMs isolates Arabic figures; keep the sign inside the isolate.
+  return sign ? out.replace(/^(\u2066?)/, `$1${sign}`) : out;
 };
 
 /** ISO date (yyyy-mm-dd) `n` days from today, for default report ranges. */
