@@ -18,9 +18,10 @@ const getLocale = (): string => {
 export const getActiveTz = (): string => useAppStore.getState().activeTimezone || APP_TZ;
 
 const withTZ = (opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions => ({
-  // Render all times in 12-hour (AM/PM) form; ignored by date-only formats.
-  // Callers may still override by passing their own `hour12`.
-  hour12: true,
+  // 24-hour clock and Western digits in both languages — the POS shape
+  // (docs/design/SPEC.md §9). Callers may still override `hour12`.
+  hourCycle: "h23",
+  numberingSystem: "latn",
   ...opts,
   timeZone: getActiveTz(),
 });
@@ -35,52 +36,108 @@ export const piastresToEgp = (p: number): number => p / 100;
  * point, which truncation would drop to 1998 (losing a piastre). */
 export const egpToPiastres = (egp: number): number => Math.round(egp * 100);
 
+// One money shape for the whole ecosystem — mirrors the POS core
+// (madar/rust-core/crates/madar-core/src/display.rs):
+//   en  EGP 1,234.50     −EGP 50.00      +EGP 20.00
+//   ar  ⁦1,234.50⁩ ج.م   ⁦−50.00⁩ ج.م    ⁦+20.00⁩ ج.م
+// Western digits in both languages, thousands grouped, a TRUE minus (U+2212),
+// and in Arabic the figure is LTR-isolated so the bidi algorithm never moves
+// the sign or splits the digits from their label.
+
+export const MINUS = "\u2212";
+export const LRI = "\u2066";
+export const PDI = "\u2069";
+
+/** Wrap a figure so it reads left-to-right inside RTL text. */
+export const ltr = (s: string): string => `${LRI}${s}${PDI}`;
+
+const CURRENCY_AR: Record<string, string> = {
+  EGP: "ج.م",
+  SAR: "ر.س",
+  AED: "د.إ",
+  KWD: "د.ك",
+  QAR: "ر.ق",
+  BHD: "د.ب",
+  OMR: "ر.ع",
+  JOD: "د.أ",
+};
+
+const isArabic = (): boolean => (i18n.resolvedLanguage ?? i18n.language ?? "en").startsWith("ar");
+
+/** The currency's label in the active language: `EGP` / `ج.م`. */
+export const currencyLabel = (code: string = DEFAULT_CURRENCY): string =>
+  isArabic() ? (CURRENCY_AR[code] ?? code) : code;
+
+const groupFigure = (abs: number, min: number, max: number): string =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: min,
+    maximumFractionDigits: max,
+    numberingSystem: "latn",
+  }).format(abs);
+
+/** Assemble the money shape from an absolute figure string and a sign. */
+const moneyShape = (figure: string, sign: "" | "-" | "+"): string => {
+  const signChar = sign === "-" ? MINUS : sign;
+  const label = currencyLabel();
+  return isArabic() ? `${ltr(`${signChar}${figure}`)} ${label}` : `${signChar}${label} ${figure}`;
+};
+
 /**
- * Format piastres as currency in user's locale.
+ * Format piastres as money. Two decimals by default (the POS shape);
+ * `maxFractionDigits: 0` rounds to whole pounds for tight KPI slots.
  * null/undefined means "cost unknown", NOT free — renders an em-dash.
  */
 export const fmtMoney = (
   piastres: number | null | undefined,
-  opts?: { fractionDigits?: 0 | 2; maxFractionDigits?: number },
+  opts?: { fractionDigits?: 0 | 2; maxFractionDigits?: number; signed?: boolean; currency?: boolean },
 ): string => {
-  if (piastres === null || piastres === undefined) return "—";
+  if (piastres === null || piastres === undefined || !Number.isFinite(piastres)) return "—";
   const value = piastresToEgp(piastres);
-  // No forced trailing zeros: 1872.00 → "1,872", 1872.5 → "1,872.5", max 2 dp.
-  const min = opts?.fractionDigits ?? 0;
-  const max = Math.max(min, opts?.maxFractionDigits ?? 2);
-  return new Intl.NumberFormat(getLocale(), {
-    style: "currency",
-    currency: DEFAULT_CURRENCY,
-    minimumFractionDigits: min,
-    maximumFractionDigits: max,
-  }).format(value);
+  const max = opts?.maxFractionDigits ?? Math.max(opts?.fractionDigits ?? 2, 2);
+  const min = Math.min(opts?.fractionDigits ?? 2, max);
+  const figure = groupFigure(Math.abs(value), min, max);
+  const zero = Number(figure.replace(/,/g, "")) === 0;
+  const sign: "" | "-" | "+" = zero ? "" : value < 0 ? "-" : opts?.signed ? "+" : "";
+  if (opts?.currency === false) {
+    const s = `${sign === "-" ? MINUS : sign}${figure}`;
+    return isArabic() ? ltr(s) : s;
+  }
+  return moneyShape(figure, sign);
 };
 
-/** Compact variant — "EGP 1.2K" style. null/undefined renders an em-dash. */
+/** Signed ledger money: `+EGP 20.00` / `−EGP 50.00`. */
+export const fmtMoneySigned = (piastres: number | null | undefined): string =>
+  fmtMoney(piastres, { signed: true });
+
+/** Compact variant — "EGP 1.2K". null/undefined renders an em-dash. */
 export const fmtMoneyCompact = (piastres: number | null | undefined): string => {
-  if (piastres === null || piastres === undefined) return "—";
+  if (piastres === null || piastres === undefined || !Number.isFinite(piastres)) return "—";
   const value = piastresToEgp(piastres);
-  return new Intl.NumberFormat(getLocale(), {
-    style: "currency",
-    currency: DEFAULT_CURRENCY,
+  const figure = new Intl.NumberFormat("en-US", {
     notation: "compact",
     maximumFractionDigits: 1,
-  }).format(value);
+    numberingSystem: "latn",
+  }).format(Math.abs(value));
+  return moneyShape(figure, value < 0 && figure !== "0" ? "-" : "");
 };
 
 /** Plain number in locale */
 export const fmtNumber = (n: number | null | undefined, opts?: Intl.NumberFormatOptions): string =>
-  new Intl.NumberFormat(getLocale(), opts).format(n ?? 0);
+  new Intl.NumberFormat(getLocale(), { numberingSystem: "latn", ...opts }).format(n ?? 0).replace(/-/g, MINUS);
 
 /** Concise plain number — "2.2K" (en) / "٢٫٢ ألف" (ar). Locale-aware compact
  * notation (matches fmtMoneyCompact) so KPI cards stay readable in narrow cells
  * without mixing Latin "K" into Arabic. */
 export const fmtNumberCompact = (n: number | null | undefined): string =>
-  new Intl.NumberFormat(getLocale(), { notation: "compact", maximumFractionDigits: 1 }).format(n ?? 0);
+  new Intl.NumberFormat(getLocale(), { notation: "compact", maximumFractionDigits: 1, numberingSystem: "latn" })
+    .format(n ?? 0)
+    .replace(/-/g, MINUS);
 
 /** Percent with 1 decimal place */
 export const fmtPercent = (ratio: number): string =>
-  new Intl.NumberFormat(getLocale(), { style: "percent", maximumFractionDigits: 1 }).format(ratio);
+  new Intl.NumberFormat(getLocale(), { style: "percent", maximumFractionDigits: 1, numberingSystem: "latn" })
+    .format(ratio)
+    .replace(/-/g, MINUS);
 
 /** Safe share of a part over total */
 export const fmtShare = (part: number, total: number): string => {
@@ -128,13 +185,51 @@ export const fmtDateTimeFull = (iso: string | Date | null | undefined): string =
   ).format(new Date(iso));
 };
 
+/** Elapsed between two instants: `0m` · `42m` · `1h 05m` · `1d 03h` (ar `42 د` · `1 س 05 د`). */
+export const fmtElapsedMs = (ms: number): string => {
+  if (!Number.isFinite(ms) || ms < 0) ms = 0;
+  const ar = isArabic();
+  const [d, h, m] = ar ? ["ي", "س", "د"] : ["d", "h", "m"];
+  const sep = ar ? " " : "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const mins = Math.floor(ms / 60_000);
+  const days = Math.floor(mins / 1440);
+  const hours = Math.floor((mins % 1440) / 60);
+  const rest = mins % 60;
+  const out =
+    days > 0
+      ? `${days}${sep}${d} ${pad(hours)}${sep}${h}`
+      : hours > 0
+        ? `${hours}${sep}${h} ${pad(rest)}${sep}${m}`
+        : `${rest}${sep}${m}`;
+  return ar ? ltr(out) : out;
+};
+
 export const fmtDuration = (start: string | null | undefined, end?: string | null): string => {
   if (!start) return "—";
   const ms = new Date(end ?? Date.now()).getTime() - new Date(start).getTime();
   if (!Number.isFinite(ms)) return "—";
-  const h = Math.floor(ms / 3_600_000);
-  const m = Math.floor((ms % 3_600_000) / 60_000);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  return fmtElapsedMs(ms);
+};
+
+/**
+ * A moment in the branch timezone, as short as it can be without ambiguity:
+ * `18:02` today · `12 Sep · 18:02` this year · `31 Dec 2025 · 23:30` otherwise.
+ */
+export const fmtStamp = (iso: string | Date | null | undefined, now: Date = new Date()): string => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(+d)) return "—";
+  const tz = getActiveTz();
+  const dayKey = (x: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(x);
+  const time = new Intl.DateTimeFormat(getLocale(), withTZ({ hour: "2-digit", minute: "2-digit" })).format(d);
+  if (dayKey(d) === dayKey(now)) return time;
+  const sameYear = dayKey(d).slice(0, 4) === dayKey(now).slice(0, 4);
+  const date = new Intl.DateTimeFormat(
+    getLocale(),
+    withTZ(sameYear ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" }),
+  ).format(d);
+  return `${date} · ${time}`;
 };
 
 // NOTE: these `cairo*` helpers are named for the historical default but resolve
@@ -178,12 +273,8 @@ export const fmtPeriod = (iso: string, granularity: "hourly" | "daily" | "monthl
   return new Intl.DateTimeFormat(getLocale(), withTZ(opts)).format(d);
 };
 
-/** Format a 0-23 hour integer as 12-hour clock label: 0→"12am", 13→"1pm", etc. */
-export const fmtHour = (h: number): string => {
-  if (h === 0) return "12am";
-  if (h === 12) return "12pm";
-  return h < 12 ? `${h}am` : `${h - 12}pm`;
-};
+/** Format a 0-23 hour integer as a 24-hour clock label: 0→"00:00", 13→"13:00". */
+export const fmtHour = (h: number): string => `${String(h).padStart(2, "0")}:00`;
 
 // ── Miscellaneous ────────────────────────────────────────────────────────────
 

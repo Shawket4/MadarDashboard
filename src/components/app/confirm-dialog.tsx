@@ -13,9 +13,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { AlertTriangle } from "lucide-react";
 
 interface ConfirmOptions {
+  /** Name what is lost: "Delete the Zamalek branch?", not "Are you sure?". */
   title: ReactNode;
+  /** The consequence, in a sentence ("Its 3 tills stop syncing. This can't be undone."). */
   description?: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
@@ -52,9 +55,21 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       {children}
       <AlertDialog open={open} onOpenChange={(o) => !o && settle(false)}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{opts?.title}</AlertDialogTitle>
-            {opts?.description ? <AlertDialogDescription>{opts.description}</AlertDialogDescription> : null}
+          <AlertDialogHeader className="sm:flex-row sm:items-start sm:gap-4 sm:text-start">
+            {opts?.destructive ? (
+              <span
+                aria-hidden
+                className="mx-auto grid size-11 shrink-0 place-items-center rounded-full bg-destructive/12 text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))] sm:mx-0"
+              >
+                <AlertTriangle className="size-5" />
+              </span>
+            ) : null}
+            <div className="space-y-2">
+              <AlertDialogTitle className="text-balance">{opts?.title}</AlertDialogTitle>
+              {opts?.description ? (
+                <AlertDialogDescription className="text-pretty">{opts.description}</AlertDialogDescription>
+              ) : null}
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => settle(false)}>

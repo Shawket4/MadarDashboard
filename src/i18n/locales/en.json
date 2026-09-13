@@ -95,7 +95,10 @@
     "more": "More",
     "on": "On",
     "off": "Off",
-    "open": "Open"
+    "open": "Open",
+    "loadMore": "Load more",
+    "columns": "Columns",
+    "loadFailed": "Couldn't load this"
   },
   "nav": {
     "dashboard": "Dashboard",

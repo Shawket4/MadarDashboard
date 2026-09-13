@@ -53,6 +53,9 @@ import "@fontsource/ibm-plex-mono/latin-600.css";
 
 import "@/styles/globals.css";
 
+// Customer surface: the brand register, where the primary is Madar teal.
+document.documentElement.classList.add("brand-surface");
+
 // Side effects: i18n + RTL and the theme class. NOTE: the admin auth/app stores are
 // intentionally NOT imported — this origin never holds a session.
 import "@/i18n";

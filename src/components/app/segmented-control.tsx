@@ -19,7 +19,7 @@ export function SegmentedControl<V extends string>({
   className?: string;
 }) {
   return (
-    <div role="radiogroup" className={cn("flex w-fit rounded-lg border bg-muted p-0.5", className)}>
+    <div role="radiogroup" className={cn("flex w-fit max-w-full overflow-x-auto rounded-[10px] bg-secondary p-[3px] no-scrollbar", className)}>
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -28,8 +28,10 @@ export function SegmentedControl<V extends string>({
           aria-checked={value === opt.value}
           onClick={() => onChange(opt.value)}
           className={cn(
-            "whitespace-nowrap rounded px-3 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-            value === opt.value ? "bg-background font-semibold shadow-sm" : "text-muted-foreground hover:text-foreground",
+            "h-8 whitespace-nowrap rounded-[8px] px-3 text-sm font-medium transition-colors duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+            value === opt.value
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-accent hover:text-foreground",
           )}
         >
           {opt.label}

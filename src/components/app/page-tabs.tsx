@@ -43,12 +43,12 @@ export function PageTabsTrigger({
         // overlap (and visually replace) the list's 1px border-b track.
         "-mb-px border-b-2 border-transparent",
         // Transitions
-        "transition-colors duration-150",
+        "transition-colors duration-200 motion-reduce:transition-none",
         // States
         "hover:text-foreground",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:rounded-sm",
-        "disabled:pointer-events-none disabled:opacity-50",
-        "data-[state=active]:border-brand data-[state=active]:text-foreground",
+        "disabled:pointer-events-none disabled:text-disabled-foreground",
+        "data-[state=active]:border-foreground data-[state=active]:text-foreground",
         className,
       )}
       {...props}

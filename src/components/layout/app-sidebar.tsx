@@ -100,7 +100,7 @@ export function AppSidebar() {
                   <img
                     src={i18n.dir() === "rtl" ? "/madar_ar.svg" : "/madar.svg"}
                     alt={t("app.name", "Madar")}
-                    className="h-7 w-auto dark:brightness-0 dark:invert"
+                    className="h-7 w-auto brightness-0 invert"
                     draggable={false}
                   />
                 )}
@@ -116,7 +116,7 @@ export function AppSidebar() {
           if (entries.length === 0) return null;
           return (
             <SidebarGroup key={group.labelKey}>
-              <SidebarGroupLabel className="text-sidebar-foreground/70">{t(group.labelKey, group.fallback)}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-sidebar-muted">{t(group.labelKey, group.fallback)}</SidebarGroupLabel>
               <SidebarMenu>
                 {entries.map((entry) => {
                   if (isParent(entry)) {

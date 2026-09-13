@@ -127,7 +127,7 @@ export function StatValue({ value, formatType, label, sizes }: StatValueProps) {
   const displayValue = isDecimalType ? shown : Math.round(shown);
 
   const valueSpan = (
-    <span className="block truncate font-semibold leading-none tracking-tight tabular" style={{ fontSize: size }}>
+    <span className="block truncate font-mono leading-none font-semibold tracking-tight tabular" style={{ fontSize: size }}>
       {rep(displayValue)}
     </span>
   );
@@ -147,7 +147,7 @@ export function StatValue({ value, formatType, label, sizes }: StatValueProps) {
           </PopoverTrigger>
           <PopoverContent align="start" sideOffset={8} className="w-auto px-3 py-2">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-            <p className="mt-0.5 text-base font-semibold tabular">{exact}</p>
+            <p className="mt-0.5 font-mono text-base font-semibold tabular">{exact}</p>
           </PopoverContent>
         </Popover>
       ) : (
@@ -157,7 +157,7 @@ export function StatValue({ value, formatType, label, sizes }: StatValueProps) {
       <span
         ref={measureRef}
         aria-hidden
-        className="pointer-events-none absolute left-0 top-0 inline-block whitespace-nowrap font-semibold tracking-tight tabular opacity-0"
+        className="pointer-events-none absolute start-0 top-0 inline-block font-mono whitespace-nowrap font-semibold tracking-tight tabular opacity-0"
       />
     </div>
   );
