@@ -13,15 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useOpenShift } from "@/data/api/generated/api";
-import { queryClient } from "@/data/api/query";
+import { useOpenTill } from "./api";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
-
-export const invalidateShifts = () =>
-  queryClient.invalidateQueries({
-    predicate: (q) => typeof q.queryKey[0] === "string" && (q.queryKey[0] as string).startsWith("/shifts"),
-  });
 
 interface Props {
   branchId: string;
@@ -30,7 +24,7 @@ interface Props {
   suggestedCash: number;
 }
 
-export function OpenShiftDialog({ branchId, open, onOpenChange, suggestedCash }: Props) {
+export function OpenTillDialog({ branchId, open, onOpenChange, suggestedCash }: Props) {
   const { t } = useTranslation();
   const [cash, setCash] = useState("");
 
@@ -38,16 +32,7 @@ export function OpenShiftDialog({ branchId, open, onOpenChange, suggestedCash }:
     if (open) setCash(suggestedCash ? String(piastresToEgp(suggestedCash)) : "");
   }, [open, suggestedCash]);
 
-  const { mutate, isPending } = useOpenShift({
-    mutation: {
-      onSuccess: () => {
-        toast.success(t("shifts.openedToast", "Shift opened"));
-        void invalidateShifts();
-        onOpenChange(false);
-      },
-      onError: (e) => toast.error(getErrorMessage(e)),
-    },
-  });
+  const { mutate, isPending } = useOpenTill();
 
   const num = Number(cash);
   const valid = cash !== "" && Number.isFinite(num) && num >= 0;
@@ -56,11 +41,11 @@ export function OpenShiftDialog({ branchId, open, onOpenChange, suggestedCash }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("shifts.openShift", "Open shift")}</DialogTitle>
-          <DialogDescription>{t("shifts.openDesc", "Declare the opening cash float to start a shift.")}</DialogDescription>
+          <DialogTitle>{t("tills.openShift", "Open till")}</DialogTitle>
+          <DialogDescription>{t("tills.openDesc", "Declare the opening drawer float to start a till.")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label htmlFor="opening-cash">{t("shifts.openingCash", "Opening cash")}</Label>
+          <Label htmlFor="opening-cash">{t("tills.openingCash", "Opening cash")}</Label>
           <Input
             id="opening-cash"
             type="number"
@@ -72,7 +57,7 @@ export function OpenShiftDialog({ branchId, open, onOpenChange, suggestedCash }:
           />
           {suggestedCash > 0 ? (
             <p className="text-xs text-muted-foreground">
-              {t("shifts.suggested", "Suggested")}: {fmtMoney(suggestedCash)}
+              {t("tills.suggested", "Suggested")}: {fmtMoney(suggestedCash)}
             </p>
           ) : null}
         </div>
@@ -80,8 +65,17 @@ export function OpenShiftDialog({ branchId, open, onOpenChange, suggestedCash }:
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.cancel", "Cancel")}
           </Button>
-          <Button loading={isPending} disabled={!valid} onClick={() => mutate({ branchId, data: { opening_cash: egpToPiastres(num) } })}>
-            {t("shifts.openShift", "Open shift")}
+          <Button loading={isPending} disabled={!valid} onClick={() => mutate(
+                { branchId, data: { opening_cash: egpToPiastres(num) } },
+                {
+                  onSuccess: () => {
+                    toast.success(t("tills.openedToast", "Till opened"));
+                    onOpenChange(false);
+                  },
+                  onError: (e) => toast.error(getErrorMessage(e)),
+                },
+              )}>
+            {t("tills.openShift", "Open till")}
           </Button>
         </DialogFooter>
       </DialogContent>

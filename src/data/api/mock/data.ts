@@ -802,17 +802,22 @@ export const MOCK_SHIFTS = SHIFT_SEEDS.map((s) => ({
   cash_discrepancy: s.declared != null && s.system != null ? s.declared - s.system : null,
   force_closed_at: s.status === "force_closed" ? s.closedAt : null, force_closed_by: s.status === "force_closed" ? "usr_demo_admin" : null,
   force_close_reason: s.status === "force_closed" ? "Teller left before counting" : null,
-  till_id: s.tillId, till_name: s.tillName, notes: null,
+  notes: null,
+  device_id: s.status === "open" ? "dev_36b" : null, device_code: s.status === "open" ? "36B" : null, device_label: s.status === "open" ? "Counter iPad" : null,
+  verification: s.status === "open" ? "server" : "legacy", opened_while_another_open: false, other_till_id: null, flagged_at: null,
+  reconciliation_status: null, disagreement_count: 0, open_bills_at_close: null, old_bills_at_close: null,
 }));
 
-export function shiftsPage(branchId: string) {
+export function tillsPage(branchId: string) {
   const data = branchId === ALL_BRANCHES_ID ? MOCK_SHIFTS : MOCK_SHIFTS.filter((s) => s.branch_id === branchId);
   return { data, total: data.length, page: 1, per_page: data.length || 1, total_pages: 1 };
 }
 
-export const MOCK_CURRENT_SHIFT = {
-  has_open_shift: true,
-  open_shift: MOCK_SHIFTS.find((s) => s.id === "shift_open_zam") ?? null,
+export const MOCK_CURRENT_TILL = {
+  has_open_till: true,
+  open_elsewhere: [],
+  open_bills_notice: { open_bills_count: 0, open_bills_amount: 0, oldest_opened_at: null, old_bills_count: 0, old_bill_hours: 3, seated_tables_count: 0, since: null },
+  open_till: MOCK_SHIFTS.find((s) => s.id === "shift_open_zam") ?? null,
   suggested_opening_cash: 100_000,
 };
 
@@ -835,7 +840,14 @@ function shiftReport(shiftId: string) {
   const cash_movements_in = cash_movements.filter((m) => m.amount > 0).reduce((s, m) => s + m.amount, 0);
   const cash_movements_out = -cash_movements.filter((m) => m.amount < 0).reduce((s, m) => s + m.amount, 0);
   return {
-    shift,
+    till: shift,
+    reconciliation: [
+      { method: "cash", payment_method_id: null, is_cash: true, system_total: 781_000, current_system_total: 781_000, order_count: 91, status: "checked", declared_amount: 781_000, note: null, reconciled_by: null, reconciled_at: NOW_ISO, changed_after_close: false },
+      { method: "card", payment_method_id: null, is_cash: false, system_total: 548_000, current_system_total: 548_000, order_count: 61, status: "disagreed", declared_amount: 538_000, note: "One slip missing", reconciled_by: null, reconciled_at: NOW_ISO, changed_after_close: false },
+    ],
+    old_bills_at_close: 1, open_bills_at_close: 2,
+    order_number_range: { device_code: "36B", first: 1, last: 199 },
+    cash_adjustments: 0, cash_tips: 0, non_cash_tips: 0, safe_drops: 0, total_tips: 0,
     expected_cash: shift.closing_cash_system ?? 1_844_000,
     total_payments,
     net_payments: total_payments - voided_amount,
@@ -848,7 +860,7 @@ function shiftReport(shiftId: string) {
     printed_at: NOW_ISO,
   };
 }
-export const MOCK_SHIFT_REPORT = shiftReport;
+export const MOCK_TILL_REPORT = shiftReport;
 
 // ── Permissions ──────────────────────────────────────────────────────────────
 
