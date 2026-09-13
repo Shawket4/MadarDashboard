@@ -21,6 +21,7 @@ import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { EmptyState } from "@/components/app/empty-state";
 import { KeepBuildingCard } from "@/features/onboarding/keep-building-card";
+import { OpenTillsCard } from "@/features/tills/open-tills-card";
 import { ConciseValue, LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { MarginWatchCard } from "@/features/insights/margin-watch-card";
 import { ProgressBar } from "@/components/app/progress-bar";
@@ -191,6 +192,7 @@ export function DashboardPage() {
         </div>
 
         <LedgerStrip items={kpiCards} dense />
+        <OpenTillsCard branchId={branchId} />
       </motion.section>
 
       <motion.div
