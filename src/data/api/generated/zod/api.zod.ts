@@ -3075,10 +3075,10 @@ export const ListClientVersionsQueryParams = zod.object({
 })
 
 export const ListClientVersionsResponseItem = zod.object({
-  "app_version": zod.string().nullish().describe('Parsed from `client`; `null` when it carries no `<app>\/<semver>`.'),
+  "app_version": zod.string().nullish().describe('From an `X-Madar-Client` of the form `<app>\/<semver>` only; `null` for\nthe dashboard and for any client identified by its User-Agent.'),
   "branch_id": zod.uuid().nullish(),
   "branch_name": zod.string().nullish(),
-  "client": zod.string().nullish().describe('`X-Madar-Client`, else the User-Agent.'),
+  "client": zod.string().nullish().describe('`X-Madar-Client`; else `dashboard` for a browser; else the User-Agent.'),
   "device_code": zod.string().nullish().describe('The registered device\'s code, when the device is registered.'),
   "device_id": zod.uuid().nullish(),
   "first_seen_at": zod.iso.datetime({"offset":true}),
@@ -13875,6 +13875,19 @@ export const GetCurrentTillQueryParams = zod.object({
 export const GetCurrentTillResponse = zod.object({
   "has_open_till": zod.boolean(),
   "last_close_declared": zod.number().nullish(),
+  "open_at_branch": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('OpenAPI-only vocabulary for `Till.status` (the `till_status` DB enum). The\nstruct fields stay `String`, so the wire strings are exactly the DB values.'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('OpenAPI-only vocabulary for `Till.verification` (`tills_verification` CHECK):\nhow the one-open-till-per-person rule was checked when the till opened.\n`legacy` marks tills opened by pre-rework clients \/ before the rework.')
+})).optional().describe('EVERY open till of the person at THIS branch, newest first (whatever the\ndevice). Normally zero or one; two or more only after an offline open\nwas replayed while another was open — the newer is flagged\n(`opened_while_another_open`) and both stay open, so both are listed.'),
   "open_bills_notice": zod.object({
   "old_bill_hours": zod.number(),
   "old_bills_count": zod.number(),

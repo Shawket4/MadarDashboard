@@ -6,7 +6,8 @@
  */
 export interface ClientSeen {
   /**
-     * Parsed from `client`; `null` when it carries no `<app>/<semver>`.
+     * From an `X-Madar-Client` of the form `<app>/<semver>` only; `null` for
+     * the dashboard and for any client identified by its User-Agent.
      * @nullable
      */
   app_version?: string | null;
@@ -15,7 +16,7 @@ export interface ClientSeen {
   /** @nullable */
   branch_name?: string | null;
   /**
-     * `X-Madar-Client`, else the User-Agent.
+     * `X-Madar-Client`; else `dashboard` for a browser; else the User-Agent.
      * @nullable
      */
   client?: string | null;
