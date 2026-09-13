@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { AlertTriangle, Boxes, CheckCircle2, CircleDashed, PackagePlus } from "lucide-react";
+import { Boxes, CircleDashed, PackagePlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -10,6 +10,7 @@ import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { SegmentedControl } from "@/components/app/segmented-control";
+import { StatusPill } from "@/components/app/status-pill";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { BranchStockRow, OrgIngredient } from "@/data/api/generated/models";
@@ -87,20 +88,23 @@ export function ItemsPage() {
 
   const columns = useMemo<ColumnDef<OrgIngredient>[]>(() => {
     const base: ColumnDef<OrgIngredient>[] = [
-      { accessorKey: "name", header: t("inventory.catalog.name", "Name") },
+      { accessorKey: "name", header: t("inventory.catalog.name", "Name"), meta: { label: t("inventory.catalog.name", "Name"), phone: "title" }, cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
       {
         accessorKey: "category_name",
         header: t("inventory.catalog.category", "Category"),
+        meta: { label: t("inventory.catalog.category", "Category") },
         cell: ({ row }) => <Badge variant="secondary">{row.original.category_name}</Badge>,
       },
       {
         accessorKey: "cost_per_unit",
         header: t("inventory.catalog.standardCost", "Standard cost"),
-        cell: ({ row }) => <span className="tabular">{fmtMoney(row.original.cost_per_unit)}</span>,
+        meta: { label: t("inventory.catalog.standardCost", "Standard cost"), numeric: true },
+        cell: ({ row }) => fmtMoney(row.original.cost_per_unit),
       },
       {
         accessorKey: "supplier_name",
         header: t("inventory.catalog.supplier", "Supplier"),
+        meta: { label: t("inventory.catalog.supplier", "Supplier") },
         cell: ({ row }) => row.original.supplier_name ?? <span className="text-muted-foreground">—</span>,
       },
     ];
@@ -109,11 +113,12 @@ export function ItemsPage() {
         {
           id: "on_hand",
           header: t("inventory.catalog.onHand", "On hand"),
+          meta: { label: t("inventory.catalog.onHand", "On hand"), numeric: true },
           cell: ({ row }) => {
             const s = stockByIngredient.get(row.original.id);
             if (!s) return <span className="text-muted-foreground">—</span>;
             return (
-              <span className={cn("tabular", s.on_hand < 0 && "text-destructive")}>
+              <span className={cn(s.on_hand < 0 && "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]")}>
                 {fmtNumber(s.on_hand)} {fmtUnit(s.unit)}
               </span>
             );
@@ -122,31 +127,29 @@ export function ItemsPage() {
         {
           id: "par",
           header: t("inventory.catalog.reorderPoint", "Reorder point"),
+          meta: { label: t("inventory.catalog.reorderPoint", "Reorder point"), numeric: true },
           cell: ({ row }) => {
             const s = stockByIngredient.get(row.original.id);
             if (!s || s.par_min == null) return <span className="text-muted-foreground">—</span>;
-            return <span className="tabular">{fmtNumber(s.par_min)} {fmtUnit(s.unit)}</span>;
+            return `${fmtNumber(s.par_min)} ${fmtUnit(s.unit)}`;
           },
         },
         {
           id: "status",
           header: t("inventory.stock.status", "Status"),
+          meta: { label: t("inventory.stock.status", "Status") },
           cell: ({ row }) => {
             const s = stockByIngredient.get(row.original.id);
             if (!s) return null;
             if (!s.last_counted_at) {
               return (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-muted text-muted-foreground">
-                  <CircleDashed className="size-3" />{t("inventory.stock.neverCounted", "Never counted")}
-                </Badge>
+                <StatusPill tone="neutral" icon={CircleDashed}>{t("inventory.stock.neverCounted", "Never counted")}</StatusPill>
               );
             }
             return (
-              <Badge variant="secondary" className={cn("flex items-center gap-1", s.below_par ? "bg-warning/10 text-warning" : "bg-success/10 text-success")}>
-                {s.below_par
-                  ? <><AlertTriangle className="size-3" />{t("inventory.stock.low", "Low")}</>
-                  : <><CheckCircle2 className="size-3" />{t("inventory.stock.ok", "OK")}</>}
-              </Badge>
+              s.below_par
+                ? <StatusPill tone="warning">{t("inventory.stock.low", "Low")}</StatusPill>
+                : <StatusPill tone="success">{t("inventory.stock.ok", "OK")}</StatusPill>
             );
           },
         },
@@ -197,24 +200,15 @@ export function ItemsPage() {
         title={t("inventory.catalog.title", "Ingredients")}
         description={t("inventory.catalog.subtitle", "The organization's catalog. Every branch counts from this list.")}
         actions={
-          <div className="flex shrink-0 items-center gap-2">
+          <>
             <ExportButton onExport={handleExport} loading={exporting} disabled={!rows.length} />
             <Button onClick={openCreate}>
               <PackagePlus className="size-4" />
               {t("inventory.catalog.newItem", "New ingredient")}
             </Button>
-          </div>
+          </>
         }
-      />
-
-      <DataTable
-        columns={columns}
-        data={rows}
-        loading={catalog.isLoading}
-        getRowId={(it) => it.id}
-        onRowClick={(it) => setDrawerItem(it)}
-        searchPlaceholder={t("inventory.catalog.search", "Search ingredients")}
-        toolbar={
+        below={
           branchId ? (
             <SegmentedControl<Filter>
               value={filter}
@@ -227,6 +221,17 @@ export function ItemsPage() {
             />
           ) : undefined
         }
+      />
+
+      <DataTable
+        columns={columns}
+        data={rows}
+        loading={catalog.isLoading}
+        error={catalog.error}
+        onRetry={() => void catalog.refetch()}
+        getRowId={(it) => it.id}
+        onRowClick={(it) => setDrawerItem(it)}
+        searchPlaceholder={t("inventory.catalog.search", "Search ingredients")}
         emptyState={<EmptyState icon={Boxes} title={t("inventory.catalog.noItems", "No ingredients yet")} />}
       />
 

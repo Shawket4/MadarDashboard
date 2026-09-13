@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { SummaryLine } from "@/components/app/list-row";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -215,10 +216,7 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
             </Button>
           </div>
 
-          <div className="flex items-center justify-between border-t pt-3 font-medium">
-            <span>{t("inventory.purchasing.grandTotal", "Total")}</span>
-            <span className="tabular">{fmtMoney(total)}</span>
-          </div>
+          <SummaryLine emphasis className="border-t pt-3" label={t("inventory.purchasing.grandTotal", "Total")} value={fmtMoney(total)} />
         </div>
 
         <DialogFooter>

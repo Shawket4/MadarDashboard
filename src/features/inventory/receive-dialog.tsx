@@ -8,7 +8,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { StatusPill } from "@/components/app/status-pill";
+import { EmptyState } from "@/components/app/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -118,10 +119,10 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                     const remaining = l.quantity_ordered - l.quantity_received;
                     return (
                       <TableRow key={l.id}>
-                        <TableCell>{l.ingredient_name}</TableCell>
-                        <TableCell className="text-end tabular">{fmtNumber(l.quantity_ordered)} {l.purchase_unit}</TableCell>
-                        <TableCell className="text-end tabular">{fmtNumber(l.quantity_received)}</TableCell>
-                        <TableCell className="text-end tabular">{fmtNumber(remaining)}</TableCell>
+                        <TableCell className="font-medium">{l.ingredient_name}</TableCell>
+                        <TableCell className="text-end font-mono tabular"><bdi>{fmtNumber(l.quantity_ordered)}</bdi> {l.purchase_unit}</TableCell>
+                        <TableCell className="text-end font-mono tabular"><bdi>{fmtNumber(l.quantity_received)}</bdi></TableCell>
+                        <TableCell className="text-end font-mono tabular"><bdi>{fmtNumber(remaining)}</bdi></TableCell>
                         <TableCell className="text-end">
                           <Input
                             type="number" min="0" step="0.0001"
@@ -151,17 +152,22 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
 
           <TabsContent value="history">
             {loadingReceipts ? (
-              <div className="space-y-2 py-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
+              <div className="space-y-3 py-2">{Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="space-y-2 rounded-lg border p-3">
+                  <div className="flex justify-between"><Skeleton className="h-4 w-36" /><Skeleton className="h-4 w-20" /></div>
+                  <Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-4/5" />
+                </div>
+              ))}</div>
             ) : receipts.length === 0 ? (
-              <p className="py-4 text-center text-sm text-muted-foreground">{t("inventory.purchasing.noDeliveries", "No deliveries recorded yet.")}</p>
+              <EmptyState className="py-8" title={t("inventory.purchasing.noDeliveries", "No deliveries recorded yet.")} />
             ) : (
               <div className="space-y-3">
                 {receipts.map((r) => (
                   <div key={r.id} className="rounded-lg border">
                     <div className="flex items-center justify-between border-b px-3 py-2 text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="tabular font-medium">{fmtDateTime(r.received_at)}</span>
-                        {r.is_return ? <Badge variant="secondary" className="bg-destructive/10 text-destructive">{t("inventory.purchasing.return", "Return")}</Badge> : null}
+                        <bdi className="tabular font-medium">{fmtDateTime(r.received_at)}</bdi>
+                        {r.is_return ? <StatusPill tone="danger" size="sm">{t("inventory.purchasing.return", "Return")}</StatusPill> : null}
                       </div>
                       <span className="text-muted-foreground">{r.received_by_name ?? r.received_by}</span>
                     </div>
@@ -170,8 +176,8 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                         {r.lines.map((l) => (
                           <TableRow key={l.id}>
                             <TableCell>{l.ingredient_name}</TableCell>
-                            <TableCell className="text-end tabular">{l.quantity > 0 ? "+" : ""}{fmtNumber(l.quantity)}</TableCell>
-                            <TableCell className="text-end tabular text-muted-foreground">{fmtMoney(l.unit_cost)}</TableCell>
+                            <TableCell className="text-end font-mono tabular"><bdi>{fmtNumber(l.quantity, { signDisplay: "exceptZero" })}</bdi></TableCell>
+                            <TableCell className="text-end font-mono tabular text-muted-foreground"><bdi>{fmtMoney(l.unit_cost)}</bdi></TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

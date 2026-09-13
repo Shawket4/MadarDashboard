@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Combobox } from "@/components/app/combobox";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import {
   useGetLoyaltyRewardItems,
   useGetLoyaltySettings,
@@ -99,24 +99,17 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
   );
 
   if (catalogue.isLoading || settings.isLoading) {
-    return <Skeleton className="h-40 w-full" />;
+    return <Skeleton className="h-40 w-full rounded-2xl" />;
   }
   if (catalogue.isError || settings.isError) {
     return (
-      <EmptyState
+      <ErrorState
         title={t("loyalty.rewardsLoadFailed", "Couldn't load the rewards")}
-        description={getErrorMessage(catalogue.error ?? settings.error)}
-        action={
-          <Button
-            variant="outline"
-            onClick={() => {
-              void catalogue.refetch();
-              void settings.refetch();
-            }}
-          >
-            {t("common.retry", "Retry")}
-          </Button>
-        }
+        message={getErrorMessage(catalogue.error ?? settings.error)}
+        onRetry={() => {
+          void catalogue.refetch();
+          void settings.refetch();
+        }}
       />
     );
   }

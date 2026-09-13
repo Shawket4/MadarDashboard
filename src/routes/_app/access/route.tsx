@@ -1,7 +1,7 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { SectionTabs } from "@/components/app/section-tabs";
+import { SectionTabsProvider } from "@/components/app/section-tabs";
 
 /**
  * Access shell — merges Users and Roles & Permissions into one section with a
@@ -12,15 +12,14 @@ import { SectionTabs } from "@/components/app/section-tabs";
 function AccessLayout() {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col">
-      <SectionTabs
-        tabs={[
-          { to: "/access/users", label: t("nav.users", "Users") },
-          { to: "/access/roles", label: t("nav.rolesPermissions", "Roles & Permissions") },
-        ]}
-      />
+    <SectionTabsProvider
+      tabs={[
+        { to: "/access/users", label: t("nav.users", "Users") },
+        { to: "/access/roles", label: t("nav.rolesPermissions", "Roles & Permissions") },
+      ]}
+    >
       <Outlet />
-    </div>
+    </SectionTabsProvider>
   );
 }
 

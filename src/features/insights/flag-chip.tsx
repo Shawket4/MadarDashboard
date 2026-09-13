@@ -5,7 +5,7 @@ import { BellOff, Wrench, X } from "lucide-react";
 import type { Signal } from "@/data/api/generated/models";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { StatusPill } from "@/components/app/status-pill";
 import { SIGNAL_TONE, signalLabel, signalReason } from "./signals";
 
 export type DecisionAction = "acted" | "dismissed" | "snoozed";
@@ -41,13 +41,11 @@ export function FlagChip({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className={cn(
-            "inline-flex shrink-0 cursor-pointer items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap",
-            "transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
-            SIGNAL_TONE[signal.kind] ?? "bg-muted text-muted-foreground",
-          )}
+          className="shrink-0 cursor-pointer rounded-full transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
         >
-          {signalLabel(t, signal.kind)}
+          <StatusPill tone={SIGNAL_TONE[signal.kind] ?? "neutral"} size="sm">
+            {signalLabel(t, signal.kind)}
+          </StatusPill>
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" sideOffset={6} className="w-72 space-y-3">

@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, passthrough } from "msw";
 
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import {
@@ -255,6 +255,10 @@ const echoCreated = async ({ request }: { request: Request }) => {
 
 /** All MSW request handlers. Order matters: more specific first. */
 export const handlers = [
+  // Vite serves source modules from the same origin; a wildcard API handler
+  // (`*/orgs/*`) would otherwise answer `/src/features/orgs/tax-rate.ts` with
+  // JSON and break the route's lazy import.
+  http.all(/^[^?]*\/(src|node_modules|@vite|@fs|@id)\//, () => passthrough()),
   // ── Demo session ──────────────────────────────────────────────────────────
   // Mirrors the demo backend so `dev:demo` exercises the playground locally:
   // `full` lands on a populated dashboard, `empty` flows into onboarding.

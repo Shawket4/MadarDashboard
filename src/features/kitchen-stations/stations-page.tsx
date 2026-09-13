@@ -1,15 +1,16 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CheckCircle, ChefHat, Pencil, Plus, Printer, Star, Store, Trash2, XCircle } from "lucide-react";
+import { ChefHat, Pencil, Plus, Printer, Star, Store, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page } from "@/components/app/page";
+import { Page, PageHeader } from "@/components/app/page";
+import { StatusPill } from "@/components/app/status-pill";
+import { SectionHeader } from "@/components/app/section-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { DataTable } from "@/components/app/data-table";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StationDialog } from "./station-dialog";
 import { deleteStation, setRoutingMode, useGetRoutingMode, useListStations } from "@/data/api/generated/api";
@@ -34,7 +35,7 @@ export function StationsPage() {
   const openEdit = (x: KitchenStation) => { setEditing(x); setDlgOpen(true); };
 
   const remove = async (x: KitchenStation) => {
-    if (await confirm({ title: t("common.confirmDelete", { name: x.name, defaultValue: `Delete "${x.name}"?` }), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
+    if (await confirm({ title: t("common.confirmDelete", { name: x.name, defaultValue: `Delete "${x.name}"?` }), description: t("kitchen.deleteStationConsequence", "Items routed to this station fall back to their category or the default station. Its printer settings are removed."), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
       try { await deleteStation(x.id); toast.success(t("kitchen.stationDeleted", "Station deleted")); void invalidateStations(); }
       catch (e) { toast.error(getErrorMessage(e)); }
     }
@@ -57,7 +58,7 @@ export function StationsPage() {
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">{row.original.name}</span>
-            {row.original.is_default ? <Badge variant="outline" className="border-transparent bg-warning/15 text-warning"><Star className="size-3" /> {t("kitchen.default", "Default")}</Badge> : null}
+            {row.original.is_default ? <StatusPill tone="accent" size="sm" icon={Star}>{t("kitchen.default", "Default")}</StatusPill> : null}
           </div>
         ),
       },
@@ -65,50 +66,39 @@ export function StationsPage() {
         accessorKey: "printer_brand",
         header: t("branches.printer", "Printer"),
         cell: ({ row }) => row.original.printer_brand ? (
-          <span className="flex items-center gap-1 text-sm capitalize text-muted-foreground"><Printer className="size-3.5" /> {row.original.printer_brand} {row.original.printer_ip ? `· ${row.original.printer_ip}` : ""}</span>
+          <span className="flex items-center gap-1.5 text-sm capitalize text-muted-foreground"><Printer className="size-3.5" aria-hidden /> {row.original.printer_brand}{row.original.printer_ip ? <> · <bdi className="font-mono tabular-nums">{row.original.printer_ip}</bdi></> : null}</span>
         ) : <span className="text-sm text-muted-foreground">—</span>,
       },
       {
         accessorKey: "is_active",
         header: t("common.status", "Status"),
         cell: ({ row }) => row.original.is_active
-          ? <Badge variant="outline" className="border-transparent bg-success/15 text-success"><CheckCircle className="size-3" /> {t("common.active", "Active")}</Badge>
-          : <Badge variant="outline"><XCircle className="size-3" /> {t("common.inactive", "Inactive")}</Badge>,
-      },
-      {
-        id: "actions", header: "",
-        cell: ({ row }) => (
-          <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon-sm" onClick={() => openEdit(row.original)} aria-label={t("common.edit", "Edit")}><Pencil className="size-4" /></Button>
-            <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => void remove(row.original)} aria-label={t("common.delete", "Delete")}><Trash2 className="size-4" /></Button>
-          </div>
-        ),
+          ? <StatusPill tone="success">{t("common.active", "Active")}</StatusPill>
+          : <StatusPill tone="neutral">{t("common.inactive", "Inactive")}</StatusPill>,
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [t],
   );
 
   return (
     <Page>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t("kitchen.stationsTitle", "Kitchen stations")}</h1>
-          <p className="text-sm text-muted-foreground">{t("kitchen.stationsSubtitle", "Kitchen areas with printers; route menu items to them on the Order routing tab.")}</p>
-        </div>
-        {branchId ? <Button onClick={openNew}><Plus className="size-4" /> {t("kitchen.newStation", "New station")}</Button> : null}
-      </div>
+      <PageHeader
+        title={t("kitchen.stationsTitle", "Kitchen stations")}
+        subtitle={t("kitchen.stationsSubtitle", "Kitchen areas with printers; route menu items to them on the Order routing tab.")}
+        actions={branchId ? <Button onClick={openNew}><Plus className="size-4" /> {t("kitchen.newStation", "New station")}</Button> : null}
+      />
       {!branchId ? (
         <EmptyState icon={Store} title={t("kitchen.pickBranch", "Select a branch in the top bar to manage its kitchen")} />
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-3 rounded-lg border p-3">
-            <div className="space-y-0.5">
-              <p className="text-sm font-medium">{t("kitchen.routingMode", "Where tickets show")}</p>
-              <p className="text-xs text-muted-foreground">{t("kitchen.routingModeHint", "Auto = KDS if stations exist, else the POS queue.")}</p>
-            </div>
-            <div className="ms-auto flex items-center gap-2">
-              {mode.data?.effective ? <Badge variant="outline">{t("kitchen.effective", "Now")}: {t(`kitchen.mode.${mode.data.effective}`, mode.data.effective)}</Badge> : null}
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-card px-4 py-3 sm:px-5">
+            <SectionHeader
+              className="min-w-0 flex-1 basis-60"
+              title={t("kitchen.routingMode", "Where tickets show")}
+              description={t("kitchen.routingModeHint", "Auto = KDS if stations exist, else the POS queue.")}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              {mode.data?.effective ? <StatusPill tone="info">{t("kitchen.effective", "Now")}: {t(`kitchen.mode.${mode.data.effective}`, mode.data.effective)}</StatusPill> : null}
               <Select value={mode.data?.mode ?? "auto"} onValueChange={(v) => void onModeChange(v)}>
                 <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -125,6 +115,14 @@ export function StationsPage() {
             columns={columns}
             data={stations}
             loading={list.isLoading}
+            error={list.error}
+            onRetry={() => void list.refetch()}
+            rowActions={(x) => (
+              <>
+                <Button variant="ghost" size="icon-sm" onClick={() => openEdit(x)} aria-label={t("common.edit", "Edit")}><Pencil className="size-4" /></Button>
+                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => void remove(x)} aria-label={t("common.delete", "Delete")}><Trash2 className="size-4" /></Button>
+              </>
+            )}
             getRowId={(x) => x.id}
             onRowClick={openEdit}
             searchPlaceholder={t("common.search", "Search…")}

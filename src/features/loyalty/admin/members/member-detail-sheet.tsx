@@ -10,7 +10,7 @@
 import { useTranslation } from "react-i18next";
 import { Receipt, SlidersHorizontal } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { StatusPill, type StatusTone } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -39,12 +39,12 @@ import { currencyLabel } from "../../shared/util";
 import { DeleteMemberButton } from "./delete-member-dialog";
 import { ledgerActor, ledgerLabel, ledgerTone, reversedIds, signed, type LedgerTone } from "./ledger";
 
-const TONE: Record<LedgerTone, string> = {
-  earn: "bg-success/15",
-  spend: "bg-primary/10",
-  reversal: "bg-destructive/10",
-  gift: "bg-warning/15",
-  manual: "bg-muted",
+const TONE: Record<LedgerTone, StatusTone> = {
+  earn: "success",
+  spend: "accent",
+  reversal: "danger",
+  gift: "warning",
+  manual: "neutral",
 };
 
 export function MemberDetailSheet({
@@ -212,9 +212,9 @@ export function LedgerTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <Badge variant="outline" className={cn("border-transparent text-foreground", TONE[tone])}>
+                    <StatusPill tone={TONE[tone]} size="sm">
                       {ledgerLabel(e, t)}
-                    </Badge>
+                    </StatusPill>
                     {isUndone ? (
                       <span className="text-xs text-muted-foreground">
                         {t("loyalty.ledgerUndone", "reversed")}
@@ -245,7 +245,7 @@ export function LedgerTable({
                   {e.order_id ? (
                     <button
                       type="button"
-                      className="mt-0.5 inline-flex items-center gap-1 text-primary underline-offset-2 hover:underline"
+                      className="mt-0.5 inline-flex items-center gap-1 font-medium text-foreground underline underline-offset-2 hover:text-muted-foreground"
                       onClick={() => onOpenOrder(e.order_id as string)}
                     >
                       <Receipt className="size-3" />

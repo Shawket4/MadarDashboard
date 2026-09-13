@@ -102,7 +102,7 @@ export function TransferDialog({ open, onOpenChange, branches, defaultSourceId }
               </Select>
             </div>
           </div>
-          {sameBranch ? <p className="text-xs text-destructive">{t("inventory.transfers.sameBranch", "Source and destination must differ")}</p> : null}
+          {sameBranch ? <p className="text-xs text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]">{t("inventory.transfers.sameBranch", "Source and destination must differ")}</p> : null}
 
           <div className="space-y-1.5">
             <Label>{t("inventory.transfers.ingredient", "Ingredient")}</Label>
@@ -126,7 +126,7 @@ export function TransferDialog({ open, onOpenChange, branches, defaultSourceId }
           <div className="space-y-1.5">
             <Label>{t("inventory.transfers.quantity", "Quantity")}</Label>
             <Input type="number" inputMode="decimal" min="0" step="0.0001" value={qty} onChange={(e) => setQty(e.target.value)} className="tabular" />
-            {exceeds ? <p className="text-xs text-destructive">{t("inventory.waste.quantityExceeds", "More than on hand")}</p> : null}
+            {exceeds ? <p className="text-xs text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]">{t("inventory.waste.quantityExceeds", "More than on hand")}</p> : null}
           </div>
           <div className="space-y-1.5">
             <Label>{t("inventory.transfers.note", "Note")} <span className="text-muted-foreground">({t("common.optional", "optional")})</span></Label>

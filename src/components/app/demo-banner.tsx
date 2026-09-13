@@ -38,9 +38,9 @@ export function DemoBanner() {
   if (!isDemoBuild || !session) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-brand/20 bg-brand/5 px-4 py-2 text-sm">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b bg-accent px-4 py-2 text-sm">
       <span className="inline-flex items-center gap-2 font-medium text-foreground">
-        <FlaskConical className="size-4 text-brand" aria-hidden="true" />
+        <FlaskConical className="size-4 text-muted-foreground" aria-hidden="true" />
         {t("demo.title", "You're exploring a live demo")}
       </span>
       <span className="text-muted-foreground">

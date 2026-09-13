@@ -8,10 +8,14 @@ import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
+import { useConfirm } from "@/components/app/confirm-dialog";
+import { ListCard, ListRow } from "@/components/app/list-row";
+import { StatusPill } from "@/components/app/status-pill";
+import { RowAction } from "@/features/users/row-action";
+import { fmtDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,7 +32,7 @@ import {
 } from "@/data/api/generated/api";
 import type { StaffRequest } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { invalidateRequests, REQUEST_STATUS_CLASS, todayIso } from "./util";
+import { invalidateRequests, REQUEST_STATUS_TONE, todayIso } from "./util";
 
 const ALL = "__all__";
 
@@ -60,11 +64,21 @@ export function RequestsInboxPage() {
   });
   const rows = useMemo(() => requestsQ.data ?? [], [requestsQ.data]);
 
+  const confirm = useConfirm();
   const quickDecide = async (r: StaffRequest, next: "approved" | "rejected") => {
     // Kinds that carry a pay decision get the dialog; the rest are one click.
     if (next === "approved" && (r.kind === "excuse" || r.kind === "early_departure")) {
       setDeciding(r);
       return;
+    }
+    if (next === "rejected") {
+      const ok = await confirm({
+        title: t("staff.rejectRequestTitle", { name: r.user_name, defaultValue: `Reject ${r.user_name}'s request?` }),
+        description: t("staff.rejectRequestHint", "The day is treated as if no request was filed, so any lateness or absence penalty applies."),
+        confirmLabel: t("common.reject", "Reject"),
+        destructive: true,
+      });
+      if (!ok) return;
     }
     try {
       await decideRequest(r.id, { status: next });
@@ -89,88 +103,95 @@ export function RequestsInboxPage() {
             {t("staff.newRequest", "New request")}
           </Button>
         }
+        below={
+          <div className="flex flex-wrap gap-2">
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>{t("staff.allStatuses", "All statuses")}</SelectItem>
+                <SelectItem value="pending">{t("staff.req_pending", "Pending")}</SelectItem>
+                <SelectItem value="approved">{t("staff.req_approved", "Approved")}</SelectItem>
+                <SelectItem value="rejected">{t("staff.req_rejected", "Rejected")}</SelectItem>
+                <SelectItem value="cancelled">{t("staff.req_cancelled", "Cancelled")}</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={kind} onValueChange={setKind}>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>{t("staff.allKinds", "All kinds")}</SelectItem>
+                {KINDS.map((k) => (
+                  <SelectItem key={k.value} value={k.value}>{t(k.labelKey, k.fallback)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        }
       />
 
-      <div className="flex flex-wrap gap-2">
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t("staff.allStatuses", "All statuses")}</SelectItem>
-            <SelectItem value="pending">{t("staff.req_pending", "Pending")}</SelectItem>
-            <SelectItem value="approved">{t("staff.req_approved", "Approved")}</SelectItem>
-            <SelectItem value="rejected">{t("staff.req_rejected", "Rejected")}</SelectItem>
-            <SelectItem value="cancelled">{t("staff.req_cancelled", "Cancelled")}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={kind} onValueChange={setKind}>
-          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t("staff.allKinds", "All kinds")}</SelectItem>
-            {KINDS.map((k) => (
-              <SelectItem key={k.value} value={k.value}>{t(k.labelKey, k.fallback)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {requestsQ.isLoading ? (
-        <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
+        <ListCard>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="flex min-h-14 items-center gap-3 px-4 py-2.5 sm:px-5">
+              <Skeleton className="size-9 rounded-[10px]" />
+              <div className="flex-1 space-y-1.5"><Skeleton className="h-3.5 w-1/3" /><Skeleton className="h-3 w-1/2" /></div>
+            </div>
+          ))}
+        </ListCard>
+      ) : requestsQ.error ? (
+        <ErrorState
+          title={t("staff.requestsLoadError", "Couldn't load requests")}
+          onRetry={() => void requestsQ.refetch()}
+          retrying={requestsQ.isFetching}
+        />
       ) : rows.length === 0 ? (
         <EmptyState
           icon={CalendarOff}
-          title={t("staff.noRequests", "Nothing here")}
+          title={t("staff.noRequestsTitle", "No requests match these filters")}
           description={t(
             "staff.noRequestsHint",
             "Requests filed from the staff app land here for a decision.",
           )}
         />
       ) : (
-        <div className="space-y-2">
+        <ListCard>
           {rows.map((r) => {
             const meta = kindMeta(r.kind);
-            const Icon = meta.icon;
             return (
-              <Card key={r.id} className="gap-0 p-3">
-                <div className="flex flex-wrap items-center gap-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
-                  <Icon className="size-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="truncate font-medium">{r.user_name}</span>
-                    <Badge variant="outline">{t(meta.labelKey, meta.fallback)}</Badge>
-                    <Badge
-                      variant="outline"
-                      className={`border-transparent ${REQUEST_STATUS_CLASS[r.status] ?? ""}`}
-                    >
-                      {t(`staff.req_${r.status}`, r.status)}
-                    </Badge>
+              <ListRow
+                key={r.id}
+                icon={meta.icon}
+                title={
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="truncate">{r.user_name}</span>
+                    <Badge variant="secondary">{t(meta.labelKey, meta.fallback)}</Badge>
                     {r.is_paid === false ? (
                       <Badge variant="outline">{t("staff.unpaidBadge", "unpaid")}</Badge>
                     ) : null}
-                  </div>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {describeWindow(r, t)}
-                    {r.reason ? ` · ${r.reason}` : ""}
-                    {r.decision_note ? ` · ${r.decision_note}` : ""}
-                  </p>
-                </div>
-                {r.status === "pending" ? (
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="outline" onClick={() => void quickDecide(r, "approved")}>
-                      <Check className="size-4" />
-                      {t("common.approve", "Approve")}
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => void quickDecide(r, "rejected")}>
-                      <X className="size-4" />
-                    </Button>
-                  </div>
-                ) : null}
-                </div>
-              </Card>
+                  </span>
+                }
+                meta={[describeWindow(r, t), r.reason, r.decision_note].filter(Boolean).join(" · ")}
+                trailing={
+                  <>
+                    <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
+                      {t(`staff.req_${r.status}`, r.status)}
+                    </StatusPill>
+                    {r.status === "pending" ? (
+                      <>
+                        <Button size="sm" variant="outline" className="ms-2" onClick={() => void quickDecide(r, "approved")}>
+                          <Check className="size-4" />
+                          {t("common.approve", "Approve")}
+                        </Button>
+                        <RowAction destructive label={t("common.reject", "Reject")} onClick={() => void quickDecide(r, "rejected")}>
+                          <X className="size-4" />
+                        </RowAction>
+                      </>
+                    ) : null}
+                  </>
+                }
+              />
             );
           })}
-        </div>
+        </ListCard>
       )}
 
       <NewRequestDialog open={addOpen} onOpenChange={setAddOpen} />
@@ -185,24 +206,24 @@ function describeWindow(r: StaffRequest, t: TFunction): string {
   switch (r.kind) {
     case "late_arrival":
       return t("staff.windowLate", "{{date}} · arriving by {{time}}", {
-        date: r.on_date,
+        date: fmtDate(r.on_date),
         time: time(r.to_time),
       });
     case "early_departure":
       return t("staff.windowEarly", "{{date}} · leaving at {{time}}", {
-        date: r.on_date,
+        date: fmtDate(r.on_date),
         time: time(r.from_time),
       });
     case "excuse":
       return t("staff.windowExcuse", "{{date}} · {{from}}–{{to}}", {
-        date: r.on_date,
+        date: fmtDate(r.on_date),
         from: time(r.from_time),
         to: time(r.to_time),
       });
     default:
       return r.end_date && r.end_date !== r.on_date
-        ? `${r.on_date} → ${r.end_date}`
-        : r.on_date;
+        ? `${fmtDate(r.on_date)} → ${fmtDate(r.end_date)}`
+        : fmtDate(r.on_date);
   }
 }
 

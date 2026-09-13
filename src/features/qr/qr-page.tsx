@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { downloadUrl } from "@/lib/download";
 import { Page, PageHeader } from "@/components/app/page";
+import { SectionHeader } from "@/components/app/section-header";
 import { EmptyState } from "@/components/app/empty-state";
 import {
   Form,
@@ -126,7 +127,7 @@ function CopyLinkButton({ url }: { url: string }) {
   };
   return (
     <Button variant="outline" size="sm" onClick={copy} aria-label={t("common.copy", "Copy")}>
-      {copied ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4" />}
+      {copied ? <Check className="size-4 text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]" /> : <Copy className="size-4" />}
       {copied ? t("qr.copied", "Copied") : t("qr.copyLink", "Copy link")}
     </Button>
   );
@@ -205,7 +206,7 @@ function QrResult({
         rel="noreferrer"
         className="flex w-full min-w-0 items-start gap-2 rounded-lg bg-muted px-2 py-1.5 text-xs hover:underline"
       >
-        <Link2 className="mt-0.5 size-3 shrink-0 text-muted-foreground" />
+        <Link2 className="mt-0.5 size-3 shrink-0 text-muted-foreground" aria-hidden />
         <UrlText url={qr.short_url} className="min-w-0 flex-1" />
       </a>
 
@@ -490,10 +491,10 @@ export function QrPage() {
   const branchKinds = kinds.filter((k) => k.scope === "branch");
 
   return (
-    <Page>
+    <Page width="reading">
       <PageHeader
         title={t("qr.title", "QR Codes")}
-        description={t(
+        subtitle={t(
           "qr.subtitle",
           "Scannable codes for your ordering pages and your booking pages.",
         )}
@@ -502,25 +503,19 @@ export function QrPage() {
       <RenderOptions opts={renderOpts} onChange={setRenderOpts} />
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          {t("qr.section.org", "For the whole organization")}
-        </h2>
-        <div className="grid gap-4 xl:grid-cols-2">{orgKinds.map(renderKind)}</div>
+        <SectionHeader title={t("qr.section.org", "For the whole organization")} />
+        <div className="grid gap-4">{orgKinds.map(renderKind)}</div>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          {t("qr.section.branch", "For one branch")}
-        </h2>
+        <SectionHeader title={t("qr.section.branch", "For one branch")} />
         <div className="grid gap-4">{branchKinds.map(renderKind)}</div>
       </section>
 
       {/* Its own section: these are not ONE code but one per table, and a room
           full of them is printed together rather than made one at a time. */}
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          {t("qr.section.tables", "For each table")}
-        </h2>
+        <SectionHeader title={t("qr.section.tables", "For each table")} />
         <TableCodes branchId={branchId ?? null} />
       </section>
 

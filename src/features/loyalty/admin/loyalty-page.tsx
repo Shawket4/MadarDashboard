@@ -11,11 +11,11 @@
  * this page. Two pickers for one idea is two chances to be looking at a
  * different shop from the one you think you are.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Page, PageHeader } from "@/components/app/page";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SegmentedControl } from "@/components/app/segmented-control";
+import { PaneHeader } from "@/features/settings/pane-header";
 import { useListBranches } from "@/data/api/generated/api";
 import { useScope } from "@/data/scope/use-scope";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -54,10 +54,11 @@ export function LoyaltyPage() {
   const branchId = scopedBranchId;
   const { canListMembers } = loyaltyAccess(useAuthStore((s) => s.user?.role));
   const scope: ProgramScope = { orgId, branchId };
+  const [tab, setTab] = useState<"program" | "rewards" | "members" | "overview">("program");
 
   return (
-    <Page>
-      <PageHeader
+    <div className="space-y-4">
+      <PaneHeader
         title={t("nav.loyalty", "Loyalty")}
         description={t(
           "loyalty.subtitle",
@@ -70,32 +71,29 @@ export function LoyaltyPage() {
         branchName={activeBranches.find((b) => b.id === branchId)?.name ?? null}
       />
 
-      <Tabs defaultValue="program">
-        <TabsList>
-          <TabsTrigger value="program">{t("loyalty.tabProgram", "Program")}</TabsTrigger>
-          <TabsTrigger value="rewards">{t("loyalty.tabRewards", "Rewards")}</TabsTrigger>
-          <TabsTrigger value="members">{t("loyalty.tabMembers", "Members")}</TabsTrigger>
-          {canListMembers ? (
-            <TabsTrigger value="overview">{t("loyalty.tabOverview", "Overview")}</TabsTrigger>
-          ) : null}
-        </TabsList>
-        <TabsContent value="program" className="pt-4">
-          {/* Keyed on the scope so switching branch remounts the form rather
-              than leaving the previous branch's numbers on screen. */}
-          <ProgramPane key={branchId ?? "org"} scope={scope} />
-        </TabsContent>
-        <TabsContent value="rewards" className="pt-4">
-          <RewardsPane key={branchId ?? "org"} scope={scope} />
-        </TabsContent>
-        <TabsContent value="members" className="pt-4">
-          <MembersPane scope={scope} />
-        </TabsContent>
-        {canListMembers ? (
-          <TabsContent value="overview" className="pt-4">
-            <OverviewPane key={branchId ?? "org"} scope={scope} />
-          </TabsContent>
+      <SegmentedControl
+        value={tab}
+        onChange={setTab}
+        options={[
+          { value: "program", label: t("loyalty.tabProgram", "Program") },
+          { value: "rewards", label: t("loyalty.tabRewards", "Rewards") },
+          { value: "members", label: t("loyalty.tabMembers", "Members") },
+          ...(canListMembers
+            ? [{ value: "overview" as const, label: t("loyalty.tabOverview", "Overview") }]
+            : []),
+        ]}
+      />
+
+      <div className="pt-1">
+        {/* Keyed on the scope so switching branch remounts the form rather
+            than leaving the previous branch's numbers on screen. */}
+        {tab === "program" ? <ProgramPane key={branchId ?? "org"} scope={scope} /> : null}
+        {tab === "rewards" ? <RewardsPane key={branchId ?? "org"} scope={scope} /> : null}
+        {tab === "members" ? <MembersPane scope={scope} /> : null}
+        {tab === "overview" && canListMembers ? (
+          <OverviewPane key={branchId ?? "org"} scope={scope} />
         ) : null}
-      </Tabs>
-    </Page>
+      </div>
+    </div>
   );
 }

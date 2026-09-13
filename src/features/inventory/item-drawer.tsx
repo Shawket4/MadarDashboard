@@ -10,6 +10,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { ErrorState } from "@/components/app/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -87,7 +88,7 @@ export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdi
                   ? t("inventory.catalog.branchCost", "Branch cost")
                   : t("inventory.catalog.standardCost", "Standard cost")}
                 {": "}
-                <span className="tabular">{fmtMoney(cost)}</span>
+                <bdi className="font-mono tabular">{fmtMoney(cost)}</bdi>
                 {item.supplier_name ? <> · {item.supplier_name}</> : null}
               </>
             ) : null}
@@ -99,9 +100,9 @@ export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdi
             <div className="space-y-4">
               {/* Book stock — read-only, from the ledger */}
               <div className="rounded-lg border p-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("inventory.catalog.onHand", "On hand")}</p>
-                <p className={cn("text-2xl font-semibold tabular", (stockRow?.on_hand ?? 0) < 0 && "text-destructive")}>
-                  {fmtNumber(stockRow?.on_hand ?? 0)} <span className="text-base font-normal text-muted-foreground">{fmtUnit(item?.unit)}</span>
+                <p className="text-[13px] font-medium text-muted-foreground">{t("inventory.catalog.onHand", "On hand")}</p>
+                <p className={cn("mt-1 font-mono text-2xl font-semibold tabular", (stockRow?.on_hand ?? 0) < 0 && "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]")}>
+                  <bdi>{fmtNumber(stockRow?.on_hand ?? 0)}</bdi> <span className="font-sans text-base font-normal text-muted-foreground">{fmtUnit(item?.unit)}</span>
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {stockRow?.last_counted_at
@@ -133,7 +134,18 @@ export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdi
               <div>
                 <p className="mb-2 text-sm font-medium">{t("inventory.stockHistory", "Stock history")}</p>
                 {movements.isLoading ? (
-                  <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
+                  <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-start justify-between gap-3 border-b pb-2 last:border-0">
+                      <div className="space-y-1.5"><Skeleton className="h-4 w-28" /><Skeleton className="h-3 w-20" /></div>
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  ))}</div>
+                ) : movements.isError ? (
+                  <ErrorState
+                    className="py-6"
+                    title={t("inventory.movements.loadFailed", "Couldn't load stock history")}
+                    onRetry={() => void movements.refetch()}
+                  />
                 ) : (movements.data ?? []).length === 0 ? (
                   <p className="text-sm text-muted-foreground">{t("inventory.movements.noMovements", "No movements yet")}</p>
                 ) : (
@@ -142,14 +154,14 @@ export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdi
                       <li key={m.id} className="flex items-start justify-between gap-3 border-b pb-2 text-sm last:border-0">
                         <div className="min-w-0">
                           <p className="font-medium">{t(`inventory.movements.types.${m.movement_type}`, m.movement_type)}</p>
-                          <p className="text-xs text-muted-foreground tabular">{fmtDateTime(m.created_at)}</p>
+                          <p className="text-xs text-muted-foreground tabular"><bdi>{fmtDateTime(m.created_at)}</bdi></p>
                           {m.note ? <p className="text-xs text-muted-foreground">{m.note}</p> : null}
                         </div>
-                        <div className="shrink-0 text-end tabular">
-                          <span className={cn(m.quantity < 0 ? "text-destructive" : "text-success")}>
-                            {m.quantity > 0 ? "+" : ""}{fmtNumber(m.quantity)} {fmtUnit(m.unit)}
-                          </span>
-                          <p className="text-xs text-muted-foreground">{fmtNumber(m.balance_after)}</p>
+                        <div className="shrink-0 text-end font-mono tabular">
+                          <bdi className={cn(m.quantity < 0 ? "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]" : "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]")}>
+                            {fmtNumber(m.quantity, { signDisplay: "exceptZero" })} {fmtUnit(m.unit)}
+                          </bdi>
+                          <p className="text-xs text-muted-foreground"><bdi>{fmtNumber(m.balance_after)}</bdi></p>
                         </div>
                       </li>
                     ))}
@@ -158,7 +170,7 @@ export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdi
               </div>
             </div>
           ) : (
-            <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+            <p className="rounded-lg border p-3 text-sm text-muted-foreground">
               {t("inventory.pickBranch", "Select a branch to manage its stock")}
             </p>
           )}

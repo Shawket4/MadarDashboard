@@ -96,7 +96,17 @@
     "on": "On",
     "off": "Off",
     "open": "Open",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "loadMore": "Load more",
+    "columns": "Columns",
+    "loadFailed": "Couldn't load this",
+    "moreActions": "More actions",
+    "approve": "Approve",
+    "decision": {
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "ignored": "Ignored"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -272,7 +282,13 @@
     "openTills": "Open tills",
     "noOpenTill": "No open till",
     "noTillFound": "No open till found",
-    "noOpenTillAt": "No open till at {{branch}}"
+    "noOpenTillAt": "No open till at {{branch}}",
+    "trendFailed": "Couldn't load the revenue trend",
+    "paymentsFailed": "Couldn't load the payment mix",
+    "branchesFailed": "Couldn't load branch performance",
+    "deliveryFailed": "Couldn't load delivery sales",
+    "noSalesPeriod": "Sales for this period will appear here.",
+    "ordersWord": "orders"
   },
   "orgs": {
     "title": "Organizations",
@@ -316,7 +332,10 @@
     "serviceChargeHint": "0 for none. Shown as its own line on the bill.",
     "serviceChargeTaxable": "Tax the service charge",
     "requireTable": "Every dine-in sale belongs to a table",
-    "requireTableHint": "The till stops ringing up dine-in sales on their own — staff seat the party from the floor, add their items, then settle. Branches with no floor are unaffected, and a queued offline sale still replays."
+    "requireTableHint": "The till stops ringing up dine-in sales on their own — staff seat the party from the floor, add their items, then settle. Branches with no floor are unaffected, and a queued offline sale still replays.",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteDescription": "Every branch, user and menu under this organization is removed. This cannot be undone.",
+    "empty": "Organizations you add appear here"
   },
   "branches": {
     "title": "Branches",
@@ -354,7 +373,10 @@
     "taxOverride": "This branch taxes differently",
     "taxOverrideHint": "Off, it follows the organisation's tax settings and changes to them apply here automatically.",
     "oldBillHours": "Flag open bills as old after (hours)",
-    "standardFloat": "Standard drawer float"
+    "standardFloat": "Standard drawer float",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteDescription": "Its tills, printer settings and stock levels go with it. Past orders stay in reports.",
+    "empty": "Branches you add appear here"
   },
   "users": {
     "title": "Users",
@@ -375,7 +397,7 @@
     "assignBranches": "Assign branches",
     "totalUsers": "Total Users",
     "orgAdmins": "Org Admins",
-    "branchManagers": "Tellers",
+    "branchManagers": "Branch managers",
     "tellers": "Tellers",
     "createdToast": "User created",
     "updatedToast": "User updated",
@@ -387,7 +409,10 @@
     "passwordRequired": "Password is required",
     "posCredHint": "Signs in on the POS app with this PIN — no email or password.",
     "dashCredHint": "Signs in to the dashboard with email + password — no PIN.",
-    "leaveBlank": "Leave blank to keep"
+    "leaveBlank": "Leave blank to keep",
+    "deleteTitle": "Delete {{name}}'s account?",
+    "deleteDescription": "They can no longer sign in to the dashboard or the POS. Their past orders and tills stay on record.",
+    "empty": "Staff accounts you add appear here"
   },
   "permissions": {
     "title": "Permissions",
@@ -429,7 +454,10 @@
       "suppliers": "Suppliers",
       "purchase_orders": "Purchase Orders",
       "tills": "Tills"
-    }
+    },
+    "usersLoadError": "Couldn't load users",
+    "noUsers": "Other staff accounts appear here once they're added",
+    "matrixLoadError": "Couldn't load this user's permissions"
   },
   "menu": {
     "overrides": {
@@ -835,14 +863,19 @@
         "moveUp": "Move up",
         "moveDown": "Move down"
       },
-      "sectionSteps": "the steps"
+      "sectionSteps": "the steps",
+      "unsaved": "Unsaved",
+      "itemTitle": "Menu item"
     },
     "addonTypeLocked": "The type (group) can't change — recreate the add-on to move it.",
     "addonRecipe": {
       "title": "Add-on recipe",
       "desc": "Ingredients deducted from stock when this add-on is chosen.",
       "edit": "Edit recipe"
-    }
+    },
+    "deleteItemConsequence": "It leaves the POS menu at every branch, with its sizes, recipe and branch prices. Past orders keep their lines.",
+    "deleteAddonConsequence": "It is removed from every item that offers it. If orders used it, it is deactivated instead so history stays intact.",
+    "deleteCategoryConsequence": "The category and its kitchen routing are removed. Its items stay on the menu without a category."
   },
   "recipes": {
     "title": "Recipes",
@@ -1034,7 +1067,8 @@
         "transfer_in": "Transfer in",
         "purchase_in": "Purchase",
         "stock_count": "Stock count"
-      }
+      },
+      "loadFailed": "Couldn't load stock history"
     },
     "waste": {
       "title": "Waste log",
@@ -1066,7 +1100,9 @@
       "countFirstHint": "This branch has no stock on record yet.",
       "countFirstLink": "Count it first",
       "nothingOnHand": "nothing on hand",
-      "recorded": "Waste recorded"
+      "recorded": "Waste recorded",
+      "reportFailed": "Couldn't load waste by reason",
+      "noReasonData": "Waste by reason appears once waste is logged in this period."
     },
     "stocktakes": {
       "title": "Stock counts",
@@ -1140,7 +1176,11 @@
       "startCount": "Start count",
       "startFirst": "Count this branch",
       "st_in_progress": "In progress",
-      "st_draft": "Draft"
+      "st_draft": "Draft",
+      "cancelTitle": "Discard this count?",
+      "cancelConsequence": "Every figure entered in this open count is thrown away. Book stock stays as it is.",
+      "loadFailed": "Couldn't load the open count",
+      "reportFailed": "Couldn't load the variance report"
     },
     "purchasing": {
       "title": "Purchasing",
@@ -1209,7 +1249,11 @@
       "placeOrder": "Place order",
       "reorder": "Reorder",
       "return": "Return",
-      "suggested": "Suggested qty"
+      "suggested": "Suggested qty",
+      "cancelTitle": "Cancel purchase order {{ref}}?",
+      "cancelConsequence": "The supplier order is voided and nothing more can be received against it.",
+      "deleteSupplierConsequence": "The supplier is removed from your list. Past purchase orders keep their records.",
+      "reorderFailed": "Couldn't load reorder suggestions"
     },
     "reports": {
       "title": "Inventory reports",
@@ -1243,7 +1287,11 @@
       "costBasis": "Cost basis",
       "snapshot": "Snapshot",
       "current": "Current",
-      "qty": "Quantity"
+      "qty": "Quantity",
+      "noDataPeriod": "Nothing recorded for this scope and period.",
+      "valuationFailed": "Couldn't load stock valuation",
+      "unknownCostLabel": "Unknown cost",
+      "noValuation": "Stock value by category appears after a branch is counted."
     },
     "adjustments": {
       "title": "Adjustments",
@@ -1294,7 +1342,9 @@
       "reverseTitle": "Reverse transfer",
       "reverseConfirm": "Reverse this transfer with a compensating entry?",
       "created": "Transfer recorded",
-      "nothingToSend": "This branch has nothing on hand to send. Count it first."
+      "nothingToSend": "This branch has nothing on hand to send. Count it first.",
+      "reverseConfirmTitle": "Reverse the {{name}} transfer?",
+      "reverseConsequence": "A compensating entry moves the stock back to the source branch. The original transfer stays in the history."
     },
     "today": {
       "title": "Today",
@@ -1328,7 +1378,9 @@
       "noParsYet": "Low-stock alerts appear once you set a reorder point on an ingredient.",
       "reorderPoint": "Reorder point",
       "startFirstCount": "Count this branch's stock",
-      "suggested": "Order"
+      "suggested": "Order",
+      "deliveriesFailed": "Couldn't load deliveries",
+      "wasteFailed": "Couldn't load today's waste"
     },
     "settings": {
       "title": "Inventory settings",
@@ -1345,7 +1397,10 @@
       "deleteCategoryReassign": "{{count}} ingredients use this category. Choose where they should move.",
       "ingredientCount": "{{count}} ingredients",
       "moveTo": "Move ingredients to",
-      "noCategories": "No categories yet"
+      "noCategories": "No categories yet",
+      "categoriesFailed": "Couldn't load ingredient categories",
+      "noCategoriesHint": "Categories you add appear here and in the ingredient form.",
+      "deleteCategoryConsequence": "The category is removed from counts and reports."
     },
     "varianceReasons": {
       "theft": "Theft",
@@ -1590,7 +1645,9 @@
     "rewardRefusedBody": "The till gave the reward offline, but the member's balance could not pay for it. No points were taken and the order is flagged.",
     "loyaltyMember": "Loyalty member",
     "loyaltyMemberForgotten": "Deleted member",
-    "allTills": "All tills"
+    "allTills": "All tills",
+    "emptyTitle": "No orders in this range",
+    "emptyBody": "Sales rung on the POS for this branch and period appear here."
   },
   "ordersExport": {
     "title": "Export Orders",
@@ -1732,7 +1789,8 @@
     "pctOff": "{{value}}% off",
     "amountOff": "{{value}} off",
     "activate": "Activate discount",
-    "deactivate": "Deactivate discount"
+    "deactivate": "Deactivate discount",
+    "deleteConsequence": "Cashiers can no longer apply it at checkout. Past orders keep the discount they were given."
   },
   "bundles": {
     "title": "Bundles",
@@ -1805,7 +1863,8 @@
       "sold": "{{qty}} sold",
       "loadError": "Could not load performance data"
     },
-    "costIncomplete": "Cost incomplete"
+    "costIncomplete": "Cost incomplete",
+    "deleteConsequence": "The combo disappears from the POS menu. Past orders keep their bundle lines; archive instead to keep its sales history visible here."
   },
   "menuAdvisor": {
     "title": "Menu Advisor",
@@ -2014,7 +2073,12 @@
       "orderHint": "Your menu, for a QR code on the table or a link in a bio.",
       "book": "Bookings",
       "bookHint": "Where guests reserve a table."
-    }
+    },
+    "pickPane": "Settings section",
+    "account": "Account",
+    "about": "About",
+    "logo": "Logo",
+    "links": "Links"
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -3213,7 +3277,10 @@
     "pickup": "Pickup",
     "pickupHint": "Customers collect their order at the branch counter. Fee defaults to free.",
     "pickupFee": "Pickup fee (EGP)",
-    "pickupFeeHint": "Leave at 0 for free pickup."
+    "pickupFeeHint": "Leave at 0 for free pickup.",
+    "settingsLoadFailed": "Couldn't load this branch's delivery settings",
+    "deleteZoneTitle": "Delete the {{name}} zone?",
+    "deleteZoneHint": "Addresses in this ring fall to the next zone out, or can no longer order delivery if it was the last one. This can't be undone."
   },
   "whatsapp": {
     "title": "WhatsApp",
@@ -3242,7 +3309,9 @@
     "paused": "Paused",
     "pausedToast": "Sending paused.",
     "resumedToast": "Sending resumed.",
-    "forbidden": "Only super admins can manage the WhatsApp connection."
+    "forbidden": "Only super admins can manage the WhatsApp connection.",
+    "unlinkTitle": "Unlink this WhatsApp number?",
+    "unlinkHint": "OTP codes and order updates stop sending until a number is linked again by scanning a new QR code."
   },
   "qr": {
     "enlarge": "Enlarge QR code",
@@ -3356,7 +3425,10 @@
     "stationUpdated": "Station updated",
     "stationsSubtitle": "Kitchen areas with printers; route menu items to them on the Order routing tab.",
     "stationsTitle": "Kitchen stations",
-    "unassigned": "Default / unassigned"
+    "unassigned": "Default / unassigned",
+    "deleteStationConsequence": "Items routed to this station fall back to their category or the default station. Its printer settings are removed.",
+    "routingLoadFailed": "Couldn't load kitchen routing",
+    "itemsLoadFailed": "Couldn't load menu items"
   },
   "tills": {
     "teller": "Teller",
@@ -3555,7 +3627,8 @@
       "offMenu": "Off menu",
       "vsPrev": "vs previous period",
       "noFlags": "Nothing flagged — margins look healthy",
-      "noRows": "No sales in this period"
+      "noRows": "No sales in this period",
+      "shareOfRevenue": "{{pct}} of revenue"
     },
     "columns": {
       "item": "Item",
@@ -3628,7 +3701,9 @@
       "sold_other": "{{count}} sold",
       "top": "Top earners",
       "bottom": "Needs attention",
-      "viewAll": "Menu profitability"
+      "viewAll": "Menu profitability",
+      "loadFailed": "Couldn't load margin watch",
+      "empty": "Margins appear here once items sell in this period"
     },
     "class": {
       "all": "All classes",
@@ -3983,7 +4058,20 @@
     "workShiftsSubtitle": "Working hours and the roster that assigns them. These are HR schedules — separate from cash-drawer shifts.",
     "worked": "Worked",
     "workedDays": "{{n}} days worked",
-    "workingDays": "Working days per month"
+    "workingDays": "Working days per month",
+    "deleteDepartmentTitle": "Delete the {{name}} department?",
+    "deleteDepartmentHint": "Employees keep their profiles; only the grouping is removed. A department that still has staff can't be deleted.",
+    "addDepartment": "Add department",
+    "rejectRequestTitle": "Reject {{name}}'s request?",
+    "rejectRequestHint": "The day is treated as if no request was filed, so any lateness or absence penalty applies.",
+    "requestsLoadError": "Couldn't load requests",
+    "noRequestsTitle": "No requests match these filters",
+    "deleteShiftTitle": "Delete the {{name}} shift?",
+    "shiftsSection": "Work shifts",
+    "shiftsLoadError": "Couldn't load work shifts",
+    "rosterLoadError": "Couldn't load the roster",
+    "rulesLoadError": "Couldn't load attendance rules",
+    "removeTier": "Remove rung"
   },
   "basira": {
     "title": "Basira",
@@ -4512,7 +4600,8 @@
     "search": "Search tables",
     "historyTitle": "Table {{label}}",
     "pickBranch": "Choose a branch in the scope bar to open a table's history.",
-    "tableGone": "This table is no longer on the floor plan."
+    "tableGone": "This table is no longer on the floor plan.",
+    "loadFailed": "Couldn't load table insights"
   },
   "tillStatus": {
     "open": "Open",

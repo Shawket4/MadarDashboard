@@ -74,8 +74,8 @@ export function ShopAddressCard({
         <div className="flex items-start gap-2.5">
           <Globe aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <div className="space-y-1">
-            <p className="text-sm font-medium">{t("settings.address.title", "Your web address")}</p>
-            <p className="text-xs text-muted-foreground">
+            <h3 className="text-base font-semibold">{t("settings.address.title", "Your web address")}</h3>
+            <p className="text-sm text-muted-foreground">
               {t(
                 "settings.address.hint",
                 "Your customer pages are on your own address. These are safe to print — they do not change.",
@@ -88,7 +88,7 @@ export function ShopAddressCard({
           {addresses.map(({ key, url }) => (
             <li
               key={key}
-              className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-border/70 bg-muted/30 p-3"
+              className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border bg-secondary/40 p-3"
             >
               {/* `min-w-0` is load-bearing: a flex child defaults to
                   `min-width:auto`, so a long address refuses to shrink and
@@ -111,7 +111,7 @@ export function ShopAddressCard({
                   aria-label={t("common.copy", "Copy")}
                 >
                   {copied === url ? (
-                    <Check className="size-4 text-success" />
+                    <Check className="size-4 text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]" />
                   ) : (
                     <Copy className="size-4" />
                   )}

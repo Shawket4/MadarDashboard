@@ -61,6 +61,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { toast } from "sonner";
 
 import * as api from "./api";
+import { PageHeader } from "@/components/app/page";
 import { ResultView, ScopeBadge } from "./result-block";
 import { ConversationList } from "./conversation-list";
 import { blocksFromStoredTurn } from "./history";
@@ -305,32 +306,25 @@ export function BasiraPage() {
        moves to the document -- taking the composer with it, exactly when the
        transcript is longest and the input matters most. */
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
-      <header className="flex shrink-0 items-center gap-2 border-b border-border/70 px-3 py-2.5 sm:px-5">
-        {/* Below xl the rail lives in a slide-over, so it needs a way in. */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0 xl:hidden"
-          onClick={() => setRailOpen(true)}
-          aria-label={t("basira.showConversations", "Conversations")}
-        >
-          <MessageSquare className="size-4" />
-        </Button>
-
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold tracking-tight">
-            {activeTitle ?? t("basira.title", "Basira")}
-          </h1>
-          <p className="hidden truncate text-xs text-muted-foreground sm:block">
-            {t("basira.subtitle", "Ask about your business in plain language.")}
-          </p>
-        </div>
-
-        <Button variant="ghost" size="icon" className="shrink-0 xl:hidden" onClick={startNew}>
-          <MessageSquarePlus className="size-4" />
-          <span className="sr-only">{t("basira.newChat", "New conversation")}</span>
-        </Button>
-      </header>
+      <div className="shrink-0 border-b border-border/70 px-4 pt-3 pb-3 sm:px-6 lg:px-8 lg:pt-4">
+        <PageHeader
+          title={activeTitle ?? t("basira.title", "Basira")}
+          subtitle={t("basira.subtitle", "Ask about your business in plain language.")}
+          actions={
+            <div className="flex items-center gap-2 xl:hidden">
+              {/* Below xl the rail lives in a slide-over, so it needs a way in. */}
+              <Button variant="outline" size="sm" onClick={() => setRailOpen(true)}>
+                <MessageSquare aria-hidden className="size-4" />
+                {t("basira.showConversations", "Conversations")}
+              </Button>
+              <Button variant="outline" size="icon" className="size-9" onClick={startNew}>
+                <MessageSquarePlus aria-hidden className="size-4" />
+                <span className="sr-only">{t("basira.newChat", "New conversation")}</span>
+              </Button>
+            </div>
+          }
+        />
+      </div>
 
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-[276px] shrink-0 border-e border-border/70 p-3 xl:block">
@@ -355,7 +349,7 @@ export function BasiraPage() {
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6 sm:py-8">
+            <div className="w-full max-w-3xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
               {loadingThread ? (
                 <div className="space-y-4">
                   <Skeleton className="h-6 w-2/5" />
@@ -375,9 +369,9 @@ export function BasiraPage() {
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-border/70 bg-background/95 px-4 py-3 backdrop-blur sm:px-6">
+          <div className="shrink-0 border-t border-border/70 bg-background px-4 py-3 sm:px-6 lg:px-8">
             <form
-              className="mx-auto flex w-full max-w-3xl items-end gap-2"
+              className="flex w-full max-w-3xl items-end gap-2"
               onSubmit={(e) => {
                 e.preventDefault();
                 void ask(question);
@@ -410,7 +404,7 @@ export function BasiraPage() {
                 <span className="sr-only">{t("basira.send", "Send")}</span>
               </Button>
             </form>
-            <p className="mx-auto mt-2 max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
+            <p className="mt-2 max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
               {t(
                 "basira.disclaimer",
                 "Reads your own business figures. Staff names are replaced with codes before anything leaves.",
@@ -482,8 +476,8 @@ function RenameDialog({
 function Welcome({ onPick }: { onPick: (q: string) => void }) {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col items-start py-6 sm:py-12">
-      <h2 className="text-balance text-xl font-semibold tracking-tight sm:text-2xl">
+    <div className="flex flex-col items-start py-2 sm:py-6">
+      <h2 className="text-balance text-lg font-semibold tracking-[-0.005em]">
         {t("basira.welcomeTitle", "What would you like to know?")}
       </h2>
       <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
@@ -500,7 +494,7 @@ function Welcome({ onPick }: { onPick: (q: string) => void }) {
               key={s.key}
               type="button"
               onClick={() => onPick(label)}
-              className="rounded-xl border border-border/70 px-3.5 py-3 text-start text-[13px] leading-snug text-muted-foreground transition-colors hover:border-border hover:bg-muted/50 hover:text-foreground"
+              className="rounded-xl border bg-card px-3.5 py-3 text-start text-sm leading-snug text-foreground transition-colors duration-200 hover:bg-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
             >
               {label}
             </button>
@@ -604,7 +598,7 @@ function BlockCard({ block, stale }: { block: ResultBlock; stale?: boolean }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/70 bg-card">
+    <div className="overflow-hidden rounded-2xl border bg-card">
       <div className="flex flex-wrap items-center gap-2 px-3 pt-3 sm:px-4 sm:pt-4">
         {block.title ? (
           <h3 className="text-[13px] font-medium text-foreground">{block.title}</h3>
@@ -627,7 +621,7 @@ function BlockCard({ block, stale }: { block: ResultBlock; stale?: boolean }) {
           onClick={() => setOpen((v) => !v)}
           className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronDown className={cn("size-3 transition-transform", open && "rotate-180")} />
+          <ChevronDown aria-hidden className={cn("size-3 transition-transform duration-200 motion-reduce:transition-none", open && "rotate-180")} />
           {t("basira.provenance", "What was queried")}
         </button>
         {open ? <Provenance block={block} stale={stale} /> : null}

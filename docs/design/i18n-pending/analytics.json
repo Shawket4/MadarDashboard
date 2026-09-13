@@ -1,0 +1,54 @@
+{
+  "insights.profitability.shareOfRevenue": {
+    "en": "{{pct}} of revenue",
+    "ar": "{{pct}} من الإيرادات"
+  },
+  "insights.watch.loadFailed": {
+    "en": "Couldn't load margin watch",
+    "ar": "تعذّر تحميل مراقبة الهامش"
+  },
+  "insights.watch.empty": {
+    "en": "Margins appear here once items sell in this period",
+    "ar": "تظهر الهوامش هنا بمجرد بيع أصناف في هذه الفترة"
+  },
+  "tablesInsights.loadFailed": {
+    "en": "Couldn't load table insights",
+    "ar": "تعذّر تحميل تحليلات الطاولات"
+  },
+  "dashboard.trendFailed": {
+    "en": "Couldn't load the revenue trend",
+    "ar": "تعذّر تحميل اتجاه الإيرادات"
+  },
+  "dashboard.paymentsFailed": {
+    "en": "Couldn't load the payment mix",
+    "ar": "تعذّر تحميل توزيع طرق الدفع"
+  },
+  "dashboard.branchesFailed": {
+    "en": "Couldn't load branch performance",
+    "ar": "تعذّر تحميل أداء الفروع"
+  },
+  "dashboard.deliveryFailed": {
+    "en": "Couldn't load delivery sales",
+    "ar": "تعذّر تحميل مبيعات التوصيل"
+  },
+  "dashboard.noSalesPeriod": {
+    "en": "Sales for this period will appear here.",
+    "ar": "ستظهر مبيعات هذه الفترة هنا."
+  },
+  "dashboard.ordersWord": {
+    "en": "orders",
+    "ar": "طلب"
+  },
+  "common.decision.accepted": {
+    "en": "Accepted",
+    "ar": "مقبول"
+  },
+  "common.decision.rejected": {
+    "en": "Rejected",
+    "ar": "مرفوض"
+  },
+  "common.decision.ignored": {
+    "en": "Ignored",
+    "ar": "تم التجاهل"
+  }
+}

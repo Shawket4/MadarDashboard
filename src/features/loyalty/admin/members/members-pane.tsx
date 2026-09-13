@@ -9,23 +9,16 @@
  */
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, Wallet } from "lucide-react";
+import { Search, Users, Wallet } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/app/data-table";
+import { StatusPill } from "@/components/app/status-pill";
 import {
   listLoyaltyMembers,
   useListBranches,
@@ -72,6 +65,50 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
     id: string;
     name: string;
   } | null>(null);
+  const columns = useMemo<ColumnDef<MemberView>[]>(
+    () => [
+      {
+        id: "member",
+        header: t("loyalty.member", "Member"),
+        meta: { label: t("loyalty.member", "Member"), phone: "title" },
+        cell: ({ row }) => (
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">{row.original.name}</p>
+            <p className="truncate font-mono text-xs text-muted-foreground" dir="ltr">
+              {row.original.phone}
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: "balance",
+        header: t("loyalty.balance", "Balance"),
+        meta: { label: t("loyalty.balance", "Balance"), numeric: true },
+        cell: ({ row }) => `${row.original.balance} ${currencyLabel(row.original.mode, row.original.balance)}`,
+      },
+      {
+        id: "progress",
+        header: t("loyalty.progress", "To next reward"),
+        meta: { label: t("loyalty.progress", "To next reward") },
+        cell: ({ row }) =>
+          row.original.can_redeem ? (
+            <StatusPill tone="success">{t("loyalty.rewardReady", "Reward earned")}</StatusPill>
+          ) : (
+            <span className="text-sm text-muted-foreground">
+              <bdi className="font-mono tabular-nums">{row.original.points_to_next_reward}</bdi>{" "}
+              {currencyLabel(row.original.mode, row.original.points_to_next_reward)}
+            </span>
+          ),
+      },
+      {
+        id: "joined",
+        header: t("loyalty.joined", "Joined"),
+        meta: { label: t("loyalty.joined", "Joined"), numeric: true },
+        cell: ({ row }) => fmtDate(row.original.enrolled_at),
+      },
+    ],
+    [t],
+  );
   const logoUrl = useExportLogo();
   const [exporting, setExporting] = useState(false);
   const page = useListLoyaltyMembers({
@@ -163,108 +200,43 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
         />
       </div>
 
-      {page.isLoading ? (
-        <Skeleton className="h-48 w-full" />
-      ) : page.isError ? (
-        <EmptyState
-          title={t("loyalty.membersLoadFailed", "Couldn't load members")}
-          description={getErrorMessage(page.error)}
-          action={
-            <Button variant="outline" onClick={() => void page.refetch()}>
-              {t("common.retry", "Retry")}
-            </Button>
-          }
-        />
-      ) : (page.data?.members.length ?? 0) === 0 ? (
-        <EmptyState
-          title={
-            q.trim()
-              ? t("loyalty.noMembersMatch", "No members match that search")
-              : t("loyalty.noMembers", "No members yet")
-          }
-          description={
-            q.trim()
-              ? undefined
-              : t("loyalty.noMembersHint", "Customers join by scanning the counter code.")
-          }
-        />
-      ) : (
-        <div className="overflow-x-auto rounded-xl border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("loyalty.member", "Member")}</TableHead>
-                <TableHead>{t("loyalty.balance", "Balance")}</TableHead>
-                <TableHead>{t("loyalty.progress", "To next reward")}</TableHead>
-                <TableHead>{t("loyalty.joined", "Joined")}</TableHead>
-                {isSuperAdmin ? <TableHead className="w-0" /> : null}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {page.data?.members.map((m) => (
-                <TableRow
-                  key={m.id}
-                  className="cursor-pointer"
-                  onClick={() => setOpenMember(m.id)}
+      <DataTable
+        columns={columns}
+        data={page.data?.members ?? []}
+        loading={page.isLoading}
+        error={page.error}
+        onRetry={() => void page.refetch()}
+        getRowId={(m) => m.id}
+        onRowClick={(m) => setOpenMember(m.id)}
+        selectedRowId={openMember}
+        rowActions={
+          isSuperAdmin
+            ? (m) => (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t("loyalty.googleObject", "Google Wallet object")}
+                  onClick={() => setInspecting({ id: m.id, name: m.name })}
                 >
-                  <TableCell>
-                    <button
-                      type="button"
-                      className="text-start font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenMember(m.id);
-                      }}
-                    >
-                      {m.name}
-                    </button>
-                    <p className="text-xs text-muted-foreground" dir="ltr">{m.phone}</p>
-                  </TableCell>
-                  <TableCell className="font-mono">
-                    {m.balance} {currencyLabel(m.mode, m.balance)}
-                  </TableCell>
-                  <TableCell>
-                    {m.can_redeem ? (
-                      <Badge
-                        variant="outline"
-                        className="border-transparent bg-success/15 text-success"
-                      >
-                        {t("loyalty.rewardReady", "Reward earned")}
-                      </Badge>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">
-                        {m.points_to_next_reward}{" "}
-                        {currencyLabel(m.mode, m.points_to_next_reward)}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {fmtDate(m.enrolled_at)}
-                  </TableCell>
-                  {isSuperAdmin ? (
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={t(
-                          "loyalty.googleObject",
-                          "Google Wallet object",
-                        )}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setInspecting({ id: m.id, name: m.name });
-                        }}
-                      >
-                        <Wallet className="size-4" />
-                      </Button>
-                    </TableCell>
-                  ) : null}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+                  <Wallet className="size-4" />
+                </Button>
+              )
+            : undefined
+        }
+        emptyState={
+          <EmptyState
+            icon={Users}
+            title={
+              q.trim()
+                ? t("loyalty.noMembersMatch", "No members match that search")
+                : t("loyalty.noMembers", "No members yet")
+            }
+            description={
+              q.trim() ? undefined : t("loyalty.noMembersHint", "Customers join by scanning the counter code.")
+            }
+          />
+        }
+      />
 
       {page.data && page.data.total > (page.data.members.length ?? 0) ? (
         <p className="text-xs text-muted-foreground">

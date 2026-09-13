@@ -23,13 +23,18 @@ import { z } from "zod";
 import { useOrgId } from "@/hooks/use-org-id";
 import { toast } from "sonner";
 
-import { PageHeader } from "@/components/app/page";
+import { SectionHeader } from "@/components/app/section-header";
 import { ImageUploader } from "@/components/app/image-uploader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getOrg, updateOrg, uploadOrgCardImage, uploadOrgLogo } from "@/data/api/generated/api";
+import {
+  getOrg,
+  updateOrg,
+  uploadOrgCardImage,
+  uploadOrgLogo,
+} from "@/data/api/generated/api";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,6 +45,7 @@ import {
   socialLinksToForm,
 } from "@/features/orgs/social-links";
 
+import { PaneHeader } from "./pane-header";
 import { ShopAddressCard } from "./shop-address-card";
 
 import { resolveBrand } from "@/features/loyalty/shared/brand";
@@ -53,14 +59,20 @@ export function BrandPane() {
   const orgId = useOrgId() ?? "";
   const queryClient = useQueryClient();
 
-
   const org = useQuery({
     queryKey: ["org-brand", orgId],
     queryFn: () => getOrg(orgId),
     enabled: !!orgId,
   });
 
-  if (org.isLoading) return <Skeleton className="h-64 w-full" />;
+  if (org.isLoading)
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-40 w-full rounded-2xl" />
+        <Skeleton className="h-40 w-full rounded-2xl" />
+      </div>
+    );
 
   const upload = async (file: File): Promise<string> => {
     try {
@@ -110,75 +122,91 @@ export function BrandPane() {
   );
 
   return (
-    <div className="max-w-2xl space-y-4">
-      <PageHeader
-        title={t("settings.brand", "Brand")}
-        description={t(
-          "settings.brandDesc",
-          "Your mark and your links, on receipts and on your customers' loyalty cards.",
-        )}
-      />
+    <div className="space-y-8">
+      <div className="space-y-3">
+        <PaneHeader
+          title={t("settings.brand", "Brand")}
+          description={t(
+            "settings.brandDesc",
+            "Your mark and your links, on receipts and on your customers' loyalty cards.",
+          )}
+        />
 
-      {org.data && !org.data.custom_branding ? (
-        // Said plainly, and next to the preview it explains. The alternative is
-        // a manager uploading a logo, seeing Madar's colours, and reporting it
-        // as a bug — which is what a silent tier gate produces.
-        <div className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-muted/40 p-3">
-          <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
-              {t("settings.brandTierOff", "Custom branding is not enabled")}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t(
-                "settings.brandTierOffHint",
-                "Your logo still appears on receipts. Customer cards and the signup page use Madar's colours until custom branding is switched on for your organisation — talk to us about it.",
-              )}
-            </p>
+        {org.data && !org.data.custom_branding ? (
+          // Said plainly, and next to the preview it explains. The alternative is
+          // a manager uploading a logo, seeing Madar's colours, and reporting it
+          // as a bug — which is what a silent tier gate produces.
+          <div className="flex items-start gap-2.5 rounded-xl border bg-secondary/60 p-3">
+            <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium">
+                {t("settings.brandTierOff", "Custom branding is not enabled")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t(
+                  "settings.brandTierOffHint",
+                  "Your logo still appears on receipts. Customer cards and the signup page use Madar's colours until custom branding is switched on for your organisation — talk to us about it.",
+                )}
+              </p>
+            </div>
           </div>
+        ) : null}
+      </div>
+
+      <div className="space-y-3">
+        <SectionHeader as="h3" title={t("settings.logo", "Logo")} />
+        <Card>
+          <CardContent className="space-y-4 p-5">
+            <ImageUploader
+              value={org.data?.logo_url}
+              onUpload={upload}
+              hint={t(
+                "settings.logoHint",
+                "PNG or JPG, square works best. The card's colours are taken from it automatically.",
+              )}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="space-y-3">
+        <SectionHeader
+          as="h3"
+          title={t("settings.cardImage", "Card image")}
+          description={t(
+            "settings.cardImageHint",
+            "A wide photo across the customer's card, in Apple Wallet and Google Wallet alike. It is cropped to a band, so put the subject in the middle. Optional.",
+          )}
+        />
+        <Card>
+          <CardContent className="space-y-4 p-5">
+            <ImageUploader
+              value={org.data?.brand_card_image}
+              onUpload={uploadCardImage}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {org.data ? (
+        <ShopAddressCard
+          slug={org.data.slug}
+          customBranding={org.data.custom_branding}
+        />
+      ) : null}
+
+      {org.data ? (
+        <div className="space-y-3">
+          <SectionHeader as="h3" title={t("settings.links", "Links")} />
+          <SocialLinksCard org={org.data} />
         </div>
       ) : null}
 
-      <Card>
-        <CardContent className="space-y-4 p-5">
-          <ImageUploader
-            value={org.data?.logo_url}
-            onUpload={upload}
-            hint={t(
-              "settings.logoHint",
-              "PNG or JPG, square works best. The card's colours are taken from it automatically.",
-            )}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="space-y-4 p-5">
-          <div>
-            <p className="text-sm font-medium">
-              {t("settings.cardImage", "Card image")}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t(
-                "settings.cardImageHint",
-                "A wide photo across the customer's card, in Apple Wallet and Google Wallet alike. It is cropped to a band, so put the subject in the middle. Optional.",
-              )}
-            </p>
-          </div>
-          <ImageUploader value={org.data?.brand_card_image} onUpload={uploadCardImage} />
-        </CardContent>
-      </Card>
-
-      {org.data ? (
-        <ShopAddressCard slug={org.data.slug} customBranding={org.data.custom_branding} />
-      ) : null}
-
-      {org.data ? <SocialLinksCard org={org.data} /> : null}
-
-      <div className="space-y-2">
-        <p className="text-sm font-medium">
-          {t("settings.cardPreview", "How the loyalty card will look")}
-        </p>
+      <div className="space-y-3">
+        <SectionHeader
+          as="h3"
+          title={t("settings.cardPreview", "How the loyalty card will look")}
+        />
         <CardFace
           brand={brand}
           mode="visits"
@@ -233,7 +261,9 @@ function SocialLinksCard({ org }: { org: Org }) {
   const submit = async (v: Values) => {
     setBusy(true);
     try {
-      await updateOrg(org.id, { social_links: socialLinksPatch(v.social, org.social_links) });
+      await updateOrg(org.id, {
+        social_links: socialLinksPatch(v.social, org.social_links),
+      });
       await queryClient.invalidateQueries({ queryKey: ["org-brand", org.id] });
       toast.success(t("settings.socialSaved", "Links updated"));
     } catch (e) {

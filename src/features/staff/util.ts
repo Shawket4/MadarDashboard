@@ -1,3 +1,5 @@
+import { fmtElapsedMs } from "@/lib/format";
+import type { StatusTone } from "@/components/app/status-pill";
 import { queryClient } from "@/data/api/query";
 
 /**
@@ -30,37 +32,37 @@ export const invalidateRequests = () => {
 };
 export const invalidatePayroll = () => invalidatePrefix("/staff/payroll");
 
-/** Attendance status → badge colour. Mirrors the five values the backend's
+/** Attendance status → StatusPill tone. Mirrors the five values the backend's
  *  CHECK constraint allows. */
-export const ATTENDANCE_STATUS_CLASS: Record<string, string> = {
-  present: "bg-success/15 text-success",
-  late: "bg-warning/15 text-warning",
-  half_day: "bg-warning/15 text-warning",
-  absent: "bg-destructive/15 text-destructive",
-  on_leave: "bg-info/15 text-info",
+export const ATTENDANCE_STATUS_TONE: Record<string, StatusTone> = {
+  present: "success",
+  late: "warning",
+  half_day: "warning",
+  absent: "danger",
+  on_leave: "info",
 };
 
-/** Request status (leave, late passes, missions, advances) → badge colour. */
-export const REQUEST_STATUS_CLASS: Record<string, string> = {
-  pending: "bg-warning/15 text-warning",
-  approved: "bg-success/15 text-success",
-  rejected: "bg-destructive/15 text-destructive",
-  cancelled: "bg-muted text-muted-foreground",
-  settled: "bg-muted text-muted-foreground",
+/** Request status (leave, late passes, missions, advances) → StatusPill tone. */
+export const REQUEST_STATUS_TONE: Record<string, StatusTone> = {
+  pending: "warning",
+  approved: "success",
+  rejected: "danger",
+  cancelled: "neutral",
+  settled: "neutral",
 };
 
-/** Payroll period status → badge colour. */
-export const PERIOD_STATUS_CLASS: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  generated: "bg-info/15 text-info",
-  paid: "bg-success/15 text-success",
-  closed: "bg-muted text-muted-foreground",
+/** Payroll period status → StatusPill tone. */
+export const PERIOD_STATUS_TONE: Record<string, StatusTone> = {
+  draft: "neutral",
+  generated: "info",
+  paid: "success",
+  closed: "neutral",
 };
 
-export const EMPLOYMENT_STATUS_CLASS: Record<string, string> = {
-  active: "bg-success/15 text-success",
-  suspended: "bg-warning/15 text-warning",
-  terminated: "bg-muted text-muted-foreground",
+export const EMPLOYMENT_STATUS_TONE: Record<string, StatusTone> = {
+  active: "success",
+  suspended: "warning",
+  terminated: "neutral",
 };
 
 /**
@@ -82,12 +84,10 @@ export const WEEKDAYS: { value: number; labelKey: string; fallback: string }[] =
  *  hours only exist for display. */
 export const fmtMinutes = (minutes: number | null | undefined): string => {
   if (minutes === null || minutes === undefined) return "—";
-  if (minutes === 0) return "0m";
-  const sign = minutes < 0 ? "-" : "";
-  const abs = Math.abs(minutes);
-  const h = Math.floor(abs / 60);
-  const m = abs % 60;
-  return h > 0 ? `${sign}${h}h ${m}m` : `${sign}${m}m`;
+  const sign = minutes < 0 ? "\u2212" : "";
+  const out = fmtElapsedMs(Math.abs(minutes) * 60_000);
+  // fmtElapsedMs isolates Arabic figures; keep the sign inside the isolate.
+  return sign ? out.replace(/^(\u2066?)/, `$1${sign}`) : out;
 };
 
 /** ISO date (yyyy-mm-dd) `n` days from today, for default report ranges. */

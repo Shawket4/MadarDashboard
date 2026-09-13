@@ -1,0 +1,4 @@
+{
+  "orders.emptyTitle": { "en": "No orders in this range", "ar": "لا توجد طلبات في هذه الفترة" },
+  "orders.emptyBody": { "en": "Sales rung on the POS for this branch and period appear here.", "ar": "تظهر هنا المبيعات المسجّلة على الكاشير لهذا الفرع وهذه الفترة." }
+}

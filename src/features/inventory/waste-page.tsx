@@ -4,14 +4,14 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page } from "@/components/app/page";
+import { Page, PageHeader } from "@/components/app/page";
+import { ListCard, SummaryLine } from "@/components/app/list-row";
+import { SectionHeader } from "@/components/app/section-header";
 import { DataTable } from "@/components/app/data-table";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import type { StockMovement } from "@/data/api/generated/models";
 import { listWaste, useBranchWasteReport, useListWaste } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
@@ -63,32 +63,35 @@ export function WastePage() {
       {
         accessorKey: "created_at",
         header: t("common.date", "Date"),
-        cell: ({ row }) => <span className="tabular">{fmtDateTime(row.original.created_at)}</span>,
+        meta: { label: t("common.date", "Date"), numeric: true, align: "start" },
+        cell: ({ row }) => fmtDateTime(row.original.created_at),
       },
       ...(isAllBranches
         ? ([{
             accessorKey: "branch_name",
             header: t("inventory.waste.branch", "Branch"),
+            meta: { label: t("inventory.waste.branch", "Branch") },
             cell: ({ row }) => <span>{row.original.branch_name ?? "—"}</span>,
           }] as ColumnDef<StockMovement>[])
         : []),
-      { accessorKey: "ingredient_name", header: t("inventory.waste.ingredient", "Ingredient") },
+      { accessorKey: "ingredient_name", header: t("inventory.waste.ingredient", "Ingredient"), meta: { label: t("inventory.waste.ingredient", "Ingredient"), phone: "title" }, cell: ({ row }) => <span className="font-medium">{row.original.ingredient_name}</span> },
       {
         accessorKey: "quantity",
         header: t("inventory.waste.quantity", "Quantity"),
-        cell: ({ row }) => (
-          <span className="tabular">{fmtNumber(Math.abs(row.original.quantity))} {fmtUnit(row.original.unit)}</span>
-        ),
+        meta: { label: t("inventory.waste.quantity", "Quantity"), numeric: true },
+        cell: ({ row }) => `${fmtNumber(Math.abs(row.original.quantity))} ${fmtUnit(row.original.unit)}`,
       },
       {
         accessorKey: "reason",
         header: t("inventory.waste.reason", "Reason"),
+        meta: { label: t("inventory.waste.reason", "Reason") },
         cell: ({ row }) =>
           row.original.reason ? t(`inventory.waste.reasons.${row.original.reason}`, row.original.reason) : "—",
       },
       {
         accessorKey: "created_by_name",
         header: t("inventory.waste.by", "By"),
+        meta: { label: t("inventory.waste.by", "By") },
         cell: ({ row }) => row.original.created_by_name ?? "—",
       },
     ],
@@ -124,11 +127,10 @@ export function WastePage() {
 
   return (
     <Page>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.waste.title", "Waste log")}</h1>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
+      <PageHeader
+        title={t("inventory.waste.title", "Waste log")}
+        actions={
+          <>
           <ExportButton onExport={handleExport} loading={exporting} disabled={!(waste.data?.length)} />
           {branchId ? (
             <Button onClick={() => setLogOpen(true)}>
@@ -136,45 +138,54 @@ export function WastePage() {
               {t("inventory.waste.record", "Record waste")}
             </Button>
           ) : null}
-        </div>
-      </div>
-      <div className="grid gap-6 lg:grid-cols-3">
+          </>
+        }
+      />
+      <div className="grid items-start gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <DataTable
             columns={columns}
             data={waste.data ?? []}
             loading={waste.isLoading}
+            error={waste.error}
+            onRetry={() => void waste.refetch()}
             getRowId={(m) => m.id}
             searchPlaceholder={t("common.search", "Search")}
             emptyState={<EmptyState icon={Trash2} title={t("inventory.waste.noWaste", "No waste recorded")} />}
           />
         </div>
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle className="text-base">{t("inventory.waste.byReason", "By reason")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {report.isLoading ? (
-              <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}</div>
-            ) : byReason.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("inventory.reports.noData", "No data")}</p>
-            ) : (
-              <>
-                {byReason.map(([reason, agg]) => (
-                  <div key={reason} className="flex items-center justify-between text-sm">
-                    <span>{t(`inventory.waste.reasons.${reason}`, reason)}</span>
-                    <span className="tabular">{agg.hasValue ? fmtMoney(agg.value) : "—"}</span>
-                  </div>
-                ))}
-                <Separator className="my-1" />
-                <div className="flex items-center justify-between font-medium">
-                  <span>{t("inventory.waste.totalPeriod", "Total this period")}</span>
-                  <span className="tabular">{fmtMoney(totalValue)}</span>
+        <section className="space-y-3">
+          <SectionHeader title={t("inventory.waste.byReason", "By reason")} />
+          {report.isError ? (
+            <ErrorState
+              title={t("inventory.waste.reportFailed", "Couldn't load waste by reason")}
+              onRetry={() => void report.refetch()}
+            />
+          ) : report.isLoading ? (
+            <ListCard className="space-y-3 p-5">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between gap-4">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-4 w-16" />
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+              ))}
+            </ListCard>
+          ) : byReason.length === 0 ? (
+            <EmptyState className="py-8" title={t("inventory.waste.noReasonData", "Waste by reason appears once waste is logged in this period.")} />
+          ) : (
+            <div className="rounded-2xl border bg-card px-5 py-3">
+              {byReason.map(([reason, agg]) => (
+                <SummaryLine
+                  key={reason}
+                  label={t(`inventory.waste.reasons.${reason}`, reason)}
+                  value={agg.hasValue ? fmtMoney(agg.value) : "—"}
+                />
+              ))}
+              <div className="my-2 border-t" />
+              <SummaryLine emphasis label={t("inventory.waste.totalPeriod", "Total this period")} value={fmtMoney(totalValue)} />
+            </div>
+          )}
+        </section>
       </div>
 
       <WasteDialog branchId={branchId ?? ""} open={logOpen} onOpenChange={setLogOpen} />

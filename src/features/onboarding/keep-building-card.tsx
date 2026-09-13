@@ -64,7 +64,7 @@ export function KeepBuildingCard() {
           {t("onboarding.nudge.body", "Keep building — add recipes, your team and more to unlock cost insights.")}
         </p>
       </div>
-      <Button size="sm" variant="brand" onClick={() => navigate({ to: "/onboarding" })}>
+      <Button size="sm" onClick={() => navigate({ to: "/onboarding" })}>
         {t("onboarding.nudge.cta", "Keep building")} <ArrowRight className="size-4 rtl:rotate-180" />
       </Button>
       <button

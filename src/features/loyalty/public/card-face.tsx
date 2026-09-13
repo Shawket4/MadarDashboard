@@ -21,6 +21,8 @@
  */
 import { useTranslation } from "react-i18next";
 
+import { AssetImage } from "@/components/app/asset-image";
+
 import type { ResolvedBrand } from "../shared/brand";
 import { StampRow, stampable } from "./stamp-row";
 
@@ -114,10 +116,11 @@ export function CardFace({
           // plate breaks that without touching the artwork, which is the same
           // answer both wallet passes reached.
           <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-1.5 shadow-sm">
-            <img
-              src={brand.logoUrl}
-              alt=""
-              className="max-h-full max-w-full object-contain"
+            <AssetImage
+              legacyUrl={brand.logoUrl}
+              sizes="48px"
+              fit="contain"
+              className="max-h-full max-w-full"
             />
           </span>
         ) : null}
@@ -141,10 +144,10 @@ export function CardFace({
           photograph look like a mistake. */}
       {brand.cardImageUrl ? (
         <div className="-mx-6 mt-5 aspect-[2.6/1] overflow-hidden">
-          <img
-            src={brand.cardImageUrl}
-            alt=""
-            className="size-full object-cover"
+          <AssetImage
+            legacyUrl={brand.cardImageUrl}
+            sizes="(max-width: 640px) 100vw, 512px"
+            className="size-full"
           />
         </div>
       ) : null}
@@ -287,9 +290,10 @@ export function CardFace({
               {/* On white whatever the card's ground: a scanner needs the
                   quiet zone and the contrast, and a QR tinted to match the
                   card is a QR that does not read. */}
-              <img
-                src={qrUrl}
+              <AssetImage
+                legacyUrl={qrUrl}
                 alt={t("loyalty.memberCodeAlt", "Your membership code")}
+                fit="contain"
                 className="size-[92px] rounded-lg bg-white p-1.5"
               />
               <span

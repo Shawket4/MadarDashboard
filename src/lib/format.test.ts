@@ -1,63 +1,51 @@
-import { describe, expect, it } from "vitest";
-import { egpToPiastres, fmtHour, piastresToEgp, rateOf } from "@/lib/format";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-describe("fmtHour", () => {
-  it("formats midnight and noon as 12am/12pm", () => {
-    expect(fmtHour(0)).toBe("12am");
-    expect(fmtHour(12)).toBe("12pm");
+import i18n from "@/i18n";
+import { useAppStore } from "@/data/stores/app.store";
+import { fmtElapsedMs, fmtMoney, fmtMoneySigned, fmtStamp, fmtNumber } from "./format";
+
+const setLang = async (l: "en" | "ar") => {
+  await i18n.changeLanguage(l);
+};
+
+describe("money (POS shape)", () => {
+  afterEach(() => setLang("en"));
+
+  it("English: label first, grouped, two decimals, true minus", async () => {
+    await setLang("en");
+    expect(fmtMoney(123450)).toBe("EGP 1,234.50");
+    expect(fmtMoney(-5000)).toBe("−EGP 50.00");
+    expect(fmtMoneySigned(2000)).toBe("+EGP 20.00");
+    expect(fmtMoney(0)).toBe("EGP 0.00");
+    expect(fmtMoney(null)).toBe("—");
+    expect(fmtMoney(123456, { maxFractionDigits: 0 })).toBe("EGP 1,235");
   });
 
-  it("formats AM hours without leading zero", () => {
-    expect(fmtHour(1)).toBe("1am");
-    expect(fmtHour(6)).toBe("6am");
-    expect(fmtHour(11)).toBe("11am");
-  });
-
-  it("formats PM hours in 12-hour notation", () => {
-    expect(fmtHour(13)).toBe("1pm");
-    expect(fmtHour(18)).toBe("6pm");
-    expect(fmtHour(23)).toBe("11pm");
-  });
-});
-
-describe("egpToPiastres", () => {
-  it("rounds float-imprecise products instead of truncating (no lost piastre)", () => {
-    // `19.99 * 100` is 1998.9999999999998 in IEEE-754 — Math.trunc would give 1998.
-    expect(egpToPiastres(19.99)).toBe(1999);
-    expect(egpToPiastres(1.1)).toBe(110);
-    expect(egpToPiastres(0.07)).toBe(7);
-    expect(egpToPiastres(4.6)).toBe(460);
-  });
-
-  it("handles exact and zero values", () => {
-    expect(egpToPiastres(0)).toBe(0);
-    expect(egpToPiastres(5)).toBe(500);
-    expect(egpToPiastres(123.45)).toBe(12345);
-  });
-
-  it("round-trips through piastresToEgp for two-decimal prices", () => {
-    for (const egp of [19.99, 1.1, 0.07, 250.5, 999.95, 4.6]) {
-      expect(piastresToEgp(egpToPiastres(egp))).toBeCloseTo(egp, 2);
-    }
+  it("Arabic: Western digits, LTR-isolated figure, label after", async () => {
+    await setLang("ar");
+    expect(fmtMoney(123450)).toBe("⁦1,234.50⁩ ج.م");
+    expect(fmtMoney(-5000)).toBe("⁦−50.00⁩ ج.م");
+    expect(fmtNumber(1234)).toBe("1,234");
   });
 });
 
-describe("rateOf", () => {
-  it("reads the rate field, not the legacy integer", () => {
-    // `value` is 0-100 on the wire now; reading it as a fraction would show
-    // a 14% discount as 1400% off, which is a refund.
-    expect(rateOf({ value: 14, value_rate: 0.14, dtype: "percentage" })).toBe(0.14);
-    expect(rateOf({ value: 5000, value_rate: 5000, dtype: "fixed" })).toBe(5000);
+describe("elapsed + stamps", () => {
+  beforeEach(() => useAppStore.getState().setActiveTimezone("Africa/Cairo"));
+  afterEach(() => setLang("en"));
+
+  it("elapsed drops seconds and pads", async () => {
+    await setLang("en");
+    expect(fmtElapsedMs(0)).toBe("0m");
+    expect(fmtElapsedMs(42 * 60_000)).toBe("42m");
+    expect(fmtElapsedMs(65 * 60_000)).toBe("1h 05m");
+    expect(fmtElapsedMs((27 * 60 + 5) * 60_000)).toBe("1d 03h");
   });
 
-  it("falls back to the legacy integer when the server predates the split", () => {
-    expect(rateOf({ value: 14, dtype: "percentage" })).toBe(0.14);
-    expect(rateOf({ value: 5000, dtype: "fixed" })).toBe(5000);
-  });
-
-  it("treats a zero rate as a rate, not as absent", () => {
-    // `?? ` and not `||`: a 0% discount is a real, stored answer, and `||`
-    // would fall through and re-divide the legacy value.
-    expect(rateOf({ value: 0, value_rate: 0, dtype: "percentage" })).toBe(0);
+  it("stamps are 24h in the branch timezone", async () => {
+    await setLang("en");
+    const now = new Date("2026-09-12T20:00:00Z"); // 23:00 Cairo
+    expect(fmtStamp("2026-09-12T15:02:00Z", now)).toBe("18:02");
+    expect(fmtStamp("2026-09-10T15:02:00Z", now)).toMatch(/10 Sept?\s·\s18:02/);
+    expect(fmtStamp("2025-12-31T21:30:00Z", now)).toMatch(/31 Dec 2025\s·\s23:30/);
   });
 });

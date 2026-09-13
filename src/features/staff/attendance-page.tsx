@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CalendarClock, MapPin, PencilLine, Plus } from "lucide-react";
+import { AlarmClock, CalendarCheck, CalendarClock, CalendarX, MapPin, PencilLine, Plus, Timer } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -9,6 +9,8 @@ import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { StatCard } from "@/components/app/stat-card";
+import { StatusPill } from "@/components/app/status-pill";
+import { RowAction } from "@/features/users/row-action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,9 +31,9 @@ import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
-import { fmtDateTime } from "@/lib/format";
+import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
 import {
-  ATTENDANCE_STATUS_CLASS, fmtMinutes, invalidateAttendance, isoDaysFromToday, todayIso,
+  ATTENDANCE_STATUS_TONE, fmtMinutes, invalidateAttendance, isoDaysFromToday, todayIso,
 } from "./util";
 
 const ALL = "__all__";
@@ -126,6 +128,7 @@ export function AttendancePage() {
       {
         accessorKey: "user_name",
         header: t("staff.name", "Name"),
+        meta: { label: t("staff.name", "Name"), phone: "title" },
         cell: ({ row }) => (
           <div className="min-w-0">
             <div className="truncate font-medium">{row.original.user_name ?? "—"}</div>
@@ -135,22 +138,26 @@ export function AttendancePage() {
           </div>
         ),
       },
-      { accessorKey: "business_date", header: t("staff.date", "Date") },
+      {
+        accessorKey: "business_date",
+        header: t("staff.date", "Date"),
+        meta: { label: t("staff.date", "Date"), numeric: true, align: "start" },
+        cell: ({ row }) => fmtDate(row.original.business_date),
+      },
       {
         accessorKey: "status",
         header: t("staff.attendanceStatus", "Status"),
+        meta: { label: t("staff.attendanceStatus", "Status") },
         cell: ({ row }) => (
-          <Badge
-            variant="outline"
-            className={`border-transparent ${ATTENDANCE_STATUS_CLASS[row.original.status] ?? ""}`}
-          >
+          <StatusPill tone={ATTENDANCE_STATUS_TONE[row.original.status] ?? "neutral"}>
             {t(`staff.att_${row.original.status}`, row.original.status)}
-          </Badge>
+          </StatusPill>
         ),
       },
       {
         id: "in",
         header: t("staff.checkIn", "In"),
+        meta: { label: t("staff.checkIn", "In"), numeric: true, align: "start" },
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
             <span>{row.original.check_in_at ? fmtDateTime(row.original.check_in_at) : "—"}</span>
@@ -161,7 +168,7 @@ export function AttendancePage() {
                 title={t("staff.distanceFromBranch", "Distance from the branch when clocking in")}
               >
                 <MapPin className="size-3" />
-                {Math.round(row.original.check_in_distance_meters)}m
+                <bdi>{fmtNumber(Math.round(row.original.check_in_distance_meters))}m</bdi>
               </span>
             ) : null}
           </div>
@@ -170,11 +177,12 @@ export function AttendancePage() {
       {
         id: "out",
         header: t("staff.checkOut", "Out"),
+        meta: { label: t("staff.checkOut", "Out"), numeric: true, align: "start" },
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
             <span>{row.original.check_out_at ? fmtDateTime(row.original.check_out_at) : "—"}</span>
             {row.original.check_out_method === "auto" ? (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="secondary" className="font-sans text-xs">
                 {t("staff.autoClosed", "auto")}
               </Badge>
             ) : null}
@@ -184,14 +192,16 @@ export function AttendancePage() {
       {
         id: "worked",
         header: t("staff.worked", "Worked"),
+        meta: { label: t("staff.worked", "Worked"), numeric: true },
         cell: ({ row }) => fmtMinutes(row.original.worked_minutes),
       },
       {
         id: "late",
         header: t("staff.late", "Late"),
+        meta: { label: t("staff.late", "Late"), numeric: true },
         cell: ({ row }) =>
           row.original.late_minutes > 0 ? (
-            <span className="text-warning">{fmtMinutes(row.original.late_minutes)}</span>
+            <span className="text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]">{fmtMinutes(row.original.late_minutes)}</span>
           ) : (
             "—"
           ),
@@ -199,29 +209,13 @@ export function AttendancePage() {
       {
         id: "overtime",
         header: t("staff.overtime", "Overtime"),
+        meta: { label: t("staff.overtime", "Overtime"), numeric: true },
         cell: ({ row }) =>
           row.original.overtime_minutes > 0 ? (
-            <span className="text-success">{fmtMinutes(row.original.overtime_minutes)}</span>
+            <span className="text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]">{fmtMinutes(row.original.overtime_minutes)}</span>
           ) : (
             "—"
           ),
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t("staff.correct", "Correct")}
-            onClick={(e) => {
-              e.stopPropagation();
-              setCorrecting(row.original);
-            }}
-          >
-            <PencilLine className="size-4" />
-          </Button>
-        ),
       },
     ],
     [t],
@@ -244,41 +238,49 @@ export function AttendancePage() {
             </Button>
           </>
         }
+        below={
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-muted-foreground" htmlFor="att-from">{t("staff.from", "From")}</Label>
+              <Input id="att-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-muted-foreground" htmlFor="att-to">{t("staff.to", "To")}</Label>
+              <Input id="att-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" />
+            </div>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>{t("staff.allStatuses", "All statuses")}</SelectItem>
+                <SelectItem value="present">{t("staff.att_present", "Present")}</SelectItem>
+                <SelectItem value="late">{t("staff.att_late", "Late")}</SelectItem>
+                <SelectItem value="half_day">{t("staff.att_half_day", "Half day")}</SelectItem>
+                <SelectItem value="absent">{t("staff.att_absent", "Absent")}</SelectItem>
+                <SelectItem value="on_leave">{t("staff.att_on_leave", "On leave")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        }
       />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1">
-          <Label htmlFor="att-from">{t("staff.from", "From")}</Label>
-          <Input id="att-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="att-to">{t("staff.to", "To")}</Label>
-          <Input id="att-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" />
-        </div>
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t("staff.allStatuses", "All statuses")}</SelectItem>
-            <SelectItem value="present">{t("staff.att_present", "Present")}</SelectItem>
-            <SelectItem value="late">{t("staff.att_late", "Late")}</SelectItem>
-            <SelectItem value="half_day">{t("staff.att_half_day", "Half day")}</SelectItem>
-            <SelectItem value="absent">{t("staff.att_absent", "Absent")}</SelectItem>
-            <SelectItem value="on_leave">{t("staff.att_on_leave", "On leave")}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label={t("staff.presentDays", "Present days")} value={String(totals.present)} />
-        <StatCard label={t("staff.lateDays", "Late days")} value={String(totals.late)} />
-        <StatCard label={t("staff.absentDays", "Absent days")} value={String(totals.absent)} />
-        <StatCard label={t("staff.overtime", "Overtime")} value={fmtMinutes(totals.overtime)} />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard icon={CalendarCheck} label={t("staff.presentDays", "Present days")} value={totals.present} loading={summaryQ.isLoading} />
+        <StatCard icon={AlarmClock} label={t("staff.lateDays", "Late days")} value={totals.late} loading={summaryQ.isLoading} />
+        <StatCard icon={CalendarX} label={t("staff.absentDays", "Absent days")} value={totals.absent} loading={summaryQ.isLoading} />
+        <StatCard icon={Timer} label={t("staff.overtime", "Overtime")} value={fmtMinutes(totals.overtime)} loading={summaryQ.isLoading} />
       </div>
 
       <DataTable
         columns={columns}
         data={records}
         loading={recordsQ.isLoading}
+        error={recordsQ.error}
+        onRetry={() => void recordsQ.refetch()}
+        rowActions={(r) => (
+          <RowAction label={t("staff.correct", "Correct")} onClick={() => setCorrecting(r)}>
+            <PencilLine className="size-4" />
+          </RowAction>
+        )}
         getRowId={(r) => r.id}
         searchPlaceholder={t("staff.searchEmployees", "Search employees…")}
         emptyState={

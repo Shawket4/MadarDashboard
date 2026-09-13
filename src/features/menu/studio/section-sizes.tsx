@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Combobox, type ComboboxOption } from "@/components/app/combobox";
 import type { OrgIngredient } from "@/data/api/generated/models";
-import { egpToPiastres, fmtMoney } from "@/lib/format";
+import { currencyLabel, egpToPiastres, fmtMoney, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { FixCostPopover } from "./fix-cost-popover";
 import { newBlockKey, type RecipeLineDraft, type SizeBlockDraft } from "./util";
@@ -115,7 +115,7 @@ export function SectionSizes({
             : null;
 
         return (
-          <div key={b.key} className={cn("rounded-lg border p-3 transition-colors sm:p-4", blockDirty && "bg-brand/5")}>
+          <div key={b.key} className={cn("rounded-lg border p-3 transition-colors sm:p-4", blockDirty && "bg-accent/60")}>
             {/* Size row: reorder · label · price · remove */}
             <div className="flex items-center gap-2">
               <div className="flex flex-col">
@@ -152,11 +152,11 @@ export function SectionSizes({
                   step="0.01"
                   min="0"
                   value={b.price}
-                  aria-label={`${t("common.price", "Price")} (EGP)`}
+                  aria-label={`${t("common.price", "Price")} (${currencyLabel()})`}
                   onChange={(e) => patchBlock(b.key, { price: e.target.value })}
                   className="h-9 w-24 border-0 bg-transparent text-end tabular shadow-none focus-visible:ring-0"
                 />
-                <span className="pe-3 ps-1 text-xs text-muted-foreground">EGP</span>
+                <span className="pe-3 ps-1 text-xs text-muted-foreground">{currencyLabel()}</span>
               </div>
               <Button
                 type="button"
@@ -246,15 +246,12 @@ export function SectionSizes({
                 {costIncomplete ? (
                   t("menu.studio.recipe.incomplete", "Cost incomplete")
                 ) : costPiastres != null ? (
-                  <span className="tabular">
+                  <span className="font-mono tabular-nums">
                     {estimated ? "≈ " : null}
                     {margin != null
                       ? t("menu.studio.sizes.costMargin", "Cost {{cost}} · Margin {{margin}}", {
                           cost: fmtMoney(costPiastres),
-                          margin: new Intl.NumberFormat(undefined, {
-                            style: "percent",
-                            maximumFractionDigits: 1,
-                          }).format(margin),
+                          margin: fmtPercent(margin),
                         })
                       : t("menu.studio.sizes.costOnly", "Cost {{cost}}", { cost: fmtMoney(costPiastres) })}
                   </span>

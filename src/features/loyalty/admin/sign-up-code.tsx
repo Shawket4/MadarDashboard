@@ -60,12 +60,12 @@ export function SignUpCode({
   };
 
   return (
-    <Card>
+    <Card className="py-0">
       <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
         {/* Reads as a field, behaves as a label: this is what the header
             picker currently says, not something to set twice. */}
         <div
-          className="flex w-full items-center gap-2 rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground sm:w-64"
+          className="flex w-full items-center gap-2 rounded-lg border bg-secondary px-3 py-2 text-sm text-muted-foreground sm:w-64"
           title={t("loyalty.scopeLocked", "Set by the branch picker in the header")}
         >
           <Lock className="size-3.5 shrink-0" aria-hidden />

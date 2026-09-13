@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CalendarRange, Loader2, Sun } from "lucide-react";
+import { Loader2, Sun } from "lucide-react";
 import { toast } from "sonner";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ErrorState } from "@/components/app/empty-state";
+import { SectionHeader } from "@/components/app/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -88,46 +89,46 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CalendarRange className="size-4" />
-          {t("staff.roster", "Roster")}
-        </CardTitle>
-        <CardDescription>
-          {t(
-            "staff.gridHint",
-            "Click a cell to set that day's shift. A weekday cell beats the every-day column; an empty cell is a rest day.",
-          )}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <section className="space-y-3">
+      <SectionHeader
+        title={t("staff.roster", "Roster")}
+        description={t(
+          "staff.gridHint",
+          "Click a cell to set that day's shift. A weekday cell beats the every-day column; an empty cell is a rest day.",
+        )}
+      />
+      <div className="overflow-hidden rounded-2xl border bg-card">
         {employeesQ.isLoading || assignmentsQ.isLoading ? (
-          <Skeleton className="h-64 w-full" />
+          <div className="space-y-2 p-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
+        ) : employeesQ.error || assignmentsQ.error ? (
+          <ErrorState
+            title={t("staff.rosterLoadError", "Couldn't load the roster")}
+            onRetry={() => { void employeesQ.refetch(); void assignmentsQ.refetch(); }}
+          />
         ) : employees.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="p-5 text-sm text-muted-foreground">
             {t("staff.noEmployeesYet", "No active employees to roster.")}
           </p>
         ) : activeShifts.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="p-5 text-sm text-muted-foreground">
             {t("staff.noShiftsToRoster", "Create a work shift first — there is nothing to assign yet.")}
           </p>
         ) : (
-          <div className="-mx-2 overflow-x-auto px-2">
+          <div className="overflow-x-auto">
             <table className="w-full min-w-[46rem] border-separate border-spacing-0 text-sm">
               <thead>
                 <tr>
-                  <th className="sticky left-0 z-10 bg-card px-2 py-2 text-start font-medium">
+                  <th className="sticky start-0 z-10 border-b bg-card px-4 py-2.5 text-start text-xs font-semibold text-muted-foreground">
                     {t("staff.employee", "Employee")}
                   </th>
-                  <th className="px-1 py-2 text-center font-medium text-muted-foreground">
+                  <th className="border-b px-1 py-2.5 text-center text-xs font-semibold text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <Sun className="size-3.5" />
                       {t("staff.everyDay", "Every day")}
                     </span>
                   </th>
                   {WEEKDAYS.map((d) => (
-                    <th key={d.value} className="px-1 py-2 text-center font-medium">
+                    <th key={d.value} className="border-b px-1 py-2.5 text-center text-xs font-semibold text-muted-foreground">
                       {t(d.labelKey, d.fallback)}
                     </th>
                   ))}
@@ -137,8 +138,8 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
                 {employees.map((e) => {
                   const entry = roster.get(e.user_id);
                   return (
-                    <tr key={e.user_id} className="border-t">
-                      <td className="sticky left-0 z-10 max-w-[12rem] truncate border-t bg-card px-2 py-1.5 font-medium">
+                    <tr key={e.user_id} className="[&:first-child>td]:border-t-0">
+                      <td className="sticky start-0 z-10 max-w-[12rem] truncate border-t bg-card px-4 py-1.5 font-medium">
                         {e.name}
                       </td>
                       <Cell
@@ -168,8 +169,8 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
             </table>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
 
@@ -191,17 +192,17 @@ function Cell({
   const effective = assignment ?? inherited;
 
   return (
-    <td className="border-t px-1 py-1.5 text-center">
+    <td className="border-t px-1 py-1.5 text-center last:pe-3">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
             disabled={busy}
             className={[
-              "w-full truncate rounded-md border px-2 py-1.5 text-xs transition-colors",
+              "h-8 w-full truncate rounded-md border px-2 text-xs transition-colors duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
               "hover:bg-accent hover:text-accent-foreground",
               assignment
-                ? "border-primary/30 bg-primary/10 font-medium"
+                ? "border-transparent bg-secondary font-medium text-foreground"
                 : effective
                   ? "border-dashed text-muted-foreground"
                   : "border-dashed text-muted-foreground/60",
@@ -219,7 +220,7 @@ function Cell({
           {shifts.map((s) => (
             <DropdownMenuItem key={s.id} onSelect={() => onPick(s.id)}>
               <span className="flex-1">{s.name}</span>
-              <span className="text-xs text-muted-foreground">
+              <span dir="ltr" className="font-mono text-xs text-muted-foreground tabular-nums">
                 {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
               </span>
             </DropdownMenuItem>

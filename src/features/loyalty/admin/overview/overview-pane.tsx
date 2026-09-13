@@ -11,9 +11,8 @@
 import { useTranslation } from "react-i18next";
 import { Coins, Gift, HandCoins, Users, Wallet } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { EmptyState } from "@/components/app/empty-state";
+import { ErrorState } from "@/components/app/empty-state";
 import { StatCard } from "@/components/app/stat-card";
 import { useGetLoyaltyAnalytics, useListLoyaltyMembers } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
@@ -31,20 +30,13 @@ export function OverviewPane({ scope }: { scope: ProgramScope }) {
   const error = analytics.error ?? members.error;
   if (error) {
     return (
-      <EmptyState
+      <ErrorState
         title={t("loyalty.overviewFailed", "Couldn't work out the totals")}
-        description={getErrorMessage(error)}
-        action={
-          <Button
-            variant="outline"
-            onClick={() => {
-              void analytics.refetch();
-              void members.refetch();
-            }}
-          >
-            {t("common.retry", "Retry")}
-          </Button>
-        }
+        message={getErrorMessage(error)}
+        onRetry={() => {
+          void analytics.refetch();
+          void members.refetch();
+        }}
       />
     );
   }
@@ -60,7 +52,7 @@ export function OverviewPane({ scope }: { scope: ProgramScope }) {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard
           loading={loading}
           icon={Users}
@@ -118,7 +110,7 @@ export function OverviewPane({ scope }: { scope: ProgramScope }) {
       {a ? (
         <Card className="py-0">
           <CardContent className="space-y-2 p-4">
-            <p className="text-sm font-semibold">{t("loyalty.topRewards", "Top rewards (last 30 days)")}</p>
+            <h3 className="text-base font-semibold">{t("loyalty.topRewards", "Top rewards (last 30 days)")}</h3>
             {a.top_rewards.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 {t("loyalty.topRewardsEmpty", "No rewards redeemed in the last 30 days.")}
@@ -137,7 +129,7 @@ export function OverviewPane({ scope }: { scope: ProgramScope }) {
                         })}
                       </p>
                     </div>
-                    <span className="shrink-0 font-mono tabular">{fmtMoney(r.value_minor)}</span>
+                    <span className="shrink-0 font-mono tabular-nums">{fmtMoney(r.value_minor)}</span>
                   </li>
                 ))}
               </ul>

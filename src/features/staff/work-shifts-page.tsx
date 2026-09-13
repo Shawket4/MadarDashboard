@@ -1,14 +1,16 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Clock, Moon, Plus, Trash2 } from "lucide-react";
+import { Clock, Moon, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
+import { ListCard, ListRow } from "@/components/app/list-row";
+import { SectionHeader } from "@/components/app/section-header";
+import { StatusPill } from "@/components/app/status-pill";
+import { RowAction } from "@/features/users/row-action";
 import { useConfirm } from "@/components/app/confirm-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,7 +37,7 @@ export function WorkShiftsPage() {
 
   const removeShift = async (shift: WorkShift) => {
     const ok = await confirm({
-      title: t("staff.deleteShift", "Delete work shift"),
+      title: t("staff.deleteShiftTitle", { name: shift.name, defaultValue: `Delete the ${shift.name} shift?` }),
       description: t(
         "staff.deleteShiftHint",
         "Attendance already recorded against this shift is kept. If anyone is still rostered on it, deactivate it instead.",
@@ -69,10 +71,23 @@ export function WorkShiftsPage() {
         }
       />
 
+      <section className="space-y-3">
+        <SectionHeader title={t("staff.shiftsSection", "Shifts")} count={shiftsQ.isLoading || shiftsQ.error ? undefined : shifts.length} />
       {shiftsQ.isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[0, 1, 2].map((i) => <Skeleton key={i} className="h-40 w-full" />)}
-        </div>
+        <ListCard>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex min-h-14 items-center gap-3 px-4 py-2.5 sm:px-5">
+              <Skeleton className="size-9 rounded-[10px]" />
+              <div className="flex-1 space-y-1.5"><Skeleton className="h-3.5 w-1/4" /><Skeleton className="h-3 w-1/3" /></div>
+            </div>
+          ))}
+        </ListCard>
+      ) : shiftsQ.error ? (
+        <ErrorState
+          title={t("staff.shiftsLoadError", "Couldn't load work shifts")}
+          onRetry={() => void shiftsQ.refetch()}
+          retrying={shiftsQ.isFetching}
+        />
       ) : shifts.length === 0 ? (
         <EmptyState
           icon={Clock}
@@ -84,52 +99,39 @@ export function WorkShiftsPage() {
           action={<Button onClick={() => setCreating(true)}>{t("staff.newShift", "New shift")}</Button>}
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ListCard>
           {shifts.map((s) => (
-            <Card key={s.id} className={s.is_active ? "" : "opacity-60"}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <CardTitle className="flex items-center gap-2 truncate text-base">
-                      {s.name}
-                      {s.crosses_midnight ? (
-                        <Moon
-                          className="size-4 text-muted-foreground"
-                          aria-label={t("staff.crossesMidnight", "Runs past midnight")}
-                        />
-                      ) : null}
-                    </CardTitle>
-                    <CardDescription>
-                      {s.start_time.slice(0, 5)} – {s.end_time.slice(0, 5)}
-                    </CardDescription>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={() => void removeShift(s)}>
+            <ListRow
+              key={s.id}
+              icon={s.crosses_midnight ? Moon : Clock}
+              className={s.is_active ? undefined : "text-muted-foreground"}
+              title={s.name}
+              meta={
+                <>
+                  <bdi className="font-mono tabular-nums">{s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}</bdi>
+                  {s.crosses_midnight ? ` · ${t("staff.crossesMidnight", "Runs past midnight")}` : ""}
+                  {" · "}
+                  {t("staff.graceBadge", "{{n}} min grace", { n: s.grace_minutes })}
+                  {" · "}
+                  {t("staff.otBadge", "OT ×{{n}}", { n: s.overtime_multiplier })}
+                </>
+              }
+              trailing={
+                <>
+                  {!s.is_active ? <StatusPill tone="neutral">{t("staff.inactive", "Inactive")}</StatusPill> : null}
+                  <RowAction label={t("common.edit", "Edit")} onClick={() => setEditing(s)}>
+                    <Pencil className="size-4" />
+                  </RowAction>
+                  <RowAction destructive label={t("staff.deleteShift", "Delete work shift")} onClick={() => void removeShift(s)}>
                     <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex flex-wrap gap-1.5 text-xs">
-                  <Badge variant="outline">
-                    {t("staff.graceBadge", "{{n}} min grace", { n: s.grace_minutes })}
-                  </Badge>
-                  <Badge variant="outline">
-                    {t("staff.otBadge", "OT ×{{n}}", { n: s.overtime_multiplier })}
-                  </Badge>
-                  {!s.is_active ? (
-                    <Badge variant="outline" className="border-transparent bg-muted text-muted-foreground">
-                      {t("staff.inactive", "Inactive")}
-                    </Badge>
-                  ) : null}
-                </div>
-                <Button variant="outline" size="sm" className="w-full" onClick={() => setEditing(s)}>
-                  {t("common.edit", "Edit")}
-                </Button>
-              </CardContent>
-            </Card>
+                  </RowAction>
+                </>
+              }
+            />
           ))}
-        </div>
+        </ListCard>
       )}
+      </section>
 
       <ScheduleGrid shifts={shifts} />
 

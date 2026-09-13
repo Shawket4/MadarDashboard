@@ -18,6 +18,9 @@ import {
 
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
+import { DataTable } from "@/components/app/data-table";
+import { StatusPill } from "@/components/app/status-pill";
+import type { ColumnDef } from "@tanstack/react-table";
 import { ExportButton } from "@/components/app/export-button";
 import { StatCard } from "@/components/app/stat-card";
 import { DatePicker } from "@/components/app/date-picker";
@@ -29,10 +32,6 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
 import {
   cancelBooking, completeBooking, listBookings, noShowBooking, seatBooking,
   useGetBookingSettings, useListBookings, useListFloorTables,
@@ -49,7 +48,7 @@ import { cn } from "@/lib/utils";
 import { BookingDialog } from "./booking-dialog";
 import { BookingSettingsDialog } from "./settings-dialog";
 import {
-  STATUS_STYLES, addDays, dayTotals, dayWindow, hourTicks, invalidateBookings, isActive, isHeld, isLate,
+  STATUS_TONES, addDays, dayTotals, dayWindow, hourTicks, invalidateBookings, isActive, isHeld, isLate,
   serviceToday, timelineSpan, type BookingStatus,
 } from "./util";
 
@@ -59,9 +58,9 @@ type Filter = "active" | "all" | BookingStatus;
 export function BookingStatusBadge({ status }: { status: string }) {
   const { t } = useTranslation();
   return (
-    <Badge variant="secondary" className={cn(STATUS_STYLES[status as BookingStatus] ?? "")}>
+    <StatusPill tone={STATUS_TONES[status as BookingStatus] ?? "neutral"}>
       {t(`bookings.status.${status}`, status.replace("_", " "))}
-    </Badge>
+    </StatusPill>
   );
 }
 
@@ -193,6 +192,73 @@ export function BookingsPage() {
     }
   };
 
+  const columns = useMemo<ColumnDef<BookingView>[]>(
+    () => [
+      {
+        id: "time",
+        header: t("bookings.time", "Time"),
+        meta: { label: t("bookings.time", "Time"), numeric: true, align: "start" },
+        cell: ({ row }) => (
+          <div className="whitespace-nowrap">
+            <div className="font-medium">{fmtTime(row.original.starts_at)}</div>
+            <div className="text-xs text-muted-foreground">{t("bookings.until", "until {{time}}", { time: fmtTime(row.original.ends_at) })}</div>
+          </div>
+        ),
+      },
+      {
+        id: "guest",
+        header: t("bookings.guest", "Guest"),
+        meta: { label: t("bookings.guest", "Guest"), phone: "title" },
+        cell: ({ row }) => {
+          const b = row.original;
+          const late = isLate(b, now);
+          const held = isHeld(b, now);
+          return (
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-medium">{b.guest_name}</span>
+                {b.source === "public" ? <Badge variant="outline">{t("bookings.online", "Online")}</Badge> : null}
+                {late ? (
+                  <StatusPill tone="warning" size="sm">{t("bookings.late", "Late")}</StatusPill>
+                ) : held ? (
+                  <StatusPill tone="warning" size="sm" icon={CalendarClock}>{t("bookings.dueNow", "Due")}</StatusPill>
+                ) : null}
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Phone aria-hidden className="size-3" />
+                <bdi dir="ltr" className="font-mono tabular-nums">+{b.guest_phone}</bdi>
+                {b.notes ? <span className="ms-2 max-w-64 truncate" title={b.notes}>· {b.notes}</span> : null}
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "party_size",
+        header: t("bookings.party", "Party"),
+        meta: { label: t("bookings.party", "Party"), numeric: true },
+      },
+      {
+        id: "tables",
+        header: t("bookings.tables", "Tables"),
+        meta: { label: t("bookings.tables", "Tables") },
+        cell: ({ row }) =>
+          row.original.needs_table ? (
+            <StatusPill tone="warning" size="sm">{t("bookings.needsTable", "Needs a table")}</StatusPill>
+          ) : (
+            row.original.table_labels.join(" + ") || "—"
+          ),
+      },
+      {
+        accessorKey: "status",
+        header: t("common.status", "Status"),
+        meta: { label: t("common.status", "Status") },
+        cell: ({ row }) => <BookingStatusBadge status={row.original.status} />,
+      },
+    ],
+    [t, now],
+  );
+
   if (!branchId) {
     return (
       <Page>
@@ -223,6 +289,33 @@ export function BookingsPage() {
             </Button>
           </>
         }
+        below={
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" className="size-9" onClick={() => setDate(addDays(date, -1))} aria-label={t("common.previous", "Previous")}>
+              <ChevronLeft className="size-4 rtl:rotate-180" />
+            </Button>
+            <DatePicker value={date} onChange={setDate} dateOnly triggerClassName="min-w-40" />
+            <Button variant="outline" size="icon" className="size-9" onClick={() => setDate(addDays(date, 1))} aria-label={t("common.next", "Next")}>
+              <ChevronRight className="size-4 rtl:rotate-180" />
+            </Button>
+            {!isToday ? (
+              <Button variant="ghost" size="sm" onClick={() => setDate(today)}>
+                {t("bookings.today", "Today")}
+              </Button>
+            ) : null}
+          </div>
+          <span className="flex-1" />
+          <SegmentedControl
+            value={view}
+            onChange={setView}
+            options={[
+              { value: "list", label: t("bookings.viewList", "List") },
+              { value: "timeline", label: t("bookings.viewTimeline", "Timeline") },
+            ]}
+          />
+        </div>
+        }
       />
 
       {settingsQ.data && !settingsQ.data.enabled ? (
@@ -235,48 +328,22 @@ export function BookingsPage() {
         </Alert>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" className="size-8" onClick={() => setDate(addDays(date, -1))} aria-label={t("common.previous", "Previous")}>
-            <ChevronLeft className="size-4 rtl:rotate-180" />
-          </Button>
-          <DatePicker value={date} onChange={setDate} dateOnly triggerClassName="min-w-40" />
-          <Button variant="outline" size="icon" className="size-8" onClick={() => setDate(addDays(date, 1))} aria-label={t("common.next", "Next")}>
-            <ChevronRight className="size-4 rtl:rotate-180" />
-          </Button>
-          {!isToday ? (
-            <Button variant="ghost" size="sm" onClick={() => setDate(today)}>
-              {t("bookings.today", "Today")}
-            </Button>
-          ) : null}
-        </div>
-        <span className="flex-1" />
-        <SegmentedControl
-          value={view}
-          onChange={setView}
-          options={[
-            { value: "list", label: t("bookings.viewList", "List") },
-            { value: "timeline", label: t("bookings.viewTimeline", "Timeline") },
-          ]}
-        />
-      </div>
-
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard dense label={t("bookings.statBookings", "Bookings")} value={totals.total} formatType="number" icon={CalendarDays} loading={listQ.isLoading} />
-        <StatCard dense label={t("bookings.statCovers", "Covers seated")} value={totals.covers} formatType="number" icon={Users} accent="primary" loading={listQ.isLoading} />
-        <StatCard dense label={t("bookings.statSeated", "Seated now")} value={totals.seated} formatType="number" icon={Armchair} accent="success" loading={listQ.isLoading} />
+        <StatCard dense label={t("bookings.statCovers", "Covers seated")} value={totals.covers} formatType="number" icon={Users} loading={listQ.isLoading} />
+        <StatCard dense label={t("bookings.statSeated", "Seated now")} value={totals.seated} formatType="number" icon={Armchair} loading={listQ.isLoading} />
         <StatCard dense label={t("bookings.statNoShow", "No-shows")} value={totals.noShow} formatType="number" icon={UserX} accent={totals.noShow > 0 ? "destructive" : "neutral"} loading={listQ.isLoading} />
       </div>
 
       {needsTable.length > 0 ? (
         <Alert className="border-warning/50">
-          <AlertTriangle className="size-4 text-warning" />
+          <AlertTriangle className="size-4 text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]" />
           <AlertTitle>{t("bookings.needsTableTitle", "{{count}} booking(s) have no table", { count: needsTable.length })}</AlertTitle>
           <AlertDescription>
             <div className="flex flex-wrap gap-2 pt-1">
               {needsTable.map((b) => (
                 <Button key={b.id} size="sm" variant="outline" onClick={() => openEdit(b)}>
-                  {fmtTime(b.starts_at)} · {b.guest_name} · {b.party_size}
+                  <bdi className="font-mono tabular-nums">{fmtTime(b.starts_at)}</bdi> · {b.guest_name} · {b.party_size}
                 </Button>
               ))}
             </div>
@@ -286,104 +353,65 @@ export function BookingsPage() {
 
       {view === "list" ? (
         <div className="space-y-3">
-          <div className="flex flex-wrap gap-1.5">
-            {(["active", "all", "confirmed", "seated", "completed", "no_show", "cancelled"] as Filter[]).map((f) => (
-              <Button key={f} size="sm" variant={filter === f ? "secondary" : "ghost"} onClick={() => setFilter(f)}>
-                {f === "active" ? t("bookings.filterActive", "Active") : f === "all" ? t("common.all", "All") : t(`bookings.status.${f}`, f)}
-              </Button>
-            ))}
-          </div>
-          {listQ.isLoading ? (
-            <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
-          ) : rows.length === 0 ? (
-            <EmptyState
-              icon={CalendarClock}
-              title={all.length === 0 ? t("bookings.emptyDay", "No bookings for this day") : t("bookings.emptyFilter", "Nothing matches this filter")}
-              description={all.length === 0 ? t("bookings.emptyHint", "Take one by phone with “New booking”, or turn on online booking in Settings.") : undefined}
-              action={all.length === 0 ? <Button onClick={openNew}><Plus className="size-4" />{t("bookings.new", "New booking")}</Button> : undefined}
-            />
-          ) : (
-            <div className="overflow-x-auto rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("bookings.time", "Time")}</TableHead>
-                    <TableHead>{t("bookings.guest", "Guest")}</TableHead>
-                    <TableHead className="text-end">{t("bookings.party", "Party")}</TableHead>
-                    <TableHead>{t("bookings.tables", "Tables")}</TableHead>
-                    <TableHead>{t("common.status", "Status")}</TableHead>
-                    <TableHead className="w-10" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.map((b) => {
-                    const late = isLate(b, now);
-                    const held = isHeld(b, now);
-                    return (
-                      <TableRow key={b.id} className={cn(!isActive(b) && "text-muted-foreground")}>
-                        <TableCell className="tabular whitespace-nowrap">
-                          <div className="font-medium">{fmtTime(b.starts_at)}</div>
-                          <div className="text-xs text-muted-foreground">{t("bookings.until", "until {{time}}", { time: fmtTime(b.ends_at) })}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{b.guest_name}</span>
-                            {b.source === "public" ? <Badge variant="outline">{t("bookings.online", "Online")}</Badge> : null}
-                            {late ? <Badge variant="secondary" className="bg-warning/10 text-warning">{t("bookings.late", "Late")}</Badge> : held ? <Badge variant="secondary" className="bg-warning/10 text-warning">{t("bookings.dueNow", "Due")}</Badge> : null}
-                          </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground" dir="ltr">
-                            <Phone className="size-3" />+{b.guest_phone}
-                            {b.notes ? <span className="ms-2 truncate max-w-64" title={b.notes}>· {b.notes}</span> : null}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-end tabular">{b.party_size}</TableCell>
-                        <TableCell>
-                          {b.needs_table ? (
-                            <Badge variant="secondary" className="bg-warning/10 text-warning">{t("bookings.needsTable", "Needs a table")}</Badge>
-                          ) : (
-                            b.table_labels.join(" + ") || "—"
-                          )}
-                        </TableCell>
-                        <TableCell><BookingStatusBadge status={b.status} /></TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="size-8" aria-label={t("common.actions", "Actions")}>
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {isActive(b) ? (
-                                <DropdownMenuItem onClick={() => openEdit(b)}><Pencil className="size-4" />{t("common.edit", "Edit")}</DropdownMenuItem>
-                              ) : null}
-                              {b.status === "confirmed" ? (
-                                <DropdownMenuItem onClick={() => void onSeat(b)}><Armchair className="size-4" />{t("bookings.seat", "Mark seated")}</DropdownMenuItem>
-                              ) : null}
-                              {b.status === "seated" ? (
-                                <DropdownMenuItem onClick={() => void onComplete(b)}><Check className="size-4" />{t("bookings.complete", "Complete")}</DropdownMenuItem>
-                              ) : null}
-                              {b.status === "confirmed" ? (
-                                <DropdownMenuItem onClick={() => void onNoShow(b)}><UserX className="size-4" />{t("bookings.noShow", "No-show")}</DropdownMenuItem>
-                              ) : null}
-                              {isActive(b) ? (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive" onClick={() => void onCancel(b)}><XCircle className="size-4" />{t("bookings.cancelBooking", "Cancel booking")}</DropdownMenuItem>
-                                </>
-                              ) : null}
-                              {!isActive(b) ? (
-                                <DropdownMenuItem disabled>{t(`bookings.status.${b.status}`, b.status)}</DropdownMenuItem>
-                              ) : null}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+          <SegmentedControl
+            value={filter}
+            onChange={setFilter}
+            options={(["active", "all", "confirmed", "seated", "completed", "no_show", "cancelled"] as Filter[]).map((f) => ({
+              value: f,
+              label: f === "active" ? t("bookings.filterActive", "Active") : f === "all" ? t("common.all", "All") : t(`bookings.status.${f}`, f),
+            }))}
+          />
+          <DataTable
+            columns={columns}
+            data={rows}
+            loading={listQ.isLoading}
+            error={listQ.error}
+            onRetry={() => void listQ.refetch()}
+            getRowId={(b) => b.id}
+            onRowClick={(b) => (isActive(b) ? openEdit(b) : undefined)}
+            pageSize={50}
+            hideViewOptions
+            emptyState={
+              <EmptyState
+                icon={CalendarClock}
+                title={all.length === 0 ? t("bookings.emptyDay", "No bookings for this day") : t("bookings.emptyFilter", "Nothing matches this filter")}
+                description={all.length === 0 ? t("bookings.emptyHint", "Take one by phone with “New booking”, or turn on online booking in Settings.") : undefined}
+                action={all.length === 0 ? <Button onClick={openNew}><Plus className="size-4" />{t("bookings.new", "New booking")}</Button> : undefined}
+              />
+            }
+            rowActions={(b) => (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon-sm" aria-label={t("common.actions", "Actions")}>
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {isActive(b) ? (
+                    <DropdownMenuItem onClick={() => openEdit(b)}><Pencil className="size-4" />{t("common.edit", "Edit")}</DropdownMenuItem>
+                  ) : null}
+                  {b.status === "confirmed" ? (
+                    <DropdownMenuItem onClick={() => void onSeat(b)}><Armchair className="size-4" />{t("bookings.seat", "Mark seated")}</DropdownMenuItem>
+                  ) : null}
+                  {b.status === "seated" ? (
+                    <DropdownMenuItem onClick={() => void onComplete(b)}><Check className="size-4" />{t("bookings.complete", "Complete")}</DropdownMenuItem>
+                  ) : null}
+                  {b.status === "confirmed" ? (
+                    <DropdownMenuItem onClick={() => void onNoShow(b)}><UserX className="size-4" />{t("bookings.noShow", "No-show")}</DropdownMenuItem>
+                  ) : null}
+                  {isActive(b) ? (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem variant="destructive" onClick={() => void onCancel(b)}><XCircle className="size-4" />{t("bookings.cancelBooking", "Cancel booking")}</DropdownMenuItem>
+                    </>
+                  ) : null}
+                  {!isActive(b) ? (
+                    <DropdownMenuItem disabled>{t(`bookings.status.${b.status}`, b.status)}</DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          />
         </div>
       ) : (
         <Timeline
@@ -433,13 +461,13 @@ function Timeline({
     return <EmptyState icon={Armchair} title={t("bookings.noTables", "This branch has no tables yet")} description={t("bookings.noTablesHint", "Draw the floor first; bookings claim its tables.")} />;
   }
   return (
-    <div className="overflow-x-auto rounded-lg border">
+    <div className="overflow-x-auto rounded-2xl border bg-card">
       <div className="min-w-[720px]">
         <div className="flex border-b bg-muted/40 text-xs text-muted-foreground">
           <div className="w-32 shrink-0 border-e px-2 py-1.5">{t("bookings.table", "Table")}</div>
           <div className="relative h-7 flex-1">
             {ticks.map((tk) => (
-              <span key={tk.label} className="absolute top-1.5 -translate-x-1/2 rtl:translate-x-1/2" style={{ insetInlineStart: `${tk.left}%` }}>{tk.label}</span>
+              <span key={tk.label} className="absolute top-1.5 font-mono tabular-nums -translate-x-1/2 rtl:translate-x-1/2" style={{ insetInlineStart: `${tk.left}%` }}>{tk.label}</span>
             ))}
           </div>
         </div>
@@ -452,16 +480,17 @@ function Timeline({
               ))}
               {row.items.map((b) => {
                 const span = timelineSpan(b, date, window);
-                const tone = b.status === "seated" ? "bg-primary/15 border-primary text-primary" : isHeld(b, now) ? "bg-warning/15 border-warning text-warning" : "bg-info/10 border-info/60 text-info";
+                const tone = b.status === "seated" ? "border-foreground/30 bg-secondary text-foreground" : isHeld(b, now) ? "border-warning/60 bg-warning/14 text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]" : "border-border bg-accent text-foreground";
                 return (
                   <button
                     key={b.id}
                     type="button"
                     onClick={() => onOpen(b)}
                     title={`${b.guest_name} · ${b.party_size} · ${fmtTime(b.starts_at)}–${fmtTime(b.ends_at)}`}
-                    className={cn("absolute top-1.5 h-8 truncate rounded-md border px-2 text-start text-xs font-medium", tone)}
+                    className={cn("absolute top-1.5 h-8 truncate rounded-md border px-2 text-start text-xs font-medium transition-colors duration-150 hover:brightness-95 motion-reduce:transition-none", tone)}
                     style={{ insetInlineStart: `${span.left}%`, width: `${span.width}%` }}
                   >
+                    {b.status === "seated" ? <Armchair aria-hidden className="me-1 inline size-3" /> : isHeld(b, now) ? <CalendarClock aria-hidden className="me-1 inline size-3" /> : null}
                     {b.guest_name} · {b.party_size}
                   </button>
                 );

@@ -12,19 +12,21 @@ import { StatValue, type StatFormat } from "@/components/app/stat-value";
 
 export type StatAccent = "neutral" | "brand" | "primary" | "success" | "warning" | "info" | "destructive";
 
+// Stat cards are quiet: the glyph is a small muted mark beside the label, and
+// only states that MEAN something (a void, a shortfall) tint it.
 const accentClasses: Record<StatAccent, string> = {
-  neutral: "bg-secondary text-foreground",
-  brand: "bg-brand/10 text-brand",
-  primary: "bg-primary/10 text-primary",
-  success: "bg-success/10 text-success",
-  warning: "bg-warning/10 text-warning",
-  info: "bg-info/10 text-info",
-  destructive: "bg-destructive/10 text-destructive",
+  neutral: "text-muted-foreground",
+  brand: "text-muted-foreground",
+  primary: "text-muted-foreground",
+  info: "text-muted-foreground",
+  success: "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]",
+  warning: "text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]",
+  destructive: "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]",
 };
 
 // Font-size ladders (px) the value fits itself into — largest that fits wins,
 // shrinking before the figure is ever compacted.
-const SIZES = [26, 24, 22, 20, 18, 16];
+const SIZES = [24, 22, 20, 18, 16];
 const SIZES_DENSE = [20, 18, 16, 15, 14];
 
 interface StatCardProps {
@@ -61,18 +63,17 @@ export function StatCard({
   className,
 }: StatCardProps) {
   const pad = dense ? "gap-2 p-4" : "gap-3 p-5";
-  const tileSize = dense ? "size-9" : "size-10";
-  const iconSize = dense ? "size-4" : "size-5";
+  const iconSize = "size-4";
 
   if (loading) {
     return (
       // h-full down the chain: grid cells stretch, and sibling cards in one
       // strip must share the row height (content-sized cards read as ragged).
       <motion.div variants={listItem} className="h-full">
-        <Card className={cn(pad, "h-full")}>
+        <Card className={cn(pad, "h-full rounded-2xl shadow-none")}>
           <div className="flex items-center justify-between gap-3">
             <Skeleton className="h-4 w-20" />
-            {Icon ? <Skeleton className={cn(tileSize, "rounded-lg")} /> : null}
+            {Icon ? <Skeleton className="size-4 rounded" /> : null}
           </div>
           <Skeleton className="h-7 w-24" />
         </Card>
@@ -86,9 +87,9 @@ export function StatCard({
   const valueNode = isNumeric ? (
     <StatValue value={value} formatType={formatType} label={label} sizes={dense ? SIZES_DENSE : SIZES} />
   ) : isNode ? (
-    <div className="truncate text-2xl font-semibold leading-none tracking-tight tabular">{value as ReactNode}</div>
+    <div className="truncate font-mono text-2xl leading-none font-semibold tracking-tight tabular">{value as ReactNode}</div>
   ) : (
-    <div className={cn("truncate font-semibold leading-none tracking-tight tabular", dense ? "text-lg" : "text-2xl")}>
+    <div className={cn("truncate font-mono leading-none font-semibold tracking-tight tabular", dense ? "text-lg" : "text-2xl")}>
       {value as string}
     </div>
   );
@@ -113,23 +114,19 @@ export function StatCard({
             : undefined
         }
         className={cn(
-          "h-full transition-all duration-200 motion-reduce:transition-none",
+          "h-full rounded-2xl shadow-none transition-colors duration-200 motion-reduce:transition-none",
           onClick &&
-            "cursor-pointer hover:bg-accent/30 hover:shadow-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring",
+            "cursor-pointer hover:border-foreground/20 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
           pad,
           className,
         )}
       >
-        <div className="flex items-center justify-between gap-2">
-          <p className="min-w-0 truncate text-xs font-medium text-muted-foreground sm:text-sm">{label}</p>
-          <span className="flex shrink-0 items-center gap-1">
-            {action}
-            {Icon ? (
-              <span className={cn("grid shrink-0 place-items-center rounded-lg", tileSize, accentClasses[accent])}>
-                <Icon className={iconSize} />
-              </span>
-            ) : null}
-          </span>
+        <div className="flex min-h-5 items-center justify-between gap-2">
+          <p className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
+            {Icon ? <Icon aria-hidden className={cn(iconSize, "shrink-0", accentClasses[accent])} /> : null}
+            <span className="truncate">{label}</span>
+          </p>
+          {action ? <span className="flex shrink-0 items-center gap-1">{action}</span> : null}
         </div>
         {valueNode}
         {hasTrend || hint ? (
@@ -138,7 +135,9 @@ export function StatCard({
               <span
                 className={cn(
                   "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-medium tabular",
-                  up ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive",
+                  up
+                    ? "bg-success/12 text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]"
+                    : "bg-destructive/12 text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]",
                 )}
               >
                 {up ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Ban, Check, Info, MapPin, X } from "lucide-react";
+import { Ban, Bike, Check, Info, MapPin, Store, X } from "lucide-react";
 
 import {
   Sheet,
@@ -13,12 +13,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { SummaryLine } from "@/components/app/list-row";
+import { StatusPill, toneFor } from "@/components/app/status-pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetDeliveryOrder, useGetOrder, useListCatalog } from "@/data/api/generated/api";
 import type { DeliveryOrder, OrderFull } from "@/data/api/generated/models";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
-import { fmtDateTimeFull, fmtMoney, fmtUnit } from "@/lib/format";
+import { fmtDateTimeFull, fmtMoney, fmtNumber, fmtPercent, fmtUnit } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 
@@ -107,21 +109,16 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
       <SheetContent side={side} showCloseButton={false} className="w-full gap-0 overflow-y-auto p-0 sm:max-w-md">
         <SheetHeader className="sticky top-0 z-10 flex-row items-center justify-between gap-2 border-b bg-background">
           <div className="min-w-0">
-            <SheetTitle className="flex items-center gap-2">
-              {order ? (order.order_ref ?? `#${order.order_number}`) : t("orders.order", "Order")}
+            <SheetTitle className="flex flex-wrap items-center gap-2 text-lg">
+              <span className={cn(order && "font-mono tabular-nums")}>{order ? (order.order_ref ?? `#${order.order_number}`) : t("orders.order", "Order")}</span>
               {order ? (
-                <Badge
-                  variant="secondary"
-                  className={cn(
-                    "capitalize",
-                    voided ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success",
-                  )}
-                >
+                <StatusPill tone={toneFor(order.status, "success")}>
                   {t(`orderStatus.${order.status}`, order.status)}
-                </Badge>
+                </StatusPill>
               ) : null}
               {isDelivery ? (
-                <Badge variant="secondary" className="bg-primary/10 text-primary">
+                <Badge variant="secondary" className="gap-1 text-muted-foreground">
+                  {delivery?.channel === "in_mall" ? <Store aria-hidden className="size-3" /> : <Bike aria-hidden className="size-3" />}
                   {delivery ? channelLabel(delivery.channel) : t("orders.delivery", "Delivery")}
                 </Badge>
               ) : null}
@@ -130,7 +127,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
           </div>
           <div className="flex shrink-0 items-center gap-1">
             {order && order.status === "completed" && onVoid ? (
-              <Button size="sm" variant="destructive" onClick={() => onVoid(order)}>
+              <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => onVoid(order)}>
                 <Ban className="size-4" />
                 {t("orders.void", "Void order")}
               </Button>
@@ -153,11 +150,11 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
           ) : (
             <>
               {voided && order.void_reason ? (
-                <Card className="border-destructive/30 bg-destructive/5 py-0">
-                  <CardContent className="flex items-center gap-2 p-4 text-sm">
-                    <Ban className="size-4 text-destructive" />
+                <Card className="border-destructive/30 bg-destructive/5 py-0 shadow-none">
+                  <CardContent className="flex items-center gap-3 p-4 text-sm">
+                    <Ban aria-hidden className="size-4 shrink-0 text-destructive" />
                     <div>
-                      <p className="font-semibold text-destructive">{t("orderStatus.voided", "Voided")}</p>
+                      <p className="font-semibold">{t("orderStatus.voided", "Voided")}</p>
                       <p className="text-xs text-muted-foreground">
                         {t(`orders.voidReasons.${order.void_reason}`, { defaultValue: order.void_reason })}
                       </p>
@@ -167,9 +164,9 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
               ) : null}
 
               {rewards.refused ? (
-                <Card role="alert" data-testid="reward-refused" className="border-warning/40 bg-warning/10 py-0">
+                <Card role="alert" data-testid="reward-refused" className="border-warning/40 bg-warning/10 py-0 shadow-none">
                   <CardContent className="flex items-start gap-2 p-4 text-sm">
-                    <Info className="mt-0.5 size-4 shrink-0 text-warning" />
+                    <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]" />
                     <div>
                       <p className="font-semibold">
                         {t("orders.rewardRefusedTitle", "Reward refused when this sale synced")}
@@ -188,7 +185,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                 </Card>
               ) : null}
 
-              <Card className="py-0">
+              <Card className="py-0 shadow-none">
                 <CardContent className="space-y-2 p-4 text-sm">
                   {rewards.memberId ? (
                     <Row
@@ -196,7 +193,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                       value={rewards.memberName ?? t("orders.loyaltyMemberForgotten", "Deleted member")}
                     />
                   ) : null}
-                  <Row label={t("common.date", "Date")}value={fmtDateTimeFull(order.created_at)} />
+                  <Row label={t("common.date", "Date")} value={fmtDateTimeFull(order.created_at)} />
                   <Row label={t("tills.teller", "Teller")} value={order.teller_name} />
                   {order.waiter_name ? <Row label={t("tills.waiter", "Waiter")} value={order.waiter_name} /> : null}
                   {order.customer_name ? <Row label={t("orders.customer", "Customer")} value={order.customer_name} /> : null}
@@ -221,9 +218,9 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
               </Card>
 
               {delivery ? (
-                <Card className="border-primary/20 bg-primary/[0.03] py-0">
+                <Card className="py-0 shadow-none">
                   <CardContent className="space-y-2 p-4 text-sm">
-                    <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="flex items-center gap-2 text-sm font-semibold">
                       {t("orders.deliveryInfo", "Delivery")}
                       <Badge variant="secondary" className="bg-muted text-muted-foreground">
                         {channelLabel(delivery.channel)}
@@ -240,7 +237,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                     {delivery.road_distance_meters != null ? (
                       <Row
                         label={t("orders.distance", "Distance")}
-                        value={`${(delivery.road_distance_meters / 1000).toFixed(1)} ${t("delivery.kmUnit", "km")}`}
+                        value={`${fmtNumber(delivery.road_distance_meters / 1000, { maximumFractionDigits: 1, minimumFractionDigits: 1 })} ${t("delivery.kmUnit", "km")}`}
                       />
                     ) : null}
                     {delivery.delivery_ref ? (
@@ -253,7 +250,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                           href={mapsUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-medium text-primary underline-offset-2 hover:underline"
+                          className="inline-flex items-center gap-1 font-medium text-foreground underline underline-offset-2 hover:text-muted-foreground"
                         >
                           <MapPin className="size-3.5" />
                           {t("orders.openInMaps", "Open in Maps")}
@@ -267,9 +264,9 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
               {deliveryOrder ? <DeliveryTimeline order={deliveryOrder} /> : null}
 
               {items.length > 0 ? (
-                <Card className="py-0">
+                <Card className="py-0 shadow-none">
                   <CardContent className="space-y-3 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="text-sm font-semibold">
                       {t("menu.items", "Items")}
                     </p>
                     {items.map((it) => {
@@ -285,22 +282,22 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                                   <Badge className="px-1 py-0 text-xs uppercase">{t("orders.combo", "Combo")}</Badge>
                                 ) : null}
                                 {rewards.lines.has(it.id) ? (
-                                  <Badge variant="outline" className="border-transparent bg-success/15 px-1 py-0 text-xs text-foreground">
+                                  <StatusPill tone="success" size="sm">
                                     {t("orders.reward", "Reward")}
-                                  </Badge>
+                                  </StatusPill>
                                 ) : null}
                               </p>
                               {rewards.lines.has(it.id) ? (
                                 <p className="text-xs text-muted-foreground tabular">
                                   {t("orders.rewardCovers", {
-                                    defaultValue: "Reward covers {{units}} · −{{amount}}",
+                                    defaultValue: "Reward covers {{units}} · {{amount}}",
                                     units: rewards.lines.get(it.id)?.units ?? "—",
-                                    amount: fmtMoney(rewards.lines.get(it.id)?.covered ?? 0),
+                                    amount: fmtMoney(-(rewards.lines.get(it.id)?.covered ?? 0)),
                                   })}
                                 </p>
                               ) : null}
                               <p className="text-xs text-muted-foreground tabular">
-                                × {it.quantity} · {fmtMoney(it.unit_price)}
+                                <bdi>× {fmtNumber(it.quantity)} · {fmtMoney(it.unit_price)}</bdi>
                               </p>
 
                               {it.addons.length > 0 ? (
@@ -323,7 +320,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                                     const name = getTranslatedName({ name: o.field_name, name_translations: o.name_translations }, lang);
                                     if (!name) return null;
                                     return (
-                                      <Badge key={o.id} className="rounded bg-warning/15 px-1.5 py-0.5 text-xs font-medium text-warning">
+                                      <Badge key={o.id} variant="secondary" className="px-1.5 py-0.5 text-xs font-medium">
                                         {name}
                                         {o.price > 0 ? ` +${fmtMoney(o.price)}` : ""}
                                       </Badge>
@@ -360,10 +357,10 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                             </div>
 
                             <div className="shrink-0 text-end">
-                              <span className="block text-sm font-semibold tabular">{fmtMoney(it.line_total)}</span>
+                              <span className="block font-mono text-sm font-semibold tabular-nums">{fmtMoney(it.line_total)}</span>
                               <span className="text-xs text-muted-foreground tabular">
                                 {t("orders.cost", "Cost")}: {fmtMoney(it.line_cost)}
-                                {it.cost_missing ? " ⚠" : ""}
+                                {it.cost_missing ? ` · ${t("orders.costMissing", "cost missing")}` : ""}
                               </span>
                             </div>
                           </div>
@@ -379,7 +376,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                                   return (
                                     <p key={di} className="flex items-center justify-between gap-2 tabular">
                                       <span>
-                                        {d.ingredient_name}: {Number(d.quantity).toFixed(3)} {fmtUnit(d.unit)}
+                                        {d.ingredient_name}: <bdi>{fmtNumber(Number(d.quantity), { maximumFractionDigits: 3 })} {fmtUnit(d.unit)}</bdi>
                                       </span>
                                       {dcost != null ? <span className="text-muted-foreground">{fmtMoney(dcost)}</span> : null}
                                     </p>
@@ -395,42 +392,45 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                 </Card>
               ) : null}
 
-              <Card className="py-0">
-                <CardContent className="space-y-2 p-4 text-sm">
-                  <Row label={t("common.subtotal", "Subtotal")} value={fmtMoney(order.subtotal)} />
+              <Card className="py-0 shadow-none">
+                <CardContent className="p-4 pt-2 text-sm">
+                  <SummaryLine label={t("common.subtotal", "Subtotal")} value={fmtMoney(order.subtotal)} />
                   {rewards.totalCovered > 0 || rewards.memberId ? (
-                    <Row
+                    <SummaryLine
                       label={
                         rewards.memberName
                           ? t("orders.loyaltyRewardsFor", { defaultValue: "Loyalty rewards · {{name}}", name: rewards.memberName })
                           : t("orders.loyaltyRewards", "Loyalty rewards")
                       }
-                      value={rewards.totalCovered > 0 ? `− ${fmtMoney(rewards.totalCovered)}` : "—"}
-                      className="text-success"
+                      value={rewards.totalCovered > 0 ? fmtMoney(-rewards.totalCovered) : "—"}
                     />
                   ) : null}
                   {order.discount_amount > 0 ? (
-                    <Row label={t("orders.discount", "Discount")} value={`− ${fmtMoney(order.discount_amount)}`} className="text-success" />
+                    <SummaryLine label={t("orders.discount", "Discount")} value={fmtMoney(-order.discount_amount)} />
                   ) : null}
-                  {order.tax_amount > 0 ? <Row label={t("orders.tax", "Tax")} value={fmtMoney(order.tax_amount)} /> : null}
-                  {order.tip_amount ? <Row label={t("orders.tip", "Tip")} value={fmtMoney(order.tip_amount)} /> : null}
+                  {order.tax_amount > 0 ? <SummaryLine label={t("orders.tax", "Tax")} value={fmtMoney(order.tax_amount)} /> : null}
+                  {order.tip_amount ? <SummaryLine label={t("orders.tip", "Tip")} value={fmtMoney(order.tip_amount)} /> : null}
                   {order.delivery_fee > 0 ? (
-                    <Row label={t("orders.deliveryFee", "Delivery fee")} value={fmtMoney(order.delivery_fee)} />
+                    <SummaryLine label={t("orders.deliveryFee", "Delivery fee")} value={fmtMoney(order.delivery_fee)} />
                   ) : null}
-                  <div className="mt-2 flex items-center justify-between gap-2 border-t pt-2 text-base font-semibold">
-                    <span>{t("common.total", "Total")}</span>
-                    <span className="text-primary tabular">{fmtMoney(order.total_amount)}</span>
-                  </div>
+                  <SummaryLine
+                    emphasis
+                    className={cn("mt-1 border-t pt-1", voided && "text-muted-foreground line-through")}
+                    label={t("common.total", "Total")}
+                    value={fmtMoney(order.total_amount)}
+                  />
                   {items.length > 0 ? (
                     <div className="mt-2 flex items-center justify-between gap-2 border-t pt-2 text-xs text-muted-foreground">
                       <span>
-                        {t("orders.cogs", "COGS")}: {anyMissing ? "≥ " : ""}
-                        {fmtMoney(knownCogs)}
+                        {t("orders.cogs", "COGS")}: <bdi className="font-mono tabular-nums">{anyMissing ? "≥ " : ""}{fmtMoney(knownCogs)}</bdi>
                       </span>
-                      <span className="tabular">
-                        {t("orders.grossProfit", "Gross profit")}: {anyMissing ? "≤ " : ""}
-                        {fmtMoney(profit)}
-                        {profitPct !== null ? ` (${(profitPct * 100).toFixed(1)}%)` : ""}
+                      <span>
+                        {t("orders.grossProfit", "Gross profit")}:{" "}
+                        <bdi className="font-mono tabular-nums">
+                          {anyMissing ? "≤ " : ""}
+                          {fmtMoney(profit)}
+                          {profitPct !== null ? ` (${fmtPercent(profitPct)})` : ""}
+                        </bdi>
                       </span>
                     </div>
                   ) : null}
@@ -448,7 +448,7 @@ function Row({ label, value, className }: { label: string; value: string; classN
   return (
     <div className={cn("flex items-center justify-between gap-2", className)}>
       <span className="text-muted-foreground">{label}</span>
-      <span className="tabular">{value}</span>
+      <span className="min-w-0 text-end" dir="auto">{value}</span>
     </div>
   );
 }
@@ -476,16 +476,16 @@ function DeliveryTimeline({ order }: { order: DeliveryOrder }) {
   const terminalOff = order.status === "cancelled" || order.status === "rejected";
 
   return (
-    <Card className="py-0">
+    <Card className="py-0 shadow-none">
       <CardContent className="p-4">
-        <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
           {t("deliveryTimeline.title", "Delivery progress")}
           <span title={t("deliveryTimeline.hint", "Skipped steps may be cleared; only reached milestones are timestamped.")} className="inline-flex">
             <Info className="size-3.5" />
           </span>
         </p>
         {terminalOff ? (
-          <p className="text-sm text-destructive">{t(`orderStatus.${order.status}`, order.status)}</p>
+          <StatusPill tone="danger">{t(`orderStatus.${order.status}`, order.status)}</StatusPill>
         ) : (
           DELIVERY_STEPS.map((step, i) => {
             const reached = currentIdx >= 0 && i <= currentIdx;
@@ -506,7 +506,7 @@ function DeliveryTimeline({ order }: { order: DeliveryOrder }) {
                 </div>
                 <div className={cn("pb-3", isLast && "pb-0")}>
                   <p className={cn("text-sm", reached ? "font-medium" : "text-muted-foreground")}>{t(step.labelKey, step.fallback)}</p>
-                  {ts ? <p className="text-xs text-muted-foreground tabular">{fmtDateTimeFull(ts)}</p> : null}
+                  {ts ? <p className="font-mono text-xs text-muted-foreground tabular-nums">{fmtDateTimeFull(ts)}</p> : null}
                 </div>
               </div>
             );
