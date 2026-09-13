@@ -7,14 +7,16 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { APP_TZ } from "@/data/config/constants";
-import { cairoDateISO, cairoNow, cairoParts, fmtDate } from "@/lib/format";
+import { useAppStore } from "@/data/stores/app.store";
+import { fmtDate } from "@/lib/format";
+import { dayBoundaryISO } from "@/data/scope/presets";
 
 type DayParts = { y: number; m: number; d: number };
 
 const toNum = (p?: DayParts | null) => (p ? p.y * 10000 + p.m * 100 + p.d : null);
 
-const cairoToday = (): DayParts => {
-  const d = cairoNow();
+const todayIn = (tz: string): DayParts => {
+  const d = new TZDate(Date.now(), tz);
   return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
 };
 
@@ -32,14 +34,14 @@ interface Props {
   presets: PeriodPreset[];
   /** Apply a named preset (parent computes the range). */
   onSelectPreset: (key: string) => void;
-  /** Apply a hand-picked range — day-bounded Cairo ISO strings. */
+  /** Apply a hand-picked range — day-bounded active-timezone ISO strings. */
   onApplyCustom: (from: string, to: string) => void;
   align?: "start" | "center" | "end";
   triggerClassName?: string;
 }
 
 /**
- * Single-popover period picker: quick preset pills + a polished Cairo-aware
+ * Single-popover period picker: quick preset pills + a polished timezone-aware
  * range calendar (two-tap with live hover preview, future-date guard, explicit
  * Apply). One Radix layer — no Select→Popover handoff — so selecting "custom"
  * never bounces the popover closed.
@@ -52,15 +54,22 @@ export function DateRangePicker({ preset, from, to, presets, onSelectPreset, onA
   const [hovered, setHovered] = React.useState<DayParts | undefined>();
   const [selected, setSelected] = React.useState<{ from?: DayParts; to?: DayParts }>({});
 
-  const today = cairoToday();
+  // Day boundaries follow the active branch/org timezone (re-renders on change).
+  const tz = useAppStore((s) => s.activeTimezone) || APP_TZ;
+  const today = todayIn(tz);
+  const partsOf = (iso: string): DayParts => {
+    const d = new TZDate(iso, tz);
+    return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
+  };
+  const cairoDateISO = (y: number, m: number, d: number, endOfDay = false) => dayBoundaryISO(tz, y, m, d, endOfDay);
   const [month, setMonth] = React.useState(today.m);
   const [year, setYear] = React.useState(today.y);
 
   // Seed the working selection + visible month from props whenever opened.
   React.useEffect(() => {
     if (!open) return;
-    const f = from ? cairoParts(from) : undefined;
-    const tp = to ? cairoParts(to) : undefined;
+    const f = from ? partsOf(from) : undefined;
+    const tp = to ? partsOf(to) : undefined;
     setSelected({ from: f, to: tp });
     setHovered(undefined);
     const anchor = f ?? today;
@@ -93,8 +102,8 @@ export function DateRangePicker({ preset, from, to, presets, onSelectPreset, onA
     setOpen(false);
   };
 
-  const daysInMonth = new TZDate(year, month + 1, 0, APP_TZ).getDate();
-  const firstDay = new TZDate(year, month, 1, APP_TZ).getDay();
+  const daysInMonth = new TZDate(year, month + 1, 0, tz).getDate();
+  const firstDay = new TZDate(year, month, 1, tz).getDay();
   const cells: (number | null)[] = [
     ...Array(firstDay).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
@@ -107,13 +116,13 @@ export function DateRangePicker({ preset, from, to, presets, onSelectPreset, onA
   const prevMonth = () => (month === 0 ? (setMonth(11), setYear((y) => y - 1)) : setMonth((m) => m - 1));
   const nextMonth = () => (month === 11 ? (setMonth(0), setYear((y) => y + 1)) : setMonth((m) => m + 1));
 
-  const monthName = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: APP_TZ }).format(
-    new TZDate(year, month, 1, APP_TZ),
+  const monthName = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: tz }).format(
+    new TZDate(year, month, 1, tz),
   );
   const weekdayNames = React.useMemo(() => {
-    const fmt = new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: APP_TZ });
-    return Array.from({ length: 7 }, (_, i) => fmt.format(new TZDate(2024, 0, 7 + i, APP_TZ))); // Sun..Sat
-  }, [locale]);
+    const fmt = new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: tz });
+    return Array.from({ length: 7 }, (_, i) => fmt.format(new TZDate(2024, 0, 7 + i, tz))); // Sun..Sat
+  }, [locale, tz]);
 
   const activeLabel =
     preset !== "custom"

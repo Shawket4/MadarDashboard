@@ -1,4 +1,5 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
+import { APP_TZ } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
 import { rangeForPreset, type ScopePreset } from "./presets";
 
@@ -26,7 +27,7 @@ export interface Scope {
   /** True when no single branch is selected (the all-branches roll-up). */
   isAllBranches: boolean;
   preset: ScopePreset;
-  /** Cairo day-bounded ISO start; resolved from the preset (or the custom range). */
+  /** Active-timezone day-bounded ISO start; resolved from the preset (or the custom range). */
   from: string | null;
   to: string | null;
   setBranch: (id: string | null) => void;
@@ -46,9 +47,12 @@ export function useScope(): Scope {
 
   const preset: ScopePreset = search.preset ?? "30d";
   const branchId = search.branchId ?? null;
+  // Subscribe to the resolved branch/org timezone so preset day-boundaries are
+  // recomputed when the scope (and thus its zone) changes.
+  const tz = useAppStore((s) => s.activeTimezone) || APP_TZ;
   const range = preset === "custom"
     ? { from: search.from ?? null, to: search.to ?? null }
-    : rangeForPreset(preset as Exclude<ScopePreset, "custom">);
+    : rangeForPreset(preset as Exclude<ScopePreset, "custom">, tz);
 
   const update = (patch: Partial<ScopeSearch>) =>
     void navigate({ to: ".", replace: true, search: (prev: Record<string, unknown>) => ({ ...prev, ...patch }) });
