@@ -1,6 +1,6 @@
 /**
- * Shared vocabulary for the bookings surfaces: status tones, the service day
- * (05:00 → 05:00 in the branch zone, matching the backend), timeline geometry,
+ * Shared vocabulary for the bookings surfaces: status tones, the booking day
+ * (plain calendar date in the branch zone, matching the backend), timeline geometry,
  * and local-time helpers. Pure — everything here is unit-tested.
  */
 import { TZDate } from "@date-fns/tz";
@@ -31,17 +31,13 @@ export const invalidateBookings = () =>
       ((q.queryKey[0] as string).startsWith("/bookings") || (q.queryKey[0] as string).startsWith("/floor")),
   });
 
-/** The backend's service day starts at 05:00 local, so a 00:30 booking is "last night". */
-export const DAY_CUTOFF_HOUR = 5;
-
 const pad = (n: number) => String(n).padStart(2, "0");
 export const ymd = (y: number, m0: number, d: number) => `${y}-${pad(m0 + 1)}-${pad(d)}`;
 
-/** Today's service date (`YYYY-MM-DD`) in `tz` for the instant `now`. */
+/** Today's calendar date (`YYYY-MM-DD`) in `tz` for the instant `now`; rolls over at midnight. */
 export function serviceToday(now: Date = new Date(), tz: string = getActiveTz()): string {
   const z = new TZDate(now.getTime(), tz);
-  const shifted = z.getHours() < DAY_CUTOFF_HOUR ? new TZDate(z.getTime() - 24 * 3_600_000, tz) : z;
-  return ymd(shifted.getFullYear(), shifted.getMonth(), shifted.getDate());
+  return ymd(z.getFullYear(), z.getMonth(), z.getDate());
 }
 
 /** `YYYY-MM-DD` ± n days (calendar arithmetic, timezone-free). */
@@ -79,22 +75,23 @@ export const minutesOf = (hhmm: string): number => {
 
 /**
  * The day's timeline window in minutes-from-midnight, from the branch hours
- * for that weekday (a close at or before open runs past midnight). Falls back
+ * for that weekday. A day is midnight → midnight, so hours that run past
+ * midnight widen the window to the whole day (early-morning bookings sit at
+ * the start of their own date). Falls back
  * to noon–midnight when the day has no hours, so the board still draws.
  */
 export function dayWindow(settings: BookingSettings | undefined, date: string): { open: number; close: number } {
   const entry = settings?.hours.find((h) => h.dow === weekdayOf(date));
   if (!entry) return { open: 12 * 60, close: 24 * 60 };
   const open = minutesOf(entry.open);
-  let close = minutesOf(entry.close);
-  if (close <= open) close += 24 * 60;
+  const close = minutesOf(entry.close);
+  if (close <= open) return { open: 0, close: 24 * 60 };
   return { open, close };
 }
 
 /**
  * Where a booking sits on the day's timeline, as percentages of the window.
- * A booking after midnight lands past 24:00 on the previous service day, which
- * is exactly where the window extends to.
+ * Minutes are measured from the date's local midnight.
  */
 export function timelineSpan(
   b: Pick<BookingView, "starts_at" | "ends_at">,

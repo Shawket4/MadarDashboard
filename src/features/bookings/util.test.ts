@@ -12,11 +12,19 @@ const settings = (hours: BookingSettings["hours"]): BookingSettings => ({
   require_otp: true, blackout_dates: [],
 });
 
-describe("service day", () => {
-  it("rolls 00:30 back to the previous date (05:00 cutoff)", () => {
-    // 2026-09-10 21:30Z = 00:30 Cairo on the 11th → still the 10th's service.
-    expect(serviceToday(new Date("2026-09-10T21:30:00Z"), TZ)).toBe("2026-09-10");
-    expect(serviceToday(new Date("2026-09-11T03:00:00Z"), TZ)).toBe("2026-09-11");
+describe("booking day", () => {
+  it("puts 00:30 on its own calendar date and rolls over at midnight", () => {
+    // 2026-09-10 21:30Z = 00:30 Cairo on the 11th.
+    expect(serviceToday(new Date("2026-09-10T21:30:00Z"), TZ)).toBe("2026-09-11");
+    // 23:59 Cairo on the 10th → still the 10th.
+    expect(serviceToday(new Date("2026-09-10T20:59:00Z"), TZ)).toBe("2026-09-10");
+  });
+  it("follows DST in the branch zone", () => {
+    // London springs forward 2026-03-29: 23:30Z on the 28th is 23:30 GMT; 00:30Z on the 29th is 00:30 GMT.
+    expect(serviceToday(new Date("2026-03-28T23:30:00Z"), "Europe/London")).toBe("2026-03-28");
+    expect(serviceToday(new Date("2026-03-29T00:30:00Z"), "Europe/London")).toBe("2026-03-29");
+    // Summer: 23:30Z is already 00:30 BST the next day.
+    expect(serviceToday(new Date("2026-07-01T23:30:00Z"), "Europe/London")).toBe("2026-07-02");
   });
   it("adds days and knows weekdays", () => {
     expect(addDays("2026-09-30", 1)).toBe("2026-10-01");
@@ -34,24 +42,25 @@ describe("local time", () => {
 });
 
 describe("timeline", () => {
-  const win = dayWindow(settings([{ dow: 4, open: "18:00", close: "02:00" }]), "2026-09-10");
-  it("extends a close after midnight past 24:00 and falls back when closed", () => {
-    expect(win).toEqual({ open: 18 * 60, close: 26 * 60 });
+  const win = dayWindow(settings([{ dow: 4, open: "18:00", close: "23:00" }]), "2026-09-10");
+  it("uses the day's hours, the whole day when they cross midnight, and falls back when closed", () => {
+    expect(win).toEqual({ open: 18 * 60, close: 23 * 60 });
+    expect(dayWindow(settings([{ dow: 4, open: "18:00", close: "02:00" }]), "2026-09-10")).toEqual({ open: 0, close: 24 * 60 });
     expect(dayWindow(settings([]), "2026-09-10")).toEqual({ open: 12 * 60, close: 24 * 60 });
   });
-  it("places a 19:30–21:00 booking inside an 18:00–02:00 window", () => {
+  it("places a 19:30–21:00 booking inside an 18:00–23:00 window", () => {
     const b = { starts_at: "2026-09-10T16:30:00Z", ends_at: "2026-09-10T18:00:00Z" };
     const { left, width } = timelineSpan(b, "2026-09-10", win, TZ);
-    expect(left).toBeCloseTo((90 / 480) * 100, 5);
-    expect(width).toBeCloseTo((90 / 480) * 100, 5);
-    // 00:30 the next morning is 24:30 on this service day.
+    expect(left).toBeCloseTo((90 / 300) * 100, 5);
+    expect(width).toBeCloseTo((90 / 300) * 100, 5);
+    // 00:30 on the 11th sits at the start of the 11th's full-day window.
     const late = { starts_at: "2026-09-10T21:30:00Z", ends_at: "2026-09-10T23:00:00Z" };
-    expect(timelineSpan(late, "2026-09-10", win, TZ).left).toBeCloseTo((390 / 480) * 100, 5);
+    expect(timelineSpan(late, "2026-09-11", { open: 0, close: 1440 }, TZ).left).toBeCloseTo((30 / 1440) * 100, 5);
   });
   it("draws hour ticks across the window", () => {
     const ticks = hourTicks(win);
     expect(ticks[0]).toEqual({ label: "18:00", left: 0 });
-    expect(ticks.at(-1)).toEqual({ label: "02:00", left: 100 });
+    expect(ticks.at(-1)).toEqual({ label: "23:00", left: 100 });
   });
 });
 
