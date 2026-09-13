@@ -7,6 +7,7 @@
  * component now, which is also the only way the screen reads as one screen.
  */
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
@@ -91,7 +92,11 @@ export function TextRow<T extends FieldValues>({
   dir?: "rtl";
   mono?: boolean;
 }) {
+  const { t } = useTranslation();
   const id = String(name);
+  // Schema messages are translation keys, so the Zod rules and both locales
+  // stay one list rather than English strings baked into a validator.
+  const error = form.formState.errors[name]?.message;
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
@@ -102,9 +107,17 @@ export function TextRow<T extends FieldValues>({
         dir={dir}
         placeholder={placeholder}
         className={mono ? "font-mono" : undefined}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
         {...form.register(name)}
       />
-      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+      {error ? (
+        <p id={`${id}-error`} role="alert" className="text-xs text-destructive">
+          {t(String(error))}
+        </p>
+      ) : hint ? (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      ) : null}
     </div>
   );
 }

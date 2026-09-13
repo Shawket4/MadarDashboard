@@ -16,31 +16,61 @@ import { z } from "zod";
 import type { LoyaltySettings } from "@/data/api/generated/models";
 import { egpToPiastres, piastresToEgp } from "@/lib/format";
 
+/**
+ * An optional whole number above zero, held as a string so "none" is an empty
+ * field. Mirrors the server's `is_some_and(|c| c <= 0)` refusals in
+ * `LoyaltySettings::validate`: empty is fine, `0`, `-3`, `2.5` and `abc` are not
+ * — the last two used to be sent as `null` without a word, quietly turning a
+ * typo into "unlimited".
+ */
+export const optionalPositiveInt = (message: string) =>
+  z
+    .string()
+    .trim()
+    .refine((v) => v === "" || (/^\d+$/.test(v) && Number(v) > 0 && Number(v) <= 2_147_483_647), {
+      message,
+    });
+
+/** The parsed value of an `optionalPositiveInt`, or null for empty. */
+export const intOrNull = (v: string): number | null => {
+  const n = Number(v.trim());
+  return v.trim() === "" || !Number.isInteger(n) || n <= 0 ? null : n;
+};
+
 export const programSchema = z.object({
   enabled: z.boolean(),
-  program_name: z.string().min(1),
+  program_name: z.string().trim().min(1, { message: "loyalty.errors.nameRequired" }),
   program_name_ar: z.string(),
   mode: z.enum(["points", "visits"]),
   /** EGP here, piastres on the wire. */
-  earn_egp_per_point: z.coerce.number<number>().positive(),
+  earn_egp_per_point: z.coerce
+    .number<number>({ message: "loyalty.errors.earnRate" })
+    // The wire is whole piastres and the server refuses anything <= 0, so the
+    // smallest honest rate is one piastre.
+    .min(0.01, { message: "loyalty.errors.earnRate" })
+    .max(1_000_000, { message: "loyalty.errors.earnRate" }),
   earn_on_discounted: z.boolean(),
   earn_include_tax: z.boolean(),
-  default_reward_cost: z.coerce.number<number>().int().positive(),
+  default_reward_cost: z.coerce
+    .number<number>({ message: "loyalty.errors.positiveInt" })
+    .int({ message: "loyalty.errors.positiveInt" })
+    .positive({ message: "loyalty.errors.positiveInt" }),
   reward_any_item: z.boolean(),
   /** Off = no ceiling. Strings so "no cap" is an empty field, like the gifts. */
   balance_cap_enabled: z.boolean(),
-  balance_cap: z.string(),
-  one_reward_per_order: z.boolean(),
+  balance_cap: optionalPositiveInt("loyalty.errors.optionalPositiveInt"),
+  /** Empty = unlimited. A number, so a shop that allows two keeps two. */
+  max_rewards_per_order: optionalPositiveInt("loyalty.errors.optionalPositiveInt"),
   require_otp: z.boolean(),
   birthday_enabled: z.boolean(),
   /** A string so "no gift" is expressible as an empty field, which is the common case. */
-  birthday_reward_amount: z.string(),
+  birthday_reward_amount: optionalPositiveInt("loyalty.errors.optionalPositiveInt"),
   birthday_message: z.string(),
   birthday_message_ar: z.string(),
   winback_enabled: z.boolean(),
   /** One override, in whichever language the shop writes it. Empty = the built-ins. */
   winback_message: z.string(),
-  winback_reward_amount: z.string(),
+  winback_reward_amount: optionalPositiveInt("loyalty.errors.optionalPositiveInt"),
   terms: z.string(),
 });
 
@@ -64,10 +94,12 @@ export function fromWire(s: LoyaltySettings): ProgramValues {
     // figure means "the dearest reward", not "no ceiling".
     balance_cap_enabled: s.balance_cap_enabled ?? false,
     balance_cap: s.balance_cap != null ? String(s.balance_cap) : "",
-    // Stored as a number so a shop could allow two or three, but the toggle
-    // offers the only value anyone has asked for. A value already set by hand
-    // still reads as "on" rather than being silently discarded.
-    one_reward_per_order: (s.max_rewards_per_order ?? 0) > 0,
+    // The number itself. A toggle that could only say "1" rewrote a shop's
+    // "3 per order" to 1 the next time anyone pressed Save.
+    max_rewards_per_order:
+      s.max_rewards_per_order != null && s.max_rewards_per_order > 0
+        ? String(s.max_rewards_per_order)
+        : "",
     require_otp: s.require_otp,
     birthday_enabled: s.birthday_enabled ?? false,
     birthday_reward_amount: s.birthday_reward_amount
@@ -107,8 +139,8 @@ export function toWire(
     org_id: scope.orgId,
     branch_id: scope.branchId,
     enabled: v.enabled,
-    program_name: v.program_name,
-    program_name_ar: v.program_name_ar || null,
+    program_name: v.program_name.trim(),
+    program_name_ar: v.program_name_ar.trim() || null,
     mode: v.mode,
     earn_piastres_per_point: egpToPiastres(v.earn_egp_per_point),
     earn_on_discounted: v.earn_on_discounted,
@@ -118,18 +150,16 @@ export function toWire(
     balance_cap_enabled: v.balance_cap_enabled,
     // Null is not "no ceiling" here — the switch above is. It means "work it
     // out from the reward list", which is what an empty field should do.
-    balance_cap: v.balance_cap_enabled ? Number(v.balance_cap) || null : null,
-    max_rewards_per_order: v.one_reward_per_order ? 1 : null,
+    balance_cap: v.balance_cap_enabled ? intOrNull(v.balance_cap) : null,
+    max_rewards_per_order: intOrNull(v.max_rewards_per_order),
     require_otp: v.require_otp,
     birthday_enabled: birthday,
-    birthday_reward_amount: birthday ? Number(v.birthday_reward_amount) || null : null,
+    birthday_reward_amount: birthday ? intOrNull(v.birthday_reward_amount) : null,
     birthday_message: birthday ? v.birthday_message || null : null,
     birthday_message_ar: birthday ? v.birthday_message_ar || null : null,
     winback_enabled: winback,
     winback_message: winback ? v.winback_message || null : null,
-    winback_reward_amount: winback
-      ? Number(v.winback_reward_amount) || null
-      : null,
+    winback_reward_amount: winback ? intOrNull(v.winback_reward_amount) : null,
     terms: v.terms || null,
   };
 }
@@ -148,7 +178,7 @@ export function previewOf(
     ...saved,
     program_name: v.program_name || saved.program_name,
     mode: v.mode,
-    birthday_reward_amount: Number(v.birthday_reward_amount) || null,
+    birthday_reward_amount: intOrNull(v.birthday_reward_amount),
     birthday_message: v.birthday_message || null,
     birthday_message_ar: v.birthday_message_ar || null,
   };

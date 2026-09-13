@@ -22,6 +22,8 @@ import { fmtDateTimeFull, fmtMoney, fmtUnit } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 
+import { orderRewards } from "./reward-lines";
+
 interface Deduction {
   ingredient_name: string;
   quantity: number;
@@ -74,6 +76,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
   };
 
   const voided = order?.status === "voided";
+  const rewards = orderRewards(order);
   const items = order?.items ?? [];
   const isDelivery = order?.order_type === "delivery";
   const delivery = order?.delivery ?? null;
@@ -253,7 +256,21 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                                 {it.bundle_id ? (
                                   <Badge className="px-1 py-0 text-xs uppercase">{t("orders.combo", "Combo")}</Badge>
                                 ) : null}
+                                {rewards.lines.has(it.id) ? (
+                                  <Badge variant="outline" className="border-transparent bg-success/15 px-1 py-0 text-xs text-foreground">
+                                    {t("orders.reward", "Reward")}
+                                  </Badge>
+                                ) : null}
                               </p>
+                              {rewards.lines.has(it.id) ? (
+                                <p className="text-xs text-muted-foreground tabular">
+                                  {t("orders.rewardCovers", {
+                                    defaultValue: "Reward covers {{units}} · −{{amount}}",
+                                    units: rewards.lines.get(it.id)?.units ?? "—",
+                                    amount: fmtMoney(rewards.lines.get(it.id)?.covered ?? 0),
+                                  })}
+                                </p>
+                              ) : null}
                               <p className="text-xs text-muted-foreground tabular">
                                 × {it.quantity} · {fmtMoney(it.unit_price)}
                               </p>
@@ -353,6 +370,17 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
               <Card className="py-0">
                 <CardContent className="space-y-2 p-4 text-sm">
                   <Row label={t("common.subtotal", "Subtotal")} value={fmtMoney(order.subtotal)} />
+                  {rewards.totalCovered > 0 || rewards.memberId ? (
+                    <Row
+                      label={
+                        rewards.memberName
+                          ? t("orders.loyaltyRewardsFor", { defaultValue: "Loyalty rewards · {{name}}", name: rewards.memberName })
+                          : t("orders.loyaltyRewards", "Loyalty rewards")
+                      }
+                      value={rewards.totalCovered > 0 ? `− ${fmtMoney(rewards.totalCovered)}` : "—"}
+                      className="text-success"
+                    />
+                  ) : null}
                   {order.discount_amount > 0 ? (
                     <Row label={t("orders.discount", "Discount")} value={`− ${fmtMoney(order.discount_amount)}`} className="text-success" />
                   ) : null}

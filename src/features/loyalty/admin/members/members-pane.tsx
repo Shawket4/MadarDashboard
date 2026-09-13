@@ -4,8 +4,10 @@
  * Read-mostly on purpose. The one write here is an adjustment, which is the
  * only action in the whole program that creates value from nothing — so it is
  * gated on an admin role by the server as well as by this screen.
+ *
+ * A row opens the member: balances, the full ledger, and the orders behind it.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search, Wallet } from "lucide-react";
 import { toast } from "sonner";
@@ -24,7 +26,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { listLoyaltyMembers, useListLoyaltyMembers } from "@/data/api/generated/api";
+import {
+  listLoyaltyMembers,
+  useListBranches,
+  useListLoyaltyMembers,
+} from "@/data/api/generated/api";
 import type { MemberView } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
@@ -33,9 +39,14 @@ import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { fmtDate } from "@/lib/format";
 
+import { OrderDetailSheet } from "@/features/orders/order-detail-sheet";
+
+import { loyaltyAccess } from "../../shared/access";
 import { currencyLabel } from "../../shared/util";
 import type { ProgramScope } from "../use-program";
+import { AdjustDialog } from "./adjust-dialog";
 import { GoogleObjectDialog } from "./google-object-dialog";
+import { MemberDetailSheet } from "./member-detail-sheet";
 
 export function MembersPane({ scope }: { scope: ProgramScope }) {
   const { branchId } = scope;
@@ -44,7 +55,19 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
   // Super admin only: it reads Madar's plumbing out of Google in Google's own
   // vocabulary, which is nothing an org manager could act on. The endpoint
   // refuses them too, so this is presentation, not the guard.
-  const isSuperAdmin = useAuthStore((s) => s.user?.role) === "super_admin";
+  const access = loyaltyAccess(useAuthStore((s) => s.user?.role));
+  const isSuperAdmin = access.canInspectWallet;
+  const [openMember, setOpenMember] = useState<string | null>(null);
+  const [adjusting, setAdjusting] = useState<MemberView | null>(null);
+  const [openOrder, setOpenOrder] = useState<string | null>(null);
+  const branches = useListBranches(
+    { org_id: scope.orgId },
+    { query: { enabled: !!scope.orgId && access.canAdjust } },
+  );
+  const activeBranches = useMemo(
+    () => (branches.data ?? []).filter((b) => b.is_active).map((b) => ({ id: b.id, name: b.name })),
+    [branches.data],
+  );
   const [inspecting, setInspecting] = useState<{
     id: string;
     name: string;
@@ -55,7 +78,7 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
     ...(branchId ? { branch_id: branchId } : {}),
     ...(q.trim() ? { q: q.trim() } : {}),
     limit: 100,
-  });
+  }, { query: { enabled: access.canListMembers } });
 
 
   // The table shows the first hundred and says so underneath; the file must not
@@ -108,6 +131,18 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
     }
   };
 
+  if (!access.canListMembers) {
+    return (
+      <EmptyState
+        title={t("loyalty.membersRestricted", "Members are for managers")}
+        description={t(
+          "loyalty.membersRestrictedHint",
+          "Scan or look up the customer in front of you at the till.",
+        )}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -130,13 +165,28 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
 
       {page.isLoading ? (
         <Skeleton className="h-48 w-full" />
+      ) : page.isError ? (
+        <EmptyState
+          title={t("loyalty.membersLoadFailed", "Couldn't load members")}
+          description={getErrorMessage(page.error)}
+          action={
+            <Button variant="outline" onClick={() => void page.refetch()}>
+              {t("common.retry", "Retry")}
+            </Button>
+          }
+        />
       ) : (page.data?.members.length ?? 0) === 0 ? (
         <EmptyState
-          title={t("loyalty.noMembers", "No members yet")}
-          description={t(
-            "loyalty.noMembersHint",
-            "Customers join by scanning the counter code.",
-          )}
+          title={
+            q.trim()
+              ? t("loyalty.noMembersMatch", "No members match that search")
+              : t("loyalty.noMembers", "No members yet")
+          }
+          description={
+            q.trim()
+              ? undefined
+              : t("loyalty.noMembersHint", "Customers join by scanning the counter code.")
+          }
         />
       ) : (
         <div className="overflow-x-auto rounded-xl border">
@@ -152,10 +202,23 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
             </TableHeader>
             <TableBody>
               {page.data?.members.map((m) => (
-                <TableRow key={m.id}>
+                <TableRow
+                  key={m.id}
+                  className="cursor-pointer"
+                  onClick={() => setOpenMember(m.id)}
+                >
                   <TableCell>
-                    <p className="font-medium">{m.name}</p>
-                    <p className="text-xs text-muted-foreground">{m.phone}</p>
+                    <button
+                      type="button"
+                      className="text-start font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMember(m.id);
+                      }}
+                    >
+                      {m.name}
+                    </button>
+                    <p className="text-xs text-muted-foreground" dir="ltr">{m.phone}</p>
                   </TableCell>
                   <TableCell className="font-mono">
                     {m.balance} {currencyLabel(m.mode, m.balance)}
@@ -187,9 +250,10 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
                           "loyalty.googleObject",
                           "Google Wallet object",
                         )}
-                        onClick={() =>
-                          setInspecting({ id: m.id, name: m.name })
-                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setInspecting({ id: m.id, name: m.name });
+                        }}
                       >
                         <Wallet className="size-4" />
                       </Button>
@@ -211,6 +275,29 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
           })}
         </p>
       ) : null}
+
+      <MemberDetailSheet
+        memberId={openMember}
+        branchId={branchId}
+        canAdjust={access.canAdjust}
+        onOpenChange={(o) => !o && setOpenMember(null)}
+        onAdjust={setAdjusting}
+        onOpenOrder={setOpenOrder}
+      />
+      {adjusting ? (
+        <AdjustDialog
+          member={adjusting}
+          branches={activeBranches}
+          defaultBranchId={branchId}
+          open={!!adjusting}
+          onOpenChange={(o) => !o && setAdjusting(null)}
+        />
+      ) : null}
+      <OrderDetailSheet
+        orderId={openOrder}
+        open={!!openOrder}
+        onOpenChange={(o) => !o && setOpenOrder(null)}
+      />
 
       <GoogleObjectDialog
         memberId={inspecting?.id ?? null}

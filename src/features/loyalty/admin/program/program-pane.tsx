@@ -26,12 +26,18 @@ import { SignupCard } from "./signup-card";
 import { fromWire, programSchema, toWire, type ProgramValues } from "./form-schema";
 import { TextRow, ToggleRow } from "./fields";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/app/empty-state";
+import { useAuthStore } from "@/data/stores/auth.store";
+
+import { loyaltyAccess } from "../../shared/access";
 
 export function ProgramPane({ scope }: { scope: ProgramScope }) {
   const { t } = useTranslation();
   const confirm = useConfirm();
   const { query, settings, inherited } = useProgram(scope);
   const save = usePutLoyaltySettings();
+  const role = useAuthStore((s) => s.user?.role);
+  const { canEditProgram } = loyaltyAccess(role);
 
   const form = useForm<ProgramValues>({
     resolver: zodResolver(programSchema),
@@ -51,6 +57,20 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
         <Skeleton className="h-9 w-full" />
         <Skeleton className="h-24 w-full" />
       </div>
+    );
+  }
+
+  if (query.isError || !settings) {
+    return (
+      <EmptyState
+        title={t("loyalty.loadFailed", "Couldn't load the program")}
+        description={query.error ? getErrorMessage(query.error) : undefined}
+        action={
+          <Button variant="outline" onClick={() => void query.refetch()}>
+            {t("common.retry", "Retry")}
+          </Button>
+        }
+      />
     );
   }
 
@@ -84,7 +104,15 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(submit)} className="space-y-4">
+    <form onSubmit={form.handleSubmit(submit)} className="space-y-4" noValidate>
+      {!canEditProgram ? (
+        <p className="rounded-lg border border-border/60 bg-muted/40 p-3 text-xs text-muted-foreground">
+          {t("loyalty.readOnly", "You can view the program here, but only a manager or admin can change it.")}
+        </p>
+      ) : null}
+      {/* A disabled fieldset disables every input and switch inside it, so a
+          read-only viewer cannot half-edit a form they cannot save. */}
+      <fieldset disabled={!canEditProgram} className="min-w-0 space-y-4">
       {inherited ? (
         <p className="rounded-lg border border-border/60 bg-muted/40 p-3 text-xs text-muted-foreground">
           {t(
@@ -126,8 +154,11 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
         geofencedBranches={settings?.geofenced_branches ?? 0}
       />
 
-      <div className="flex items-center gap-2">
-        <Button type="submit" disabled={save.isPending}>
+      </fieldset>
+
+      {canEditProgram ? (
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="submit" disabled={save.isPending || (!form.formState.isDirty && !inherited)}>
           {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
           {t("common.save", "Save")}
         </Button>
@@ -137,7 +168,13 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
             {t("loyalty.revert", "Follow the organisation")}
           </Button>
         ) : null}
+        {Object.keys(form.formState.errors).length > 0 ? (
+          <p role="alert" className="text-xs text-destructive">
+            {t("loyalty.fixErrors", "Fix the highlighted fields before saving.")}
+          </p>
+        ) : null}
       </div>
+      ) : null}
     </form>
   );
 }

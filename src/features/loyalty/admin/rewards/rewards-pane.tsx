@@ -8,11 +8,17 @@
  * org's, so an org curates one catalogue and a branch departs from it only when
  * it means to. An empty branch list means INHERIT, not "no rewards": a branch
  * that wants none turns the program off for itself.
+ *
+ * The rules a save must pass live in `catalogue-schema`, mirrored from the
+ * server; this file only renders them.
  */
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Loader2, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,16 +34,25 @@ import {
   usePutLoyaltyRewardItems,
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
+import { useAuthStore } from "@/data/stores/auth.store";
 import { fmtMoney } from "@/lib/format";
 
+import { loyaltyAccess } from "../../shared/access";
 import { currencyLabel, modeOf } from "../../shared/util";
 import type { ProgramScope } from "../use-program";
+import {
+  catalogueChanged,
+  catalogueSchema,
+  isBlocking,
+  isOfferable,
+  rowProblems,
+  rowsFromCatalogue,
+  rowsToWire,
+  type RewardRow,
+} from "./catalogue-schema";
 
-interface Row {
-  menu_item_id: string;
-  name: string;
-  cost_amount: number;
-}
+const formSchema = z.object({ items: catalogueSchema });
+type FormValues = z.infer<typeof formSchema>;
 
 export function RewardsPane({ scope }: { scope: ProgramScope }) {
   const { orgId, branchId } = scope;
@@ -45,32 +60,38 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
   const params = branchId ? { branch_id: branchId } : {};
   const catalogue = useGetLoyaltyRewardItems(params);
   const settings = useGetLoyaltySettings(params);
-  const menu = useListMenuItems(
-    { org_id: orgId },
-    { query: { enabled: !!orgId } },
-  );
+  const menu = useListMenuItems({ org_id: orgId }, { query: { enabled: !!orgId } });
   const save = usePutLoyaltyRewardItems();
+  const { canEditProgram } = loyaltyAccess(useAuthStore((s) => s.user?.role));
 
   const mode = modeOf(settings.data);
-  const [rows, setRows] = useState<Row[]>([]);
+  const anyItem = settings.data?.reward_any_item === true;
   const [picked, setPicked] = useState<string>("");
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { items: [] },
+  });
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+    keyName: "key",
+  });
 
   // The server's list is the truth; local edits start from whatever it last
   // returned, including an inherited list a branch is about to depart from.
   useEffect(() => {
-    if (!catalogue.data) return;
-    setRows(
-      catalogue.data.items.map((i) => ({
-        menu_item_id: i.menu_item_id,
-        name: i.name,
-        cost_amount: i.cost_amount,
-      })),
-    );
-  }, [catalogue.data]);
+    if (catalogue.data) form.reset({ items: rowsFromCatalogue(catalogue.data.items) });
+  }, [catalogue.data, form]);
+
+  const rows = form.watch("items");
+  const problems = rowProblems(rows, menu.data);
+  const dirty = catalogue.data ? catalogueChanged(rows, catalogue.data.items) : false;
 
   const options = useMemo(
     () =>
       (menu.data ?? [])
+        .filter(isOfferable)
         .filter((m) => !rows.some((r) => r.menu_item_id === m.id))
         .map((m) => ({ value: m.id, label: `${m.name} · ${fmtMoney(m.base_price)}` })),
     [menu.data, rows],
@@ -79,35 +100,49 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
   if (catalogue.isLoading || settings.isLoading) {
     return <Skeleton className="h-40 w-full" />;
   }
+  if (catalogue.isError || settings.isError) {
+    return (
+      <EmptyState
+        title={t("loyalty.rewardsLoadFailed", "Couldn't load the rewards")}
+        description={getErrorMessage(catalogue.error ?? settings.error)}
+        action={
+          <Button
+            variant="outline"
+            onClick={() => {
+              void catalogue.refetch();
+              void settings.refetch();
+            }}
+          >
+            {t("common.retry", "Retry")}
+          </Button>
+        }
+      />
+    );
+  }
 
   const add = () => {
     const item = (menu.data ?? []).find((m) => m.id === picked);
-    if (!item) return;
-    setRows((r) => [
-      ...r,
-      {
-        menu_item_id: item.id,
-        name: item.name,
-        // The scope's default, which the admin can then price on its own.
-        cost_amount: settings.data?.default_reward_cost ?? 100,
-      },
-    ]);
+    if (!item || !isOfferable(item)) return;
+    if (rows.some((r) => r.menu_item_id === item.id)) return;
+    append({
+      menu_item_id: item.id,
+      name: item.name,
+      // The scope's default, which the admin can then price on its own.
+      cost_amount: settings.data?.default_reward_cost ?? 100,
+    } satisfies RewardRow);
     setPicked("");
   };
 
-  const submit = async () => {
+  const submit = async (v: FormValues) => {
+    if (problems.some(isBlocking)) {
+      toast.error(
+        t("loyalty.errors.rewardFixRows", "Fix the highlighted rewards, then save."),
+      );
+      return;
+    }
     try {
       await save.mutateAsync({
-        data: {
-          branch_id: branchId,
-          items: rows.map((r) => ({
-            menu_item_id: r.menu_item_id,
-            // Every reward is priced in what this scope collects — a points
-            // reward in a stamp program would be unbuyable.
-            cost_currency: mode,
-            cost_amount: r.cost_amount,
-          })),
-        },
+        data: { branch_id: branchId, items: rowsToWire(v.items, mode) },
       });
       toast.success(t("loyalty.rewardsSaved", "Rewards saved"));
       await catalogue.refetch();
@@ -117,9 +152,23 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
   };
 
   const inherited = catalogue.data?.inherited === true && Boolean(branchId);
+  const problemText = (p: Exclude<ReturnType<typeof rowProblems>[number], null>) =>
+    p === "cost"
+      ? t("loyalty.errors.rewardCost", "Enter a whole number above zero.")
+      : p === "duplicate"
+        ? t("loyalty.errors.rewardDuplicate", "This item is already on the list.")
+        : p === "unavailable"
+          ? t(
+              "loyalty.errors.rewardUnavailable",
+              "This menu item has been deleted. Remove it to save.",
+            )
+          : t(
+              "loyalty.rewardInactive",
+              "This menu item is switched off, so the till can't hand it over until it's back on.",
+            );
 
   return (
-    <div className="space-y-4">
+    <form onSubmit={form.handleSubmit(submit)} className="space-y-4" noValidate>
       {inherited ? (
         <p className="rounded-lg border border-border/60 bg-muted/40 p-3 text-xs text-muted-foreground">
           {t(
@@ -128,10 +177,19 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
           )}
         </p>
       ) : null}
+      {anyItem ? (
+        <p className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs text-warning">
+          {t("loyalty.rewardsAnyItemOn", {
+            defaultValue:
+              "“Any item can be a reward” is on: every menu item costs {{cost}} and the prices below are not used until you switch it off.",
+            cost: `${settings.data?.default_reward_cost ?? 0} ${currencyLabel(mode, settings.data?.default_reward_cost)}`,
+          })}
+        </p>
+      ) : null}
 
       <Card>
         <CardContent className="space-y-3 p-5">
-          {rows.length === 0 ? (
+          {fields.length === 0 ? (
             <EmptyState
               title={t("loyalty.noRewards", "No rewards yet")}
               description={t(
@@ -140,69 +198,109 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
               )}
             />
           ) : (
-            rows.map((row, i) => (
-              <div
-                key={row.menu_item_id}
-                className="flex flex-wrap items-end gap-3 sm:flex-nowrap"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{row.name}</p>
+            fields.map((field, i) => {
+              const problem = problems[i];
+              const costId = `reward-cost-${field.menu_item_id}`;
+              return (
+                <div key={field.key} className="space-y-1">
+                  <div className="flex flex-wrap items-end gap-3 sm:flex-nowrap">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{field.name}</p>
+                    </div>
+                    <div className="w-24 shrink-0 space-y-1.5 sm:w-32">
+                      <Label htmlFor={costId} className="text-xs text-muted-foreground">
+                        {currencyLabel(mode, rows[i]?.cost_amount)}
+                      </Label>
+                      <Input
+                        id={costId}
+                        type="number"
+                        min={1}
+                        step={1}
+                        inputMode="numeric"
+                        className="font-mono"
+                        disabled={!canEditProgram}
+                        aria-invalid={problem === "cost" ? true : undefined}
+                        {...form.register(`items.${i}.cost_amount`, { valueAsNumber: true })}
+                      />
+                    </div>
+                    {canEditProgram ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t("common.remove", "Remove")}
+                        onClick={() => remove(i)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    ) : null}
+                  </div>
+                  {problem ? (
+                    <p
+                      role="alert"
+                      className={
+                        isBlocking(problem)
+                          ? "flex items-center gap-1 text-xs text-destructive"
+                          : "flex items-center gap-1 text-xs text-warning"
+                      }
+                    >
+                      <AlertTriangle className="size-3.5 shrink-0" />
+                      {problemText(problem)}
+                    </p>
+                  ) : null}
                 </div>
-                <div className="w-24 shrink-0 space-y-1.5 sm:w-32">
-                  <Label className="text-xs text-muted-foreground">
-                    {currencyLabel(mode, row.cost_amount)}
-                  </Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    className="font-mono"
-                    value={row.cost_amount}
-                    onChange={(e) =>
-                      setRows((rs) =>
-                        rs.map((r, j) =>
-                          j === i ? { ...r, cost_amount: Number(e.target.value) } : r,
-                        ),
-                      )
-                    }
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={t("common.remove", "Remove")}
-                  onClick={() => setRows((rs) => rs.filter((_, j) => j !== i))}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-            ))
+              );
+            })
           )}
 
-          <div className="flex items-end gap-3 border-t border-border/60 pt-3">
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                {t("loyalty.addReward", "Add a reward")}
-              </Label>
-              <Combobox
-                value={picked}
-                onChange={setPicked}
-                options={options}
-                placeholder={t("loyalty.pickItem", "Pick a menu item")}
-              />
+          {canEditProgram ? (
+            <div className="flex items-end gap-3 border-t border-border/60 pt-3">
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <Label className="text-xs text-muted-foreground">
+                  {t("loyalty.addReward", "Add a reward")}
+                </Label>
+                <Combobox
+                  value={picked}
+                  onChange={setPicked}
+                  options={options}
+                  placeholder={t("loyalty.pickItem", "Pick a menu item")}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t(
+                    "loyalty.pickItemHint",
+                    "Only active menu items. Combos can't be rewards — a reward covers whole units of one item.",
+                  )}
+                </p>
+              </div>
+              <Button type="button" variant="outline" onClick={add} disabled={!picked}>
+                <Plus className="size-4" />
+                {t("common.add", "Add")}
+              </Button>
             </div>
-            <Button type="button" variant="outline" onClick={add} disabled={!picked}>
-              <Plus className="size-4" />
-              {t("common.add", "Add")}
-            </Button>
-          </div>
+          ) : null}
         </CardContent>
       </Card>
 
-      <Button onClick={() => void submit()} disabled={save.isPending}>
-        {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
-        {t("common.save", "Save")}
-      </Button>
-    </div>
+      {canEditProgram ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="submit"
+            disabled={save.isPending || (!dirty && !inherited) || problems.some(isBlocking)}
+          >
+            {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+            {t("common.save", "Save")}
+          </Button>
+          {dirty && catalogue.data ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => form.reset({ items: rowsFromCatalogue(catalogue.data.items) })}
+            >
+              {t("loyalty.discardChanges", "Discard changes")}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+    </form>
   );
 }

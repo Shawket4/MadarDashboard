@@ -20,7 +20,11 @@ import { useListBranches } from "@/data/api/generated/api";
 import { useScope } from "@/data/scope/use-scope";
 import { useOrgId } from "@/hooks/use-org-id";
 
+import { useAuthStore } from "@/data/stores/auth.store";
+
+import { loyaltyAccess } from "../shared/access";
 import { MembersPane } from "./members/members-pane";
+import { OverviewPane } from "./overview/overview-pane";
 import { ProgramPane } from "./program/program-pane";
 import { RewardsPane } from "./rewards/rewards-pane";
 import { SignUpCode } from "./sign-up-code";
@@ -48,6 +52,7 @@ export function LoyaltyPage() {
   // shop to its only branch, which took away the org scope entirely — so this
   // page had to invent it back. The pin is gone; nothing to invent.
   const branchId = scopedBranchId;
+  const { canListMembers } = loyaltyAccess(useAuthStore((s) => s.user?.role));
   const scope: ProgramScope = { orgId, branchId };
 
   return (
@@ -70,6 +75,9 @@ export function LoyaltyPage() {
           <TabsTrigger value="program">{t("loyalty.tabProgram", "Program")}</TabsTrigger>
           <TabsTrigger value="rewards">{t("loyalty.tabRewards", "Rewards")}</TabsTrigger>
           <TabsTrigger value="members">{t("loyalty.tabMembers", "Members")}</TabsTrigger>
+          {canListMembers ? (
+            <TabsTrigger value="overview">{t("loyalty.tabOverview", "Overview")}</TabsTrigger>
+          ) : null}
         </TabsList>
         <TabsContent value="program" className="pt-4">
           {/* Keyed on the scope so switching branch remounts the form rather
@@ -82,6 +90,11 @@ export function LoyaltyPage() {
         <TabsContent value="members" className="pt-4">
           <MembersPane scope={scope} />
         </TabsContent>
+        {canListMembers ? (
+          <TabsContent value="overview" className="pt-4">
+            <OverviewPane key={branchId ?? "org"} scope={scope} />
+          </TabsContent>
+        ) : null}
       </Tabs>
     </Page>
   );

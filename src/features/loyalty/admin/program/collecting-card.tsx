@@ -170,13 +170,16 @@ export function CollectingCard({
                 ) : null}
               </>
             ) : null}
-            <ToggleRow
+            <TextRow
               form={form}
-              name="one_reward_per_order"
-              label={t("loyalty.oneRewardPerOrder", "One reward per order")}
+              name="max_rewards_per_order"
+              type="number"
+              mono
+              label={t("loyalty.maxRewardsPerOrder", "Most rewards per order")}
+              placeholder={t("loyalty.maxRewardsPerOrderNone", "Leave empty for no limit")}
               hint={t(
-                "loyalty.oneRewardPerOrderHint",
-                "Off, a customer with 30 stamps and a 5-stamp reward can take six free items in one visit — the giveaway you meant to spread over six.",
+                "loyalty.maxRewardsPerOrderHint",
+                "Counted in items. Empty, a customer with 30 stamps and a 5-stamp reward can take six free items in one visit — the giveaway you meant to spread over six. Most shops set 1.",
               )}
             />
           </div>

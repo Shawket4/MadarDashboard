@@ -6,6 +6,7 @@
  * screens reads from `mode`, so an admin never sees a field that does not apply
  * to the program they are running.
  */
+import i18n from "@/i18n";
 import type { LoyaltySettings } from "@/data/api/generated/models/loyaltySettings";
 
 export type LoyaltyMode = "points" | "visits";
@@ -23,7 +24,13 @@ export const modeOf = (s: Pick<LoyaltySettings, "mode"> | undefined): LoyaltyMod
  */
 export const currencyLabel = (mode: string, count?: number): string => {
   const plural = count === 1 ? "" : "s";
-  return mode === "visits" ? `order${plural}` : `point${plural}`;
+  const fallback = mode === "visits" ? `order${plural}` : `point${plural}`;
+  // Translated, with plural forms: Arabic has six, and "5 points" read out in
+  // English on an Arabic screen was the one untranslated word on the page.
+  return i18n.t(mode === "visits" ? "loyalty.unitOrders" : "loyalty.unitPoints", {
+    count: count ?? 2,
+    defaultValue: fallback,
+  });
 };
 
 /** "5 orders" / "100 points" — a reward's price, ready to render. */
