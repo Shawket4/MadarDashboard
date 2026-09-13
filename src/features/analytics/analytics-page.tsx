@@ -503,7 +503,7 @@ function TellersTab({ branchId, range }: { branchId: string; range: Range }) {
                       <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("dashboard.revenue", "Revenue")}</th>
                       <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("analytics.aov", "AOV")}</th>
                       <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("orders.voided", "Voided")}</th>
-                      <th className="px-4 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("nav.shifts", "Shifts")}</th>
+                      <th className="px-4 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("nav.tills", "Tills")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -571,7 +571,7 @@ function WaitersTab({ branchId, range }: { branchId: string; range: Range }) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="px-4 py-2.5 text-start text-xs font-medium text-muted-foreground">{t("shifts.waiter", "Waiter")}</th>
+                      <th className="px-4 py-2.5 text-start text-xs font-medium text-muted-foreground">{t("tills.waiter", "Waiter")}</th>
                       <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("dashboard.orders", "Orders")}</th>
                       <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("dashboard.revenue", "Revenue")}</th>
                       <th className="px-3 py-2.5 text-end text-xs font-medium text-muted-foreground">{t("analytics.aov", "AOV")}</th>

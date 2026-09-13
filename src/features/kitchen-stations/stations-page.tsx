@@ -105,7 +105,7 @@ export function StationsPage() {
           <div className="flex flex-wrap items-center gap-3 rounded-lg border p-3">
             <div className="space-y-0.5">
               <p className="text-sm font-medium">{t("kitchen.routingMode", "Where tickets show")}</p>
-              <p className="text-xs text-muted-foreground">{t("kitchen.routingModeHint", "Auto = KDS if stations exist, else the till.")}</p>
+              <p className="text-xs text-muted-foreground">{t("kitchen.routingModeHint", "Auto = KDS if stations exist, else the POS queue.")}</p>
             </div>
             <div className="ms-auto flex items-center gap-2">
               {mode.data?.effective ? <Badge variant="outline">{t("kitchen.effective", "Now")}: {t(`kitchen.mode.${mode.data.effective}`, mode.data.effective)}</Badge> : null}
@@ -114,7 +114,7 @@ export function StationsPage() {
                 <SelectContent>
                   <SelectItem value="auto">{t("kitchen.mode.auto", "Auto")}</SelectItem>
                   <SelectItem value="kds">{t("kitchen.mode.kds", "KDS screens")}</SelectItem>
-                  <SelectItem value="till">{t("kitchen.mode.till", "Till queue")}</SelectItem>
+                  <SelectItem value="till">{t("kitchenStations.routing.till", "POS queue")}</SelectItem>
                   <SelectItem value="both">{t("kitchen.mode.both", "Both")}</SelectItem>
                   <SelectItem value="off">{t("kitchen.mode.off", "Off (no kitchen)")}</SelectItem>
                 </SelectContent>

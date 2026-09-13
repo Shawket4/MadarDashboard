@@ -25,6 +25,7 @@ import { ExportButton } from "@/components/app/export-button";
 import { OrderDetailSheet } from "./order-detail-sheet";
 import { VoidOrderDialog } from "./void-order-dialog";
 import { OrderExportDialog } from "./order-export-dialog";
+import { orderDisplayNumber } from "./till-filter";
 import { getGetOrderQueryOptions, getListOrdersQueryOptions, useBranchDeliverySales, useListOrders } from "@/data/api/generated/api";
 import { queryClient } from "@/data/api/query";
 import type { Order } from "@/data/api/generated/models";
@@ -116,7 +117,9 @@ export function OrdersPage() {
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
   // Opened order lives in the URL (?order=<id>) so it's shareable / deep-linkable.
   const navigate = useNavigate();
-  const detailId = (useSearch({ strict: false }) as { order?: string }).order ?? null;
+  const search = useSearch({ strict: false }) as { order?: string; till?: string };
+  const detailId = search.order ?? null;
+  const tillId = search.till;
   const setDetailId = useCallback(
     (id: string | null) => void navigate({ to: ".", replace: true, search: (p: Record<string, unknown>) => ({ ...p, order: id ?? undefined }) }),
     [navigate],
@@ -144,6 +147,7 @@ export function OrdersPage() {
     // Channel only narrows delivery orders; ignored unless Delivery is picked.
     channel: orderType === "delivery" && channel !== ALL ? channel : undefined,
     exclude_items: excludeItemsParam(excludedItems),
+    till_id: tillId,
   };
 
   const enabled = Boolean(branchId || orgId);
@@ -199,7 +203,7 @@ export function OrdersPage() {
         header: "#",
         cell: ({ row }) => (
           <span className="flex items-center gap-1.5 font-medium tabular">
-            {row.original.order_ref ?? `#${row.original.order_number}`}
+            {row.original.order_ref ?? `#${orderDisplayNumber(row.original)}`}
             {row.original.order_type === "delivery" ? (
               <Badge variant="secondary" className="gap-1 bg-primary/10 px-1.5 py-0 text-xs text-primary">
                 <Truck className="size-3" />
@@ -216,10 +220,10 @@ export function OrdersPage() {
         header: t("common.date", "Date"),
         cell: ({ row }) => <span className="text-muted-foreground tabular">{fmtDateTime(row.original.created_at)}</span>,
       },
-      { accessorKey: "teller_name", header: t("shifts.teller", "Teller") },
+      { accessorKey: "teller_name", header: t("tills.teller", "Teller") },
       {
         accessorKey: "waiter_name",
-        header: t("shifts.waiter", "Waiter"),
+        header: t("tills.waiter", "Waiter"),
         cell: ({ row }) => row.original.waiter_name || "—",
       },
       {

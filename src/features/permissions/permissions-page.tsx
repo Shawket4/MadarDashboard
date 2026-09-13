@@ -31,7 +31,7 @@ const RESOURCE_ORDER = [
   "categories", "menu_items", "addon_groups", "addon_items", "recipes",
   "inventory", "inventory_adjustments", "inventory_transfers", "stocktakes",
   "inventory_waste", "suppliers", "purchase_orders",
-  "orders", "order_items", "payments", "shifts", "soft_serve_batches",
+  "orders", "order_items", "payments", "tills", "soft_serve_batches",
 ];
 const ACTION_ORDER = ["read", "create", "update", "delete"];
 

@@ -103,7 +103,7 @@ export function CountsPage() {
     ...(isAllBranches
       ? ([{
           accessorKey: "branch_name",
-          header: t("shifts.branch", "Branch"),
+          header: t("tills.branch", "Branch"),
           cell: ({ row }) => <span>{row.original.branch_name ?? "—"}</span>,
         }] as ColumnDef<Stocktake>[])
       : []),

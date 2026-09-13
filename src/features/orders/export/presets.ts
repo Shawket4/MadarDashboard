@@ -30,9 +30,9 @@ export const PRESETS: PresetSpec[] = [
     icon: Bike,
   },
   {
-    id: "shift_handoff",
-    i18nKey: "ordersExport.presets.shiftHandoff.label",
-    description: "ordersExport.presets.shiftHandoff.desc",
+    id: "till_handoff",
+    i18nKey: "ordersExport.presets.tillHandoff.label",
+    description: "ordersExport.presets.tillHandoff.desc",
     grains: ["order", "payment"],
     filterOverrides: {},
     icon: ClipboardCheck,

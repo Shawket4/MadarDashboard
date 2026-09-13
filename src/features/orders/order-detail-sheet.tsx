@@ -197,8 +197,8 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                     />
                   ) : null}
                   <Row label={t("common.date", "Date")}value={fmtDateTimeFull(order.created_at)} />
-                  <Row label={t("shifts.teller", "Teller")} value={order.teller_name} />
-                  {order.waiter_name ? <Row label={t("shifts.waiter", "Waiter")} value={order.waiter_name} /> : null}
+                  <Row label={t("tills.teller", "Teller")} value={order.teller_name} />
+                  {order.waiter_name ? <Row label={t("tills.waiter", "Waiter")} value={order.waiter_name} /> : null}
                   {order.customer_name ? <Row label={t("orders.customer", "Customer")} value={order.customer_name} /> : null}
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">{t("orders.payment", "Payment")}</span>

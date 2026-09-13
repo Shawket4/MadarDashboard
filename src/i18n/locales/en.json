@@ -1586,7 +1586,8 @@
     "rewardRefusedTitle": "Reward refused when this sale synced",
     "rewardRefusedBody": "The till gave the reward offline, but the member's balance could not pay for it. No points were taken and the order is flagged.",
     "loyaltyMember": "Loyalty member",
-    "loyaltyMemberForgotten": "Deleted member"
+    "loyaltyMemberForgotten": "Deleted member",
+    "allTills": "All tills"
   },
   "ordersExport": {
     "title": "Export Orders",
@@ -1615,10 +1616,6 @@
         "label": "Talabat Reconciliation",
         "desc": "Orders paid online/cash via Talabat for swift matching."
       },
-      "shiftHandoff": {
-        "label": "Shift Handoff Summary",
-        "desc": "Order and split-payment workbook breakdown for the shift."
-      },
       "ingredientConsumption": {
         "label": "Ingredient Consumption",
         "desc": "Exact and aggregated snapshots of deducted recipe ingredients."
@@ -1626,6 +1623,10 @@
       "custom": {
         "label": "Custom Configuration",
         "desc": "Manually toggle data grains and set custom parameters."
+      },
+      "tillHandoff": {
+        "label": "Till Handoff Summary",
+        "desc": "Order and split-payment workbook breakdown for the till."
       }
     },
     "grains": {
