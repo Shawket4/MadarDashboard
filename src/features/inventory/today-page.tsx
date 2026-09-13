@@ -28,6 +28,7 @@ import {
 } from "@/data/api/generated/api";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { useAppStore } from "@/data/stores/app.store";
 import { cairoDateISO, cairoNow, fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PurchaseOrderDialog } from "./purchase-order-dialog";
@@ -45,11 +46,13 @@ export function TodayPage() {
   const [receivePoId, setReceivePoId] = useState<string | null>(null);
   const [wasteOpen, setWasteOpen] = useState(false);
 
+  const tz = useAppStore((st) => st.activeTimezone);
   const { todayStartISO, todayEndISO } = useMemo(() => {
     const now = cairoNow();
     const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
     return { todayStartISO: cairoDateISO(y, m, d, false), todayEndISO: cairoDateISO(y, m, d, true) };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cairo* helpers read the active tz
+  }, [tz]);
 
   // Branch-specific when a branch is selected; org-wide roll-up otherwise.
   const branchVal = useBranchInventoryValuation(branchId ?? "", { query: { enabled: !!branchId } });

@@ -156,7 +156,8 @@ export const cairoDateISO = (year: number, month: number, day: number, endOfDay 
     endOfDay ? 999 : 0,
     getActiveTz(),
   );
-  return d.toISOString();
+  // TZDate#toISOString keeps the zone offset; send a plain UTC "Z" instant.
+  return new Date(+d).toISOString();
 };
 
 /** Extract calendar parts {y,m,d} from an ISO string in the active timezone */
