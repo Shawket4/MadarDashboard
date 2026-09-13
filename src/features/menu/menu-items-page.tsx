@@ -5,8 +5,8 @@ import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
 import { ChefHat, Copy, CupSoda, Pencil, Percent, Store, Tag, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page } from "@/components/app/page";
-import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
+import { Page, PageHeader } from "@/components/app/page";
+import { SegmentedControl } from "@/components/app/segmented-control";
 import { EmptyState } from "@/components/app/empty-state";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { EditableCardGrid, type EditableField } from "@/components/app/editable-cards";
@@ -15,7 +15,6 @@ import { AddonCostCell, ItemCostCell } from "@/components/app/cost-cells";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CategoryDialog } from "./category-dialog";
@@ -66,6 +65,7 @@ import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { currencyLabel, fmtNumber } from "@/lib/format";
 
 const ALL = "__all__";
 const ITEMS_PER_PAGE = 24;
@@ -81,7 +81,7 @@ export function MenuItemsPage() {
   // "Available at this branch" toggle. No branch selected → org catalog only.
   const { branchId: scopedBranchId } = useScope();
 
-  const [tab, setTab] = useState("items");
+  const [tab, setTab] = useState<"items" | "addons" | "categories">("items");
   const [categoryFilter, setCategoryFilter] = useState(ALL);
   const [addonType, setAddonType] = useState(ALL);
   const [itemsPage, setItemsPage] = useState(0);
@@ -272,8 +272,8 @@ export function MenuItemsPage() {
   const addonTypes = useMemo(() => Array.from(new Set(addonList.map((a) => a.addon_type))).sort(), [addonList]);
   const addonsByType = useMemo(() => (addonType === ALL ? addonList : addonList.filter((a) => a.addon_type === addonType)), [addonList, addonType]);
 
-  const confirmDelete = async (name: string, run: () => void) => {
-    if (await confirm({ title: t("common.confirmDelete", { name, defaultValue: `Delete "${name}"?` }), destructive: true, confirmLabel: t("common.delete", "Delete") })) run();
+  const confirmDelete = async (name: string, description: string, run: () => void) => {
+    if (await confirm({ title: t("common.confirmDelete", { name, defaultValue: `Delete "${name}"?` }), description, destructive: true, confirmLabel: t("common.delete", "Delete") })) run();
   };
 
   /**
@@ -328,42 +328,45 @@ export function MenuItemsPage() {
   if (!enabled) {
     return (
       <Page>
-        <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("nav.menu", "Menu")}</h1>
-        </div>
+        <PageHeader title={t("nav.menu", "Menu")} />
         <EmptyState icon={Store} title={t("menu.pickOrg", "Select an organization to manage its menu")} />
       </Page>
     );
   }
 
   const imgTile = (url: string | null | undefined, Icon: typeof CupSoda) => (
-    <span className="grid size-11 place-items-center overflow-hidden rounded-lg bg-muted text-muted-foreground">
-      {url ? <img src={url} alt="" className="size-full object-cover" /> : <Icon className="size-5" />}
+    <span className="grid size-11 place-items-center overflow-hidden rounded-[10px] bg-secondary text-muted-foreground">
+      {url ? <img src={url} alt="" className="size-full object-cover" /> : <Icon className="size-5" aria-hidden />}
     </span>
   );
 
   return (
     <Page>
-      <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("nav.menu", "Menu")}</h1>
-        <p className="text-sm text-muted-foreground">{t("menu.subtitle", "Manage items, add-ons and categories")}</p>
-      </div>
+      <PageHeader
+        title={t("nav.menu", "Menu")}
+        subtitle={t("menu.subtitle", "Manage items, add-ons and categories")}
+        below={
+          <SegmentedControl
+            value={tab}
+            onChange={setTab}
+            options={[
+              { value: "items", label: <>{t("nav.items", "Items")}<CountBadge n={itemsTotal} /></> },
+              { value: "addons", label: <span onMouseEnter={prefetchAddons}>{t("menu.addons", "Add-ons")}<CountBadge n={addonList.length} /></span> },
+              { value: "categories", label: <>{t("menu.categories", "Categories")}<CountBadge n={catList.length} /></> },
+            ]}
+          />
+        }
+      />
 
-      <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <PageTabsList>
-          <PageTabsTrigger value="items">{t("nav.items", "Items")} <CountBadge n={itemsTotal} /></PageTabsTrigger>
-          <PageTabsTrigger value="addons" onMouseEnter={prefetchAddons} onFocus={prefetchAddons}>{t("menu.addons", "Add-ons")} <CountBadge n={addonList.length} /></PageTabsTrigger>
-          <PageTabsTrigger value="categories">{t("menu.categories", "Categories")} <CountBadge n={catList.length} /></PageTabsTrigger>
-        </PageTabsList>
-
+      <div className="space-y-4">
         {!scopedBranchId && (tab === "items" || tab === "addons") ? (
-          <div className="flex items-center gap-2 rounded-lg border border-dashed bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-            <Store className="size-3.5 shrink-0" />
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Store className="size-4 shrink-0" aria-hidden />
             {t("menu.branchToggleHint", "Select a branch in the top bar to toggle per-branch availability here.")}
-          </div>
+          </p>
         ) : null}
 
-        <TabsContent value="items">
+        {tab === "items" ? (
           <EditableCardGrid<MenuItemWithCosts>
             rows={itemList}
             getRowId={(m) => m.id}
@@ -415,7 +418,7 @@ export function MenuItemsPage() {
             onPasteRows={createFromPaste}
             pasteColumns={[
               { key: "name", header: t("common.name", "Name") },
-              { key: "base_price", header: `${t("common.price", "Price")} (EGP)` },
+              { key: "base_price", header: `${t("common.price", "Price")} (${currencyLabel()})` },
               { key: "category", header: t("common.category", "Category") },
               { key: "description", header: t("common.description", "Description") },
             ]}
@@ -434,15 +437,13 @@ export function MenuItemsPage() {
                 <DropdownMenuItem onClick={() => void duplicate(m)}>
                   <Copy className="size-4" /> {t("menu.grid.duplicate", "Duplicate")}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(m.name, () => delItem.mutate({ id: m.id }))}>
+                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(m.name, t("menu.deleteItemConsequence", "It leaves the POS menu at every branch, with its sizes, recipe and branch prices. Past orders keep their lines."), () => delItem.mutate({ id: m.id }))}>
                   <Trash2 className="size-4" /> {t("common.delete", "Delete")}
                 </DropdownMenuItem>
               </>
             )}
           />
-        </TabsContent>
-
-        <TabsContent value="addons">
+        ) : tab === "addons" ? (
           <EditableCardGrid<AddonItem>
             rows={addonsByType}
             getRowId={(a) => a.id}
@@ -482,15 +483,13 @@ export function MenuItemsPage() {
                 <DropdownMenuItem onClick={() => { setRecipeAddon(a); setRecipeOpen(true); }}>
                   <ChefHat className="size-4" /> {t("menu.addonRecipe.edit", "Edit recipe")}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(a.name, () => delAddon.mutate({ oid: a.id }))}>
+                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(a.name, t("menu.deleteAddonConsequence", "It is removed from every item that offers it. If orders used it, it is deactivated instead so history stays intact."), () => delAddon.mutate({ oid: a.id }))}>
                   <Trash2 className="size-4" /> {t("common.delete", "Delete")}
                 </DropdownMenuItem>
               </>
             )}
           />
-        </TabsContent>
-
-        <TabsContent value="categories">
+        ) : (
           <EditableCardGrid<Category>
             rows={catList}
             getRowId={(c) => c.id}
@@ -508,14 +507,14 @@ export function MenuItemsPage() {
                 <DropdownMenuItem onClick={() => { setEditingCategory(c); setCategoryOpen(true); }}>
                   <Pencil className="size-4" /> {t("common.edit", "Edit")}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(c.name, () => delCategory.mutate({ id: c.id }))}>
+                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(c.name, t("menu.deleteCategoryConsequence", "The category and its kitchen routing are removed. Its items stay on the menu without a category."), () => delCategory.mutate({ id: c.id }))}>
                   <Trash2 className="size-4" /> {t("common.delete", "Delete")}
                 </DropdownMenuItem>
               </>
             )}
           />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
 
       <MenuItemDialog orgId={orgId} categories={catList} item={editingItem} defaultCategoryId={categoryFilter !== ALL ? categoryFilter : null} open={itemOpen} onOpenChange={setItemOpen} />
       <AddonDialog orgId={orgId} addon={editingAddon} open={addonOpen} onOpenChange={setAddonOpen} />
@@ -527,7 +526,7 @@ export function MenuItemsPage() {
 }
 
 function CountBadge({ n }: { n: number }) {
-  return <span className="ms-1 text-xs tabular text-muted-foreground/70">{n}</span>;
+  return <span className="ms-1.5 font-mono text-xs tabular-nums opacity-70">{fmtNumber(n)}</span>;
 }
 
 function BulkPriceDialog({ open, rows, onClose, onDone }: { open: boolean; rows: MenuItem[]; onClose: () => void; onDone: () => void }) {
