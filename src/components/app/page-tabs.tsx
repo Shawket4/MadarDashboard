@@ -36,7 +36,7 @@ export function PageTabsTrigger({
       data-slot="tabs-trigger"
       className={cn(
         // Layout + sizing — h-10 for touch-friendly target
-        "relative inline-flex h-10 items-center gap-1.5 px-4",
+        "relative inline-flex h-10 items-center gap-1.5 px-3 first:ps-0",
         // Text
         "text-sm font-medium whitespace-nowrap text-muted-foreground",
         // Underline indicator via bottom border; -mb-px lets the 2px border

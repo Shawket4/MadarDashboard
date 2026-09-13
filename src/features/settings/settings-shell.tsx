@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
 
-import { Page, PageHeader, PAGE_WIDTH_CLASS } from "@/components/app/page";
+import { EmbeddedPages, Page, PageHeader, PAGE_WIDTH_CLASS } from "@/components/app/page";
 import {
   Select,
   SelectContent,
@@ -29,17 +29,6 @@ import { visibleSettings, type SettingsLeaf } from "./settings-nav";
 
 const isActive = (item: SettingsLeaf, pathname: string, onIndex: boolean) =>
   item.to === "/settings" ? onIndex : pathname === item.to || pathname.startsWith(`${item.to}/`);
-
-/**
- * Panes owned by other areas may still render their own <Page>/<PageHeader>.
- * Inside the shell those collapse: no second gutter, no second glyph tile, and
- * the title drops to section size so the page keeps a single h1-sized title.
- */
-const NESTED_PAGE_FALLBACK = cn(
-  "[&_[data-page-width]]:max-w-none [&_[data-page-width]]:px-0 [&_[data-page-width]]:pt-0 [&_[data-page-width]]:pb-0 sm:[&_[data-page-width]]:px-0 lg:[&_[data-page-width]]:px-0 lg:[&_[data-page-width]]:pt-0",
-  "[&_[data-slot=page-header]_h1]:text-base [&_[data-slot=page-header]_h1]:font-semibold sm:[&_[data-slot=page-header]_h1]:text-base",
-  "[&_[data-slot=page-header]>div>div:first-child:has([data-slot=page-glyph])]:hidden",
-);
 
 export function SettingsShell() {
   const { t } = useTranslation();
@@ -109,8 +98,10 @@ export function SettingsShell() {
           ))}
         </nav>
 
-        <div className={cn("min-w-0 w-full", PAGE_WIDTH_CLASS.reading, NESTED_PAGE_FALLBACK)}>
-          <Outlet />
+        <div className={cn("min-w-0 w-full", PAGE_WIDTH_CLASS.reading)}>
+          <EmbeddedPages>
+            <Outlet />
+          </EmbeddedPages>
         </div>
       </div>
     </Page>

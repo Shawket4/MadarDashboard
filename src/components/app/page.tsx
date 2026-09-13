@@ -33,6 +33,16 @@ export const PAGE_WIDTH_CLASS: Record<PageWidth, string> = {
 
 const PageWidthContext = createContext<PageWidth>("full");
 
+/**
+ * Set by a shell that already owns the page (Settings). Inside it a nested
+ * <Page> drops its gutter and width, and a nested <PageHeader> renders as a
+ * pane heading (section size, no glyph slot) so the page keeps one title.
+ */
+const EmbeddedContext = createContext(false);
+export function EmbeddedPages({ children }: { children: ReactNode }) {
+  return <EmbeddedContext.Provider value>{children}</EmbeddedContext.Provider>;
+}
+
 /** Standard page container: gutter, width mode, start-aligned, gentle fade-in. */
 export function Page({
   children,
@@ -43,6 +53,14 @@ export function Page({
   className?: string;
   width?: PageWidth;
 }) {
+  const embedded = useContext(EmbeddedContext);
+  if (embedded) {
+    return (
+      <div data-page-width={width} className={cn("w-full space-y-6", width !== "full" && PAGE_WIDTH_CLASS[width], className)}>
+        {children}
+      </div>
+    );
+  }
   return (
     <PageWidthContext.Provider value={width}>
       <motion.div
@@ -153,6 +171,22 @@ export function PageHeader({
   const sectionTabs = useContext(SectionTabsContext);
   const glyph = icon ?? navGlyphFor(pathname);
   const sub = subtitle ?? description;
+  const embedded = useContext(EmbeddedContext);
+
+  if (embedded) {
+    return (
+      <header data-slot="page-header" data-embedded className={cn("space-y-3", className)}>
+        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+          <div className="min-w-0">
+            <h2 className="text-lg leading-tight font-semibold tracking-[-0.01em]">{title}</h2>
+            {sub ? <div className="mt-1 max-w-prose text-sm text-pretty text-muted-foreground">{sub}</div> : null}
+          </div>
+          {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+        </div>
+        {below ? <div className="space-y-3">{below}</div> : null}
+      </header>
+    );
+  }
 
   const tile = "grid size-11 shrink-0 place-items-center rounded-[10px]";
   let leading: ReactNode;

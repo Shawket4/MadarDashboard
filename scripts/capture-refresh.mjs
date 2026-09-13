@@ -9,7 +9,7 @@ import path from "node:path";
 const BASE = process.env.BASE ?? "http://localhost:5180";
 const args = Object.fromEntries(
   process.argv.slice(3).map((a) => {
-    const [k, v] = a.replace(/^--/, "").split("=");
+    const [k, v] = a.replace(/^--/, "").split(/=(.*)/s);
     return [k, v.split(",")];
   }),
 );
@@ -58,7 +58,8 @@ for (const lang of langs)
       const p = await ctx.newPage();
       p.on("pageerror", (e) => console.warn(`  pageerror ${e.message.slice(0, 120)}`));
       for (const r of routes) {
-        const name = `${r === "/" ? "home" : r.slice(1).replaceAll("/", "-")}-${size}-${lang}-${theme}.png`;
+        const slug = r.split("?")[0];
+        const name = `${slug === "/" ? "home" : slug.slice(1).replaceAll("/", "-")}-${size}-${lang}-${theme}.png`;
         try {
           await p.goto(BASE + r, { waitUntil: "networkidle", timeout: 45000 });
           await p.evaluate(() => document.fonts && document.fonts.ready);
