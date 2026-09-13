@@ -351,7 +351,9 @@
     "loadError": "Couldn't load branches",
     "pickOrgDescription": "Choose an organization from the sidebar to view and manage its branches.",
     "taxOverride": "This branch taxes differently",
-    "taxOverrideHint": "Off, it follows the organisation's tax settings and changes to them apply here automatically."
+    "taxOverrideHint": "Off, it follows the organisation's tax settings and changes to them apply here automatically.",
+    "oldBillHours": "Flag open bills as old after (hours)",
+    "standardFloat": "Standard drawer float"
   },
   "users": {
     "title": "Users",
