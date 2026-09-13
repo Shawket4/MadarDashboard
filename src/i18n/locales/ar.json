@@ -1930,7 +1930,9 @@
     "remove": "إزالة",
     "replace": "استبدال",
     "tooLarge": "حجم الصورة يتجاوز الحد الأقصى 5 ميجابايت",
-    "uploading": "جاري الرفع..."
+    "uploading": "جاري الرفع...",
+    "processing": "جارٍ المعالجة…",
+    "processingFailed": "تعذّرت معالجة الصورة"
   },
   "settings": {
     "paymentMethods": "طرق الدفع",
