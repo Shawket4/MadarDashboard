@@ -39,6 +39,17 @@ export interface Order {
      * @nullable
      */
   delivery_order_id?: string | null;
+  /**
+     * That device's code (`36B`), stored with the order. `null` when server-numbered.
+     * @nullable
+     */
+  device_code?: string | null;
+  /**
+     * The device that numbered this sale (contract R4). `null` for server-numbered
+     * orders (old clients, dashboard, delivery).
+     * @nullable
+     */
+  device_id?: string | null;
   discount_amount: number;
   /** @nullable */
   discount_id?: string | null;
@@ -56,6 +67,11 @@ export interface Order {
      * field. Read [`Order::discount_rate`] for the stored number.
      */
   discount_value: number;
+  /**
+     * What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)
+     * for a device-numbered sale, else `order_number` as text.
+     */
+  display_number?: string;
   id: string;
   /**
      * The loyalty member this sale redeemed for (or was scanned for).
@@ -143,6 +159,12 @@ export interface Order {
   /** @nullable */
   tip_payment_method?: string | null;
   total_amount: number;
+  /**
+     * `server` | `lan` | `unverified` — the till's verification as the ringing
+     * device knew it; `null` when not recorded.
+     * @nullable
+     */
+  verification?: string | null;
   /** @nullable */
   void_note?: string | null;
   /** @nullable */

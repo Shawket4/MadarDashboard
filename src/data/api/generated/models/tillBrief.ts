@@ -1,5 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { TillStatus } from './tillStatus';
+import type { TillVerification } from './tillVerification';
 
 export interface TillBrief {
   branch_id: string;
@@ -12,8 +14,8 @@ export interface TillBrief {
   id: string;
   opened_at: string;
   opened_while_another_open: boolean;
-  status: string;
+  status: TillStatus;
   teller_id: string;
   teller_name: string;
-  verification: string;
+  verification: TillVerification;
 }

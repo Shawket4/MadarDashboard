@@ -96,6 +96,8 @@ export const MOCK_BRANCHES: Branch[] = BRANCH_SEEDS.map((b) => ({
   printer_brand: null,
   printer_ip: null,
   printer_port: null,
+  old_bill_hours: 3,
+  standard_float: null,
   created_at: "2026-01-04T08:00:00Z",
   updated_at: NOW_ISO,
 }));

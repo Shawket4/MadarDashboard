@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTillReport, useTillSummary } from "./api";
 import { FlagBadge, VerificationBadge } from "./till-badges";
 import { ReconciliationTable } from "./reconciliation-table";
+import { TillDeductions } from "./till-deductions";
 import { fmtDateTime, fmtMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -200,6 +201,8 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
                   ) : null}
                 </CardContent>
               </Card>
+
+              <TillDeductions tillId={tillId} enabled={open} />
 
               {/* Cash movements */}
               {report.cash_movements.length > 0 ? (

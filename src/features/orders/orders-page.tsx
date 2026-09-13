@@ -28,7 +28,6 @@ import { DeliveryChannels } from "./delivery-channels";
 import { OrderDetailSheet } from "./order-detail-sheet";
 import { VoidOrderDialog } from "./void-order-dialog";
 import { OrderExportDialog } from "./order-export-dialog";
-import { orderDisplayNumber } from "./till-filter";
 import { getGetOrderQueryOptions, getListOrdersQueryOptions, useBranchDeliverySales, useListOrders } from "@/data/api/generated/api";
 import { queryClient } from "@/data/api/query";
 import type { Order } from "@/data/api/generated/models";
@@ -193,7 +192,7 @@ export function OrdersPage() {
         meta: { label: t("orders.orderNumber", "Order #"), numeric: true, align: "start", phone: "title" },
         cell: ({ row }) => (
           <span className="flex items-center gap-2">
-            <span className="font-medium">{row.original.order_ref ?? `#${orderDisplayNumber(row.original)}`}</span>
+            <span className="font-medium">{row.original.order_ref ?? `#${row.original.display_number ?? row.original.order_number}`}</span>
             {row.original.order_type === "delivery" ? (
               <Badge variant="secondary" className="gap-1 px-1.5 py-0 font-sans text-xs font-medium text-muted-foreground">
                 {row.original.delivery_channel === "in_mall" ? <Store aria-hidden className="size-3" /> : <Bike aria-hidden className="size-3" />}

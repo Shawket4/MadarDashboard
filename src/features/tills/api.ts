@@ -1,9 +1,9 @@
 /**
  * Tills API (TILLS_CONTRACT §2.2) on top of the orval-generated client.
  *
- * The backend serializes status/verification enums as plain strings, so the
- * generated models type them as `string`. This module narrows them to the
- * contract's unions for the UI and re-exports the generated hooks under the
+ * Till status/verification come typed from the spec. Only the reconciliation
+ * statuses are still plain strings on the wire, so this module narrows those
+ * for the close form and report, and re-exports the generated hooks under the
  * names the tills screens use. No hand-written requests live here.
  */
 import type { UseQueryResult } from "@tanstack/react-query";
@@ -22,60 +22,54 @@ import {
   useGetTillReport,
   useOpenTill as useOpenTillMutation,
   useAddCashMovement as useAddCashMovementMutation,
+  useTillDeductions as useTillDeductionsQuery,
   useTillSummary as useTillSummaryQuery,
 } from "@/data/api/generated/api";
 import type {
   CloseTillMethod,
-  CloseTillPreview as GenCloseTillPreview,
+  CloseTillPreview,
   CloseTillRequest,
   CloseTillResponse as GenCloseTillResponse,
+  DeductionLogRow,
   LastTillWarning,
   ListTillsParams as GenListTillsParams,
   OpenBillsNotice,
-  PaginatedTills as GenPaginatedTills,
+  PaginatedTills,
   ReconciliationInput as GenReconciliationInput,
   ShiftSummary,
-  Till as GenTill,
-  TillBrief as GenTillBrief,
-  TillPreFill as GenTillPreFill,
+  Till,
+  TillBrief,
+  TillPreFill,
   TillReconciliationLine as GenTillReconciliationLine,
   TillReportResponse as GenTillReportResponse,
+  TillStatus,
+  TillVerification,
 } from "@/data/api/generated/models";
 import { queryClient } from "@/data/api/query";
 
-export type TillStatus = "open" | "closed" | "force_closed";
-export type TillVerification = "server" | "lan" | "unverified" | "legacy";
 export type ReconciliationStatus = "clean" | "disagreed" | "unreviewed";
 export type ReconciliationLineStatus = "checked" | "disagreed" | "unreviewed";
 
-export type Till = Omit<GenTill, "status" | "verification" | "reconciliation_status"> & {
-  status: TillStatus;
-  verification: TillVerification;
-  reconciliation_status?: ReconciliationStatus | null;
-};
-export type TillBrief = Omit<GenTillBrief, "status" | "verification"> & {
-  status: TillStatus;
-  verification: TillVerification;
-};
-export type PaginatedTills = Omit<GenPaginatedTills, "data"> & { data: Till[] };
 export type TillReconciliationLine = Omit<GenTillReconciliationLine, "status"> & { status: ReconciliationLineStatus };
-export type TillPreFill = Omit<GenTillPreFill, "open_till" | "open_elsewhere"> & {
-  open_till?: Till | null;
-  open_elsewhere: TillBrief[];
-};
-export type TillReport = Omit<GenTillReportResponse, "till" | "reconciliation"> & {
-  till: Till;
-  reconciliation: TillReconciliationLine[];
-};
-export type CloseTillPreview = Omit<GenCloseTillPreview, "till"> & { till: Till };
-export type CloseTillResponse = Omit<GenCloseTillResponse, "till" | "reconciliation"> & {
-  till: Till;
-  reconciliation: TillReconciliationLine[];
-};
+export type TillReport = Omit<GenTillReportResponse, "reconciliation"> & { reconciliation: TillReconciliationLine[] };
+export type CloseTillResponse = Omit<GenCloseTillResponse, "reconciliation"> & { reconciliation: TillReconciliationLine[] };
 export type ReconciliationInput = Omit<GenReconciliationInput, "status"> & { status: "checked" | "disagreed" };
 export type ListTillsParams = Omit<GenListTillsParams, "status"> & { status?: TillStatus };
 export type TillSummary = ShiftSummary;
-export type { CloseTillMethod, CloseTillRequest, LastTillWarning, OpenBillsNotice };
+export type {
+  CloseTillMethod,
+  CloseTillPreview,
+  CloseTillRequest,
+  DeductionLogRow,
+  LastTillWarning,
+  OpenBillsNotice,
+  PaginatedTills,
+  Till,
+  TillBrief,
+  TillPreFill,
+  TillStatus,
+  TillVerification,
+};
 
 /** Every tills/reports query key starts with its URL (orval convention). */
 export const invalidateTills = () =>
@@ -95,19 +89,19 @@ const invalidateOnSuccess = { mutation: { onSuccess: () => void invalidateTills(
 
 /** T3: tills at a branch, filtered (status, teller, device, flagged, range). */
 export function useListTills(branchId: string | null | undefined, params: ListTillsParams = {}) {
-  return useListTillsQuery(branchId ?? "", cleanParams(params), { query: { enabled: !!branchId } }) as UseQueryResult<PaginatedTills>;
+  return useListTillsQuery(branchId ?? "", cleanParams(params), { query: { enabled: !!branchId } });
 }
 
 /** T4: every open till at the branch, newest first. */
 export const openTillsQueryOptions = (branchId: string) => getListOpenTillsQueryOptions(branchId);
 
 export function useOpenTills(branchId: string | null | undefined) {
-  return useListOpenTills(branchId ?? "", { query: { enabled: !!branchId } }) as UseQueryResult<Till[]>;
+  return useListOpenTills(branchId ?? "", { query: { enabled: !!branchId } });
 }
 
 /** T1: the signed-in person's pre-fill for opening a till here. */
 export function useTillPreFill(branchId: string | null | undefined) {
-  return useGetCurrentTill(branchId ?? "", undefined, { query: { enabled: !!branchId } }) as UseQueryResult<TillPreFill>;
+  return useGetCurrentTill(branchId ?? "", undefined, { query: { enabled: !!branchId } });
 }
 
 /** T5: bills left open at the branch and how many count as old. */
@@ -127,9 +121,14 @@ export function useTillSummary(id: string | null, enabled = true) {
   return useTillSummaryQuery(id ?? "", { query: { enabled: !!id && enabled } });
 }
 
+/** T16: `/reports/tills/{id}/deductions` — stock the till's orders consumed. */
+export function useTillDeductions(id: string | null, enabled = true) {
+  return useTillDeductionsQuery(id ?? "", { query: { enabled: !!id && enabled } });
+}
+
 /** T8: what the close form reconciles. */
 export function useCloseTillPreview(id: string | null, enabled = true) {
-  return useClosePreview(id ?? "", { query: { enabled: !!id && enabled } }) as UseQueryResult<CloseTillPreview>;
+  return useClosePreview(id ?? "", { query: { enabled: !!id && enabled } });
 }
 
 export const useOpenTill = () => useOpenTillMutation(invalidateOnSuccess);

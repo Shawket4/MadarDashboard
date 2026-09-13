@@ -1969,7 +1969,12 @@
     "unknown": "An unexpected error occurred.",
     "boundaryTitle": "Something went wrong",
     "boundaryDescription": "This screen hit an unexpected error. It has been reported — try again, and if it keeps happening reload the page.",
-    "boundaryRetry": "Try again"
+    "boundaryRetry": "Try again",
+    "codes": {
+      "EMPTY_ALLOW_LIST": "Pick at least one payment method, or allow all.",
+      "RECONCILIATION_AMOUNT_REQUIRED": "Enter the counted amount for every method that doesn't match.",
+      "RECONCILIATION_NOTE_REQUIRED": "Add a note for every method that doesn't match."
+    }
   },
   "theme": {
     "light": "Light",
@@ -3566,7 +3571,12 @@
     "oldBills": "{{count}} older than {{hours}}h",
     "openBillsAtClose": "Open bills at close",
     "salesSummary": "Sales",
-    "tax": "Tax"
+    "tax": "Tax",
+    "deductions": {
+      "title": "Stock used",
+      "returned": "{{amount}} put back by voids",
+      "loadError": "Couldn't load the stock used by this till."
+    }
   },
   "aiChat": {
     "title": "Ask your data",

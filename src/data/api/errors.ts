@@ -9,6 +9,11 @@ export const getErrorMessage = (err: unknown): string => {
     const status = err.response?.status;
     const data = err.response?.data as Record<string, unknown> | undefined;
 
+    // A stable `code` the UI knows reads in the user's language; anything else
+    // falls back to the server's own message.
+    const code = typeof data?.code === "string" ? data.code : undefined;
+    if (code && i18n.exists(`errors.codes.${code}`)) return t(`errors.codes.${code}`);
+
     // Backend convention: { error: "..." } or { message: "..." }
     if (typeof data?.error === "string") return data.error;
     if (typeof data?.message === "string") return data.message;

@@ -101,6 +101,7 @@ import type {
   CheckInRequest,
   CheckOutRequest,
   ClearTableRequest,
+  ClientSeen,
   CloseShiftResponse,
   CloseTillPreview,
   CloseTillRequest,
@@ -130,7 +131,6 @@ import type {
   CreateFloorTransferRequest,
   CreateGroupRequest,
   CreateIngredientCategoryRequest,
-  CreateInventoryTransferRequest,
   CreateMarketingLinkRequest,
   CreateMenuItemRequest,
   CreateOpenTicketRequest,
@@ -149,6 +149,7 @@ import type {
   CreateStocktakeRequest,
   CreateSupplierRequest,
   CreateTableRequest,
+  CreateTransferRequest,
   CreateUserRequest,
   CreateUserResponse,
   CreateWasteRequest,
@@ -245,6 +246,7 @@ import type {
   ListCategoriesParams,
   ListChannelAddonOverridesParams,
   ListChannelOverridesParams,
+  ListClientVersionsParams,
   ListConversationsParams,
   ListDecisionsParams,
   ListDeductionsParams,
@@ -3291,6 +3293,74 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDeleteBranchMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary `PATCH /branches/{id}` — the same partial update as `PUT` (the contract
+names both; every field is already optional).
+ */
+export const patchBranch = (
+    id: string,
+    updateBranchRequest: UpdateBranchRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Branch>(
+      {url: `/branches/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateBranchRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPatchBranchMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchBranch>>, TError,{id: string;data: UpdateBranchRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof patchBranch>>, TError,{id: string;data: UpdateBranchRequest}, TContext> => {
+
+const mutationKey = ['patchBranch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchBranch>>, {id: string;data: UpdateBranchRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  patchBranch(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PatchBranchMutationResult = NonNullable<Awaited<ReturnType<typeof patchBranch>>>
+    export type PatchBranchMutationBody = UpdateBranchRequest
+    export type PatchBranchMutationError = ErrorBody
+
+    /**
+ * @summary `PATCH /branches/{id}` — the same partial update as `PUT` (the contract
+names both; every field is already optional).
+ */
+export const usePatchBranch = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchBranch>>, TError,{id: string;data: UpdateBranchRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof patchBranch>>,
+        TError,
+        {id: string;data: UpdateBranchRequest},
+        TContext
+      > => {
+      return useMutation(getPatchBranchMutationOptions(options), queryClient);
     }
 
 export const branchBookingQr = (
@@ -6629,6 +6699,94 @@ export function useListDevices<TData = Awaited<ReturnType<typeof listDevices>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListDevicesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const listClientVersions = (
+    params?: ListClientVersionsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ClientSeen[]>(
+      {url: `/devices/client-versions`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListClientVersionsQueryKey = (params?: ListClientVersionsParams,) => {
+    return [
+    `/devices/client-versions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListClientVersionsQueryOptions = <TData = Awaited<ReturnType<typeof listClientVersions>>, TError = ErrorBody>(params?: ListClientVersionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClientVersions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListClientVersionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listClientVersions>>> = ({ signal }) => listClientVersions(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listClientVersions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListClientVersionsQueryResult = NonNullable<Awaited<ReturnType<typeof listClientVersions>>>
+export type ListClientVersionsQueryError = ErrorBody
+
+
+export function useListClientVersions<TData = Awaited<ReturnType<typeof listClientVersions>>, TError = ErrorBody>(
+ params: undefined |  ListClientVersionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClientVersions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listClientVersions>>,
+          TError,
+          Awaited<ReturnType<typeof listClientVersions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListClientVersions<TData = Awaited<ReturnType<typeof listClientVersions>>, TError = ErrorBody>(
+ params?: ListClientVersionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClientVersions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listClientVersions>>,
+          TError,
+          Awaited<ReturnType<typeof listClientVersions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListClientVersions<TData = Awaited<ReturnType<typeof listClientVersions>>, TError = ErrorBody>(
+ params?: ListClientVersionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClientVersions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListClientVersions<TData = Awaited<ReturnType<typeof listClientVersions>>, TError = ErrorBody>(
+ params?: ListClientVersionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClientVersions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListClientVersionsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -10380,7 +10538,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 export const createTransfer = (
-    createInventoryTransferRequest: CreateInventoryTransferRequest,
+    createTransferRequest: CreateTransferRequest,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
@@ -10388,7 +10546,7 @@ export const createTransfer = (
       return customInstance<StockTransfer>(
       {url: `/inventory/transfers`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: createInventoryTransferRequest, signal
+      data: createTransferRequest, signal
     },
       options);
     }
@@ -10397,8 +10555,8 @@ export const createTransfer = (
 
 
 export const getCreateTransferMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateInventoryTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateInventoryTransferRequest}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateTransferRequest}, TContext> => {
 
 const mutationKey = ['createTransfer'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -10410,7 +10568,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTransfer>>, {data: CreateInventoryTransferRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTransfer>>, {data: CreateTransferRequest}> = (props) => {
           const {data} = props ?? {};
 
           return  createTransfer(data,requestOptions)
@@ -10424,15 +10582,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateTransferMutationResult = NonNullable<Awaited<ReturnType<typeof createTransfer>>>
-    export type CreateTransferMutationBody = CreateInventoryTransferRequest
+    export type CreateTransferMutationBody = CreateTransferRequest
     export type CreateTransferMutationError = ErrorBody
 
     export const useCreateTransfer = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateInventoryTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTransfer>>, TError,{data: CreateTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createTransfer>>,
         TError,
-        {data: CreateInventoryTransferRequest},
+        {data: CreateTransferRequest},
         TContext
       > => {
       return useMutation(getCreateTransferMutationOptions(options), queryClient);

@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { TillVerification } from './tillVerification';
 
 export interface OpenTillRequest {
   /**
@@ -16,9 +17,5 @@ export interface OpenTillRequest {
   opening_cash: number;
   /** @nullable */
   opening_cash_edited?: boolean | null;
-  /**
-     * Ignored on the live route (live writes `server`).
-     * @nullable
-     */
-  verification?: string | null;
+  verification?: null | TillVerification;
 }

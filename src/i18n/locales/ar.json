@@ -1979,7 +1979,12 @@
     "unknown": "حدث خطأ غير متوقع.",
     "boundaryTitle": "حدث خطأ ما",
     "boundaryDescription": "واجهت هذه الشاشة خطأً غير متوقع. تم الإبلاغ عنه — حاول مرة أخرى، وإذا تكرر الأمر فأعد تحميل الصفحة.",
-    "boundaryRetry": "حاول مرة أخرى"
+    "boundaryRetry": "حاول مرة أخرى",
+    "codes": {
+      "EMPTY_ALLOW_LIST": "اختر طريقة دفع واحدة على الأقل، أو اسمح بكل الطرق.",
+      "RECONCILIATION_AMOUNT_REQUIRED": "أدخل المبلغ المعدود لكل طريقة غير مطابقة.",
+      "RECONCILIATION_NOTE_REQUIRED": "أضف ملاحظة لكل طريقة غير مطابقة."
+    }
   },
   "theme": {
     "light": "فاتح",
@@ -3666,7 +3671,12 @@
     "oldBills": "{{count}} أقدم من {{hours}} ساعة",
     "openBillsAtClose": "فواتير مفتوحة عند الإغلاق",
     "salesSummary": "المبيعات",
-    "tax": "الضريبة"
+    "tax": "الضريبة",
+    "deductions": {
+      "title": "المخزون المستهلك",
+      "returned": "أُعيد {{amount}} بسبب الإلغاء",
+      "loadError": "تعذّر تحميل المخزون الذي استهلكته هذه الوردية."
+    }
   },
   "aiChat": {
     "title": "اسأل بياناتك",

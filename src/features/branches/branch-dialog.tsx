@@ -18,8 +18,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TimezoneSelect } from "@/components/app/timezone-select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { createBranch, updateBranch } from "@/data/api/generated/api";
-import type { Branch } from "@/data/api/generated/models";
+import { createBranch, patchBranch } from "@/data/api/generated/api";
+import type { Branch, UpdateBranchRequest } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { invalidateBranches } from "./util";
 
@@ -109,8 +109,8 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
         tax_inclusive: branch?.tax_inclusive ?? false,
         service_charge_rate: fractionToPercent(branch?.service_charge_rate),
         service_charge_taxable: branch?.service_charge_taxable ?? true,
-        old_bill_hours: (branch as { old_bill_hours?: number } | undefined)?.old_bill_hours ?? 3,
-        standard_float: tillFloatEgp(branch),
+        old_bill_hours: branch?.old_bill_hours ?? 3,
+        standard_float: branch?.standard_float == null ? undefined : piastresToEgp(branch.standard_float),
       });
     }
   }, [open, branch, form]);
@@ -136,11 +136,15 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
       service_charge_rate: v.tax_override ? percentToFraction(v.service_charge_rate) : null,
       service_charge_taxable: v.tax_override ? v.service_charge_taxable : null,
     };
-    const tills = { old_bill_hours: v.old_bill_hours, standard_float: v.standard_float == null || Number.isNaN(v.standard_float) ? null : egpToPiastres(v.standard_float) };
+    const tills: Pick<UpdateBranchRequest, "old_bill_hours" | "standard_float"> = { old_bill_hours: v.old_bill_hours, standard_float: v.standard_float == null || Number.isNaN(v.standard_float) ? null : egpToPiastres(v.standard_float) };
     setBusy(true);
     try {
-      if (branch) await updateBranch(branch.id, { ...base, ...tills, is_active: v.is_active });
-      else await createBranch({ org_id: orgId, ...base, ...tills });
+      if (branch) await patchBranch(branch.id, { ...base, ...tills, is_active: v.is_active });
+      else {
+        // Create doesn't take the till settings; PATCH them onto the new branch.
+        const created = await createBranch({ org_id: orgId, ...base });
+        await patchBranch(created.id, tills);
+      }
       void invalidateBranches();
       toast.success(editing ? t("branches.updatedToast", "Branch updated") : t("branches.createdToast", "Branch created"));
       onOpenChange(false);
@@ -315,9 +319,4 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
       </DialogContent>
     </Dialog>
   );
-}
-
-function tillFloatEgp(branch: unknown): number | undefined {
-  const v = (branch as { standard_float?: number | null } | null | undefined)?.standard_float;
-  return v == null ? undefined : piastresToEgp(v);
 }

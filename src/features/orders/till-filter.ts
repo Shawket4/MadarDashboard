@@ -16,8 +16,3 @@ export function normalizePresetId(id: string | null | undefined): PresetId {
   return known.includes(id as PresetId) ? (id as PresetId) : "accountant_daily";
 }
 
-/** Device-numbered orders read `36B-12`; server-numbered ones the bare number. */
-export function orderDisplayNumber(o: { display_number?: string | null; device_code?: string | null; order_number: number }): string {
-  if (o.display_number) return o.display_number;
-  return o.device_code ? `${o.device_code}-${o.order_number}` : String(o.order_number);
-}

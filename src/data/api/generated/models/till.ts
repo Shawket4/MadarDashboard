@@ -1,5 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { TillStatus } from './tillStatus';
+import type { TillVerification } from './tillVerification';
 
 export interface Till {
   branch_id: string;
@@ -56,11 +58,11 @@ export interface Till {
      */
   reconciliation_status?: string | null;
   /** `open` | `closed` | `force_closed` */
-  status: string;
+  status: TillStatus;
   teller_id: string;
   teller_name: string;
   /** @nullable */
   timezone?: string | null;
   /** `server` | `lan` | `unverified` | `legacy` */
-  verification: string;
+  verification: TillVerification;
 }

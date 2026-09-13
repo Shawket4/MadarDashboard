@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { DeviceKind } from './deviceKind';
 
 export interface Device {
   /** @nullable */
@@ -11,7 +12,7 @@ export interface Device {
   code_conflict: boolean;
   first_seen_at: string;
   id: string;
-  kind: string;
+  kind: DeviceKind;
   /** @nullable */
   label?: string | null;
   last_seen_at: string;

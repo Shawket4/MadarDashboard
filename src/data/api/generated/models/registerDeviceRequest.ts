@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { DeviceKind } from './deviceKind';
 
 export interface RegisterDeviceRequest {
   /** @nullable */
@@ -8,7 +9,7 @@ export interface RegisterDeviceRequest {
   code: string;
   id: string;
   /** `pos` | `kds` | `waiter` */
-  kind: string;
+  kind: DeviceKind;
   /** @nullable */
   label?: string | null;
   /** @nullable */

@@ -2,11 +2,10 @@
  * Devices (TILLS_CONTRACT §2.4) and payment-method availability (§2.3) on top
  * of the orval-generated client. No hand-written requests live here.
  */
-import type { UseQueryResult } from "@tanstack/react-query";
-
 import {
   useGetAvailability,
   useGetEffective,
+  useListClientVersions,
   useListDevices,
   usePutBranchAvailability,
   usePutDeviceAvailability,
@@ -15,16 +14,16 @@ import {
 } from "@/data/api/generated/api";
 import type {
   AllowList,
-  Device as GenDevice,
+  ClientSeen,
+  Device,
+  DeviceKind,
   PaymentMethodAvailability,
   UpdateDeviceRequest,
 } from "@/data/api/generated/models";
 import { queryClient } from "@/data/api/query";
 
-export type DeviceKind = "pos" | "kds" | "waiter";
-export type Device = Omit<GenDevice, "kind"> & { kind: DeviceKind };
 export type PatchDeviceRequest = UpdateDeviceRequest;
-export type { AllowList, PaymentMethodAvailability };
+export type { AllowList, ClientSeen, Device, DeviceKind, PaymentMethodAvailability };
 
 export type AvailabilityScope = "branches" | "users" | "devices";
 
@@ -36,7 +35,15 @@ const invalidate = (...prefixes: string[]) =>
   });
 
 export function useDevices(branchId: string | null | undefined) {
-  return useListDevices({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } }) as UseQueryResult<Device[]>;
+  return useListDevices({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } });
+}
+
+/** Clients seen in the window; `legacyOnly` keeps those still on pre-rework paths. */
+export function useClientVersions(branchId: string | null | undefined, legacyOnly: boolean, days = 14) {
+  return useListClientVersions(
+    { branch_id: branchId ?? undefined, legacy_only: legacyOnly, days },
+    { query: { enabled: !!branchId } },
+  );
 }
 
 export function usePatchDevice() {

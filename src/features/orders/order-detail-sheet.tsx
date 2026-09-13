@@ -110,7 +110,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
         <SheetHeader className="sticky top-0 z-10 flex-row items-center justify-between gap-2 border-b bg-background">
           <div className="min-w-0">
             <SheetTitle className="flex flex-wrap items-center gap-2 text-lg">
-              <span className={cn(order && "font-mono tabular-nums")}>{order ? (order.order_ref ?? `#${order.order_number}`) : t("orders.order", "Order")}</span>
+              <span className={cn(order && "font-mono tabular-nums")}>{order ? (order.order_ref ?? `#${order.display_number ?? order.order_number}`) : t("orders.order", "Order")}</span>
               {order ? (
                 <StatusPill tone={toneFor(order.status, "success")}>
                   {t(`orderStatus.${order.status}`, order.status)}
