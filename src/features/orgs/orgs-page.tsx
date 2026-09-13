@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Building2, CheckCircle, Pencil, Plus, Trash2, XCircle } from "lucide-react";
+import { Building2, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -12,6 +12,8 @@ import { ExportButton } from "@/components/app/export-button";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusPill } from "@/components/app/status-pill";
+import { RowAction } from "@/features/users/row-action";
 import { OrgDialog } from "./org-dialog";
 import { invalidateOrgs } from "./util";
 import { deleteOrg, useListOrgs } from "@/data/api/generated/api";
@@ -40,7 +42,7 @@ export function OrgsPage() {
   const dlgOpen = editId === "new" || !!editing;
 
   const remove = async (o: Org) => {
-    if (await confirm({ title: t("common.confirmDelete", { name: o.name, defaultValue: `Delete "${o.name}"?` }), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
+    if (await confirm({ title: t("orgs.deleteTitle", { name: o.name, defaultValue: `Delete ${o.name}?` }), description: t("orgs.deleteDescription", "Every branch, user and menu under this organization is removed. This cannot be undone."), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
       try { await deleteOrg(o.id); void invalidateOrgs(); toast.success(t("orgs.deletedToast", "Organization deleted")); } catch (e) { toast.error(getErrorMessage(e)); }
     }
   };
@@ -48,42 +50,35 @@ export function OrgsPage() {
   const columns = useMemo<ColumnDef<Org>[]>(
     () => [
       {
-        accessorKey: "name", header: t("common.name", "Name"),
+        accessorKey: "name", header: t("common.name", "Name"), meta: { label: t("common.name", "Name"), phone: "title" },
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             {row.original.logo_url
               ? <img src={row.original.logo_url} alt="" className="size-8 shrink-0 rounded-lg object-cover" />
-              : <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">{row.original.name.slice(0, 2).toUpperCase()}</span>}
+              : <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary text-xs font-bold text-muted-foreground">{row.original.name.slice(0, 2).toUpperCase()}</span>}
             <div className="min-w-0"><p className="truncate text-sm font-semibold">{row.original.name}</p><p className="truncate font-mono text-xs text-muted-foreground">{row.original.slug}</p></div>
           </div>
         ),
       },
-      { accessorKey: "currency_code", header: t("orgs.currency", "Currency"), cell: ({ row }) => <Badge variant="outline" className="font-mono">{row.original.currency_code}</Badge> },
-      { accessorKey: "tax_rate", header: t("orgs.taxRate", "Tax Rate (%)"), cell: ({ row }) => <span className="font-mono text-sm">{formatRate(row.original.tax_rate)}</span> },
+      { accessorKey: "currency_code", header: t("orgs.currency", "Currency"), meta: { label: t("orgs.currency", "Currency") }, cell: ({ row }) => <Badge variant="secondary" className="font-mono">{row.original.currency_code}</Badge> },
+      { accessorKey: "tax_rate", header: t("orgs.taxRate", "Tax Rate (%)"), meta: { label: t("orgs.taxRate", "Tax Rate (%)"), numeric: true }, cell: ({ row }) => <span>{formatRate(row.original.tax_rate)}</span> },
       {
         accessorKey: "custom_branding",
         header: t("orgs.customBranding", "Custom branding"),
+        meta: { label: t("orgs.customBranding", "Custom branding") },
         cell: ({ row }) =>
           row.original.custom_branding ? (
-            <Badge variant="outline">{t("common.on", "On")}</Badge>
+            <StatusPill tone="info">{t("common.on", "On")}</StatusPill>
           ) : (
             <span className="text-xs text-muted-foreground">{t("common.off", "Off")}</span>
           ),
       },
       {
         accessorKey: "is_active", header: t("common.status", "Status"),
+        meta: { label: t("common.status", "Status") },
         cell: ({ row }) => row.original.is_active
-          ? <Badge variant="outline" className="border-transparent bg-success/10 text-success"><CheckCircle className="size-3" /> {t("common.active", "Active")}</Badge>
-          : <Badge variant="outline"><XCircle className="size-3" /> {t("common.inactive", "Inactive")}</Badge>,
-      },
-      {
-        id: "actions", header: "",
-        cell: ({ row }) => (
-          <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon-sm" aria-label={t("common.edit", "Edit")} onClick={() => update({ edit: row.original.id })}><Pencil className="size-4" /></Button>
-            <Button variant="ghost" size="icon-sm" className="text-destructive" aria-label={t("common.delete", "Delete")} onClick={() => void remove(row.original)}><Trash2 className="size-4" /></Button>
-          </div>
-        ),
+          ? <StatusPill tone="success">{t("common.active", "Active")}</StatusPill>
+          : <StatusPill tone="neutral">{t("common.inactive", "Inactive")}</StatusPill>,
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,23 +118,27 @@ export function OrgsPage() {
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("common.total", "Total")} value={orgs.length} loading={list.isLoading} />
-        <StatCard label={t("common.active", "Active")} value={orgs.filter((o) => o.is_active).length} accent="success" loading={list.isLoading} />
-        <StatCard label={t("common.inactive", "Inactive")} value={orgs.filter((o) => !o.is_active).length} accent="warning" loading={list.isLoading} />
-        <StatCard label={t("orgs.avgTax", "Avg Tax")} value={avgTaxRatio ?? "—"} formatType="percent" accent="info" loading={list.isLoading} />
+        <StatCard label={t("common.active", "Active")} value={orgs.filter((o) => o.is_active).length} loading={list.isLoading} />
+        <StatCard label={t("common.inactive", "Inactive")} value={orgs.filter((o) => !o.is_active).length} loading={list.isLoading} />
+        <StatCard label={t("orgs.avgTax", "Avg Tax")} value={avgTaxRatio ?? "—"} formatType="percent" loading={list.isLoading} />
       </div>
-      {list.isError ? (
-        <EmptyState icon={Building2} title={t("orgs.loadError", "Couldn't load organizations")} description={t("common.tryRefresh", "Try refreshing the page.")} />
-      ) : (
-        <DataTable
+      <DataTable
           columns={columns}
           data={orgs}
           loading={list.isLoading}
+          error={list.error}
+          onRetry={() => void list.refetch()}
+          rowActions={(r) => (
+            <>
+              <RowAction label={t("common.edit", "Edit")} onClick={() => update({ edit: r.id })}><Pencil className="size-4" /></RowAction>
+              <RowAction destructive label={t("common.delete", "Delete")} onClick={() => void remove(r)}><Trash2 className="size-4" /></RowAction>
+            </>
+          )}
           getRowId={(o) => o.id}
           onRowClick={(o) => update({ edit: o.id })}
           searchPlaceholder={t("common.search", "Search…")}
-          emptyState={<EmptyState icon={Building2} title={t("common.noResults", "No results")} />}
+          emptyState={<EmptyState icon={Building2} title={t("orgs.empty", "Organizations you add appear here")} />}
         />
-      )}
       {dlgOpen ? <OrgDialog org={editing} open={dlgOpen} onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}
     </Page>
   );
