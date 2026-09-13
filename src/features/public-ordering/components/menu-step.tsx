@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AssetImage, assetOf } from "@/components/app/asset-image";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
@@ -366,11 +367,11 @@ function MenuCard({
   const inner = (
     <>
       {item.image_url ? (
-        <img
-          src={item.image_url}
-          alt=""
+        <AssetImage
+          asset={assetOf(item)}
+          legacyUrl={item.image_url}
+          sizes="128px"
           className="size-[60px] shrink-0 rounded-xl object-cover"
-          loading="lazy"
         />
       ) : (
         <span className="flex size-[60px] shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">

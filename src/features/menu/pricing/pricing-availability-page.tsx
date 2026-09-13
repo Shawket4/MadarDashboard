@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
@@ -676,7 +677,7 @@ function ItemRow({
             />
             <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-muted text-muted-foreground">
               {item.image_url ? (
-                <img src={item.image_url} alt="" className="size-full object-cover" />
+                <AssetImage asset={assetOf(item)} legacyUrl={item.image_url} sizes="128px" className="size-full object-cover" />
               ) : (
                 <CupSoda className="size-4" />
               )}
@@ -958,7 +959,7 @@ function ItemCard({
         />
         <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-muted text-muted-foreground">
           {item.image_url ? (
-            <img src={item.image_url} alt="" className="size-full object-cover" />
+            <AssetImage asset={assetOf(item)} legacyUrl={item.image_url} sizes="128px" className="size-full object-cover" />
           ) : (
             <CupSoda className="size-4" />
           )}

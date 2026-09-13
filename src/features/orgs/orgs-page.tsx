@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Building2, CheckCircle, Pencil, Plus, Trash2, XCircle } from "lucide-react";
@@ -52,7 +53,7 @@ export function OrgsPage() {
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             {row.original.logo_url
-              ? <img src={row.original.logo_url} alt="" className="size-8 shrink-0 rounded-lg object-cover" />
+              ? <AssetImage asset={assetOf(row.original, "logo")} legacyUrl={row.original.logo_url} sizes="128px" className="size-8 shrink-0 rounded-lg object-cover" />
               : <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">{row.original.name.slice(0, 2).toUpperCase()}</span>}
             <div className="min-w-0"><p className="truncate text-sm font-semibold">{row.original.name}</p><p className="truncate font-mono text-xs text-muted-foreground">{row.original.slug}</p></div>
           </div>

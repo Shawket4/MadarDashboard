@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
@@ -110,7 +111,7 @@ export function BundlesPage() {
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-primary/20 bg-primary/10 text-primary">
-              {row.original.image_url ? <img src={row.original.image_url} alt="" className="size-full object-cover" /> : <Boxes className="size-4" />}
+              {row.original.image_url ? <AssetImage asset={assetOf(row.original)} legacyUrl={row.original.image_url} sizes="128px" className="size-full object-cover" /> : <Boxes className="size-4" />}
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{tname(row.original)}</p>
