@@ -19,6 +19,13 @@ export interface ScanResult {
   any_item: boolean;
   /** What one line costs when `any_item` is on, in the branch's currency. */
   any_item_cost: number;
+  /**
+     * The shop's ceiling on reward ITEMS per order, if it set one. The till
+     * enforces it before Charge so the server's refusal is never the first
+     * the teller hears of it.
+     * @nullable
+     */
+  max_rewards_per_order?: number | null;
   member: MemberView;
   /** Recent history, so a teller can answer "where did my points go?". */
   recent: LedgerEntry[];

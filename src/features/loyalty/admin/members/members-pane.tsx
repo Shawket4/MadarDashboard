@@ -280,6 +280,7 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
         memberId={openMember}
         branchId={branchId}
         canAdjust={access.canAdjust}
+        canForget={access.canForget}
         onOpenChange={(o) => !o && setOpenMember(null)}
         onAdjust={setAdjusting}
         onOpenOrder={setOpenOrder}

@@ -7,10 +7,9 @@
  *    negative") — checked against the balance in the branch's live currency;
  *  - a branch, because the ledger row is filed under one.
  *
- * Stricter than the server in one place, on purpose: a reason is REQUIRED.
- * The server takes `note` as optional, but a hand-typed movement of value with
- * no reason is an audit trail with a hole in it, and this is the only screen
- * that writes one.
+ * A reason is REQUIRED, here and by the server ("Say why the points are being
+ * adjusted"): a hand-typed movement of value with no reason is an audit trail
+ * with a hole in it. The form asks for a few characters more than the server.
  */
 import { z } from "zod";
 

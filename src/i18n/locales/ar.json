@@ -1684,7 +1684,11 @@
     "reward": "مكافأة",
     "rewardCovers": "المكافأة تغطي {{units}} · −{{amount}}",
     "loyaltyRewardsFor": "مكافآت الولاء · {{name}}",
-    "loyaltyRewards": "مكافآت الولاء"
+    "loyaltyRewards": "مكافآت الولاء",
+    "rewardRefusedTitle": "رُفضت المكافأة عند مزامنة هذا البيع",
+    "rewardRefusedBody": "منح الكاشير المكافأة دون اتصال، لكن رصيد العضو لم يكفِ لتغطيتها. لم تُخصم أي نقاط وتم تمييز الطلب.",
+    "loyaltyMember": "عضو الولاء",
+    "loyaltyMemberForgotten": "عضو محذوف"
   },
   "ordersExport": {
     "title": "تصدير الطلبات",
@@ -4498,16 +4502,7 @@
     "overviewFailed": "تعذّر حساب الإجماليات",
     "statMembers": "الأعضاء",
     "statOutstanding": "الرصيد القائم",
-    "statRewardsOwed": "مكافآت مستحقة لم تُصرف",
-    "statRewardsOwedHint_zero": "لدى {{count}} عضو",
-    "statRewardsOwedHint_one": "لدى عضو واحد",
-    "statRewardsOwedHint_two": "لدى عضوين",
-    "statRewardsOwedHint_few": "لدى {{count}} أعضاء",
-    "statRewardsOwedHint_many": "لدى {{count}} عضوًا",
-    "statRewardsOwedHint_other": "لدى {{count}} عضو",
     "statLiability": "الالتزام (تقديري)",
-    "statLiabilityNoCatalogue": "أضف مكافآت لتقدير قيمة الأرصدة.",
-    "statLiabilityHint": "الأرصدة مقدّرة بمتوسط سعر مكافآتك في القائمة؛ المكافآت المستحقة وحدها ≈ {{value}}.",
     "unitOrders_zero": "طلب",
     "unitOrders_one": "طلب",
     "unitOrders_two": "طلب",
@@ -4533,7 +4528,9 @@
       "adjustAmount": "أدخل عددًا صحيحًا أكبر من صفر.",
       "adjustReason": "اذكر السبب — ٣ أحرف على الأقل. يبقى في سجل العضو.",
       "adjustReasonLong": "اجعل السبب أقل من ٥٠٠ حرف.",
-      "adjustOverdraw": "لديه {{balance}} {{unit}} فقط — لا يمكن أن يجعل الخصم الرصيد أقل من صفر."
+      "adjustOverdraw": "لديه {{balance}} {{unit}} فقط — لا يمكن أن يجعل الخصم الرصيد أقل من صفر.",
+      "serverNoteRequired": "اذكر سبب تعديل النقاط — السبب مطلوب.",
+      "serverInactiveReward": "إحدى هذه المكافآت صنف لم يعد نشطًا في القائمة. احذفها أو أعد تفعيل الصنف ثم احفظ."
     },
     "ledger": {
       "refundRedeem": "إرجاع مكافأة (استرداد)",
@@ -4546,8 +4543,27 @@
       "redemption": "صرف مكافأة",
       "birthday": "هدية عيد ميلاد",
       "winback": "هدية العودة",
-      "manual": "تعديل يدوي"
-    }
+      "manual": "تعديل يدوي",
+      "by": "بواسطة {{name}}",
+      "bySystem": "تلقائي"
+    },
+    "deleteMember": "حذف العضو",
+    "deleteTitle": "حذف {{name}}؟",
+    "deleteScrubbed": "سيُحذف: الاسم وتاريخ الميلاد ورقم الهاتف والبطاقة (تتوقف بطاقة المحفظة عن العمل) والموافقة التسويقية.",
+    "deleteKept": "سيُحتفظ: بسجل النقاط والطلبات التي كسب أو استبدل عليها، حتى لا تتغير التقارير السابقة. يمكن لرقم الهاتف الانضمام مجددًا كعضو جديد.",
+    "deleteIrreversible": "لا يمكن التراجع عن هذا الإجراء.",
+    "deleteConfirm": "حذف العضو",
+    "deleted": "تم حذف العضو",
+    "statRedemptions": "المكافآت المستبدلة",
+    "statRedemptionsHint": "{{units}} صنف خلال آخر 30 يومًا",
+    "statValueGiven": "القيمة الممنوحة",
+    "statValueGivenHint": "{{refused}} مرفوضة عند المزامنة",
+    "statLiabilityValued": "قيمة الأرصدة بمتوسط ما اشترته الوحدة الواحدة.",
+    "statLiabilityNoRedemptions": "لا توجد استبدالات بعد لتقييم الأرصدة.",
+    "statOutstandingHint": "لدى {{count}} عضو",
+    "topRewards": "أكثر المكافآت استبدالًا (آخر 30 يومًا)",
+    "topRewardsEmpty": "لم تُستبدل أي مكافآت خلال آخر 30 يومًا.",
+    "topRewardsTimes": "{{count}} استبدال · {{units}} صنف"
   },
   "publicShell": {
     "poweredBy": {

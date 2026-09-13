@@ -18,6 +18,18 @@ describe("an order's reward lines", () => {
     expect([...r.lines.keys()]).toEqual(["l-1", "l-3"]);
     expect(r.lines.get("l-3")?.units).toBeNull();
     expect(r.totalCovered).toBe(7500);
+    expect(r.refused).toBeNull();
+  });
+
+  it("keeps the member id when the member was forgotten", () => {
+    const r = orderRewards({ loyalty_customer_id: "m-1", loyalty_member_name: null, items: [] });
+    expect(r.memberId).toBe("m-1");
+    expect(r.memberName).toBeNull();
+  });
+
+  it("surfaces a redemption the server refused on sync", () => {
+    const r = orderRewards({ loyalty_redemption_refused: "Not enough points", items: [] });
+    expect(r.refused).toBe("Not enough points");
   });
 
   it("is empty for an order without rewards, or none at all", () => {

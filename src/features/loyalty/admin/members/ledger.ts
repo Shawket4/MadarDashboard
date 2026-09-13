@@ -60,3 +60,18 @@ export const reversedIds = (entries: Pick<LedgerEntry, "reverses_id">[]): Set<st
 
 /** "+12" / "−5" with a real minus sign, so it reads right in either direction. */
 export const signed = (n: number): string => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0");
+
+/**
+ * Who wrote the row: "by Mona" for a person (the teller who rang the sale or
+ * applied the reward, the admin who adjusted), "automatic" for the system
+ * (birthday, win-back, a trigger with no actor). A person whose account has
+ * since gone still shows as a person, not as the system.
+ */
+export function ledgerActor(
+  e: Pick<LedgerEntry, "created_by" | "created_by_name">,
+  t: TFunction,
+): string {
+  if (e.created_by_name) return t("loyalty.ledger.by", { defaultValue: "by {{name}}", name: e.created_by_name });
+  if (e.created_by) return t("loyalty.ledger.by", { defaultValue: "by {{name}}", name: "—" });
+  return t("loyalty.ledger.bySystem", "automatic");
+}

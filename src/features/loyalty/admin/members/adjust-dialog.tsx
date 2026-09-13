@@ -35,8 +35,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { useLoyaltyAdjust } from "@/data/api/generated/api";
 import type { MemberView } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
 
+import { loyaltyServerError } from "../../shared/server-errors";
 import { currencyLabel } from "../../shared/util";
 import { adjustSchema, adjustToWire, REASON_MAX, type AdjustValues } from "./adjust-schema";
 
@@ -91,9 +91,14 @@ export function AdjustDialog({
       });
       onOpenChange(false);
     } catch (e) {
-      // The server's sentence ("Sara has 4; that adjustment would go negative")
+      // A refusal the form can point at goes on its field; otherwise the
+      // server's sentence ("Sara has 4; that adjustment would go negative")
       // is the useful one, so it is shown as-is.
-      toast.error(getErrorMessage(e));
+      const refused = loyaltyServerError(e, t);
+      if (refused.kind === "noteRequired") {
+        form.setError("reason", { type: "server", message: "loyalty.errors.serverNoteRequired" }, { shouldFocus: true });
+      }
+      toast.error(refused.message);
     }
   };
 

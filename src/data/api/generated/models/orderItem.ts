@@ -31,6 +31,8 @@ export interface OrderItem {
   notes?: string | null;
   order_id: string;
   quantity: number;
+  /** Minor units the reward took off this line (0 for a paid line). */
+  reward_covered?: number;
   /** How many of `quantity` the reward covered. */
   reward_units?: number;
   /** @nullable */

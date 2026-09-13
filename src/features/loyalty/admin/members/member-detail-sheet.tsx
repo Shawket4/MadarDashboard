@@ -36,7 +36,8 @@ import { fmtDate, fmtDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { currencyLabel } from "../../shared/util";
-import { ledgerLabel, ledgerTone, reversedIds, signed, type LedgerTone } from "./ledger";
+import { DeleteMemberButton } from "./delete-member-dialog";
+import { ledgerActor, ledgerLabel, ledgerTone, reversedIds, signed, type LedgerTone } from "./ledger";
 
 const TONE: Record<LedgerTone, string> = {
   earn: "bg-success/15",
@@ -50,6 +51,7 @@ export function MemberDetailSheet({
   memberId,
   branchId,
   canAdjust,
+  canForget = false,
   onOpenChange,
   onAdjust,
   onOpenOrder,
@@ -57,6 +59,7 @@ export function MemberDetailSheet({
   memberId: string | null;
   branchId: string | null;
   canAdjust: boolean;
+  canForget?: boolean;
   onOpenChange: (open: boolean) => void;
   onAdjust: (member: MemberView) => void;
   onOpenOrder: (orderId: string) => void;
@@ -102,11 +105,18 @@ export function MemberDetailSheet({
             <>
               <MemberSummary member={member} />
 
-              {canAdjust ? (
-                <Button variant="outline" size="sm" onClick={() => onAdjust(member)}>
-                  <SlidersHorizontal className="size-4" />
-                  {t("loyalty.adjustTitle", "Adjust balance")}
-                </Button>
+              {canAdjust || canForget ? (
+                <div className="flex flex-wrap gap-2">
+                  {canAdjust ? (
+                    <Button variant="outline" size="sm" onClick={() => onAdjust(member)}>
+                      <SlidersHorizontal className="size-4" />
+                      {t("loyalty.adjustTitle", "Adjust balance")}
+                    </Button>
+                  ) : null}
+                  {canForget ? (
+                    <DeleteMemberButton member={member} onDeleted={() => onOpenChange(false)} />
+                  ) : null}
+                </div>
               ) : null}
 
               <LedgerTable entries={ledger} onOpenOrder={onOpenOrder} />
@@ -211,6 +221,9 @@ export function LedgerTable({
                       </span>
                     ) : null}
                   </div>
+                  <p className="mt-1 text-xs text-muted-foreground" data-testid="ledger-actor">
+                    {ledgerActor(e, t)}
+                  </p>
                   {e.reward_name ? <p className="mt-1 text-xs">{e.reward_name}</p> : null}
                   {e.note ? (
                     <p className="mt-1 text-xs text-muted-foreground" dir="auto">

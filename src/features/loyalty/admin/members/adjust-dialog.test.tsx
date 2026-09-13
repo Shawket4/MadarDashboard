@@ -8,6 +8,9 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import { AxiosError, AxiosHeaders } from "axios";
+import { toast } from "sonner";
+
 import type { MemberView } from "@/data/api/generated/models";
 
 const mutateAsync = vi.fn().mockResolvedValue({});
@@ -68,5 +71,23 @@ describe("AdjustDialog", () => {
         data: { branch_id: "b-1", customer_id: "m-1", points: -3, note: "Duplicate earn" },
       }),
     );
+  });
+
+  it("puts the server's 'note required' refusal on the reason field", async () => {
+    mutateAsync.mockRejectedValueOnce(
+      new AxiosError("Bad Request", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 400,
+        statusText: "Bad Request",
+        data: { error: "Say why the points are being adjusted (note)" },
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+      }),
+    );
+    open();
+    await userEvent.type(screen.getByLabelText(/Amount/), "2");
+    await userEvent.type(screen.getByLabelText(/Reason/), "abc");
+    await userEvent.click(screen.getByRole("button", { name: /Save adjustment/ }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/reason is required/);
+    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/reason is required/));
   });
 });

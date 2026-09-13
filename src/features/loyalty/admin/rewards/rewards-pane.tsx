@@ -38,6 +38,7 @@ import { useAuthStore } from "@/data/stores/auth.store";
 import { fmtMoney } from "@/lib/format";
 
 import { loyaltyAccess } from "../../shared/access";
+import { loyaltyServerError } from "../../shared/server-errors";
 import { currencyLabel, modeOf } from "../../shared/util";
 import type { ProgramScope } from "../use-program";
 import {
@@ -147,7 +148,7 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
       toast.success(t("loyalty.rewardsSaved", "Rewards saved"));
       await catalogue.refetch();
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toast.error(loyaltyServerError(e, t).message);
     }
   };
 

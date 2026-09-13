@@ -191,6 +191,7 @@ import type {
   GetBranchSettingsParams,
   GetConversationParams,
   GetCurrentShiftParams,
+  GetLoyaltyAnalyticsParams,
   GetLoyaltyMemberParams,
   GetLoyaltyRewardItemsParams,
   GetLoyaltySettingsParams,
@@ -267,6 +268,7 @@ import type {
   LoginResponse,
   LookupRequest,
   LowStockRow,
+  LoyaltyAnalytics,
   LoyaltyJoinInfoParams,
   LoyaltySettings,
   ManualRecordRequest,
@@ -11246,6 +11248,94 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getLoyaltyAdjustMutationOptions(options), queryClient);
     }
 
+export const getLoyaltyAnalytics = (
+    params?: GetLoyaltyAnalyticsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<LoyaltyAnalytics>(
+      {url: `/loyalty/analytics`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLoyaltyAnalyticsQueryKey = (params?: GetLoyaltyAnalyticsParams,) => {
+    return [
+    `/loyalty/analytics`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLoyaltyAnalyticsQueryOptions = <TData = Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError = ErrorBody>(params?: GetLoyaltyAnalyticsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoyaltyAnalyticsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoyaltyAnalytics>>> = ({ signal }) => getLoyaltyAnalytics(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLoyaltyAnalyticsQueryResult = NonNullable<Awaited<ReturnType<typeof getLoyaltyAnalytics>>>
+export type GetLoyaltyAnalyticsQueryError = ErrorBody
+
+
+export function useGetLoyaltyAnalytics<TData = Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError = ErrorBody>(
+ params: undefined |  GetLoyaltyAnalyticsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyAnalytics>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyAnalytics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyAnalytics<TData = Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError = ErrorBody>(
+ params?: GetLoyaltyAnalyticsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyAnalytics>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyAnalytics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyAnalytics<TData = Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError = ErrorBody>(
+ params?: GetLoyaltyAnalyticsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLoyaltyAnalytics<TData = Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError = ErrorBody>(
+ params?: GetLoyaltyAnalyticsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyAnalytics>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLoyaltyAnalyticsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 /**
  * @summary The live route. Tellers press the button; the permission is the same `update`
 the redeem action needs.
@@ -11635,6 +11725,77 @@ export function useGetLoyaltyMember<TData = Awaited<ReturnType<typeof getLoyalty
 
 
 
+
+/**
+ * A void corrects a sale; this corrects a membership — someone asked the shop
+ * to stop holding their details, or an admin is clearing a test signup. The
+ * person is scrubbed and the books are kept: see [`model::forget`] for exactly
+ * what goes and what stays, and why the ledger is not the member's data.
+ *
+ * 204 twice in a row: forgetting someone already forgotten is not a failure,
+ * and telling the caller "no such member" would confirm that a phone number
+ * used to be one.
+ * @summary Forget a member. **Admin only.**
+ */
+export const deleteLoyaltyMember = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/loyalty/members/${id}`, method: 'DELETE', signal
+    },
+      options);
+    }
+
+
+
+
+export const getDeleteLoyaltyMemberMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLoyaltyMember>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteLoyaltyMember>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteLoyaltyMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteLoyaltyMember>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteLoyaltyMember(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteLoyaltyMemberMutationResult = NonNullable<Awaited<ReturnType<typeof deleteLoyaltyMember>>>
+
+    export type DeleteLoyaltyMemberMutationError = ErrorBody
+
+    /**
+ * @summary Forget a member. **Admin only.**
+ */
+export const useDeleteLoyaltyMember = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLoyaltyMember>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteLoyaltyMember>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteLoyaltyMemberMutationOptions(options), queryClient);
+    }
 
 /**
  * The nearby-notification question has been answered three times by reasoning

@@ -1681,7 +1681,11 @@
     "reward": "Reward",
     "rewardCovers": "Reward covers {{units}} · −{{amount}}",
     "loyaltyRewardsFor": "Loyalty rewards · {{name}}",
-    "loyaltyRewards": "Loyalty rewards"
+    "loyaltyRewards": "Loyalty rewards",
+    "rewardRefusedTitle": "Reward refused when this sale synced",
+    "rewardRefusedBody": "The till gave the reward offline, but the member's balance could not pay for it. No points were taken and the order is flagged.",
+    "loyaltyMember": "Loyalty member",
+    "loyaltyMemberForgotten": "Deleted member"
   },
   "ordersExport": {
     "title": "Export Orders",
@@ -4377,12 +4381,7 @@
     "overviewFailed": "Couldn't work out the totals",
     "statMembers": "Members",
     "statOutstanding": "Outstanding balance",
-    "statRewardsOwed": "Rewards earned, not claimed",
-    "statRewardsOwedHint_one": "Held by {{count}} member",
-    "statRewardsOwedHint_other": "Held by {{count}} members",
     "statLiability": "Liability (estimate)",
-    "statLiabilityNoCatalogue": "Add rewards to value the balances.",
-    "statLiabilityHint": "Balances valued at your rewards' average menu price; earned rewards alone ≈ {{value}}.",
     "unitOrders_one": "order",
     "unitOrders_other": "orders",
     "unitPoints_one": "point",
@@ -4400,7 +4399,9 @@
       "adjustAmount": "Enter a whole number above zero.",
       "adjustReason": "Say why — at least 3 characters. It stays on the member's history.",
       "adjustReasonLong": "Keep the reason under 500 characters.",
-      "adjustOverdraw": "They only have {{balance}} {{unit}} — a deduction can't take the balance below zero."
+      "adjustOverdraw": "They only have {{balance}} {{unit}} — a deduction can't take the balance below zero.",
+      "serverNoteRequired": "Say why the points are being adjusted — the reason is required.",
+      "serverInactiveReward": "One of these rewards is a menu item that is no longer active. Remove it or re-activate the item, then save."
     },
     "ledger": {
       "refundRedeem": "Reward returned (refund)",
@@ -4413,8 +4414,27 @@
       "redemption": "Reward redeemed",
       "birthday": "Birthday gift",
       "winback": "Win-back gift",
-      "manual": "Manual adjustment"
-    }
+      "manual": "Manual adjustment",
+      "by": "by {{name}}",
+      "bySystem": "automatic"
+    },
+    "deleteMember": "Delete member",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteScrubbed": "Removed: their name, birthday and phone number, their card (the wallet pass stops working) and marketing consent.",
+    "deleteKept": "Kept: the points ledger and the orders they earned or redeemed on, so past reports don't change. The phone number can join again as a new member.",
+    "deleteIrreversible": "This can't be undone.",
+    "deleteConfirm": "Delete member",
+    "deleted": "Member deleted",
+    "statRedemptions": "Rewards redeemed",
+    "statRedemptionsHint": "{{units}} items over the last 30 days",
+    "statValueGiven": "Value given away",
+    "statValueGivenHint": "{{refused}} refused on sync",
+    "statLiabilityValued": "Balances valued at what a unit has bought on average.",
+    "statLiabilityNoRedemptions": "No redemptions yet to value the balances.",
+    "statOutstandingHint": "Held by {{count}} members",
+    "topRewards": "Top rewards (last 30 days)",
+    "topRewardsEmpty": "No rewards redeemed in the last 30 days.",
+    "topRewardsTimes": "{{count}} redemptions · {{units}} items"
   },
   "publicShell": {
     "poweredBy": {

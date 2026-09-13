@@ -57,6 +57,16 @@ export interface Order {
      */
   discount_value: number;
   id: string;
+  /**
+     * The loyalty member this sale redeemed for (or was scanned for).
+     * @nullable
+     */
+  loyalty_customer_id?: string | null;
+  /**
+     * That member's name, for the order detail. `None` once forgotten.
+     * @nullable
+     */
+  loyalty_member_name?: string | null;
   /** @nullable */
   notes?: string | null;
   order_number: number;

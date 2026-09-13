@@ -14,6 +14,15 @@ export interface LedgerEntry {
   /** @nullable */
   branch_name?: string | null;
   created_at: string;
+  /**
+     * Who wrote the row: the teller who applied a reward or rang the sale, the
+     * admin who adjusted by hand. `None` for the system (birthday, win-back,
+     * a trigger with no actor).
+     * @nullable
+     */
+  created_by?: string | null;
+  /** @nullable */
+  created_by_name?: string | null;
   /** `"points"` or `"visits"` — which balance this row moved. */
   currency: string;
   id: string;

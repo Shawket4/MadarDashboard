@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TFunction } from "i18next";
 
-import { ledgerLabel, ledgerTone, reversedIds, signed } from "./ledger";
+import { ledgerActor, ledgerLabel, ledgerTone, reversedIds, signed } from "./ledger";
 
 const t = ((_k: string, d: string) => d) as unknown as TFunction;
 
@@ -29,5 +29,14 @@ describe("reading the ledger", () => {
     expect(signed(5)).toBe("+5");
     expect(signed(-5)).toBe("−5");
     expect(signed(0)).toBe("0");
+  });
+});
+
+describe("who wrote a ledger row", () => {
+  const tr = ((_k: string, o: string | { defaultValue: string; name: string }) =>
+    typeof o === "string" ? o : o.defaultValue.replace("{{name}}", o.name)) as unknown as TFunction;
+  it("names the person, or says the system did it", () => {
+    expect(ledgerActor({ created_by: "u-1", created_by_name: "Mona" }, tr)).toBe("by Mona");
+    expect(ledgerActor({ created_by: null, created_by_name: null }, tr)).toBe("automatic");
   });
 });

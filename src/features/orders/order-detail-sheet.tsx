@@ -166,9 +166,37 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                 </Card>
               ) : null}
 
+              {rewards.refused ? (
+                <Card role="alert" data-testid="reward-refused" className="border-warning/40 bg-warning/10 py-0">
+                  <CardContent className="flex items-start gap-2 p-4 text-sm">
+                    <Info className="mt-0.5 size-4 shrink-0 text-warning" />
+                    <div>
+                      <p className="font-semibold">
+                        {t("orders.rewardRefusedTitle", "Reward refused when this sale synced")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t(
+                          "orders.rewardRefusedBody",
+                          "The till gave the reward offline, but the member's balance could not pay for it. No points were taken and the order is flagged.",
+                        )}
+                      </p>
+                      <p className="mt-1 text-xs" dir="auto">
+                        “{rewards.refused}”
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null}
+
               <Card className="py-0">
                 <CardContent className="space-y-2 p-4 text-sm">
-                  <Row label={t("common.date", "Date")} value={fmtDateTimeFull(order.created_at)} />
+                  {rewards.memberId ? (
+                    <Row
+                      label={t("orders.loyaltyMember", "Loyalty member")}
+                      value={rewards.memberName ?? t("orders.loyaltyMemberForgotten", "Deleted member")}
+                    />
+                  ) : null}
+                  <Row label={t("common.date", "Date")}value={fmtDateTimeFull(order.created_at)} />
                   <Row label={t("shifts.teller", "Teller")} value={order.teller_name} />
                   {order.waiter_name ? <Row label={t("shifts.waiter", "Waiter")} value={order.waiter_name} /> : null}
                   {order.customer_name ? <Row label={t("orders.customer", "Customer")} value={order.customer_name} /> : null}

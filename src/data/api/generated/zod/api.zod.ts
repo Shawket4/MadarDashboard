@@ -521,7 +521,7 @@ export const ResolveBranchResponse = zod.object({
 
 export const ListBookingsQueryParams = zod.object({
   "branch_id": zod.uuid(),
-  "date": zod.string().optional().describe('Service date (`YYYY-MM-DD`, branch-local, 05:00→05:00). Defaults to today.'),
+  "date": zod.string().optional().describe('Service date (`YYYY-MM-DD`, branch-local, midnight→midnight). Defaults to today.'),
   "from": zod.iso.datetime({"offset":true}).optional().describe('Explicit window (overrides `date`).'),
   "to": zod.iso.datetime({"offset":true}).optional(),
   "active": zod.boolean().optional().describe('Only `confirmed` \/ `seated`.'),
@@ -4317,6 +4317,40 @@ export const LoyaltyAdjustResponse = zod.object({
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')
 
 
+export const GetLoyaltyAnalyticsQueryParams = zod.object({
+  "branch_id": zod.uuid().nullish().describe('Omit for the whole organisation; supply a branch to narrow the\nredemption figures to it (the liability is org-wide either way — a\nbalance can be spent at any branch).'),
+  "from": zod.iso.datetime({"offset":true}).nullish().describe('Inclusive start of the range. Defaults to 30 days before `to`.'),
+  "to": zod.iso.datetime({"offset":true}).nullish().describe('Exclusive end of the range. Defaults to now.')
+})
+
+export const GetLoyaltyAnalyticsResponse = zod.object({
+  "earned_points": zod.number().describe('Balance earned, net of clawbacks written in the range.'),
+  "from": zod.iso.datetime({"offset":true}),
+  "liability": zod.object({
+  "currency": zod.string().describe('`\"points\"` or `\"visits\"` — the currency the valuation is in.'),
+  "members_with_balance": zod.number().describe('Live members with a positive balance.'),
+  "outstanding_points": zod.number(),
+  "outstanding_visits": zod.number(),
+  "value_per_unit_minor": zod.number().nullish().describe('Minor units one unit of the live currency has bought, on average, over\nevery redemption this org has recorded (value given ÷ balance spent).\n`None` until the first redemption with a recorded value.'),
+  "valued_minor": zod.number().nullish().describe('The outstanding balance in the live currency × `value_per_unit_minor`,\nrounded. An estimate — a balance is worth what it will be spent on.')
+}).describe('What the programme owes its members.'),
+  "redeemed_points": zod.number().describe('Balance spent, net of reversals written in the range.'),
+  "redeemed_units": zod.number().describe('Units handed over as rewards.'),
+  "redeemed_value_minor": zod.number().describe('Minor units of goods given away as rewards, on sales not voided.'),
+  "redemptions": zod.number().describe('Redemption rows in the range (one per covered order line).'),
+  "refused_redemptions": zod.number().describe('Replayed sales whose rewards the points could not pay for.'),
+  "to": zod.iso.datetime({"offset":true}),
+  "top_rewards": zod.array(zod.object({
+  "menu_item_id": zod.uuid(),
+  "name": zod.string(),
+  "points": zod.number().describe('Balance spent on it, net of anything given back by a void or refund.'),
+  "redemptions": zod.number().describe('Redemption rows (one per covered order line).'),
+  "units": zod.number().describe('Units handed over.'),
+  "value_minor": zod.number().describe('Minor units of goods given away (what the covered lines were charged).')
+}).describe('One reward, by how often it was claimed in the range.'))
+}).describe('The redemption report, computed in the database so a dashboard never loads\nevery member to draw it.')
+
+
 /**
  * @summary The live route. Tellers press the button; the permission is the same `update`
 the redeem action needs.
@@ -4411,6 +4445,7 @@ export const PreviewLoyaltyBirthdayMessageResponse = zod.object({
  */
 export const LoyaltyLookupBody = zod.object({
   "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish().describe('A member the till already identified, re-read before a charge so the\nbalance and catalogue it prices against are the server\'s current ones.'),
   "phone": zod.string().nullish().describe('Manual fallback for a customer whose phone is dead.'),
   "token": zod.string().nullish().describe('The token from the scanned pass barcode. Preferred.')
 })
@@ -4418,6 +4453,7 @@ export const LoyaltyLookupBody = zod.object({
 export const LoyaltyLookupResponse = zod.object({
   "any_item": zod.boolean().describe('The whole menu is claimable, not just `rewards`.\n\nWhen on, `rewards` stops being the list of what MAY be claimed — it is\nonly what happens to be curated — and the till offers every line at\n`any_item_cost`. Sent rather than inferred, because a till cannot tell\n\"no catalogue\" apart from \"any item\" without being told.'),
   "any_item_cost": zod.number().describe('What one line costs when `any_item` is on, in the branch\'s currency.'),
+  "max_rewards_per_order": zod.number().nullish().describe('The shop\'s ceiling on reward ITEMS per order, if it set one. The till\nenforces it before Charge so the server\'s refusal is never the first\nthe teller hears of it.'),
   "member": zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
   "can_redeem": zod.boolean().describe('The balance affords at least one reward on offer here.'),
@@ -4442,6 +4478,8 @@ export const LoyaltyLookupResponse = zod.object({
   "branch_id": zod.uuid(),
   "branch_name": zod.string().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish().describe('Who wrote the row: the teller who applied a reward or rang the sale, the\nadmin who adjusted by hand. `None` for the system (birthday, win-back,\na trigger with no actor).'),
+  "created_by_name": zod.string().nullish(),
   "currency": zod.string().describe('`\"points\"` or `\"visits\"` — which balance this row moved.'),
   "id": zod.uuid(),
   "kind": zod.string().describe('`earn`, `redeem`, `adjust`, or `reverse_earn` \/ `reverse_redeem` \/\n`reverse_adjust` — the last three undo the row named in `reverses_id`.'),
@@ -4512,6 +4550,8 @@ export const GetLoyaltyMemberResponse = zod.object({
   "branch_id": zod.uuid(),
   "branch_name": zod.string().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish().describe('Who wrote the row: the teller who applied a reward or rang the sale, the\nadmin who adjusted by hand. `None` for the system (birthday, win-back,\na trigger with no actor).'),
+  "created_by_name": zod.string().nullish(),
   "currency": zod.string().describe('`\"points\"` or `\"visits\"` — which balance this row moved.'),
   "id": zod.uuid(),
   "kind": zod.string().describe('`earn`, `redeem`, `adjust`, or `reverse_earn` \/ `reverse_redeem` \/\n`reverse_adjust` — the last three undo the row named in `reverses_id`.'),
@@ -4542,6 +4582,24 @@ export const GetLoyaltyMemberResponse = zod.object({
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')
 })
+
+
+/**
+ * A void corrects a sale; this corrects a membership — someone asked the shop
+ * to stop holding their details, or an admin is clearing a test signup. The
+ * person is scrubbed and the books are kept: see [`model::forget`] for exactly
+ * what goes and what stays, and why the ledger is not the member's data.
+ *
+ * 204 twice in a row: forgetting someone already forgotten is not a failure,
+ * and telling the caller "no such member" would confirm that a phone number
+ * used to be one.
+ * @summary Forget a member. **Admin only.**
+ */
+export const DeleteLoyaltyMemberParams = zod.object({
+  "id": zod.uuid().describe('Member ID')
+})
+
+export const DeleteLoyaltyMemberResponse = zod.void()
 
 
 /**
@@ -6665,6 +6723,8 @@ export const SettleOpenTicketResponse = zod.object({
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
+  "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
+  "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
@@ -6849,6 +6909,8 @@ export const ListOrdersResponse = zod.object({
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
+  "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
+  "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
@@ -6982,6 +7044,8 @@ export const CreateOrderResponse = zod.object({
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
+  "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
+  "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
@@ -7042,6 +7106,7 @@ export const CreateOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_id": zod.uuid(),
   "quantity": zod.number(),
+  "reward_covered": zod.number().optional().describe('Minor units the reward took off this line (0 for a paid line).'),
   "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
   "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
@@ -7143,6 +7208,8 @@ export const ExportOrdersResponse = zod.object({
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
+  "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
+  "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
@@ -7189,6 +7256,7 @@ export const ExportOrdersResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_id": zod.uuid(),
   "quantity": zod.number(),
+  "reward_covered": zod.number().optional().describe('Minor units the reward took off this line (0 for a paid line).'),
   "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
   "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
@@ -7329,6 +7397,8 @@ export const GetOrderResponse = zod.object({
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
+  "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
+  "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
@@ -7389,6 +7459,7 @@ export const GetOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "order_id": zod.uuid(),
   "quantity": zod.number(),
+  "reward_covered": zod.number().optional().describe('Minor units the reward took off this line (0 for a paid line).'),
   "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
   "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
@@ -7489,6 +7560,8 @@ export const VoidOrderResponse = zod.object({
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "id": zod.uuid(),
+  "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
+  "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
