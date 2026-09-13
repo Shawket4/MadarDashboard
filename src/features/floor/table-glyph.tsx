@@ -45,6 +45,33 @@ export const SEAT_ALLOWANCE = 22;
 /** Past this many seats the rim turns into a smear — the count carries it. */
 export const SEAT_RENDER_CAP = 12;
 
+/*
+ * The glyph's shared constants, in canvas units. The POS draws the same table
+ * from the same numbers (madar: `packages/features/order/lib/src/table_glyph.dart`,
+ * `kTable*`) — change one here and change it there.
+ */
+/** Rounded-rect corner radius. */
+export const TABLE_CORNER = 10;
+/** A free table's hairline, an occupied ring, the ready ring, the selection. */
+export const TABLE_RING_FREE = 1.5;
+export const TABLE_RING = 2;
+export const TABLE_RING_READY = 3;
+export const TABLE_RING_SELECTED = 3;
+/** How far the selection halo sits outside the body. */
+export const TABLE_HALO_GAP = 5;
+/** Body tint over the surface: seated with no bill, with a bill. */
+export const TABLE_FILL_SEATED = 0.1;
+export const TABLE_FILL_BILL = 0.22;
+/** A reserved table's dashed ring. */
+export const TABLE_DASH = 6;
+export const TABLE_DASH_GAP = 4;
+/** Type on a table. */
+export const TABLE_LABEL_SIZE = 18;
+export const TABLE_CHIP_SIZE = 12;
+/** A party waiting this long turns the clock amber, then red. */
+export const TABLE_LONG_WAIT_MINUTES = 45;
+export const TABLE_VERY_LONG_WAIT_MINUTES = 90;
+
 /** One chair, in table-local units (origin = the table's top-left). */
 export interface SeatSlot {
   x: number;
@@ -168,6 +195,15 @@ export function TableGlyph({
   const compact = h < 64 || w < 72;
   const { len: seatLen, thick: seatThick } = seatMetrics(w, h);
   const chairs = seatSlots(shape, w, h, seats);
+  // The POS's reading of the same states: a free table recedes (card body,
+  // hairline), a reserved one wears a dashed ring, a taken one a tinted body.
+  const free = tone === "available";
+  const bodyFill = free ? "var(--color-card)" : style.fill;
+  const bodyOpacity = free ? 1 : tone === "seated" ? TABLE_FILL_BILL : TABLE_FILL_SEATED;
+  const ringColor = selected ? "var(--color-ring)" : free ? "var(--color-border)" : style.ring;
+  const ringWidth = selected ? TABLE_RING_SELECTED : free ? TABLE_RING_FREE : TABLE_RING;
+  const dash = tone === "held" && !selected ? `${TABLE_DASH} ${TABLE_DASH_GAP}` : undefined;
+  const chairColor = free ? "var(--color-muted-foreground)" : style.ring;
 
   // Occupant chip geometry: below the seats line, clipped to the table width.
   const chipMax = Math.max(w - 12, 48);
@@ -192,8 +228,8 @@ export function TableGlyph({
           width={seatLen}
           height={seatThick}
           rx={seatThick / 2}
-          fill={style.ring}
-          fillOpacity={0.55}
+          fill={chairColor}
+          fillOpacity={free ? 0.35 : 0.55}
           transform={`rotate(${seat.angle} ${x + seat.x} ${y + seat.y})`}
           style={{ pointerEvents: "none" }}
         />
@@ -203,21 +239,19 @@ export function TableGlyph({
           <>
             <ellipse
               cx={cx} cy={cy} rx={w / 2} ry={h / 2}
-              fill={style.fill} fillOpacity={0.18}
-              stroke={selected ? "var(--color-ring)" : style.ring}
-              strokeWidth={selected ? 3 : 2}
+              fill={bodyFill} fillOpacity={bodyOpacity}
+              stroke={ringColor} strokeWidth={ringWidth} strokeDasharray={dash}
             />
             <ellipse cx={cx} cy={cy} rx={w / 2} ry={h / 2} fill={`url(#${SHEEN_ID})`} style={{ pointerEvents: "none" }} />
           </>
         ) : (
           <>
             <rect
-              x={x} y={y} width={w} height={h} rx={10}
-              fill={style.fill} fillOpacity={0.18}
-              stroke={selected ? "var(--color-ring)" : style.ring}
-              strokeWidth={selected ? 3 : 2}
+              x={x} y={y} width={w} height={h} rx={TABLE_CORNER}
+              fill={bodyFill} fillOpacity={bodyOpacity}
+              stroke={ringColor} strokeWidth={ringWidth} strokeDasharray={dash}
             />
-            <rect x={x} y={y} width={w} height={h} rx={10} fill={`url(#${SHEEN_ID})`} style={{ pointerEvents: "none" }} />
+            <rect x={x} y={y} width={w} height={h} rx={TABLE_CORNER} fill={`url(#${SHEEN_ID})`} style={{ pointerEvents: "none" }} />
           </>
         )}
       </g>
@@ -225,7 +259,7 @@ export function TableGlyph({
         shape === "circle" ? (
           <ellipse cx={cx} cy={cy} rx={w / 2} ry={h / 2} fill={`url(#${HATCH_ID})`} />
         ) : (
-          <rect x={x} y={y} width={w} height={h} rx={10} fill={`url(#${HATCH_ID})`} />
+          <rect x={x} y={y} width={w} height={h} rx={TABLE_CORNER} fill={`url(#${HATCH_ID})`} />
         )
       ) : null}
       {ToneIcon ? (
@@ -236,7 +270,7 @@ export function TableGlyph({
       ) : null}
       <text
         x={cx} y={compact ? cy + 6 : cy - 2}
-        textAnchor="middle" fontSize={18} fontWeight={700}
+        textAnchor="middle" fontSize={TABLE_LABEL_SIZE} fontWeight={700}
         fill="var(--color-foreground)" style={{ pointerEvents: "none" }}
       >
         {label}
@@ -244,7 +278,7 @@ export function TableGlyph({
       {!compact ? (
         <text
           x={cx} y={cy + 16}
-          textAnchor="middle" fontSize={12}
+          textAnchor="middle" fontSize={TABLE_CHIP_SIZE}
           fill="var(--color-muted-foreground)" style={{ pointerEvents: "none" }}
         >
           {seats} {seatsWord}
