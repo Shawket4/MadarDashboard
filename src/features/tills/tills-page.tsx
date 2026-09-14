@@ -13,6 +13,7 @@ import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ListCard, ListRow } from "@/components/app/list-row";
 import { SectionHeader } from "@/components/app/section-header";
 import { StatusPill } from "@/components/app/status-pill";
+import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -215,7 +216,7 @@ export function TillsPage() {
   const flaggedCount = rows.filter((r) => r.opened_while_another_open || r.reconciliation_status === "disagreed").length;
 
   const kpis: LedgerItem[] = [
-    { key: "open", label: t("tills.openNow", "Open now"), value: openNow.data?.length ?? 0, icon: Clock, loading: !!branchId && openNow.isLoading },
+    { key: "open", label: t("tills.openNow", "Open now"), value: openNow.data?.length ?? 0, icon: Clock, accent: openNow.data?.length ? "success" : "neutral", loading: !!branchId && openNow.isLoading },
     {
       key: "bills",
       label: t("tills.openBills", "Open bills"),
@@ -285,6 +286,10 @@ function uniqueBy<T>(rows: T[], id: (r: T) => string, label: (r: T) => string) {
   return [...m].map(([value, name]) => ({ value, name }));
 }
 
+/** Open is the healthy, live state: success tone, text pulled toward foreground for AA in both themes. */
+const OPEN_TEXT = "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]";
+const OPEN_TONE_CLASS = `bg-success/12 ${OPEN_TEXT}`;
+
 /** Open right now at this branch; kept live by the `tills` realtime topic. */
 export function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenBillsNotice; onOpen: (id: string) => void }) {
   const { t } = useTranslation();
@@ -293,6 +298,7 @@ export function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?
       <SectionHeader
         title={t("tills.openNow", "Open now")}
         count={tills.length}
+        countClassName={tills.length > 0 ? OPEN_TONE_CLASS : undefined}
         description={notice && notice.open_bills_count > 0 ? <OpenBillsLine notice={notice} /> : undefined}
       />
       {tills.length === 0 ? (
@@ -307,7 +313,11 @@ export function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?
           {tills.map((s) => (
             <ListRow
               key={s.id}
-              icon={Wallet}
+              leading={
+                <span aria-hidden className={cn("grid size-9 shrink-0 place-items-center rounded-[10px]", OPEN_TONE_CLASS)}>
+                  <Wallet className="size-4" />
+                </span>
+              }
               onClick={() => onOpen(s.id)}
               title={s.teller_name}
               meta={[s.device_code, s.device_label, fmtDuration(s.opened_at)].filter(Boolean).join(" · ")}

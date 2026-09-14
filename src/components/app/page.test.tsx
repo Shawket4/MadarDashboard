@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Receipt } from "lucide-react";
 
 import "@/i18n";
 
@@ -9,16 +8,21 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, ...p }: { children: React.ReactNode }) => <a {...p}>{children}</a>,
 }));
 
-import { PageHeader, SectionTabsProvider, navGlyphFor } from "./page";
+import { PageHeader, SectionTabsProvider } from "./page";
 import { StatusPill } from "./status-pill";
 
 describe("PageHeader geometry", () => {
-  it("always reserves the leading slot so the title never moves", () => {
-    const { container, rerender } = render(<PageHeader title="Orders" />);
+  it("renders no leading slot when there is no back button", () => {
+    const { container } = render(<PageHeader title="Orders" />);
+    expect(container.querySelector('[data-slot="page-glyph"]')).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Orders");
+  });
+
+  it("a back button takes the leading slot instead of a page glyph", () => {
+    const { container } = render(
+      <PageHeader title="Orders" subtitle="This shift" actions={<button>x</button>} back={{ onClick: () => {} }} />,
+    );
     const firstSlot = () => container.querySelector("header > div > div:first-child");
-    expect(firstSlot()?.querySelector('[data-slot="page-glyph"]')).toBeInTheDocument();
-    rerender(<PageHeader title="Orders" subtitle="This shift" actions={<button>x</button>} back={{ onClick: () => {} }} />);
-    // With a back button, the same slot holds it — the title stays second.
     expect(firstSlot()?.querySelector("button[aria-label]")).toBeInTheDocument();
     expect(container.querySelector("header > div > div:nth-child(2) h1")).toHaveTextContent("Orders");
   });
@@ -36,11 +40,6 @@ describe("PageHeader geometry", () => {
       </SectionTabsProvider>,
     );
     expect(screen.getByText("All").closest("a")).toHaveAttribute("aria-current", "page");
-  });
-
-  it("finds the most specific nav glyph", () => {
-    expect(navGlyphFor("/orders")).toBe(Receipt);
-    expect(navGlyphFor("/nowhere")).toBeUndefined();
   });
 });
 

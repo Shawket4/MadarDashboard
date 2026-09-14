@@ -8,6 +8,7 @@ import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { DataTable } from "@/components/app/data-table";
 import { StatCard } from "@/components/app/stat-card";
+import { chartColor } from "@/components/app/chart-card";
 import { ExportButton } from "@/components/app/export-button";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +54,7 @@ export function PaymentMethodsPage() {
         accessorKey: "name", header: t("common.name", "Name"),
         cell: ({ row }) => {
           const Icon = iconFor(row.original.icon);
-          const color = row.original.color?.startsWith("#") ? row.original.color : "var(--chart-3)";
+          const color = row.original.color?.startsWith("#") ? row.original.color : chartColor(2);
           return (
             <div className="flex items-center gap-3">
               <span className="grid size-8 shrink-0 place-items-center rounded-full text-white" style={{ backgroundColor: color }}><Icon className="size-3.5" /></span>

@@ -64,18 +64,20 @@
   --disabled: oklch(0.915 0.005 205);
   --disabled-foreground: oklch(0.6 0.012 220);
 
-  /* Charts — categorical ramp (theme-aware). Data, not chrome: teal may lead. */
-  --chart-1: oklch(0.56 0.09 205);
-  --chart-2: oklch(0.45 0.07 165);
-  --chart-3: oklch(0.5 0.1 250);
-  --chart-4: oklch(0.74 0.15 75);
-  --chart-5: oklch(0.56 0.13 300);
-  --chart-6: oklch(0.65 0.12 200);
+  /* Charts — categorical ramp built from the v2 accents (theme-aware: each
+     step references a token that flips in .dark). Data, not chrome: teal leads. */
+  --chart-violet: oklch(0.55 0.14 295);
+  --chart-1: var(--brand);
+  --chart-2: var(--info);
+  --chart-3: var(--success);
+  --chart-4: var(--warning);
+  --chart-5: var(--chart-violet);
+  --chart-6: var(--destructive);
 
-  --payment-cash: oklch(0.7 0.16 152);
-  --payment-card: oklch(0.55 0.16 258);
-  --payment-digital-wallet: oklch(0.55 0.16 290);
-  --payment-mixed: oklch(0.74 0.14 75);
+  --payment-cash: var(--success);
+  --payment-card: var(--info);
+  --payment-digital-wallet: var(--chart-violet);
+  --payment-mixed: var(--warning);
   --payment-talabat-online: oklch(0.66 0.17 48);
   --payment-talabat-cash: oklch(0.5 0.11 48);
 
@@ -129,17 +131,7 @@
   --disabled: oklch(0.29 0.015 215);
   --disabled-foreground: oklch(0.58 0.015 215);
 
-  --chart-1: oklch(0.7 0.1 205);
-  --chart-2: oklch(0.6 0.09 165);
-  --chart-3: oklch(0.62 0.11 250);
-  --chart-4: oklch(0.78 0.15 78);
-  --chart-5: oklch(0.66 0.13 300);
-  --chart-6: oklch(0.7 0.12 200);
-
-  --payment-cash: oklch(0.74 0.16 152);
-  --payment-card: oklch(0.66 0.15 258);
-  --payment-digital-wallet: oklch(0.66 0.15 290);
-  --payment-mixed: oklch(0.78 0.14 78);
+  --chart-violet: oklch(0.7 0.12 295);
   --payment-talabat-online: oklch(0.72 0.16 48);
   --payment-talabat-cash: oklch(0.58 0.12 48);
 

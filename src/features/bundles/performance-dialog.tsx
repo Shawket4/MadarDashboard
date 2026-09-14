@@ -5,6 +5,7 @@ import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip as ReTooltip, XAxis, 
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { chartColor } from "@/components/app/chart-card";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -72,7 +73,7 @@ export function PerformanceDialog({ bundle, onClose }: { bundle: BundleWithCompo
                       />
                       <Bar dataKey="sales" radius={barRadius} isAnimationActive={!reducedMotion}>
                         {data.map((_, i) => (
-                          <Cell key={i} fill={`var(--chart-${(i % 6) + 1})`} />
+                          <Cell key={i} fill={chartColor(i)} />
                         ))}
                       </Bar>
                     </BarChart>

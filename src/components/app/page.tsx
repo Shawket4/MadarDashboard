@@ -1,25 +1,24 @@
-import { createContext, createElement, useContext, type ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { ChevronLeft, type LucideIcon } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { NAV, isParent } from "@/config/nav";
 import { cn } from "@/lib/utils";
 import { fadeIn } from "@/lib/motion";
 
 /**
  * Page geometry — the dashboard half of the POS spec (madar/docs/design/SPEC.md §2–3).
  *
- *  gutter ┌ slot 44 ┐12┌ Title — 28/700, centred in a 48 row ──────┐ actions ┐
- *         │ ‹ | ☐   │  │ Subtitle — 14 muted, below, never moves    │         │
- *         └─────────┘  └────────────────────────────────────────────┘         ┘
- *                      below — section tabs, filters, segments
+ *  gutter ┌ Title — 28/700, centred in a 48 row ──────┐ actions ┐
+ *         │ Subtitle — 14 muted, below, never moves    │         │
+ *         └────────────────────────────────────────────┘         ┘
+ *         below — section tabs, filters, segments
  *
- * The leading slot is ALWAYS reserved (the page's nav glyph, or a back button),
- * so the title's x is identical on every page in both directions. The header is
- * capped at the page's content width and both start at the gutter: content is
- * never centred in the leftover space.
+ * No glyph beside the title: the sidebar already names the page. A pushed page
+ * puts a back button before the title. The header is capped at the page's
+ * content width and both start at the gutter: content is never centred in the
+ * leftover space.
  */
 
 export type PageWidth = "full" | "reading" | "form";
@@ -127,18 +126,6 @@ export function SectionTabBar({ tabs }: { tabs: SectionTab[] }) {
 
 // ── Header ──────────────────────────────────────────────────────────────────
 
-const NAV_LEAVES = NAV.flatMap((g) => g.entries.flatMap((e) => (isParent(e) ? e.children : [e])));
-
-/** The nav glyph for a path — the most specific nav target that owns it. */
-export function navGlyphFor(pathname: string): LucideIcon | undefined {
-  let best: { to: string; icon: LucideIcon } | undefined;
-  for (const leaf of NAV_LEAVES) {
-    const hit = leaf.to === "/" ? pathname === "/" : pathname === leaf.to || pathname.startsWith(`${leaf.to}/`);
-    if (hit && (!best || leaf.to.length > best.to.length)) best = leaf;
-  }
-  return best?.icon;
-}
-
 export type PageBack = { to: string; search?: Record<string, unknown> } | { onClick: () => void };
 
 interface PageHeaderProps {
@@ -149,8 +136,6 @@ interface PageHeaderProps {
   actions?: ReactNode;
   /** A pushed page puts a back button in the leading slot. */
   back?: PageBack;
-  /** Override the leading glyph (defaults to the page's nav icon). */
-  icon?: LucideIcon;
   /** Row under the title block: section tabs, filters, segments, search. */
   below?: ReactNode;
   className?: string;
@@ -162,14 +147,11 @@ export function PageHeader({
   subtitle,
   actions,
   back,
-  icon,
   below,
   className,
 }: PageHeaderProps) {
   const { t } = useTranslation();
-  const { pathname } = useLocation();
   const sectionTabs = useContext(SectionTabsContext);
-  const glyph = icon ?? navGlyphFor(pathname);
   const sub = subtitle ?? description;
   const embedded = useContext(EmbeddedContext);
 
@@ -189,7 +171,7 @@ export function PageHeader({
   }
 
   const tile = "grid size-11 shrink-0 place-items-center rounded-[10px]";
-  let leading: ReactNode;
+  let leading: ReactNode = null;
   if (back) {
     const cls = cn(
       tile,
@@ -206,12 +188,6 @@ export function PageHeader({
           {glyph}
         </button>
       );
-  } else {
-    leading = (
-      <span aria-hidden className={cn(tile, "border bg-card text-muted-foreground")} data-slot="page-glyph">
-        {glyph ? createElement(glyph, { className: "size-5" }) : null}
-      </span>
-    );
   }
 
   const belowRow = sectionTabs || below;
@@ -219,7 +195,7 @@ export function PageHeader({
   return (
     <header data-slot="page-header" className={cn("space-y-3", className)}>
       <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
-        <div className="flex h-12 shrink-0 items-center">{leading}</div>
+        {leading ? <div className="flex h-12 shrink-0 items-center">{leading}</div> : null}
         <div className="min-w-0 flex-1 basis-48">
           <div className="flex h-12 items-center">
             <h1 className="truncate text-2xl leading-tight font-bold tracking-[-0.015em] sm:text-[1.75rem]">
@@ -229,7 +205,7 @@ export function PageHeader({
           {sub ? <div className="-mt-1 max-w-prose text-sm text-pretty text-muted-foreground">{sub}</div> : null}
         </div>
         {actions ? (
-          <div className="flex min-h-12 w-full flex-wrap items-center gap-2 ps-14 sm:w-auto sm:ps-0">{actions}</div>
+          <div className={cn("flex min-h-12 w-full flex-wrap items-center gap-2 sm:w-auto", leading && "ps-14 sm:ps-0")}>{actions}</div>
         ) : null}
       </div>
       {belowRow ? (
@@ -241,6 +217,3 @@ export function PageHeader({
     </header>
   );
 }
-
-/** Content that should align with the title's text edge rather than the gutter (rare). */
-export const TITLE_INSET = "ps-14";

@@ -13,6 +13,7 @@ export function SectionHeader({
   description,
   icon: Icon,
   count,
+  countClassName,
   trailing,
   as: Heading = "h2",
   className,
@@ -21,6 +22,8 @@ export function SectionHeader({
   description?: ReactNode;
   icon?: LucideIcon;
   count?: number;
+  /** Tone override for the count chip (e.g. a live/open state). */
+  countClassName?: string;
   trailing?: ReactNode;
   as?: "h2" | "h3";
   className?: string;
@@ -32,7 +35,7 @@ export function SectionHeader({
           {Icon ? <Icon aria-hidden className="size-4 text-muted-foreground" /> : null}
           <span className="truncate">{title}</span>
           {count !== undefined ? (
-            <span className="rounded-full bg-secondary px-1.5 font-mono text-xs font-medium text-muted-foreground tabular-nums">
+            <span className={cn("rounded-full bg-secondary px-1.5 font-mono text-xs font-medium text-muted-foreground tabular-nums", countClassName)}>
               {count}
             </span>
           ) : null}

@@ -350,7 +350,7 @@ function HeatmapView({ block }: { block: ResultBlock }) {
                       style={{
                         // Opacity carries the value; a hue ramp would imply
                         // categories that are not there.
-                        background: "var(--chart-1)",
+                        background: CHART_COLORS[0],
                         opacity: v === 0 ? 0.06 : 0.15 + (v / max) * 0.85,
                       }}
                     />

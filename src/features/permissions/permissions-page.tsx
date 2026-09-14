@@ -135,7 +135,6 @@ export function PermissionsPage() {
   return (
     <Page>
       <PageHeader
-        icon={Shield}
         title={t("permissions.title", "Permissions")}
         subtitle={t("permissions.subtitle", "Manage per-user access overrides")}
         actions={<ExportButton onExport={handleExport} loading={exporting} disabled={!selUser || resources.length === 0} />}

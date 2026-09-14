@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { ShieldQuestion, Wifi } from "lucide-react";
+import { CircleDot, ShieldQuestion, Wifi } from "lucide-react";
 
 import { StatusPill, type StatusTone } from "@/components/app/status-pill";
 
 import type { Till, TillStatus } from "./api";
 
 const STATUS_TONE: Record<TillStatus, StatusTone> = {
-  open: "accent",
+  open: "success",
   closed: "neutral",
   force_closed: "warning",
 };
@@ -14,7 +14,7 @@ const STATUS_TONE: Record<TillStatus, StatusTone> = {
 export function TillStatusBadge({ status }: { status: TillStatus }) {
   const { t } = useTranslation();
   return (
-    <StatusPill tone={STATUS_TONE[status] ?? "neutral"} size="sm">
+    <StatusPill tone={STATUS_TONE[status] ?? "neutral"} icon={status === "open" ? CircleDot : undefined} size="sm">
       {t(`tillStatus.${status}`, status.replace("_", " "))}
     </StatusPill>
   );

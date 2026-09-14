@@ -10,7 +10,6 @@
  */
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { Settings } from "lucide-react";
 
 import { EmbeddedPages, Page, PageHeader, PAGE_WIDTH_CLASS } from "@/components/app/page";
 import {
@@ -42,7 +41,7 @@ export function SettingsShell() {
 
   return (
     <Page width="full">
-      <PageHeader title={t("nav.settings", "Settings")} icon={Settings} />
+      <PageHeader title={t("nav.settings", "Settings")} />
 
       {/* Phone / tablet: the pane list as a picker. */}
       <div className="lg:hidden">
