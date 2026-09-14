@@ -674,7 +674,7 @@ function ItemRow({
               aria-hidden="true"
             />
             <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-muted text-muted-foreground">
-              {item.image_url ? (
+              {item.image || item.image_url ? (
                 <AssetImage asset={assetOf(item)} legacyUrl={item.image_url} sizes="128px" className="size-full object-cover" />
               ) : (
                 <CupSoda className="size-4" />
@@ -956,7 +956,7 @@ function ItemCard({
           aria-hidden="true"
         />
         <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-muted text-muted-foreground">
-          {item.image_url ? (
+          {item.image || item.image_url ? (
             <AssetImage asset={assetOf(item)} legacyUrl={item.image_url} sizes="128px" className="size-full object-cover" />
           ) : (
             <CupSoda className="size-4" />

@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { BilingualField } from "@/components/app/bilingual-field";
 import { ImageUploader } from "@/components/app/image-uploader";
+import type { AssetGroupRef } from "@/components/app/asset-image";
 import { Combobox } from "@/components/app/combobox";
 import { useListCategories } from "@/data/api/generated/api";
 import { getTranslatedName } from "@/lib/translation";
@@ -19,6 +20,8 @@ interface Props {
   orgId: string | null;
   /** What the uploader shows: pending preview ?? server image (unless removed). */
   imageUrl: string | null;
+  /** The asset group backing `imageUrl`, when the server has one (not a pending preview). */
+  imageAsset?: AssetGroupRef | null;
   /** Stage a picked file — uploaded by the batched save, not immediately. */
   onPickImage: (file: File) => void;
   /** Stage image removal (or drop the pending file). Absent = nothing to remove. */
@@ -29,7 +32,7 @@ interface Props {
  * Section 1 — Item: image, bilingual name/description, category, active switch.
  * All edits are drafts in the page's dirty store; nothing writes until Save.
  */
-export function SectionItem({ form, orgId, imageUrl, onPickImage, onRemoveImage }: Props) {
+export function SectionItem({ form, orgId, imageUrl, imageAsset, onPickImage, onRemoveImage }: Props) {
   const { t, i18n } = useTranslation();
   const [newCategory, setNewCategory] = useState(false);
 
@@ -51,6 +54,7 @@ export function SectionItem({ form, orgId, imageUrl, onPickImage, onRemoveImage 
           <div className="shrink-0">
             <ImageUploader
               value={imageUrl}
+              asset={imageAsset}
               onUpload={(file) => {
                 onPickImage(file);
                 return Promise.resolve("");

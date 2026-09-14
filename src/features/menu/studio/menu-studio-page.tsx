@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ArrowRight, Boxes, Copy } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
+import { assetOf } from "@/components/app/asset-image";
 import { StatusPill } from "@/components/app/status-pill";
 import { ErrorState } from "@/components/app/empty-state";
 import { Button } from "@/components/ui/button";
@@ -510,8 +511,9 @@ export function MenuStudioPage() {
   }
 
   const name = getTranslatedName({ name: studio.name, name_translations: studio.name_translations }, i18n.language);
+  const studioAsset = assetOf(studio);
   const imageUrl = previewUrl ?? (imageRemoved ? null : (studio.image_url ?? null));
-  const hasRemovableImage = !!previewUrl || (!!studio.image_url && !imageRemoved);
+  const hasRemovableImage = !!previewUrl || (!!(studioAsset || studio.image_url) && !imageRemoved);
 
   return (
     <Page width="reading" className="space-y-0">
@@ -571,6 +573,7 @@ export function MenuStudioPage() {
             form={form}
             orgId={orgId}
             imageUrl={imageUrl}
+            imageAsset={previewUrl ? null : imageRemoved ? null : studioAsset}
             onPickImage={(file) => {
               setPendingImage(file);
               setImageRemoved(false);

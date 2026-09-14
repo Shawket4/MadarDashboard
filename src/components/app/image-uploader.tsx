@@ -25,6 +25,8 @@ interface ImageUploaderProps {
   maxBytes?: number;
   square?: boolean;
   disabled?: boolean;
+  /** Called once a "processing" upload's asset job finishes (done or failed). */
+  onProcessed?: () => void;
 }
 
 /**
@@ -48,6 +50,7 @@ export function ImageUploader({
   square = true,
   disabled = false,
   asset,
+  onProcessed,
 }: ImageUploaderProps) {
   const { t } = useTranslation();
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -67,11 +70,13 @@ export function ImageUploader({
       const tile = result?.variants?.tile ?? result?.variants?.full;
       if (tile) setJustUploaded(tile.url);
       setJobId(null);
+      onProcessed?.();
     } else if (job.data.status === "failed") {
       setError(job.data.error ?? t("uploader.processingFailed", "The image could not be processed"));
       setJobId(null);
+      onProcessed?.();
     }
-  }, [jobId, job.data, t]);
+  }, [jobId, job.data, t, onProcessed]);
   const processing = !!jobId;
   const shown = justUploaded ?? value;
 

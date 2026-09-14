@@ -12,6 +12,7 @@ import { useConfirm } from "@/components/app/confirm-dialog";
 import { EditableCardGrid, type EditableField } from "@/components/app/editable-cards";
 import { ExportButton } from "@/components/app/export-button";
 import { AddonCostCell, ItemCostCell } from "@/components/app/cost-cells";
+import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -339,6 +340,15 @@ export function MenuItemsPage() {
       {url ? <img src={url} alt="" className="size-full object-cover" /> : <Icon className="size-5" aria-hidden />}
     </span>
   );
+  const imgAssetTile = (entity: unknown, url: string | null | undefined, Icon: typeof CupSoda) => (
+    <span className="grid size-11 place-items-center overflow-hidden rounded-[10px] bg-secondary text-muted-foreground">
+      {entity && (assetOf(entity) || url) ? (
+        <AssetImage asset={assetOf(entity)} legacyUrl={url} sizes="128px" className="size-full object-cover" />
+      ) : (
+        <Icon className="size-5" aria-hidden />
+      )}
+    </span>
+  );
 
   return (
     <Page>
@@ -372,7 +382,7 @@ export function MenuItemsPage() {
             getRowId={(m) => m.id}
             titleField={itemTitle}
             fields={itemFields}
-            renderImage={(m) => imgTile(m.image_url, CupSoda)}
+            renderImage={(m) => imgAssetTile(m, m.image_url, CupSoda)}
             footer={(m) => (
               <div className="space-y-2">
                 <ItemCostCell skus={m.sku_costs ?? []} />
@@ -495,7 +505,7 @@ export function MenuItemsPage() {
             getRowId={(c) => c.id}
             titleField={catTitle}
             fields={catFields}
-            renderImage={(c) => imgTile(c.image_url, Tag)}
+            renderImage={(c) => imgAssetTile(c, c.image_url, Tag)}
             onCommitRow={commitCategory}
             searchText={(c) => `${c.name} ${tname(c)}`}
             isLoading={categories.isLoading}
