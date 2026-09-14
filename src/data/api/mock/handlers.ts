@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, passthrough } from "msw";
 
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import {
@@ -16,7 +16,7 @@ import {
   MOCK_COMBINED_ITEM_SALES,
   MOCK_COMPARISON,
   MOCK_CONSUMPTION,
-  MOCK_CURRENT_SHIFT,
+  MOCK_CURRENT_TILL,
   MOCK_DELIVERY_SALES,
   MOCK_DELIVERY_SETTINGS,
   MOCK_INGREDIENT_CATALOG,
@@ -34,7 +34,7 @@ import {
   MOCK_PURCHASE_ORDERS,
   MOCK_QR,
   MOCK_REORDER_SUGGESTIONS,
-  MOCK_SHIFT_REPORT,
+  MOCK_TILL_REPORT,
   MOCK_SHRINKAGE,
   MOCK_STOCKTAKES,
   MOCK_SUPPLIERS,
@@ -54,7 +54,7 @@ import {
   mockMenuMargin,
   mockPutMarginTarget,
   permissionMatrix,
-  shiftsPage,
+  tillsPage,
   addFloorSection,
   addFloorTable,
   deleteFloorSection,
@@ -255,6 +255,10 @@ const echoCreated = async ({ request }: { request: Request }) => {
 
 /** All MSW request handlers. Order matters: more specific first. */
 export const handlers = [
+  // Vite serves source modules from the same origin; a wildcard API handler
+  // (`*/orgs/*`) would otherwise answer `/src/features/orgs/tax-rate.ts` with
+  // JSON and break the route's lazy import.
+  http.all(/^[^?]*\/(src|node_modules|@vite|@fs|@id)\//, () => passthrough()),
   // ── Demo session ──────────────────────────────────────────────────────────
   // Mirrors the demo backend so `dev:demo` exercises the playground locally:
   // `full` lands on a populated dashboard, `empty` flows into onboarding.
@@ -508,15 +512,14 @@ export const handlers = [
   }),
   http.get("*/orgs/:id/qr", () => HttpResponse.json(MOCK_QR("org", "madar-coffee", "madar"))),
 
-  // ── Shifts ────────────────────────────────────────────────────────────────
-  http.get("*/shifts/branches/:branchId/current", () => HttpResponse.json(MOCK_CURRENT_SHIFT)),
-  http.get("*/shifts/branches/:branchId", ({ params }) =>
-    HttpResponse.json(shiftsPage(params.branchId as string)),
+  // Tills (TILLS_CONTRACT §2.2)
+  http.get("*/tills/branches/:branchId/current", () => HttpResponse.json(MOCK_CURRENT_TILL)),
+  http.get("*/tills/branches/:branchId/open", ({ params }) =>
+    HttpResponse.json(tillsPage(params.branchId as string).data.filter((s) => s.status === "open")),
   ),
-  http.get("*/shifts/:shiftId/report", ({ params }) =>
-    HttpResponse.json(MOCK_SHIFT_REPORT(params.shiftId as string)),
-  ),
-  http.get("*/shifts/:shiftId/cash-movements", () => HttpResponse.json([])),
+  http.get("*/tills/branches/:branchId", ({ params }) => HttpResponse.json(tillsPage(params.branchId as string))),
+  http.get("*/tills/:tillId/report", ({ params }) => HttpResponse.json(MOCK_TILL_REPORT(params.tillId as string))),
+  http.get("*/tills/:tillId/cash-movements", () => HttpResponse.json([])),
 
   // ── Delivery settings ─────────────────────────────────────────────────────
   http.get("*/delivery/channel-addon-overrides", () => HttpResponse.json([])),

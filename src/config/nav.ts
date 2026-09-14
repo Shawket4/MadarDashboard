@@ -10,7 +10,7 @@ import {
   CalendarClock,
   CalendarRange,
   ClipboardList,
-  Clock,
+  Tablet,
   CupSoda,
   FileBarChart,
   Home,
@@ -80,7 +80,6 @@ export const NAV: NavGroup[] = [
       { to: "/orders", labelKey: "nav.orders", fallback: "Orders", icon: Receipt },
       { to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
       { to: "/bookings", labelKey: "nav.bookings", fallback: "Bookings", icon: CalendarClock },
-      { to: "/shifts", labelKey: "nav.shifts", fallback: "Shifts", icon: Clock },
       { to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
     ],
   },
@@ -169,7 +168,7 @@ export const NAV: NavGroup[] = [
         children: [
           { to: "/staff/employees", labelKey: "nav.employees", fallback: "Employees", icon: UserRound },
           { to: "/staff/attendance", labelKey: "nav.attendance", fallback: "Attendance", icon: CalendarClock },
-          // "Work shifts" deliberately, not "Shifts" — /shifts is the cash drawer.
+          // "Work shifts" (staff scheduling) — distinct from /tills, the sales sessions.
           { to: "/staff/shifts", labelKey: "nav.workShifts", fallback: "Work shifts", icon: CalendarRange },
           { to: "/staff/requests", labelKey: "nav.requests", fallback: "Requests", icon: Inbox },
           { to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
@@ -186,6 +185,7 @@ export const NAV: NavGroup[] = [
     entries: [
       { to: "/orgs", labelKey: "nav.orgs", fallback: "Organizations", icon: Building2, superAdminOnly: true },
       { to: "/branches", labelKey: "nav.branches", fallback: "Branches", icon: Store },
+      { to: "/devices", labelKey: "nav.devices", fallback: "Devices", icon: Tablet },
       { to: "/access/users", labelKey: "nav.usersPermissions", fallback: "Users & Permissions", icon: Users },
     ],
   },

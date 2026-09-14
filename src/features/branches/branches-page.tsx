@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CheckCircle, GitBranch, MapPin, Pencil, Phone, Plus, Printer, Trash2, XCircle } from "lucide-react";
+import { GitBranch, MapPin, Pencil, Plus, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -11,7 +11,8 @@ import { StatCard } from "@/components/app/stat-card";
 import { ExportButton } from "@/components/app/export-button";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { StatusPill } from "@/components/app/status-pill";
+import { RowAction } from "@/features/users/row-action";
 import { BranchDialog } from "./branch-dialog";
 import { invalidateBranches } from "./util";
 import { deleteBranch, useListBranches } from "@/data/api/generated/api";
@@ -41,7 +42,7 @@ export function BranchesPage() {
   const dlgOpen = editId === "new" || !!editing;
 
   const remove = async (b: Branch) => {
-    if (await confirm({ title: t("common.confirmDelete", { name: b.name, defaultValue: `Delete "${b.name}"?` }), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
+    if (await confirm({ title: t("branches.deleteTitle", { name: b.name, defaultValue: `Delete ${b.name}?` }), description: t("branches.deleteDescription", "Its tills, printer settings and stock levels go with it. Past orders stay in reports."), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
       try { await deleteBranch(b.id); void invalidateBranches(); toast.success(t("branches.deletedToast", "Branch deleted")); } catch (e) { toast.error(getErrorMessage(e)); }
     }
   };
@@ -49,23 +50,23 @@ export function BranchesPage() {
   const columns = useMemo<ColumnDef<Branch>[]>(
     () => [
       {
-        accessorKey: "name", header: t("common.name", "Name"),
+        accessorKey: "name", header: t("common.name", "Name"), meta: { label: t("common.name", "Name"), phone: "title" },
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><GitBranch className="size-3.5" /></span>
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground"><GitBranch className="size-4" /></span>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{row.original.name}</p>
-              {row.original.address ? <p className="flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="size-2.5" /> {row.original.address}</p> : null}
+              {row.original.address ? <p className="flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="size-3 shrink-0" /> {row.original.address}</p> : null}
             </div>
           </div>
         ),
       },
       {
-        accessorKey: "phone", header: t("branches.phone", "Phone"),
-        cell: ({ row }) => row.original.phone ? <span dir="ltr" className="flex items-center gap-1 font-mono text-sm"><Phone className="size-2.5" />{row.original.phone}</span> : <span className="text-sm text-muted-foreground">—</span>,
+        accessorKey: "phone", header: t("branches.phone", "Phone"), meta: { label: t("branches.phone", "Phone"), numeric: true, align: "start" },
+        cell: ({ row }) => row.original.phone ? <span dir="ltr">{row.original.phone}</span> : <span className="text-muted-foreground">—</span>,
       },
       {
-        accessorKey: "printer_brand", header: t("branches.printer", "Printer"),
+        accessorKey: "printer_brand", header: t("branches.printer", "Printer"), meta: { label: t("branches.printer", "Printer") },
         cell: ({ row }) => row.original.printer_brand ? (
           <div className="flex items-center gap-1.5">
             <Printer className="size-3 text-muted-foreground" />
@@ -75,18 +76,10 @@ export function BranchesPage() {
       },
       {
         accessorKey: "is_active", header: t("common.status", "Status"),
+        meta: { label: t("common.status", "Status") },
         cell: ({ row }) => row.original.is_active
-          ? <Badge variant="outline" className="border-transparent bg-success/10 text-success"><CheckCircle className="size-3" /> {t("common.active", "Active")}</Badge>
-          : <Badge variant="outline"><XCircle className="size-3" /> {t("common.inactive", "Inactive")}</Badge>,
-      },
-      {
-        id: "actions", header: "",
-        cell: ({ row }) => (
-          <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon-sm" aria-label={t("common.edit", "Edit")} onClick={() => update({ edit: row.original.id })}><Pencil className="size-4" /></Button>
-            <Button variant="ghost" size="icon-sm" className="text-destructive" aria-label={t("common.delete", "Delete")} onClick={() => void remove(row.original)}><Trash2 className="size-4" /></Button>
-          </div>
-        ),
+          ? <StatusPill tone="success">{t("common.active", "Active")}</StatusPill>
+          : <StatusPill tone="neutral">{t("common.inactive", "Inactive")}</StatusPill>,
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,23 +116,27 @@ export function BranchesPage() {
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("common.total", "Total")} value={branches.length} loading={list.isLoading} />
-        <StatCard label={t("common.active", "Active")} value={branches.filter((b) => b.is_active).length} accent="success" loading={list.isLoading} />
-        <StatCard label={t("branches.withPrinter", "With Printer")} value={branches.filter((b) => b.printer_brand).length} accent="info" loading={list.isLoading} />
-        <StatCard label={t("common.inactive", "Inactive")} value={branches.filter((b) => !b.is_active).length} accent="warning" loading={list.isLoading} />
+        <StatCard label={t("common.active", "Active")} value={branches.filter((b) => b.is_active).length} loading={list.isLoading} />
+        <StatCard label={t("branches.withPrinter", "With Printer")} value={branches.filter((b) => b.printer_brand).length} loading={list.isLoading} />
+        <StatCard label={t("common.inactive", "Inactive")} value={branches.filter((b) => !b.is_active).length} loading={list.isLoading} />
       </div>
-      {list.isError ? (
-        <EmptyState icon={GitBranch} title={t("branches.loadError", "Couldn't load branches")} description={t("common.tryRefresh", "Try refreshing the page.")} />
-      ) : (
-        <DataTable
+      <DataTable
           columns={columns}
           data={branches}
           loading={list.isLoading}
+          error={list.error}
+          onRetry={() => void list.refetch()}
+          rowActions={(r) => (
+            <>
+              <RowAction label={t("common.edit", "Edit")} onClick={() => update({ edit: r.id })}><Pencil className="size-4" /></RowAction>
+              <RowAction destructive label={t("common.delete", "Delete")} onClick={() => void remove(r)}><Trash2 className="size-4" /></RowAction>
+            </>
+          )}
           getRowId={(b) => b.id}
           onRowClick={(b) => update({ edit: b.id })}
           searchPlaceholder={t("common.search", "Search…")}
-          emptyState={<EmptyState icon={GitBranch} title={t("common.noResults", "No results")} />}
+          emptyState={<EmptyState icon={GitBranch} title={t("branches.empty", "Branches you add appear here")} />}
         />
-      )}
       {dlgOpen ? <BranchDialog orgId={orgId} branch={editing} open={dlgOpen} onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}
     </Page>
   );

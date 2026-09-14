@@ -95,7 +95,19 @@
     "more": "More",
     "on": "On",
     "off": "Off",
-    "open": "Open"
+    "open": "Open",
+    "viewAll": "View all",
+    "loadMore": "Load more",
+    "columns": "Columns",
+    "loadFailed": "Couldn't load this",
+    "moreActions": "More actions",
+    "approve": "Approve",
+    "decision": {
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "ignored": "Ignored"
+    },
+    "ok": "OK"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -109,7 +121,6 @@
     "menu": "Menu",
     "inventory": "Inventory",
     "recipes": "Recipes",
-    "shifts": "Shifts",
     "analytics": "Analytics",
     "orders": "Orders",
     "floor": "Floor",
@@ -172,7 +183,8 @@
     "basiraAsk": "Ask",
     "bookings": "Bookings",
     "loyalty": "Loyalty",
-    "tablesInsights": "Tables"
+    "tablesInsights": "Tables",
+    "devices": "Devices"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -224,11 +236,6 @@
     "l": "L",
     "pcs": "pcs"
   },
-  "shiftStatus": {
-    "open": "Open",
-    "closed": "Closed",
-    "force_closed": "Force Closed"
-  },
   "orderStatus": {
     "completed": "Completed",
     "voided": "Voided"
@@ -243,7 +250,6 @@
     "overview": "Branch Overview",
     "totalSales": "Today's Sales",
     "orders": "Orders",
-    "activeShifts": "Active Shifts",
     "ofBranches": "of {{count}} branches",
     "staff": "Staff",
     "operating": "Operating",
@@ -251,8 +257,6 @@
     "recentOrders": "Recent Orders",
     "lowStock": "Low Stock",
     "allStockOk": "All stock levels OK",
-    "noActiveShift": "No active shift",
-    "noShiftFound": "No open shift found",
     "noOrdersYet": "No orders yet this shift",
     "todaySales": "Today's Sales",
     "teller": "Teller",
@@ -264,7 +268,6 @@
     "lowStockItems_other": "{{count}} items low on stock",
     "attention": "Needs attention",
     "allClear": "All clear — nothing needs attention",
-    "noOpenShiftAt": "No open shift at {{branch}}",
     "greeting": "Welcome back",
     "greetingName": "Welcome back, {{name}}",
     "revenue": "Revenue",
@@ -276,7 +279,17 @@
     "branchPerformance": "Branch performance",
     "periodTotal": "{{total}} this period",
     "branchRevenueBar": "Revenue share for {{name}}",
-    "tips": "Tips"
+    "tips": "Tips",
+    "openTills": "Open tills",
+    "noOpenTill": "No open till",
+    "noTillFound": "No open till found",
+    "noOpenTillAt": "No open till at {{branch}}",
+    "trendFailed": "Couldn't load the revenue trend",
+    "paymentsFailed": "Couldn't load the payment mix",
+    "branchesFailed": "Couldn't load branch performance",
+    "deliveryFailed": "Couldn't load delivery sales",
+    "noSalesPeriod": "Sales for this period will appear here.",
+    "ordersWord": "orders"
   },
   "orgs": {
     "title": "Organizations",
@@ -320,7 +333,10 @@
     "serviceChargeHint": "0 for none. Shown as its own line on the bill.",
     "serviceChargeTaxable": "Tax the service charge",
     "requireTable": "Every dine-in sale belongs to a table",
-    "requireTableHint": "The till stops ringing up dine-in sales on their own — staff seat the party from the floor, add their items, then settle. Branches with no floor are unaffected, and a queued offline sale still replays."
+    "requireTableHint": "The till stops ringing up dine-in sales on their own — staff seat the party from the floor, add their items, then settle. Branches with no floor are unaffected, and a queued offline sale still replays.",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteDescription": "Every branch, user and menu under this organization is removed. This cannot be undone.",
+    "empty": "Organizations you add appear here"
   },
   "branches": {
     "title": "Branches",
@@ -356,7 +372,12 @@
     "loadError": "Couldn't load branches",
     "pickOrgDescription": "Choose an organization from the sidebar to view and manage its branches.",
     "taxOverride": "This branch taxes differently",
-    "taxOverrideHint": "Off, it follows the organisation's tax settings and changes to them apply here automatically."
+    "taxOverrideHint": "Off, it follows the organisation's tax settings and changes to them apply here automatically.",
+    "oldBillHours": "Flag open bills as old after (hours)",
+    "standardFloat": "Standard drawer float",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteDescription": "Its tills, printer settings and stock levels go with it. Past orders stay in reports.",
+    "empty": "Branches you add appear here"
   },
   "users": {
     "title": "Users",
@@ -377,7 +398,7 @@
     "assignBranches": "Assign branches",
     "totalUsers": "Total Users",
     "orgAdmins": "Org Admins",
-    "branchManagers": "Tellers",
+    "branchManagers": "Branch managers",
     "tellers": "Tellers",
     "createdToast": "User created",
     "updatedToast": "User updated",
@@ -389,7 +410,10 @@
     "passwordRequired": "Password is required",
     "posCredHint": "Signs in on the POS app with this PIN — no email or password.",
     "dashCredHint": "Signs in to the dashboard with email + password — no PIN.",
-    "leaveBlank": "Leave blank to keep"
+    "leaveBlank": "Leave blank to keep",
+    "deleteTitle": "Delete {{name}}'s account?",
+    "deleteDescription": "They can no longer sign in to the dashboard or the POS. Their past orders and tills stay on record.",
+    "empty": "Staff accounts you add appear here"
   },
   "permissions": {
     "title": "Permissions",
@@ -410,7 +434,6 @@
     },
     "resources": {
       "orders": "Orders",
-      "shifts": "Shifts",
       "branches": "Branches",
       "users": "Users",
       "menu_items": "Menu Items",
@@ -421,7 +444,6 @@
       "inventory_transfers": "Inventory Transfers",
       "recipes": "Recipes",
       "permissions": "Permissions",
-      "shift_counts": "Shift Counts",
       "orgs": "Organizations",
       "addon_groups": "Addon Groups",
       "order_items": "Order Items",
@@ -431,8 +453,12 @@
       "stocktakes": "Stocktakes",
       "inventory_waste": "Inventory Waste",
       "suppliers": "Suppliers",
-      "purchase_orders": "Purchase Orders"
-    }
+      "purchase_orders": "Purchase Orders",
+      "tills": "Tills"
+    },
+    "usersLoadError": "Couldn't load users",
+    "noUsers": "Other staff accounts appear here once they're added",
+    "matrixLoadError": "Couldn't load this user's permissions"
   },
   "menu": {
     "overrides": {
@@ -838,14 +864,19 @@
         "moveUp": "Move up",
         "moveDown": "Move down"
       },
-      "sectionSteps": "the steps"
+      "sectionSteps": "the steps",
+      "unsaved": "Unsaved",
+      "itemTitle": "Menu item"
     },
     "addonTypeLocked": "The type (group) can't change — recreate the add-on to move it.",
     "addonRecipe": {
       "title": "Add-on recipe",
       "desc": "Ingredients deducted from stock when this add-on is chosen.",
       "edit": "Edit recipe"
-    }
+    },
+    "deleteItemConsequence": "It leaves the POS menu at every branch, with its sizes, recipe and branch prices. Past orders keep their lines.",
+    "deleteAddonConsequence": "It is removed from every item that offers it. If orders used it, it is deactivated instead so history stays intact.",
+    "deleteCategoryConsequence": "The category and its kitchen routing are removed. Its items stay on the menu without a category."
   },
   "recipes": {
     "title": "Recipes",
@@ -1037,7 +1068,8 @@
         "transfer_in": "Transfer in",
         "purchase_in": "Purchase",
         "stock_count": "Stock count"
-      }
+      },
+      "loadFailed": "Couldn't load stock history"
     },
     "waste": {
       "title": "Waste log",
@@ -1069,7 +1101,9 @@
       "countFirstHint": "This branch has no stock on record yet.",
       "countFirstLink": "Count it first",
       "nothingOnHand": "nothing on hand",
-      "recorded": "Waste recorded"
+      "recorded": "Waste recorded",
+      "reportFailed": "Couldn't load waste by reason",
+      "noReasonData": "Waste by reason appears once waste is logged in this period."
     },
     "stocktakes": {
       "title": "Stock counts",
@@ -1143,7 +1177,11 @@
       "startCount": "Start count",
       "startFirst": "Count this branch",
       "st_in_progress": "In progress",
-      "st_draft": "Draft"
+      "st_draft": "Draft",
+      "cancelTitle": "Discard this count?",
+      "cancelConsequence": "Every figure entered in this open count is thrown away. Book stock stays as it is.",
+      "loadFailed": "Couldn't load the open count",
+      "reportFailed": "Couldn't load the variance report"
     },
     "purchasing": {
       "title": "Purchasing",
@@ -1212,7 +1250,11 @@
       "placeOrder": "Place order",
       "reorder": "Reorder",
       "return": "Return",
-      "suggested": "Suggested qty"
+      "suggested": "Suggested qty",
+      "cancelTitle": "Cancel purchase order {{ref}}?",
+      "cancelConsequence": "The supplier order is voided and nothing more can be received against it.",
+      "deleteSupplierConsequence": "The supplier is removed from your list. Past purchase orders keep their records.",
+      "reorderFailed": "Couldn't load reorder suggestions"
     },
     "reports": {
       "title": "Inventory reports",
@@ -1246,7 +1288,11 @@
       "costBasis": "Cost basis",
       "snapshot": "Snapshot",
       "current": "Current",
-      "qty": "Quantity"
+      "qty": "Quantity",
+      "noDataPeriod": "Nothing recorded for this scope and period.",
+      "valuationFailed": "Couldn't load stock valuation",
+      "unknownCostLabel": "Unknown cost",
+      "noValuation": "Stock value by category appears after a branch is counted."
     },
     "adjustments": {
       "title": "Adjustments",
@@ -1297,7 +1343,9 @@
       "reverseTitle": "Reverse transfer",
       "reverseConfirm": "Reverse this transfer with a compensating entry?",
       "created": "Transfer recorded",
-      "nothingToSend": "This branch has nothing on hand to send. Count it first."
+      "nothingToSend": "This branch has nothing on hand to send. Count it first.",
+      "reverseConfirmTitle": "Reverse the {{name}} transfer?",
+      "reverseConsequence": "A compensating entry moves the stock back to the source branch. The original transfer stays in the history."
     },
     "today": {
       "title": "Today",
@@ -1331,7 +1379,9 @@
       "noParsYet": "Low-stock alerts appear once you set a reorder point on an ingredient.",
       "reorderPoint": "Reorder point",
       "startFirstCount": "Count this branch's stock",
-      "suggested": "Order"
+      "suggested": "Order",
+      "deliveriesFailed": "Couldn't load deliveries",
+      "wasteFailed": "Couldn't load today's waste"
     },
     "settings": {
       "title": "Inventory settings",
@@ -1348,7 +1398,10 @@
       "deleteCategoryReassign": "{{count}} ingredients use this category. Choose where they should move.",
       "ingredientCount": "{{count}} ingredients",
       "moveTo": "Move ingredients to",
-      "noCategories": "No categories yet"
+      "noCategories": "No categories yet",
+      "categoriesFailed": "Couldn't load ingredient categories",
+      "noCategoriesHint": "Categories you add appear here and in the ingredient form.",
+      "deleteCategoryConsequence": "The category is removed from counts and reports."
     },
     "varianceReasons": {
       "theft": "Theft",
@@ -1483,99 +1536,6 @@
       "emptyPeriod": "Nothing sat here in this period."
     }
   },
-  "shifts": {
-    "teller": "Teller",
-    "waiter": "Waiter",
-    "title": "Shifts",
-    "subtitle": "Reports and shift management",
-    "openShift": "Open Shift",
-    "forceClose": "Force Close",
-    "cashMovement": "Cash Movement",
-    "reportBtn": "Report",
-    "close": "Close",
-    "duration": "Duration",
-    "opened": "Opened",
-    "closed": "Closed",
-    "stillOpen": "Still open",
-    "openingCash": "Opening Cash",
-    "expectedOpening": "Expected (carryover)",
-    "openingEdited": "Opening cash edited",
-    "openingEditReason": "Opening edit reason",
-    "closingCashDeclared": "Declared Closing Cash",
-    "expectedCash": "Expected Cash",
-    "declaredCash": "Declared Cash",
-    "cashDiscrepancy": "Cash Discrepancy",
-    "exactMatch": "Exact Match",
-    "over": "Over",
-    "short": "Short",
-    "suggestedOpening": "Suggested opening cash: {{amount}}",
-    "shiftIsOpen": "Shift is open",
-    "noShiftsYet": "No shifts yet",
-    "noShiftsHint": "Open a shift to start taking orders",
-    "forceCloseWarning": "Force closing ends the shift without a proper cash count. Use only when necessary.",
-    "forceCloseReason": "Reason",
-    "forceCloseReasonPh": "Required reason…",
-    "deleteConfirmTitle": "Delete Shift?",
-    "deleteConfirmDesc": "This will permanently delete the shift, all of its orders, and all related records. This action is extremely destructive and cannot be undone.",
-    "cashDialog": {
-      "title": "Cash Movement",
-      "direction": "Direction",
-      "in": "Cash In — add to drawer",
-      "out": "Cash Out — remove from drawer",
-      "notePh": "Reason for movement"
-    },
-    "report": {
-      "title": "Shift Report",
-      "details": "Shift Details",
-      "paymentBreakdown": "Payment Breakdown",
-      "cashSummary": "Cash Summary",
-      "cashSales": "Cash Sales",
-      "movementsIn": "Movements In",
-      "movementsOut": "Movements Out",
-      "netMovements": "Net Movements",
-      "movements": "Cash Movements",
-      "totalRevenue": "Total Revenue",
-      "voided": "Voided",
-      "netPayments": "Net Payments",
-      "printedAt": "Report generated {{date}}",
-      "print": "Print",
-      "loadError": "Could not load the shift report. Please try again."
-    },
-    "toasts": {
-      "opened": "Shift opened",
-      "closed": "Shift closed",
-      "forceClosed": "Shift force closed",
-      "cashRecorded": "Cash movement recorded",
-      "deleted": "Shift deleted successfully"
-    },
-    "openedToast": "Shift opened",
-    "closedToast": "Shift closed",
-    "openDesc": "Declare the opening cash float to start a shift.",
-    "suggested": "Suggested",
-    "closeShift": "Close shift",
-    "closeDesc": "Count the drawer and declare the closing cash.",
-    "closingCash": "Closing cash",
-    "cashMovementDesc": "Record cash paid into or taken out of the drawer.",
-    "cashIn": "Cash in",
-    "cashOut": "Cash out",
-    "cashRecorded": "Cash movement recorded",
-    "cashNotePlaceholder": "Reason for this movement",
-    "paymentSummary": "Payment summary",
-    "netPayments": "Net payments",
-    "cashReconciliation": "Cash reconciliation",
-    "cashMovements": "Cash movements",
-    "discrepancy": "Discrepancy",
-    "forceCloseDesc": "Closes the shift without a cash count. Use only when a teller can't close normally.",
-    "forceClosed": "Shift force-closed",
-    "deleteTitle": "Delete shift",
-    "deleted": "Shift deleted",
-    "pickBranch": "Select a branch to view its shifts",
-    "empty": "No shifts yet",
-    "viewReport": "View report",
-    "branch": "Branch",
-    "tips": "Tips",
-    "tipsCash": "of which cash"
-  },
   "orders": {
     "branch": "Branch",
     "date": "Date",
@@ -1685,7 +1645,10 @@
     "rewardRefusedTitle": "Reward refused when this sale synced",
     "rewardRefusedBody": "The till gave the reward offline, but the member's balance could not pay for it. No points were taken and the order is flagged.",
     "loyaltyMember": "Loyalty member",
-    "loyaltyMemberForgotten": "Deleted member"
+    "loyaltyMemberForgotten": "Deleted member",
+    "allTills": "All tills",
+    "emptyTitle": "No orders in this range",
+    "emptyBody": "Sales rung on the POS for this branch and period appear here."
   },
   "ordersExport": {
     "title": "Export Orders",
@@ -1714,10 +1677,6 @@
         "label": "Talabat Reconciliation",
         "desc": "Orders paid online/cash via Talabat for swift matching."
       },
-      "shiftHandoff": {
-        "label": "Shift Handoff Summary",
-        "desc": "Order and split-payment workbook breakdown for the shift."
-      },
       "ingredientConsumption": {
         "label": "Ingredient Consumption",
         "desc": "Exact and aggregated snapshots of deducted recipe ingredients."
@@ -1725,6 +1684,10 @@
       "custom": {
         "label": "Custom Configuration",
         "desc": "Manually toggle data grains and set custom parameters."
+      },
+      "tillHandoff": {
+        "label": "Till Handoff Summary",
+        "desc": "Order and split-payment workbook breakdown for the till."
       }
     },
     "grains": {
@@ -1827,7 +1790,8 @@
     "pctOff": "{{value}}% off",
     "amountOff": "{{value}} off",
     "activate": "Activate discount",
-    "deactivate": "Deactivate discount"
+    "deactivate": "Deactivate discount",
+    "deleteConsequence": "Cashiers can no longer apply it at checkout. Past orders keep the discount they were given."
   },
   "bundles": {
     "title": "Bundles",
@@ -1900,7 +1864,8 @@
       "sold": "{{qty}} sold",
       "loadError": "Could not load performance data"
     },
-    "costIncomplete": "Cost incomplete"
+    "costIncomplete": "Cost incomplete",
+    "deleteConsequence": "The combo disappears from the POS menu. Past orders keep their bundle lines; archive instead to keep its sales history visible here."
   },
   "menuAdvisor": {
     "title": "Menu Advisor",
@@ -2004,7 +1969,12 @@
     "unknown": "An unexpected error occurred.",
     "boundaryTitle": "Something went wrong",
     "boundaryDescription": "This screen hit an unexpected error. It has been reported — try again, and if it keeps happening reload the page.",
-    "boundaryRetry": "Try again"
+    "boundaryRetry": "Try again",
+    "codes": {
+      "EMPTY_ALLOW_LIST": "Pick at least one payment method, or allow all.",
+      "RECONCILIATION_AMOUNT_REQUIRED": "Enter the counted amount for every method that doesn't match.",
+      "RECONCILIATION_NOTE_REQUIRED": "Add a note for every method that doesn't match."
+    }
   },
   "theme": {
     "light": "Light",
@@ -2018,7 +1988,9 @@
     "remove": "Remove",
     "replace": "Replace",
     "tooLarge": "Image size exceeds 5MB limit",
-    "uploading": "Uploading..."
+    "uploading": "Uploading...",
+    "processing": "Processing…",
+    "processingFailed": "The image could not be processed"
   },
   "settings": {
     "paymentMethods": "Payment Methods",
@@ -2107,7 +2079,12 @@
       "orderHint": "Your menu, for a QR code on the table or a link in a bio.",
       "book": "Bookings",
       "bookHint": "Where guests reserve a table."
-    }
+    },
+    "pickPane": "Settings section",
+    "account": "Account",
+    "about": "About",
+    "logo": "Logo",
+    "links": "Links"
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -2688,7 +2665,7 @@
       },
       "branch": {
         "title": "Add your first branch",
-        "desc": "Every order, shift and report rolls up by branch. Add your first location to begin.",
+        "desc": "Every order, till and report rolls up by branch. Add your first location to begin.",
         "cta": "Add a branch",
         "addAnother": "Add another branch",
         "added": "{{count}} branch added — nicely done.",
@@ -2744,7 +2721,7 @@
       },
       "team": {
         "title": "Invite your team",
-        "desc": "Add managers and tellers so your staff can run shifts and take orders.",
+        "desc": "Add managers and tellers so your staff can run tills and take orders.",
         "cta": "Add a team member",
         "addAnother": "Add another member",
         "added": "{{count}} team members added.",
@@ -3306,7 +3283,10 @@
     "pickup": "Pickup",
     "pickupHint": "Customers collect their order at the branch counter. Fee defaults to free.",
     "pickupFee": "Pickup fee (EGP)",
-    "pickupFeeHint": "Leave at 0 for free pickup."
+    "pickupFeeHint": "Leave at 0 for free pickup.",
+    "settingsLoadFailed": "Couldn't load this branch's delivery settings",
+    "deleteZoneTitle": "Delete the {{name}} zone?",
+    "deleteZoneHint": "Addresses in this ring fall to the next zone out, or can no longer order delivery if it was the last one. This can't be undone."
   },
   "whatsapp": {
     "title": "WhatsApp",
@@ -3335,7 +3315,9 @@
     "paused": "Paused",
     "pausedToast": "Sending paused.",
     "resumedToast": "Sending resumed.",
-    "forbidden": "Only super admins can manage the WhatsApp connection."
+    "forbidden": "Only super admins can manage the WhatsApp connection.",
+    "unlinkTitle": "Unlink this WhatsApp number?",
+    "unlinkHint": "OTP codes and order updates stop sending until a number is linked again by scanning a new QR code."
   },
   "qr": {
     "enlarge": "Enlarge QR code",
@@ -3449,24 +3431,159 @@
     "stationUpdated": "Station updated",
     "stationsSubtitle": "Kitchen areas with printers; route menu items to them on the Order routing tab.",
     "stationsTitle": "Kitchen stations",
-    "unassigned": "Default / unassigned"
+    "unassigned": "Default / unassigned",
+    "deleteStationConsequence": "Items routed to this station fall back to their category or the default station. Its printer settings are removed.",
+    "routingLoadFailed": "Couldn't load kitchen routing",
+    "itemsLoadFailed": "Couldn't load menu items"
   },
   "tills": {
-    "created": "Till created",
-    "default": "Default",
-    "deleted": "Till deleted",
-    "editTill": "Edit till",
-    "empty": "No tills yet",
-    "emptyHint": "Every branch gets a default till; add more for multiple registers.",
-    "isDefault": "Default till",
-    "isDefaultHint": "Used when a shift opens without specifying a till.",
-    "name": "Name",
-    "newTill": "New till",
-    "pageSubtitle": "Cash drawers / registers for this branch. Each open shift runs on one till.",
-    "pickBranch": "Select a branch in the top bar to manage its tills",
-    "subtitle": "Physical cash drawers / registers for this branch.",
+    "teller": "Teller",
+    "waiter": "Waiter",
     "title": "Tills",
-    "updated": "Till updated"
+    "subtitle": "Each teller's sales session and cash drawer",
+    "openShift": "Open Till",
+    "forceClose": "Force close",
+    "cashMovement": "Cash Movement",
+    "reportBtn": "Report",
+    "close": "Close",
+    "duration": "Duration",
+    "opened": "Opened",
+    "closed": "Closed",
+    "stillOpen": "Still open",
+    "openingCash": "Opening Cash",
+    "expectedOpening": "Expected (carryover)",
+    "openingEdited": "Opening cash edited",
+    "openingEditReason": "Opening edit reason",
+    "closingCashDeclared": "Declared Closing Cash",
+    "expectedCash": "Expected cash",
+    "declaredCash": "Declared Cash",
+    "cashDiscrepancy": "Cash Discrepancy",
+    "exactMatch": "Exact Match",
+    "over": "Over",
+    "short": "Short",
+    "suggestedOpening": "Suggested opening cash: {{amount}}",
+    "shiftIsOpen": "Till is open",
+    "noShiftsYet": "No tills yet",
+    "noShiftsHint": "Open a till to start taking orders",
+    "forceCloseWarning": "Force closing ends the till without a proper cash count. Use only when necessary.",
+    "forceCloseReason": "Reason",
+    "forceCloseReasonPh": "Required reason…",
+    "deleteConfirmTitle": "Delete Till?",
+    "deleteConfirmDesc": "This will permanently delete the till, all of its orders, and all related records. This action is extremely destructive and cannot be undone.",
+    "cashDialog": {
+      "title": "Cash Movement",
+      "direction": "Direction",
+      "in": "Cash In — add to drawer",
+      "out": "Cash Out — remove from drawer",
+      "notePh": "Reason for movement"
+    },
+    "report": {
+      "title": "Till Report",
+      "details": "Till Details",
+      "paymentBreakdown": "Payment Breakdown",
+      "cashSummary": "Cash Summary",
+      "cashSales": "Cash Sales",
+      "movementsIn": "Movements In",
+      "movementsOut": "Movements Out",
+      "netMovements": "Net Movements",
+      "movements": "Cash Movements",
+      "totalRevenue": "Total Revenue",
+      "voided": "Voided",
+      "netPayments": "Net Payments",
+      "printedAt": "Report generated {{date}}",
+      "print": "Print",
+      "loadError": "Could not load the till report. Please try again."
+    },
+    "toasts": {
+      "opened": "Till opened",
+      "closed": "Till closed",
+      "forceClosed": "Till force closed",
+      "cashRecorded": "Cash movement recorded",
+      "deleted": "Till deleted successfully"
+    },
+    "openedToast": "Till opened",
+    "closedToast": "Till closed",
+    "openDesc": "Declare the opening drawer float to start a till.",
+    "suggested": "Suggested",
+    "closeShift": "Close till",
+    "closeDesc": "Count the drawer and check each payment method.",
+    "closingCash": "Cash counted in drawer",
+    "cashMovementDesc": "Record cash paid into or taken out of the drawer.",
+    "cashIn": "Cash in",
+    "cashOut": "Cash out",
+    "cashRecorded": "Cash movement recorded",
+    "cashNotePlaceholder": "Reason for this movement",
+    "paymentSummary": "Payment summary",
+    "netPayments": "Net payments",
+    "cashReconciliation": "Cash reconciliation",
+    "cashMovements": "Cash movements",
+    "discrepancy": "Discrepancy",
+    "forceCloseDesc": "Closes the till without a cash count. Use only when a teller can't close it on their device.",
+    "forceClosed": "Till force-closed",
+    "deleteTitle": "Delete till",
+    "deleted": "Till deleted",
+    "pickBranch": "Select a branch to view its tills",
+    "empty": "No tills yet",
+    "viewReport": "View report",
+    "branch": "Branch",
+    "tips": "Tips",
+    "tipsCash": "of which cash",
+    "openTill": "Open till",
+    "closeTill": "Close till",
+    "cashRequired": "Enter the counted cash.",
+    "flagged": "Opened while another till was open",
+    "flaggedLink": "See the other till",
+    "flags": "Flags",
+    "verification": {
+      "server": "Verified online",
+      "lan": "Verified on LAN",
+      "unverified": "Not verified",
+      "legacy": "Before tills rework"
+    },
+    "device": "Device",
+    "allTellers": "All tellers",
+    "allDevices": "All devices",
+    "openNow": "Open now",
+    "orderRange": "Order numbers",
+    "oldBillsAtClose": "Old open bills at close",
+    "reconciliation": {
+      "title": "Payment check",
+      "checked": "Checked",
+      "disagreed": "Doesn't match",
+      "unreviewed": "Not reviewed",
+      "disagreements": "{{count}} mismatches",
+      "method": "Method",
+      "system": "System total",
+      "declared": "Declared",
+      "amount": "Amount you see",
+      "note": "What happened?",
+      "noteRequired": "Add the amount and a note for the difference.",
+      "changedAfterClose": "Changed after close: {{amount}}"
+    },
+    "filters": {
+      "flagged": "Flagged only",
+      "today": "Today"
+    },
+    "lastTillTitle": "That was the last open till",
+    "lastTillBody": "{{bills}} bills ({{amount}}) are still open and {{tables}} tables are seated.",
+    "openBillsNotice": "{{count}} bills left open since {{since}}",
+    "openBillsCount": "{{count}} open bills",
+    "oldBills": "{{count}} older than {{hours}}h",
+    "openBillsAtClose": "Open bills at close",
+    "salesSummary": "Sales",
+    "tax": "Tax",
+    "deductions": {
+      "title": "Stock used",
+      "returned": "{{amount}} put back by voids",
+      "loadError": "Couldn't load the stock used by this till."
+    },
+    "openBills": "Open bills",
+    "oldBillsKpi": "Older than {{hours}}h",
+    "flaggedKpi": "Flagged in list",
+    "history": "All tills",
+    "noOpenHint": "A till opens when a teller starts selling on a POS.",
+    "allStatuses": "All statuses",
+    "emptyHint": "Tills appear here once a teller opens one, and stay for the record after they close."
   },
   "aiChat": {
     "title": "Ask your data",
@@ -3534,7 +3651,8 @@
       "offMenu": "Off menu",
       "vsPrev": "vs previous period",
       "noFlags": "Nothing flagged — margins look healthy",
-      "noRows": "No sales in this period"
+      "noRows": "No sales in this period",
+      "shareOfRevenue": "{{pct}} of revenue"
     },
     "columns": {
       "item": "Item",
@@ -3607,7 +3725,9 @@
       "sold_other": "{{count}} sold",
       "top": "Top earners",
       "bottom": "Needs attention",
-      "viewAll": "Menu profitability"
+      "viewAll": "Menu profitability",
+      "loadFailed": "Couldn't load margin watch",
+      "empty": "Margins appear here once items sell in this period"
     },
     "class": {
       "all": "All classes",
@@ -3962,7 +4082,20 @@
     "workShiftsSubtitle": "Working hours and the roster that assigns them. These are HR schedules — separate from cash-drawer shifts.",
     "worked": "Worked",
     "workedDays": "{{n}} days worked",
-    "workingDays": "Working days per month"
+    "workingDays": "Working days per month",
+    "deleteDepartmentTitle": "Delete the {{name}} department?",
+    "deleteDepartmentHint": "Employees keep their profiles; only the grouping is removed. A department that still has staff can't be deleted.",
+    "addDepartment": "Add department",
+    "rejectRequestTitle": "Reject {{name}}'s request?",
+    "rejectRequestHint": "The day is treated as if no request was filed, so any lateness or absence penalty applies.",
+    "requestsLoadError": "Couldn't load requests",
+    "noRequestsTitle": "No requests match these filters",
+    "deleteShiftTitle": "Delete the {{name}} shift?",
+    "shiftsSection": "Work shifts",
+    "shiftsLoadError": "Couldn't load work shifts",
+    "rosterLoadError": "Couldn't load the roster",
+    "rulesLoadError": "Couldn't load attendance rules",
+    "removeTier": "Remove rung"
   },
   "basira": {
     "title": "Basira",
@@ -4491,6 +4624,82 @@
     "search": "Search tables",
     "historyTitle": "Table {{label}}",
     "pickBranch": "Choose a branch in the scope bar to open a table's history.",
-    "tableGone": "This table is no longer on the floor plan."
+    "tableGone": "This table is no longer on the floor plan.",
+    "loadFailed": "Couldn't load table insights"
+  },
+  "tillStatus": {
+    "open": "Open",
+    "closed": "Closed",
+    "force_closed": "Force Closed"
+  },
+  "kitchenStations": {
+    "routing": {
+      "till": "POS queue"
+    }
+  },
+  "paymentMethods": {
+    "availability": {
+      "title": "Availability",
+      "branch": "Branch",
+      "tellers": "Tellers",
+      "devices": "Devices",
+      "allMethods": "All methods",
+      "onlySelected": "Only selected",
+      "restrict": "Restrict methods",
+      "emptyList": "Pick at least one method, or allow all.",
+      "pickBranchHint": "Availability is set per branch, then narrowed per teller and device.",
+      "loadError": "Couldn't load payment method availability",
+      "branchHint": "The methods any charge at this branch can offer.",
+      "tellersHint": "Narrow the branch's methods for one teller.",
+      "noTellers": "No tellers at this branch",
+      "devicesHint": "Narrow the branch's methods for one POS device.",
+      "noDevices": "No devices at this branch yet",
+      "selectedCount": "{{count}} selected",
+      "inherits": "No restriction"
+    }
+  },
+  "devices": {
+    "title": "Devices",
+    "subtitle": "POS, kitchen and waiter devices that have signed in at this branch.",
+    "empty": "No devices yet",
+    "code": "Code",
+    "label": "Name",
+    "kind": "Type",
+    "app": "App",
+    "lastSeen": "Last seen",
+    "codeConflict": "Another device uses this code",
+    "retired": "Retired",
+    "edit": "Edit device",
+    "codeInvalid": "1–6 letters or digits",
+    "kinds": {
+      "pos": "POS",
+      "kds": "Kitchen screen",
+      "waiter": "Waiter"
+    },
+    "tabDevices": "Devices",
+    "pickBranchHint": "Devices are registered per branch.",
+    "active": "Active",
+    "emptyHint": "A device appears here the first time it signs in at this branch.",
+    "editHint": "The code prefixes this device's order numbers, e.g. 36B-12.",
+    "retiredHint": "Its code is freed for another device and it leaves the availability lists.",
+    "clients": {
+      "title": "Client versions",
+      "seen": "Clients seen",
+      "onLegacy": "On legacy paths",
+      "versions": "App versions",
+      "window": "Window",
+      "lastDays": "Last {{count}} days",
+      "legacyOnly": "Legacy clients only",
+      "device": "Device",
+      "unregistered": "Unregistered client",
+      "version": "Version",
+      "lastLegacy": "Last legacy hit",
+      "upToDate": "Up to date",
+      "legacy": "Legacy",
+      "noLegacy": "No legacy clients",
+      "noLegacyHint": "Nothing used a pre-rework path in the last {{count}} days.",
+      "none": "No clients seen",
+      "noneHint": "No app has called the server in the last {{count}} days."
+    }
   }
 }

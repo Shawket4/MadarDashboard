@@ -208,7 +208,7 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
             </div>
           </div>
           {unitChanged ? (
-            <p className="rounded-md border border-warning/30 bg-warning/5 p-2 text-xs text-warning">
+            <p className="rounded-lg bg-warning/14 p-2.5 text-xs text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]">
               {t("inventory.catalog.unitChangeNotice", "Changing the unit will convert this ingredient's recipes, stock and cost to the new unit.")}
             </p>
           ) : null}

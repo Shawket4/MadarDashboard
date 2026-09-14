@@ -3,11 +3,22 @@ import { useTranslation } from "react-i18next";
 import { Image as ImageIcon, Loader2, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { AssetImage, useAssetJob, type AssetGroupRef, type AssetGroupReady } from "@/components/app/asset-image";
+
+/** Upload routes answer with the job that converts the file (§11.3). */
+export interface UploadOutcome {
+  url?: string | null;
+  image?: AssetGroupRef | null;
+  asset_job_id?: string | null;
+  status?: string | null;
+}
 
 interface ImageUploaderProps {
   value: string | null | undefined;
   /** Caller performs the upload and resolves the new URL (or throws). */
-  onUpload: (file: File) => Promise<string>;
+  onUpload: (file: File) => Promise<string | UploadOutcome>;
+  /** Asset group for the current value, when the API returns one. */
+  asset?: AssetGroupRef | null;
   onRemove?: () => Promise<void> | void;
   hint?: string;
   accept?: string;
@@ -36,6 +47,7 @@ export function ImageUploader({
   maxBytes = 5 * 1024 * 1024,
   square = true,
   disabled = false,
+  asset,
 }: ImageUploaderProps) {
   const { t } = useTranslation();
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -46,6 +58,21 @@ export function ImageUploader({
   /// What we just uploaded, held only until the caller's own value catches up.
   const [justUploaded, setJustUploaded] = React.useState<string | null>(null);
   React.useEffect(() => setJustUploaded(null), [value]);
+  const [jobId, setJobId] = React.useState<string | null>(null);
+  const job = useAssetJob(jobId);
+  React.useEffect(() => {
+    if (!jobId || !job.data) return;
+    if (job.data.status === "done") {
+      const result = job.data.result as AssetGroupReady | null;
+      const tile = result?.variants?.tile ?? result?.variants?.full;
+      if (tile) setJustUploaded(tile.url);
+      setJobId(null);
+    } else if (job.data.status === "failed") {
+      setError(job.data.error ?? t("uploader.processingFailed", "The image could not be processed"));
+      setJobId(null);
+    }
+  }, [jobId, job.data, t]);
+  const processing = !!jobId;
   const shown = justUploaded ?? value;
 
   const handleFile = async (file: File | null | undefined) => {
@@ -61,8 +88,13 @@ export function ImageUploader({
     }
     setUploading(true);
     try {
-      const url = await onUpload(file);
-      if (url) setJustUploaded(url);
+      const out = await onUpload(file);
+      if (typeof out === "string") {
+        if (out) setJustUploaded(out);
+      } else if (out) {
+        if (out.status === "processing" && out.asset_job_id) setJobId(out.asset_job_id);
+        else if (out.url) setJustUploaded(out.url);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -109,9 +141,20 @@ export function ImageUploader({
           disabled && "opacity-50",
         )}
       >
-        {shown ? (
+        {processing ? (
+          <div role="status" className="flex size-full flex-col items-center justify-center gap-2 bg-muted/40 text-muted-foreground">
+            <Loader2 className="size-5 animate-spin" />
+            <span className="text-xs font-medium">{t("uploader.processing", "Processing…")}</span>
+          </div>
+        ) : shown ? (
           <>
-            <img src={shown} alt="" className="size-full object-cover" draggable={false} />
+            <AssetImage
+              asset={justUploaded ? null : asset}
+              legacyUrl={shown}
+              sizes="512px"
+              className="size-full"
+              draggable={false}
+            />
             {!disabled ? (
               // Visible by default, and hidden until hover ONLY where hovering
               // is a thing the device does. On a phone there is no hover, so

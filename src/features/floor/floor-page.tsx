@@ -39,7 +39,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { useScope } from "@/data/scope/use-scope";
 import { getErrorMessage } from "@/data/api/errors";
-import { fmtTime } from "@/lib/format";
+import { fmtNumber, fmtTime } from "@/lib/format";
 import {
   createFloorTable, deleteFloorTable, deleteSection, useListFloorTables,
   useListFloorTransfers, useListOpenTickets, useListSections,
@@ -416,13 +416,37 @@ export function FloorPage() {
   const loading = tablesQ.isLoading || sectionsQ.isLoading;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <Page className="flex min-h-0 flex-1 flex-col gap-4 space-y-0 pb-4 lg:pb-6">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-border/70 px-3 py-2 sm:px-4">
-        <h1 className="me-1 text-sm font-semibold tracking-tight">{t("floor.title", "Floor")}</h1>
+      <PageHeader
+        title={t("floor.title", "Floor")}
+        actions={
+        <div className="flex items-center gap-1">
+          <SaveIndicator state={saveState} editable={editable} />
+          <IconButton label={t("floor.zoomOut", "Zoom out")} onClick={() => viewport.zoomBy(1 / ZOOM_STEP)}>
+            <Minus className="size-4" />
+          </IconButton>
+          <IconButton label={t("floor.fit", "Fit to content")} onClick={() => fitTo(visible.map(geoOf))}>
+            <Maximize2 className="size-4" />
+          </IconButton>
+          <IconButton label={t("floor.zoomIn", "Zoom in")} onClick={() => viewport.zoomBy(ZOOM_STEP)}>
+            <Plus className="size-4" />
+          </IconButton>
 
-        {/* Sections filter one plane; they are not separate rooms. */}
-        <div className="flex min-w-0 flex-wrap items-center gap-1">
+          <Button
+            variant={editable ? "default" : "outline"}
+            className="ms-1 gap-1.5"
+            onClick={() => setEditable((v) => !v)}
+            aria-pressed={editable}
+          >
+            {editable ? <LockOpen className="size-4" /> : <Lock className="size-4" />}
+            {editable ? t("floor.editing", "Editing") : t("floor.locked", "Locked")}
+          </Button>
+        </div>
+        }
+        below={
+        /* Sections filter one plane; they are not separate rooms. */
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           <SectionChip active={sectionKey === null} onClick={() => setSectionKey(null)}>
             {t("floor.allAreas", "All")}
           </SectionChip>
@@ -449,7 +473,7 @@ export function FloorPage() {
             <>
               <SectionChip active={false} onClick={() => setSectionEdit({ section: null })}>
                 <span className="flex items-center gap-1">
-                  <Plus className="size-3" />
+                  <Plus className="size-3.5" />
                   {t("floor.addSection", "Area")}
                 </span>
               </SectionChip>
@@ -459,7 +483,7 @@ export function FloorPage() {
                     <button
                       type="button"
                       aria-label={t("floor.sectionActions", "Area actions")}
-                      className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      className="grid size-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     >
                       <ChevronDown className="size-3.5" />
                     </button>
@@ -482,36 +506,13 @@ export function FloorPage() {
           ) : null}
         </div>
 
-        <div className="ms-auto flex items-center gap-1">
-          <SaveIndicator state={saveState} editable={editable} />
-          <IconButton label={t("floor.zoomOut", "Zoom out")} onClick={() => viewport.zoomBy(1 / ZOOM_STEP)}>
-            <Minus className="size-4" />
-          </IconButton>
-          <IconButton label={t("floor.fit", "Fit to content")} onClick={() => fitTo(visible.map(geoOf))}>
-            <Maximize2 className="size-4" />
-          </IconButton>
-          <IconButton label={t("floor.zoomIn", "Zoom in")} onClick={() => viewport.zoomBy(ZOOM_STEP)}>
-            <Plus className="size-4" />
-          </IconButton>
+        }
+      />
 
-          <Button
-            variant={editable ? "default" : "outline"}
-            size="sm"
-            className="ms-1 gap-1.5"
-            onClick={() => setEditable((v) => !v)}
-            aria-pressed={editable}
-          >
-            {editable ? <LockOpen className="size-3.5" /> : <Lock className="size-3.5" />}
-            <span className="hidden sm:inline">
-              {editable ? t("floor.editing", "Editing") : t("floor.locked", "Locked")}
-            </span>
-          </Button>
-        </div>
-      </div>
-
+      <div className="flex min-h-[60svh] flex-1 flex-col overflow-hidden rounded-2xl border bg-card">
       {/* ── Edit toolbar ───────────────────────────────────────────────── */}
       {editable ? (
-        <div className="flex flex-wrap items-center gap-1 border-b border-border/70 bg-muted/30 px-3 py-1.5 sm:px-4">
+        <div className="flex flex-wrap items-center gap-1 border-b bg-secondary/50 px-2 py-1.5">
           <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setAddOpen(true)}>
             <Plus className="size-3.5" />
             {t("floor.addTable", "Add table")}
@@ -543,7 +544,7 @@ export function FloorPage() {
             onClick={() => distribute("x")}
             disabled={selection.size < 3}
           >
-            <span aria-hidden className="text-xs font-semibold">⇹</span>
+            <span aria-hidden className="text-sm font-semibold">⇹</span>
           </IconButton>
           <Divider />
           <IconButton
@@ -558,10 +559,10 @@ export function FloorPage() {
             onClick={() => void deleteSelection()}
             disabled={selection.size === 0}
           >
-            <Trash2 className="size-4 text-destructive" />
+            <Trash2 className="size-4" />
           </IconButton>
 
-          <span className="ms-auto hidden text-[11px] text-muted-foreground lg:inline">
+          <span className="ms-auto hidden pe-2 text-xs text-muted-foreground lg:inline">
             {t("floor.hint", "Drag to move · ⌥ ignores the grid · ⌘C/⌘V · pinch to zoom")}
           </span>
         </div>
@@ -576,12 +577,23 @@ export function FloorPage() {
           {loading ? (
             <Skeleton className="absolute inset-3" />
           ) : visible.length === 0 ? (
-            <div className="grid h-full place-items-center p-6 text-center">
-              <p className="max-w-sm text-sm text-muted-foreground">
-                {editable
-                  ? t("floor.emptyEditing", "No tables here yet — add one to start the plan.")
-                  : t("floor.empty", "No tables in this area yet. Unlock to add some.")}
-              </p>
+            <div className="grid h-full place-items-center p-6">
+              <EmptyState
+                icon={Armchair}
+                title={
+                  editable
+                    ? t("floor.emptyEditing", "No tables here yet — add one to start the plan.")
+                    : t("floor.empty", "No tables in this area yet. Unlock to add some.")
+                }
+                action={
+                  editable ? (
+                    <Button onClick={() => setAddOpen(true)}>
+                      <Plus className="size-4" />
+                      {t("floor.addTable", "Add table")}
+                    </Button>
+                  ) : undefined
+                }
+              />
             </div>
           ) : (
             <FloorCanvas
@@ -599,11 +611,13 @@ export function FloorPage() {
           )}
 
           <div className="pointer-events-none absolute inset-x-3 bottom-3 flex flex-wrap items-end justify-between gap-2">
-            <StatusLegend />
-            <div className="rounded-lg border border-border/70 bg-background/90 px-2.5 py-1.5 text-[11px] text-muted-foreground backdrop-blur">
+            <div className="rounded-lg border bg-card/95 px-2.5 py-1.5 backdrop-blur">
+              <StatusLegend />
+            </div>
+            <div className="rounded-lg border bg-card/95 px-2.5 py-1.5 text-xs text-muted-foreground backdrop-blur">
               {t("floor.capacity", "{{free}} of {{seats}} seats free", {
-                free: capacity.free,
-                seats: capacity.seats,
+                free: fmtNumber(capacity.free),
+                seats: fmtNumber(capacity.seats),
               })}
               {capacity.dirty > 0
                 ? ` · ${t("floor.needsClearingCount", "{{count}} need clearing", { count: capacity.dirty })}`
@@ -612,7 +626,7 @@ export function FloorPage() {
           </div>
         </div>
 
-        <aside className="w-full shrink-0 overflow-y-auto border-t border-border/70 xl:w-[320px] xl:border-s xl:border-t-0">
+        <aside className="w-full shrink-0 overflow-y-auto border-t xl:w-[320px] xl:border-s xl:border-t-0">
           <InspectorPanel
             tables={selectedTables}
             sections={sections}
@@ -623,12 +637,15 @@ export function FloorPage() {
               setGeo(u);
             }}
           />
-          <TransferQueue
-            transfers={transfersQ.data?.transfers ?? []}
-            tables={allTables}
-            sections={sections}
-          />
+          <div className="border-t p-4">
+            <TransferQueue
+              transfers={transfersQ.data?.transfers ?? []}
+              tables={allTables}
+              sections={sections}
+            />
+          </div>
         </aside>
+      </div>
       </div>
 
       <AddTableDialog
@@ -657,7 +674,7 @@ export function FloorPage() {
           onCreated={(id) => setSectionKey(id)}
         />
       ) : null}
-    </div>
+    </Page>
   );
 }
 
@@ -676,10 +693,10 @@ function SectionChip({
       onClick={onClick}
       aria-current={active ? "true" : undefined}
       className={cn(
-        "rounded-full px-2.5 py-1 text-xs transition-colors",
+        "h-8 rounded-full border px-3 text-sm font-medium transition-colors duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
         active
-          ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
       )}
     >
       {children}
@@ -728,7 +745,7 @@ function SaveIndicator({ state, editable }: { state: SaveState; editable: boolea
   const v = map[state];
 
   return (
-    <span className={cn("me-1 flex items-center gap-1 text-[11px]", v.tone)} role="status">
+    <span className={cn("me-2 flex items-center gap-1 text-xs", v.tone)} role="status">
       {v.icon}
       <span className="hidden sm:inline">{v.text}</span>
     </span>

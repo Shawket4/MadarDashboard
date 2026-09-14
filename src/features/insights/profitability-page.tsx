@@ -2,9 +2,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { AlertCircle, ArrowDownRight, ArrowUpRight, Building2, Info } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Building2, Info } from "lucide-react";
 
-import { Page } from "@/components/app/page";
+import type { ColumnDef } from "@tanstack/react-table";
+
+import { Page, PageHeader } from "@/components/app/page";
+import { DataTable } from "@/components/app/data-table";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
@@ -19,9 +22,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
 import { useCreateDecision, useMenuMarginLedger } from "@/data/api/generated/api";
 import type { MarginLedgerRow, Signal } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -35,19 +35,17 @@ import { DecisionsTab } from "./decisions-tab";
 import { RepricingTab } from "./repricing-tab";
 import { FlagChip } from "./flag-chip";
 import { TargetEditor } from "./target-editor";
-import { invalidateInsights } from "./util";
+import { invalidateInsights, TINT } from "./util";
 
 type CostBasis = "snapshot" | "current";
-
-const COLS = 8;
 
 /** The classic menu-engineering quadrants (secondary lens on the ledger). */
 const ALL_CLASSES = "__all__";
 const CLASS_META: Record<string, { fallback: string; className: string }> = {
-  star: { fallback: "Star", className: "bg-success/10 text-success" },
-  workhorse: { fallback: "Workhorse", className: "bg-info/10 text-info" },
-  challenge: { fallback: "Challenge", className: "bg-warning/15 text-warning-foreground" },
-  dog: { fallback: "Dog", className: "bg-muted text-muted-foreground" },
+  star: { fallback: "Star", className: "bg-secondary text-foreground" },
+  workhorse: { fallback: "Workhorse", className: "bg-secondary text-foreground" },
+  challenge: { fallback: "Challenge", className: "bg-secondary text-foreground" },
+  dog: { fallback: "Dog", className: "bg-secondary text-muted-foreground" },
 };
 
 /** Quiet class chip with the popularity/profit rationale on hover. */
@@ -163,9 +161,7 @@ export function ProfitabilityPage() {
   if (!orgId) {
     return (
       <Page>
-        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-          {t("insights.profitability.title", "Menu profitability")}
-        </h1>
+        <PageHeader title={t("insights.profitability.title", "Menu profitability")} />
         <EmptyState icon={Building2} title={t("insights.pickOrg", "Select an organization to see menu profitability")} />
       </Page>
     );
@@ -178,7 +174,7 @@ export function ProfitabilityPage() {
       label: t("insights.profitability.revenue", "Revenue"),
       value: totals?.revenue ?? 0,
       formatType: "money",
-      accent: "brand",
+      accent: "neutral",
       trend: trendOf(totals?.revenue, totals?.prev_revenue),
       loading,
     },
@@ -191,9 +187,9 @@ export function ProfitabilityPage() {
       trend: trendOf(totals?.margin_known, totals?.prev_margin_known),
       hint:
         totals?.margin_pct != null
-          ? t("insights.profitability.ofRevenue", {
-              pct: fmtNumber(totals.margin_pct, { maximumFractionDigits: 1 }),
-              defaultValue: "{{pct}}% of revenue",
+          ? t("insights.profitability.shareOfRevenue", {
+              pct: fmtPercent(totals.margin_pct / 100),
+              defaultValue: "{{pct}} of revenue",
             })
           : undefined,
       loading,
@@ -260,126 +256,168 @@ export function ProfitabilityPage() {
     }
   };
 
+  const columns: ColumnDef<MarginLedgerRow>[] = [
+    {
+      id: "item",
+      header: t("insights.columns.item", "Item"),
+      meta: { label: t("insights.columns.item", "Item"), phone: "title" },
+      cell: ({ row: { original: r } }) => <ItemCell r={r} />,
+    },
+    {
+      id: "sold",
+      header: t("insights.columns.sold", "Sold"),
+      meta: { label: t("insights.columns.sold", "Sold"), numeric: true },
+      cell: ({ row: { original: r } }) => <SoldCell r={r} />,
+    },
+    {
+      id: "revenue",
+      header: t("insights.columns.revenue", "Revenue"),
+      meta: { label: t("insights.columns.revenue", "Revenue"), numeric: true },
+      cell: ({ row }) => fmtMoney(row.original.revenue),
+    },
+    {
+      id: "cost",
+      header: t("insights.columns.cost", "Cost"),
+      meta: { label: t("insights.columns.cost", "Cost"), numeric: true },
+      cell: ({ row }) => fmtMoney(row.original.cost),
+    },
+    {
+      id: "margin",
+      header: t("insights.columns.margin", "Margin"),
+      meta: { label: t("insights.columns.margin", "Margin"), numeric: true },
+      cell: ({ row: { original: r } }) => (
+        <span className={cn(r.margin != null && r.margin < 0 && TINT.danger)}>{fmtMoney(r.margin)}</span>
+      ),
+    },
+    {
+      id: "marginPct",
+      header: t("insights.columns.marginPct", "Margin %"),
+      meta: { label: t("insights.columns.marginPct", "Margin %"), numeric: true },
+      cell: ({ row: { original: r } }) => {
+        const below = r.margin_pct != null && report?.target_pct != null && r.margin_pct < report.target_pct;
+        return <span className={cn(below && TINT.warning)}>{r.margin_pct == null ? "—" : fmtPercent(r.margin_pct / 100)}</span>;
+      },
+    },
+    {
+      id: "share",
+      header: t("insights.columns.share", "Share %"),
+      meta: { label: t("insights.columns.share", "Share %"), numeric: true },
+      cell: ({ row: { original: r } }) => (
+        <span className="text-muted-foreground">{r.margin_share_pct == null ? "—" : fmtPercent(r.margin_share_pct / 100)}</span>
+      ),
+    },
+    {
+      id: "flags",
+      header: t("insights.columns.flags", "Flags"),
+      meta: { label: t("insights.columns.flags", "Flags") },
+      cell: ({ row: { original: r } }) =>
+        r.flags.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {r.flags.map((sig) => (
+              <FlagChip
+                key={sig.kind}
+                signal={sig}
+                busy={createDecision.isPending}
+                onFix={(x) => fix(r, x)}
+                onDecide={(x, action) => decide(r, x, action)}
+              />
+            ))}
+          </div>
+        ) : null,
+    },
+  ];
+
   return (
     <Page>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-            {t("insights.profitability.title", "Menu profitability")}
-          </h1>
-          {loading ? (
-            <Skeleton className="h-5 w-44" />
-          ) : report ? (
-            <TargetEditor
-              orgId={orgId}
-              branchId={branchId}
-              targetPct={report.target_pct}
-              targetSource={report.target_source}
+      <Tabs value={tab} onValueChange={setTab} className="gap-6">
+        <PageHeader
+          title={t("insights.profitability.title", "Menu profitability")}
+          subtitle={
+            loading ? (
+              <Skeleton className="mt-1 h-5 w-44" />
+            ) : report ? (
+              <TargetEditor
+                orgId={orgId}
+                branchId={branchId}
+                targetPct={report.target_pct}
+                targetSource={report.target_source}
+              />
+            ) : null
+          }
+          actions={
+            <SegmentedControl<CostBasis>
+              value={basis}
+              onChange={setBasis}
+              options={[
+                { value: "snapshot", label: t("insights.profitability.basisSnapshot", "Snapshot") },
+                { value: "current", label: t("insights.profitability.basisCurrent", "Today's costs") },
+              ]}
             />
+          }
+          below={
+            <PageTabsList>
+              <PageTabsTrigger value="ledger" className="first:ps-0">{t("insights.profitability.ledgerTab", "Ledger")}</PageTabsTrigger>
+              <PageTabsTrigger value="repricing">{t("insights.profitability.repricingTab", "Repricing")}</PageTabsTrigger>
+              <PageTabsTrigger value="decisions">{t("insights.profitability.decisionsTab", "Decisions")}</PageTabsTrigger>
+            </PageTabsList>
+          }
+        />
+
+        <div className="space-y-2">
+          <LedgerStrip items={strip} />
+          {report && report.rows_cost_unknown > 0 ? (
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Info aria-hidden className="size-4 shrink-0" />
+              {t("insights.profitability.costUnknownNote", {
+                count: report.rows_cost_unknown,
+                defaultValue: "{{count}} items excluded from margin — cost unknown",
+              })}
+            </p>
           ) : null}
         </div>
-        <SegmentedControl<CostBasis>
-          value={basis}
-          onChange={setBasis}
-          options={[
-            { value: "snapshot", label: t("insights.profitability.basisSnapshot", "Snapshot") },
-            { value: "current", label: t("insights.profitability.basisCurrent", "Today's costs") },
-          ]}
-        />
-      </div>
 
-      <div className="space-y-2">
-        <LedgerStrip className="lg:max-w-3xl" items={strip} />
-        {report && report.rows_cost_unknown > 0 ? (
-          <p className="flex items-center gap-1.5 text-sm text-info">
-            <Info aria-hidden className="size-4 shrink-0" />
-            {t("insights.profitability.costUnknownNote", {
-              count: report.rows_cost_unknown,
-              defaultValue: "{{count}} items excluded from margin — cost unknown",
-            })}
-          </p>
-        ) : null}
-      </div>
-
-      <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <PageTabsList>
-          <PageTabsTrigger value="ledger">{t("insights.profitability.ledgerTab", "Ledger")}</PageTabsTrigger>
-          <PageTabsTrigger value="repricing">{t("insights.profitability.repricingTab", "Repricing")}</PageTabsTrigger>
-          <PageTabsTrigger value="decisions">{t("insights.profitability.decisionsTab", "Decisions")}</PageTabsTrigger>
-        </PageTabsList>
-
-        <TabsContent value="ledger" className="space-y-3">
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <ExportButton size="sm" onExport={handleExport} loading={exporting} disabled={rows.length === 0} />
-            <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="h-8 w-auto min-w-36 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_CLASSES}>{t("insights.class.all", "All classes")}</SelectItem>
-                {Object.entries(CLASS_META).map(([k, m]) => (
-                  <SelectItem key={k} value={k}>{t(`insights.class.${k}`, m.fallback)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-2">
-              <Switch id="insights-flagged-only" checked={flaggedOnly} onCheckedChange={setFlaggedOnly} />
-              <Label htmlFor="insights-flagged-only" className="text-sm font-normal text-muted-foreground">
-                {t("insights.profitability.flaggedOnly", "Flagged only")}
-              </Label>
-            </div>
-          </div>
-
-          {ledger.isError ? (
-            <EmptyState icon={AlertCircle} title={t("common.somethingWrong", "Something went wrong")} />
-          ) : (
-            <div className="overflow-x-auto rounded-xl border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("insights.columns.item", "Item")}</TableHead>
-                    <TableHead className="text-end">{t("insights.columns.sold", "Sold")}</TableHead>
-                    <TableHead className="text-end">{t("insights.columns.revenue", "Revenue")}</TableHead>
-                    <TableHead className="text-end">{t("insights.columns.cost", "Cost")}</TableHead>
-                    <TableHead className="text-end">{t("insights.columns.margin", "Margin")}</TableHead>
-                    <TableHead className="text-end">{t("insights.columns.marginPct", "Margin %")}</TableHead>
-                    <TableHead className="text-end">{t("insights.columns.share", "Share %")}</TableHead>
-                    <TableHead>{t("insights.columns.flags", "Flags")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    Array.from({ length: 8 }).map((_, ri) => (
-                      <TableRow key={`sk-${ri}`}>
-                        {Array.from({ length: COLS }).map((_, ci) => (
-                          <TableCell key={ci}><Skeleton className="h-4 w-full" /></TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : rows.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={COLS} className="py-8 text-center text-muted-foreground">
-                        {flaggedOnly
-                          ? t("insights.profitability.noFlags", "Nothing flagged — margins look healthy")
-                          : t("insights.profitability.noRows", "No sales in this period")}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    rows.map((r) => (
-                      <LedgerRow
-                        key={`${r.menu_item_id}-${r.size_label}`}
-                        row={r}
-                        targetPct={report?.target_pct}
-                        busy={createDecision.isPending}
-                        onFix={fix}
-                        onDecide={decide}
-                      />
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+        <TabsContent value="ledger">
+          <DataTable
+            columns={columns}
+            data={rows}
+            loading={loading}
+            error={ledger.error}
+            onRetry={() => void ledger.refetch()}
+            getRowId={(r) => `${r.menu_item_id}-${r.size_label}`}
+            hideViewOptions
+            pageSize={50}
+            toolbar={
+              <div className="flex flex-wrap items-center gap-3">
+                <Select value={classFilter} onValueChange={setClassFilter}>
+                  <SelectTrigger className="h-9 w-auto min-w-36 text-sm" aria-label={t("insights.class.all", "All classes")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_CLASSES}>{t("insights.class.all", "All classes")}</SelectItem>
+                    {Object.entries(CLASS_META).map(([k, m]) => (
+                      <SelectItem key={k} value={k}>{t(`insights.class.${k}`, m.fallback)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center gap-2">
+                  <Switch id="insights-flagged-only" checked={flaggedOnly} onCheckedChange={setFlaggedOnly} />
+                  <Label htmlFor="insights-flagged-only" className="text-sm font-normal text-muted-foreground">
+                    {t("insights.profitability.flaggedOnly", "Flagged only")}
+                  </Label>
+                </div>
+                <ExportButton size="sm" onExport={handleExport} loading={exporting} disabled={rows.length === 0} />
+              </div>
+            }
+            emptyState={
+              <EmptyState
+                title={
+                  flaggedOnly
+                    ? t("insights.profitability.noFlags", "Nothing flagged — margins look healthy")
+                    : t("insights.profitability.noRows", "No sales in this period")
+                }
+              />
+            }
+          />
         </TabsContent>
 
         <TabsContent value="repricing">
@@ -394,86 +432,37 @@ export function ProfitabilityPage() {
   );
 }
 
-function LedgerRow({
-  row: r,
-  targetPct,
-  busy,
-  onFix,
-  onDecide,
-}: {
-  row: MarginLedgerRow;
-  targetPct: number | undefined;
-  busy: boolean;
-  onFix: (row: MarginLedgerRow, signal: Signal) => void;
-  onDecide: (row: MarginLedgerRow, signal: Signal, action: "dismissed" | "snoozed") => Promise<void>;
-}) {
+function ItemCell({ r }: { r: MarginLedgerRow }) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <span className="max-w-56 truncate font-medium">{r.item_name}</span>
+      {r.size_label !== "one_size" ? <Badge variant="outline" className="shrink-0">{r.size_label}</Badge> : null}
+      <ClassChip r={r} />
+      {!r.on_menu ? (
+        <Badge variant="secondary" className="shrink-0">
+          {t("insights.profitability.offMenu", "Off menu")}
+        </Badge>
+      ) : null}
+    </div>
+  );
+}
+
+function SoldCell({ r }: { r: MarginLedgerRow }) {
   const { t } = useTranslation();
   const qtyDelta = r.quantity_sold - r.prev_quantity;
-  const belowTarget = r.margin_pct != null && targetPct != null && r.margin_pct < targetPct;
-
   return (
-    <TableRow>
-      <TableCell>
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="max-w-56 truncate font-medium">{r.item_name}</span>
-          {r.size_label !== "one_size" ? (
-            <Badge variant="outline" className="shrink-0">{r.size_label}</Badge>
-          ) : null}
-          <ClassChip r={r} />
-          {!r.on_menu ? (
-            <Badge variant="ghost" className="shrink-0 bg-muted text-muted-foreground">
-              {t("insights.profitability.offMenu", "Off menu")}
-            </Badge>
-          ) : null}
-        </div>
-      </TableCell>
-      <TableCell className="text-end tabular">
-        <span className="inline-flex items-baseline gap-1 whitespace-nowrap">
-          {fmtNumber(r.quantity_sold)}
-          {qtyDelta !== 0 ? (
-            <span
-              className={cn(
-                "inline-flex items-center text-xs",
-                qtyDelta > 0 ? "text-success" : "text-destructive",
-              )}
-              title={t("insights.profitability.vsPrev", "vs previous period")}
-            >
-              {qtyDelta > 0 ? (
-                <ArrowUpRight aria-hidden className="size-3" />
-              ) : (
-                <ArrowDownRight aria-hidden className="size-3" />
-              )}
-              {fmtNumber(Math.abs(qtyDelta))}
-            </span>
-          ) : null}
+    <span className="inline-flex items-baseline gap-1 whitespace-nowrap">
+      {fmtNumber(r.quantity_sold)}
+      {qtyDelta !== 0 ? (
+        <span
+          className={cn("inline-flex items-center text-xs", qtyDelta > 0 ? TINT.success : TINT.danger)}
+          title={t("insights.profitability.vsPrev", "vs previous period")}
+        >
+          {qtyDelta > 0 ? <ArrowUpRight aria-hidden className="size-3" /> : <ArrowDownRight aria-hidden className="size-3" />}
+          {fmtNumber(Math.abs(qtyDelta))}
         </span>
-      </TableCell>
-      <TableCell className="text-end tabular">{fmtMoney(r.revenue)}</TableCell>
-      <TableCell className="text-end tabular">{fmtMoney(r.cost)}</TableCell>
-      <TableCell className={cn("text-end tabular", r.margin != null && r.margin < 0 && "text-destructive")}>
-        {fmtMoney(r.margin)}
-      </TableCell>
-      <TableCell className={cn("text-end tabular", belowTarget && "text-warning")}>
-        {r.margin_pct == null ? "—" : fmtPercent(r.margin_pct / 100)}
-      </TableCell>
-      <TableCell className="text-end tabular text-muted-foreground">
-        {r.margin_share_pct == null ? "—" : fmtPercent(r.margin_share_pct / 100)}
-      </TableCell>
-      <TableCell>
-        {r.flags.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {r.flags.map((s) => (
-              <FlagChip
-                key={s.kind}
-                signal={s}
-                busy={busy}
-                onFix={(sig) => onFix(r, sig)}
-                onDecide={(sig, action) => onDecide(r, sig, action)}
-              />
-            ))}
-          </div>
-        ) : null}
-      </TableCell>
-    </TableRow>
+      ) : null}
+    </span>
   );
 }

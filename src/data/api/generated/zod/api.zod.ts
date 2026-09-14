@@ -434,6 +434,64 @@ export const RenameConversationBody = zod.object({
 export const RenameConversationResponse = zod.void()
 
 
+export const GetJobParams = zod.object({
+  "id": zod.uuid().describe('Asset job id')
+})
+
+export const GetJobResponse = zod.object({
+  "error": zod.string().nullish(),
+  "id": zod.uuid(),
+  "result": zod.union([zod.null(),zod.object({
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_type": zod.string(),
+  "ext": zod.string(),
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "hash": zod.string(),
+  "height": zod.number().nullish(),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "org_id": zod.uuid().nullish(),
+  "url": zod.string().describe('Signed, org-scoped (§11.4), 24 h bucketed.'),
+  "variant": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "pos": zod.object({
+  "bytes": zod.number(),
+  "content_type": zod.string(),
+  "ext": zod.string(),
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "hash": zod.string(),
+  "height": zod.number().nullish(),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "org_id": zod.uuid().nullish(),
+  "url": zod.string().describe('Signed, org-scoped (§11.4), 24 h bucketed.'),
+  "variant": zod.string(),
+  "width": zod.number().nullish()
+}),
+  "variants": zod.array(zod.object({
+  "bytes": zod.number(),
+  "content_type": zod.string(),
+  "ext": zod.string(),
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "hash": zod.string(),
+  "height": zod.number().nullish(),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "org_id": zod.uuid().nullish(),
+  "url": zod.string().describe('Signed, org-scoped (§11.4), 24 h bucketed.'),
+  "variant": zod.string(),
+  "width": zod.number().nullish()
+}))
+})]).optional(),
+  "status": zod.string().describe('queued | running | done | failed')
+})
+
+
 export const loginBodyPinMin = 4;
 export const loginBodyPinMax = 6;
 
@@ -452,6 +510,19 @@ export const LoginBody = zod.object({
 
 export const LoginResponse = zod.object({
   "currency_code": zod.string(),
+  "open_till": zod.union([zod.null(),zod.object({
+  "branch_id": zod.uuid(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('OpenAPI-only vocabulary for `Till.status` (the `till_status` DB enum). The\nstruct fields stay `String`, so the wire strings are exactly the DB values.'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('OpenAPI-only vocabulary for `Till.verification` (`tills_verification` CHECK):\nhow the one-open-till-per-person rule was checked when the till opened.\n`legacy` marks tills opened by pre-rework clients \/ before the rework.')
+}).describe('The person\'s open till at the branch they signed into (any device), so\nthe device can resume it or show where it is open.')]).optional(),
   "require_table_for_orders": zod.boolean().optional().describe('Every dine-in sale belongs to a table.\n\nThe till needs this, not just the server: the rule changes what the POS\nputs in front of a teller — the floor becomes the home screen and a sale\nstarts by picking a table — and a refusal AFTER the items are rung up is\nfar too late to be useful.'),
   "tax_policy": zod.object({
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
@@ -521,7 +592,7 @@ export const ResolveBranchResponse = zod.object({
 
 export const ListBookingsQueryParams = zod.object({
   "branch_id": zod.uuid(),
-  "date": zod.string().optional().describe('Service date (`YYYY-MM-DD`, branch-local, midnight→midnight). Defaults to today.'),
+  "date": zod.string().optional().describe('Calendar date (`YYYY-MM-DD`, branch-local, midnight→midnight). Defaults to today.'),
   "from": zod.iso.datetime({"offset":true}).optional().describe('Explicit window (overrides `date`).'),
   "to": zod.iso.datetime({"offset":true}).optional(),
   "active": zod.boolean().optional().describe('Only `confirmed` \/ `seated`.'),
@@ -1066,6 +1137,12 @@ export const ListBranchesQueryParams = zod.object({
   "org_id": zod.uuid().describe('Organization whose branches to list. Must match the caller\'s JWT org.')
 })
 
+export const listBranchesResponseOldBillHoursMax = 168;
+
+export const listBranchesResponseStandardFloatMin = 0;
+
+
+
 export const ListBranchesResponseItem = zod.object({
   "address": zod.string().nullish(),
   "code": zod.string().nullish().describe('Short org-unique branch prefix (A-Z0-9) embedded in every order_ref\n(`<CODE>-YYMMDD-…`). Exposed so an offline device can mint the same ref the\nserver would, from first boot, without waiting for a synced order.'),
@@ -1076,6 +1153,7 @@ export const ListBranchesResponseItem = zod.object({
   "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
   "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
+  "old_bill_hours": zod.number().min(1).max(listBranchesResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
   "phone": zod.string().nullish(),
@@ -1085,6 +1163,7 @@ export const ListBranchesResponseItem = zod.object({
   "require_table_for_orders": zod.boolean().nullish().describe('Whether every dine-in sale here must belong to a table. Same shape as\nthe tax overrides: `null` inherits the organisation, which is not the\nsame as `false`. An explicit `false` lets a counter with two stools by\nthe window keep ringing walk-ups while the org\'s dining rooms seat\neveryone; an explicit `true` does the reverse. This is the OVERRIDE —\nthe resolved answer is `branches::policy::require_table_for_orders`.'),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
+  "standard_float": zod.number().min(listBranchesResponseStandardFloatMin).nullish().describe('The drawer\'s standard opening float in minor units; drives the till\nreport\'s `standard_float` \/ `suggested_safe_drop`. `null` = none set.'),
   "tax_inclusive": zod.boolean().nullish(),
   "tax_rate": zod.number().nullish().describe('Tax policy OVERRIDES. `null` means inherit the organisation\'s setting —\nwhich is not the same as `0`. An org that changes its rate still moves\nevery branch that never asked to differ; a branch that genuinely charges\nno tax says so with an explicit `0`.'),
   "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
@@ -1107,6 +1186,12 @@ export const CreateBranchBody = zod.object({
   "timezone": zod.string().nullish().describe('IANA timezone name. If absent, the branch inherits the org\'s timezone.')
 })
 
+export const createBranchResponseOldBillHoursMax = 168;
+
+export const createBranchResponseStandardFloatMin = 0;
+
+
+
 export const CreateBranchResponse = zod.object({
   "address": zod.string().nullish(),
   "code": zod.string().nullish().describe('Short org-unique branch prefix (A-Z0-9) embedded in every order_ref\n(`<CODE>-YYMMDD-…`). Exposed so an offline device can mint the same ref the\nserver would, from first boot, without waiting for a synced order.'),
@@ -1117,6 +1202,7 @@ export const CreateBranchResponse = zod.object({
   "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
   "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
+  "old_bill_hours": zod.number().min(1).max(createBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
   "phone": zod.string().nullish(),
@@ -1126,6 +1212,7 @@ export const CreateBranchResponse = zod.object({
   "require_table_for_orders": zod.boolean().nullish().describe('Whether every dine-in sale here must belong to a table. Same shape as\nthe tax overrides: `null` inherits the organisation, which is not the\nsame as `false`. An explicit `false` lets a counter with two stools by\nthe window keep ringing walk-ups while the org\'s dining rooms seat\neveryone; an explicit `true` does the reverse. This is the OVERRIDE —\nthe resolved answer is `branches::policy::require_table_for_orders`.'),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
+  "standard_float": zod.number().min(createBranchResponseStandardFloatMin).nullish().describe('The drawer\'s standard opening float in minor units; drives the till\nreport\'s `standard_float` \/ `suggested_safe_drop`. `null` = none set.'),
   "tax_inclusive": zod.boolean().nullish(),
   "tax_rate": zod.number().nullish().describe('Tax policy OVERRIDES. `null` means inherit the organisation\'s setting —\nwhich is not the same as `0`. An org that changes its rate still moves\nevery branch that never asked to differ; a branch that genuinely charges\nno tax says so with an explicit `0`.'),
   "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
@@ -1137,6 +1224,12 @@ export const GetBranchParams = zod.object({
   "id": zod.uuid().describe('Branch ID')
 })
 
+export const getBranchResponseOldBillHoursMax = 168;
+
+export const getBranchResponseStandardFloatMin = 0;
+
+
+
 export const GetBranchResponse = zod.object({
   "address": zod.string().nullish(),
   "code": zod.string().nullish().describe('Short org-unique branch prefix (A-Z0-9) embedded in every order_ref\n(`<CODE>-YYMMDD-…`). Exposed so an offline device can mint the same ref the\nserver would, from first boot, without waiting for a synced order.'),
@@ -1147,6 +1240,7 @@ export const GetBranchResponse = zod.object({
   "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
   "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
+  "old_bill_hours": zod.number().min(1).max(getBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
   "phone": zod.string().nullish(),
@@ -1156,6 +1250,7 @@ export const GetBranchResponse = zod.object({
   "require_table_for_orders": zod.boolean().nullish().describe('Whether every dine-in sale here must belong to a table. Same shape as\nthe tax overrides: `null` inherits the organisation, which is not the\nsame as `false`. An explicit `false` lets a counter with two stools by\nthe window keep ringing walk-ups while the org\'s dining rooms seat\neveryone; an explicit `true` does the reverse. This is the OVERRIDE —\nthe resolved answer is `branches::policy::require_table_for_orders`.'),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
+  "standard_float": zod.number().min(getBranchResponseStandardFloatMin).nullish().describe('The drawer\'s standard opening float in minor units; drives the till\nreport\'s `standard_float` \/ `suggested_safe_drop`. `null` = none set.'),
   "tax_inclusive": zod.boolean().nullish(),
   "tax_rate": zod.number().nullish().describe('Tax policy OVERRIDES. `null` means inherit the organisation\'s setting —\nwhich is not the same as `0`. An org that changes its rate still moves\nevery branch that never asked to differ; a branch that genuinely charges\nno tax says so with an explicit `0`.'),
   "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
@@ -1167,6 +1262,12 @@ export const UpdateBranchParams = zod.object({
   "id": zod.uuid().describe('Branch ID')
 })
 
+export const updateBranchBodyOldBillHoursMax = 168;
+
+export const updateBranchBodyStandardFloatMin = 0;
+
+
+
 export const UpdateBranchBody = zod.object({
   "address": zod.string().nullish(),
   "geo_radius_meters": zod.number().nullish(),
@@ -1174,6 +1275,7 @@ export const UpdateBranchBody = zod.object({
   "latitude": zod.number().nullish(),
   "longitude": zod.number().nullish(),
   "name": zod.string().nullish(),
+  "old_bill_hours": zod.number().min(1).max(updateBranchBodyOldBillHoursMax).nullish().describe('Hours after which an open bill counts as old (1..168).'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1181,10 +1283,17 @@ export const UpdateBranchBody = zod.object({
   "require_table_for_orders": zod.boolean().nullish(),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
+  "standard_float": zod.number().min(updateBranchBodyStandardFloatMin).nullish().describe('Standard opening float in minor units (>= 0); explicit `null` clears it.'),
   "tax_inclusive": zod.boolean().nullish(),
   "tax_rate": zod.number().nullish(),
   "timezone": zod.string().nullish()
 }).describe('PATCH-style update. Fields fall into three categories:\n\n- \*\*Absent\*\* from JSON → keep existing value.\n- \*\*Present as `null`\*\* (only the `printer_\*` fields) → clear the column.\n- \*\*Present as a value\*\* → set to that value.\n\nOpenAPI cannot express the absent-vs-null distinction cleanly, so all\nfields are documented as optional and nullable. Clients targeting this\nendpoint should send only the fields they want to change.')
+
+export const updateBranchResponseOldBillHoursMax = 168;
+
+export const updateBranchResponseStandardFloatMin = 0;
+
+
 
 export const UpdateBranchResponse = zod.object({
   "address": zod.string().nullish(),
@@ -1196,6 +1305,7 @@ export const UpdateBranchResponse = zod.object({
   "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
   "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
+  "old_bill_hours": zod.number().min(1).max(updateBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
   "phone": zod.string().nullish(),
@@ -1205,6 +1315,7 @@ export const UpdateBranchResponse = zod.object({
   "require_table_for_orders": zod.boolean().nullish().describe('Whether every dine-in sale here must belong to a table. Same shape as\nthe tax overrides: `null` inherits the organisation, which is not the\nsame as `false`. An explicit `false` lets a counter with two stools by\nthe window keep ringing walk-ups while the org\'s dining rooms seat\neveryone; an explicit `true` does the reverse. This is the OVERRIDE —\nthe resolved answer is `branches::policy::require_table_for_orders`.'),
   "service_charge_rate": zod.number().nullish(),
   "service_charge_taxable": zod.boolean().nullish(),
+  "standard_float": zod.number().min(updateBranchResponseStandardFloatMin).nullish().describe('The drawer\'s standard opening float in minor units; drives the till\nreport\'s `standard_float` \/ `suggested_safe_drop`. `null` = none set.'),
   "tax_inclusive": zod.boolean().nullish(),
   "tax_rate": zod.number().nullish().describe('Tax policy OVERRIDES. `null` means inherit the organisation\'s setting —\nwhich is not the same as `0`. An org that changes its rate still moves\nevery branch that never asked to differ; a branch that genuinely charges\nno tax says so with an explicit `0`.'),
   "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
@@ -1217,6 +1328,75 @@ export const DeleteBranchParams = zod.object({
 })
 
 export const DeleteBranchResponse = zod.void()
+
+
+/**
+ * @summary `PATCH /branches/{id}` — the same partial update as `PUT` (the contract
+names both; every field is already optional).
+ */
+export const PatchBranchParams = zod.object({
+  "id": zod.uuid().describe('Branch ID')
+})
+
+export const patchBranchBodyOldBillHoursMax = 168;
+
+export const patchBranchBodyStandardFloatMin = 0;
+
+
+
+export const PatchBranchBody = zod.object({
+  "address": zod.string().nullish(),
+  "geo_radius_meters": zod.number().nullish(),
+  "is_active": zod.boolean().nullish(),
+  "latitude": zod.number().nullish(),
+  "longitude": zod.number().nullish(),
+  "name": zod.string().nullish(),
+  "old_bill_hours": zod.number().min(1).max(patchBranchBodyOldBillHoursMax).nullish().describe('Hours after which an open bill counts as old (1..168).'),
+  "phone": zod.string().nullish(),
+  "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
+  "printer_ip": zod.string().nullish(),
+  "printer_port": zod.number().nullish(),
+  "require_table_for_orders": zod.boolean().nullish(),
+  "service_charge_rate": zod.number().nullish(),
+  "service_charge_taxable": zod.boolean().nullish(),
+  "standard_float": zod.number().min(patchBranchBodyStandardFloatMin).nullish().describe('Standard opening float in minor units (>= 0); explicit `null` clears it.'),
+  "tax_inclusive": zod.boolean().nullish(),
+  "tax_rate": zod.number().nullish(),
+  "timezone": zod.string().nullish()
+}).describe('PATCH-style update. Fields fall into three categories:\n\n- \*\*Absent\*\* from JSON → keep existing value.\n- \*\*Present as `null`\*\* (only the `printer_\*` fields) → clear the column.\n- \*\*Present as a value\*\* → set to that value.\n\nOpenAPI cannot express the absent-vs-null distinction cleanly, so all\nfields are documented as optional and nullable. Clients targeting this\nendpoint should send only the fields they want to change.')
+
+export const patchBranchResponseOldBillHoursMax = 168;
+
+export const patchBranchResponseStandardFloatMin = 0;
+
+
+
+export const PatchBranchResponse = zod.object({
+  "address": zod.string().nullish(),
+  "code": zod.string().nullish().describe('Short org-unique branch prefix (A-Z0-9) embedded in every order_ref\n(`<CODE>-YYMMDD-…`). Exposed so an offline device can mint the same ref the\nserver would, from first boot, without waiting for a synced order.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "geo_radius_meters": zod.number().nullish().describe('Radius in meters within which this branch is considered a match. Defaults to 200.'),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
+  "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
+  "name": zod.string(),
+  "old_bill_hours": zod.number().min(1).max(patchBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
+  "org_id": zod.uuid(),
+  "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "phone": zod.string().nullish(),
+  "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
+  "printer_ip": zod.string().nullish(),
+  "printer_port": zod.number().nullish(),
+  "require_table_for_orders": zod.boolean().nullish().describe('Whether every dine-in sale here must belong to a table. Same shape as\nthe tax overrides: `null` inherits the organisation, which is not the\nsame as `false`. An explicit `false` lets a counter with two stools by\nthe window keep ringing walk-ups while the org\'s dining rooms seat\neveryone; an explicit `true` does the reverse. This is the OVERRIDE —\nthe resolved answer is `branches::policy::require_table_for_orders`.'),
+  "service_charge_rate": zod.number().nullish(),
+  "service_charge_taxable": zod.boolean().nullish(),
+  "standard_float": zod.number().min(patchBranchResponseStandardFloatMin).nullish().describe('The drawer\'s standard opening float in minor units; drives the till\nreport\'s `standard_float` \/ `suggested_safe_drop`. `null` = none set.'),
+  "tax_inclusive": zod.boolean().nullish(),
+  "tax_rate": zod.number().nullish().describe('Tax policy OVERRIDES. `null` means inherit the organisation\'s setting —\nwhich is not the same as `0`. An org that changes its rate still moves\nevery branch that never asked to differ; a branch that genuinely charges\nno tax says so with an explicit `0`.'),
+  "timezone": zod.string().describe('Effective IANA timezone name for this branch, resolved as\n`branch.timezone → org.timezone → Africa\/Cairo`. Always present;\nclients should format all of this branch\'s timestamps in this zone.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
 
 
 export const BranchBookingQrParams = zod.object({
@@ -1802,6 +1982,54 @@ export const ListCategoriesResponseItem = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "deleted_at": zod.iso.datetime({"offset":true}).nullish(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
@@ -1827,6 +2055,54 @@ export const CreateCategoryResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "deleted_at": zod.iso.datetime({"offset":true}).nullish(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
@@ -1862,6 +2138,54 @@ export const UpdateCategoryResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "deleted_at": zod.iso.datetime({"offset":true}).nullish(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
@@ -1913,6 +2237,54 @@ export const ListMenuCatalogResponse = zod.object({
 
 }),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
@@ -2154,7 +2526,7 @@ export const FinalizeDeliveryOrderParams = zod.object({
 
 export const FinalizeDeliveryOrderBody = zod.object({
   "payment_method": zod.string().describe('The actual method the customer paid (overrides the hint). Must be an org method.'),
-  "shift_id": zod.uuid()
+  "till_id": zod.uuid()
 })
 
 export const FinalizeDeliveryOrderResponse = zod.object({
@@ -2672,6 +3044,103 @@ export const UpdateZoneResponse = zod.object({
   "name_translations": zod.looseObject({
 
 })
+})
+
+
+export const ListDevicesQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const ListDevicesResponseItem = zod.object({
+  "app_version": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "code": zod.string(),
+  "code_conflict": zod.boolean().describe('Another live device at the same branch uses the same code.'),
+  "first_seen_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "org_id": zod.uuid(),
+  "platform": zod.string().nullish(),
+  "retired_at": zod.iso.datetime({"offset":true}).nullish()
+})
+export const ListDevicesResponse = zod.array(ListDevicesResponseItem)
+
+
+export const ListClientVersionsQueryParams = zod.object({
+  "legacy_only": zod.boolean().optional().describe('Only clients that took a legacy path within the window (default `true`).'),
+  "days": zod.number().optional().describe('Look-back window in days, 1..=365 (default 14 — the G-old gate).'),
+  "branch_id": zod.uuid().optional().describe('Narrow to one branch.')
+})
+
+export const ListClientVersionsResponseItem = zod.object({
+  "app_version": zod.string().nullish().describe('From an `X-Madar-Client` of the form `<app>\/<semver>` only; `null` for\nthe dashboard and for any client identified by its User-Agent.'),
+  "branch_id": zod.uuid().nullish(),
+  "branch_name": zod.string().nullish(),
+  "client": zod.string().nullish().describe('`X-Madar-Client`; else `dashboard` for a browser; else the User-Agent.'),
+  "device_code": zod.string().nullish().describe('The registered device\'s code, when the device is registered.'),
+  "device_id": zod.uuid().nullish(),
+  "first_seen_at": zod.iso.datetime({"offset":true}),
+  "last_legacy_at": zod.iso.datetime({"offset":true}).nullish(),
+  "last_legacy_kind": zod.string().nullish().describe('The latest legacy path kind (`legacy_shifts_route`, `replay_shift_id_field`, …).'),
+  "last_legacy_path": zod.string().nullish(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "legacy_kinds": zod.array(zod.string()).describe('Every legacy kind this client has hit.')
+}).describe('One device (or device-less client) as last seen.')
+export const ListClientVersionsResponse = zod.array(ListClientVersionsResponseItem)
+
+
+export const RegisterDeviceBody = zod.object({
+  "app_version": zod.string().nullish(),
+  "branch_id": zod.uuid(),
+  "code": zod.string(),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('`pos` | `kds` | `waiter`'),
+  "label": zod.string().nullish(),
+  "platform": zod.string().nullish()
+})
+
+export const RegisterDeviceResponse = zod.object({
+  "app_version": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "code": zod.string(),
+  "code_conflict": zod.boolean().describe('Another live device at the same branch uses the same code.'),
+  "first_seen_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "org_id": zod.uuid(),
+  "platform": zod.string().nullish(),
+  "retired_at": zod.iso.datetime({"offset":true}).nullish()
+})
+
+
+export const UpdateDeviceParams = zod.object({
+  "id": zod.uuid().describe('Device id')
+})
+
+export const UpdateDeviceBody = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "code": zod.string().nullish(),
+  "label": zod.string().nullish(),
+  "retired": zod.boolean().nullish()
+})
+
+export const UpdateDeviceResponse = zod.object({
+  "app_version": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "code": zod.string(),
+  "code_conflict": zod.boolean().describe('Another live device at the same branch uses the same code.'),
+  "first_seen_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "org_id": zod.uuid(),
+  "platform": zod.string().nullish(),
+  "retired_at": zod.iso.datetime({"offset":true}).nullish()
 })
 
 
@@ -4020,11 +4489,11 @@ export const UpdateInventorySettingsResponse = zod.object({
 
 
 export const CreateTransferBody = zod.object({
-  "source_branch_id": zod.uuid(),
   "destination_branch_id": zod.uuid(),
+  "note": zod.string().nullish(),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number(),
-  "note": zod.string().nullish()
+  "source_branch_id": zod.uuid()
 })
 
 export const CreateTransferResponse = zod.object({
@@ -4915,6 +5384,54 @@ export const ListMenuItemsResponseItem = zod.object({
 
 }),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
@@ -4953,6 +5470,54 @@ export const CreateMenuItemResponse = zod.object({
 
 }),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
@@ -4994,6 +5559,8 @@ export const CreateMenuItemResponse = zod.object({
   "updated_at": zod.iso.datetime({"offset":true})
 })),
   "recipe_steps": zod.array(zod.object({
+  "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
+  "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
   "animation_sha256": zod.string().nullish(),
   "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
   "kind": zod.string().describe('`preset` | `custom`.'),
@@ -5037,6 +5604,54 @@ export const GetMenuItemResponse = zod.object({
 
 }),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
@@ -5078,6 +5693,8 @@ export const GetMenuItemResponse = zod.object({
   "updated_at": zod.iso.datetime({"offset":true})
 })),
   "recipe_steps": zod.array(zod.object({
+  "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
+  "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
   "animation_sha256": zod.string().nullish(),
   "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
   "kind": zod.string().describe('`preset` | `custom`.'),
@@ -5143,6 +5760,54 @@ export const UpdateMenuItemResponse = zod.object({
 
 }),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "name": zod.string(),
@@ -5348,6 +6013,8 @@ export const DuplicateItemResponse = zod.object({
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
   "recipe_steps": zod.array(zod.object({
+  "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
+  "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
   "animation_sha256": zod.string().nullish(),
   "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
   "kind": zod.string().describe('`preset` | `custom`.'),
@@ -5474,6 +6141,8 @@ export const PutModifierGroupsResponse = zod.object({
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
   "recipe_steps": zod.array(zod.object({
+  "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
+  "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
   "animation_sha256": zod.string().nullish(),
   "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
   "kind": zod.string().describe('`preset` | `custom`.'),
@@ -5807,6 +6476,8 @@ export const PutSizesResponse = zod.object({
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
   "recipe_steps": zod.array(zod.object({
+  "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
+  "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
   "animation_sha256": zod.string().nullish(),
   "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
   "kind": zod.string().describe('`preset` | `custom`.'),
@@ -5948,6 +6619,8 @@ export const GetStudioResponse = zod.object({
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
   "recipe_steps": zod.array(zod.object({
+  "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
+  "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
   "animation_sha256": zod.string().nullish(),
   "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
   "kind": zod.string().describe('`preset` | `custom`.'),
@@ -6700,7 +7373,7 @@ export const SettleOpenTicketBody = zod.object({
   "reference": zod.string().nullish()
 })).nullish().describe('Split tenders, when the party paid with more than one. Carried to the\norder\'s payment legs like a counter sale\'s; they must sum to the total.'),
   "settled_at": zod.iso.datetime({"offset":true}).nullish().describe('When the bill was paid, as the till says. An offline settle replayed\nlater keeps its real time — it becomes the order\'s `created_at` and the\nticket\'s `settled_at`, one instant on both rows. Absent means now; a\nfuture clock is refused.'),
-  "shift_id": zod.uuid(),
+  "till_id": zod.uuid(),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number().nullish().describe('What the till says the bill came to — the figure its drawer collected.\nChecked against the server\'s own total exactly as a counter checkout is\n(`create_order_inner`\'s drift check); a disagreement is refused, not\nrecorded. Absent on older builds, which then get no check. The figure\nto send is `OpenTicketView::bill.total`, which is priced by the same\nengine under the same policy — a till that shows that number cannot\ndisagree with the books.')
@@ -6717,36 +7390,44 @@ export const SettleOpenTicketResponse = zod.object({
   "delivery_lat": zod.number().nullish().describe('Customer location of the linked delivery order, so clients can link out\nto a map (e.g. Google Maps) without a per-order detail fetch. `null` for\ndine-in orders or delivery orders without captured coordinates.'),
   "delivery_lng": zod.number().nullish(),
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
+  "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
+  "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
+  "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
   "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
-  "shift_id": zod.uuid(),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "status": zod.string(),
   "subtotal": zod.number(),
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "till_id": zod.uuid(),
   "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
+  "verification": zod.string().nullish().describe('`server` | `lan` | `unverified` — the till\'s verification as the ringing\ndevice knew it; `null` when not recorded.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -6875,7 +7556,7 @@ export const VoidOpenTicketResponse = zod.object({
 
 export const ListOrdersQueryParams = zod.object({
   "branch_id": zod.uuid().optional(),
-  "shift_id": zod.uuid().optional(),
+  "till_id": zod.uuid().optional(),
   "updated_after": zod.iso.datetime({"offset":true}).optional(),
   "page": zod.number().optional(),
   "per_page": zod.number().optional(),
@@ -6903,36 +7584,44 @@ export const ListOrdersResponse = zod.object({
   "delivery_lat": zod.number().nullish().describe('Customer location of the linked delivery order, so clients can link out\nto a map (e.g. Google Maps) without a per-order detail fetch. `null` for\ndine-in orders or delivery orders without captured coordinates.'),
   "delivery_lng": zod.number().nullish(),
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
+  "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
+  "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
+  "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
   "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
-  "shift_id": zod.uuid(),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "status": zod.string(),
   "subtotal": zod.number(),
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "till_id": zod.uuid(),
   "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
+  "verification": zod.string().nullish().describe('`server` | `lan` | `unverified` — the till\'s verification as the ringing\ndevice knew it; `null` when not recorded.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -6974,6 +7663,8 @@ export const CreateOrderBody = zod.object({
   "change_given": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}).nullish(),
   "customer_name": zod.string().nullish(),
+  "device_code": zod.string().nullish().describe('The device\'s code; with `device_id` + `order_number` the number is stored verbatim.'),
+  "device_id": zod.uuid().nullish().describe('The device ringing the order (else `X-Madar-Device`).'),
   "discount_amount": zod.number().nullish(),
   "discount_id": zod.uuid().nullish(),
   "discount_type": zod.string().nullish(),
@@ -7011,7 +7702,7 @@ export const CreateOrderBody = zod.object({
   "units": zod.number().nullish().describe('How many of that line\'s units the reward covers. Defaults to one.')
 }).describe('One reward applied to one line of the cart.')).optional().describe('Rewards covering lines of this cart. Each names a line by its index in\n`items` and how many of that line\'s units the reward pays for, so a\nmixed basket can have one free coffee among four paid ones.'),
   "notes": zod.string().nullish(),
-  "order_number": zod.number().nullish().describe('IGNORED by the server (accepted for backward compatibility only). The\nauthoritative per-shift number is ALWAYS `MAX(order_number)+1` computed under\nthe shift advisory lock — never the client value, which is used only on the\ndevice\'s local receipt. The byte-identical-at-reprint guarantee rides on\n`order_ref`, not this field. Two tills on one shift get distinct numbers\n(UNIQUE(shift_id, order_number) + the lock).'),
+  "order_number": zod.number().nullish().describe('The device\'s own order number (contract R4): its per-business-day\nsequence, the same counter as the `NNNN` of its `order_ref`. Stored\nVERBATIM when the request also names `device_id` and a non-blank\n`device_code` — the order then reads `display_number` `<device_code>-<n>`.\nWithout all three (old clients, dashboard, delivery) it is ignored and the\nserver numbers the sale per till: `MAX(order_number)+1` over the till\'s\nserver-numbered orders, under the till advisory lock\n(`uq_orders_till_legacy_number`).'),
   "order_ref": zod.string().nullish().describe('Client-minted order reference (`<BRANCH>-<YYMMDD>-<DEVICE>-<NNNN>`). Stored\nverbatim when present; absent → the server mints the deterministic\nshift-based ref. The global `UNIQUE(order_ref)` index keeps both paths\ncollision-safe (a managed per-device code makes concurrent tills unique).'),
   "payment_method": zod.string(),
   "payment_splits": zod.array(zod.object({
@@ -7019,12 +7710,13 @@ export const CreateOrderBody = zod.object({
   "method": zod.string(),
   "reference": zod.string().nullish()
 })).nullish(),
-  "shift_id": zod.uuid(),
   "subtotal": zod.number().nullish(),
   "tax_amount": zod.number().nullish(),
+  "till_id": zod.uuid(),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
-  "total_amount": zod.number().nullish()
+  "total_amount": zod.number().nullish(),
+  "verification": zod.string().nullish().describe('`server` | `lan` | `unverified` — the till\'s verification as the device knew it.')
 })
 
 export const CreateOrderResponse = zod.object({
@@ -7038,36 +7730,44 @@ export const CreateOrderResponse = zod.object({
   "delivery_lat": zod.number().nullish().describe('Customer location of the linked delivery order, so clients can link out\nto a map (e.g. Google Maps) without a per-order detail fetch. `null` for\ndine-in orders or delivery orders without captured coordinates.'),
   "delivery_lng": zod.number().nullish(),
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
+  "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
+  "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
+  "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
   "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
-  "shift_id": zod.uuid(),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "status": zod.string(),
   "subtotal": zod.number(),
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "till_id": zod.uuid(),
   "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
+  "verification": zod.string().nullish().describe('`server` | `lan` | `unverified` — the till\'s verification as the ringing\ndevice knew it; `null` when not recorded.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -7181,7 +7881,7 @@ export const CreateOrderResponse = zod.object({
 
 export const ExportOrdersQueryParams = zod.object({
   "branch_id": zod.uuid().optional(),
-  "shift_id": zod.uuid().optional(),
+  "till_id": zod.uuid().optional(),
   "teller_name": zod.string().optional(),
   "waiter_name": zod.string().optional().describe('Filter by the WAITER who opened the ticket (ILIKE, partial match).'),
   "payment_method": zod.string().optional(),
@@ -7202,36 +7902,44 @@ export const ExportOrdersResponse = zod.object({
   "delivery_lat": zod.number().nullish().describe('Customer location of the linked delivery order, so clients can link out\nto a map (e.g. Google Maps) without a per-order detail fetch. `null` for\ndine-in orders or delivery orders without captured coordinates.'),
   "delivery_lng": zod.number().nullish(),
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
+  "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
+  "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
+  "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
   "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
-  "shift_id": zod.uuid(),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "status": zod.string(),
   "subtotal": zod.number(),
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "till_id": zod.uuid(),
   "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
+  "verification": zod.string().nullish().describe('`server` | `lan` | `unverified` — the till\'s verification as the ringing\ndevice knew it; `null` when not recorded.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -7391,36 +8099,44 @@ export const GetOrderResponse = zod.object({
   "delivery_lat": zod.number().nullish().describe('Customer location of the linked delivery order, so clients can link out\nto a map (e.g. Google Maps) without a per-order detail fetch. `null` for\ndine-in orders or delivery orders without captured coordinates.'),
   "delivery_lng": zod.number().nullish(),
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
+  "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
+  "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
+  "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
   "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
-  "shift_id": zod.uuid(),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "status": zod.string(),
   "subtotal": zod.number(),
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "till_id": zod.uuid(),
   "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
+  "verification": zod.string().nullish().describe('`server` | `lan` | `unverified` — the till\'s verification as the ringing\ndevice knew it; `null` when not recorded.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -7554,36 +8270,44 @@ export const VoidOrderResponse = zod.object({
   "delivery_lat": zod.number().nullish().describe('Customer location of the linked delivery order, so clients can link out\nto a map (e.g. Google Maps) without a per-order detail fetch. `null` for\ndine-in orders or delivery orders without captured coordinates.'),
   "delivery_lng": zod.number().nullish(),
   "delivery_order_id": zod.uuid().nullish().describe('Links a finalized delivery order back to its `delivery_orders` row\n(customer, address, channel, zone). `null` for dine-in orders.'),
+  "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
+  "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
   "discount_id": zod.uuid().nullish(),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
+  "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
   "price_expected_total": zod.number().nullish().describe('What the catalogue says this sale should have come to, when it differs.\nBeside `subtotal` it is the size of the drift, which is the question\nanyone looking at a flagged sale asks next.'),
   "price_flagged": zod.boolean().optional().describe('This sale was rung against a catalogue that has since moved: a line was\ncharged at a price the menu no longer says, or the item was disabled at\nthis branch. Both mean a till that was OFFLINE when something changed —\na live sale is priced by the server and cannot deviate.\n\nRecorded, never rejected: the money already changed hands. It is here so\nthe POS and the dashboard can SHOW it, which is the whole point of\nflagging something.'),
   "service_charge_amount": zod.number().optional().describe('The service charge on this bill; `0` where the branch charges none.\nIts own field, and its own receipt line: a charge the customer did not\nchoose is stated separately from the tax rather than folded into it.'),
-  "shift_id": zod.uuid(),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "status": zod.string(),
   "subtotal": zod.number(),
   "tax_amount": zod.number(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "till_id": zod.uuid(),
   "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.'),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
   "total_amount": zod.number(),
+  "verification": zod.string().nullish().describe('`server` | `lan` | `unverified` — the till\'s verification as the ringing\ndevice knew it; `null` when not recorded.'),
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish(),
   "voided_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -8016,6 +8740,94 @@ export const CreatePaymentMethodResponse = zod.object({
   "updated_at": zod.iso.datetime({"offset":true}),
   "visible_in_integrations": zod.boolean().describe('When false, orders tendered with this method are excluded entirely\nfrom the partner analytics API (`\/integrations\/analytics\/orders`) —\nrows and aggregates alike. Defaults to true.')
 })
+
+
+export const GetAvailabilityQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const GetAvailabilityResponse = zod.object({
+  "branch": zod.object({
+  "payment_method_ids": zod.array(zod.uuid()),
+  "restricted": zod.boolean()
+}),
+  "branch_id": zod.uuid(),
+  "devices": zod.array(zod.object({
+  "device_id": zod.uuid(),
+  "payment_method_ids": zod.array(zod.uuid())
+})),
+  "users": zod.array(zod.object({
+  "payment_method_ids": zod.array(zod.uuid()),
+  "user_id": zod.uuid()
+}))
+})
+
+
+export const PutBranchAvailabilityParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const PutBranchAvailabilityBody = zod.object({
+  "payment_method_ids": zod.array(zod.uuid()),
+  "restricted": zod.boolean()
+})
+
+export const PutBranchAvailabilityResponse = zod.object({
+  "payment_method_ids": zod.array(zod.uuid()),
+  "restricted": zod.boolean()
+})
+
+
+export const PutDeviceAvailabilityParams = zod.object({
+  "device_id": zod.uuid().describe('Device ID')
+})
+
+export const PutDeviceAvailabilityBody = zod.object({
+  "payment_method_ids": zod.array(zod.uuid()),
+  "restricted": zod.boolean()
+})
+
+export const PutDeviceAvailabilityResponse = zod.object({
+  "payment_method_ids": zod.array(zod.uuid()),
+  "restricted": zod.boolean()
+})
+
+
+export const PutUserAvailabilityParams = zod.object({
+  "user_id": zod.uuid().describe('User (teller) ID')
+})
+
+export const PutUserAvailabilityBody = zod.object({
+  "payment_method_ids": zod.array(zod.uuid()),
+  "restricted": zod.boolean()
+})
+
+export const PutUserAvailabilityResponse = zod.object({
+  "payment_method_ids": zod.array(zod.uuid()),
+  "restricted": zod.boolean()
+})
+
+
+export const GetEffectiveQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "user_id": zod.uuid().optional(),
+  "device_id": zod.uuid().optional()
+})
+
+export const GetEffectiveResponseItem = zod.object({
+  "color": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "icon": zod.string(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "is_cash": zod.boolean(),
+  "label_translations": zod.unknown(),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visible_in_integrations": zod.boolean().describe('When false, orders tendered with this method are excluded entirely\nfrom the partner analytics API (`\/integrations\/analytics\/orders`) —\nrows and aggregates alike. Defaults to true.')
+})
+export const GetEffectiveResponse = zod.array(GetEffectiveResponseItem)
 
 
 export const UpdatePaymentMethodParams = zod.object({
@@ -9662,6 +10474,7 @@ export const DeleteDrinkRecipeResponse = zod.void()
 
 
 export const ListStepPresetsResponseItem = zod.object({
+  "animation_hash": zod.string().nullish().describe('Content hash of the zstd-compressed asset (`\/assets\/global\/<hash>.lottie.zst`).'),
   "animation_sha256": zod.string(),
   "animation_url": zod.string().describe('Path to the animation, relative to the API base.'),
   "bytes": zod.number(),
@@ -9680,6 +10493,8 @@ export const ListRecipeStepsParams = zod.object({
 })
 
 export const ListRecipeStepsResponseItem = zod.object({
+  "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
+  "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
   "animation_sha256": zod.string().nullish(),
   "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
   "kind": zod.string().describe('`preset` | `custom`.'),
@@ -9710,6 +10525,8 @@ export const PutRecipeStepsBody = zod.object({
 })
 
 export const PutRecipeStepsResponseItem = zod.object({
+  "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
+  "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
   "animation_sha256": zod.string().nullish(),
   "animation_url": zod.string().nullish().describe('Present only for a preset whose animation still ships. `None` on a\ncustom step, and on a retired preset — clients show the name alone.'),
   "kind": zod.string().describe('`preset` | `custom`.'),
@@ -9726,6 +10543,7 @@ export const PutRecipeStepsResponse = zod.array(PutRecipeStepsResponseItem)
 export const CreateRefundBody = zod.object({
   "amount": zod.number().describe('Minor units, > 0. Together with every refund already on the order it\nmay not exceed `orders.total_amount`.'),
   "client_ref": zod.uuid().nullish().describe('Client-minted idempotency key. A retried request or a replayed offline\nqueue carrying the same key gets the original refund back instead of\nhanding the money out again.'),
+  "device_id": zod.uuid().nullish().describe('The device issuing the refund (else the `X-Madar-Device` header).'),
   "issued_at": zod.iso.datetime({"offset":true}).nullish().describe('When the refund was issued. Omit for live requests — the server stamps\n`now()`. An offline till sends the real time; future values are rejected.'),
   "lines": zod.array(zod.object({
   "amount": zod.number().describe('The share of the refund\'s amount attributed to this line, minor units.\nZero is allowed (a reward line sent back for nothing). The lines of a\nrefund may not add up to more than the refund.'),
@@ -9736,7 +10554,7 @@ export const CreateRefundBody = zod.object({
   "note": zod.string().nullish().describe('Free-text explanation. Required when `reason` is `other`.'),
   "order_id": zod.uuid().describe('The settled sale the money goes back against.'),
   "reason": zod.enum(['customer_request', 'wrong_order', 'quality_issue', 'overcharged', 'late_or_undelivered', 'goodwill', 'other']).describe('Why money went back. The first three share their spelling with\n[`crate::orders::VoidReason`] so a report reads \"wrong order\" across voids\nand refunds alike; the rest exist only for refunds (you do not void a sale\nfor being late). Bound as text; the table\'s CHECK is the authority on the\nvocabulary and this enum mirrors it.'),
-  "shift_id": zod.uuid().nullish().describe('The shift whose drawer the money leaves. Omit for a live request and the\nactor\'s own open shift at the order\'s branch is used; a replayed offline\nrefund must name the shift it was issued in, the way a queued sale does.')
+  "till_id": zod.uuid().nullish().describe('The shift whose drawer the money leaves. Omit for a live request and the\nactor\'s own open shift at the order\'s branch is used; a replayed offline\nrefund must name the shift it was issued in, the way a queued sale does.')
 })
 
 export const CreateRefundResponse = zod.object({
@@ -9753,7 +10571,8 @@ export const CreateRefundResponse = zod.object({
   "note": zod.string().nullish(),
   "order_id": zod.uuid(),
   "reason": zod.string().describe('One of the [`RefundReason`] spellings.'),
-  "shift_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the shift the order was sold in.')
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id`.'),
+  "till_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the till the order was sold in.')
 }).and(zod.object({
   "lines": zod.array(zod.object({
   "amount": zod.number(),
@@ -9799,7 +10618,8 @@ export const ListOrderRefundsResponse = zod.object({
   "note": zod.string().nullish(),
   "order_id": zod.uuid(),
   "reason": zod.string().describe('One of the [`RefundReason`] spellings.'),
-  "shift_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the shift the order was sold in.')
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id`.'),
+  "till_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the till the order was sold in.')
 }).and(zod.object({
   "lines": zod.array(zod.object({
   "amount": zod.number(),
@@ -9811,44 +10631,6 @@ export const ListOrderRefundsResponse = zod.object({
 }))
 }))),
   "total_amount": zod.number()
-}))
-
-
-export const ListShiftRefundsParams = zod.object({
-  "shift_id": zod.uuid().describe('Shift ID')
-})
-
-export const ListShiftRefundsResponse = zod.object({
-  "refund_count": zod.number(),
-  "refunded_amount": zod.number(),
-  "refunded_cash": zod.number().describe('The cash slice of `refunded_amount` — what left a drawer.')
-}).describe('\"Everything returned\" — against one order, or in one shift. Read from\n`v_order_refund_totals` for an order and summed by `shift_id` for a shift.').and(zod.object({
-  "refunds": zod.array(zod.object({
-  "amount": zod.number(),
-  "branch_id": zod.uuid(),
-  "client_ref": zod.uuid().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "id": zod.uuid(),
-  "is_cash": zod.boolean().describe('Whether `method` meant cash when the refund was issued. Snapshotted.'),
-  "issued_at": zod.iso.datetime({"offset":true}),
-  "issued_by": zod.uuid(),
-  "issued_by_name": zod.string(),
-  "method": zod.string(),
-  "note": zod.string().nullish(),
-  "order_id": zod.uuid(),
-  "reason": zod.string().describe('One of the [`RefundReason`] spellings.'),
-  "shift_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the shift the order was sold in.')
-}).and(zod.object({
-  "lines": zod.array(zod.object({
-  "amount": zod.number(),
-  "id": zod.uuid(),
-  "item_name": zod.string().describe('`order_items.item_name`, so a receipt reprint names the dish without a\nsecond lookup.'),
-  "order_item_id": zod.uuid(),
-  "quantity": zod.number(),
-  "restock": zod.boolean().describe('Whether the goods came back. Recorded per line; nothing in this module\nwrites it `true` yet (see the module docs on restock).')
-}))
-}))),
-  "shift_id": zod.uuid()
 }))
 
 
@@ -9870,7 +10652,8 @@ export const GetRefundResponse = zod.object({
   "note": zod.string().nullish(),
   "order_id": zod.uuid(),
   "reason": zod.string().describe('One of the [`RefundReason`] spellings.'),
-  "shift_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the shift the order was sold in.')
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id`.'),
+  "till_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the till the order was sold in.')
 }).and(zod.object({
   "lines": zod.array(zod.object({
   "amount": zod.number(),
@@ -10416,18 +11199,79 @@ export const ShiftSummaryResponse = zod.object({
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
   "gross_sales": zod.number().optional().describe('This shift\'s sales as rung up, before any refund. Was what\n`total_revenue` meant until 2026-09.'),
   "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
   "opening_cash": zod.number(),
+  "reconciliation_status": zod.string().nullish(),
   "refunded_amount": zod.number().optional().describe('Money refunded AGAINST this shift\'s sales, whenever and from whichever\ndrawer it was issued. `gross_sales − refunded_amount = total_revenue`.\nA fully refunded sale is out of all three (its status is `refunded`).'),
   "refunds_issued_amount": zod.number().optional(),
   "refunds_issued_cash": zod.number().optional(),
   "refunds_issued_count": zod.number().optional().describe('Refunds ISSUED IN THIS SHIFT — keyed on `order_refunds.shift_id`, the\ndrawer the money left, which need not be the shift that made the sale.\nThis is the Z-report\'s money-out line: `refunds_issued_cash` is what the\ndrawer is short by relative to its cash sales.'),
   "revenue_by_method": zod.unknown().describe('Goods only, by method actually tendered — money IN. Tips are in\n`total_tips`; refunds are not netted from these buckets (they are money\nOUT, with their own tender — see `refunds_issued_\*`).'),
-  "shift_id": zod.uuid(),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "status": zod.string(),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
+  "till_id": zod.uuid(),
+  "total_delivery_fees": zod.number().optional().describe('Delivery fees on this shift\'s sales. Inside `total_revenue` (the\ncustomer paid them) but outside the tax base and not food revenue.'),
+  "total_discount": zod.number(),
+  "total_orders": zod.number(),
+  "total_revenue": zod.number().describe('What this shift\'s sales are worth after refunds: `gross_sales` less\n`refunded_amount`. Same definition as `total_revenue` on the branch\nsales report, so the two reconcile.'),
+  "total_service_charge": zod.number().optional().describe('Service charge added to this shift\'s dine-in bills. Inside\n`total_revenue` as the shop\'s income; see `analytics::schema` for why.'),
+  "total_tax": zod.number(),
+  "total_tips": zod.number().optional().describe('Tips, standalone — matches `total_tips` on `GET \/shifts\/{id}\/report`.'),
+  "voided_orders": zod.number()
+})
+
+
+export const TillDeductionsParams = zod.object({
+  "till_id": zod.uuid().describe('Till ID')
+})
+
+export const TillDeductionsResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "inventory_item_id": zod.uuid(),
+  "item_name": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "order_item_id": zod.uuid().nullish(),
+  "quantity_deducted": zod.number(),
+  "source": zod.string(),
+  "unit": zod.string()
+})
+export const TillDeductionsResponse = zod.array(TillDeductionsResponseItem)
+
+
+export const TillSummaryParams = zod.object({
+  "till_id": zod.uuid().describe('Till ID')
+})
+
+export const TillSummaryResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "cash_discrepancy": zod.number().nullish(),
+  "cash_tips": zod.number().optional().describe('The cash slice of `total_tips`.'),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closing_cash_declared": zod.number().nullish(),
+  "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "gross_sales": zod.number().optional().describe('This shift\'s sales as rung up, before any refund. Was what\n`total_revenue` meant until 2026-09.'),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "opening_cash": zod.number(),
+  "reconciliation_status": zod.string().nullish(),
+  "refunded_amount": zod.number().optional().describe('Money refunded AGAINST this shift\'s sales, whenever and from whichever\ndrawer it was issued. `gross_sales − refunded_amount = total_revenue`.\nA fully refunded sale is out of all three (its status is `refunded`).'),
+  "refunds_issued_amount": zod.number().optional(),
+  "refunds_issued_cash": zod.number().optional(),
+  "refunds_issued_count": zod.number().optional().describe('Refunds ISSUED IN THIS SHIFT — keyed on `order_refunds.shift_id`, the\ndrawer the money left, which need not be the shift that made the sale.\nThis is the Z-report\'s money-out line: `refunds_issued_cash` is what the\ndrawer is short by relative to its cash sales.'),
+  "revenue_by_method": zod.unknown().describe('Goods only, by method actually tendered — money IN. Tips are in\n`total_tips`; refunds are not netted from these buckets (they are money\nOUT, with their own tender — see `refunds_issued_\*`).'),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
+  "status": zod.string(),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "till_id": zod.uuid(),
   "total_delivery_fees": zod.number().optional().describe('Delivery fees on this shift\'s sales. Inside `total_revenue` (the\ncustomer paid them) but outside the tax base and not food revenue.'),
   "total_discount": zod.number(),
   "total_orders": zod.number(),
@@ -10440,45 +11284,57 @@ export const ShiftSummaryResponse = zod.object({
 
 
 export const ListShiftsParams = zod.object({
-  "branch_id": zod.uuid().describe('Branch ID (nil UUID = all branches in org)')
+  "branch_id": zod.uuid().describe('Branch ID (nil UUID = all branches)')
 })
 
 export const ListShiftsQueryParams = zod.object({
-  "page": zod.number().optional().describe('1-based page number. Omit (along with `per_page`) to fetch every shift.'),
-  "per_page": zod.number().optional().describe('Page size (clamped to [1, 200]). Omit to fetch every shift in one page.')
+  "page": zod.number().optional(),
+  "per_page": zod.number().optional()
 })
 
 export const ListShiftsResponse = zod.object({
   "data": zod.array(zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "closed_by": zod.uuid().nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_close_reason": zod.string().nullish(),
   "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_closed_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
   "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
   "opening_cash": zod.number(),
   "opening_cash_edit_reason": zod.string().nullish(),
   "opening_cash_original": zod.number().nullish(),
   "opening_cash_was_edited": zod.boolean(),
-  "status": zod.string(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
-  "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish(),
-  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
-})),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+}).and(zod.object({
+  "till_id": zod.uuid().nullish(),
+  "till_name": zod.string().nullish()
+})).describe('Legacy `Shift` = `Till` + `till_id`\/`till_name`: the branch\'s legacy drawer\nentity (the one `GET \/tills` synthesizes) and its name, exactly as the\npre-rename backend reported them. Build it with [`legacy_shift`].')),
   "page": zod.number(),
   "per_page": zod.number(),
   "total": zod.number(),
   "total_pages": zod.number()
-}).describe('Paginated envelope for the shifts list. When the request omits `page`\/`per_page`,\n`data` holds every matching shift in one page (back-compat for the dashboard);\nwhen they are present, `data` is one bounded page ordered newest-first.')
+})
 
 
 export const GetCurrentShiftParams = zod.object({
@@ -10486,36 +11342,48 @@ export const GetCurrentShiftParams = zod.object({
 })
 
 export const GetCurrentShiftQueryParams = zod.object({
-  "till_id": zod.uuid().optional().describe('The device\'s till (drawer). Narrows the open-shift lookup for managers and\nscopes the suggested opening cash to that drawer\'s carryover. Optional —\nomit to fall back to the branch\'s default till for the suggestion.')
+  "till_id": zod.uuid().optional().describe('Ignored (the drawer entity is gone).')
 })
 
 export const GetCurrentShiftResponse = zod.object({
   "has_open_shift": zod.boolean(),
   "open_shift": zod.union([zod.null(),zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "closed_by": zod.uuid().nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_close_reason": zod.string().nullish(),
   "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_closed_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
   "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
   "opening_cash": zod.number(),
   "opening_cash_edit_reason": zod.string().nullish(),
   "opening_cash_original": zod.number().nullish(),
   "opening_cash_was_edited": zod.boolean(),
-  "status": zod.string(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
-  "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish(),
-  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
-})]).optional(),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+}).and(zod.object({
+  "till_id": zod.uuid().nullish(),
+  "till_name": zod.string().nullish()
+})).describe('Legacy `Shift` = `Till` + `till_id`\/`till_name`: the branch\'s legacy drawer\nentity (the one `GET \/tills` synthesizes) and its name, exactly as the\npre-rename backend reported them. Build it with [`legacy_shift`].')]).optional(),
   "suggested_opening_cash": zod.number()
 })
 
@@ -10529,262 +11397,308 @@ export const OpenShiftBody = zod.object({
   "id": zod.uuid().nullish(),
   "opened_at": zod.iso.datetime({"offset":true}).nullish(),
   "opening_cash": zod.number(),
-  "opening_cash_edited": zod.boolean().nullish().describe('Ignored by the server — the carryover edit is DERIVED from the previous\nshift\'s declared closing. Kept only for API\/back-compat with clients.'),
-  "till_id": zod.uuid().nullish().describe('The till (drawer) this shift opens on. Optional for back-compat: when\nomitted the server falls back to the branch\'s default till. Newer\ndevice-bound clients send their configured till explicitly.')
-})
+  "opening_cash_edited": zod.boolean().nullish(),
+  "till_id": zod.uuid().nullish()
+}).describe('Request of the legacy open (`till_id` is the removed entity and ignored).')
 
 export const OpenShiftResponse = zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "closed_by": zod.uuid().nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_close_reason": zod.string().nullish(),
   "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_closed_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
   "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
   "opening_cash": zod.number(),
   "opening_cash_edit_reason": zod.string().nullish(),
   "opening_cash_original": zod.number().nullish(),
   "opening_cash_was_edited": zod.boolean(),
-  "status": zod.string(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
-  "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish(),
-  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
-})
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+}).and(zod.object({
+  "till_id": zod.uuid().nullish(),
+  "till_name": zod.string().nullish()
+})).describe('Legacy `Shift` = `Till` + `till_id`\/`till_name`: the branch\'s legacy drawer\nentity (the one `GET \/tills` synthesizes) and its name, exactly as the\npre-rename backend reported them. Build it with [`legacy_shift`].')
 
 
 export const GetShiftParams = zod.object({
-  "shift_id": zod.uuid().describe('Shift ID')
+  "shift_id": zod.uuid().describe('Till ID')
 })
 
 export const GetShiftResponse = zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "closed_by": zod.uuid().nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_close_reason": zod.string().nullish(),
   "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_closed_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
   "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
   "opening_cash": zod.number(),
   "opening_cash_edit_reason": zod.string().nullish(),
   "opening_cash_original": zod.number().nullish(),
   "opening_cash_was_edited": zod.boolean(),
-  "status": zod.string(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
-  "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish(),
-  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+}).and(zod.object({
+  "till_id": zod.uuid().nullish(),
+  "till_name": zod.string().nullish()
+})).describe('Legacy `Shift` = `Till` + `till_id`\/`till_name`: the branch\'s legacy drawer\nentity (the one `GET \/tills` synthesizes) and its name, exactly as the\npre-rename backend reported them. Build it with [`legacy_shift`].')
+
+
+export const LegacyAddShiftCashMovementParams = zod.object({
+  "shift_id": zod.uuid().describe('Till ID')
 })
 
-
-export const DeleteShiftParams = zod.object({
-  "shift_id": zod.uuid().describe('Shift ID')
-})
-
-export const DeleteShiftResponse = zod.void()
-
-
-export const ListCashMovementsParams = zod.object({
-  "shift_id": zod.uuid().describe('Shift ID')
-})
-
-export const ListCashMovementsResponseItem = zod.object({
+export const LegacyAddShiftCashMovementBody = zod.object({
   "amount": zod.number(),
-  "client_ref": zod.uuid().nullish().describe('Client-minted idempotency \/ reconciliation key, echoed back so an\noffline client can map its queued movement to the server row. NULL for\nlive online movements.'),
-  "corrects_id": zod.uuid().nullish().describe('For a `correction`: the movement it reverses. NULL for every other kind,\nand for a correction of something never recorded as a row.'),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "id": zod.uuid(),
-  "kind": zod.string().describe('One of `pay_in` \/ `pay_out` \/ `safe_drop` \/ `correction` — see\n[`CashMovementKind`].'),
-  "moved_by": zod.uuid(),
-  "moved_by_name": zod.string(),
-  "note": zod.string(),
-  "shift_id": zod.uuid()
-})
-export const ListCashMovementsResponse = zod.array(ListCashMovementsResponseItem)
-
-
-export const AddCashMovementParams = zod.object({
-  "shift_id": zod.uuid().describe('Shift ID')
-})
-
-export const AddCashMovementBody = zod.object({
-  "amount": zod.number(),
-  "client_ref": zod.uuid().nullish().describe('Client-minted idempotency \/ reconciliation key. The POS sends a stable\nUUID per movement so a replayed offline movement dedupes instead of\ndouble-applying. Omit for live online movements.'),
-  "corrects_id": zod.uuid().nullish().describe('For a `correction` only: the movement on this shift it reverses. The\namount must be the exact opposite of that row\'s, and a row may be\ncorrected once. Omit for a correction of something never recorded.'),
-  "created_at": zod.iso.datetime({"offset":true}).nullish().describe('When the movement actually happened. Omit for live (online) movements —\nthe server stamps `now()`. The POS sends this for movements made OFFLINE\nso they keep their real time after syncing. Future values are rejected.'),
-  "kind": zod.union([zod.null(),zod.enum(['pay_in', 'pay_out', 'safe_drop', 'correction']).describe('What the movement is. Optional for the clients already in the field,\nwhich send only a signed amount: an omitted kind resolves by sign\n(negative → `pay_out`, positive → `pay_in`), exactly what the In\/Out\nchips have always meant. A supplied kind must agree with the sign.')]).optional(),
+  "client_ref": zod.uuid().nullish(),
+  "corrects_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}).nullish(),
+  "device_id": zod.uuid().nullish(),
+  "kind": zod.union([zod.null(),zod.enum(['pay_in', 'pay_out', 'safe_drop', 'correction']).describe('What a cash movement IS, which fixes its sign.')]).optional(),
   "note": zod.string()
 })
 
-export const AddCashMovementResponse = zod.object({
+export const LegacyAddShiftCashMovementResponse = zod.object({
   "amount": zod.number(),
-  "client_ref": zod.uuid().nullish().describe('Client-minted idempotency \/ reconciliation key, echoed back so an\noffline client can map its queued movement to the server row. NULL for\nlive online movements.'),
-  "corrects_id": zod.uuid().nullish().describe('For a `correction`: the movement it reverses. NULL for every other kind,\nand for a correction of something never recorded as a row.'),
+  "client_ref": zod.uuid().nullish(),
+  "corrects_id": zod.uuid().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
+  "device_id": zod.uuid().nullish(),
   "id": zod.uuid(),
-  "kind": zod.string().describe('One of `pay_in` \/ `pay_out` \/ `safe_drop` \/ `correction` — see\n[`CashMovementKind`].'),
+  "kind": zod.string(),
   "moved_by": zod.uuid(),
   "moved_by_name": zod.string(),
   "note": zod.string(),
-  "shift_id": zod.uuid()
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (kept for POS v0.5.1\/v0.6.0).'),
+  "till_id": zod.uuid()
 })
 
 
 export const CloseShiftParams = zod.object({
-  "shift_id": zod.uuid().describe('Shift ID')
+  "shift_id": zod.uuid().describe('Till ID')
 })
 
 export const CloseShiftBody = zod.object({
   "cash_note": zod.string().nullish(),
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "closing_cash_declared": zod.number()
+  "closing_cash_declared": zod.number(),
+  "device_id": zod.uuid().nullish(),
+  "reconciliation": zod.array(zod.object({
+  "declared_amount": zod.number().nullish(),
+  "method": zod.string(),
+  "note": zod.string().nullish(),
+  "status": zod.string().describe('`checked` | `disagreed`')
+}).describe('What the teller said about one method at close.')).nullish().describe('Absent (old clients) → every used method is stored `unreviewed`.')
 })
 
 export const CloseShiftResponse = zod.object({
   "shift": zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "closed_by": zod.uuid().nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_close_reason": zod.string().nullish(),
   "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_closed_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
   "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
   "opening_cash": zod.number(),
   "opening_cash_edit_reason": zod.string().nullish(),
   "opening_cash_original": zod.number().nullish(),
   "opening_cash_was_edited": zod.boolean(),
-  "status": zod.string(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
-  "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish(),
-  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
-})
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+}).and(zod.object({
+  "till_id": zod.uuid().nullish(),
+  "till_name": zod.string().nullish()
+})).describe('Legacy `Shift` = `Till` + `till_id`\/`till_name`: the branch\'s legacy drawer\nentity (the one `GET \/tills` synthesizes) and its name, exactly as the\npre-rename backend reported them. Build it with [`legacy_shift`].')
 })
 
 
 export const ForceCloseShiftParams = zod.object({
-  "shift_id": zod.uuid().describe('Shift ID')
+  "shift_id": zod.uuid().describe('Till ID')
 })
 
 export const ForceCloseShiftBody = zod.object({
+  "device_id": zod.uuid().nullish(),
   "reason": zod.string().nullish()
 })
 
 export const ForceCloseShiftResponse = zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "closed_by": zod.uuid().nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_close_reason": zod.string().nullish(),
   "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_closed_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
   "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
   "opening_cash": zod.number(),
   "opening_cash_edit_reason": zod.string().nullish(),
   "opening_cash_original": zod.number().nullish(),
   "opening_cash_was_edited": zod.boolean(),
-  "status": zod.string(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
-  "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish(),
-  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
-})
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+}).and(zod.object({
+  "till_id": zod.uuid().nullish(),
+  "till_name": zod.string().nullish()
+})).describe('Legacy `Shift` = `Till` + `till_id`\/`till_name`: the branch\'s legacy drawer\nentity (the one `GET \/tills` synthesizes) and its name, exactly as the\npre-rename backend reported them. Build it with [`legacy_shift`].')
 
 
 export const GetShiftReportParams = zod.object({
-  "shift_id": zod.uuid().describe('Shift ID')
+  "shift_id": zod.uuid().describe('Till ID')
 })
 
 export const GetShiftReportResponse = zod.object({
-  "cash_adjustments": zod.number().describe('Signed sum of corrections that reverse nothing on record (a miscounted\nfloat). Kept apart so a fix-up is never mistaken for a receipt or a cost.'),
-  "cash_in_refunded_sales": zod.number().optional().describe('Cash tenders and cash tips on this shift\'s sales that were later FULLY\nrefunded. `payment_summary` and `cash_tips` leave those sales out (they\nare revenue figures and match the sales report), but the notes did go\ninto the drawer, so `expected_cash` counts them. Reported so the sheet\nadds up: `expected_cash = opening_cash + cash bucket + cash_tips +\ncash_in_refunded_sales + cash_movements_net − refunds_issued_cash`.'),
+  "cash_adjustments": zod.number(),
+  "cash_in_refunded_sales": zod.number().optional(),
   "cash_movements": zod.array(zod.object({
   "amount": zod.number(),
   "corrects_id": zod.uuid().nullish(),
-  "corrects_kind": zod.string().nullish().describe('The kind of the movement `corrects_id` points at, so a printed report\ncan say \"correction of pay-out\" and the totals can net the pair inside\nthe bucket the mistake was made in.'),
+  "corrects_kind": zod.string().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
   "kind": zod.string(),
   "moved_by_name": zod.string(),
   "note": zod.string()
 })),
-  "cash_movements_in": zod.number().describe('Non-sale cash placed in the drawer (`pay_in`), net of any correction\nthat reversed one. Positive.'),
-  "cash_movements_net": zod.number().describe('Signed net effect of EVERY movement on the drawer — the figure\n`compute_system_cash` adds to the float and the cash sales:\n`in − out − safe_drops + cash_adjustments`.'),
-  "cash_movements_out": zod.number().describe('What the shift SPENT (`pay_out`), net of corrections. Positive. A safe\ndrop is NOT in here — that money left the drawer but not the shop.'),
-  "cash_tips": zod.number().describe('The cash slice of `total_tips` (snapshotted `tip_is_cash`). This IS in\nthe drawer, so it is counted by `expected_cash` even though it is not\npart of `net_payments`.'),
-  "expected_cash": zod.number().describe('Authoritative system (expected) cash in the drawer. For a closed shift\nthis is the snapshot taken at close (`closing_cash_system`); for an open\nshift it is computed live via the same formula. Clients should display\nthis directly instead of re-deriving it from the payment breakdown.'),
+  "cash_movements_in": zod.number(),
+  "cash_movements_net": zod.number(),
+  "cash_movements_out": zod.number(),
+  "cash_tips": zod.number(),
+  "expected_cash": zod.number(),
   "net_payments": zod.number(),
-  "non_cash_tips": zod.number().describe('`total_tips - cash_tips` — tips added onto a card\/wallet tender.'),
+  "non_cash_tips": zod.number(),
   "payment_summary": zod.array(zod.object({
   "is_cash": zod.boolean(),
   "order_count": zod.number(),
   "payment_method": zod.string(),
   "total": zod.number()
-})).describe('Money COLLECTED FOR GOODS, bucketed by the method actually tendered\n(`order_payments`, so a split order contributes to each leg it really\nused). Tips are NOT in here — see `total_tips`.'),
+})),
   "printed_at": zod.iso.datetime({"offset":true}),
   "refunds_issued_amount": zod.number().optional(),
   "refunds_issued_cash": zod.number().optional(),
-  "refunds_issued_count": zod.number().optional().describe('Refunds ISSUED FROM THIS DRAWER — keyed on `order_refunds.shift_id`,\nwhich need not be the shift that made the sale. Money OUT; the Z-report\'s\nreturns line. `refunds_issued_cash` is what `compute_system_cash`\nsubtracts.'),
-  "safe_drops": zod.number().describe('Cash moved from the drawer to the safe (`safe_drop`), net of\ncorrections. Positive. Out of the drawer, still the shop\'s.'),
+  "refunds_issued_count": zod.number().optional(),
+  "safe_drops": zod.number(),
+  "standard_float": zod.number().nullish().describe('`branches.standard_float`.'),
+  "suggested_safe_drop": zod.number().nullish(),
+  "timezone": zod.string().nullish(),
+  "total_payments": zod.number(),
+  "total_tips": zod.number(),
+  "voided_amount": zod.number()
+}).describe('The report figures shared by the new `TillReportResponse` and the legacy\n`ShiftReportResponse` (flattened into both).').and(zod.object({
   "shift": zod.object({
   "branch_id": zod.uuid(),
-  "branch_name": zod.string().nullish().describe('Branch label — only populated by the shifts list (so the \"All branches\"\nview can show which branch each shift belongs to). Other shift endpoints\nleave it `null`.'),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
   "cash_discrepancy": zod.number().nullish(),
   "closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "closed_by": zod.uuid().nullish(),
   "closing_cash_declared": zod.number().nullish(),
   "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_close_reason": zod.string().nullish(),
   "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
   "force_closed_by": zod.uuid().nullish(),
   "id": zod.uuid(),
   "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
   "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
   "opening_cash": zod.number(),
   "opening_cash_edit_reason": zod.string().nullish(),
   "opening_cash_original": zod.number().nullish(),
   "opening_cash_was_edited": zod.boolean(),
-  "status": zod.string(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
   "teller_id": zod.uuid(),
   "teller_name": zod.string(),
-  "till_id": zod.uuid().nullish().describe('The till (drawer) this shift is on. Populated by the read\/list\/open\nendpoints; mutation responses that build the row via RETURNING may leave\n`till_name` null (same convention as `branch_name`).'),
-  "till_name": zod.string().nullish(),
-  "timezone": zod.string().nullish().describe('The branch\'s effective IANA timezone (see `crate::tz`) — the zone every\ntimestamp on this payload is shown and printed in. Additive: older\nclients ignore it; `null` only where a write path does not resolve it.')
-}),
-  "standard_float": zod.number().nullish().describe('The till\'s standard float, when the shop has set one: what should stay\nin the drawer at close. `None` means \"not decided\" — propose nothing.'),
-  "suggested_safe_drop": zod.number().nullish().describe('For an OPEN shift on a till with a standard float: how much of\n`expected_cash` to drop into the safe so the drawer closes at the\nfloat. Never negative — a drawer under its float has nothing to drop.\n`None` when the shift is closed or the till has no float.'),
-  "timezone": zod.string().nullish().describe('The zone this report\'s times print in (the shift\'s branch) — see\n`crate::tz`. Additive; mirrors `shift.timezone`.'),
-  "total_payments": zod.number(),
-  "total_tips": zod.number().describe('Tips, as a standalone figure — never folded into a method bucket, and\nnever part of `total_payments`\/`net_payments`. Mirrors `total_tips` on\nthe sales reports so the two screens agree on what \"revenue\" means.'),
-  "voided_amount": zod.number()
-})
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+}).and(zod.object({
+  "till_id": zod.uuid().nullish(),
+  "till_name": zod.string().nullish()
+})).describe('Legacy `Shift` = `Till` + `till_id`\/`till_name`: the branch\'s legacy drawer\nentity (the one `GET \/tills` synthesizes) and its name, exactly as the\npre-rename backend reported them. Build it with [`legacy_shift`].')
+}))
 
 
 export const ListAttendanceQueryParams = zod.object({
@@ -12827,74 +13741,763 @@ export const VarianceReportResponse = zod.object({
 })
 
 
+export const GetAssetBundleParams = zod.object({
+  "org_id": zod.uuid(),
+  "file_name": zod.string().describe('assets-<branch_id>-<seq>.tar')
+})
+
+export const GetAssetBundleResponse = zod.unknown()
+
+
+export const TopUpBody = zod.object({
+  "branch_id": zod.uuid(),
+  "hashes": zod.array(zod.string())
+})
+
+export const TopUpResponse = zod.unknown()
+
+
+export const PullQueryParams = zod.object({
+  "since": zod.number().optional().describe('Cursor from the previous response\'s `next`. Absent = full snapshot.')
+})
+
+export const PullBody = zod.object({
+  "branch_id": zod.uuid(),
+  "device_id": zod.uuid().nullish(),
+  "ledger_page_size": zod.number().nullish().describe('Opt-in paging of a FULL snapshot\'s ledger rows (tills, orders, cash,\nrefunds), 100..10000 rows a page. Absent = the whole snapshot in one\nresponse (what every older client gets).'),
+  "limit": zod.number().nullish().describe('Page size for incremental pulls, 1..5000 (default 2000).'),
+  "snapshot_cursor": zod.union([zod.null(),zod.object({
+  "after_seq": zod.number().describe('Ledger rows with `seq` above this come next.'),
+  "horizon": zod.number(),
+  "started_at": zod.string().describe('When the snapshot began (RFC 3339): a till that closes while the pages\nare fetched keeps its rows in the later pages.'),
+  "window_from": zod.string().describe('The ledger window start of this snapshot (RFC 3339).')
+}).describe('The `snapshot_cursor` of the previous page of a paged full snapshot.')]).optional(),
+  "types": zod.array(zod.string()).nullish().describe('Full-fetch ONLY these types (checksum self-heal). Invalid with `since`.')
+})
+
+export const PullResponse = zod.object({
+  "asset_bundle": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "seq": zod.number(),
+  "sha256": zod.string(),
+  "url": zod.string()
+}).describe('Full responses only: the latest built base bundle, or null.')]).optional(),
+  "changes": zod.array(zod.object({
+  "data": zod.looseObject({
+
+}),
+  "id": zod.uuid(),
+  "op": zod.string().describe('`upsert` | `delete`.'),
+  "seq": zod.number(),
+  "type": zod.string()
+})).optional(),
+  "checksums": zod.record(zod.string(), zod.object({
+  "checksum": zod.string(),
+  "count": zod.number()
+})).optional(),
+  "data": zod.looseObject({
+
+}).optional(),
+  "full": zod.boolean(),
+  "has_more": zod.boolean(),
+  "ledger_window": zod.union([zod.null(),zod.object({
+  "from": zod.string()
+})]).optional(),
+  "next": zod.number().nullish(),
+  "resync_required": zod.boolean().optional(),
+  "server_time": zod.string(),
+  "since": zod.number().nullish(),
+  "snapshot_cursor": zod.union([zod.null(),zod.object({
+  "after_seq": zod.number().describe('Ledger rows with `seq` above this come next.'),
+  "horizon": zod.number(),
+  "started_at": zod.string().describe('When the snapshot began (RFC 3339): a till that closes while the pages\nare fetched keeps its rows in the later pages.'),
+  "window_from": zod.string().describe('The ledger window start of this snapshot (RFC 3339).')
+}).describe('A paged full snapshot with more pages: send it back as `snapshot_cursor`.\nState types, checksums and the asset bundle come on the FIRST page only;\n`types` on each page lists what that page covers.')]).optional(),
+  "types": zod.array(zod.string()).optional()
+}).describe('Any `\/sync\/pull` response (incremental, resync or full).')
+
+
+/**
+ * @summary `GET /tills` — the removed entity list, synthesized (one "Till 1" per branch).
+ */
+export const LegacyListTillEntitiesQueryParams = zod.object({
+  "branch_id": zod.uuid().optional()
+})
+
+export const LegacyListTillEntitiesResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "standard_float": zod.number().nullish(),
+  "updated_at": zod.iso.datetime({"offset":true})
+}).describe('The removed drawer entity, synthesized one per branch for old settings screens.')
+export const LegacyListTillEntitiesResponse = zod.array(LegacyListTillEntitiesResponseItem)
+
+
+export const ListTillsParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID (nil UUID = all branches in org)')
+})
+
 export const ListTillsQueryParams = zod.object({
-  "branch_id": zod.uuid()
+  "status": zod.string().optional(),
+  "teller_id": zod.uuid().optional(),
+  "device_id": zod.uuid().optional(),
+  "flagged": zod.boolean().optional().describe('Only tills opened while another was open, or with a disagreed reconciliation.'),
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "page": zod.number().optional(),
+  "per_page": zod.number().optional()
 })
 
-export const ListTillsResponseItem = zod.object({
+export const ListTillsResponse = zod.object({
+  "data": zod.array(zod.object({
   "branch_id": zod.uuid(),
-  "created_at": zod.iso.datetime({"offset":true}),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
+  "cash_discrepancy": zod.number().nullish(),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closed_by": zod.uuid().nullish(),
+  "closing_cash_declared": zod.number().nullish(),
+  "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_close_reason": zod.string().nullish(),
+  "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_closed_by": zod.uuid().nullish(),
   "id": zod.uuid(),
-  "is_active": zod.boolean(),
-  "is_default": zod.boolean(),
-  "name": zod.string(),
-  "org_id": zod.uuid(),
-  "standard_float": zod.number().nullish().describe('The cash that should be in this drawer at the start of a shift, in\nminor units. The shift report proposes closing at it (\"leave the float,\ndrop the rest into the safe\"); `None` means the shop has not decided\nand nothing is proposed.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "opening_cash": zod.number(),
+  "opening_cash_edit_reason": zod.string().nullish(),
+  "opening_cash_original": zod.number().nullish(),
+  "opening_cash_was_edited": zod.boolean(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+})),
+  "page": zod.number(),
+  "per_page": zod.number(),
+  "total": zod.number(),
+  "total_pages": zod.number()
 })
-export const ListTillsResponse = zod.array(ListTillsResponseItem)
 
 
-export const CreateTillBody = zod.object({
-  "branch_id": zod.uuid(),
-  "is_active": zod.boolean().nullish(),
-  "is_default": zod.boolean().nullish(),
-  "name": zod.string(),
-  "standard_float": zod.number().nullish().describe('Standard float in minor units; must not be negative. Omit or `null`\nfor \"not decided\".')
+export const GetCurrentTillParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
 })
 
-export const CreateTillResponse = zod.object({
+export const GetCurrentTillQueryParams = zod.object({
+  "teller_id": zod.uuid().optional().describe('Non-teller roles may ask about another person.')
+})
+
+export const GetCurrentTillResponse = zod.object({
+  "has_open_till": zod.boolean(),
+  "last_close_declared": zod.number().nullish(),
+  "open_at_branch": zod.array(zod.object({
   "branch_id": zod.uuid(),
-  "created_at": zod.iso.datetime({"offset":true}),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
   "id": zod.uuid(),
-  "is_active": zod.boolean(),
-  "is_default": zod.boolean(),
-  "name": zod.string(),
-  "org_id": zod.uuid(),
-  "standard_float": zod.number().nullish().describe('The cash that should be in this drawer at the start of a shift, in\nminor units. The shift report proposes closing at it (\"leave the float,\ndrop the rest into the safe\"); `None` means the shop has not decided\nand nothing is proposed.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('OpenAPI-only vocabulary for `Till.status` (the `till_status` DB enum). The\nstruct fields stay `String`, so the wire strings are exactly the DB values.'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('OpenAPI-only vocabulary for `Till.verification` (`tills_verification` CHECK):\nhow the one-open-till-per-person rule was checked when the till opened.\n`legacy` marks tills opened by pre-rework clients \/ before the rework.')
+})).optional().describe('EVERY open till of the person at THIS branch, newest first (whatever the\ndevice). Normally zero or one; two or more only after an offline open\nwas replayed while another was open — the newer is flagged\n(`opened_while_another_open`) and both stay open, so both are listed.'),
+  "open_bills_notice": zod.object({
+  "old_bill_hours": zod.number(),
+  "old_bills_count": zod.number(),
+  "oldest_opened_at": zod.iso.datetime({"offset":true}).nullish(),
+  "open_bills_amount": zod.number(),
+  "open_bills_count": zod.number(),
+  "seated_tables_count": zod.number(),
+  "since": zod.iso.datetime({"offset":true}).nullish().describe('`closed_at` of the most recent closed till at the branch.')
+}),
+  "open_elsewhere": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('OpenAPI-only vocabulary for `Till.status` (the `till_status` DB enum). The\nstruct fields stay `String`, so the wire strings are exactly the DB values.'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('OpenAPI-only vocabulary for `Till.verification` (`tills_verification` CHECK):\nhow the one-open-till-per-person rule was checked when the till opened.\n`legacy` marks tills opened by pre-rework clients \/ before the rework.')
+})),
+  "open_till": zod.union([zod.null(),zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
+  "cash_discrepancy": zod.number().nullish(),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closed_by": zod.uuid().nullish(),
+  "closing_cash_declared": zod.number().nullish(),
+  "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_close_reason": zod.string().nullish(),
+  "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_closed_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "opening_cash": zod.number(),
+  "opening_cash_edit_reason": zod.string().nullish(),
+  "opening_cash_original": zod.number().nullish(),
+  "opening_cash_was_edited": zod.boolean(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+})]).optional(),
+  "suggested_opening_cash": zod.number()
+})
+
+
+export const ListOpenTillsParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const ListOpenTillsResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
+  "cash_discrepancy": zod.number().nullish(),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closed_by": zod.uuid().nullish(),
+  "closing_cash_declared": zod.number().nullish(),
+  "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_close_reason": zod.string().nullish(),
+  "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_closed_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "opening_cash": zod.number(),
+  "opening_cash_edit_reason": zod.string().nullish(),
+  "opening_cash_original": zod.number().nullish(),
+  "opening_cash_was_edited": zod.boolean(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+})
+export const ListOpenTillsResponse = zod.array(ListOpenTillsResponseItem)
+
+
+export const OpenTillParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const OpenTillBody = zod.object({
+  "device_id": zod.uuid().nullish().describe('Else the `X-Madar-Device` header.'),
+  "edit_reason": zod.string().nullish(),
+  "id": zod.uuid().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}).nullish(),
+  "opening_cash": zod.number(),
+  "opening_cash_edited": zod.boolean().nullish(),
+  "verification": zod.union([zod.null(),zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('Ignored on the live route (live writes `server`).')]).optional()
+})
+
+export const OpenTillResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
+  "cash_discrepancy": zod.number().nullish(),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closed_by": zod.uuid().nullish(),
+  "closing_cash_declared": zod.number().nullish(),
+  "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_close_reason": zod.string().nullish(),
+  "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_closed_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "opening_cash": zod.number(),
+  "opening_cash_edit_reason": zod.string().nullish(),
+  "opening_cash_original": zod.number().nullish(),
+  "opening_cash_was_edited": zod.boolean(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+})
+
+
+export const GetOpenBillsNoticeParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const GetOpenBillsNoticeResponse = zod.object({
+  "old_bill_hours": zod.number(),
+  "old_bills_count": zod.number(),
+  "oldest_opened_at": zod.iso.datetime({"offset":true}).nullish(),
+  "open_bills_amount": zod.number(),
+  "open_bills_count": zod.number(),
+  "seated_tables_count": zod.number(),
+  "since": zod.iso.datetime({"offset":true}).nullish().describe('`closed_at` of the most recent closed till at the branch.')
+})
+
+
+export const GetTillParams = zod.object({
+  "till_id": zod.uuid().describe('Till ID')
+})
+
+export const GetTillResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
+  "cash_discrepancy": zod.number().nullish(),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closed_by": zod.uuid().nullish(),
+  "closing_cash_declared": zod.number().nullish(),
+  "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_close_reason": zod.string().nullish(),
+  "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_closed_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "opening_cash": zod.number(),
+  "opening_cash_edit_reason": zod.string().nullish(),
+  "opening_cash_original": zod.number().nullish(),
+  "opening_cash_was_edited": zod.boolean(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
 })
 
 
 export const DeleteTillParams = zod.object({
-  "id": zod.uuid().describe('Till ID')
+  "till_id": zod.uuid().describe('Till ID')
 })
 
 export const DeleteTillResponse = zod.void()
 
 
-export const UpdateTillParams = zod.object({
-  "id": zod.uuid().describe('Till ID')
+export const ListCashMovementsParams = zod.object({
+  "till_id": zod.uuid().describe('Till ID')
 })
 
-export const UpdateTillBody = zod.object({
-  "is_active": zod.boolean().nullish(),
-  "is_default": zod.boolean().nullish(),
-  "name": zod.string().nullish(),
-  "standard_float": zod.number().nullish().describe('Standard float in minor units. Absent → unchanged; `null` → cleared\n(the shop no longer proposes a closing figure); a value → set. Same\n`Option<Option<T>>` shape as the branch printer fields.')
+export const ListCashMovementsResponseItem = zod.object({
+  "amount": zod.number(),
+  "client_ref": zod.uuid().nullish(),
+  "corrects_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "device_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "moved_by": zod.uuid(),
+  "moved_by_name": zod.string(),
+  "note": zod.string(),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (kept for POS v0.5.1\/v0.6.0).'),
+  "till_id": zod.uuid()
+})
+export const ListCashMovementsResponse = zod.array(ListCashMovementsResponseItem)
+
+
+export const AddCashMovementParams = zod.object({
+  "till_id": zod.uuid().describe('Till ID')
 })
 
-export const UpdateTillResponse = zod.object({
+export const AddCashMovementBody = zod.object({
+  "amount": zod.number(),
+  "client_ref": zod.uuid().nullish(),
+  "corrects_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}).nullish(),
+  "device_id": zod.uuid().nullish(),
+  "kind": zod.union([zod.null(),zod.enum(['pay_in', 'pay_out', 'safe_drop', 'correction']).describe('What a cash movement IS, which fixes its sign.')]).optional(),
+  "note": zod.string()
+})
+
+export const AddCashMovementResponse = zod.object({
+  "amount": zod.number(),
+  "client_ref": zod.uuid().nullish(),
+  "corrects_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "device_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "moved_by": zod.uuid(),
+  "moved_by_name": zod.string(),
+  "note": zod.string(),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (kept for POS v0.5.1\/v0.6.0).'),
+  "till_id": zod.uuid()
+})
+
+
+export const CloseTillParams = zod.object({
+  "till_id": zod.uuid().describe('Till ID')
+})
+
+export const CloseTillBody = zod.object({
+  "cash_note": zod.string().nullish(),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closing_cash_declared": zod.number(),
+  "device_id": zod.uuid().nullish(),
+  "reconciliation": zod.array(zod.object({
+  "declared_amount": zod.number().nullish(),
+  "method": zod.string(),
+  "note": zod.string().nullish(),
+  "status": zod.string().describe('`checked` | `disagreed`')
+}).describe('What the teller said about one method at close.')).nullish().describe('Absent (old clients) → every used method is stored `unreviewed`.')
+})
+
+export const CloseTillResponse = zod.object({
+  "last_till_warning": zod.union([zod.null(),zod.object({
+  "is_last_open_till": zod.boolean(),
+  "open_bills_amount": zod.number(),
+  "open_bills_count": zod.number(),
+  "seated_tables_count": zod.number()
+})]).optional(),
+  "reconciliation": zod.array(zod.object({
+  "changed_after_close": zod.boolean().describe('`current_system_total <> system_total` — a late replay moved the total.'),
+  "current_system_total": zod.number(),
+  "declared_amount": zod.number().nullish(),
+  "is_cash": zod.boolean(),
+  "method": zod.string(),
+  "note": zod.string().nullish(),
+  "order_count": zod.number(),
+  "payment_method_id": zod.uuid().nullish(),
+  "reconciled_at": zod.iso.datetime({"offset":true}),
+  "reconciled_by": zod.uuid().nullish(),
+  "status": zod.string().describe('`checked` | `disagreed` | `unreviewed`'),
+  "system_total": zod.number()
+}).describe('One stored reconciliation line (§2.1).')),
+  "till": zod.object({
   "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
+  "cash_discrepancy": zod.number().nullish(),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closed_by": zod.uuid().nullish(),
+  "closing_cash_declared": zod.number().nullish(),
+  "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_close_reason": zod.string().nullish(),
+  "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_closed_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "opening_cash": zod.number(),
+  "opening_cash_edit_reason": zod.string().nullish(),
+  "opening_cash_original": zod.number().nullish(),
+  "opening_cash_was_edited": zod.boolean(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+})
+})
+
+
+export const ClosePreviewParams = zod.object({
+  "till_id": zod.uuid().describe('Till ID')
+})
+
+export const ClosePreviewResponse = zod.object({
+  "expected_cash": zod.number(),
+  "last_till_warning": zod.union([zod.null(),zod.object({
+  "is_last_open_till": zod.boolean(),
+  "open_bills_amount": zod.number(),
+  "open_bills_count": zod.number(),
+  "seated_tables_count": zod.number()
+})]).optional(),
+  "methods": zod.array(zod.object({
+  "is_cash": zod.boolean(),
+  "method": zod.string(),
+  "order_count": zod.number(),
+  "payment_method_id": zod.uuid().nullish(),
+  "system_total": zod.number()
+})),
+  "till": zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
+  "cash_discrepancy": zod.number().nullish(),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closed_by": zod.uuid().nullish(),
+  "closing_cash_declared": zod.number().nullish(),
+  "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_close_reason": zod.string().nullish(),
+  "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_closed_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "opening_cash": zod.number(),
+  "opening_cash_edit_reason": zod.string().nullish(),
+  "opening_cash_original": zod.number().nullish(),
+  "opening_cash_was_edited": zod.boolean(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+})
+})
+
+
+export const ForceCloseTillParams = zod.object({
+  "till_id": zod.uuid().describe('Till ID')
+})
+
+export const ForceCloseTillBody = zod.object({
+  "device_id": zod.uuid().nullish(),
+  "reason": zod.string().nullish()
+})
+
+export const ForceCloseTillResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
+  "cash_discrepancy": zod.number().nullish(),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closed_by": zod.uuid().nullish(),
+  "closing_cash_declared": zod.number().nullish(),
+  "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_close_reason": zod.string().nullish(),
+  "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_closed_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "opening_cash": zod.number(),
+  "opening_cash_edit_reason": zod.string().nullish(),
+  "opening_cash_original": zod.number().nullish(),
+  "opening_cash_was_edited": zod.boolean(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+})
+
+
+export const ListTillRefundsParams = zod.object({
+  "till_id": zod.uuid().describe('Till ID')
+})
+
+export const ListTillRefundsResponse = zod.object({
+  "refund_count": zod.number(),
+  "refunded_amount": zod.number(),
+  "refunded_cash": zod.number().describe('The cash slice of `refunded_amount` — what left a drawer.')
+}).describe('\"Everything returned\" — against one order, or in one shift. Read from\n`v_order_refund_totals` for an order and summed by `shift_id` for a shift.').and(zod.object({
+  "refunds": zod.array(zod.object({
+  "amount": zod.number(),
+  "branch_id": zod.uuid(),
+  "client_ref": zod.uuid().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
-  "is_active": zod.boolean(),
-  "is_default": zod.boolean(),
-  "name": zod.string(),
-  "org_id": zod.uuid(),
-  "standard_float": zod.number().nullish().describe('The cash that should be in this drawer at the start of a shift, in\nminor units. The shift report proposes closing at it (\"leave the float,\ndrop the rest into the safe\"); `None` means the shop has not decided\nand nothing is proposed.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "is_cash": zod.boolean().describe('Whether `method` meant cash when the refund was issued. Snapshotted.'),
+  "issued_at": zod.iso.datetime({"offset":true}),
+  "issued_by": zod.uuid(),
+  "issued_by_name": zod.string(),
+  "method": zod.string(),
+  "note": zod.string().nullish(),
+  "order_id": zod.uuid(),
+  "reason": zod.string().describe('One of the [`RefundReason`] spellings.'),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id`.'),
+  "till_id": zod.uuid().describe('The shift the refund was ISSUED in — the drawer the money left. Not\nnecessarily the till the order was sold in.')
+}).and(zod.object({
+  "lines": zod.array(zod.object({
+  "amount": zod.number(),
+  "id": zod.uuid(),
+  "item_name": zod.string().describe('`order_items.item_name`, so a receipt reprint names the dish without a\nsecond lookup.'),
+  "order_item_id": zod.uuid(),
+  "quantity": zod.number(),
+  "restock": zod.boolean().describe('Whether the goods came back. Recorded per line; nothing in this module\nwrites it `true` yet (see the module docs on restock).')
+}))
+}))),
+  "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (POS v0.6.0 decodes `ShiftRefunds`).'),
+  "till_id": zod.uuid()
+}))
+
+
+export const GetTillReportParams = zod.object({
+  "till_id": zod.uuid().describe('Till ID')
 })
+
+export const GetTillReportResponse = zod.object({
+  "cash_adjustments": zod.number(),
+  "cash_in_refunded_sales": zod.number().optional(),
+  "cash_movements": zod.array(zod.object({
+  "amount": zod.number(),
+  "corrects_id": zod.uuid().nullish(),
+  "corrects_kind": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "moved_by_name": zod.string(),
+  "note": zod.string()
+})),
+  "cash_movements_in": zod.number(),
+  "cash_movements_net": zod.number(),
+  "cash_movements_out": zod.number(),
+  "cash_tips": zod.number(),
+  "expected_cash": zod.number(),
+  "net_payments": zod.number(),
+  "non_cash_tips": zod.number(),
+  "payment_summary": zod.array(zod.object({
+  "is_cash": zod.boolean(),
+  "order_count": zod.number(),
+  "payment_method": zod.string(),
+  "total": zod.number()
+})),
+  "printed_at": zod.iso.datetime({"offset":true}),
+  "refunds_issued_amount": zod.number().optional(),
+  "refunds_issued_cash": zod.number().optional(),
+  "refunds_issued_count": zod.number().optional(),
+  "safe_drops": zod.number(),
+  "standard_float": zod.number().nullish().describe('`branches.standard_float`.'),
+  "suggested_safe_drop": zod.number().nullish(),
+  "timezone": zod.string().nullish(),
+  "total_payments": zod.number(),
+  "total_tips": zod.number(),
+  "voided_amount": zod.number()
+}).describe('The report figures shared by the new `TillReportResponse` and the legacy\n`ShiftReportResponse` (flattened into both).').and(zod.object({
+  "as_of_seq": zod.number().optional().describe('The branch changefeed horizon read BEFORE the figures (OFFLINE_B_DESIGN\n§7): every change with `seq <= as_of_seq` is in this report. A device\nwhose cursor has reached it, with nothing of the till still on its way,\ncan take these figures as the authority. `0` when no horizon was\navailable (then it is never newer than any cursor). Additive.'),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
+  "order_number_range": zod.object({
+  "device_code": zod.string().nullish(),
+  "first": zod.number().nullish(),
+  "last": zod.number().nullish()
+}),
+  "reconciliation": zod.array(zod.object({
+  "changed_after_close": zod.boolean().describe('`current_system_total <> system_total` — a late replay moved the total.'),
+  "current_system_total": zod.number(),
+  "declared_amount": zod.number().nullish(),
+  "is_cash": zod.boolean(),
+  "method": zod.string(),
+  "note": zod.string().nullish(),
+  "order_count": zod.number(),
+  "payment_method_id": zod.uuid().nullish(),
+  "reconciled_at": zod.iso.datetime({"offset":true}),
+  "reconciled_by": zod.uuid().nullish(),
+  "status": zod.string().describe('`checked` | `disagreed` | `unreviewed`'),
+  "system_total": zod.number()
+}).describe('One stored reconciliation line (§2.1).')),
+  "till": zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish().describe('Branch label (populated by reads; may be null on some write responses).'),
+  "cash_discrepancy": zod.number().nullish(),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closed_by": zod.uuid().nullish(),
+  "closing_cash_declared": zod.number().nullish(),
+  "closing_cash_system": zod.number().nullish(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "disagreement_count": zod.number(),
+  "flagged_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_close_reason": zod.string().nullish(),
+  "force_closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "force_closed_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "old_bills_at_close": zod.number().nullish(),
+  "open_bills_at_close": zod.number().nullish(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "opening_cash": zod.number(),
+  "opening_cash_edit_reason": zod.string().nullish(),
+  "opening_cash_original": zod.number().nullish(),
+  "opening_cash_was_edited": zod.boolean(),
+  "other_till_id": zod.uuid().nullish(),
+  "reconciliation_status": zod.string().nullish().describe('`clean` | `disagreed` | `unreviewed` | null (open, or closed before reconciliation existed)'),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('`open` | `closed` | `force_closed`'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "timezone": zod.string().nullish(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('`server` | `lan` | `unverified` | `legacy`')
+})
+}))
 
 
 /**
@@ -12907,6 +14510,36 @@ export const ListTimezonesResponseItem = zod.string()
 export const ListTimezonesResponse = zod.array(ListTimezonesResponseItem)
 
 
+export const UploadBundleImageParams = zod.object({
+  "bundle_id": zod.uuid().describe('Bundle ID')
+})
+
+export const UploadBundleImageBody = zod.object({
+  "image": zod.instanceof(File)
+})
+
+export const UploadBundleImageResponse = zod.object({
+  "asset_job_id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "status": zod.string().describe('`processing`')
+}).describe('Upload accepted: the picture is converted by the background asset worker.\n`image_url` is the row\'s current legacy URL (unchanged until the job is\ndone); poll `GET \/assets\/jobs\/{asset_job_id}`.')
+
+
+export const UploadCategoryImageParams = zod.object({
+  "category_id": zod.uuid().describe('Category ID')
+})
+
+export const UploadCategoryImageBody = zod.object({
+  "image": zod.instanceof(File)
+})
+
+export const UploadCategoryImageResponse = zod.object({
+  "asset_job_id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "status": zod.string().describe('`processing`')
+}).describe('Upload accepted: the picture is converted by the background asset worker.\n`image_url` is the row\'s current legacy URL (unchanged until the job is\ndone); poll `GET \/assets\/jobs\/{asset_job_id}`.')
+
+
 export const UploadMenuItemImageParams = zod.object({
   "menu_item_id": zod.uuid().describe('Menu item ID')
 })
@@ -12916,8 +14549,10 @@ export const UploadMenuItemImageBody = zod.object({
 })
 
 export const UploadMenuItemImageResponse = zod.object({
-  "image_url": zod.string()
-})
+  "asset_job_id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "status": zod.string().describe('`processing`')
+}).describe('Upload accepted: the picture is converted by the background asset worker.\n`image_url` is the row\'s current legacy URL (unchanged until the job is\ndone); poll `GET \/assets\/jobs\/{asset_job_id}`.')
 
 
 export const ListUsersQueryParams = zod.object({

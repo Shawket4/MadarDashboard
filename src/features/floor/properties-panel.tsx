@@ -118,7 +118,7 @@ export function InspectorPanel({
             ? single.label
             : t("floor.selectedCount", "{{count}} tables", { count: tables.length })}
         </h2>
-        <span className="shrink-0 text-[11px] text-muted-foreground">
+        <span className="shrink-0 text-xs text-muted-foreground">
           {t("floor.seatsTotal", "{{count}} seats", { count: seatsTotal })}
         </span>
       </div>
@@ -183,7 +183,7 @@ export function InspectorPanel({
             </div>
           </div>
 
-          <p className="text-[11px] tabular-nums text-muted-foreground" dir="ltr">
+          <p className="text-xs tabular-nums text-muted-foreground" dir="ltr">
             {(() => {
               const g = geoOf(single);
               return `${Math.round(g.x)}, ${Math.round(g.y)} · ${Math.round(g.w)}×${Math.round(g.h)}`;
@@ -192,7 +192,7 @@ export function InspectorPanel({
 
           {/* Which area a table belongs to is shown, not chosen: moving it
               between areas is a drag on the canvas, not a dropdown here. */}
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {sections.find((s) => s.id === single.section_id)?.name ??
               t("floor.unassigned", "Unassigned")}
           </p>
@@ -238,7 +238,7 @@ export function InspectorPanel({
           table it is about rather than on a report somebody has to go find. */}
       {single ? (
         <div className="-mx-4 border-t">
-          <p className="px-4 pt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="px-4 pt-3 text-sm font-semibold">
             {t("floor.history.title", "Last 30 days")}
           </p>
           <TableHistory tableId={single.id} />

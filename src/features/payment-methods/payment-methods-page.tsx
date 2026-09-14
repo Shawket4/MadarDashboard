@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { PaymentMethodDialog } from "./payment-method-dialog";
+import { AvailabilityTab } from "./availability-tab";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { iconFor, invalidatePaymentMethods, isSystemMethod, labelOf } from "./util";
 import { activatePaymentMethod, deactivatePaymentMethod, useListPaymentMethods } from "@/data/api/generated/api";
 import type { OrgPaymentMethod } from "@/data/api/generated/models";
@@ -136,6 +139,13 @@ export function PaymentMethodsPage() {
         description={t("settings.paymentMethodsHint", "Manage payment methods available for checkout.")}
         actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={!methods.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.add", "Add")}</Button></>}
       />
+      <Tabs defaultValue="methods" className="gap-6">
+        <PageTabsList>
+          <PageTabsTrigger value="methods">{t("settings.paymentMethods", "Payment Methods")}</PageTabsTrigger>
+          <PageTabsTrigger value="availability">{t("paymentMethods.availability.title", "Availability")}</PageTabsTrigger>
+        </PageTabsList>
+        <TabsContent value="availability"><AvailabilityTab /></TabsContent>
+        <TabsContent value="methods" className="space-y-6">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("common.total", "Total")} value={methods.length} loading={list.isLoading} />
         <StatCard label={t("common.active", "Active")} value={active} accent="success" loading={list.isLoading} />
@@ -151,6 +161,8 @@ export function PaymentMethodsPage() {
         searchPlaceholder={t("common.search", "Search…")}
         emptyState={<EmptyState icon={CreditCard} title={t("common.noResults", "No results")} />}
       />
+        </TabsContent>
+      </Tabs>
       {dlgOpen ? <PaymentMethodDialog method={editing} open={dlgOpen} onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}
     </Page>
   );

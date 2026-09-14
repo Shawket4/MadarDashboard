@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
@@ -7,6 +8,7 @@ import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
+import { StatusPill } from "@/components/app/status-pill";
 import { DataTable } from "@/components/app/data-table";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ExportButton } from "@/components/app/export-button";
@@ -93,7 +95,7 @@ export function BundlesPage() {
     try { await fn(); void invalidateBundles(); toast.success(msg); } catch (e) { onErr(e); }
   };
   const remove = async (b: BundleWithComponents) => {
-    if (await confirm({ title: t("common.confirmDelete", { name: b.name, defaultValue: `Delete "${b.name}"?` }), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
+    if (await confirm({ title: t("common.confirmDelete", { name: b.name, defaultValue: `Delete "${b.name}"?` }), description: t("bundles.deleteConsequence", "The combo disappears from the POS menu. Past orders keep their bundle lines; archive instead to keep its sales history visible here."), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
       void runAction(() => deleteBundle(b.id), t("bundles.deletedToast", "Bundle deleted"));
     }
   };
@@ -109,8 +111,8 @@ export function BundlesPage() {
         accessorKey: "name", header: t("bundles.bundleName", "Bundle name"),
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-primary/20 bg-primary/10 text-primary">
-              {row.original.image_url ? <img src={row.original.image_url} alt="" className="size-full object-cover" /> : <Boxes className="size-4" />}
+            <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-secondary text-muted-foreground">
+              {row.original.image_url ? <AssetImage asset={assetOf(row.original)} legacyUrl={row.original.image_url} sizes="128px" className="size-full object-cover" /> : <Boxes className="size-4" />}
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{tname(row.original)}</p>
@@ -124,33 +126,18 @@ export function BundlesPage() {
         cell: ({ row }) => (
           <div className="flex max-w-sm flex-wrap gap-1">
             {row.original.components.map((c) => (
-              <Badge key={c.id} variant="secondary" className="text-xs">{c.item_name} <span className="ms-1 font-bold text-primary">×{c.quantity}</span></Badge>
+              <Badge key={c.id} variant="secondary" className="text-xs">{c.item_name} <bdi className="ms-1 font-mono font-semibold tabular-nums">×{c.quantity}</bdi></Badge>
             ))}
           </div>
         ),
       },
-      { accessorKey: "price", header: t("bundles.price", "Price"), cell: ({ row }) => <span className="font-bold tabular">{fmtMoney(row.original.price)}</span> },
-      { accessorKey: "computed_cost", header: t("bundles.computedCostLabel", "Recipe cost"), cell: ({ row }) => <span className="text-xs tabular text-muted-foreground">{row.original.cost_missing ? "—" : fmtMoney(row.original.computed_cost)}</span> },
+      { accessorKey: "price", header: t("bundles.price", "Price"), meta: { numeric: true, label: t("bundles.price", "Price") }, cell: ({ row }) => <span className="font-semibold">{fmtMoney(row.original.price)}</span> },
+      { accessorKey: "computed_cost", header: t("bundles.computedCostLabel", "Recipe cost"), meta: { numeric: true, label: t("bundles.computedCostLabel", "Recipe cost") }, cell: ({ row }) => <span className="text-muted-foreground">{row.original.cost_missing ? "—" : fmtMoney(row.original.computed_cost)}</span> },
       {
         accessorKey: "status", header: t("common.status", "Status"),
         cell: ({ row }) => {
           const st = row.original.status;
-          return <Badge variant={st === "active" ? "secondary" : st === "archived" ? "outline" : "default"}>{t(`bundles.status.${st}`, st)}</Badge>;
-        },
-      },
-      {
-        id: "actions", header: "",
-        cell: ({ row }) => {
-          const b = row.original;
-          return (
-            <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon-sm" title={t("bundles.performance.title", "Performance")} onClick={() => update({ perf: b.id })}><Activity className="size-4" /></Button>
-              {b.status === "draft" ? <Button variant="ghost" size="icon-sm" className="text-success" title={t("bundles.activate", "Activate")} onClick={() => void runAction(() => activateBundle(b.id), t("bundles.activatedToast", "Bundle activated"))}><CheckCircle className="size-4" /></Button> : null}
-              {b.status === "active" ? <Button variant="ghost" size="icon-sm" title={t("bundles.archive", "Archive")} onClick={() => void runAction(() => archiveBundle(b.id), t("bundles.archivedToast", "Bundle archived"))}><Archive className="size-4" /></Button> : null}
-              <Button variant="ghost" size="icon-sm" onClick={() => update({ edit: b.id })}><Pencil className="size-4" /></Button>
-              <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => void remove(b)}><Trash2 className="size-4" /></Button>
-            </div>
-          );
+          return <StatusPill tone={st === "active" ? "success" : st === "draft" ? "accent" : "neutral"}>{t(`bundles.status.${st}`, st)}</StatusPill>;
         },
       },
     ],
@@ -197,37 +184,11 @@ export function BundlesPage() {
       <PageHeader
         title={t("bundles.title", "Bundles")}
         description={t("bundles.subtitle", "Combo deals that group items at a special price")}
-        actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={totalCount === 0} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("bundles.new", "New bundle")}</Button></>}
-      />
-
-      <LedgerStrip
-        items={[
-          { key: "total", label: t("common.total", "Total"), value: totalCount, accent: "primary", loading: activeCount.isLoading },
-          { key: "active", label: t("bundles.status.active", "Active"), value: counts.active, accent: "success", loading: activeCount.isLoading },
-          { key: "draft", label: t("bundles.status.draft", "Draft"), value: counts.draft, accent: "info", loading: draftCount.isLoading },
-          { key: "archived", label: t("bundles.status.archived", "Archived"), value: counts.archived, accent: "neutral", loading: archivedCount.isLoading },
-        ] satisfies LedgerItem[]}
-      />
-
-      <DataTable
-        columns={columns}
-        data={bundles}
-        loading={list.isLoading || (list.isFetching && !list.data)}
-        getRowId={(b) => b.id}
-        onRowClick={(b) => update({ edit: b.id })}
-        manualPagination
-        pageCount={pageCount}
-        pagination={{ pageIndex, pageSize: PER_PAGE }}
-        onPaginationChange={(updater) => {
-          const next = typeof updater === "function" ? updater({ pageIndex, pageSize: PER_PAGE }) : updater;
-          setPageIndex(next.pageIndex);
-        }}
-        onPrefetchNext={prefetchNext}
-        toolbar={
+        below={
           <div className="flex flex-1 flex-wrap items-center gap-2">
             <div className="relative w-full sm:w-56">
-              <Search className="absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("common.search", "Search…")} className="h-9 ps-8" />
+              <Search className="absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("common.search", "Search…")} aria-label={t("common.search", "Search…")} className="h-9 ps-8" />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-9 w-auto min-w-32"><SelectValue /></SelectTrigger>
@@ -251,6 +212,43 @@ export function BundlesPage() {
             </Select>
           </div>
         }
+        actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={totalCount === 0} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("bundles.new", "New bundle")}</Button></>}
+      />
+
+      <LedgerStrip
+        items={[
+          { key: "total", label: t("common.total", "Total"), value: totalCount, accent: "primary", loading: activeCount.isLoading },
+          { key: "active", label: t("bundles.status.active", "Active"), value: counts.active, accent: "success", loading: activeCount.isLoading },
+          { key: "draft", label: t("bundles.status.draft", "Draft"), value: counts.draft, accent: "info", loading: draftCount.isLoading },
+          { key: "archived", label: t("bundles.status.archived", "Archived"), value: counts.archived, accent: "neutral", loading: archivedCount.isLoading },
+        ] satisfies LedgerItem[]}
+      />
+
+      <DataTable
+        columns={columns}
+        data={bundles}
+        loading={list.isLoading || (list.isFetching && !list.data)}
+        error={list.error}
+        onRetry={() => void list.refetch()}
+        rowActions={(b) => (
+          <>
+            <Button variant="ghost" size="icon-sm" title={t("bundles.performance.title", "Performance")} aria-label={t("bundles.performance.title", "Performance")} onClick={() => update({ perf: b.id })}><Activity className="size-4" /></Button>
+            {b.status === "draft" ? <Button variant="ghost" size="icon-sm" title={t("bundles.activate", "Activate")} aria-label={t("bundles.activate", "Activate")} onClick={() => void runAction(() => activateBundle(b.id), t("bundles.activatedToast", "Bundle activated"))}><CheckCircle className="size-4" /></Button> : null}
+            {b.status === "active" ? <Button variant="ghost" size="icon-sm" title={t("bundles.archive", "Archive")} aria-label={t("bundles.archive", "Archive")} onClick={() => void runAction(() => archiveBundle(b.id), t("bundles.archivedToast", "Bundle archived"))}><Archive className="size-4" /></Button> : null}
+            <Button variant="ghost" size="icon-sm" aria-label={t("common.edit", "Edit")} onClick={() => update({ edit: b.id })}><Pencil className="size-4" /></Button>
+            <Button variant="ghost" size="icon-sm" className="text-destructive" aria-label={t("common.delete", "Delete")} onClick={() => void remove(b)}><Trash2 className="size-4" /></Button>
+          </>
+        )}
+        getRowId={(b) => b.id}
+        onRowClick={(b) => update({ edit: b.id })}
+        manualPagination
+        pageCount={pageCount}
+        pagination={{ pageIndex, pageSize: PER_PAGE }}
+        onPaginationChange={(updater) => {
+          const next = typeof updater === "function" ? updater({ pageIndex, pageSize: PER_PAGE }) : updater;
+          setPageIndex(next.pageIndex);
+        }}
+        onPrefetchNext={prefetchNext}
         emptyState={<EmptyState icon={Boxes} title={t("bundles.empty", "No bundles yet")} description={t("bundles.emptyHint", "Create your first combo deal to boost average order value.")} />}
       />
 

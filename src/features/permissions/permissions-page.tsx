@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, CheckCircle, ChevronRight, MinusCircle, Shield, X, XCircle } from "lucide-react";
+import { Check, CheckCircle, MinusCircle, Shield, X, XCircle } from "lucide-react";
 
-import { Page } from "@/components/app/page";
-import { EmptyState } from "@/components/app/empty-state";
+import { Page, PageHeader } from "@/components/app/page";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
+import { ListCard, ListRow } from "@/components/app/list-row";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { initials } from "@/lib/format";
 import { ExportButton } from "@/components/app/export-button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,7 +34,7 @@ const RESOURCE_ORDER = [
   "categories", "menu_items", "addon_groups", "addon_items", "recipes",
   "inventory", "inventory_adjustments", "inventory_transfers", "stocktakes",
   "inventory_waste", "suppliers", "purchase_orders",
-  "orders", "order_items", "payments", "shifts", "soft_serve_batches",
+  "orders", "order_items", "payments", "tills", "soft_serve_batches",
 ];
 const ACTION_ORDER = ["read", "create", "update", "delete"];
 
@@ -131,38 +134,47 @@ export function PermissionsPage() {
 
   return (
     <Page>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("permissions.title", "Permissions")}</h1>
-          <p className="text-sm text-muted-foreground">{t("permissions.subtitle", "Manage per-user access overrides")}</p>
-        </div>
-        <ExportButton
-          onExport={handleExport}
-          loading={exporting}
-          disabled={!selUser || resources.length === 0}
-          className="shrink-0"
-        />
-      </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
+      <PageHeader
+        icon={Shield}
+        title={t("permissions.title", "Permissions")}
+        subtitle={t("permissions.subtitle", "Manage per-user access overrides")}
+        actions={<ExportButton onExport={handleExport} loading={exporting} disabled={!selUser || resources.length === 0} />}
+      />
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[300px_1fr]">
         {/* User picker */}
-        <div className="overflow-hidden rounded-xl border bg-card">
-          <div className="border-b bg-muted/30 p-3"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("permissions.selectUser", "Select a user")}</p></div>
+        <ListCard className="rounded-xl">
+          <div className="px-4 py-3 sm:px-5"><p className="text-sm font-semibold">{t("permissions.selectUser", "Select a user")}</p></div>
           <ScrollArea className="max-h-[min(600px,calc(100vh-14rem))] overflow-y-auto">
             {usersQ.isLoading ? (
-              <div className="space-y-2 p-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
+              <div className="divide-y">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex min-h-14 items-center gap-3 px-4 sm:px-5">
+                    <Skeleton className="size-9 rounded-full" />
+                    <div className="flex-1 space-y-1.5"><Skeleton className="h-3.5 w-2/3" /><Skeleton className="h-3 w-1/3" /></div>
+                  </div>
+                ))}
+              </div>
+            ) : usersQ.error ? (
+              <ErrorState title={t("permissions.usersLoadError", "Couldn't load users")} onRetry={() => void usersQ.refetch()} retrying={usersQ.isFetching} className="py-8" />
             ) : users.length === 0 ? (
-              <p className="p-4 text-center text-sm text-muted-foreground">{t("common.noResults", "No results")}</p>
+              <EmptyState icon={Shield} title={t("permissions.noUsers", "Other staff accounts appear here once they're added")} className="py-8" />
             ) : (
-              users.map((u) => (
-                <button key={u.id} onClick={() => update({ user: u.id })}
-                  className={cn("flex w-full items-center gap-3 border-b px-4 py-3 text-start transition-colors last:border-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1", selUser === u.id && "bg-accent")}>
-                  <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{u.name}</p><p className="mt-0.5 text-xs text-muted-foreground">{t(`roles.${u.role}`, u.role)}</p></div>
-                  {selUser === u.id ? <ChevronRight className="size-3.5 shrink-0 text-primary rtl:rotate-180" /> : null}
-                </button>
-              ))
+              <div className="divide-y">
+                {users.map((u) => (
+                  <ListRow
+                    key={u.id}
+                    variant="nav"
+                    selected={selUser === u.id}
+                    onClick={() => update({ user: u.id })}
+                    leading={<Avatar className="size-9 shrink-0"><AvatarFallback className="text-xs">{initials(u.name)}</AvatarFallback></Avatar>}
+                    title={u.name}
+                    meta={t(`roles.${u.role}`, u.role)}
+                  />
+                ))}
+              </div>
             )}
           </ScrollArea>
-        </div>
+        </ListCard>
 
         {/* Matrix */}
         <div className="overflow-hidden rounded-xl border bg-card">
@@ -175,7 +187,9 @@ export function PermissionsPage() {
                 {selected ? <Badge variant="outline" className="border-transparent bg-info/15 text-info">{t(`roles.${selected.role}`, selected.role)}</Badge> : null}
               </div>
               <ScrollArea className="max-h-[min(520px,calc(100vh-18rem))] overflow-y-auto">
-                {matrixQ.isLoading ? (
+                {matrixQ.error ? (
+                  <ErrorState title={t("permissions.matrixLoadError", "Couldn't load this user's permissions")} onRetry={() => void matrixQ.refetch()} retrying={matrixQ.isFetching} className="py-10" />
+                ) : matrixQ.isLoading ? (
                   <div className="space-y-2 p-4">{Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-10" />)}</div>
                 ) : (
                   <table className="w-full text-sm">

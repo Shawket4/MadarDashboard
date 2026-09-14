@@ -15,10 +15,13 @@ import { useTranslation } from "react-i18next";
 import { useTableHistory } from "@/data/api/generated/api";
 import type { TableSitting } from "@/data/api/generated/models";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fmtMoney } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { fmtElapsedMs, fmtMoney, fmtNumber } from "@/lib/format";
+import { StatusPill } from "@/components/app/status-pill";
 
-/** "1h 02m" — a stay, not a timestamp. */
+/** A stay, not a timestamp — the shared elapsed shape (`42m` · `1h 05m`). */
+const stay = (minutes: number): string => (minutes < 1 ? "—" : fmtElapsedMs(minutes * 60_000));
+
+/** "1h 02m" — kept for callers that need the plain ASCII form. */
 export function formatStay(minutes: number): string {
   if (minutes < 1) return "—";
   if (minutes < 60) return `${minutes}m`;
@@ -29,9 +32,9 @@ export function formatStay(minutes: number): string {
 
 function Figure({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border bg-card p-3">
+    <div className="rounded-xl border bg-card p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 font-mono text-lg tabular-nums">{value}</p>
+      <p className="mt-1 font-mono text-lg font-semibold tabular-nums"><bdi>{value}</bdi></p>
     </div>
   );
 }
@@ -46,7 +49,7 @@ function SittingRow({ s }: { s: TableSitting }) {
         <p className="truncate text-sm">{who}</p>
         <p className="text-xs text-muted-foreground">
           {[
-            formatStay(s.minutes),
+            stay(s.minutes),
             covers > 0
               ? t("floor.history.covers", { count: covers, defaultValue: "{{count}} covers" })
               : null,
@@ -58,18 +61,11 @@ function SittingRow({ s }: { s: TableSitting }) {
       {/* A bill that took no money says WHY, rather than showing a zero that
           reads as a table earning nothing. */}
       {s.total_amount == null ? (
-        <span
-          className={cn(
-            "shrink-0 rounded px-1.5 py-0.5 text-[11px]",
-            s.status === "open"
-              ? "bg-primary/10 text-primary"
-              : "bg-muted text-muted-foreground",
-          )}
-        >
+        <StatusPill tone={s.status === "open" ? "accent" : "danger"} size="sm">
           {s.status === "open"
             ? t("floor.history.stillOpen", "Still open")
             : t("floor.history.voided", "Voided")}
-        </span>
+        </StatusPill>
       ) : (
         <span className="shrink-0 font-mono text-sm tabular-nums">
           {fmtMoney(s.total_amount)}
@@ -115,7 +111,7 @@ export function TableHistory({ tableId, from, to }: { tableId: string; from?: st
 
   // Turns ride the wire ×100 so the payload stays integer; one decimal is as
   // far as a turn rate is ever read.
-  const turns = (data.turns_per_day_x100 / 100).toFixed(1);
+  const turns = fmtNumber(data.turns_per_day_x100 / 100, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   return (
     <div className="space-y-4 p-4">
@@ -130,12 +126,12 @@ export function TableHistory({ tableId, from, to }: { tableId: string; from?: st
         />
         <Figure
           label={t("floor.history.avgStay", "Average stay")}
-          value={formatStay(data.average_minutes)}
+          value={stay(data.average_minutes)}
         />
         <Figure label={t("floor.history.turns", "Turns a day")} value={turns} />
       </div>
       <div>
-        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <p className="mb-1 text-sm font-semibold">
           {t("floor.history.bills", "Bills")}
         </p>
         <ul>

@@ -96,4 +96,20 @@ export default [
       ],
     },
   },
+
+  // Entity images render through AssetImage (variant srcset, lazy). A raw
+  // <img src={x.image_url}> ships the full-size original to a 32px cell.
+  {
+    files: ["src/**/*.tsx"],
+    ignores: ["src/components/app/asset-image.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXOpeningElement[name.name='img'] > JSXAttribute[name.name='src'] MemberExpression[property.name=/^(image_url|logo_url)$/]",
+          message: "Use <AssetImage> for entity images (TILLS_CONTRACT §11.10).",
+        },
+      ],
+    },
+  },
 ]

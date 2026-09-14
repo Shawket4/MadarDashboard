@@ -3,12 +3,14 @@ import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Ban, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, TriangleAlert, Truck, Ban as VoidIcon } from "lucide-react";
+import { Ban, Bike, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, Store, TriangleAlert, Ban as VoidIcon } from "lucide-react";
 
-import { Page } from "@/components/app/page";
+import { Page, PageHeader } from "@/components/app/page";
+import { SectionHeader } from "@/components/app/section-header";
+import { StatusPill, toneFor } from "@/components/app/status-pill";
+import { EmptyState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ExcludeItemsControl, excludeItemsParam, useExcludedItems } from "@/components/app/exclude-items-control";
-import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { DataTable } from "@/components/app/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -22,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportButton } from "@/components/app/export-button";
+import { DeliveryChannels } from "./delivery-channels";
 import { OrderDetailSheet } from "./order-detail-sheet";
 import { VoidOrderDialog } from "./void-order-dialog";
 import { OrderExportDialog } from "./order-export-dialog";
@@ -34,7 +37,6 @@ import { useAuthStore } from "@/data/stores/auth.store";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDateTime, fmtMoney } from "@/lib/format";
 import { useDebounced } from "@/lib/use-debounced";
-import { cn } from "@/lib/utils";
 
 const ALL = "__all__";
 
@@ -56,13 +58,11 @@ function PriceFlagBadge({ order }: { order: Order }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Badge
-          variant="secondary"
-          className="gap-1 bg-warning/10 px-1.5 py-0 text-xs text-warning"
-        >
-          <TriangleAlert className="size-3" />
-          {t("orders.offlinePrice", "Offline price")}
-        </Badge>
+        <span tabIndex={0} className="inline-flex rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
+          <StatusPill tone="warning" size="sm" icon={TriangleAlert}>
+            {t("orders.offlinePrice", "Offline price")}
+          </StatusPill>
+        </span>
       </TooltipTrigger>
       <TooltipContent>
         {t(
@@ -83,17 +83,7 @@ function PriceFlagBadge({ order }: { order: Order }) {
 
 function OrderStatusBadge({ status }: { status: string }) {
   const { t } = useTranslation();
-  return (
-    <Badge
-      variant="secondary"
-      className={cn(
-        "capitalize",
-        status === "voided" ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success",
-      )}
-    >
-      {t(`orderStatus.${status}`, status)}
-    </Badge>
-  );
+  return <StatusPill tone={toneFor(status, "success")}>{t(`orderStatus.${status}`, status)}</StatusPill>;
 }
 
 export function OrdersPage() {
@@ -116,7 +106,9 @@ export function OrdersPage() {
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
   // Opened order lives in the URL (?order=<id>) so it's shareable / deep-linkable.
   const navigate = useNavigate();
-  const detailId = (useSearch({ strict: false }) as { order?: string }).order ?? null;
+  const search = useSearch({ strict: false }) as { order?: string; till?: string };
+  const detailId = search.order ?? null;
+  const tillId = search.till;
   const setDetailId = useCallback(
     (id: string | null) => void navigate({ to: ".", replace: true, search: (p: Record<string, unknown>) => ({ ...p, order: id ?? undefined }) }),
     [navigate],
@@ -144,10 +136,11 @@ export function OrdersPage() {
     // Channel only narrows delivery orders; ignored unless Delivery is picked.
     channel: orderType === "delivery" && channel !== ALL ? channel : undefined,
     exclude_items: excludeItemsParam(excludedItems),
+    till_id: tillId,
   };
 
   const enabled = Boolean(branchId || orgId);
-  const { data, isLoading, isFetching } = useListOrders(
+  const { data, isLoading, isFetching, error, refetch } = useListOrders(
     { ...baseParams, page: pagination.pageIndex + 1, per_page: pagination.pageSize },
     { query: { enabled, placeholderData: keepPreviousData } },
   );
@@ -162,21 +155,20 @@ export function OrdersPage() {
   );
 
   const primaryKpis: LedgerItem[] = [
-    { key: "revenue", label: t("dashboard.revenue", "Revenue"), value: summary?.revenue ?? 0, formatType: "money", icon: Coins, accent: "brand", loading: isLoading },
-    { key: "completed", label: t("orders.completed", "Completed"), value: summary?.completed ?? 0, formatType: "number", icon: Receipt, accent: "success", loading: isLoading },
+    { key: "revenue", label: t("dashboard.revenue", "Revenue"), value: summary?.revenue ?? 0, formatType: "money", icon: Coins, loading: isLoading },
+    { key: "completed", label: t("orders.completed", "Completed"), value: summary?.completed ?? 0, formatType: "number", icon: Receipt, loading: isLoading },
     {
       key: "line_items",
       label: t("orders.itemsSold", "Items Sold"),
       value: summary?.line_items ?? 0,
       formatType: "number",
       icon: ShoppingBasket,
-      accent: "info",
       loading: isLoading,
       hint: excludedItems.length ? t("analytics.nExcluded", "{{count}} item excluded", { count: excludedItems.length }) : undefined,
       action: <ExcludeItemsControl excluded={excludedItems} onChange={setExcludedItems} />,
     },
-    { key: "voided", label: t("dashboard.voided", "Voided"), value: summary?.voided ?? 0, formatType: "number", icon: Ban, accent: "destructive", loading: isLoading },
-    { key: "discounts", label: t("orders.discounts", "Discounts"), value: summary?.discounts ?? 0, formatType: "money", icon: Percent, accent: "warning", loading: isLoading },
+    { key: "voided", label: t("dashboard.voided", "Voided"), value: summary?.voided ?? 0, formatType: "number", icon: Ban, accent: (summary?.voided ?? 0) > 0 ? "destructive" : "neutral", loading: isLoading },
+    { key: "discounts", label: t("orders.discounts", "Discounts"), value: summary?.discounts ?? 0, formatType: "money", icon: Percent, loading: isLoading },
   ];
 
   // Predictive prefetch: the next page loads before the user clicks Next.
@@ -197,12 +189,13 @@ export function OrdersPage() {
       {
         accessorKey: "order_ref",
         header: "#",
+        meta: { label: t("orders.orderNumber", "Order #"), numeric: true, align: "start", phone: "title" },
         cell: ({ row }) => (
-          <span className="flex items-center gap-1.5 font-medium tabular">
-            {row.original.order_ref ?? `#${row.original.order_number}`}
+          <span className="flex items-center gap-2">
+            <span className="font-medium">{row.original.order_ref ?? `#${row.original.display_number ?? row.original.order_number}`}</span>
             {row.original.order_type === "delivery" ? (
-              <Badge variant="secondary" className="gap-1 bg-primary/10 px-1.5 py-0 text-xs text-primary">
-                <Truck className="size-3" />
+              <Badge variant="secondary" className="gap-1 px-1.5 py-0 font-sans text-xs font-medium text-muted-foreground">
+                {row.original.delivery_channel === "in_mall" ? <Store aria-hidden className="size-3" /> : <Bike aria-hidden className="size-3" />}
                 {row.original.delivery_channel === "in_mall"
                   ? t("delivery.channelInMall", "In-mall")
                   : t("orders.deliveryOutside", "Outside")}
@@ -214,17 +207,20 @@ export function OrdersPage() {
       {
         accessorKey: "created_at",
         header: t("common.date", "Date"),
-        cell: ({ row }) => <span className="text-muted-foreground tabular">{fmtDateTime(row.original.created_at)}</span>,
+        meta: { label: t("common.date", "Date"), numeric: true, align: "start" },
+        cell: ({ row }) => <span className="text-muted-foreground">{fmtDateTime(row.original.created_at)}</span>,
       },
-      { accessorKey: "teller_name", header: t("shifts.teller", "Teller") },
+      { accessorKey: "teller_name", header: t("tills.teller", "Teller"), meta: { label: t("tills.teller", "Teller") } },
       {
         accessorKey: "waiter_name",
-        header: t("shifts.waiter", "Waiter"),
+        header: t("tills.waiter", "Waiter"),
+        meta: { label: t("tills.waiter", "Waiter") },
         cell: ({ row }) => row.original.waiter_name || "—",
       },
       {
         accessorKey: "status",
         header: t("common.status", "Status"),
+        meta: { label: t("common.status", "Status") },
         cell: ({ row }) => (
           <span className="flex items-center gap-1.5">
             <OrderStatusBadge status={row.original.status} />
@@ -235,6 +231,7 @@ export function OrdersPage() {
       {
         accessorKey: "payment_method",
         header: t("orders.payment", "Payment"),
+        meta: { label: t("orders.payment", "Payment") },
         // A split sale's nominal method is the literal "mixed", which appears in
         // no money report — those bucket by the legs actually tendered. Show the
         // legs so this column reconciles with the sales/shift payment breakdown.
@@ -248,7 +245,7 @@ export function OrdersPage() {
               {legs.map((leg, i) => (
                 <span key={`${leg.method}-${i}`} className="text-xs">
                   {t(`payments.${leg.method}`, leg.method)}
-                  <span className="ms-0.5 tabular text-muted-foreground">{fmtMoney(leg.amount)}</span>
+                  <bdi className="ms-1 font-mono tabular-nums text-muted-foreground">{fmtMoney(leg.amount)}</bdi>
                 </span>
               ))}
             </span>
@@ -257,89 +254,27 @@ export function OrdersPage() {
       },
       {
         accessorKey: "tax_amount",
-        header: () => <div className="text-end">{t("orders.tax", "Tax")}</div>,
-        cell: ({ row }) => <div className="text-end tabular text-muted-foreground">{fmtMoney(row.original.tax_amount)}</div>,
+        header: t("orders.tax", "Tax"),
+        meta: { label: t("orders.tax", "Tax"), numeric: true },
+        cell: ({ row }) => <span className="text-muted-foreground">{fmtMoney(row.original.tax_amount)}</span>,
       },
       {
         accessorKey: "total_amount",
-        header: () => <div className="text-end">{t("common.total", "Total")}</div>,
-        cell: ({ row }) => <div className="text-end font-medium tabular">{fmtMoney(row.original.total_amount)}</div>,
-      },
-      {
-        id: "actions",
-        enableHiding: false,
-        cell: ({ row }) => {
-          const order = row.original;
-          return (
-            <div className="text-end">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" onClick={(e) => e.stopPropagation()}>
-                    <MoreHorizontal className="size-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenuItem onClick={() => setDetailId(order.id)}>
-                    <Eye className="size-4" />
-                    {t("common.details", "Details")}
-                  </DropdownMenuItem>
-                  {order.status === "completed" ? (
-                    <DropdownMenuItem
-                      className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                      onClick={() => setVoidOrder(order)}
-                    >
-                      <VoidIcon className="size-4" />
-                      {t("orders.void", "Void order")}
-                    </DropdownMenuItem>
-                  ) : null}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          );
-        },
+        header: t("common.total", "Total"),
+        meta: { label: t("common.total", "Total"), numeric: true },
+        cell: ({ row }) => <span className="font-semibold">{fmtMoney(row.original.total_amount)}</span>,
       },
     ],
-    [t, setDetailId],
+    [t],
   );
 
   return (
     <Page>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">{t("nav.orders", "Orders")}</h1>
-          <p className="text-sm text-muted-foreground">{t("orders.subtitle", "Sales history, voids and exports")}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <ExportButton onExport={() => setExportOpen(true)} disabled={!enabled} />
-        </div>
-      </div>
-
-      <LedgerStrip items={primaryKpis} />
-
-      {(deliverySales.data?.total_orders ?? 0) > 0 ? (
-        <section className="space-y-3">
-          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-            <h2 className="text-lg font-semibold tracking-tight">{t("delivery.kpisTitle", "Delivery")}</h2>
-            <span className="text-sm text-muted-foreground">{t("delivery.byChannel", "By channel")}</span>
-          </div>
-          <DeliveryKpis data={deliverySales.data} loading={deliverySales.isLoading} />
-        </section>
-      ) : null}
-
-      <DataTable
-        columns={columns}
-        data={data?.data ?? []}
-        loading={isLoading || (isFetching && !data)}
-        onRowClick={(o) => setDetailId(o.id)}
-        onRowPrefetch={(o) => void queryClient.prefetchQuery(getGetOrderQueryOptions(o.id))}
-        onPrefetchNext={prefetchNext}
-        getRowId={(o) => o.id}
-        manualPagination
-        pageCount={data?.total_pages ?? 0}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        toolbar={
-          <>
+      <PageHeader
+        title={t("nav.orders", "Orders")}
+        subtitle={t("orders.subtitle", "Sales history, voids and exports")}
+        actions={<ExportButton onExport={() => setExportOpen(true)} disabled={!enabled} />}
+        below={<div className="flex flex-wrap items-center gap-2">
             <Input
               value={tellerInput}
               onChange={(e) => setTellerInput(e.target.value)}
@@ -406,8 +341,61 @@ export function OrdersPage() {
                 </SelectContent>
               </Select>
             ) : null}
-          </>
+</div>}
+      />
+
+      <LedgerStrip items={primaryKpis} />
+
+      {(deliverySales.data?.total_orders ?? 0) > 0 ? (
+        <section className="space-y-3">
+          <SectionHeader title={t("delivery.kpisTitle", "Delivery")} description={t("delivery.byChannel", "By channel")} />
+          <DeliveryChannels data={deliverySales.data} loading={deliverySales.isLoading} />
+        </section>
+      ) : null}
+
+      <DataTable
+        columns={columns}
+        data={data?.data ?? []}
+        loading={isLoading || (isFetching && !data)}
+        error={error}
+        onRetry={() => void refetch()}
+        selectedRowId={detailId}
+        emptyState={
+          <EmptyState
+            icon={Receipt}
+            title={t("orders.emptyTitle", "No orders in this range")}
+            description={t("orders.emptyBody", "Sales rung on the POS for this branch and period appear here.")}
+          />
         }
+        rowActions={(order) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-sm" aria-label={t("common.actions", "Actions")}>
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setDetailId(order.id)}>
+                <Eye className="size-4" />
+                {t("common.details", "Details")}
+              </DropdownMenuItem>
+              {order.status === "completed" ? (
+                <DropdownMenuItem variant="destructive" onClick={() => setVoidOrder(order)}>
+                  <VoidIcon className="size-4" />
+                  {t("orders.void", "Void order")}
+                </DropdownMenuItem>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        onRowClick={(o) => setDetailId(o.id)}
+        onRowPrefetch={(o) => void queryClient.prefetchQuery(getGetOrderQueryOptions(o.id))}
+        onPrefetchNext={prefetchNext}
+        getRowId={(o) => o.id}
+        manualPagination
+        pageCount={data?.total_pages ?? 0}
+        pagination={pagination}
+        onPaginationChange={setPagination}
       />
 
       <OrderDetailSheet

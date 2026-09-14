@@ -31,6 +31,13 @@ export interface Branch {
      */
   longitude?: number | null;
   name: string;
+  /**
+     * A bill left open longer than this many hours is flagged as OLD (till
+     * open notice, close warning, Z report). 1..168, default 3.
+     * @minimum 1
+     * @maximum 168
+     */
+  old_bill_hours: number;
   org_id: string;
   /**
      * Convenience field — populated from the parent org's `logo_url`.
@@ -58,6 +65,13 @@ export interface Branch {
   service_charge_rate?: number | null;
   /** @nullable */
   service_charge_taxable?: boolean | null;
+  /**
+     * The drawer's standard opening float in minor units; drives the till
+     * report's `standard_float` / `suggested_safe_drop`. `null` = none set.
+     * @minimum 0
+     * @nullable
+     */
+  standard_float?: number | null;
   /** @nullable */
   tax_inclusive?: boolean | null;
   /**

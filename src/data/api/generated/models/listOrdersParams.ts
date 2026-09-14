@@ -3,7 +3,7 @@
 
 export type ListOrdersParams = {
 branch_id?: string;
-shift_id?: string;
+till_id?: string;
 updated_after?: string;
 page?: number;
 per_page?: number;

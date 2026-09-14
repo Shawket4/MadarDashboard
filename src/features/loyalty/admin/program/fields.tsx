@@ -28,8 +28,8 @@ export function Group({
     <div className="space-y-4">
       {title ? (
         <div className="space-y-1">
-          <p className="text-sm font-bold">{title}</p>
-          {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+          <h3 className="text-base font-semibold">{title}</h3>
+          {hint ? <p className="text-sm text-muted-foreground">{hint}</p> : null}
         </div>
       ) : null}
       {children}

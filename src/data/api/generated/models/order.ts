@@ -39,6 +39,17 @@ export interface Order {
      * @nullable
      */
   delivery_order_id?: string | null;
+  /**
+     * That device's code (`36B`), stored with the order. `null` when server-numbered.
+     * @nullable
+     */
+  device_code?: string | null;
+  /**
+     * The device that numbered this sale (contract R4). `null` for server-numbered
+     * orders (old clients, dashboard, delivery).
+     * @nullable
+     */
+  device_id?: string | null;
   discount_amount: number;
   /** @nullable */
   discount_id?: string | null;
@@ -56,7 +67,19 @@ export interface Order {
      * field. Read [`Order::discount_rate`] for the stored number.
      */
   discount_value: number;
+  /**
+     * What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)
+     * for a device-numbered sale, else `order_number` as text.
+     */
+  display_number?: string;
   id: string;
+  /**
+     * The client-minted key the sale was created with (a till's sale, or the
+     * ticket id of a settled bill). An offline POS identifies its own row by it
+     * when a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.
+     * @nullable
+     */
+  idempotency_key?: string | null;
   /**
      * The loyalty member this sale redeemed for (or was scanned for).
      * @nullable
@@ -69,6 +92,11 @@ export interface Order {
   loyalty_member_name?: string | null;
   /** @nullable */
   notes?: string | null;
+  /**
+     * The open ticket this sale settled, if any. Additive.
+     * @nullable
+     */
+  open_ticket_id?: string | null;
   order_number: number;
   /**
      * Human-readable, org-unique reference (e.g. "DT-260614-0042"). Additive
@@ -123,12 +151,14 @@ export interface Order {
      * choose is stated separately from the tax rather than folded into it.
      */
   service_charge_amount?: number;
+  /** DEPRECATED: same value as `till_id` (required by POS v0.5.1/v0.6.0). */
   shift_id: string;
   status: string;
   subtotal: number;
   tax_amount: number;
   teller_id: string;
   teller_name: string;
+  till_id: string;
   /**
      * The branch's effective IANA timezone (see `crate::tz`) — the zone every
      * timestamp on this payload is shown and printed in. Additive: older
@@ -141,6 +171,12 @@ export interface Order {
   /** @nullable */
   tip_payment_method?: string | null;
   total_amount: number;
+  /**
+     * `server` | `lan` | `unverified` — the till's verification as the ringing
+     * device knew it; `null` when not recorded.
+     * @nullable
+     */
+  verification?: string | null;
   /** @nullable */
   void_note?: string | null;
   /** @nullable */

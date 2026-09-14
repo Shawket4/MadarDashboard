@@ -14,6 +14,16 @@ export interface CreateOrderRequest {
   created_at?: string | null;
   /** @nullable */
   customer_name?: string | null;
+  /**
+     * The device's code; with `device_id` + `order_number` the number is stored verbatim.
+     * @nullable
+     */
+  device_code?: string | null;
+  /**
+     * The device ringing the order (else `X-Madar-Device`).
+     * @nullable
+     */
+  device_id?: string | null;
   /** @nullable */
   discount_amount?: number | null;
   /** @nullable */
@@ -42,12 +52,14 @@ export interface CreateOrderRequest {
   /** @nullable */
   notes?: string | null;
   /**
-     * IGNORED by the server (accepted for backward compatibility only). The
-     * authoritative per-shift number is ALWAYS `MAX(order_number)+1` computed under
-     * the shift advisory lock — never the client value, which is used only on the
-     * device's local receipt. The byte-identical-at-reprint guarantee rides on
-     * `order_ref`, not this field. Two tills on one shift get distinct numbers
-     * (UNIQUE(shift_id, order_number) + the lock).
+     * The device's own order number (contract R4): its per-business-day
+     * sequence, the same counter as the `NNNN` of its `order_ref`. Stored
+     * VERBATIM when the request also names `device_id` and a non-blank
+     * `device_code` — the order then reads `display_number` `<device_code>-<n>`.
+     * Without all three (old clients, dashboard, delivery) it is ignored and the
+     * server numbers the sale per till: `MAX(order_number)+1` over the till's
+     * server-numbered orders, under the till advisory lock
+     * (`uq_orders_till_legacy_number`).
      * @nullable
      */
   order_number?: number | null;
@@ -62,15 +74,20 @@ export interface CreateOrderRequest {
   payment_method: string;
   /** @nullable */
   payment_splits?: PaymentSplitInput[] | null;
-  shift_id: string;
   /** @nullable */
   subtotal?: number | null;
   /** @nullable */
   tax_amount?: number | null;
+  till_id: string;
   /** @nullable */
   tip_amount?: number | null;
   /** @nullable */
   tip_payment_method?: string | null;
   /** @nullable */
   total_amount?: number | null;
+  /**
+     * `server` | `lan` | `unverified` — the till's verification as the device knew it.
+     * @nullable
+     */
+  verification?: string | null;
 }

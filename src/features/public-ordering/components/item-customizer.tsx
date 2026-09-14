@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { useTranslation } from "react-i18next";
 import { Check, Minus, Plus, Search, UtensilsCrossed, X } from "lucide-react";
 
@@ -318,11 +319,11 @@ export function ItemCustomizer({
               className="pointer-events-none absolute left-1/2 top-2.5 z-10 h-1.5 w-10 -translate-x-1/2 rounded-full bg-white/70"
             />
             {item.image_url ? (
-              <img
-                src={item.image_url}
-                alt=""
+              <AssetImage
+                asset={assetOf(item)}
+                legacyUrl={item.image_url}
+                sizes="(max-width: 640px) 512px, 1600px"
                 className="h-52 w-full rounded-t-lg object-cover sm:h-56"
-                loading="lazy"
               />
             ) : (
               <div className="flex h-40 w-full items-center justify-center rounded-t-lg bg-muted text-muted-foreground">

@@ -50,3 +50,6 @@ dist-loyalty
 brag-output/*.mp4
 dist-order-shop
 dist-reservations-shop
+
+# Refresh screenshots (regenerate with scripts/capture-refresh.mjs)
+docs/design/shots/

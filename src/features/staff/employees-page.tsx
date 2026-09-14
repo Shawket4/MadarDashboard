@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
+import { StatusPill } from "@/components/app/status-pill";
+import { RowAction } from "@/features/users/row-action";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,9 +26,9 @@ import {
 } from "@/data/api/generated/api";
 import type { Department, Employee } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { fmtMoney } from "@/lib/format";
+import { fmtDate, fmtMoney } from "@/lib/format";
 import { EmployeeDialog } from "./employee-dialog";
-import { EMPLOYMENT_STATUS_CLASS, invalidateDepartments, invalidateEmployees } from "./util";
+import { EMPLOYMENT_STATUS_TONE, invalidateDepartments, invalidateEmployees } from "./util";
 
 const ALL = "__all__";
 
@@ -76,6 +78,7 @@ export function EmployeesPage() {
       {
         accessorKey: "name",
         header: t("staff.name", "Name"),
+        meta: { label: t("staff.name", "Name"), phone: "title" },
         cell: ({ row }) => (
           <div className="min-w-0">
             <div className="truncate font-medium">{row.original.name}</div>
@@ -88,28 +91,29 @@ export function EmployeesPage() {
       {
         accessorKey: "employee_code",
         header: t("staff.employeeCode", "Employee number"),
+        meta: { label: t("staff.employeeCode", "Employee number"), numeric: true, align: "start" },
         cell: ({ row }) => row.original.employee_code ?? "—",
       },
       {
         accessorKey: "department_name",
         header: t("staff.department", "Department"),
+        meta: { label: t("staff.department", "Department") },
         cell: ({ row }) => row.original.department_name ?? "—",
       },
       {
         accessorKey: "hire_date",
         header: t("staff.hireDate", "Hire date"),
-        cell: ({ row }) => row.original.hire_date ?? "—",
+        meta: { label: t("staff.hireDate", "Hire date"), numeric: true },
+        cell: ({ row }) => fmtDate(row.original.hire_date),
       },
       {
         accessorKey: "employment_status",
         header: t("staff.employmentStatus", "Status"),
+        meta: { label: t("staff.employmentStatus", "Status") },
         cell: ({ row }) => (
-          <Badge
-            variant="outline"
-            className={`border-transparent ${EMPLOYMENT_STATUS_CLASS[row.original.employment_status] ?? ""}`}
-          >
+          <StatusPill tone={EMPLOYMENT_STATUS_TONE[row.original.employment_status] ?? "neutral"}>
             {t(`staff.status_${row.original.employment_status}`, row.original.employment_status)}
-          </Badge>
+          </StatusPill>
         ),
       },
     ];
@@ -117,30 +121,13 @@ export function EmployeesPage() {
       base.push({
         id: "salary",
         header: t("staff.baseSalary", "Base salary (monthly)"),
+        meta: { label: t("staff.baseSalary", "Base salary (monthly)"), numeric: true },
         cell: ({ row }) => fmtMoney(row.original.base_salary_piastres),
       });
     }
-    base.push({
-      id: "actions",
-      header: "",
-      cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t("staff.removeProfile", "Remove employee profile")}
-          onClick={(e) => {
-            e.stopPropagation();
-            void remove(row.original);
-          }}
-        >
-          <Trash2 className="size-4" />
-        </Button>
-      ),
-    });
     return base;
     // `remove` is stable enough for a row action; re-creating the columns on
     // every render would reset the table's internal state.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t, showSalary]);
 
   return (
@@ -157,16 +144,7 @@ export function EmployeesPage() {
             {t("staff.departments", "Departments")}
           </Button>
         }
-      />
-
-      <DataTable
-        columns={columns}
-        data={employees}
-        loading={employeesQ.isLoading}
-        getRowId={(r) => r.user_id}
-        onRowClick={(r) => setEditing(r)}
-        searchPlaceholder={t("staff.searchEmployees", "Search employees…")}
-        toolbar={
+        below={
           <div className="flex flex-wrap gap-2">
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
@@ -188,6 +166,22 @@ export function EmployeesPage() {
             </Select>
           </div>
         }
+      />
+
+      <DataTable
+        columns={columns}
+        data={employees}
+        loading={employeesQ.isLoading}
+        error={employeesQ.error}
+        onRetry={() => void employeesQ.refetch()}
+        rowActions={(r) => (
+          <RowAction destructive label={t("staff.removeProfile", "Remove employee profile")} onClick={() => void remove(r)}>
+            <Trash2 className="size-4" />
+          </RowAction>
+        )}
+        getRowId={(r) => r.user_id}
+        onRowClick={(r) => setEditing(r)}
+        searchPlaceholder={t("staff.searchEmployees", "Search employees…")}
         emptyState={
           <EmptyState
             icon={UserRound}
@@ -239,7 +233,16 @@ function DepartmentsDialog({
     }
   };
 
-  const remove = async (id: string) => {
+  const confirm = useConfirm();
+  const remove = async (d: Department) => {
+    const ok = await confirm({
+      title: t("staff.deleteDepartmentTitle", { name: d.name, defaultValue: `Delete the ${d.name} department?` }),
+      description: t("staff.deleteDepartmentHint", "Employees keep their profiles; only the grouping is removed. A department that still has staff can't be deleted."),
+      confirmLabel: t("common.delete", "Delete"),
+      destructive: true,
+    });
+    if (!ok) return;
+    const id = d.id;
     try {
       await deleteDepartment(id);
       void invalidateDepartments();
@@ -266,7 +269,7 @@ function DepartmentsDialog({
               if (e.key === "Enter") void add();
             }}
           />
-          <Button onClick={() => void add()} disabled={busy || !name.trim()}>
+          <Button onClick={() => void add()} disabled={busy || !name.trim()} aria-label={t("staff.addDepartment", "Add department")}>
             <Plus className="size-4" />
           </Button>
         </div>
@@ -282,12 +285,12 @@ function DepartmentsDialog({
                 <CardHeader className="flex flex-row items-center justify-between gap-2 py-3">
                   <CardTitle className="text-sm font-medium">{d.name}</CardTitle>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">
+                    <Badge variant="secondary" className="tabular-nums">
                       {t("staff.employeeCount", "{{count}} staff", { count: d.employee_count })}
                     </Badge>
-                    <Button variant="ghost" size="icon" onClick={() => void remove(d.id)}>
+                    <RowAction destructive label={t("common.delete", "Delete")} onClick={() => void remove(d)}>
                       <Trash2 className="size-4" />
-                    </Button>
+                    </RowAction>
                   </div>
                 </CardHeader>
                 {d.manager_name ? (

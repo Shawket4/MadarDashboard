@@ -1,11 +1,11 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { openTillsQueryOptions } from "@/features/tills/api";
 import {
   getBranchInventoryValuationQueryOptions,
   getBranchLowStockQueryOptions,
   getBranchSalesQueryOptions,
   getBranchSalesTimeseriesQueryOptions,
   getBranchWasteReportQueryOptions,
-  getGetCurrentShiftQueryOptions,
   getGetInventorySettingsQueryOptions,
   getListAddonItemsQueryOptions,
   getListAddonCatalogQueryOptions,
@@ -23,7 +23,6 @@ import {
   getListOrgsQueryOptions,
   getListPaymentMethodsQueryOptions,
   getListPurchaseOrdersQueryOptions,
-  getListShiftsQueryOptions,
   getListStocktakesQueryOptions,
   getListSuppliersQueryOptions,
   getListTransfersQueryOptions,
@@ -89,10 +88,9 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
         }));
       }
       break;
-    case "/shifts":
+    case "/tills":
       if (branchId) {
-        void qc.prefetchQuery(getGetCurrentShiftQueryOptions(branchId));
-        void qc.prefetchQuery(getListShiftsQueryOptions(branchId));
+        void qc.prefetchQuery(openTillsQueryOptions(branchId));
       }
       break;
     case "/menu":

@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
+import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
-  AlertTriangle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -19,13 +19,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page } from "@/components/app/page";
-import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
-import { EmptyState } from "@/components/app/empty-state";
+import { Page, PageHeader } from "@/components/app/page";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
+import { SegmentedControl } from "@/components/app/segmented-control";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   deletePriceOverride,
@@ -47,7 +46,7 @@ import type {
   SizeOverrideOut,
 } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
+import { currencyLabel as fmtCurrencyLabel, egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 import { useDebounced } from "@/lib/use-debounced";
@@ -400,7 +399,7 @@ function PricingControl({
 
       <div className="flex items-center justify-between gap-1">
         {priceExplicit ? (
-          <span className="text-[11px] font-medium text-brand">{t("menu.pricing.explicit", "Set here")}</span>
+          <span className="text-[11px] font-semibold text-foreground">{t("menu.pricing.explicit", "Set here")}</span>
         ) : (
           <span
             className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground"
@@ -463,7 +462,7 @@ function PricingCell(props: {
 }) {
   const dirty = isDirty(props.draft, props.resolved);
   return (
-    <td className={cn("min-w-36 border-s p-0 align-top transition-colors", dirty && "bg-brand/5")}>
+    <td className={cn("min-w-36 border-s p-0 align-top transition-colors", dirty && "bg-accent/60")}>
       <div className="px-2.5 py-2">
         <PricingControl {...props} layout="cell" />
       </div>
@@ -676,7 +675,7 @@ function ItemRow({
             />
             <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-muted text-muted-foreground">
               {item.image_url ? (
-                <img src={item.image_url} alt="" className="size-full object-cover" />
+                <AssetImage asset={assetOf(item)} legacyUrl={item.image_url} sizes="128px" className="size-full object-cover" />
               ) : (
                 <CupSoda className="size-4" />
               )}
@@ -690,7 +689,7 @@ function ItemRow({
               </span>
             </span>
             {dirtyHere ? (
-              <span className="me-1 size-2 shrink-0 rounded-full bg-brand" aria-hidden="true" />
+              <span className="me-1 size-2 shrink-0 rounded-full bg-primary" aria-hidden="true" />
             ) : null}
           </button>
         </th>
@@ -772,7 +771,7 @@ function AddonRow({
             <Tag className="size-4" />
           </span>
           <span className="min-w-0 flex-1 truncate text-sm font-medium">{addonName}</span>
-          {dirtyHere ? <span className="size-2 shrink-0 rounded-full bg-brand" aria-hidden="true" /> : null}
+          {dirtyHere ? <span className="size-2 shrink-0 rounded-full bg-primary" aria-hidden="true" /> : null}
         </span>
       </th>
       <TargetCells target={target} dirty={dirty} currencyLabel={currencyLabel} />
@@ -864,7 +863,7 @@ function TargetScopeList({
             key={colId(col)}
             className={cn(
               "flex items-start gap-3 border-t px-3 py-2 transition-colors",
-              cellDirty && "bg-brand/5",
+              cellDirty && "bg-accent/60",
             )}
           >
             <span className="w-20 shrink-0 pt-2.5 text-sm font-medium leading-tight">
@@ -912,7 +911,7 @@ function AddonCard({
           <Tag className="size-4" />
         </span>
         <span className="min-w-0 flex-1 truncate text-sm font-medium">{addonName}</span>
-        {dirtyHere ? <span className="size-2 shrink-0 rounded-full bg-brand" aria-hidden="true" /> : null}
+        {dirtyHere ? <span className="size-2 shrink-0 rounded-full bg-primary" aria-hidden="true" /> : null}
       </div>
       <TargetScopeList target={target} dirty={dirty} currencyLabel={currencyLabel} />
     </div>
@@ -958,7 +957,7 @@ function ItemCard({
         />
         <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-muted text-muted-foreground">
           {item.image_url ? (
-            <img src={item.image_url} alt="" className="size-full object-cover" />
+            <AssetImage asset={assetOf(item)} legacyUrl={item.image_url} sizes="128px" className="size-full object-cover" />
           ) : (
             <CupSoda className="size-4" />
           )}
@@ -971,7 +970,7 @@ function ItemCard({
               : t("menu.pricing.expandHint", "Expand to price sizes")}
           </span>
         </span>
-        {dirtyHere ? <span className="size-2 shrink-0 rounded-full bg-brand" aria-hidden="true" /> : null}
+        {dirtyHere ? <span className="size-2 shrink-0 rounded-full bg-primary" aria-hidden="true" /> : null}
       </button>
 
       {open ? (
@@ -1049,7 +1048,7 @@ export function PricingAvailabilityPage() {
     (m: { name: string; name_translations?: unknown }) => getTranslatedName(m, lang),
     [lang],
   );
-  const currencyLabel = "EGP";
+  const currencyLabel = fmtCurrencyLabel();
 
   // Shared dirty-cell store spanning the whole visible tab.
   const dirty = useDirtyCells();
@@ -1254,7 +1253,7 @@ export function PricingAvailabilityPage() {
   const pager = (page: number, pageCount: number, setPage: (p: number) => void) =>
     pageCount > 1 ? (
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground tabular">
+        <p className="text-sm text-muted-foreground tabular-nums">
           {t("common.page", { current: page + 1, total: pageCount, defaultValue: `Page ${page + 1} of ${pageCount}` })}
         </p>
         <div className="flex gap-2">
@@ -1283,7 +1282,7 @@ export function PricingAvailabilityPage() {
   const legend = (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
       <span className="inline-flex items-center gap-1.5">
-        <span className="inline-block h-3.5 w-6 rounded border bg-brand/5" aria-hidden="true" />
+        <span className="inline-block h-3.5 w-6 rounded border bg-accent/60" aria-hidden="true" />
         {t("menu.pricing.legendDirty", "Unsaved")}
       </span>
       <span className="inline-flex items-center gap-1.5">
@@ -1301,12 +1300,35 @@ export function PricingAvailabilityPage() {
 
   return (
     <Page>
-      <PricingHeader />
+      <PricingHeader
+        below={
+          !branchesQ.isLoading && !scope.isAllBranches && !!branchId ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <SegmentedControl
+                value={tab as "items" | "addons"}
+                onChange={setTab}
+                options={[
+                  { value: "items", label: t("menu.pricing.menuItems", "Menu items") },
+                  { value: "addons", label: t("menu.pricing.addonItems", "Add-ons") },
+                ]}
+              />
+              {tab === "items" ? searchInput(itemsSearch, setItemsSearch) : searchInput(addonsSearch, setAddonsSearch)}
+              {branch ? (
+                <p className="text-sm text-muted-foreground">
+                  <Store className="me-1.5 inline size-3.5 align-[-2px]" aria-hidden="true" />
+                  {branch.name}
+                </p>
+              ) : null}
+              <div className="ms-auto">{legend}</div>
+            </div>
+          ) : null
+        }
+      />
 
       {branchesQ.isLoading ? (
         <div className="space-y-3">
           <Skeleton className="h-9 w-full max-w-md rounded-md" />
-          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-2xl" />
         </div>
       ) : scope.isAllBranches || !branchId ? (
         <EmptyState
@@ -1319,33 +1341,16 @@ export function PricingAvailabilityPage() {
         />
       ) : (
         <TooltipProvider delayDuration={200}>
-          <Tabs value={tab} onValueChange={setTab} className="gap-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <PageTabsList>
-                <PageTabsTrigger value="items">{t("menu.pricing.menuItems", "Menu items")}</PageTabsTrigger>
-                <PageTabsTrigger value="addons">{t("menu.pricing.addonItems", "Add-ons")}</PageTabsTrigger>
-              </PageTabsList>
-              {branch ? (
-                <p className="text-sm text-muted-foreground">
-                  <Store className="me-1.5 inline size-3.5 align-[-2px]" aria-hidden="true" />
-                  {branch.name}
-                </p>
-              ) : null}
-            </div>
-
-            <TabsContent value="items" className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {searchInput(itemsSearch, setItemsSearch)}
-                {legend}
-              </div>
-
+          {tab === "items" ? (
+            <div className="space-y-4">
               {catalog.isLoading ? (
-                <Skeleton className="h-64 w-full rounded-xl" />
+                <Skeleton className="h-64 w-full rounded-2xl" />
               ) : catalog.isError ? (
-                <EmptyState
-                  icon={AlertTriangle}
+                <ErrorState
                   title={t("menu.pricing.loadError", "Couldn't load items")}
-                  description={t("menu.pricing.loadErrorHint", "Check your connection and try refreshing.")}
+                  message={getErrorMessage(catalog.error)}
+                  onRetry={() => void catalog.refetch()}
+                  retrying={catalog.isFetching}
                 />
               ) : items.length === 0 ? (
                 <EmptyState icon={UtensilsCrossed} title={t("menu.pricing.noItems", "No menu items")} />
@@ -1383,21 +1388,16 @@ export function PricingAvailabilityPage() {
               )}
 
               {pager(itemsPage, itemsPageCount, setItemsPage)}
-            </TabsContent>
-
-            <TabsContent value="addons" className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {searchInput(addonsSearch, setAddonsSearch)}
-                {legend}
-              </div>
-
+            </div>
+          ) : (
+            <div className="space-y-4">
               {addons.isLoading || branchAddonOvr.isLoading ? (
                 <Skeleton className="h-64 w-full rounded-xl" />
               ) : addons.isError || branchAddonOvr.isError ? (
-                <EmptyState
-                  icon={AlertTriangle}
+                <ErrorState
                   title={t("menu.pricing.loadError", "Couldn't load items")}
-                  description={t("menu.pricing.loadErrorHint", "Check your connection and try refreshing.")}
+                  message={getErrorMessage(addons.error ?? branchAddonOvr.error)}
+                  onRetry={() => { void addons.refetch(); void branchAddonOvr.refetch(); }}
                 />
               ) : addonList.length === 0 ? (
                 <EmptyState icon={Tag} title={t("menu.pricing.noAddons", "No add-ons")} />
@@ -1438,8 +1438,8 @@ export function PricingAvailabilityPage() {
               )}
 
               {pager(addonsPage, addonsPageCount, setAddonsPage)}
-            </TabsContent>
-          </Tabs>
+            </div>
+          )}
         </TooltipProvider>
       )}
 
@@ -1471,19 +1471,16 @@ export function PricingAvailabilityPage() {
 
 // ── Small helpers ─────────────────────────────────────────────────────────────
 
-function PricingHeader() {
+function PricingHeader({ below }: { below?: ReactNode }) {
   const { t } = useTranslation();
   return (
-    <div className="space-y-1.5">
-      <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">
-        {t("menu.pricing.title", "Pricing & availability")}
-      </h1>
-      <p className="text-sm text-muted-foreground">
-        {t(
-          "menu.pricing.matrixSubtitle",
-          "Set the effective price and availability for every scope side by side — in-store and each delivery channel.",
-        )}
-      </p>
-    </div>
+    <PageHeader
+      title={t("menu.pricing.title", "Pricing & availability")}
+      subtitle={t(
+        "menu.pricing.matrixSubtitle",
+        "Set the effective price and availability for every scope side by side — in-store and each delivery channel.",
+      )}
+      below={below}
+    />
   );
 }

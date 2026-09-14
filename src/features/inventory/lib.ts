@@ -1,3 +1,4 @@
+import type { StatusTone } from "@/components/app/status-pill";
 import { queryClient } from "@/data/api/query";
 import type { BranchStockRow, ItemCountInput, Stocktake, StocktakeItem } from "@/data/api/generated/models";
 
@@ -138,17 +139,17 @@ export function countsDue(rows: Pick<BranchStockRow, "last_counted_at">[], now =
 
 // ── Badge styles ─────────────────────────────────────────────────────────────
 
-export const PO_STATUS_STYLES: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  ordered: "bg-info/10 text-info",
-  partially_received: "bg-warning/10 text-warning",
-  received: "bg-success/10 text-success",
-  cancelled: "bg-destructive/10 text-destructive",
+export const PO_STATUS_TONES: Record<string, StatusTone> = {
+  draft: "neutral",
+  ordered: "accent",
+  partially_received: "warning",
+  received: "success",
+  cancelled: "danger",
 };
 
-export const STOCKTAKE_STATUS_STYLES: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  in_progress: "bg-info/10 text-info",
-  finalized: "bg-success/10 text-success",
-  cancelled: "bg-destructive/10 text-destructive",
+export const STOCKTAKE_STATUS_TONES: Record<string, StatusTone> = {
+  draft: "neutral",
+  in_progress: "accent",
+  finalized: "success",
+  cancelled: "danger",
 };

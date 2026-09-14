@@ -4,19 +4,23 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { KeyRound, Plug, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page, PageHeader } from "@/components/app/page";
+import { PaneHeader } from "@/features/settings/pane-header";
+import { StatusPill } from "@/components/app/status-pill";
 import { EmptyState } from "@/components/app/empty-state";
 import { DataTable } from "@/components/app/data-table";
 import { StatCard } from "@/components/app/stat-card";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { CredentialDialog } from "./credential-dialog";
 import { HandoffDialog } from "./handoff-dialog";
 import { hasSecureRandom } from "./passphrase";
 import type { IssuedCredential } from "./use-credential-handoff";
 import { invalidateCredentials, isRevoked } from "./util";
-import { revokeCredential, rotateCredential, useListCredentials } from "@/data/api/generated/api";
+import {
+  revokeCredential,
+  rotateCredential,
+  useListCredentials,
+} from "@/data/api/generated/api";
 import type { CredentialSummary } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDateTime } from "@/lib/format";
@@ -111,70 +115,84 @@ export function IntegrationsPage() {
       {
         accessorKey: "name",
         header: t("integrations.label", "Label"),
+        meta: { label: t("integrations.label", "Label"), phone: "title" },
         cell: ({ row }) => (
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{row.original.name}</p>
-            <p className="truncate font-mono text-xs text-muted-foreground" dir="ltr">{row.original.username}</p>
+            <p className="truncate text-sm font-semibold">
+              {row.original.name}
+            </p>
+            <p
+              className="truncate font-mono text-xs text-muted-foreground"
+              dir="ltr"
+            >
+              {row.original.username}
+            </p>
           </div>
         ),
       },
-      { accessorKey: "branch_name", header: t("integrations.branch", "Branch") },
+      {
+        accessorKey: "branch_name",
+        header: t("integrations.branch", "Branch"),
+        meta: { label: t("integrations.branch", "Branch") },
+      },
       {
         accessorKey: "last_used_at",
         header: t("integrations.lastUsed", "Last used"),
+        meta: { label: t("integrations.lastUsed", "Last used") },
         cell: ({ row }) =>
           row.original.last_used_at ? (
-            <span className="text-sm">{fmtDateTime(row.original.last_used_at)}</span>
+            <span className="font-mono text-sm tabular-nums">
+              {fmtDateTime(row.original.last_used_at)}
+            </span>
           ) : (
-            <span className="text-sm text-muted-foreground">{t("integrations.never", "Never")}</span>
+            <span className="text-sm text-muted-foreground">
+              {t("integrations.never", "Never")}
+            </span>
           ),
       },
       {
         id: "status",
         header: t("common.status", "Status"),
-        cell: ({ row }) => (
-          <Badge
-            variant="outline"
-            className={isRevoked(row.original)
-              ? "border-transparent bg-muted text-muted-foreground"
-              : "border-transparent bg-success/15 text-success"}
-          >
-            {isRevoked(row.original) ? t("integrations.revokedStatus", "Revoked") : t("common.active", "Active")}
-          </Badge>
-        ),
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-            {/* A revoked credential is a permanent audit record — nothing left to do to it. */}
-            {isRevoked(row.original) || !isSuperAdmin ? null : (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => void rotate(row.original)}
-                  aria-label={t("integrations.rotate", "Rotate")}
-                >
-                  <RefreshCw className="size-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => void revoke(row.original)}
-                  aria-label={t("integrations.revoke", "Revoke")}
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
-              </>
-            )}
-          </div>
-        ),
+        meta: { label: t("common.status", "Status") },
+        cell: ({ row }) =>
+          isRevoked(row.original) ? (
+            <StatusPill tone="neutral">
+              {t("integrations.revokedStatus", "Revoked")}
+            </StatusPill>
+          ) : (
+            <StatusPill tone="success">
+              {t("common.active", "Active")}
+            </StatusPill>
+          ),
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, isSuperAdmin],
+    [t],
+  );
+
+  const rowActions = (row: { original: CredentialSummary }) => (
+    <>
+      {/* A revoked credential is a permanent audit record — nothing left to do to it. */}
+      {isRevoked(row.original) || !isSuperAdmin ? null : (
+        <>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => void rotate(row.original)}
+            aria-label={t("integrations.rotate", "Rotate")}
+          >
+            <RefreshCw className="size-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => void revoke(row.original)}
+            aria-label={t("integrations.revoke", "Revoke")}
+          >
+            <Trash2 className="size-4 text-destructive" />
+          </Button>
+        </>
+      )}
+    </>
   );
 
   if (!mayView) {
@@ -183,18 +201,21 @@ export function IntegrationsPage() {
 
   if (!orgId) {
     return (
-      <Page>
-        <PageHeader title={t("integrations.title", "Integrations")} />
-        <EmptyState icon={Plug} title={t("users.pickOrg", "Select an organization")} />
-      </Page>
+      <div className="space-y-3">
+        <PaneHeader title={t("integrations.title", "Integrations")} />
+        <EmptyState
+          icon={Plug}
+          title={t("users.pickOrg", "Select an organization")}
+        />
+      </div>
     );
   }
 
   const active = credentials.filter((c) => !isRevoked(c)).length;
 
   return (
-    <Page>
-      <PageHeader
+    <div className="space-y-4">
+      <PaneHeader
         title={t("integrations.title", "Integrations")}
         description={
           isSuperAdmin
@@ -210,26 +231,42 @@ export function IntegrationsPage() {
         actions={
           isSuperAdmin ? (
             <Button onClick={() => update({ edit: "new" })}>
-              <Plus className="size-4" /> {t("integrations.issue", "Issue credential")}
+              <Plus className="size-4" />{" "}
+              {t("integrations.issue", "Issue credential")}
             </Button>
           ) : null
         }
       />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label={t("common.total", "Total")} value={credentials.length} loading={list.isLoading} />
-        <StatCard label={t("common.active", "Active")} value={active} accent="success" loading={list.isLoading} />
-        <StatCard
-          label={t("integrations.revokedStatus", "Revoked")}
-          value={credentials.length - active}
-          accent="warning"
-          loading={list.isLoading}
-        />
-      </div>
+      {list.error ? null : (
+        <div className="grid grid-cols-3 gap-3">
+          <StatCard
+            label={t("common.total", "Total")}
+            value={credentials.length}
+            loading={list.isLoading}
+          />
+          <StatCard
+            label={t("common.active", "Active")}
+            value={active}
+            loading={list.isLoading}
+          />
+          <StatCard
+            label={t("integrations.revokedStatus", "Revoked")}
+            value={credentials.length - active}
+            loading={list.isLoading}
+          />
+        </div>
+      )}
       <DataTable
         columns={columns}
         data={credentials}
         loading={list.isLoading}
+        error={list.error}
+        onRetry={() => void list.refetch()}
+        hideViewOptions
         getRowId={(c) => c.id}
+        rowActions={
+          isSuperAdmin ? (c) => rowActions({ original: c }) : undefined
+        }
         searchPlaceholder={t("common.search", "Search…")}
         emptyState={
           <EmptyState
@@ -245,11 +282,15 @@ export function IntegrationsPage() {
       <CredentialDialog
         orgId={orgId}
         open={creating && isSuperAdmin}
-        onOpenChange={(o) => { if (!o) update({ edit: undefined }); }}
+        onOpenChange={(o) => {
+          if (!o) update({ edit: undefined });
+        }}
         onIssued={(credential) => setIssued({ credential, mode: "created" })}
       />
       {/* Mounted per issued credential: one mount is one passphrase. */}
-      {issued ? <HandoffDialog issued={issued} onClose={() => setIssued(null)} /> : null}
-    </Page>
+      {issued ? (
+        <HandoffDialog issued={issued} onClose={() => setIssued(null)} />
+      ) : null}
+    </div>
   );
 }

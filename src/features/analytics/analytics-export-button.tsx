@@ -103,7 +103,7 @@ export function AnalyticsExportButton({
       { header: t("dashboard.revenue", "Revenue"), accessor: (r) => r.revenue, type: "money", width: 16, total: true },
       { header: t("analytics.aov", "AOV"), accessor: (r) => r.avg_order_value, type: "money", width: 14 },
       { header: t("orders.voided", "Voided"), accessor: (r) => r.voided, type: "integer", width: 12, total: true },
-      { header: t("nav.shifts", "Shifts"), accessor: (r) => r.shifts, type: "integer", width: 12, total: true },
+      { header: t("nav.tills", "Tills"), accessor: (r) => r.shifts, type: "integer", width: 12, total: true },
     ];
     const title = t("analytics.tellerDetails", "Teller Details");
     return [{ name: title, title, totals: true, ...cast(rows, cols) }];
@@ -112,7 +112,7 @@ export function AnalyticsExportButton({
   const waitersSheets = async (): Promise<Sheets> => {
     const report = await branchWaiterStats(branchId, params, EXPORT_REQUEST);
     const cols: ExcelColumn<WaiterStats>[] = [
-      { header: t("shifts.waiter", "Waiter"), accessor: (r) => r.waiter_name, type: "text", width: 26 },
+      { header: t("tills.waiter", "Waiter"), accessor: (r) => r.waiter_name, type: "text", width: 26 },
       { header: t("dashboard.orders", "Orders"), accessor: (r) => r.orders, type: "integer", width: 12, total: true },
       { header: t("dashboard.revenue", "Revenue"), accessor: (r) => r.revenue, type: "money", width: 16, total: true },
       { header: t("analytics.aov", "AOV"), accessor: (r) => r.avg_order_value, type: "money", width: 14 },

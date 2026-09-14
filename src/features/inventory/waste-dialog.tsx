@@ -85,7 +85,7 @@ export function WasteDialog({ branchId, open, onOpenChange, presetIngredientId }
           <DialogDescription>{t("inventory.waste.title", "Waste log")}</DialogDescription>
         </DialogHeader>
         {nothingCounted ? (
-          <p className="rounded-md border border-info/30 bg-info/5 p-2 text-xs">
+          <p className="rounded-lg bg-info/10 p-2.5 text-xs">
             {t("inventory.waste.countFirstHint", "This branch has no stock on record yet.")}{" "}
             <Link to="/inventory/counts" className="text-primary underline">{t("inventory.waste.countFirstLink", "Count it first")}</Link>
           </p>
@@ -104,7 +104,7 @@ export function WasteDialog({ branchId, open, onOpenChange, presetIngredientId }
             <div className="space-y-1.5">
               <Label>{t("inventory.waste.quantity", "Quantity")}</Label>
               <Input type="number" inputMode="decimal" min="0" step="0.0001" value={qty} onChange={(e) => setQty(e.target.value)} className="tabular" />
-              {exceeds ? <p className="text-xs text-destructive">{t("inventory.waste.quantityExceeds", "More than on hand")}</p> : null}
+              {exceeds ? <p className="text-xs text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]">{t("inventory.waste.quantityExceeds", "More than on hand")}</p> : null}
             </div>
             <div className="space-y-1.5">
               <Label>{t("inventory.waste.reason", "Reason")}</Label>

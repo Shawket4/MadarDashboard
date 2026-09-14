@@ -1,22 +1,20 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Boxes, CheckCircle2, MoreHorizontal, MinusCircle, PackageCheck, PlusCircle, SendHorizonal, Truck, TrendingDown, Users, XCircle } from "lucide-react";
+import { Boxes, MoreHorizontal, MinusCircle, PackageCheck, PlusCircle, SendHorizonal, Truck, TrendingDown, Users, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { Page } from "@/components/app/page";
+import { Page, PageHeader } from "@/components/app/page";
+import { SectionHeader } from "@/components/app/section-header";
+import { StatusPill } from "@/components/app/status-pill";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { DataTable } from "@/components/app/data-table";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { useConfirm } from "@/components/app/confirm-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -32,11 +30,12 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
-import { cn } from "@/lib/utils";
-import { PO_STATUS_STYLES, PO_STATUSES, invalidateInventory } from "./lib";
+import { PO_STATUS_TONES, PO_STATUSES, invalidateInventory } from "./lib";
 import { PurchaseOrderDialog, type POPrefillLine } from "./purchase-order-dialog";
 import { ReceiveDialog } from "./receive-dialog";
 import { SupplierDialog } from "./supplier-dialog";
+
+type ReorderLine = ReorderSuggestion["lines"][number];
 
 export function PurchasingPage() {
   const { t } = useTranslation();
@@ -91,8 +90,8 @@ export function PurchasingPage() {
 
   const onCancelPo = async (po: PurchaseOrder) => {
     if (await confirm({
-      title: t("inventory.purchasing.cancel", "Cancel order"),
-      description: t("inventory.purchasing.cancelConfirm", "Cancel this purchase order?"),
+      title: t("inventory.purchasing.cancelTitle", { ref: po.reference || `#${po.id.slice(0, 8)}`, defaultValue: `Cancel purchase order ${po.reference || `#${po.id.slice(0, 8)}`}?` }),
+      description: t("inventory.purchasing.cancelConsequence", "The supplier order is voided and nothing more can be received against it."),
       destructive: true,
       confirmLabel: t("inventory.purchasing.cancel", "Cancel order"),
     })) {
@@ -106,8 +105,8 @@ export function PurchasingPage() {
 
   const onDeleteSupplier = async (s: Supplier) => {
     if (await confirm({
-      title: t("common.delete", "Delete"),
-      description: t("inventory.purchasing.deleteSupplierConfirm", { name: s.name, defaultValue: `Delete supplier "${s.name}"?` }),
+      title: t("inventory.purchasing.deleteSupplierConfirm", { name: s.name, defaultValue: `Delete supplier "${s.name}"?` }),
+      description: t("inventory.purchasing.deleteSupplierConsequence", "The supplier is removed from your list. Past purchase orders keep their records."),
       destructive: true,
       confirmLabel: t("common.delete", "Delete"),
     })) {
@@ -123,38 +122,44 @@ export function PurchasingPage() {
     {
       accessorKey: "reference",
       header: t("inventory.purchasing.reference", "Reference"),
-      cell: ({ row }) => row.original.reference || `#${row.original.id.slice(0, 8)}`,
+      meta: { label: t("inventory.purchasing.reference", "Reference"), phone: "title" },
+      cell: ({ row }) => <bdi className="font-medium">{row.original.reference || `#${row.original.id.slice(0, 8)}`}</bdi>,
     },
     ...(isAllBranches
       ? ([{
           accessorKey: "branch_name",
           header: t("inventory.purchasing.branch", "Branch"),
+          meta: { label: t("inventory.purchasing.branch", "Branch") },
           cell: ({ row }) => <span>{row.original.branch_name ?? "—"}</span>,
         }] as ColumnDef<PurchaseOrder>[])
       : []),
     {
       accessorKey: "supplier_name",
       header: t("inventory.purchasing.supplier", "Supplier"),
+      meta: { label: t("inventory.purchasing.supplier", "Supplier") },
       cell: ({ row }) => row.original.supplier_name ?? <span className="text-muted-foreground">—</span>,
     },
     {
       accessorKey: "status",
       header: t("inventory.purchasing.status", "Status"),
+      meta: { label: t("inventory.purchasing.status", "Status") },
       cell: ({ row }) => (
-        <Badge variant="secondary" className={cn(PO_STATUS_STYLES[row.original.status] ?? "")}>
+        <StatusPill tone={PO_STATUS_TONES[row.original.status] ?? "neutral"}>
           {t(`inventory.purchasing.statuses.${row.original.status}`, row.original.status)}
-        </Badge>
+        </StatusPill>
       ),
     },
     {
       accessorKey: "expected_at",
       header: t("inventory.purchasing.expectedAt", "Expected"),
-      cell: ({ row }) => <span className="tabular">{fmtDate(row.original.expected_at)}</span>,
+      meta: { label: t("inventory.purchasing.expectedAt", "Expected"), numeric: true },
+      cell: ({ row }) => fmtDate(row.original.expected_at),
     },
     {
       accessorKey: "created_at",
       header: t("inventory.purchasing.createdAt", "Created"),
-      cell: ({ row }) => <span className="tabular">{fmtDate(row.original.created_at)}</span>,
+      meta: { label: t("inventory.purchasing.createdAt", "Created"), numeric: true },
+      cell: ({ row }) => fmtDate(row.original.created_at),
     },
     {
       id: "actions",
@@ -185,14 +190,14 @@ export function PurchasingPage() {
             ) : null}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon-sm" onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon-sm" aria-label={t("common.moreActions", "More actions")} onClick={(e) => e.stopPropagation()}>
                   <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenuItem onClick={() => setReceivePoId(po.id)}>{t("inventory.purchasing.viewOrder", "View order")}</DropdownMenuItem>
                 {canCancel ? (
-                  <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => void onCancelPo(po)}>
+                  <DropdownMenuItem variant="destructive" onClick={() => void onCancelPo(po)}>
                     <XCircle className="size-4" />
                     {t("inventory.purchasing.cancel", "Cancel order")}
                   </DropdownMenuItem>
@@ -207,32 +212,33 @@ export function PurchasingPage() {
   ], [t, isAllBranches]);
 
   const supplierColumns = useMemo<ColumnDef<Supplier>[]>(() => [
-    { accessorKey: "name", header: t("inventory.purchasing.supplier", "Supplier") },
+    { accessorKey: "name", header: t("inventory.purchasing.supplier", "Supplier"), meta: { label: t("inventory.purchasing.supplier", "Supplier"), phone: "title" }, cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
     {
       accessorKey: "contact_name",
       header: t("inventory.purchasing.contactName", "Contact name"),
+      meta: { label: t("inventory.purchasing.contactName", "Contact name") },
       cell: ({ row }) => row.original.contact_name ?? "—",
     },
     {
       accessorKey: "email",
       header: t("inventory.purchasing.email", "Email"),
+      meta: { label: t("inventory.purchasing.email", "Email") },
       cell: ({ row }) => row.original.email ?? "—",
     },
     {
       accessorKey: "phone",
       header: t("inventory.purchasing.phone", "Phone"),
+      meta: { label: t("inventory.purchasing.phone", "Phone"), numeric: true, align: "start" },
       cell: ({ row }) => row.original.phone ?? "—",
     },
     {
       accessorKey: "is_active",
       header: t("common.status", "Status"),
-      cell: ({ row }) => (
-        <Badge variant="secondary" className={cn("flex items-center gap-1", row.original.is_active ? "bg-success/10 text-success" : "bg-muted text-muted-foreground")}>
-          {row.original.is_active
-            ? <><CheckCircle2 className="size-3" />{t("common.active", "Active")}</>
-            : <><MinusCircle className="size-3" />{t("common.inactive", "Inactive")}</>}
-        </Badge>
-      ),
+      meta: { label: t("common.status", "Status") },
+      cell: ({ row }) =>
+        row.original.is_active
+          ? <StatusPill tone="success">{t("common.active", "Active")}</StatusPill>
+          : <StatusPill tone="neutral" icon={MinusCircle}>{t("common.inactive", "Inactive")}</StatusPill>,
     },
     {
       id: "actions",
@@ -241,17 +247,38 @@ export function PurchasingPage() {
         <div className="text-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" onClick={(e) => e.stopPropagation()}><MoreHorizontal className="size-4" /></Button>
+              <Button variant="ghost" size="icon-sm" aria-label={t("common.moreActions", "More actions")} onClick={(e) => e.stopPropagation()}><MoreHorizontal className="size-4" /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem onClick={() => { setEditSupplier(row.original); setSupplierDialogOpen(true); }}>{t("common.edit", "Edit")}</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => void onDeleteSupplier(row.original)}>{t("common.delete", "Delete")}</DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onClick={() => void onDeleteSupplier(row.original)}>{t("common.delete", "Delete")}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       ),
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [t]);
+
+  const reorderColumns = useMemo<ColumnDef<ReorderLine>[]>(() => [
+    {
+      accessorKey: "ingredient_name",
+      header: t("inventory.catalog.name", "Ingredient"),
+      meta: { label: t("inventory.catalog.name", "Ingredient"), phone: "title" },
+      cell: ({ row }) => <span className="font-medium">{row.original.ingredient_name}</span>,
+    },
+    {
+      id: "on_hand",
+      header: t("inventory.catalog.onHand", "On hand"),
+      meta: { label: t("inventory.catalog.onHand", "On hand"), numeric: true },
+      cell: ({ row }) => <span className="text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]">{fmtNumber(row.original.on_hand)} {fmtUnit(row.original.unit)}</span>,
+    },
+    {
+      id: "suggested",
+      header: t("inventory.purchasing.suggested", "Suggested qty"),
+      meta: { label: t("inventory.purchasing.suggested", "Suggested qty"), numeric: true },
+      cell: ({ row }) => <span className="font-semibold">{fmtNumber(row.original.suggested_qty)} {fmtUnit(row.original.unit)}</span>,
+    },
   ], [t]);
 
   // Both endpoints are unpaginated: the purchase-order list already carries the
@@ -296,9 +323,7 @@ export function PurchasingPage() {
   if (!orgId) {
     return (
       <Page>
-        <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.purchasing.title", "Purchasing")}</h1>
-        </div>
+        <PageHeader title={t("inventory.purchasing.title", "Purchasing")} />
         <EmptyState icon={Boxes} title={t("inventory.pickOrg", "Select an organization to manage inventory")} />
       </Page>
     );
@@ -306,38 +331,41 @@ export function PurchasingPage() {
 
   return (
     <Page>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.purchasing.title", "Purchasing")}</h1>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <ExportButton onExport={handleExport} loading={exporting} disabled={tab === "orders" ? !(orders.data?.length) : !(suppliers.data?.length)} />
-          {tab === "orders" ? (
-            <Button onClick={() => setPoDialogOpen(true)} disabled={!branchId}>
-              <PlusCircle className="size-4" />
-              {t("inventory.purchasing.newOrder", "New purchase order")}
-            </Button>
-          ) : (
-            <Button onClick={() => { setEditSupplier(null); setSupplierDialogOpen(true); }}>
-              <PlusCircle className="size-4" />
-              {t("inventory.purchasing.newSupplier", "New supplier")}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <PageTabsList>
-          <PageTabsTrigger value="orders"><Truck className="size-4" /> {t("inventory.purchasing.orders", "Purchase orders")}</PageTabsTrigger>
-          <PageTabsTrigger value="suppliers"><Users className="size-4" /> {t("inventory.purchasing.suppliers", "Suppliers")}</PageTabsTrigger>
-          <PageTabsTrigger value="reorder" disabled={!branchId}><TrendingDown className="size-4" /> {t("inventory.purchasing.reorder", "Reorder")}</PageTabsTrigger>
-        </PageTabsList>
+      <Tabs value={tab} onValueChange={setTab} className="gap-6">
+      <PageHeader
+        title={t("inventory.purchasing.title", "Purchasing")}
+        actions={
+          <>
+            <ExportButton onExport={handleExport} loading={exporting} disabled={tab === "orders" ? !(orders.data?.length) : !(suppliers.data?.length)} />
+            {tab === "orders" ? (
+              <Button onClick={() => setPoDialogOpen(true)} disabled={!branchId}>
+                <PlusCircle className="size-4" />
+                {t("inventory.purchasing.newOrder", "New purchase order")}
+              </Button>
+            ) : tab === "suppliers" ? (
+              <Button onClick={() => { setEditSupplier(null); setSupplierDialogOpen(true); }}>
+                <PlusCircle className="size-4" />
+                {t("inventory.purchasing.newSupplier", "New supplier")}
+              </Button>
+            ) : null}
+          </>
+        }
+        below={
+          <PageTabsList>
+            <PageTabsTrigger value="orders" className="first:ps-0"><Truck className="size-4" /> {t("inventory.purchasing.orders", "Purchase orders")}</PageTabsTrigger>
+            <PageTabsTrigger value="suppliers"><Users className="size-4" /> {t("inventory.purchasing.suppliers", "Suppliers")}</PageTabsTrigger>
+            <PageTabsTrigger value="reorder" disabled={!branchId}><TrendingDown className="size-4" /> {t("inventory.purchasing.reorder", "Reorder")}</PageTabsTrigger>
+          </PageTabsList>
+        }
+      />
 
         <TabsContent value="orders">
           <DataTable
             columns={orderColumns}
             data={orders.data ?? []}
             loading={orders.isLoading}
+            error={orders.error}
+            onRetry={() => void orders.refetch()}
             getRowId={(po) => po.id}
             onRowClick={(po) => setReceivePoId(po.id)}
             toolbar={
@@ -358,6 +386,8 @@ export function PurchasingPage() {
             columns={supplierColumns}
             data={suppliers.data ?? []}
             loading={suppliers.isLoading}
+            error={suppliers.error}
+            onRetry={() => void suppliers.refetch()}
             getRowId={(s) => s.id}
             searchPlaceholder={t("common.search", "Search")}
             emptyState={<EmptyState icon={Users} title={t("inventory.purchasing.noSuppliers", "No suppliers yet")} />}
@@ -365,44 +395,41 @@ export function PurchasingPage() {
         </TabsContent>
 
         <TabsContent value="reorder">
-          {reorder.isLoading ? (
-            <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
+          {reorder.isError ? (
+            <ErrorState
+              title={t("inventory.purchasing.reorderFailed", "Couldn't load reorder suggestions")}
+              onRetry={() => void reorder.refetch()}
+            />
+          ) : reorder.isLoading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-8 w-48" />
+              <DataTable columns={reorderColumns} data={[]} loading hideViewOptions />
+            </div>
           ) : (reorder.data ?? []).length === 0 ? (
             <EmptyState icon={TrendingDown} title={t("inventory.purchasing.noReorder", "No items to reorder")} description={t("inventory.purchasing.noReorderHint", "All stocked items are above their reorder point.")} />
           ) : (
-            <div className="space-y-4">
-              {(reorder.data ?? []).map((suggestion) => {
-                const key = suggestion.supplier_id ?? "none";
-                return (
-                  <div key={key} className="rounded-lg border">
-                    <div className="flex items-center justify-between border-b p-3">
-                      <p className="font-medium">{suggestion.supplier_name ?? t("inventory.purchasing.noSupplier", "No supplier")}</p>
+            <div className="space-y-8">
+              {(reorder.data ?? []).map((suggestion) => (
+                <section key={suggestion.supplier_id ?? "none"} className="space-y-3">
+                  <SectionHeader
+                    title={suggestion.supplier_name ?? t("inventory.purchasing.noSupplier", "No supplier")}
+                    count={suggestion.lines.length}
+                    trailing={
                       <Button size="sm" onClick={() => openReorderPo(suggestion)}>
                         <PlusCircle className="size-4" />
                         {t("inventory.purchasing.createDraftPo", "Create draft PO")}
                       </Button>
-                    </div>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t("inventory.catalog.name", "Ingredient")}</TableHead>
-                          <TableHead className="text-end">{t("inventory.catalog.onHand", "On hand")}</TableHead>
-                          <TableHead className="text-end">{t("inventory.purchasing.suggested", "Suggested qty")}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {suggestion.lines.map((l) => (
-                          <TableRow key={l.org_ingredient_id}>
-                            <TableCell>{l.ingredient_name}</TableCell>
-                            <TableCell className="text-end tabular text-destructive">{fmtNumber(l.on_hand)} {fmtUnit(l.unit)}</TableCell>
-                            <TableCell className="text-end tabular font-medium">{fmtNumber(l.suggested_qty)} {fmtUnit(l.unit)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                );
-              })}
+                    }
+                  />
+                  <DataTable
+                    columns={reorderColumns}
+                    data={suggestion.lines}
+                    getRowId={(l) => l.org_ingredient_id}
+                    pageSize={50}
+                    hideViewOptions
+                  />
+                </section>
+              ))}
             </div>
           )}
         </TabsContent>

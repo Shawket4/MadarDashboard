@@ -353,7 +353,7 @@ export function RecipeBuilder({
               <button
                 type="button"
                 onClick={() => addRow(size)}
-                className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-brand hover:text-brand focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
                 <Plus className="size-4" />
                 {t("recipes.addIngredient", "Add ingredient")}

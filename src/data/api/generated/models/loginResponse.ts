@@ -1,10 +1,12 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { TaxPolicyPublic } from './taxPolicyPublic';
+import type { TillBrief } from './tillBrief';
 import type { UserPublic } from './userPublic';
 
 export interface LoginResponse {
   currency_code: string;
+  open_till?: null | TillBrief;
   /**
      * Every dine-in sale belongs to a table.
      *

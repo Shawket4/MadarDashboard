@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ShiftsPage } from "@/features/shifts/shifts-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** ?report=<id> opens that shift's report sheet (shareable deep link). */
+import { shiftsRedirect } from "@/features/tills/redirect";
+
+/** Shifts were renamed to tills; old links and bookmarks land on /tills. */
 export const Route = createFileRoute("/_app/shifts")({
-  validateSearch: (s: Record<string, unknown>): { report?: string } => ({
-    report: typeof s.report === "string" ? s.report : undefined,
-  }),
-  component: ShiftsPage,
+  beforeLoad: ({ search }) => {
+    throw redirect(shiftsRedirect(search as Record<string, unknown>));
+  },
 });

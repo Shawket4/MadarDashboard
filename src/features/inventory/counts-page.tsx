@@ -8,7 +8,7 @@ import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
-import { Badge } from "@/components/ui/badge";
+import { StatusPill } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -23,11 +23,10 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDateTime } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
-import { cn } from "@/lib/utils";
 import { Combobox } from "@/components/app/combobox";
 import { CountEditor } from "./count-editor";
 import { VarianceReportDialog } from "./variance-report-dialog";
-import { STOCKTAKE_STATUS_STYLES, invalidateInventory, isOpenStocktake, needsFirstCount } from "./lib";
+import { STOCKTAKE_STATUS_TONES, invalidateInventory, isOpenStocktake, needsFirstCount } from "./lib";
 
 type ScopeType = "full" | "category" | "items";
 
@@ -98,23 +97,26 @@ export function CountsPage() {
     {
       accessorKey: "started_at",
       header: t("inventory.stocktakes.started", "Started"),
-      cell: ({ row }) => <span className="tabular">{fmtDateTime(row.original.started_at)}</span>,
+      meta: { label: t("inventory.stocktakes.started", "Started"), phone: "title" },
+      cell: ({ row }) => <bdi className="tabular">{fmtDateTime(row.original.started_at)}</bdi>,
     },
     ...(isAllBranches
       ? ([{
           accessorKey: "branch_name",
-          header: t("shifts.branch", "Branch"),
+          header: t("tills.branch", "Branch"),
+          meta: { label: t("tills.branch", "Branch") },
           cell: ({ row }) => <span>{row.original.branch_name ?? "—"}</span>,
         }] as ColumnDef<Stocktake>[])
       : []),
     {
       id: "scope",
       header: t("inventory.stocktakes.scope", "Scope"),
+      meta: { label: t("inventory.stocktakes.scope", "Scope") },
       cell: ({ row }) => (
         <span className="text-sm">
           {scopeLabel(row.original)}
           {row.original.total_items != null ? (
-            <span className="text-muted-foreground tabular"> · {row.original.counted_items ?? 0}/{row.original.total_items}</span>
+            <span className="text-muted-foreground tabular"> · <bdi>{row.original.counted_items ?? 0}/{row.original.total_items}</bdi></span>
           ) : null}
         </span>
       ),
@@ -122,33 +124,24 @@ export function CountsPage() {
     {
       accessorKey: "started_by_name",
       header: t("inventory.transfers.by", "By"),
+      meta: { label: t("inventory.transfers.by", "By") },
       cell: ({ row }) => row.original.started_by_name ?? "—",
     },
     {
       accessorKey: "status",
       header: t("inventory.stocktakes.status", "Status"),
+      meta: { label: t("inventory.stocktakes.status", "Status") },
       cell: ({ row }) => (
-        <Badge variant="secondary" className={cn(STOCKTAKE_STATUS_STYLES[row.original.status] ?? "")}>
+        <StatusPill tone={STOCKTAKE_STATUS_TONES[row.original.status] ?? "neutral"}>
           {t(`inventory.stocktakes.st_${row.original.status}`, row.original.status)}
-        </Badge>
+        </StatusPill>
       ),
     },
     {
       accessorKey: "finalized_at",
       header: t("inventory.stocktakes.finalized", "Finalized"),
-      cell: ({ row }) => <span className="tabular">{fmtDateTime(row.original.finalized_at)}</span>,
-    },
-    {
-      id: "actions",
-      enableHiding: false,
-      cell: ({ row }) =>
-        row.original.status === "finalized" ? (
-          <div className="text-end">
-            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setReportId(row.original.id); }}>
-              {t("inventory.stocktakes.viewReport", "View report")}
-            </Button>
-          </div>
-        ) : null,
+      meta: { label: t("inventory.stocktakes.finalized", "Finalized") },
+      cell: ({ row }) => <bdi className="tabular">{fmtDateTime(row.original.finalized_at)}</bdi>,
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [t, isAllBranches]);
@@ -180,7 +173,7 @@ export function CountsPage() {
         title={t("inventory.stocktakes.title", "Stock counts")}
         description={t("inventory.stocktakes.subtitle", "Count the shelf; everything else follows from the count.")}
         actions={
-          <div className="flex shrink-0 items-center gap-2">
+          <>
             <ExportButton onExport={handleExport} loading={exporting} disabled={!history.length} />
             {branchId && !openCount ? (
               <Button onClick={openScopeDialog}>
@@ -188,16 +181,17 @@ export function CountsPage() {
                 {t("inventory.stocktakes.start", "Start a count")}
               </Button>
             ) : null}
-          </div>
+          </>
+        }
+        below={
+          !branchId ? (
+            <p className="text-sm text-muted-foreground">{t("inventory.stocktakes.pickBranchToCount", "Select a branch to start a count. The list below shows every branch's counts.")}</p>
+          ) : null
         }
       />
 
-      {!branchId ? (
-        <p className="text-sm text-muted-foreground">{t("inventory.stocktakes.pickBranchToCount", "Select a branch to start a count. The list below shows every branch's counts.")}</p>
-      ) : null}
-
       {firstRun ? (
-        <Card className="border-primary/30 bg-primary/5">
+        <Card className="shadow-none">
           <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <p className="font-semibold">{t("inventory.stocktakes.firstRunTitle", "This branch has never been counted")}</p>
@@ -225,7 +219,16 @@ export function CountsPage() {
         columns={columns}
         data={branchId ? history : (stocktakes.data ?? [])}
         loading={stocktakes.isLoading}
+        error={stocktakes.error}
+        onRetry={() => void stocktakes.refetch()}
         getRowId={(s) => s.id}
+        rowActions={(s) =>
+          s.status === "finalized" ? (
+            <Button variant="outline" size="sm" onClick={() => setReportId(s.id)}>
+              {t("inventory.stocktakes.viewReport", "View report")}
+            </Button>
+          ) : null
+        }
         onRowClick={(s) => s.status === "finalized" && setReportId(s.id)}
         emptyState={<EmptyState icon={ClipboardList} title={t("inventory.stocktakes.noStocktakes", "No counts yet")} description={t("inventory.stocktakes.startHint", "Start a count to bring this branch's stock to life.")} />}
       />
@@ -268,7 +271,7 @@ export function CountsPage() {
                 {scopeItems.map((id) => {
                   const name = catalogOptions.find((o) => o.value === id)?.label ?? id;
                   return (
-                    <li key={id} className="flex items-center justify-between rounded border px-2 py-1 text-sm">
+                    <li key={id} className="flex items-center justify-between rounded-lg border ps-3 pe-1 py-1 text-sm">
                       <span>{name}</span>
                       <Button variant="ghost" size="icon-sm" aria-label={t("common.remove", "Remove")} onClick={() => setScopeItems((prev) => prev.filter((x) => x !== id))}><X className="size-3.5" /></Button>
                     </li>

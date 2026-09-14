@@ -5,7 +5,8 @@ import { AlertTriangle, ClipboardList, Plus, Search, Sparkles } from "lucide-rea
 import { toast } from "sonner";
 
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StatusPill } from "@/components/app/status-pill";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Combobox } from "@/components/app/combobox";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import type { OrgIngredient, StocktakeItem } from "@/data/api/generated/models";
@@ -25,6 +26,11 @@ import { cn } from "@/lib/utils";
 import {
   VARIANCE_REASONS, buildCountPayload, invalidateInventory, isVarianceFlagged, missingReasons, parseCount,
 } from "./lib";
+
+const SUCCESS_TEXT = "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]";
+const DANGER_TEXT = "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]";
+const WARNING_TEXT = "text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]";
+const INFO_TEXT = "text-[color-mix(in_oklch,var(--color-info)_60%,var(--color-foreground))]";
 
 interface Props {
   stocktakeId: string;
@@ -218,8 +224,8 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
 
   const cancel = async () => {
     if (await confirm({
-      title: t("inventory.stocktakes.cancel", "Cancel stocktake"),
-      description: t("inventory.stocktakes.cancelConfirm", "Cancel this open stocktake?"),
+      title: t("inventory.stocktakes.cancelTitle", "Discard this count?"),
+      description: t("inventory.stocktakes.cancelConsequence", "Every figure entered in this open count is thrown away. Book stock stays as it is."),
       destructive: true,
       confirmLabel: t("inventory.stocktakes.cancel", "Cancel stocktake"),
     })) {
@@ -241,17 +247,17 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold">{t("inventory.stocktakes.openCount", "Open count")}</span>
-            <Badge variant="secondary" className="bg-info/10 text-info">{t("inventory.stocktakes.inProgress", "In progress")}</Badge>
-            {data ? <span className="text-sm text-muted-foreground tabular">{fmtTime(data.started_at)}</span> : null}
+            <StatusPill tone="accent">{t("inventory.stocktakes.inProgress", "In progress")}</StatusPill>
+            {data ? <bdi className="text-sm text-muted-foreground tabular">{fmtTime(data.started_at)}</bdi> : null}
             {saving ? <span className="text-xs text-muted-foreground">{t("common.saving", "Saving…")}</span> : null}
           </div>
-          <span className="text-sm text-muted-foreground tabular">
+          <span className="font-mono text-sm text-muted-foreground tabular">
             {t("inventory.stocktakes.progress", { done: stats.countedCount, total: stats.total, defaultValue: `${stats.countedCount}/${stats.total} done` })}
           </span>
         </div>
         {newCount > 0 ? (
-          <p className="flex items-start gap-1.5 rounded-md border border-info/30 bg-info/5 p-2 text-xs">
-            <Sparkles className="mt-0.5 size-3.5 shrink-0 text-info" />
+          <p className="flex items-start gap-2 rounded-lg bg-info/10 p-2.5 text-xs">
+            <Sparkles className={cn("mt-0.5 size-3.5 shrink-0", INFO_TEXT)} />
             {t("inventory.stocktakes.newHereHint", { count: newCount, defaultValue: `${newCount} ingredients have never been counted or moved at this branch. Counting them is what starts tracking them here.` })}
           </p>
         ) : null}
@@ -293,7 +299,23 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {rows.length === 0 && !stocktake.isLoading ? (
+        {stocktake.isError && !data ? (
+          <ErrorState
+            title={t("inventory.stocktakes.loadFailed", "Couldn't load the open count")}
+            onRetry={() => void stocktake.refetch()}
+          />
+        ) : stocktake.isLoading ? (
+          <div className="overflow-hidden rounded-lg border">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex h-14 items-center gap-4 border-b px-4 last:border-0">
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-10 w-28" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
           <EmptyState
             icon={ClipboardList}
             title={t("inventory.stocktakes.nothingToCount", "Nothing to count yet")}
@@ -324,19 +346,19 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
                   const needsReason = flagged && !reasons[id];
                   const moved = Math.abs(it.book_qty - it.opening_qty) > 1e-9;
                   return (
-                    <TableRow key={id} className={cn(flagged && "bg-warning/5")}>
+                    <TableRow key={id} className={cn(flagged && "bg-warning/8")}>
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-medium">{it.ingredient_name}</span>
-                          {it.is_new ? <Badge variant="secondary" className="bg-info/10 text-info">{t("inventory.stocktakes.newHere", "New here")}</Badge> : null}
-                          {flagged ? <AlertTriangle className="size-3.5 text-warning" /> : null}
+                          {it.is_new ? <StatusPill tone="info" size="sm" icon={Sparkles}>{t("inventory.stocktakes.newHere", "New here")}</StatusPill> : null}
+                          {flagged ? <StatusPill tone="warning" size="sm">{t("inventory.flagged", "Flagged")}</StatusPill> : null}
                         </div>
                         <p className="text-xs text-muted-foreground">{it.category_name}</p>
                       </TableCell>
-                      <TableCell className="text-end tabular">
+                      <TableCell className="text-end font-mono tabular">
                         {fmtNumber(it.book_qty)} {fmtUnit(it.unit)}
                         {moved ? (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="font-sans text-xs text-muted-foreground">
                             {t("inventory.stocktakes.atStart", { qty: fmtNumber(it.opening_qty), defaultValue: `was ${fmtNumber(it.opening_qty)} at start` })}
                           </p>
                         ) : null}
@@ -350,14 +372,15 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
                           className="ms-auto h-10 w-28 text-base tabular"
                         />
                       </TableCell>
-                      <TableCell className={cn("text-end tabular", diff != null && diff < 0 ? "text-destructive" : diff != null && diff > 0 ? "text-success" : "text-muted-foreground")}>
-                        {diff != null ? `${diff > 0 ? "+" : ""}${fmtNumber(diff)}` : t("inventory.stocktakes.notCounted", "not counted")}
+                      <TableCell className={cn("text-end font-mono tabular", diff != null && diff < 0 ? DANGER_TEXT : diff != null && diff > 0 ? SUCCESS_TEXT : "font-sans text-muted-foreground")}>
+                        {diff != null ? <bdi>{fmtNumber(diff, { signDisplay: "exceptZero" })}</bdi> : t("inventory.stocktakes.notCounted", "not counted")}
                       </TableCell>
-                      <TableCell className="text-end tabular">{value != null ? fmtMoney(value) : "—"}</TableCell>
+                      <TableCell className="text-end font-mono tabular"><bdi>{value != null ? fmtMoney(value) : "—"}</bdi></TableCell>
                       <TableCell>
                         {flagged ? (
                           <Select value={reasons[id] ?? ""} onValueChange={(v) => setReasons((prev) => ({ ...prev, [id]: v }))}>
-                            <SelectTrigger className={cn("h-10 w-44", needsReason && "border-destructive")}>
+                            <SelectTrigger className={cn("h-10 w-44", needsReason && "border-destructive")}
+                              aria-invalid={needsReason || undefined}>
                               <SelectValue placeholder={t("inventory.stocktakes.reason", "Reason")} />
                             </SelectTrigger>
                             <SelectContent>
@@ -385,9 +408,9 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
         <div className="sticky bottom-0 -mx-6 -mb-6 flex flex-wrap items-center justify-between gap-3 border-t bg-card px-6 py-3">
           <div className="text-sm">
             <span className="font-medium">{t("inventory.stocktakes.netDifference", "Net difference")}</span>{" "}
-            <span className={cn("tabular font-semibold", stats.net < 0 ? "text-destructive" : stats.net > 0 ? "text-success" : "")}>{fmtMoney(stats.net)}</span>
+            <bdi className={cn("font-mono font-semibold tabular", stats.net < 0 ? DANGER_TEXT : stats.net > 0 ? SUCCESS_TEXT : "")}>{fmtMoney(stats.net, { signed: true })}</bdi>
             {missing.length > 0 ? (
-              <span className="ms-3 text-warning">{t("inventory.stocktakes.needReason", { count: missing.length, defaultValue: `${missing.length} need a reason` })}</span>
+              <span className={cn("ms-3", WARNING_TEXT)}>{t("inventory.stocktakes.needReason", { count: missing.length, defaultValue: `${missing.length} need a reason` })}</span>
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2">

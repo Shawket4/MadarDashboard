@@ -13,12 +13,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { egpToPiastres, piastresToEgp } from "@/lib/format";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TimezoneSelect } from "@/components/app/timezone-select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { createBranch, updateBranch } from "@/data/api/generated/api";
-import type { Branch } from "@/data/api/generated/models";
+import { createBranch, patchBranch } from "@/data/api/generated/api";
+import type { Branch, UpdateBranchRequest } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { invalidateBranches } from "./util";
 
@@ -60,6 +61,9 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
         tax_inclusive: z.boolean(),
         service_charge_rate: z.coerce.number<number>().min(0).max(MAX_PERCENT).optional(),
         service_charge_taxable: z.boolean(),
+        // Tills (TILLS_CONTRACT §2.5): open bills turn "old" after N hours; the drawer float the Z report suggests keeping.
+        old_bill_hours: z.coerce.number<number>().int().min(1).max(168),
+        standard_float: z.coerce.number<number>().min(0).optional(),
       }),
     [t],
   );
@@ -73,6 +77,7 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
       latitude: undefined, longitude: undefined, geo_radius_meters: 200,
       tax_override: false, tax_rate: 0, tax_inclusive: false,
       service_charge_rate: 0, service_charge_taxable: true,
+      old_bill_hours: 3, standard_float: undefined,
     },
   });
   const printerBrand = form.watch("printer_brand");
@@ -104,6 +109,8 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
         tax_inclusive: branch?.tax_inclusive ?? false,
         service_charge_rate: fractionToPercent(branch?.service_charge_rate),
         service_charge_taxable: branch?.service_charge_taxable ?? true,
+        old_bill_hours: branch?.old_bill_hours ?? 3,
+        standard_float: branch?.standard_float == null ? undefined : piastresToEgp(branch.standard_float),
       });
     }
   }, [open, branch, form]);
@@ -129,10 +136,15 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
       service_charge_rate: v.tax_override ? percentToFraction(v.service_charge_rate) : null,
       service_charge_taxable: v.tax_override ? v.service_charge_taxable : null,
     };
+    const tills: Pick<UpdateBranchRequest, "old_bill_hours" | "standard_float"> = { old_bill_hours: v.old_bill_hours, standard_float: v.standard_float == null || Number.isNaN(v.standard_float) ? null : egpToPiastres(v.standard_float) };
     setBusy(true);
     try {
-      if (branch) await updateBranch(branch.id, { ...base, is_active: v.is_active });
-      else await createBranch({ org_id: orgId, ...base });
+      if (branch) await patchBranch(branch.id, { ...base, ...tills, is_active: v.is_active });
+      else {
+        // Create doesn't take the till settings; PATCH them onto the new branch.
+        const created = await createBranch({ org_id: orgId, ...base });
+        await patchBranch(created.id, tills);
+      }
       void invalidateBranches();
       toast.success(editing ? t("branches.updatedToast", "Branch updated") : t("branches.createdToast", "Branch created"));
       onOpenChange(false);
@@ -165,6 +177,14 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
               )} />
               <FormField control={form.control} name="timezone" render={({ field }) => (
                 <FormItem><FormLabel>{t("branches.timezone", "Timezone")}</FormLabel><FormControl><TimezoneSelect value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField control={form.control} name="old_bill_hours" render={({ field }) => (
+                <FormItem><FormLabel>{t("branches.oldBillHours", "Flag open bills as old after (hours)")}</FormLabel><FormControl><Input type="number" min={1} max={168} step={1} {...field} value={(field.value as number | undefined) ?? ""} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="standard_float" render={({ field }) => (
+                <FormItem><FormLabel>{t("branches.standardFloat", "Standard drawer float")}</FormLabel><FormControl><Input type="number" min={0} step="0.01" {...field} value={(field.value as number | undefined) ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
             <FormField control={form.control} name="address" render={({ field }) => (

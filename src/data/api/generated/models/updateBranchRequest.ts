@@ -26,6 +26,13 @@ export interface UpdateBranchRequest {
   longitude?: number | null;
   /** @nullable */
   name?: string | null;
+  /**
+     * Hours after which an open bill counts as old (1..168).
+     * @minimum 1
+     * @maximum 168
+     * @nullable
+     */
+  old_bill_hours?: number | null;
   /** @nullable */
   phone?: string | null;
   printer_brand?: null | PrinterBrand;
@@ -39,6 +46,12 @@ export interface UpdateBranchRequest {
   service_charge_rate?: number | null;
   /** @nullable */
   service_charge_taxable?: boolean | null;
+  /**
+     * Standard opening float in minor units (>= 0); explicit `null` clears it.
+     * @minimum 0
+     * @nullable
+     */
+  standard_float?: number | null;
   /** @nullable */
   tax_inclusive?: boolean | null;
   /** @nullable */

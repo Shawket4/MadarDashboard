@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { AssetGroupRef } from './assetGroupRef';
 import type { MenuItemDescriptionTranslations } from './menuItemDescriptionTranslations';
 import type { MenuItemNameTranslations } from './menuItemNameTranslations';
 
@@ -16,6 +17,7 @@ export interface MenuItem {
   description?: string | null;
   description_translations: MenuItemDescriptionTranslations;
   id: string;
+  image?: null | AssetGroupRef;
   /** @nullable */
   image_url?: string | null;
   is_active: boolean;

@@ -5,6 +5,7 @@ import { Check, EyeOff, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusPill, type StatusTone } from "@/components/app/status-pill";
 import { cn } from "@/lib/utils";
 
 export interface SuggestionTag { label: string; className?: string }
@@ -22,10 +23,10 @@ interface Props {
   className?: string;
 }
 
-const DECISION_TINT: Record<string, string> = {
-  accepted: "border-transparent bg-success/15 text-success",
-  rejected: "border-transparent bg-destructive/15 text-destructive",
-  ignored: "bg-muted text-muted-foreground",
+const DECISION_TONE: Record<string, StatusTone> = {
+  accepted: "success",
+  rejected: "danger",
+  ignored: "neutral",
 };
 
 export function SuggestionCard({ title, subtitle, tags = [], content, onAccept, onReject, onIgnore, pending, decision, className }: Props) {
@@ -33,7 +34,7 @@ export function SuggestionCard({ title, subtitle, tags = [], content, onAccept, 
   const decided = !!decision;
 
   return (
-    <Card className={cn("transition-opacity", decided && "opacity-70", className)}>
+    <Card className={cn("shadow-none transition-opacity duration-200 motion-reduce:transition-none", decided && "opacity-70", className)}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1">
@@ -45,7 +46,7 @@ export function SuggestionCard({ title, subtitle, tags = [], content, onAccept, 
             </CardTitle>
             {subtitle ? <CardDescription>{subtitle}</CardDescription> : null}
           </div>
-          {decided ? <Badge variant="outline" className={cn("shrink-0 capitalize", DECISION_TINT[decision] ?? "")}>{decision}</Badge> : null}
+          {decided ? <StatusPill tone={DECISION_TONE[decision] ?? "neutral"}>{t(`common.decision.${decision}`, decision)}</StatusPill> : null}
         </div>
       </CardHeader>
       <CardContent>{content}</CardContent>

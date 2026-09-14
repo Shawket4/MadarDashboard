@@ -4,10 +4,11 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Boxes, Copy, Info } from "lucide-react";
+import { ArrowRight, Boxes, Copy } from "lucide-react";
 
-import { Page } from "@/components/app/page";
-import { EmptyState } from "@/components/app/empty-state";
+import { Page, PageHeader } from "@/components/app/page";
+import { StatusPill } from "@/components/app/status-pill";
+import { ErrorState } from "@/components/app/empty-state";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -480,17 +481,15 @@ export function MenuStudioPage() {
   // ── Loading / error states ──────────────────────────────────────────────────
   if (studioQ.isLoading) {
     return (
-      <Page>
-        <div className="mx-auto w-full max-w-4xl space-y-8">
-          <div className="flex items-center gap-3">
-            <Skeleton className="size-8 rounded-md" />
-            <Skeleton className="h-6 w-56" />
-            <Skeleton className="ms-auto h-8 w-28 rounded-md" />
-          </div>
-          <Skeleton className="h-44 w-full rounded-xl" />
-          <Skeleton className="h-72 w-full rounded-xl" />
-          <Skeleton className="h-40 w-full rounded-xl" />
-          <Skeleton className="h-40 w-full rounded-xl" />
+      <Page width="reading">
+        <PageHeader
+          back={{ onClick: goBack }}
+          title={<Skeleton className="h-7 w-56" />}
+        />
+        <div className="space-y-8">
+          <Skeleton className="h-44 w-full rounded-2xl" />
+          <Skeleton className="h-72 w-full rounded-2xl" />
+          <Skeleton className="h-40 w-full rounded-2xl" />
         </div>
       </Page>
     );
@@ -498,18 +497,13 @@ export function MenuStudioPage() {
 
   if (studioQ.isError || !studio) {
     return (
-      <Page>
-        <Button variant="ghost" size="sm" onClick={goBack} className="w-fit -ms-2 text-muted-foreground">
-          <ArrowLeft className="size-4 rtl:rotate-180" /> {t("menu.studio.backToItems", "Back to items")}
-        </Button>
-        <EmptyState
-          icon={Info}
+      <Page width="reading">
+        <PageHeader back={{ onClick: goBack }} title={t("menu.studio.itemTitle", "Menu item")} />
+        <ErrorState
           title={t("menu.studio.loadError", "Could not load this item")}
-          action={
-            <Button variant="outline" onClick={() => void studioQ.refetch()}>
-              {t("common.retry", "Retry")}
-            </Button>
-          }
+          message={studioQ.error ? getErrorMessage(studioQ.error) : undefined}
+          onRetry={() => void studioQ.refetch()}
+          retrying={studioQ.isFetching}
         />
       </Page>
     );
@@ -520,62 +514,53 @@ export function MenuStudioPage() {
   const hasRemovableImage = !!previewUrl || (!!studio.image_url && !imageRemoved);
 
   return (
-    <Page className="space-y-0">
-      {/* ── Sticky header ── */}
-      <div className="sticky top-14 z-20 -mx-4 -mt-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/85 sm:-mx-6 sm:-mt-6 sm:px-6 lg:-mx-8 lg:-mt-8 lg:px-8">
-        <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center gap-x-3 gap-y-1.5 py-3">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="-ms-2 text-muted-foreground"
-            onClick={goBack}
-            aria-label={t("menu.studio.backToItems", "Back to items")}
-          >
-            <ArrowLeft className="size-4 rtl:rotate-180" />
-          </Button>
-          <div className="flex min-w-0 items-center gap-2">
-            <h1 className="min-w-0 truncate text-base font-semibold tracking-tight sm:text-lg">
-              {name || t("menu.studio.untitled", "Untitled item")}
-            </h1>
-            {!studio.is_active ? <Badge variant="secondary">{t("common.inactive", "Inactive")}</Badge> : null}
-            {studio.used_in_bundles.length > 0 ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="outline" className="gap-1 font-normal">
-                    <Boxes className="size-3.5" aria-hidden="true" />
-                    {t("menu.studio.usedInBundlesN", "Used in {{count}} bundles", {
-                      count: studio.used_in_bundles.length,
-                    })}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <ul className="space-y-0.5">
-                    {studio.used_in_bundles.map((b) => (
-                      <li key={b.bundle_id}>{b.name}</li>
-                    ))}
-                  </ul>
-                </TooltipContent>
-              </Tooltip>
-            ) : null}
-          </div>
-          <div className="ms-auto flex items-center gap-3">
-            <Link
-              to="/menu/pricing"
-              search={(prev: Record<string, unknown>) => ({ ...prev })}
-              className="inline-flex items-center gap-1 rounded-sm text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-            >
-              {t("menu.studio.pricingLink", "Branch & channel pricing")}
-              <ArrowRight className="size-3.5 rtl:rotate-180" aria-hidden="true" />
-            </Link>
+    <Page width="reading" className="space-y-0">
+      <PageHeader
+        back={{ onClick: goBack }}
+        title={name || t("menu.studio.untitled", "Untitled item")}
+        subtitle={
+          !studio.is_active || studio.used_in_bundles.length > 0 ? (
+            <span className="mt-1 flex flex-wrap items-center gap-2">
+              {!studio.is_active ? <StatusPill tone="neutral" size="sm">{t("common.inactive", "Inactive")}</StatusPill> : null}
+              {studio.used_in_bundles.length > 0 ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="gap-1 font-normal">
+                      <Boxes className="size-3.5" aria-hidden="true" />
+                      {t("menu.studio.usedInBundlesN", "Used in {{count}} bundles", {
+                        count: studio.used_in_bundles.length,
+                      })}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <ul className="space-y-0.5">
+                      {studio.used_in_bundles.map((b) => (
+                        <li key={b.bundle_id}>{b.name}</li>
+                      ))}
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              ) : null}
+            </span>
+          ) : undefined
+        }
+        actions={
+          <>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/menu/pricing" search={(prev: Record<string, unknown>) => ({ ...prev })}>
+                {t("menu.studio.pricingLink", "Branch & channel pricing")}
+                <ArrowRight className="size-3.5 rtl:rotate-180" aria-hidden="true" />
+              </Link>
+            </Button>
             <Button type="button" variant="outline" size="sm" onClick={() => void onDuplicate()}>
               <Copy className="size-4" /> {t("menu.grid.duplicate", "Duplicate")}
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* ── Sections ── */}
-      <div className="mx-auto w-full max-w-4xl divide-y divide-border pb-16 pt-2">
+      <div className="divide-y divide-border pb-16">
         <SectionShell
           id="studio-section-item"
           title={t("menu.studio.basics.title", "Item details")}
@@ -667,7 +652,7 @@ export function MenuStudioPage() {
       {dirtyCount > 0 ? (
         <div className="pointer-events-none sticky bottom-4 z-30 flex justify-center">
           <div className="pointer-events-auto flex items-center gap-3 rounded-full border bg-card/95 px-4 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/80">
-            <span className="text-sm font-medium tabular">
+            <span className="text-sm font-medium tabular-nums">
               {t("menu.studio.unsavedN", "{{count}} unsaved changes", { count: dirtyCount })}
             </span>
             <Button variant="ghost" size="sm" onClick={discard} disabled={saving}>
@@ -698,14 +683,17 @@ function SectionShell({
   dirty: boolean;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
   return (
-    <section id={id} className="scroll-mt-32 py-8 first:pt-6">
+    <section id={id} className="scroll-mt-20 py-8 first:pt-6">
       <header className="mb-4 space-y-0.5">
-        <h2 className="flex items-center gap-2 text-sm font-semibold">
+        <h2 className="flex items-center gap-2 text-base font-semibold tracking-[-0.005em]">
           {title}
-          {dirty ? <span className="size-1.5 rounded-full bg-brand" aria-hidden="true" /> : null}
+          {dirty ? (
+            <StatusPill tone="warning" size="sm">{t("menu.studio.unsaved", "Unsaved")}</StatusPill>
+          ) : null}
         </h2>
-        {description ? <p className="max-w-prose text-xs text-muted-foreground">{description}</p> : null}
+        {description ? <p className="max-w-prose text-sm text-muted-foreground">{description}</p> : null}
       </header>
       {children}
     </section>

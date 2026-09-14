@@ -5,7 +5,9 @@ import { GripVertical, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
-import { Badge } from "@/components/ui/badge";
+import { ErrorState } from "@/components/app/empty-state";
+import { RowAction } from "@/features/users/row-action";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -121,10 +123,28 @@ export function AttendanceRulesPage() {
     }
   };
 
-  if (query.isLoading) return <Page><Skeleton className="h-96 w-full" /></Page>;
+  if (query.isLoading || query.error) {
+    return (
+      <Page width="reading">
+        <PageHeader title={t("staff.rules", "Attendance rules")} />
+        {query.error ? (
+          <ErrorState
+            title={t("staff.rulesLoadError", "Couldn't load attendance rules")}
+            onRetry={() => void query.refetch()}
+            retrying={query.isFetching}
+          />
+        ) : (
+          <div className="space-y-4">
+            <Skeleton className="h-64 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
+          </div>
+        )}
+      </Page>
+    );
+  }
 
   return (
-    <Page>
+    <Page width="reading">
       <PageHeader
         title={t("staff.rules", "Attendance rules")}
         description={t(
@@ -218,14 +238,14 @@ export function AttendanceRulesPage() {
                 <p className="mb-2 flex-1 text-xs text-muted-foreground">
                   {describeTier(tier, t)}
                 </p>
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <RowAction
+                  destructive
+                  label={t("staff.removeTier", "Remove rung")}
                   className="mb-1"
                   onClick={() => setTiers(tiers.filter((_, index) => index !== i))}
                 >
                   <Trash2 className="size-4" />
-                </Button>
+                </RowAction>
               </div>
             ))
           )}
@@ -239,7 +259,7 @@ export function AttendanceRulesPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="space-y-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t("staff.payBasis", "Pay basis")}</CardTitle>
@@ -306,10 +326,15 @@ export function AttendanceRulesPage() {
                 {WEEKDAYS.map((d) => {
                   const on = weekend.includes(d.value);
                   return (
-                    <Badge
+                    <button
+                      type="button"
                       key={d.value}
-                      variant="outline"
-                      className={`cursor-pointer select-none ${on ? "border-transparent bg-primary/15 text-primary" : ""}`}
+                      aria-pressed={on}
+                      className={cn(
+                        "h-8 min-w-12 rounded-full border px-3 text-xs font-medium transition-colors duration-150 select-none motion-reduce:transition-none",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+                        on ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
+                      )}
                       onClick={() =>
                         setWeekend(
                           on ? weekend.filter((w) => w !== d.value) : [...weekend, d.value].sort(),
@@ -317,7 +342,7 @@ export function AttendanceRulesPage() {
                       }
                     >
                       {t(d.labelKey, d.fallback)}
-                    </Badge>
+                    </button>
                   );
                 })}
               </div>

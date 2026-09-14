@@ -26,7 +26,7 @@ import { parseSseFrames } from "./sse";
 const RETRY_MS = [1_000, 2_000, 5_000, 10_000, 30_000] as const;
 
 /** Topics the dashboard consumes; the server intersects with permissions. */
-const TOPICS = "floor,tickets,bookings,delivery";
+const TOPICS = "floor,tickets,bookings,delivery,tills";
 
 type Listener = (event: string, data: string) => void;
 const listeners = new Set<Listener>();
@@ -57,6 +57,9 @@ export function invalidationsFor(event: string): string[] {
   if (event.startsWith("ticket.")) return ["/open-tickets", "/floor"];
   if (event.startsWith("delivery.")) return ["/delivery-orders"];
   if (event.startsWith("kitchen.")) return ["/kitchen"];
+  if (event.startsWith("till.")) return ["/tills", "/reports"];
+  if (event === "payment_methods.availability_changed") return ["/payment-methods"];
+  if (event === "branch.settings_changed") return ["/branches"];
   return [];
 }
 

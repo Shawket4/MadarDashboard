@@ -1,21 +1,20 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Boxes, Store } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { BarChart3, Boxes, CircleHelp, Store, Wallet } from "lucide-react";
 import { toast } from "sonner";
-import { ProgressBar } from "@/components/app/progress-bar";
 
-import { Page } from "@/components/app/page";
+import { ProgressBar } from "@/components/app/progress-bar";
+import { Page, PageHeader } from "@/components/app/page";
+import { DataTable } from "@/components/app/data-table";
+import { SectionHeader } from "@/components/app/section-header";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SegmentedControl } from "@/components/app/segmented-control";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
 import {
   useBranchConsumption, useBranchInventoryValuation, useBranchShrinkage,
   useBranchWasteReport, useListCatalog, useOrgConsumption, useOrgInventoryValuation, useOrgShrinkage,
@@ -157,86 +156,102 @@ export function ReportsPage() {
   if (!orgId) {
     return (
       <Page>
-        <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.reports.title", "Inventory reports")}</h1>
-        </div>
+        <PageHeader title={t("inventory.reports.title", "Inventory reports")} />
         <EmptyState icon={Boxes} title={t("inventory.pickOrg", "Select an organization to manage inventory")} />
       </Page>
     );
   }
 
   const branchGate = isBranch && !branchId;
+  const noData = t("inventory.reports.noDataPeriod", "Nothing recorded for this scope and period.");
 
   return (
     <Page>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{t("inventory.reports.title", "Inventory reports")}</h1>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <ExportButton onExport={handleExport} loading={exporting} disabled={branchGate || !currentCount} />
-          <SegmentedControl<ReportScope>
-            value={scope}
-            onChange={setScope}
-            options={[
-              { value: "branch", label: t("inventory.reports.branch", "This branch") },
-              { value: "org", label: t("inventory.reports.org", "Whole organization") },
-            ]}
-          />
-        </div>
-      </div>
-
-      <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <PageTabsList>
-          <PageTabsTrigger value="valuation">{t("inventory.reports.valuation", "Valuation")}</PageTabsTrigger>
-          <PageTabsTrigger value="consumption">{t("inventory.reports.consumption", "Consumption")}</PageTabsTrigger>
-          <PageTabsTrigger value="shrinkage">{t("inventory.reports.shrinkage", "Shrinkage")}</PageTabsTrigger>
-          <PageTabsTrigger value="waste">{t("inventory.reports.wasteReport", "Waste")}</PageTabsTrigger>
-        </PageTabsList>
+      <Tabs value={tab} onValueChange={setTab} className="gap-6">
+        <PageHeader
+          title={t("inventory.reports.title", "Inventory reports")}
+          actions={<ExportButton onExport={handleExport} loading={exporting} disabled={branchGate || !currentCount} />}
+          below={
+            <>
+              <PageTabsList>
+                <PageTabsTrigger value="valuation" className="first:ps-0">{t("inventory.reports.valuation", "Valuation")}</PageTabsTrigger>
+                <PageTabsTrigger value="consumption">{t("inventory.reports.consumption", "Consumption")}</PageTabsTrigger>
+                <PageTabsTrigger value="shrinkage">{t("inventory.reports.shrinkage", "Shrinkage")}</PageTabsTrigger>
+                <PageTabsTrigger value="waste">{t("inventory.reports.wasteReport", "Waste")}</PageTabsTrigger>
+              </PageTabsList>
+              <SegmentedControl<ReportScope>
+                value={scope}
+                onChange={setScope}
+                options={[
+                  { value: "branch", label: t("inventory.reports.branch", "This branch") },
+                  { value: "org", label: t("inventory.reports.org", "Whole organization") },
+                ]}
+              />
+            </>
+          }
+        />
 
         {branchGate ? (
           <EmptyState icon={Store} title={t("inventory.pickBranch", "Select a branch to manage its stock")} />
         ) : (
           <>
             {/* Valuation */}
-            <TabsContent value="valuation" className="space-y-4">
-              <LedgerStrip
-                className="sm:max-w-md"
-                items={[
-                  { key: "value", label: t("inventory.reports.totalValue", "Total value"), value: valuation.data?.total_value ?? 0, formatType: "money", accent: "brand", loading: valuation.isLoading },
-                  { key: "unknown", label: t("inventory.reports.unknownCost", { count: valuation.data?.unknown_cost_count ?? 0, defaultValue: "unknown cost" }), value: valuation.data?.unknown_cost_count ?? 0, loading: valuation.isLoading },
-                ] satisfies LedgerItem[]}
-              />
-              <Card>
-                <CardHeader><CardTitle className="text-base">{t("inventory.reports.byCategory", "By category")}</CardTitle></CardHeader>
-                <CardContent className="space-y-2">
-                  {byCategory.rows.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">{t("inventory.reports.noData", "No data")}</p>
-                  ) : byCategory.rows.map(([cat, val]) => (
-                    <div key={cat} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span>{cat}</span>
-                        <span className="tabular">{fmtMoney(val)}</span>
+            <TabsContent value="valuation" className="space-y-6">
+              {valuation.isError ? (
+                <ErrorState
+                  title={t("inventory.reports.valuationFailed", "Couldn't load stock valuation")}
+                  onRetry={() => void valuation.refetch()}
+                />
+              ) : (
+                <>
+                  <LedgerStrip
+                    className="lg:max-w-2xl"
+                    items={[
+                      { key: "value", label: t("inventory.reports.totalValue", "Total value"), value: valuation.data?.total_value ?? 0, formatType: "money", icon: Wallet, loading: valuation.isLoading },
+                      { key: "unknown", label: t("inventory.reports.unknownCostLabel", "Unknown cost"), value: valuation.data?.unknown_cost_count ?? 0, icon: CircleHelp, accent: (valuation.data?.unknown_cost_count ?? 0) > 0 ? "warning" : "neutral", loading: valuation.isLoading },
+                    ] satisfies LedgerItem[]}
+                  />
+                  <section className="space-y-3">
+                    <SectionHeader title={t("inventory.reports.byCategory", "By category")} />
+                    {valuation.isLoading || catalog.isLoading ? (
+                      <div className="space-y-4 rounded-2xl border bg-card p-5">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                          <div key={i} className="space-y-2">
+                            <div className="flex justify-between"><Skeleton className="h-4 w-28" /><Skeleton className="h-4 w-20" /></div>
+                            <Skeleton className="h-2 w-full" />
+                          </div>
+                        ))}
                       </div>
-                      <ProgressBar
-                        value={val}
-                        max={byCategory.max}
-                        accent="brand"
-                        ariaLabel={cat}
-                        className="h-2"
-                      />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+                    ) : byCategory.rows.length === 0 ? (
+                      <EmptyState className="py-8" title={t("inventory.reports.noValuation", "Stock value by category appears after a branch is counted.")} />
+                    ) : (
+                      <div className="space-y-4 rounded-2xl border bg-card p-5">
+                        {byCategory.rows.map(([cat, val]) => (
+                          <div key={cat} className="space-y-1.5">
+                            <div className="flex items-center justify-between gap-4 text-sm">
+                              <span className="font-medium">{cat}</span>
+                              <bdi className="font-mono tabular">{fmtMoney(val)}</bdi>
+                            </div>
+                            <ProgressBar value={val} max={byCategory.max} ariaLabel={cat} className="h-2" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </>
+              )}
             </TabsContent>
 
             {/* Consumption */}
             <TabsContent value="consumption">
               <ReportTable
-                loading={consumption.isLoading}
-                empty={t("inventory.reports.noData", "No data")}
-                head={[t("inventory.reports.ingredient", "Item"), t("inventory.reports.qty", "Quantity"), t("inventory.reports.consumedValue", "Consumed value")]}
+                query={consumption}
+                empty={noData}
+                head={[
+                  { label: t("inventory.reports.ingredient", "Item") },
+                  { label: t("inventory.reports.qty", "Quantity"), numeric: true },
+                  { label: t("inventory.reports.consumedValue", "Consumed value"), numeric: true },
+                ]}
                 rows={(consumption.data ?? []).map((r) => ({
                   key: r.org_ingredient_id,
                   cells: [r.ingredient_name, `${fmtNumber(r.consumed_qty)} ${fmtUnit(r.unit)}`, fmtMoney(r.consumed_value)],
@@ -247,9 +262,14 @@ export function ReportsPage() {
             {/* Shrinkage */}
             <TabsContent value="shrinkage">
               <ReportTable
-                loading={shrinkage.isLoading}
-                empty={t("inventory.reports.noData", "No data")}
-                head={[t("inventory.reports.ingredient", "Item"), t("inventory.reports.reason", "Reason"), t("inventory.reports.qty", "Quantity"), t("inventory.reports.value", "Value")]}
+                query={shrinkage}
+                empty={noData}
+                head={[
+                  { label: t("inventory.reports.ingredient", "Item") },
+                  { label: t("inventory.reports.reason", "Reason") },
+                  { label: t("inventory.reports.qty", "Quantity"), numeric: true },
+                  { label: t("inventory.reports.value", "Value"), numeric: true },
+                ]}
                 rows={(shrinkage.data ?? []).map((r, i) => ({
                   key: `${r.org_ingredient_id}-${r.reason}-${i}`,
                   cells: [
@@ -265,9 +285,14 @@ export function ReportsPage() {
             {/* Waste */}
             <TabsContent value="waste">
               <ReportTable
-                loading={wasteReport.isLoading}
-                empty={t("inventory.reports.noData", "No data")}
-                head={[t("inventory.reports.ingredient", "Item"), t("inventory.reports.reason", "Reason"), t("inventory.reports.qty", "Quantity"), t("inventory.reports.wasteValue", "Waste value")]}
+                query={wasteReport}
+                empty={noData}
+                head={[
+                  { label: t("inventory.reports.ingredient", "Item") },
+                  { label: t("inventory.reports.reason", "Reason") },
+                  { label: t("inventory.reports.qty", "Quantity"), numeric: true },
+                  { label: t("inventory.reports.wasteValue", "Waste value"), numeric: true },
+                ]}
                 rows={(wasteReport.data ?? []).map((r, i) => ({
                   key: `${r.org_ingredient_id}-${r.reason}-${i}`,
                   cells: [r.ingredient_name, t(`inventory.waste.reasons.${r.reason}`, r.reason), `${fmtNumber(r.waste_qty)} ${fmtUnit(r.unit)}`, fmtMoney(r.waste_value)],
@@ -281,36 +306,36 @@ export function ReportsPage() {
   );
 }
 
-function ReportTable({ head, rows, loading, empty }: {
-  head: string[];
-  rows: { key: string; cells: (string | number)[] }[];
-  loading?: boolean;
+type ReportRow = { key: string; cells: string[] };
+
+function ReportTable({ head, rows, query, empty }: {
+  head: { label: string; numeric?: boolean }[];
+  rows: ReportRow[];
+  query: { isLoading: boolean; error: unknown; refetch: () => unknown };
   empty: string;
 }) {
+  const columns = useMemo<ColumnDef<ReportRow>[]>(
+    () =>
+      head.map((h, i) => ({
+        id: `c${i}`,
+        header: h.label,
+        accessorFn: (r) => r.cells[i],
+        meta: { label: h.label, numeric: h.numeric, phone: i === 0 ? "title" : undefined },
+        cell: ({ row }) => (i === 0 ? <span className="font-medium">{row.original.cells[i]}</span> : row.original.cells[i]),
+      })),
+    [head],
+  );
   return (
-    <div className="overflow-x-auto rounded-xl border">
-      <Table>
-        <TableHeader>
-          <TableRow>{head.map((h, i) => <TableHead key={i} className={i === 0 ? "" : "text-end"}>{h}</TableHead>)}</TableRow>
-        </TableHeader>
-        <TableBody>
-          {loading ? (
-            Array.from({ length: 5 }).map((_, ri) => (
-              <TableRow key={`sk-${ri}`}>
-                {head.map((_, ci) => <TableCell key={ci}><Skeleton className="h-4 w-full" /></TableCell>)}
-              </TableRow>
-            ))
-          ) : rows.length === 0 ? (
-            <TableRow><TableCell colSpan={head.length} className="text-center text-muted-foreground">{empty}</TableCell></TableRow>
-          ) : (
-            rows.map((r) => (
-              <TableRow key={r.key}>
-                {r.cells.map((c, i) => <TableCell key={i} className={i === 0 ? "" : "text-end tabular"}>{c}</TableCell>)}
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTable
+      columns={columns}
+      data={rows}
+      loading={query.isLoading}
+      error={query.error}
+      onRetry={() => void query.refetch()}
+      getRowId={(r) => r.key}
+      pageSize={25}
+      hideViewOptions
+      emptyState={<EmptyState icon={BarChart3} title={empty} />}
+    />
   );
 }

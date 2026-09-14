@@ -89,8 +89,8 @@ export function TransferQueue({ transfers, tables, sections }: Props) {
       </div>
 
       {waiting.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-6 text-center">
-          <ListX aria-hidden className="size-5 text-muted-foreground" />
+        <div className="flex items-center gap-2 py-1">
+          <ListX aria-hidden className="size-4 shrink-0 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
             {t("floor.noTransfers", "No one is waiting to move tables.")}
           </p>
@@ -229,7 +229,7 @@ function FulfillDialog({
                   type="button"
                   aria-pressed={on}
                   onClick={() => setPicked(on ? null : tb.id)}
-                  className={`rounded-lg border p-2 text-start text-sm transition ${on ? "border-primary bg-primary/10" : "hover:bg-muted"}`}
+                  className={`rounded-lg border p-2 text-start text-sm transition-colors duration-150 motion-reduce:transition-none ${on ? "border-primary bg-accent ring-1 ring-primary" : "hover:bg-accent"}`}
                 >
                   <div className="font-semibold">{tb.label}</div>
                   <div className="text-xs text-muted-foreground">

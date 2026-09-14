@@ -57,6 +57,9 @@ import "@fontsource/ibm-plex-mono/latin-600.css";
 // intentionally NOT imported — this origin never holds a session.
 import "@/i18n";
 import "@/styles/globals.css";
+
+// Customer surface: the brand register, where the primary is Madar teal.
+document.documentElement.classList.add("brand-surface");
 import { initPublicTheme } from "@/features/public-shell/use-public-theme";
 
 import { queryClient } from "@/data/api/query";

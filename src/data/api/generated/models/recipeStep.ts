@@ -6,6 +6,13 @@
  * preset step also carries its note and the animation to play.
  */
 export interface RecipeStep {
+  /**
+     * Content hash of the global asset; `None` until ingested or when retired.
+     * @nullable
+     */
+  animation_hash?: string | null;
+  /** Always true for preset animations (global library). */
+  animation_is_global: boolean;
   /** @nullable */
   animation_sha256?: string | null;
   /**
