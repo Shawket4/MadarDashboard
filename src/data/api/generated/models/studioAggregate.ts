@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { AssetGroupRef } from './assetGroupRef';
 import type { AvailabilityOut } from './availabilityOut';
 import type { ItemOptionOut } from './itemOptionOut';
 import type { ModifierGroupOut } from './modifierGroupOut';
@@ -18,6 +19,7 @@ export interface StudioAggregate {
   /** @nullable */
   description?: string | null;
   id: string;
+  image?: null | AssetGroupRef;
   /** @nullable */
   image_url?: string | null;
   is_active: boolean;

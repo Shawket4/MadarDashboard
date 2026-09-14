@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { AssetGroupRef } from './assetGroupRef';
 import type { BundleStatus } from './bundleStatus';
 
 export interface Bundle {
@@ -18,6 +19,7 @@ export interface Bundle {
   description?: string | null;
   description_translations: unknown;
   id: string;
+  image?: null | AssetGroupRef;
   /** @nullable */
   image_url?: string | null;
   name: string;

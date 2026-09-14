@@ -6,7 +6,10 @@ import * as zod from 'zod';
 export const ListAddonItemsQueryParams = zod.object({
   "org_id": zod.uuid(),
   "addon_type": zod.string().optional(),
-  "branch_id": zod.uuid().optional().describe('When set, prices are branch-effective (override replaces default_price) and\naddons disabled at this branch are excluded — the per-branch addon list the\nPOS consumes. Omitted → the plain org list (legacy behaviour).')
+  "branch_id": zod.uuid().optional().describe('When set, prices are branch-effective (override replaces default_price) and\naddons disabled at this branch are excluded — the per-branch addon list the\nPOS consumes. Omitted → the plain org list (legacy behaviour).'),
+  "search": zod.string().optional().describe('Case-insensitive filter on the addon name.'),
+  "page": zod.number().optional().describe('Sending `page` or `per_page` switches the response to the paginated\nshape (`PaginatedAddonItems`); without either it stays the plain array\nthe POS and old clients read.'),
+  "per_page": zod.number().optional()
 })
 
 export const ListAddonItemsResponseItem = zod.object({
@@ -1592,6 +1595,54 @@ export const ListBundlesResponse = zod.object({
   "description": zod.string().nullish(),
   "description_translations": zod.unknown(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
   "name_translations": zod.unknown(),
@@ -1652,6 +1703,54 @@ export const CreateBundleResponse = zod.object({
   "description": zod.string().nullish(),
   "description_translations": zod.unknown(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
   "name_translations": zod.unknown(),
@@ -1692,6 +1791,54 @@ export const AvailableBundlesResponseItem = zod.object({
   "description": zod.string().nullish(),
   "description_translations": zod.unknown(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
   "name_translations": zod.unknown(),
@@ -1732,6 +1879,54 @@ export const GetBundleResponse = zod.object({
   "description": zod.string().nullish(),
   "description_translations": zod.unknown(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
   "name_translations": zod.unknown(),
@@ -1797,6 +1992,54 @@ export const UpdateBundleResponse = zod.object({
   "description": zod.string().nullish(),
   "description_translations": zod.unknown(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
   "name_translations": zod.unknown(),
@@ -1836,6 +2079,54 @@ export const ActivateBundleResponse = zod.object({
   "description": zod.string().nullish(),
   "description_translations": zod.unknown(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
   "name_translations": zod.unknown(),
@@ -1875,6 +2166,54 @@ export const ArchiveBundleResponse = zod.object({
   "description": zod.string().nullish(),
   "description_translations": zod.unknown(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
   "name_translations": zod.unknown(),
@@ -5960,6 +6299,54 @@ export const DuplicateItemResponse = zod.object({
   "category_id": zod.uuid().nullish(),
   "description": zod.string().nullish(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed), same as `GET \/menu-items\/{id}`.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "modifier_groups": zod.array(zod.object({
@@ -6088,6 +6475,54 @@ export const PutModifierGroupsResponse = zod.object({
   "category_id": zod.uuid().nullish(),
   "description": zod.string().nullish(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed), same as `GET \/menu-items\/{id}`.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "modifier_groups": zod.array(zod.object({
@@ -6423,6 +6858,54 @@ export const PutSizesResponse = zod.object({
   "category_id": zod.uuid().nullish(),
   "description": zod.string().nullish(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed), same as `GET \/menu-items\/{id}`.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "modifier_groups": zod.array(zod.object({
@@ -6566,6 +7049,54 @@ export const GetStudioResponse = zod.object({
   "category_id": zod.uuid().nullish(),
   "description": zod.string().nullish(),
   "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (WebP variants, signed), same as `GET \/menu-items\/{id}`.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
   "modifier_groups": zod.array(zod.object({

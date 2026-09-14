@@ -52,6 +52,7 @@ const ITEMS = [
 ];
 
 vi.mock("@/data/api/generated/api", () => ({
+  useGetOrg: () => ({ data: undefined }),
   useListCategories: () => ({ data: CATEGORIES }),
   useListAddonItems: () => ({ data: ADDONS }),
   useListMenuCatalog: () => ({ data: { data: ITEMS, total: ITEMS.length, total_pages: 1 }, isLoading: false, isFetching: false }),

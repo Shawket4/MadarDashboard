@@ -23,6 +23,7 @@ vi.mock("./util", () => ({
 const updateMenuItem = vi.fn().mockResolvedValue({});
 const uploadMenuItemImage = vi.fn();
 vi.mock("@/data/api/generated/api", () => ({
+  useGetOrg: () => ({ data: undefined }),
   createMenuItem: vi.fn(),
   putModifierGroups: vi.fn(),
   putSizeRecipe: vi.fn(),
