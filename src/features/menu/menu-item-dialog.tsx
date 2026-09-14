@@ -23,6 +23,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { BilingualField } from "@/components/app/bilingual-field";
 import { ImageUploader } from "@/components/app/image-uploader";
 import { CategoryDialog } from "./category-dialog";
+import { PriceTaxHint } from "./price-tax-hint";
 import {
   createMenuItem,
   putModifierGroups,
@@ -282,6 +283,7 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                       <FormControl>
                         <Input type="number" step="0.01" min="0" {...field} />
                       </FormControl>
+                      <PriceTaxHint />
                       <FormMessage />
                     </FormItem>
                   )}

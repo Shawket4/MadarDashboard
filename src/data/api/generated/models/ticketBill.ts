@@ -23,6 +23,13 @@ export interface TicketBill {
   discount_amount: number;
   service_charge_amount: number;
   service_charge_rate: number;
+  /**
+     * Whether the service charge sits inside the tax base. Frozen on the bill
+     * with the rates, so a till re-pricing the bill (a discount, a reward, a
+     * voided line) prices it the way the settle will. Additive: a bill from
+     * an older server decodes as `true`, `TaxPolicy::default()`'s value.
+     */
+  service_charge_taxable?: boolean;
   /** Live lines as charged, before discount. Gross when tax-inclusive. */
   subtotal: number;
   /** Inside the total when `tax_inclusive`, on top of it otherwise. */

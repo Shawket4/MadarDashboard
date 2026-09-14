@@ -430,7 +430,8 @@
       "read": "Read",
       "create": "Create",
       "update": "Update",
-      "delete": "Delete"
+      "delete": "Delete",
+      "waive_service": "Waive service charge"
     },
     "resources": {
       "orders": "Orders",
@@ -458,7 +459,11 @@
     },
     "usersLoadError": "Couldn't load users",
     "noUsers": "Other staff accounts appear here once they're added",
-    "matrixLoadError": "Couldn't load this user's permissions"
+    "matrixLoadError": "Couldn't load this user's permissions",
+    "roleDefaults": "Role defaults",
+    "roleDefaultsHint": "What every user in a role holds unless an override says otherwise",
+    "roleDefaultsReadOnly": "Shared by every organisation; change one person's access with an override above",
+    "roleDefaultsLoadError": "Couldn't load the role defaults"
   },
   "menu": {
     "overrides": {
@@ -876,7 +881,10 @@
     },
     "deleteItemConsequence": "It leaves the POS menu at every branch, with its sizes, recipe and branch prices. Past orders keep their lines.",
     "deleteAddonConsequence": "It is removed from every item that offers it. If orders used it, it is deactivated instead so history stays intact.",
-    "deleteCategoryConsequence": "The category and its kitchen routing are removed. Its items stay on the menu without a category."
+    "deleteCategoryConsequence": "The category and its kitchen routing are removed. Its items stay on the menu without a category.",
+    "priceIncludesTax": "Prices include tax ({{rate}})",
+    "priceExcludesTax": "Tax ({{rate}}) is added at checkout",
+    "priceTaxBranchNote": "branches may override"
   },
   "recipes": {
     "title": "Recipes",

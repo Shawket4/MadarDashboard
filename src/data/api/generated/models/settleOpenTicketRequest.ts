@@ -67,4 +67,11 @@ export interface SettleOpenTicketRequest {
      * @nullable
      */
   total_amount?: number | null;
+  /**
+     * Remove the service charge from this bill. Only someone whose effective
+     * permissions include `orders:waive_service` may send `true`; anyone else
+     * is refused, live or replayed. The order records who and when. Absent
+     * (every build before 0.7.2) means the charge stands.
+     */
+  waive_service_charge?: boolean;
 }

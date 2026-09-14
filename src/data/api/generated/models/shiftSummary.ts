@@ -47,6 +47,12 @@ export interface ShiftSummary {
      * OUT, with their own tender — see `refunds_issued_*`).
      */
   revenue_by_method: unknown;
+  service_charge_waived_amount?: number;
+  /**
+     * Table bills whose service charge was removed by someone holding
+     * `orders:waive_service`, and what those charges came to. Additive.
+     */
+  service_charge_waived_count?: number;
   /** DEPRECATED: same value as `till_id` (required by POS v0.5.1/v0.6.0). */
   shift_id: string;
   status: string;
@@ -67,8 +73,9 @@ export interface ShiftSummary {
      */
   total_revenue: number;
   /**
-     * Service charge added to this shift's dine-in bills. Inside
-     * `total_revenue` as the shop's income; see `analytics::schema` for why.
+     * Service charge added to this shift's dine-in bills, less what refunds
+     * took back. Inside `total_revenue` as the shop's income; see
+     * `analytics::schema` for why.
      */
   total_service_charge?: number;
   total_tax: number;

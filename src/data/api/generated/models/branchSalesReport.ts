@@ -28,6 +28,12 @@ export interface BranchSalesReport {
      * their own, on `GET /shifts/{id}/refunds` and the refunds dataset.
      */
   revenue_by_method: unknown;
+  service_charge_waived_amount?: number;
+  /**
+     * Table bills in range whose service charge was waived, and what those
+     * charges came to. Additive.
+     */
+  service_charge_waived_count?: number;
   subtotal: number;
   /** @nullable */
   to?: string | null;
@@ -53,8 +59,8 @@ export interface BranchSalesReport {
      */
   total_revenue: number;
   /**
-     * Service charge on the dine-in bills in range — inside `total_revenue`
-     * as the shop's income, not a pass-through.
+     * Service charge on the dine-in bills in range, less what refunds took
+     * back — inside `total_revenue` as the shop's income, not a pass-through.
      */
   total_service_charge?: number;
   total_tax: number;

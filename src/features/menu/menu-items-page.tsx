@@ -66,6 +66,7 @@ import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { currencyLabel, fmtNumber } from "@/lib/format";
+import { PriceTaxHint } from "./price-tax-hint";
 
 const ALL = "__all__";
 const ITEMS_PER_PAGE = 24;
@@ -344,7 +345,7 @@ export function MenuItemsPage() {
     <Page>
       <PageHeader
         title={t("nav.menu", "Menu")}
-        subtitle={t("menu.subtitle", "Manage items, add-ons and categories")}
+        subtitle={<>{t("menu.subtitle", "Manage items, add-ons and categories")}<PriceTaxHint className="mt-0.5 block text-xs text-muted-foreground" /></>}
         below={
           <SegmentedControl
             value={tab}

@@ -151,11 +151,54 @@ export interface Order {
      * choose is stated separately from the tax rather than folded into it.
      */
   service_charge_amount?: number;
+  /**
+     * The service charge rate the bill was priced under (a fraction); `0` on a
+     * takeaway, a delivery, or a bill whose charge was waived. Additive.
+     * @nullable
+     */
+  service_charge_rate_applied?: number | null;
+  /**
+     * Whether the service charge sat inside the tax base. Additive.
+     * @nullable
+     */
+  service_charge_taxable_applied?: boolean | null;
+  /**
+     * What the removed service charge came to, in minor units; `0` when
+     * nothing was waived. Not part of the total. Additive.
+     * @nullable
+     */
+  service_charge_waived_amount?: number | null;
+  /**
+     * When the service charge was removed. Additive.
+     * @nullable
+     */
+  service_charge_waived_at?: string | null;
+  /**
+     * Who removed the service charge from this table's bill (a holder of
+     * `orders:waive_service`), or `null`. Additive.
+     * @nullable
+     */
+  service_charge_waived_by?: string | null;
+  /** @nullable */
+  service_charge_waived_by_name?: string | null;
   /** DEPRECATED: same value as `till_id` (required by POS v0.5.1/v0.6.0). */
   shift_id: string;
   status: string;
   subtotal: number;
   tax_amount: number;
+  /**
+     * Whether this bill's prices included tax, as it was priced. A receipt
+     * says "Prices include VAT" when true. `null` on a read that does not
+     * resolve it. Additive.
+     * @nullable
+     */
+  tax_inclusive?: boolean | null;
+  /**
+     * The tax rate the bill was priced under (a fraction). `null` for orders
+     * from before rates were recorded. Additive.
+     * @nullable
+     */
+  tax_rate_applied?: number | null;
   teller_id: string;
   teller_name: string;
   till_id: string;

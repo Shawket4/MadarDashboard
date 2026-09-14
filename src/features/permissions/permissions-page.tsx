@@ -26,6 +26,7 @@ import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { usePageSearch } from "@/data/scope/use-page-search";
+import { RoleDefaults } from "./role-defaults";
 
 // Preferred display order; resources the backend returns that aren't listed are
 // appended alphabetically, so new resources show up without a code change.
@@ -36,12 +37,17 @@ const RESOURCE_ORDER = [
   "inventory_waste", "suppliers", "purchase_orders",
   "orders", "order_items", "payments", "tills", "soft_serve_batches",
 ];
-const ACTION_ORDER = ["read", "create", "update", "delete"];
+// `waive_service` is a grant on `orders` alone (removing the service charge from a table's bill);
+// it sits after the CRUD rungs, and every other resource shows "—" in its column.
+const ACTION_ORDER = ["read", "create", "update", "delete", "waive_service"];
 
 const orderBy = (items: string[], pref: string[]) => {
   const rank = (s: string) => { const i = pref.indexOf(s); return i === -1 ? pref.length : i; };
   return [...items].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
 };
+
+const orderResources = (items: string[]) => orderBy(items, RESOURCE_ORDER);
+const orderActions = (items: string[]) => orderBy(items, ACTION_ORDER);
 
 export function PermissionsPage() {
   const { t } = useTranslation();
@@ -139,6 +145,7 @@ export function PermissionsPage() {
         subtitle={t("permissions.subtitle", "Manage per-user access overrides")}
         actions={<ExportButton onExport={handleExport} loading={exporting} disabled={!selUser || resources.length === 0} />}
       />
+      <div className="grid grid-cols-1 items-start gap-4">
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[300px_1fr]">
         {/* User picker */}
         <ListCard className="rounded-xl">
@@ -237,6 +244,8 @@ export function PermissionsPage() {
             </>
           )}
         </div>
+      </div>
+      <RoleDefaults orderResources={orderResources} orderActions={orderActions} />
       </div>
     </Page>
   );
