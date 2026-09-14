@@ -79,6 +79,11 @@ export function ImageUploader({
   }, [jobId, job.data, t, onProcessed]);
   const processing = !!jobId;
   const shown = justUploaded ?? value;
+  // A row on the asset pipeline can have `asset` set with `value` (its
+  // legacy `image_url`) null — that is still a picture to show, not an
+  // empty box. `AssetImage` itself falls back to `legacyUrl` when there is
+  // no asset, so gate visibility on either.
+  const hasImage = !!shown || !!(!justUploaded && asset);
 
   const handleFile = async (file: File | null | undefined) => {
     if (!file) return;
@@ -151,7 +156,7 @@ export function ImageUploader({
             <Loader2 className="size-5 animate-spin" />
             <span className="text-xs font-medium">{t("uploader.processing", "Processing…")}</span>
           </div>
-        ) : shown ? (
+        ) : hasImage ? (
           <>
             <AssetImage
               asset={justUploaded ? null : asset}
