@@ -7399,14 +7399,17 @@ export const SettleOpenTicketResponse = zod.object({
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
@@ -7590,14 +7593,17 @@ export const ListOrdersResponse = zod.object({
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
@@ -7733,14 +7739,17 @@ export const CreateOrderResponse = zod.object({
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
@@ -7902,14 +7911,17 @@ export const ExportOrdersResponse = zod.object({
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
@@ -8096,14 +8108,17 @@ export const GetOrderResponse = zod.object({
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
@@ -8264,14 +8279,17 @@ export const VoidOrderResponse = zod.object({
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
   "display_number": zod.string().optional().describe('What receipts and lists show: `<device_code>-<order_number>` (`36B-12`)\nfor a device-numbered sale, else `order_number` as text.'),
   "id": zod.uuid(),
+  "idempotency_key": zod.uuid().nullish().describe('The client-minted key the sale was created with (a till\'s sale, or the\nticket id of a settled bill). An offline POS identifies its own row by it\nwhen a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.'),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member this sale redeemed for (or was scanned for).'),
   "loyalty_member_name": zod.string().nullish().describe('That member\'s name, for the order detail. `None` once forgotten.'),
   "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The open ticket this sale settled, if any. Additive.'),
   "order_number": zod.number(),
   "order_ref": zod.string().nullish().describe('Human-readable, org-unique reference (e.g. \"DT-260614-0042\"). Additive\nalongside the per-shift order_number. Optional only during the rollout\nwindow before the historical backfill runs; never null afterwards.'),
   "order_type": zod.string().describe('What kind of sale: \"dine_in\" (settled from a waiter\'s ticket — the only\nkind that carries a service charge), \"takeaway\" (rung straight through\nthe till) or \"delivery\" (a finalized delivery order). Till sales before\n2026-09 say \"dine_in\" because \"takeaway\" could not be expressed.'),
   "payment_legs": zod.array(zod.object({
   "amount": zod.number(),
+  "is_cash": zod.boolean().nullish().describe('The leg\'s stored cash flag (`order_payments.is_cash`), the one the drawer\ncounts by. Additive; `null` for a leg recorded before the flag existed.'),
   "method": zod.string()
 }).describe('One tender against an order (`order_payments`). A split sale has several.')).describe('What was ACTUALLY tendered, one entry per `order_payments` row — the same\nrows every money report buckets by. A single-tender order has one leg; a\nsplit order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the\nresponse to order creation, where the legs are written just after the row\nthis statement returns; every read hydrates it.'),
   "payment_method": zod.string().describe('The order\'s NOMINAL payment label. For a split order this is the literal\n`\'mixed\'` — a label that exists in no money report, because reports bucket\nby what was actually tendered. Use [`Order::payment_legs`] for the real\nmethods; treat this as a display badge only.'),
@@ -13746,7 +13764,14 @@ export const PullQueryParams = zod.object({
 export const PullBody = zod.object({
   "branch_id": zod.uuid(),
   "device_id": zod.uuid().nullish(),
+  "ledger_page_size": zod.number().nullish().describe('Opt-in paging of a FULL snapshot\'s ledger rows (tills, orders, cash,\nrefunds), 100..10000 rows a page. Absent = the whole snapshot in one\nresponse (what every older client gets).'),
   "limit": zod.number().nullish().describe('Page size for incremental pulls, 1..5000 (default 2000).'),
+  "snapshot_cursor": zod.union([zod.null(),zod.object({
+  "after_seq": zod.number().describe('Ledger rows with `seq` above this come next.'),
+  "horizon": zod.number(),
+  "started_at": zod.string().describe('When the snapshot began (RFC 3339): a till that closes while the pages\nare fetched keeps its rows in the later pages.'),
+  "window_from": zod.string().describe('The ledger window start of this snapshot (RFC 3339).')
+}).describe('The `snapshot_cursor` of the previous page of a paged full snapshot.')]).optional(),
   "types": zod.array(zod.string()).nullish().describe('Full-fetch ONLY these types (checksum self-heal). Invalid with `since`.')
 })
 
@@ -13782,6 +13807,12 @@ export const PullResponse = zod.object({
   "resync_required": zod.boolean().optional(),
   "server_time": zod.string(),
   "since": zod.number().nullish(),
+  "snapshot_cursor": zod.union([zod.null(),zod.object({
+  "after_seq": zod.number().describe('Ledger rows with `seq` above this come next.'),
+  "horizon": zod.number(),
+  "started_at": zod.string().describe('When the snapshot began (RFC 3339): a till that closes while the pages\nare fetched keeps its rows in the later pages.'),
+  "window_from": zod.string().describe('The ledger window start of this snapshot (RFC 3339).')
+}).describe('A paged full snapshot with more pages: send it back as `snapshot_cursor`.\nState types, checksums and the asset bundle come on the FIRST page only;\n`types` on each page lists what that page covers.')]).optional(),
   "types": zod.array(zod.string()).optional()
 }).describe('Any `\/sync\/pull` response (incremental, resync or full).')
 
@@ -14410,6 +14441,7 @@ export const GetTillReportResponse = zod.object({
   "total_tips": zod.number(),
   "voided_amount": zod.number()
 }).describe('The report figures shared by the new `TillReportResponse` and the legacy\n`ShiftReportResponse` (flattened into both).').and(zod.object({
+  "as_of_seq": zod.number().optional().describe('The branch changefeed horizon read BEFORE the figures (OFFLINE_B_DESIGN\n§7): every change with `seq <= as_of_seq` is in this report. A device\nwhose cursor has reached it, with nothing of the till still on its way,\ncan take these figures as the authority. `0` when no horizon was\navailable (then it is never newer than any cursor). Additive.'),
   "old_bills_at_close": zod.number().nullish(),
   "open_bills_at_close": zod.number().nullish(),
   "order_number_range": zod.object({

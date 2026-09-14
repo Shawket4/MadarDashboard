@@ -5,6 +5,7 @@ import type { LedgerWindow } from './ledgerWindow';
 import type { PullChange } from './pullChange';
 import type { PullResponseChecksums } from './pullResponseChecksums';
 import type { PullResponseData } from './pullResponseData';
+import type { SnapshotCursor } from './snapshotCursor';
 
 /**
  * Any `/sync/pull` response (incremental, resync or full).
@@ -23,5 +24,6 @@ export interface PullResponse {
   server_time: string;
   /** @nullable */
   since?: number | null;
+  snapshot_cursor?: null | SnapshotCursor;
   types?: string[];
 }

@@ -598,6 +598,7 @@ export * from './sizeOut';
 export * from './sizeOverrideOut';
 export * from './skuCost';
 export * from './slotAvailability';
+export * from './snapshotCursor';
 export * from './sort';
 export * from './staffDocument';
 export * from './staffRequest';

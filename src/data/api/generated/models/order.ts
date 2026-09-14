@@ -74,6 +74,13 @@ export interface Order {
   display_number?: string;
   id: string;
   /**
+     * The client-minted key the sale was created with (a till's sale, or the
+     * ticket id of a settled bill). An offline POS identifies its own row by it
+     * when a list read brings the sale back (OFFLINE_B_DESIGN §7). Additive.
+     * @nullable
+     */
+  idempotency_key?: string | null;
+  /**
      * The loyalty member this sale redeemed for (or was scanned for).
      * @nullable
      */
@@ -85,6 +92,11 @@ export interface Order {
   loyalty_member_name?: string | null;
   /** @nullable */
   notes?: string | null;
+  /**
+     * The open ticket this sale settled, if any. Additive.
+     * @nullable
+     */
+  open_ticket_id?: string | null;
   order_number: number;
   /**
      * Human-readable, org-unique reference (e.g. "DT-260614-0042"). Additive
