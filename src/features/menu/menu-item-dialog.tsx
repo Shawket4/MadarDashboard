@@ -21,7 +21,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { BilingualField } from "@/components/app/bilingual-field";
-import { ImageUploader } from "@/components/app/image-uploader";
+import { ImageUploader, type UploadOutcome } from "@/components/app/image-uploader";
+import { assetOf } from "@/components/app/asset-image";
 import { CategoryDialog } from "./category-dialog";
 import { PriceTaxHint } from "./price-tax-hint";
 import {
@@ -36,7 +37,7 @@ import {
   useListCatalog,
   useListGroups,
 } from "@/data/api/generated/api";
-import type { AddonItem, Category, MenuItem, UploadResponse } from "@/data/api/generated/models";
+import type { AddonItem, Category, MenuItem } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
@@ -52,11 +53,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const imageUrlOf = (res: UploadResponse): string => {
-  const r = res as { image_url?: string; url?: string };
-  return r.image_url ?? r.url ?? "";
-};
 
 const humanizeAddonType = (type: string) => {
   const base = type.endsWith("_type") ? type.slice(0, -"_type".length) : type;
@@ -345,13 +341,15 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                     // takes it as an answer and renders an empty box beside a
                     // row that clearly has a picture.
                     value={liveItem?.image_url || item.image_url}
-                    onUpload={async (file) => {
+                    asset={assetOf(liveItem) ?? assetOf(item)}
+                    onUpload={async (file): Promise<UploadOutcome> => {
                       const res = await uploadMenuItemImage(item.id, { image: file });
                       void invalidateCatalog();
-                      return imageUrlOf(res);
+                      return res;
                     }}
+                    onProcessed={() => void invalidateCatalog()}
                     onRemove={
-                      liveItem?.image_url || item.image_url
+                      liveItem?.image || item.image || liveItem?.image_url || item.image_url
                         ? async () => {
                             await updateMenuItem(item.id, { image_url: null });
                             void invalidateCatalog();

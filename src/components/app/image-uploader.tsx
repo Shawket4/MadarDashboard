@@ -25,6 +25,8 @@ interface ImageUploaderProps {
   maxBytes?: number;
   square?: boolean;
   disabled?: boolean;
+  /** Called once a "processing" upload's asset job finishes (done or failed). */
+  onProcessed?: () => void;
 }
 
 /**
@@ -48,6 +50,7 @@ export function ImageUploader({
   square = true,
   disabled = false,
   asset,
+  onProcessed,
 }: ImageUploaderProps) {
   const { t } = useTranslation();
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -67,13 +70,20 @@ export function ImageUploader({
       const tile = result?.variants?.tile ?? result?.variants?.full;
       if (tile) setJustUploaded(tile.url);
       setJobId(null);
+      onProcessed?.();
     } else if (job.data.status === "failed") {
       setError(job.data.error ?? t("uploader.processingFailed", "The image could not be processed"));
       setJobId(null);
+      onProcessed?.();
     }
-  }, [jobId, job.data, t]);
+  }, [jobId, job.data, t, onProcessed]);
   const processing = !!jobId;
   const shown = justUploaded ?? value;
+  // A row on the asset pipeline can have `asset` set with `value` (its
+  // legacy `image_url`) null — that is still a picture to show, not an
+  // empty box. `AssetImage` itself falls back to `legacyUrl` when there is
+  // no asset, so gate visibility on either.
+  const hasImage = !!shown || !!(!justUploaded && asset);
 
   const handleFile = async (file: File | null | undefined) => {
     if (!file) return;
@@ -146,7 +156,7 @@ export function ImageUploader({
             <Loader2 className="size-5 animate-spin" />
             <span className="text-xs font-medium">{t("uploader.processing", "Processing…")}</span>
           </div>
-        ) : shown ? (
+        ) : hasImage ? (
           <>
             <AssetImage
               asset={justUploaded ? null : asset}
