@@ -1159,6 +1159,7 @@ export const ListBranchesResponseItem = zod.object({
   "old_bill_hours": zod.number().min(1).max(listBranchesResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1208,6 +1209,7 @@ export const CreateBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(createBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1246,6 +1248,7 @@ export const GetBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(getBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1311,6 +1314,7 @@ export const UpdateBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(updateBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1387,6 +1391,7 @@ export const PatchBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(patchBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -11839,6 +11844,32 @@ export const OrgShrinkageResponseItem = zod.object({
   "unit": zod.string()
 })
 export const OrgShrinkageResponse = zod.array(OrgShrinkageResponseItem)
+
+
+export const OrgTaxReportParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const OrgTaxReportQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const OrgTaxReportResponse = zod.object({
+  "discount_amount": zod.number(),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "net_revenue": zod.number().describe('`total_amount`, net of refunds, across every branch.'),
+  "net_tax_due": zod.number().describe('`tax_collected - refunded_tax` — what is actually owed for the period.'),
+  "order_count": zod.number(),
+  "org_tax_rate": zod.number().describe('The org\'s current tax rate, as a decimal fraction. Informational only —\nindividual orders carry the rate that was actually applied at sale\ntime (`tax_rate_applied`), which may differ if the rate changed since.'),
+  "refunded_tax": zod.number(),
+  "service_charge_amount": zod.number().describe('Net of refunded service charge.'),
+  "subtotal": zod.number().describe('Sum of `orders.subtotal` across every branch, before discount or tax.'),
+  "tax_collected": zod.number().describe('Tax collected at sale time, before refunds.'),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "voided_orders": zod.number()
+})
 
 
 export const OrgWasteReportParams = zod.object({

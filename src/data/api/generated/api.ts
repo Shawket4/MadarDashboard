@@ -326,6 +326,7 @@ import type {
   OrgPaymentMethod,
   OrgQrParams,
   OrgShrinkageParams,
+  OrgTaxReportParams,
   OrgWasteReportParams,
   OtpRequestInput,
   OtpRequestResponse,
@@ -443,6 +444,7 @@ import type {
   TableHistoryParams,
   TableOrderRequest,
   TableQrParams,
+  TaxReport,
   TeamPresence,
   TeamPresenceParams,
   TellerStats,
@@ -25050,6 +25052,101 @@ export function useOrgShrinkage<TData = Awaited<ReturnType<typeof orgShrinkage>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getOrgShrinkageQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const orgTaxReport = (
+    orgId: string,
+    params?: OrgTaxReportParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TaxReport>(
+      {url: `/reports/orgs/${orgId}/tax`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getOrgTaxReportQueryKey = (orgId: string,
+    params?: OrgTaxReportParams,) => {
+    return [
+    `/reports/orgs/${orgId}/tax`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getOrgTaxReportQueryOptions = <TData = Awaited<ReturnType<typeof orgTaxReport>>, TError = ErrorBody>(orgId: string,
+    params?: OrgTaxReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgTaxReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOrgTaxReportQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof orgTaxReport>>> = ({ signal }) => orgTaxReport(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof orgTaxReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OrgTaxReportQueryResult = NonNullable<Awaited<ReturnType<typeof orgTaxReport>>>
+export type OrgTaxReportQueryError = ErrorBody
+
+
+export function useOrgTaxReport<TData = Awaited<ReturnType<typeof orgTaxReport>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  OrgTaxReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgTaxReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgTaxReport>>,
+          TError,
+          Awaited<ReturnType<typeof orgTaxReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgTaxReport<TData = Awaited<ReturnType<typeof orgTaxReport>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgTaxReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgTaxReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgTaxReport>>,
+          TError,
+          Awaited<ReturnType<typeof orgTaxReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgTaxReport<TData = Awaited<ReturnType<typeof orgTaxReport>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgTaxReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgTaxReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useOrgTaxReport<TData = Awaited<ReturnType<typeof orgTaxReport>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgTaxReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgTaxReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOrgTaxReportQueryOptions(orgId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

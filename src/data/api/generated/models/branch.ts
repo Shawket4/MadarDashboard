@@ -44,6 +44,12 @@ export interface Branch {
      * @nullable
      */
   org_logo_url?: string | null;
+  /**
+     * Convenience field — the parent org's receipt footer text (dashboard
+     * org settings). `None` → the POS prints its default footer.
+     * @nullable
+     */
+  org_receipt_footer?: string | null;
   /** @nullable */
   phone?: string | null;
   printer_brand?: null | PrinterBrand;

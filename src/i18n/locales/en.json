@@ -1726,7 +1726,8 @@
       "tellers": "Tellers",
       "branches": "Branches",
       "inventory": "Inventory",
-      "waiters": "Waiters"
+      "waiters": "Waiters",
+      "tax": "Tax"
     },
     "granularity": {
       "peak_hours": "Peak Hours",
@@ -1773,7 +1774,15 @@
     "excludedFromCount": "Excluded from Items Sold",
     "nExcluded_one": "{{count}} item excluded",
     "nExcluded_other": "{{count}} items excluded",
-    "excludeScopeNote": "Hides items from the Items Sold count only. Revenue, orders, and all other figures always include every item."
+    "excludeScopeNote": "Hides items from the Items Sold count only. Revenue, orders, and all other figures always include every item.",
+    "tax": {
+      "taxableSales": "Taxable Sales",
+      "taxCollected": "Tax Collected",
+      "refundedTax": "Refunded Tax",
+      "netTaxDue": "Net Tax Due",
+      "serviceCharge": "Service Charge",
+      "rateNote": "Org tax rate: {{rate}}"
+    }
   },
   "discounts": {
     "title": "Discounts",
