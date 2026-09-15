@@ -593,6 +593,357 @@ export const ResolveBranchResponse = zod.object({
 })
 
 
+export const ExplainQueryParams = zod.object({
+  "user_id": zod.uuid(),
+  "capability": zod.string(),
+  "branch_id": zod.uuid().optional()
+})
+
+export const ExplainResponse = zod.object({
+  "ask_manager": zod.boolean(),
+  "capability": zod.string(),
+  "effective": zod.boolean(),
+  "label_ar": zod.string(),
+  "label_en": zod.string(),
+  "steps": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "detail": zod.string().nullish(),
+  "kind": zod.string().describe('owner | inactive | assignment | core | override_allow | override_deny |\nprotected | not_held | limit | ask_manager'),
+  "role_name": zod.string().nullish()
+}))
+})
+
+
+export const GetMyAuthzQueryParams = zod.object({
+  "branch_id": zod.uuid().optional()
+})
+
+export const getMyAuthzResponseSpecVersionMin = 0;
+
+
+
+export const GetMyAuthzResponse = zod.object({
+  "ask_manager": zod.array(zod.string()).describe('Capabilities not held that show \"ask a manager\" instead of nothing.'),
+  "branch_id": zod.uuid().nullish(),
+  "capabilities": zod.array(zod.string()).describe('Capability keys held.'),
+  "epoch": zod.number(),
+  "limits": zod.record(zod.string(), zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+})).describe('Limits on held capabilities, by key; absent = unlimited.'),
+  "owner": zod.boolean(),
+  "platform": zod.boolean(),
+  "role_kinds": zod.array(zod.string()).describe('Role kinds held here (org_admin, branch_manager, teller, waiter, kitchen).'),
+  "spec_version": zod.number().min(getMyAuthzResponseSpecVersionMin),
+  "user_id": zod.uuid()
+}).describe('What the signed-in person may do. The dashboard and POS gate on this.')
+
+
+export const GetPolicyResponseItem = zod.object({
+  "ask_manager": zod.boolean(),
+  "capability": zod.string()
+})
+export const GetPolicyResponse = zod.array(GetPolicyResponseItem)
+
+
+export const SetPolicyBody = zod.object({
+  "ask_manager": zod.boolean(),
+  "capability": zod.string()
+})
+
+export const SetPolicyResponseItem = zod.object({
+  "ask_manager": zod.boolean(),
+  "capability": zod.string()
+})
+export const SetPolicyResponse = zod.array(SetPolicyResponseItem)
+
+
+export const ListRolesResponseItem = zod.object({
+  "editable": zod.boolean().describe('The owner role holds everything and is not editable.'),
+  "grants": zod.array(zod.object({
+  "capability": zod.string(),
+  "limits": zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+}),
+  "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
+})),
+  "id": zod.uuid(),
+  "is_system": zod.boolean(),
+  "key": zod.string(),
+  "kind": zod.string().describe('What the role behaves like on older tablets, and its core grants.'),
+  "members": zod.number(),
+  "name_ar": zod.string(),
+  "name_en": zod.string()
+})
+export const ListRolesResponse = zod.array(ListRolesResponseItem)
+
+
+export const CreateRoleBody = zod.object({
+  "copy_from": zod.uuid().nullish().describe('Start from this role\'s grants; otherwise from the default template.'),
+  "kind": zod.string().describe('branch_manager | teller | waiter | kitchen'),
+  "name_ar": zod.string(),
+  "name_en": zod.string()
+})
+
+export const CreateRoleResponse = zod.object({
+  "editable": zod.boolean().describe('The owner role holds everything and is not editable.'),
+  "grants": zod.array(zod.object({
+  "capability": zod.string(),
+  "limits": zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+}),
+  "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
+})),
+  "id": zod.uuid(),
+  "is_system": zod.boolean(),
+  "key": zod.string(),
+  "kind": zod.string().describe('What the role behaves like on older tablets, and its core grants.'),
+  "members": zod.number(),
+  "name_ar": zod.string(),
+  "name_en": zod.string()
+})
+
+
+export const DeleteRoleParams = zod.object({
+  "id": zod.uuid().describe('Role ID')
+})
+
+export const DeleteRoleResponse = zod.void()
+
+
+export const RenameRoleParams = zod.object({
+  "id": zod.uuid().describe('Role ID')
+})
+
+export const RenameRoleBody = zod.object({
+  "name_ar": zod.string().nullish(),
+  "name_en": zod.string().nullish()
+})
+
+export const RenameRoleResponse = zod.object({
+  "editable": zod.boolean().describe('The owner role holds everything and is not editable.'),
+  "grants": zod.array(zod.object({
+  "capability": zod.string(),
+  "limits": zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+}),
+  "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
+})),
+  "id": zod.uuid(),
+  "is_system": zod.boolean(),
+  "key": zod.string(),
+  "kind": zod.string().describe('What the role behaves like on older tablets, and its core grants.'),
+  "members": zod.number(),
+  "name_ar": zod.string(),
+  "name_en": zod.string()
+})
+
+
+export const SetRoleGrantParams = zod.object({
+  "id": zod.uuid().describe('Role ID')
+})
+
+export const SetRoleGrantBody = zod.object({
+  "capability": zod.string(),
+  "granted": zod.boolean(),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+})]).optional()
+})
+
+export const SetRoleGrantResponse = zod.object({
+  "editable": zod.boolean().describe('The owner role holds everything and is not editable.'),
+  "grants": zod.array(zod.object({
+  "capability": zod.string(),
+  "limits": zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+}),
+  "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
+})),
+  "id": zod.uuid(),
+  "is_system": zod.boolean(),
+  "key": zod.string(),
+  "kind": zod.string().describe('What the role behaves like on older tablets, and its core grants.'),
+  "members": zod.number(),
+  "name_ar": zod.string(),
+  "name_en": zod.string()
+})
+
+
+export const UserAccessParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const UserAccessQueryParams = zod.object({
+  "branch_id": zod.uuid().optional()
+})
+
+export const UserAccessResponse = zod.object({
+  "assignments": zod.array(zod.object({
+  "all_branches": zod.boolean(),
+  "branch_ids": zod.array(zod.uuid()),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "role_id": zod.uuid(),
+  "role_name_ar": zod.string(),
+  "role_name_en": zod.string()
+})),
+  "branch_id": zod.uuid().nullish(),
+  "can_edit": zod.boolean().describe('Can the caller edit this person\'s access at all?'),
+  "capabilities": zod.array(zod.object({
+  "capability": zod.string(),
+  "editable": zod.boolean().describe('Can the caller change this row for this person?'),
+  "effective": zod.boolean().describe('Held here after everything.'),
+  "from_roles": zod.array(zod.string()).describe('Role names granting it (for \"Inherits from …\").'),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+})]).optional(),
+  "overrides": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "effect": zod.string(),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+})]).optional(),
+  "reason": zod.string().nullish(),
+  "valid_to": zod.iso.datetime({"offset":true}).nullish()
+})),
+  "source": zod.string().describe('Where the answer comes from: owner | core | allow | deny | role | none.')
+})),
+  "is_owner": zod.boolean(),
+  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | missing_authority).'),
+  "name": zod.string(),
+  "user_id": zod.uuid()
+})
+
+
+export const SetAssignmentsParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const SetAssignmentsBody = zod.object({
+  "assignments": zod.array(zod.object({
+  "all_branches": zod.boolean(),
+  "branch_ids": zod.array(zod.uuid()).optional(),
+  "role_id": zod.uuid()
+}))
+})
+
+export const SetAssignmentsResponse = zod.object({
+  "assignments": zod.array(zod.object({
+  "all_branches": zod.boolean(),
+  "branch_ids": zod.array(zod.uuid()),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "role_id": zod.uuid(),
+  "role_name_ar": zod.string(),
+  "role_name_en": zod.string()
+})),
+  "branch_id": zod.uuid().nullish(),
+  "can_edit": zod.boolean().describe('Can the caller edit this person\'s access at all?'),
+  "capabilities": zod.array(zod.object({
+  "capability": zod.string(),
+  "editable": zod.boolean().describe('Can the caller change this row for this person?'),
+  "effective": zod.boolean().describe('Held here after everything.'),
+  "from_roles": zod.array(zod.string()).describe('Role names granting it (for \"Inherits from …\").'),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+})]).optional(),
+  "overrides": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "effect": zod.string(),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+})]).optional(),
+  "reason": zod.string().nullish(),
+  "valid_to": zod.iso.datetime({"offset":true}).nullish()
+})),
+  "source": zod.string().describe('Where the answer comes from: owner | core | allow | deny | role | none.')
+})),
+  "is_owner": zod.boolean(),
+  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | missing_authority).'),
+  "name": zod.string(),
+  "user_id": zod.uuid()
+})
+
+
+export const SetOverrideParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const SetOverrideBody = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "capability": zod.string(),
+  "effect": zod.string().describe('inherit | allow | deny'),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+})]).optional(),
+  "reason": zod.string().nullish(),
+  "valid_to": zod.iso.datetime({"offset":true}).nullish()
+})
+
+export const SetOverrideResponse = zod.object({
+  "assignments": zod.array(zod.object({
+  "all_branches": zod.boolean(),
+  "branch_ids": zod.array(zod.uuid()),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "role_id": zod.uuid(),
+  "role_name_ar": zod.string(),
+  "role_name_en": zod.string()
+})),
+  "branch_id": zod.uuid().nullish(),
+  "can_edit": zod.boolean().describe('Can the caller edit this person\'s access at all?'),
+  "capabilities": zod.array(zod.object({
+  "capability": zod.string(),
+  "editable": zod.boolean().describe('Can the caller change this row for this person?'),
+  "effective": zod.boolean().describe('Held here after everything.'),
+  "from_roles": zod.array(zod.string()).describe('Role names granting it (for \"Inherits from …\").'),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+})]).optional(),
+  "overrides": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "effect": zod.string(),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+})]).optional(),
+  "reason": zod.string().nullish(),
+  "valid_to": zod.iso.datetime({"offset":true}).nullish()
+})),
+  "source": zod.string().describe('Where the answer comes from: owner | core | allow | deny | role | none.')
+})),
+  "is_owner": zod.boolean(),
+  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | missing_authority).'),
+  "name": zod.string(),
+  "user_id": zod.uuid()
+})
+
+
 export const ListBookingsQueryParams = zod.object({
   "branch_id": zod.uuid(),
   "date": zod.string().optional().describe('Calendar date (`YYYY-MM-DD`, branch-local, midnight→midnight). Defaults to today.'),
@@ -1159,6 +1510,7 @@ export const ListBranchesResponseItem = zod.object({
   "old_bill_hours": zod.number().min(1).max(listBranchesResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1208,6 +1560,7 @@ export const CreateBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(createBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1246,6 +1599,7 @@ export const GetBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(getBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1311,6 +1665,7 @@ export const UpdateBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(updateBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1387,6 +1742,7 @@ export const PatchBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(patchBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
