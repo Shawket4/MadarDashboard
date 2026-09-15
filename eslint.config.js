@@ -13,6 +13,7 @@ export default [
       'node_modules',
       'src/routeTree.gen.ts',
       'src/data/api/generated/**',
+      'src/generated/**',
     ],
   },
   js.configs.recommended,

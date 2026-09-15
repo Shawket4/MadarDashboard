@@ -120,6 +120,19 @@ That formula measures **5.6–9.2:1 in both themes** (one formula, because `fore
 already flips with the theme where white/black would not). Measure in the browser rather
 than assuming — `--color-warning` in particular is far too light for text on its own.
 
+## Permissions (architecture E — PERMISSIONS_ARCHITECTURE.md)
+- **Gate by capability, never by role name.** The UI reads the signed-in person's
+  effective capabilities from the server and shows or enables only what they hold
+  (or "ask a manager" where the owner turned approval on). A normal click must never
+  end in a 403. The server still enforces everything.
+- **The registry is generated** into `src/generated/capabilities.ts` from
+  `MadarRust/authz/spec/capabilities.toml` (`cd MadarRust/authz/gen && cargo run --
+  --dashboard ../../../MadarDashboard`). Never hand-edit it.
+- **Never offer a toggle that breaks the app.** `core` capabilities are always on for
+  their role kinds and are not shown as toggles; `configurable` ones are grouped with
+  plain EN/AR names; `advanced` ones sit behind an Advanced section; `legacy` ones are
+  never shown.
+
 ## Floor / tables — the feature that spans all three repos
 `src/features/floor/` is the dashboard half of a feature shared with the POS.
 
