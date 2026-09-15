@@ -1865,6 +1865,30 @@ export const AvailableBundlesResponseItem = zod.object({
 export const AvailableBundlesResponse = zod.array(AvailableBundlesResponseItem)
 
 
+/**
+ * @summary Suggest menu items frequently ordered alongside the given item set, to help
+a manager pick the next component while building a bundle. Anchors on
+whichever items are already added: an item is suggested if it co-occurred,
+on the same order, with at least one anchor item at least `min_count`
+times across the org's branches in the given window.
+ */
+export const SuggestedComponentsQueryParams = zod.object({
+  "org_id": zod.uuid(),
+  "item_ids": zod.string().describe('Comma-separated menu item IDs already added to the in-progress bundle.'),
+  "start_date": zod.iso.datetime({"offset":true}).optional(),
+  "end_date": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional().describe('Max suggestions to return. Default 10.'),
+  "min_count": zod.number().optional().describe('Minimum number of orders an item must co-occur with the anchor set in\nto be suggested. Default 3.')
+})
+
+export const SuggestedComponentsResponseItem = zod.object({
+  "co_occurrence_count": zod.number().describe('Number of orders (across the anchor items\' order set) this item appeared in.'),
+  "item_id": zod.uuid(),
+  "item_name": zod.string()
+})
+export const SuggestedComponentsResponse = zod.array(SuggestedComponentsResponseItem)
+
+
 export const GetBundleParams = zod.object({
   "id": zod.uuid().describe('Bundle ID')
 })

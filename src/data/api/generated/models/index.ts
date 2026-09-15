@@ -614,6 +614,8 @@ export * from './stockTransfer';
 export * from './storedTurn';
 export * from './streamParams';
 export * from './studioAggregate';
+export * from './suggestedComponent';
+export * from './suggestedComponentsParams';
 export * from './supplier';
 export * from './swapTablesRequest';
 export * from './syncIngredient';
