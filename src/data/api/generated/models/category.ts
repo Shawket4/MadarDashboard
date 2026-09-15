@@ -7,6 +7,11 @@ export interface Category {
   created_at: string;
   /** @nullable */
   deleted_at?: string | null;
+  /**
+     * Drag-and-drop position (lower first); ties break on name. Set via
+     * `PUT /categories/order`.
+     */
+  display_order: number;
   id: string;
   image?: null | AssetGroupRef;
   /** @nullable */
