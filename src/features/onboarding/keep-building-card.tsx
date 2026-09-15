@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useGetOnboarding } from "@/data/api/generated/api";
 import { useOrgId } from "@/hooks/use-org-id";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { NUDGE_DISMISS_KEY } from "./config";
 
 /**
@@ -20,7 +21,6 @@ export function KeepBuildingCard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const orgId = useOrgId();
-  const role = useAuthStore((s) => s.user?.role);
   const [dismissed, setDismissed] = useState(() => {
     try {
       return sessionStorage.getItem(NUDGE_DISMISS_KEY) === "1";
@@ -34,7 +34,7 @@ export function KeepBuildingCard() {
   // setting a shop up on its owner's behalf needs — and it is dismissible. The
   // full-screen onboarding REDIRECT stays org-admin only; being thrown into a
   // setup wizard for someone else's half-built shop is not help.
-  const canSeeSetup = role === "org_admin" || role === "super_admin";
+  const canSeeSetup = useAuthz().can(Cap.orgSettingsEdit);
   const q = useGetOnboarding(orgId ?? "", { query: { enabled: !!orgId && canSeeSetup && !dismissed } });
   const steps = q.data?.steps ?? [];
   const total = steps.length;

@@ -1,23 +1,32 @@
 import { describe, expect, it } from "vitest";
 
+import { authzFrom, defaultsFor } from "@/data/authz/use-authz";
+
 import { loyaltyAccess } from "./access";
 
-describe("loyalty access mirrors the server's guards", () => {
-  it("lets only admins adjust or forget", () => {
-    for (const role of ["org_admin", "super_admin"]) expect(loyaltyAccess(role).canAdjust).toBe(true);
-    for (const role of ["branch_manager", "teller", "waiter", undefined]) {
-      expect(loyaltyAccess(role).canAdjust).toBe(false);
-      expect(loyaltyAccess(role).canForget).toBe(false);
+const as = (role: string) => loyaltyAccess(authzFrom(defaultsFor(role)));
+
+describe("loyalty access follows capabilities", () => {
+  it("lets only holders of the adjust/delete capabilities adjust or forget", () => {
+    expect(as("org_admin")).toMatchObject({ canAdjust: true, canForget: true });
+    for (const role of ["branch_manager", "teller", "waiter"]) {
+      expect(as(role)).toMatchObject({ canAdjust: false, canForget: false });
     }
   });
 
-  it("lets managers list members and edit the program, but not tellers", () => {
-    expect(loyaltyAccess("branch_manager")).toMatchObject({ canListMembers: true, canEditProgram: true });
-    expect(loyaltyAccess("teller")).toMatchObject({ canListMembers: false, canEditProgram: false });
+  it("lets managers list members and edit the program by default, but not tellers", () => {
+    expect(as("branch_manager")).toMatchObject({ canListMembers: true, canEditProgram: true });
+    expect(as("teller").canListMembers).toBe(false);
   });
 
-  it("keeps wallet diagnostics for super admins", () => {
-    expect(loyaltyAccess("org_admin").canInspectWallet).toBe(false);
-    expect(loyaltyAccess("super_admin").canInspectWallet).toBe(true);
+  it("follows a per-person grant, not the role", () => {
+    const me = defaultsFor("teller")!;
+    me.capabilities = [...me.capabilities, "loyalty.members.list"];
+    expect(loyaltyAccess(authzFrom(me)).canListMembers).toBe(true);
+  });
+
+  it("keeps wallet diagnostics for the platform", () => {
+    expect(as("org_admin").canInspectWallet).toBe(false);
+    expect(loyaltyAccess(authzFrom(null, { platform: true })).canInspectWallet).toBe(true);
   });
 });

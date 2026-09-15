@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import type { ProgramValues } from "./form-schema";
 import { TextRow } from "./fields";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { useAuthz } from "@/data/authz/use-authz";
 
 import { WalletStatusPanel } from "./wallet-status";
 
@@ -28,7 +28,7 @@ export function PassesCard({
   geofencedBranches: number;
 }) {
   const { t } = useTranslation();
-  const isSuperAdmin = useAuthStore((s) => s.user?.role) === "super_admin";
+  const isSuperAdmin = useAuthz().platform;
   return (
     <Card>
       <CardContent className="space-y-5 p-5">

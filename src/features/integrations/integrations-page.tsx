@@ -26,7 +26,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { fmtDateTime } from "@/lib/format";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { Restricted } from "@/components/app/restricted";
 
 export function IntegrationsPage() {
@@ -39,13 +40,13 @@ export function IntegrationsPage() {
   // issue, rotate and revoke are ours. The backend refuses all three for
   // anyone below super admin; this is so nobody is shown a button that will
   // only fail.
-  const role = useAuthStore((s) => s.user?.role);
-  const isSuperAdmin = role === "super_admin";
-  // Org admin and above may read; below that there is nothing here at all, not
-  // even the list. `list_credentials` on the backend says the same.
-  const mayView = isSuperAdmin || role === "org_admin";
+  const authz = useAuthz();
+  const isSuperAdmin = authz.platform;
+  // Holders of `integrations.read` may read; below that there is nothing here
+  // at all, not even the list. `list_credentials` on the backend says the same.
+  const mayView = authz.can(Cap.integrationsRead);
 
-  const list = useListCredentials({ query: { enabled: !!orgId } });
+  const list = useListCredentials({ query: { enabled: !!orgId && mayView } });
   const credentials = useMemo(() => list.data ?? [], [list.data]);
 
   const [s, update] = usePageSearch<{ edit: string }>();

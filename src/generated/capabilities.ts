@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "bf546dcbd642f5cc";
+export const SPEC_HASH = "9340fc08b9f8fe19";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -182,6 +182,10 @@ export type Capability =
   | "staff.roles.manage"
   | "staff.owners.manage"
   | "approvals.review"
+  | "loyalty.members.list"
+  | "loyalty.points.adjust"
+  | "loyalty.members.delete"
+  | "integrations.read"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -358,6 +362,10 @@ export const Cap = {
   staffRolesManage: "staff.roles.manage" as Capability,
   staffOwnersManage: "staff.owners.manage" as Capability,
   approvalsReview: "approvals.review" as Capability,
+  loyaltyMembersList: "loyalty.members.list" as Capability,
+  loyaltyPointsAdjust: "loyalty.points.adjust" as Capability,
+  loyaltyMembersDelete: "loyalty.members.delete" as Capability,
+  integrationsRead: "integrations.read" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -552,6 +560,10 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 212, key: "staff.roles.manage", legacy: null, group: "staff", tier: "configurable", risk: "admin", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Create and edit roles", ar: "إنشاء الأدوار وتعديلها", hintEn: null, hintAr: null },
   { id: 213, key: "staff.owners.manage", legacy: null, group: "staff", tier: "advanced", risk: "admin", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Add or remove owners", ar: "إضافة ملاك أو إزالتهم", hintEn: null, hintAr: null },
   { id: 214, key: "approvals.review", legacy: null, group: "reports", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Review flagged offline actions and approvals", ar: "مراجعة الإجراءات والموافقات المعلّمة", hintEn: null, hintAr: null },
+  { id: 215, key: "loyalty.members.list", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See the loyalty member list and report", ar: "عرض قائمة أعضاء الولاء وتقريرها", hintEn: null, hintAr: null },
+  { id: 216, key: "loyalty.points.adjust", legacy: null, group: "customers", tier: "advanced", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Add or remove a member's points by hand", ar: "إضافة نقاط العضو أو خصمها يدويًا", hintEn: null, hintAr: null },
+  { id: 217, key: "loyalty.members.delete", legacy: null, group: "customers", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Delete loyalty members", ar: "حذف أعضاء الولاء", hintEn: null, hintAr: null },
+  { id: 218, key: "integrations.read", legacy: null, group: "settings", tier: "advanced", risk: "admin", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See integrations and their API credentials", ar: "عرض التكاملات وبيانات اعتماد الواجهة البرمجية", hintEn: null, hintAr: null },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [

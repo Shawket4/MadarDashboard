@@ -20,7 +20,7 @@ import { useListBranches } from "@/data/api/generated/api";
 import { useScope } from "@/data/scope/use-scope";
 import { useOrgId } from "@/hooks/use-org-id";
 
-import { useAuthStore } from "@/data/stores/auth.store";
+import { useAuthz } from "@/data/authz/use-authz";
 
 import { loyaltyAccess } from "../shared/access";
 import { MembersPane } from "./members/members-pane";
@@ -52,7 +52,8 @@ export function LoyaltyPage() {
   // shop to its only branch, which took away the org scope entirely — so this
   // page had to invent it back. The pin is gone; nothing to invent.
   const branchId = scopedBranchId;
-  const { canListMembers } = loyaltyAccess(useAuthStore((s) => s.user?.role));
+  const authz = useAuthz();
+  const { canListMembers } = loyaltyAccess(authz);
   const scope: ProgramScope = { orgId, branchId };
   const [tab, setTab] = useState<"program" | "rewards" | "members" | "overview">("program");
 

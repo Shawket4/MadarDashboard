@@ -22,8 +22,8 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { NAV, isParent, type NavLeaf } from "@/config/nav";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { NAV, isParent, leafVisible, type NavLeaf } from "@/config/nav";
+import { useAuthz } from "@/data/authz/use-authz";
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
@@ -56,14 +56,9 @@ export function AppSidebar() {
   const { setOpenMobile } = useSidebar();
   const isActive = useIsActive();
   const { pathname } = useLocation();
-  const role = useAuthStore((s) => s.user?.role);
-  const isSuperAdmin = role === "super_admin";
 
-  const visible = (leaf: NavLeaf) => {
-    if (leaf.superAdminOnly && !isSuperAdmin) return false;
-    if (leaf.roles && (!role || !leaf.roles.includes(role))) return false;
-    return true;
-  };
+  const authz = useAuthz();
+  const visible = (leaf: NavLeaf) => leafVisible(leaf, authz);
   const close = () => setOpenMobile(false);
 
   // Predictive preloading on hover/focus: route code chunk + the page's queries.
