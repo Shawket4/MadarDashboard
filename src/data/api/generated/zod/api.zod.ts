@@ -2344,6 +2344,7 @@ export const ListCategoriesQueryParams = zod.object({
 export const ListCategoriesResponseItem = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "deleted_at": zod.iso.datetime({"offset":true}).nullish(),
+  "display_order": zod.number().describe('Drag-and-drop position (lower first); ties break on name. Set via\n`PUT \/categories\/order`.'),
   "id": zod.uuid(),
   "image": zod.union([zod.null(),zod.union([zod.object({
   "group_id": zod.uuid().nullish().describe('Always null while processing.'),
@@ -2417,6 +2418,7 @@ export const CreateCategoryBody = zod.object({
 export const CreateCategoryResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "deleted_at": zod.iso.datetime({"offset":true}).nullish(),
+  "display_order": zod.number().describe('Drag-and-drop position (lower first); ties break on name. Set via\n`PUT \/categories\/order`.'),
   "id": zod.uuid(),
   "image": zod.union([zod.null(),zod.union([zod.object({
   "group_id": zod.uuid().nullish().describe('Always null while processing.'),
@@ -2477,6 +2479,76 @@ export const CreateCategoryResponse = zod.object({
 })
 
 
+export const ReorderCategoriesBody = zod.object({
+  "ordered_ids": zod.array(zod.uuid()).describe('Category IDs in the desired display order (first = top).'),
+  "org_id": zod.uuid()
+})
+
+export const ReorderCategoriesResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "deleted_at": zod.iso.datetime({"offset":true}).nullish(),
+  "display_order": zod.number().describe('Drag-and-drop position (lower first); ties break on name. Set via\n`PUT \/categories\/order`.'),
+  "id": zod.uuid(),
+  "image": zod.union([zod.null(),zod.union([zod.object({
+  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
+  "job_id": zod.uuid(),
+  "status": zod.string().describe('`processing`')
+}),zod.object({
+  "group_id": zod.uuid(),
+  "has_alpha": zod.boolean(),
+  "height": zod.number().nullish(),
+  "label": zod.string().nullish(),
+  "variants": zod.object({
+  "animation": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "full": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "original": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "thumb": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional(),
+  "tile": zod.union([zod.null(),zod.object({
+  "bytes": zod.number(),
+  "content_hash": zod.string(),
+  "height": zod.number().nullish(),
+  "url": zod.string(),
+  "width": zod.number().nullish()
+})]).optional()
+}),
+  "width": zod.number().nullish()
+})]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "org_id": zod.uuid(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ReorderCategoriesResponse = zod.array(ReorderCategoriesResponseItem)
+
+
 export const DeleteCategoryParams = zod.object({
   "id": zod.uuid().describe('Category ID')
 })
@@ -2500,6 +2572,7 @@ export const UpdateCategoryBody = zod.object({
 export const UpdateCategoryResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "deleted_at": zod.iso.datetime({"offset":true}).nullish(),
+  "display_order": zod.number().describe('Drag-and-drop position (lower first); ties break on name. Set via\n`PUT \/categories\/order`.'),
   "id": zod.uuid(),
   "image": zod.union([zod.null(),zod.union([zod.object({
   "group_id": zod.uuid().nullish().describe('Always null while processing.'),

@@ -376,6 +376,12 @@ export const handlers = [
 
   // ── Menu ──────────────────────────────────────────────────────────────────
   http.get("*/categories", () => HttpResponse.json(MOCK_CATEGORIES)),
+  http.put("*/categories/order", async ({ request }) => {
+    const { ordered_ids } = (await request.json()) as { ordered_ids: string[] };
+    const byId = new Map(MOCK_CATEGORIES.map((c) => [c.id, c]));
+    const reordered = ordered_ids.map((id, i) => ({ ...byId.get(id), display_order: i }));
+    return HttpResponse.json(reordered);
+  }),
   http.get("*/costing/catalog", () => HttpResponse.json(MOCK_MENU_CATALOG)),
   http.get("*/addon-items/catalog", () => HttpResponse.json(MOCK_ADDON_CATALOG)),
   http.get("*/addon-items", () => HttpResponse.json(MOCK_ADDON_ITEMS)),

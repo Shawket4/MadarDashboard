@@ -558,6 +558,7 @@ export * from './registerDeviceRequest';
 export * from './registryInfo';
 export * from './releaseTableRequest';
 export * from './renameConversationRequest';
+export * from './reorderCategoriesRequest';
 export * from './reorderLine';
 export * from './reorderSuggestion';
 export * from './repricingReport';

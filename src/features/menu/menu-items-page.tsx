@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CategoryDialog } from "./category-dialog";
+import { CategoryReorderList } from "./category-reorder-list";
 import { AddonDialog } from "./addon-dialog";
 import { AddonRecipeDialog } from "./addon-recipe-dialog";
 import { MenuItemDialog } from "./menu-item-dialog";
@@ -98,6 +99,7 @@ export function MenuItemsPage() {
   const [recipeAddon, setRecipeAddon] = useState<AddonItem | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [reordering, setReordering] = useState(false);
   const [bulkRows, setBulkRows] = useState<MenuItem[] | null>(null);
   const [exporting, setExporting] = useState(false);
   const logoUrl = useExportLogo();
@@ -500,6 +502,15 @@ export function MenuItemsPage() {
               </>
             )}
           />
+        ) : reordering ? (
+          <div className="space-y-3">
+            <div className="flex justify-end">
+              <Button size="sm" variant="outline" onClick={() => setReordering(false)}>
+                {t("menu.categoriesDoneReordering", "Done")}
+              </Button>
+            </div>
+            <CategoryReorderList orgId={orgId ?? ""} categories={catList} isLoading={categories.isLoading} />
+          </div>
         ) : (
           <EditableCardGrid<Category>
             rows={catList}
@@ -513,6 +524,13 @@ export function MenuItemsPage() {
             onAdd={() => { setEditingCategory(null); setCategoryOpen(true); }}
             addLabel={t("menu.newCategory", "New category")}
             emptyState={<EmptyState icon={Tag} title={t("menu.noCategories", "No categories yet")} />}
+            toolbar={
+              catList.length > 1 ? (
+                <Button size="sm" variant="outline" onClick={() => setReordering(true)}>
+                  {t("menu.categoriesReorder", "Reorder")}
+                </Button>
+              ) : null
+            }
             actions={(c) => (
               <>
                 <DropdownMenuItem onClick={() => { setEditingCategory(c); setCategoryOpen(true); }}>

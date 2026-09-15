@@ -398,6 +398,7 @@ import type {
   RegistryInfo,
   ReleaseTableRequest,
   RenameConversationRequest,
+  ReorderCategoriesRequest,
   ReorderSuggestion,
   RepricingReport,
   RequestDecision,
@@ -4952,6 +4953,65 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getCreateCategoryMutationOptions(options), queryClient);
+    }
+
+export const reorderCategories = (
+    reorderCategoriesRequest: ReorderCategoriesRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Category[]>(
+      {url: `/categories/order`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: reorderCategoriesRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getReorderCategoriesMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderCategories>>, TError,{data: ReorderCategoriesRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderCategories>>, TError,{data: ReorderCategoriesRequest}, TContext> => {
+
+const mutationKey = ['reorderCategories'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderCategories>>, {data: ReorderCategoriesRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderCategories(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderCategoriesMutationResult = NonNullable<Awaited<ReturnType<typeof reorderCategories>>>
+    export type ReorderCategoriesMutationBody = ReorderCategoriesRequest
+    export type ReorderCategoriesMutationError = ErrorBody
+
+    export const useReorderCategories = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderCategories>>, TError,{data: ReorderCategoriesRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reorderCategories>>,
+        TError,
+        {data: ReorderCategoriesRequest},
+        TContext
+      > => {
+      return useMutation(getReorderCategoriesMutationOptions(options), queryClient);
     }
 
 export const deleteCategory = (
