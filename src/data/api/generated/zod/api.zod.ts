@@ -606,10 +606,13 @@ export const ExplainResponse = zod.object({
   "label_ar": zod.string(),
   "label_en": zod.string(),
   "steps": zod.array(zod.object({
+  "applies_here": zod.boolean().nullish().describe('For an assignment step: does the assignment cover the branch asked about?'),
   "branch_id": zod.uuid().nullish(),
   "detail": zod.string().nullish(),
+  "grants": zod.boolean().nullish().describe('For an assignment step: does the role grant the capability?'),
   "kind": zod.string().describe('owner | inactive | assignment | core | override_allow | override_deny |\nprotected | not_held | limit | ask_manager'),
-  "role_name": zod.string().nullish()
+  "role_name": zod.string().nullish(),
+  "role_name_ar": zod.string().nullish().describe('The role\'s Arabic name, beside `role_name`.')
 }))
 })
 

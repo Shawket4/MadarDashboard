@@ -6,7 +6,7 @@ import { SectionTabsProvider } from "@/components/app/section-tabs";
 /**
  * Access shell — merges Users and Roles & Permissions into one section with a
  * standardized sub-nav. Each tab reuses its existing feature (features/users,
- * features/permissions) as the body; deep-link params (?edit / ?branches /
+ * features/access) as the body; deep-link params (?edit / ?branches /
  * ?user) survive inside a tab but reset when switching between tabs.
  */
 function AccessLayout() {
