@@ -434,6 +434,8 @@ import type {
   StocktakeFull,
   StreamParams,
   StudioAggregate,
+  SuggestedComponent,
+  SuggestedComponentsParams,
   Supplier,
   SwapTablesRequest,
   TableHistory,
@@ -4190,6 +4192,108 @@ export function useAvailableBundles<TData = Awaited<ReturnType<typeof availableB
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getAvailableBundlesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary Suggest menu items frequently ordered alongside the given item set, to help
+a manager pick the next component while building a bundle. Anchors on
+whichever items are already added: an item is suggested if it co-occurred,
+on the same order, with at least one anchor item at least `min_count`
+times across the org's branches in the given window.
+ */
+export const suggestedComponents = (
+    params: SuggestedComponentsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SuggestedComponent[]>(
+      {url: `/bundles/suggested-components`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getSuggestedComponentsQueryKey = (params?: SuggestedComponentsParams,) => {
+    return [
+    `/bundles/suggested-components`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSuggestedComponentsQueryOptions = <TData = Awaited<ReturnType<typeof suggestedComponents>>, TError = ErrorBody>(params: SuggestedComponentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestedComponents>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSuggestedComponentsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof suggestedComponents>>> = ({ signal }) => suggestedComponents(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof suggestedComponents>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SuggestedComponentsQueryResult = NonNullable<Awaited<ReturnType<typeof suggestedComponents>>>
+export type SuggestedComponentsQueryError = ErrorBody
+
+
+export function useSuggestedComponents<TData = Awaited<ReturnType<typeof suggestedComponents>>, TError = ErrorBody>(
+ params: SuggestedComponentsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestedComponents>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suggestedComponents>>,
+          TError,
+          Awaited<ReturnType<typeof suggestedComponents>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuggestedComponents<TData = Awaited<ReturnType<typeof suggestedComponents>>, TError = ErrorBody>(
+ params: SuggestedComponentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestedComponents>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suggestedComponents>>,
+          TError,
+          Awaited<ReturnType<typeof suggestedComponents>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuggestedComponents<TData = Awaited<ReturnType<typeof suggestedComponents>>, TError = ErrorBody>(
+ params: SuggestedComponentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestedComponents>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Suggest menu items frequently ordered alongside the given item set, to help
+a manager pick the next component while building a bundle. Anchors on
+whichever items are already added: an item is suggested if it co-occurred,
+on the same order, with at least one anchor item at least `min_count`
+times across the org's branches in the given window.
+ */
+
+export function useSuggestedComponents<TData = Awaited<ReturnType<typeof suggestedComponents>>, TError = ErrorBody>(
+ params: SuggestedComponentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestedComponents>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSuggestedComponentsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

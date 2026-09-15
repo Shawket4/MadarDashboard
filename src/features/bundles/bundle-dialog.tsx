@@ -3,7 +3,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { CalendarClock, CalendarRange, Clock, Infinity as InfinityIcon, Plus, Trash2 } from "lucide-react";
+import { CalendarClock, CalendarRange, Clock, Infinity as InfinityIcon, Plus, Sparkles, Trash2 } from "lucide-react";
 import { z } from "zod";
 
 import {
@@ -18,7 +18,7 @@ import { Combobox } from "@/components/app/combobox";
 import { ImageUploader } from "@/components/app/image-uploader";
 import { cn } from "@/lib/utils";
 import {
-  createBundle, updateBundle, uploadMenuItemImage, useListBranches, useListMenuItems,
+  createBundle, updateBundle, uploadMenuItemImage, useListBranches, useListMenuItems, useSuggestedComponents,
 } from "@/data/api/generated/api";
 import type { BundleWithComponents, MenuItem, UploadResponse } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -120,6 +120,17 @@ export function BundleDialog({ orgId, bundle, open, onOpenChange }: Props) {
     menuItems
       .filter((m) => m.id === watched[idx]?.item_id || !watched.some((w) => w.item_id === m.id))
       .map((m) => ({ value: m.id, label: tname(m), hint: fmtMoney(m.base_price) }));
+
+  const pickedItemIds = watched.map((w) => w.item_id).filter(Boolean);
+  const { data: suggestions = [] } = useSuggestedComponents(
+    { org_id: orgId, item_ids: pickedItemIds.join(","), limit: 5 },
+    { query: { enabled: !!orgId && pickedItemIds.length > 0 } },
+  );
+  const applySuggestion = (itemId: string) => {
+    const emptyIdx = watched.findIndex((w) => !w.item_id);
+    if (emptyIdx >= 0) form.setValue(`components.${emptyIdx}.item_id`, itemId);
+    else if (fields.length < 6) append({ item_id: itemId, quantity: 1 });
+  };
 
   const submit = async (v: Values) => {
     const components = v.components.filter((c) => c.item_id && Number(c.quantity) >= 1).map((c, i) => ({ item_id: c.item_id, quantity: Number(c.quantity), position: i + 1 }));
@@ -258,6 +269,28 @@ export function BundleDialog({ orgId, bundle, open, onOpenChange }: Props) {
                 <Button type="button" variant="outline" className="w-full border-dashed" onClick={() => append({ item_id: "", quantity: 1 })}>
                   <Plus className="size-4" /> {t("bundles.addItem", "Add item")}
                 </Button>
+              ) : null}
+
+              {suggestions.length > 0 ? (
+                <div className="space-y-2 rounded-xl border bg-muted/10 p-3">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Sparkles className="size-3.5" /> {t("bundles.suggestedTitle", "Frequently ordered together")}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {suggestions
+                      .filter((s) => !watched.some((w) => w.item_id === s.item_id))
+                      .map((s) => (
+                        <button
+                          key={s.item_id}
+                          type="button"
+                          onClick={() => applySuggestion(s.item_id)}
+                          className="flex items-center gap-1 rounded-full border border-dashed px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                        >
+                          <Plus className="size-3" /> {s.item_name}
+                        </button>
+                      ))}
+                  </div>
+                </div>
               ) : null}
 
               <div className="space-y-2 rounded-xl border bg-muted/40 p-4 text-xs">

@@ -216,6 +216,7 @@ import type {
   Stocktake,
   StocktakeFull,
   StudioAggregate,
+  SuggestedComponent,
   Supplier,
   TableBookingHint,
   TableHistory,
@@ -362,6 +363,8 @@ export const getAvailableBundlesResponseVariantRefMock = (overrideResponse: Part
 export const getAvailableBundlesResponseReadyGroupRefMock = (overrideResponse: Partial<ReadyGroupRef> = {}): ReadyGroupRef => ({...{group_id: faker.string.uuid(), has_alpha: faker.datatype.boolean(), height: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), variants: {animation: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getAvailableBundlesResponseVariantRefMock()},]), undefined]), full: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getAvailableBundlesResponseVariantRefMock()},]), undefined]), original: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getAvailableBundlesResponseVariantRefMock()},]), undefined]), thumb: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getAvailableBundlesResponseVariantRefMock()},]), undefined]), tile: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getAvailableBundlesResponseVariantRefMock()},]), undefined])}, width: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined])}, ...overrideResponse});
 
 export const getAvailableBundlesResponseMock = (): BundleWithComponents[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({...{available_from_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), available_from_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), available_until_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), available_until_time: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), description: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), description_translations: {}, id: faker.string.uuid(), image: faker.helpers.arrayElement([faker.helpers.arrayElement([null,faker.helpers.arrayElement([{...getAvailableBundlesResponseProcessingGroupRefMock()},{...getAvailableBundlesResponseReadyGroupRefMock()},]),]), undefined]), image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, org_id: faker.string.uuid(), price: faker.number.int(), status: faker.helpers.arrayElement(Object.values(BundleStatus)), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'},...{branch_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), components: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({bundle_id: faker.string.uuid(), id: faker.string.uuid(), item_cost: faker.number.int(), item_cost_missing: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), item_id: faker.string.uuid(), item_name: faker.string.alpha({length: {min: 10, max: 20}}), item_price: faker.number.int(), position: faker.number.int(), quantity: faker.number.int()})), computed_cost: faker.number.int(), cost_missing: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])},})))
+
+export const getSuggestedComponentsResponseMock = (): SuggestedComponent[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({co_occurrence_count: faker.number.int(), item_id: faker.string.uuid(), item_name: faker.string.alpha({length: {min: 10, max: 20}})})))
 
 export const getGetBundleResponseProcessingGroupRefMock = (overrideResponse: Partial<ProcessingGroupRef> = {}): ProcessingGroupRef => ({...{group_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), job_id: faker.string.uuid(), status: faker.string.alpha({length: {min: 10, max: 20}})}, ...overrideResponse});
 
@@ -1765,6 +1768,18 @@ export const getAvailableBundlesMockHandler = (overrideResponse?: BundleWithComp
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getAvailableBundlesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getSuggestedComponentsMockHandler = (overrideResponse?: SuggestedComponent[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SuggestedComponent[]> | SuggestedComponent[]), options?: RequestHandlerOptions) => {
+  return http.get('*/bundles/suggested-components', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSuggestedComponentsResponseMock(),
       { status: 200
       })
   }, options)
@@ -6516,6 +6531,7 @@ export const getMadarAPIMock = () => [
   getListBundlesMockHandler(),
   getCreateBundleMockHandler(),
   getAvailableBundlesMockHandler(),
+  getSuggestedComponentsMockHandler(),
   getGetBundleMockHandler(),
   getDeleteBundleMockHandler(),
   getUpdateBundleMockHandler(),
