@@ -1,6 +1,15 @@
 import type { TFunction } from "i18next";
 import type { ExcelColumn } from "@/lib/excel";
-import type { OrderExport } from "@/data/api/generated/models";
+import type { OrderExport, PaymentLeg } from "@/data/api/generated/models";
+import { fmtMoney } from "@/lib/format";
+
+/** What was paid, as a cell. A split sale's `payment_method` is the nominal
+ *  "mixed", which states no amount; its legs are what every money report
+ *  buckets by, so the cell lists each method with what it paid. */
+export const paymentText = (t: TFunction, method: string, legs: PaymentLeg[] | undefined): string =>
+  (legs ?? []).length > 1
+    ? legs!.map((l) => `${t(`payments.${l.method}`, l.method)} ${fmtMoney(l.amount)}`).join(" + ")
+    : t(`payments.${method}`, method);
 
 export const orderColumns = (t: TFunction): ExcelColumn<OrderExport>[] => [
   { key: "order_ref", header: t("orders.orderRef", "Ref"), accessor: (o) => o.order_ref ?? `#${o.order_number}`, type: "text", width: 16 },
@@ -11,7 +20,7 @@ export const orderColumns = (t: TFunction): ExcelColumn<OrderExport>[] => [
   {
     key: "payment_method",
     header: t("orders.paymentMethod", "Payment Method"),
-    accessor: (o) => t(`payments.${o.payment_method}`, o.payment_method),
+    accessor: (o) => paymentText(t, o.payment_method, o.payment_legs),
     type: "text",
     width: 18,
   },
@@ -52,6 +61,7 @@ export interface LineItemRow {
   order_ref: string;
   created_at: string;
   payment_method: string;
+  payment_legs?: PaymentLeg[];
   waiter_name: string | null;
   item_name: string;
   size_label: string | null;
@@ -70,7 +80,7 @@ export const lineItemColumns = (t: TFunction): ExcelColumn<LineItemRow>[] => [
   {
     key: "payment_method",
     header: t("orders.paymentMethod", "Payment Method"),
-    accessor: (r) => t(`payments.${r.payment_method}`, r.payment_method),
+    accessor: (r) => paymentText(t, r.payment_method, r.payment_legs),
     type: "text",
     width: 18,
   },
