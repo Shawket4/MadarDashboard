@@ -115,9 +115,8 @@ export interface Order {
   /**
      * What was ACTUALLY tendered, one entry per `order_payments` row — the same
      * rows every money report buckets by. A single-tender order has one leg; a
-     * split order has one per leg (e.g. card 285.00 + cash 255.00). Empty on the
-     * response to order creation, where the legs are written just after the row
-     * this statement returns; every read hydrates it.
+     * split order has one per leg (e.g. card 285.00 + cash 255.00). Every
+     * response carries them, the one to order creation included.
      */
   payment_legs: PaymentLeg[];
   /**
