@@ -1,18 +1,17 @@
 /**
- * Who may do what on the loyalty admin — mirrored from the backend's guards.
+ * Who may do what on the loyalty admin — the same capabilities the backend
+ * checks, read from the person's effective permissions (`useAuthz`), so nobody
+ * is shown a button whose only outcome is a 403:
  *
- * The server is the guard (`check_permission` plus a role check on the three
- * actions that sit above the till); this is so nobody is shown a button whose
- * only outcome is a 403. Kept in one pure function so the mirror can be tested
- * against the handlers it copies:
- *
- *  - settings / reward catalogue writes: `loyalty:update` — seeded for
- *    org_admin and branch_manager (and a teller, who never reaches this page);
- *  - listing members: org_admin, super_admin, branch_manager (`list_members`);
- *  - manual adjustment and forgetting a member: org_admin, super_admin only
- *    (`handlers::adjust`, `handlers::delete_member`);
- *  - Google Wallet diagnostics: super_admin only.
+ *  - settings / reward catalogue writes: `loyalty.use`;
+ *  - listing members and the loyalty report: `loyalty.members.list`;
+ *  - manual points adjustment: `loyalty.points.adjust`;
+ *  - deleting a member: `loyalty.members.delete`;
+ *  - Google Wallet diagnostics: platform (super admin) only.
  */
+import type { Authz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+
 export interface LoyaltyAccess {
   canEditProgram: boolean;
   canListMembers: boolean;
@@ -21,14 +20,12 @@ export interface LoyaltyAccess {
   canInspectWallet: boolean;
 }
 
-export function loyaltyAccess(role: string | null | undefined): LoyaltyAccess {
-  const admin = role === "org_admin" || role === "super_admin";
-  const manager = admin || role === "branch_manager";
+export function loyaltyAccess(authz: Authz): LoyaltyAccess {
   return {
-    canEditProgram: manager,
-    canListMembers: manager,
-    canAdjust: admin,
-    canForget: admin,
-    canInspectWallet: role === "super_admin",
+    canEditProgram: authz.can(Cap.loyaltyUse),
+    canListMembers: authz.can(Cap.loyaltyMembersList),
+    canAdjust: authz.can(Cap.loyaltyPointsAdjust),
+    canForget: authz.can(Cap.loyaltyMembersDelete),
+    canInspectWallet: authz.platform,
   };
 }

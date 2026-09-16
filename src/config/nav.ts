@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Armchair,
+  Contact,
   ArrowLeftRight,
   Wallet,
   BadgePercent,
@@ -34,18 +35,19 @@ import {
   Users,
   UtensilsCrossed,
 } from "lucide-react";
-import type { UserRole } from "@/data/api/generated/models";
+import type { Authz } from "@/data/authz/use-authz";
+import { Cap, type Capability } from "@/generated/capabilities";
 
 export interface NavLeaf {
   to: string;
   labelKey: string;
   fallback: string;
   icon: LucideIcon;
-  /** Show only to super_admin. Shorthand for `roles: ["super_admin"]`. */
+  /** Platform (super admin) only. */
   superAdminOnly?: boolean;
-  /** Restrict visibility to these roles (sidebar + command palette). When
-   *  omitted the entry is visible to everyone. */
-  roles?: UserRole[];
+  /** Visible when the person holds ANY of these capabilities (sidebar +
+   *  command palette). Omitted = visible to everyone signed in. Never a role. */
+  caps?: Capability[];
 }
 
 export interface NavParent {
@@ -77,10 +79,11 @@ export const NAV: NavGroup[] = [
     labelKey: "nav.sell",
     fallback: "Sell",
     entries: [
-      { to: "/orders", labelKey: "nav.orders", fallback: "Orders", icon: Receipt },
-      { to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
-      { to: "/bookings", labelKey: "nav.bookings", fallback: "Bookings", icon: CalendarClock },
-      { to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
+      { caps: [Cap.ordersRead], to: "/orders", labelKey: "nav.orders", fallback: "Orders", icon: Receipt },
+      { caps: [Cap.floorLayoutRead], to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
+      { caps: [Cap.bookingsRead], to: "/bookings", labelKey: "nav.bookings", fallback: "Bookings", icon: CalendarClock },
+      { caps: [Cap.tillRead], to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
+      { caps: [Cap.customersView], to: "/customers", labelKey: "nav.customers", fallback: "Customers", icon: Contact },
     ],
   },
   {
@@ -93,38 +96,40 @@ export const NAV: NavGroup[] = [
         icon: UtensilsCrossed,
         basePath: "/menu",
         children: [
-          { to: "/menu/items", labelKey: "nav.items", fallback: "Items", icon: CupSoda },
-          { to: "/menu/pricing", labelKey: "nav.pricingAvailability", fallback: "Pricing & Availability", icon: SlidersHorizontal },
+          { caps: [Cap.menuItemsRead], to: "/menu/items", labelKey: "nav.items", fallback: "Items", icon: CupSoda },
+          { caps: [Cap.menuItemsEdit], to: "/menu/pricing", labelKey: "nav.pricingAvailability", fallback: "Pricing & Availability", icon: SlidersHorizontal },
         ],
       },
-      { to: "/menu/bundles", labelKey: "nav.bundles", fallback: "Bundles", icon: Layers },
-      { to: "/discounts", labelKey: "nav.discounts", fallback: "Discounts", icon: BadgePercent },
+      { caps: [Cap.menuItemsRead], to: "/menu/bundles", labelKey: "nav.bundles", fallback: "Bundles", icon: Layers },
+      { caps: [Cap.discountsRead], to: "/discounts", labelKey: "nav.discounts", fallback: "Discounts", icon: BadgePercent },
     ],
   },
   {
     labelKey: "nav.basira",
     fallback: "Basira",
     entries: [
-      { to: "/basira", labelKey: "nav.basiraAsk", fallback: "Ask", icon: Telescope },
+      { caps: [Cap.reportsRead], to: "/basira", labelKey: "nav.basiraAsk", fallback: "Ask", icon: Telescope },
     ],
   },
   {
     labelKey: "nav.reports",
     fallback: "Reports",
     entries: [
-      { to: "/reports/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
-      { to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
-      { to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale, roles: ["org_admin", "super_admin"] },
-      { to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
-      { to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
+      { caps: [Cap.ordersRead], to: "/reports/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
+      { caps: [Cap.inventoryRead], to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
+      // The legal audit trail (refunds, voids, discounts, waivers, overrides) was
+      // owner-only by role; its capability is the owner's review of flagged acts.
+      { caps: [Cap.approvalsReview], to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
+      { caps: [Cap.loyaltyMembersList], to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
+      { caps: [Cap.hrAttendanceRead], to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
       {
         labelKey: "nav.reportsOperations",
         fallback: "Operations",
         icon: TrendingUp,
         basePath: "/reports/operations",
         children: [
-          { to: "/reports/operations/profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
-          { to: "/reports/operations/tables", labelKey: "nav.tablesInsights", fallback: "Tables", icon: Armchair },
+          { caps: [Cap.ordersRead], to: "/reports/operations/profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
+          { caps: [Cap.ordersRead], to: "/reports/operations/tables", labelKey: "nav.tablesInsights", fallback: "Tables", icon: Armchair },
         ],
       },
     ],
@@ -139,13 +144,13 @@ export const NAV: NavGroup[] = [
         icon: Boxes,
         basePath: "/inventory",
         children: [
-          { to: "/inventory/today", labelKey: "nav.invToday", fallback: "Today", icon: Home },
-          { to: "/inventory/counts", labelKey: "nav.invCounts", fallback: "Stock counts", icon: ClipboardList },
-          { to: "/inventory/ingredients", labelKey: "nav.ingredients", fallback: "Ingredients", icon: Package },
-          { to: "/inventory/purchasing", labelKey: "nav.invPurchasing", fallback: "Purchasing", icon: ShoppingCart },
-          { to: "/inventory/waste", labelKey: "nav.invWaste", fallback: "Waste", icon: Trash2 },
-          { to: "/inventory/transfers", labelKey: "nav.invTransfers", fallback: "Transfers", icon: ArrowLeftRight },
-          { to: "/inventory/settings", labelKey: "nav.invSettings", fallback: "Settings", icon: Settings2 },
+          { caps: [Cap.inventoryRead], to: "/inventory/today", labelKey: "nav.invToday", fallback: "Today", icon: Home },
+          { caps: [Cap.inventoryCountsRead], to: "/inventory/counts", labelKey: "nav.invCounts", fallback: "Stock counts", icon: ClipboardList },
+          { caps: [Cap.inventoryRead], to: "/inventory/ingredients", labelKey: "nav.ingredients", fallback: "Ingredients", icon: Package },
+          { caps: [Cap.purchasingOrdersRead, Cap.purchasingSuppliersRead], to: "/inventory/purchasing", labelKey: "nav.invPurchasing", fallback: "Purchasing", icon: ShoppingCart },
+          { caps: [Cap.inventoryWasteRead], to: "/inventory/waste", labelKey: "nav.invWaste", fallback: "Waste", icon: Trash2 },
+          { caps: [Cap.inventoryTransfersRead], to: "/inventory/transfers", labelKey: "nav.invTransfers", fallback: "Transfers", icon: ArrowLeftRight },
+          { caps: [Cap.inventoryAdjust], to: "/inventory/settings", labelKey: "nav.invSettings", fallback: "Settings", icon: Settings2 },
         ],
       },
     ],
@@ -160,7 +165,7 @@ export const NAV: NavGroup[] = [
     fallback: "Setup",
     entries: [
       { to: "/settings", labelKey: "nav.settings", fallback: "Settings", icon: Settings },
-      { to: "/settings/loyalty", labelKey: "nav.loyalty", fallback: "Loyalty", icon: Star },
+      { caps: [Cap.loyaltyUse, Cap.loyaltyMembersList], to: "/settings/loyalty", labelKey: "nav.loyalty", fallback: "Loyalty", icon: Star },
     ],
   },
   {
@@ -173,12 +178,12 @@ export const NAV: NavGroup[] = [
         icon: UserRound,
         basePath: "/staff",
         children: [
-          { to: "/staff/employees", labelKey: "nav.employees", fallback: "Employees", icon: UserRound },
-          { to: "/staff/attendance", labelKey: "nav.attendance", fallback: "Attendance", icon: CalendarClock },
+          { caps: [Cap.hrStaffRead], to: "/staff/employees", labelKey: "nav.employees", fallback: "Employees", icon: UserRound },
+          { caps: [Cap.hrAttendanceRead], to: "/staff/attendance", labelKey: "nav.attendance", fallback: "Attendance", icon: CalendarClock },
           // "Work shifts" (staff scheduling) — distinct from /tills, the sales sessions.
-          { to: "/staff/shifts", labelKey: "nav.workShifts", fallback: "Work shifts", icon: CalendarRange },
-          { to: "/staff/requests", labelKey: "nav.requests", fallback: "Requests", icon: Inbox },
-          { to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
+          { caps: [Cap.hrScheduleRead], to: "/staff/shifts", labelKey: "nav.workShifts", fallback: "Work shifts", icon: CalendarRange },
+          { caps: [Cap.hrLeaveRead], to: "/staff/requests", labelKey: "nav.requests", fallback: "Requests", icon: Inbox },
+          { caps: [Cap.hrAttendanceEdit], to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
           // Payroll deliberately absent: the RUN lives in the staff app, where a
           // manager approves it with the team in front of them. Splitting it
           // across two surfaces would mean two places to approve the same money.
@@ -191,9 +196,16 @@ export const NAV: NavGroup[] = [
     fallback: "Administration",
     entries: [
       { to: "/orgs", labelKey: "nav.orgs", fallback: "Organizations", icon: Building2, superAdminOnly: true },
-      { to: "/branches", labelKey: "nav.branches", fallback: "Branches", icon: Store },
-      { to: "/devices", labelKey: "nav.devices", fallback: "Devices", icon: Tablet },
-      { to: "/access/users", labelKey: "nav.usersPermissions", fallback: "Users & Permissions", icon: Users },
+      { caps: [Cap.branchesRead], to: "/branches", labelKey: "nav.branches", fallback: "Branches", icon: Store },
+      { caps: [Cap.branchesEdit, Cap.tillOpen], to: "/devices", labelKey: "nav.devices", fallback: "Devices", icon: Tablet },
+      { caps: [Cap.staffUsersRead, Cap.staffPermissionsRead], to: "/access/users", labelKey: "nav.usersPermissions", fallback: "Users & Permissions", icon: Users },
     ],
   },
 ];
+
+/** Whether a nav leaf shows for this person. */
+export const leafVisible = (leaf: NavLeaf, authz: Authz): boolean => {
+  if (leaf.superAdminOnly) return authz.platform;
+  if (leaf.caps) return authz.canAny(...leaf.caps);
+  return true;
+};

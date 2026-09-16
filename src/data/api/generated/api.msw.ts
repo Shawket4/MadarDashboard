@@ -13,6 +13,7 @@ import type {
 } from 'msw';
 
 import {
+  ActivationCodeState,
   BundleStatus,
   ColumnKind,
   Compare,
@@ -27,6 +28,8 @@ import {
   Viz
 } from './models';
 import type {
+  ActivateDeviceResponse,
+  ActivationCode,
   AddonCost,
   AddonIngredient,
   AddonItem,
@@ -45,6 +48,7 @@ import type {
   AttendanceSummary,
   AuditReport,
   AuthPermissionsResponse,
+  AuthzPublicKey,
   AvailabilityResponse,
   AwardResult,
   BirthdayPreview,
@@ -80,6 +84,8 @@ import type {
   CreateUserResponse,
   CredentialSummary,
   CredentialWithSecret,
+  Customer,
+  CustomerDetail,
   DecisionOut,
   DeductionLogRow,
   DeliveryMenu,
@@ -90,10 +96,12 @@ import type {
   DeliveryZone,
   Department,
   Device,
+  DeviceSnapshot200,
   DisciplineReport,
   Discount,
   DrinkRecipe,
   Employee,
+  Explanation,
   ExportResponse,
   FinalizeResponse,
   FloorSection,
@@ -117,6 +125,7 @@ import type {
   LeaveType,
   LedgerWindow,
   LegacyTill,
+  LimitsView,
   LoginResponse,
   LowStockRow,
   LoyaltyAnalytics,
@@ -134,6 +143,7 @@ import type {
   MenuItemFull,
   MetricsQueryResponse,
   MyAttendanceToday,
+  MyAuthz,
   OfflineAuthBundle,
   OnboardingStatus,
   OpenBillsNotice,
@@ -150,6 +160,7 @@ import type {
   OrgIngredient,
   OrgInventorySettings,
   OrgPaymentMethod,
+  OrgTemplate,
   OtpRequestResponse,
   OtpVerifyResponse,
   PaginatedAddonItems,
@@ -167,9 +178,12 @@ import type {
   PeakHourPoint,
   Permission,
   PermissionMatrix,
+  PinSuggestion,
+  PolicyEntry,
   PreviewIngredient,
   PriceOverrideOut,
   ProcessingGroupRef,
+  ProvisionedOrg,
   PublicBookingBranch,
   PublicBookingInfo,
   PublicBookingView,
@@ -191,11 +205,13 @@ import type {
   RefundIssued,
   RegistryInfo,
   ReorderSuggestion,
+  ReplayFlag,
   RepricingReport,
   ResolveBranchResponse,
   ResolvedShift,
   RewardCatalogue,
   RolePermission,
+  RoleView,
   RoutingModeResponse,
   SalaryAdvance,
   ScanResult,
@@ -236,6 +252,7 @@ import type {
   TransferView,
   TransfersSyncResponse,
   UploadResponse,
+  UserAccess,
   UserBranch,
   UserPublic,
   VarianceReport,
@@ -280,6 +297,10 @@ export const getGetJobResponseAssetJobResultMock = (overrideResponse: Partial<As
 
 export const getGetJobResponseMock = (overrideResponse: Partial<Extract<AssetJobView, object>> = {}): AssetJobView => ({error: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), result: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getGetJobResponseAssetJobResultMock()},]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
+export const getActivateResponseMock = (overrideResponse: Partial<Extract<ActivateDeviceResponse, object>> = {}): ActivateDeviceResponse => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), device: {app_version: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), code: faker.string.alpha({length: {min: 10, max: 20}}), code_conflict: faker.datatype.boolean(), first_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), kind: faker.helpers.arrayElement(Object.values(DeviceKind)), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', org_id: faker.string.uuid(), platform: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), retired_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined])}, device_token: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), org_name: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getAuthzKeysResponseMock = (): AuthzPublicKey[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({kid: faker.string.alpha({length: {min: 10, max: 20}}), public_key: faker.string.alpha({length: {min: 10, max: 20}})})))
+
 export const getLoginResponseTillBriefMock = (overrideResponse: Partial<TillBrief> = {}): TillBrief => ({...{branch_id: faker.string.uuid(), device_code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', opened_while_another_open: faker.datatype.boolean(), status: faker.helpers.arrayElement(Object.values(TillStatus)), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), verification: faker.helpers.arrayElement(Object.values(TillVerification))}, ...overrideResponse});
 
 export const getLoginResponseMock = (overrideResponse: Partial<Extract<LoginResponse, object>> = {}): LoginResponse => ({currency_code: faker.string.alpha({length: {min: 10, max: 20}}), open_till: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getLoginResponseTillBriefMock()},]), undefined]), require_table_for_orders: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), tax_policy: {service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2})}, tax_rate: faker.number.float({fractionDigits: 2}), token: faker.string.alpha({length: {min: 10, max: 20}}), user: {branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.helpers.arrayElement(Object.values(UserRole))}, ...overrideResponse})
@@ -289,6 +310,40 @@ export const getMeResponseMock = (overrideResponse: Partial<Extract<MeResponse, 
 export const getGetMyPermissionsResponseMock = (overrideResponse: Partial<Extract<AuthPermissionsResponse, object>> = {}): AuthPermissionsResponse => ({permissions: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({action: faker.string.alpha({length: {min: 10, max: 20}}), granted: faker.datatype.boolean(), resource: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
 
 export const getResolveBranchResponseMock = (overrideResponse: Partial<Extract<ResolveBranchResponse, object>> = {}): ResolveBranchResponse => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), distance_meters: faker.number.float({fractionDigits: 2}), ...overrideResponse})
+
+export const getExplainResponseMock = (overrideResponse: Partial<Extract<Explanation, object>> = {}): Explanation => ({ask_manager: faker.datatype.boolean(), capability: faker.string.alpha({length: {min: 10, max: 20}}), effective: faker.datatype.boolean(), label_ar: faker.string.alpha({length: {min: 10, max: 20}}), label_en: faker.string.alpha({length: {min: 10, max: 20}}), steps: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({applies_here: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), detail: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), grants: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), role_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role_name_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), ...overrideResponse})
+
+export const getListFlagsResponseMock = (): ReplayFlag[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({author_id: faker.string.uuid(), author_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), capability: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.number.int(), occurred_at: faker.date.past().toISOString().slice(0, 19) + 'Z', op: faker.string.alpha({length: {min: 10, max: 20}}), reason: faker.string.alpha({length: {min: 10, max: 20}}), reviewed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reviewed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined])})))
+
+export const getReviewFlagResponseMock = (overrideResponse: Partial<Extract<ReplayFlag, object>> = {}): ReplayFlag => ({author_id: faker.string.uuid(), author_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), capability: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.number.int(), occurred_at: faker.date.past().toISOString().slice(0, 19) + 'Z', op: faker.string.alpha({length: {min: 10, max: 20}}), reason: faker.string.alpha({length: {min: 10, max: 20}}), reviewed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reviewed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
+
+export const getGetMyAuthzResponseMock = (overrideResponse: Partial<Extract<MyAuthz, object>> = {}): MyAuthz => ({ask_manager: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), capabilities: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), epoch: faker.number.int(), limits: {
+        [faker.string.alphanumeric(5)]: {max_age_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_percent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), own: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}
+      }, owner: faker.datatype.boolean(), platform: faker.datatype.boolean(), role_kinds: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), spec_version: faker.number.int({min: 0}), user_id: faker.string.uuid(), ...overrideResponse})
+
+export const getGetPolicyResponseMock = (): PolicyEntry[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({ask_manager: faker.datatype.boolean(), capability: faker.string.alpha({length: {min: 10, max: 20}})})))
+
+export const getSetPolicyResponseMock = (): PolicyEntry[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({ask_manager: faker.datatype.boolean(), capability: faker.string.alpha({length: {min: 10, max: 20}})})))
+
+export const getListRolesResponseMock = (): RoleView[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({editable: faker.datatype.boolean(), grants: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({capability: faker.string.alpha({length: {min: 10, max: 20}}), limits: {max_age_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_percent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), own: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, source: faker.string.alpha({length: {min: 10, max: 20}})})), id: faker.string.uuid(), is_system: faker.datatype.boolean(), key: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.string.alpha({length: {min: 10, max: 20}}), members: faker.number.int(), name_ar: faker.string.alpha({length: {min: 10, max: 20}}), name_en: faker.string.alpha({length: {min: 10, max: 20}})})))
+
+export const getCreateRoleResponseMock = (overrideResponse: Partial<Extract<RoleView, object>> = {}): RoleView => ({editable: faker.datatype.boolean(), grants: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({capability: faker.string.alpha({length: {min: 10, max: 20}}), limits: {max_age_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_percent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), own: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, source: faker.string.alpha({length: {min: 10, max: 20}})})), id: faker.string.uuid(), is_system: faker.datatype.boolean(), key: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.string.alpha({length: {min: 10, max: 20}}), members: faker.number.int(), name_ar: faker.string.alpha({length: {min: 10, max: 20}}), name_en: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getRenameRoleResponseMock = (overrideResponse: Partial<Extract<RoleView, object>> = {}): RoleView => ({editable: faker.datatype.boolean(), grants: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({capability: faker.string.alpha({length: {min: 10, max: 20}}), limits: {max_age_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_percent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), own: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, source: faker.string.alpha({length: {min: 10, max: 20}})})), id: faker.string.uuid(), is_system: faker.datatype.boolean(), key: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.string.alpha({length: {min: 10, max: 20}}), members: faker.number.int(), name_ar: faker.string.alpha({length: {min: 10, max: 20}}), name_en: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getSetRoleGrantResponseMock = (overrideResponse: Partial<Extract<RoleView, object>> = {}): RoleView => ({editable: faker.datatype.boolean(), grants: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({capability: faker.string.alpha({length: {min: 10, max: 20}}), limits: {max_age_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_percent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), own: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, source: faker.string.alpha({length: {min: 10, max: 20}})})), id: faker.string.uuid(), is_system: faker.datatype.boolean(), key: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.string.alpha({length: {min: 10, max: 20}}), members: faker.number.int(), name_ar: faker.string.alpha({length: {min: 10, max: 20}}), name_en: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getUserAccessResponseLimitsViewMock = (overrideResponse: Partial<LimitsView> = {}): LimitsView => ({...{max_age_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_percent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), own: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, ...overrideResponse});
+
+export const getUserAccessResponseMock = (overrideResponse: Partial<Extract<UserAccess, object>> = {}): UserAccess => ({assignments: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({all_branches: faker.datatype.boolean(), branch_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), role_id: faker.string.uuid(), role_name_ar: faker.string.alpha({length: {min: 10, max: 20}}), role_name_en: faker.string.alpha({length: {min: 10, max: 20}})})), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), can_edit: faker.datatype.boolean(), capabilities: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({capability: faker.string.alpha({length: {min: 10, max: 20}}), editable: faker.datatype.boolean(), effective: faker.datatype.boolean(), from_roles: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), limits: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getUserAccessResponseLimitsViewMock()},]), undefined]), overrides: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), effect: faker.string.alpha({length: {min: 10, max: 20}}), limits: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getUserAccessResponseLimitsViewMock()},]), undefined]), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), valid_to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined])})), source: faker.string.alpha({length: {min: 10, max: 20}})})), is_owner: faker.datatype.boolean(), locked_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), user_id: faker.string.uuid(), ...overrideResponse})
+
+export const getSetAssignmentsResponseLimitsViewMock = (overrideResponse: Partial<LimitsView> = {}): LimitsView => ({...{max_age_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_percent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), own: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, ...overrideResponse});
+
+export const getSetAssignmentsResponseMock = (overrideResponse: Partial<Extract<UserAccess, object>> = {}): UserAccess => ({assignments: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({all_branches: faker.datatype.boolean(), branch_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), role_id: faker.string.uuid(), role_name_ar: faker.string.alpha({length: {min: 10, max: 20}}), role_name_en: faker.string.alpha({length: {min: 10, max: 20}})})), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), can_edit: faker.datatype.boolean(), capabilities: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({capability: faker.string.alpha({length: {min: 10, max: 20}}), editable: faker.datatype.boolean(), effective: faker.datatype.boolean(), from_roles: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), limits: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getSetAssignmentsResponseLimitsViewMock()},]), undefined]), overrides: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), effect: faker.string.alpha({length: {min: 10, max: 20}}), limits: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getSetAssignmentsResponseLimitsViewMock()},]), undefined]), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), valid_to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined])})), source: faker.string.alpha({length: {min: 10, max: 20}})})), is_owner: faker.datatype.boolean(), locked_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), user_id: faker.string.uuid(), ...overrideResponse})
+
+export const getSetOverrideResponseLimitsViewMock = (overrideResponse: Partial<LimitsView> = {}): LimitsView => ({...{max_age_minutes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_percent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), max_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), own: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, ...overrideResponse});
+
+export const getSetOverrideResponseMock = (overrideResponse: Partial<Extract<UserAccess, object>> = {}): UserAccess => ({assignments: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({all_branches: faker.datatype.boolean(), branch_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), role_id: faker.string.uuid(), role_name_ar: faker.string.alpha({length: {min: 10, max: 20}}), role_name_en: faker.string.alpha({length: {min: 10, max: 20}})})), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), can_edit: faker.datatype.boolean(), capabilities: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({capability: faker.string.alpha({length: {min: 10, max: 20}}), editable: faker.datatype.boolean(), effective: faker.datatype.boolean(), from_roles: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), limits: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getSetOverrideResponseLimitsViewMock()},]), undefined]), overrides: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), effect: faker.string.alpha({length: {min: 10, max: 20}}), limits: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getSetOverrideResponseLimitsViewMock()},]), undefined]), reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), valid_to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined])})), source: faker.string.alpha({length: {min: 10, max: 20}})})), is_owner: faker.datatype.boolean(), locked_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), user_id: faker.string.uuid(), ...overrideResponse})
 
 export const getListBookingsResponseMock = (): BookingView[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), cancel_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), cancelled_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), completed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ends_at: faker.date.past().toISOString().slice(0, 19) + 'Z', guest_name: faker.string.alpha({length: {min: 10, max: 20}}), guest_phone: faker.string.alpha({length: {min: 10, max: 20}}), held_from: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), locale: faker.string.alpha({length: {min: 10, max: 20}}), needs_table: faker.datatype.boolean(), no_show_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), open_ticket_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), party_size: faker.number.int(), phone_verified: faker.datatype.boolean(), reminder_sent_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), starts_at: faker.date.past().toISOString().slice(0, 19) + 'Z', status: faker.string.alpha({length: {min: 10, max: 20}}), table_ids: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), table_labels: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
 
@@ -450,6 +505,16 @@ export const getListMenuCatalogResponseMock = (overrideResponse: Partial<Extract
 
 export const getListSkuCostsResponseMock = (): SkuCost[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), cost_missing: faker.datatype.boolean(), food_cost_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), item_name: faker.string.alpha({length: {min: 10, max: 20}}), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), menu_item_id: faker.string.uuid(), price: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})))
 
+export const getListCustomersResponseMock = (): Customer[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
+
+export const getCreateCustomerResponseMock = (overrideResponse: Partial<Extract<CustomerDetail, object>> = {}): CustomerDetail => (faker.helpers.arrayElement([{customer: {created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, merged_from: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), recent_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), total_amount: faker.number.int()})), resolved_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse}, {customer: {created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, merged_from: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), recent_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), total_amount: faker.number.int()})), resolved_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse}]))
+
+export const getGetCustomerResponseMock = (overrideResponse: Partial<Extract<CustomerDetail, object>> = {}): CustomerDetail => ({customer: {created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, merged_from: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), recent_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), total_amount: faker.number.int()})), resolved_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
+
+export const getUpdateCustomerResponseMock = (overrideResponse: Partial<Extract<CustomerDetail, object>> = {}): CustomerDetail => ({customer: {created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, merged_from: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), recent_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), total_amount: faker.number.int()})), resolved_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
+
+export const getMergeCustomerResponseMock = (overrideResponse: Partial<Extract<CustomerDetail, object>> = {}): CustomerDetail => ({customer: {created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, merged_from: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), recent_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), total_amount: faker.number.int()})), resolved_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
+
 export const getListDeliveryOrdersResponseMock = (): DeliveryOrder[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({address_line: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.string.uuid(), cancel_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cancel_restocked: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), cart: {}, channel: faker.string.alpha({length: {min: 10, max: 20}}), confirmed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), delivered_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), delivery_fee: faker.number.int(), delivery_notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), delivery_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), delivery_zone_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), discount_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), discount_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), discount_rate: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), discount_type: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), discount_value: faker.helpers.arrayElement([faker.number.int(), undefined]), distance_source: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), extra_prep_minutes: faker.number.int(), floor: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), landmark: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), out_for_delivery_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), payment_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), payment_method_hint: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), place_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), preparing_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), receipt_printed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), rejected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), road_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), service_charge_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), service_charge_rate_applied: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), subtotal: faker.number.int(), tax_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), tax_inclusive: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), tax_rate_applied: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), total: faker.number.int(), unit_number: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
 
 export const getGetDeliveryOrderResponseMock = (overrideResponse: Partial<Extract<DeliveryOrder, object>> = {}): DeliveryOrder => ({address_line: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.string.uuid(), cancel_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cancel_restocked: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), cart: {}, channel: faker.string.alpha({length: {min: 10, max: 20}}), confirmed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), delivered_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), delivery_fee: faker.number.int(), delivery_notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), delivery_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), delivery_zone_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), discount_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), discount_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), discount_rate: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), discount_type: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), discount_value: faker.helpers.arrayElement([faker.number.int(), undefined]), distance_source: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), extra_prep_minutes: faker.number.int(), floor: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), landmark: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), out_for_delivery_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), payment_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), payment_method_hint: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), place_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), preparing_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), receipt_printed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), rejected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), road_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), service_charge_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), service_charge_rate_applied: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), subtotal: faker.number.int(), tax_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), tax_inclusive: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), tax_rate_applied: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), total: faker.number.int(), unit_number: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
@@ -486,7 +551,15 @@ export const getUpdateZoneResponseMock = (overrideResponse: Partial<Extract<Deli
 
 export const getListDevicesResponseMock = (): Device[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({app_version: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), code: faker.string.alpha({length: {min: 10, max: 20}}), code_conflict: faker.datatype.boolean(), first_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), kind: faker.helpers.arrayElement(Object.values(DeviceKind)), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', org_id: faker.string.uuid(), platform: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), retired_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined])})))
 
+export const getListCodesResponseMock = (): ActivationCode[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), code: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', expires_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), kind: faker.helpers.arrayElement(Object.values(DeviceKind)), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), revoked_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), state: faker.helpers.arrayElement(Object.values(ActivationCodeState)), used_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), used_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined])})))
+
+export const getCreateCodeResponseMock = (overrideResponse: Partial<Extract<ActivationCode, object>> = {}): ActivationCode => ({branch_id: faker.string.uuid(), code: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', expires_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), kind: faker.helpers.arrayElement(Object.values(DeviceKind)), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), revoked_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), state: faker.helpers.arrayElement(Object.values(ActivationCodeState)), used_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), used_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
+
+export const getRevokeCodeResponseMock = (overrideResponse: Partial<Extract<ActivationCode, object>> = {}): ActivationCode => ({branch_id: faker.string.uuid(), code: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', expires_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), kind: faker.helpers.arrayElement(Object.values(DeviceKind)), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), revoked_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), state: faker.helpers.arrayElement(Object.values(ActivationCodeState)), used_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), used_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
+
 export const getListClientVersionsResponseMock = (): ClientSeen[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({app_version: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), client: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), device_code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), first_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', last_legacy_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), last_legacy_kind: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_legacy_path: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', legacy_kinds: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}})))})))
+
+export const getDeviceSnapshotResponseMock = (): DeviceSnapshot200 => ({})
 
 export const getRegisterDeviceResponseMock = (overrideResponse: Partial<Extract<Device, object>> = {}): Device => ({app_version: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), code: faker.string.alpha({length: {min: 10, max: 20}}), code_conflict: faker.datatype.boolean(), first_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), kind: faker.helpers.arrayElement(Object.values(DeviceKind)), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', org_id: faker.string.uuid(), platform: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), retired_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ...overrideResponse})
 
@@ -777,6 +850,10 @@ export const getVoidOrderResponseMock = (overrideResponse: Partial<Extract<Order
 export const getListOrgsResponseMock = (): Org[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({brand_accent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_background: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_card_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_foreground: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_logo_is_mark: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), currency_code: faker.string.alpha({length: {min: 10, max: 20}}), custom_branding: faker.datatype.boolean(), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_table_for_orders: faker.datatype.boolean(), service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), social_links: {}, tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}})})))
 
 export const getCreateOrgResponseMock = (overrideResponse: Partial<Extract<Org, object>> = {}): Org => ({brand_accent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_background: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_card_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_foreground: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_logo_is_mark: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), currency_code: faker.string.alpha({length: {min: 10, max: 20}}), custom_branding: faker.datatype.boolean(), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_table_for_orders: faker.datatype.boolean(), service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), social_links: {}, tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getProvisionOrgResponseMock = (overrideResponse: Partial<Extract<ProvisionedOrg, object>> = {}): ProvisionedOrg => ({branch_id: faker.string.uuid(), org: {brand_accent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_background: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_card_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_foreground: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_logo_is_mark: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), currency_code: faker.string.alpha({length: {min: 10, max: 20}}), custom_branding: faker.datatype.boolean(), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_table_for_orders: faker.datatype.boolean(), service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), social_links: {}, tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}})}, owner_id: faker.string.uuid(), template: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getListTemplatesResponseMock = (): OrgTemplate[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({key: faker.string.alpha({length: {min: 10, max: 20}}), name_ar: faker.string.alpha({length: {min: 10, max: 20}}), name_en: faker.string.alpha({length: {min: 10, max: 20}}), roles: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), version: faker.number.int({min: 0})})))
 
 export const getGetOrgResponseMock = (overrideResponse: Partial<Extract<Org, object>> = {}): Org => ({brand_accent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_background: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_card_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_foreground: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_logo_is_mark: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), currency_code: faker.string.alpha({length: {min: 10, max: 20}}), custom_branding: faker.datatype.boolean(), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_table_for_orders: faker.datatype.boolean(), service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), social_links: {}, tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
@@ -1202,6 +1279,8 @@ export const getListUsersResponseMock = (): UserPublic[] => (Array.from({ length
 
 export const getCreateUserResponseMock = (overrideResponse: Partial<Extract<CreateUserResponse, object>> = {}): CreateUserResponse => ({user: {branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.helpers.arrayElement(Object.values(UserRole))}, ...overrideResponse})
 
+export const getSuggestPinResponseMock = (overrideResponse: Partial<Extract<PinSuggestion, object>> = {}): PinSuggestion => ({pin: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
 export const getGetUserResponseMock = (overrideResponse: Partial<Extract<UserPublic, object>> = {}): UserPublic => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.helpers.arrayElement(Object.values(UserRole)), ...overrideResponse})
 
 export const getUpdateUserResponseMock = (overrideResponse: Partial<Extract<UserPublic, object>> = {}): UserPublic => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.helpers.arrayElement(Object.values(UserRole)), ...overrideResponse})
@@ -1353,6 +1432,30 @@ export const getGetJobMockHandler = (overrideResponse?: AssetJobView | ((info: P
   }, options)
 }
 
+export const getActivateMockHandler = (overrideResponse?: ActivateDeviceResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ActivateDeviceResponse> | ActivateDeviceResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/auth/activate-device', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getActivateResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getAuthzKeysMockHandler = (overrideResponse?: AuthzPublicKey[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AuthzPublicKey[]> | AuthzPublicKey[]), options?: RequestHandlerOptions) => {
+  return http.get('*/auth/authz-keys', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAuthzKeysResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getLoginMockHandler = (overrideResponse?: LoginResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<LoginResponse> | LoginResponse), options?: RequestHandlerOptions) => {
   return http.post('*/auth/login', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
 
@@ -1396,6 +1499,172 @@ export const getResolveBranchMockHandler = (overrideResponse?: ResolveBranchResp
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getResolveBranchResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getExplainMockHandler = (overrideResponse?: Explanation | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Explanation> | Explanation), options?: RequestHandlerOptions) => {
+  return http.get('*/authz/explain', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getExplainResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListFlagsMockHandler = (overrideResponse?: ReplayFlag[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ReplayFlag[]> | ReplayFlag[]), options?: RequestHandlerOptions) => {
+  return http.get('*/authz/flags', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListFlagsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getReviewFlagMockHandler = (overrideResponse?: ReplayFlag | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ReplayFlag> | ReplayFlag), options?: RequestHandlerOptions) => {
+  return http.post('*/authz/flags/:id/review', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getReviewFlagResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getGetMyAuthzMockHandler = (overrideResponse?: MyAuthz | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MyAuthz> | MyAuthz), options?: RequestHandlerOptions) => {
+  return http.get('*/authz/me', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetMyAuthzResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getGetPolicyMockHandler = (overrideResponse?: PolicyEntry[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PolicyEntry[]> | PolicyEntry[]), options?: RequestHandlerOptions) => {
+  return http.get('*/authz/policy', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetPolicyResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getSetPolicyMockHandler = (overrideResponse?: PolicyEntry[] | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<PolicyEntry[]> | PolicyEntry[]), options?: RequestHandlerOptions) => {
+  return http.put('*/authz/policy', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetPolicyResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListRolesMockHandler = (overrideResponse?: RoleView[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<RoleView[]> | RoleView[]), options?: RequestHandlerOptions) => {
+  return http.get('*/authz/roles', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListRolesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateRoleMockHandler = (overrideResponse?: RoleView | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<RoleView> | RoleView), options?: RequestHandlerOptions) => {
+  return http.post('*/authz/roles', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateRoleResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getDeleteRoleMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/authz/roles/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getRenameRoleMockHandler = (overrideResponse?: RoleView | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<RoleView> | RoleView), options?: RequestHandlerOptions) => {
+  return http.patch('*/authz/roles/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getRenameRoleResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getSetRoleGrantMockHandler = (overrideResponse?: RoleView | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<RoleView> | RoleView), options?: RequestHandlerOptions) => {
+  return http.put('*/authz/roles/:id/grants', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetRoleGrantResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getUserAccessMockHandler = (overrideResponse?: UserAccess | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<UserAccess> | UserAccess), options?: RequestHandlerOptions) => {
+  return http.get('*/authz/users/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getUserAccessResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getSetAssignmentsMockHandler = (overrideResponse?: UserAccess | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<UserAccess> | UserAccess), options?: RequestHandlerOptions) => {
+  return http.put('*/authz/users/:id/assignments', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetAssignmentsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getSetOverrideMockHandler = (overrideResponse?: UserAccess | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<UserAccess> | UserAccess), options?: RequestHandlerOptions) => {
+  return http.put('*/authz/users/:id/overrides', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetOverrideResponseMock(),
       { status: 200
       })
   }, options)
@@ -1989,6 +2258,76 @@ export const getListSkuCostsMockHandler = (overrideResponse?: SkuCost[] | ((info
   }, options)
 }
 
+export const getListCustomersMockHandler = (overrideResponse?: Customer[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Customer[]> | Customer[]), options?: RequestHandlerOptions) => {
+  return http.get('*/customers', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListCustomersResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateCustomerMockHandler = (overrideResponse?: CustomerDetail | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CustomerDetail> | CustomerDetail), options?: RequestHandlerOptions) => {
+  return http.post('*/customers', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateCustomerResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getGetCustomerMockHandler = (overrideResponse?: CustomerDetail | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<CustomerDetail> | CustomerDetail), options?: RequestHandlerOptions) => {
+  return http.get('*/customers/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetCustomerResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getUpdateCustomerMockHandler = (overrideResponse?: CustomerDetail | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<CustomerDetail> | CustomerDetail), options?: RequestHandlerOptions) => {
+  return http.patch('*/customers/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getUpdateCustomerResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getEraseCustomerMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.post('*/customers/:id/erase', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getMergeCustomerMockHandler = (overrideResponse?: CustomerDetail | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CustomerDetail> | CustomerDetail), options?: RequestHandlerOptions) => {
+  return http.post('*/customers/:id/merge', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMergeCustomerResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getListDeliveryOrdersMockHandler = (overrideResponse?: DeliveryOrder[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DeliveryOrder[]> | DeliveryOrder[]), options?: RequestHandlerOptions) => {
   return http.get('*/delivery-orders', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -2235,6 +2574,42 @@ export const getListDevicesMockHandler = (overrideResponse?: Device[] | ((info: 
   }, options)
 }
 
+export const getListCodesMockHandler = (overrideResponse?: ActivationCode[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ActivationCode[]> | ActivationCode[]), options?: RequestHandlerOptions) => {
+  return http.get('*/devices/activation-codes', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListCodesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateCodeMockHandler = (overrideResponse?: ActivationCode | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ActivationCode> | ActivationCode), options?: RequestHandlerOptions) => {
+  return http.post('*/devices/activation-codes', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateCodeResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getRevokeCodeMockHandler = (overrideResponse?: ActivationCode | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ActivationCode> | ActivationCode), options?: RequestHandlerOptions) => {
+  return http.post('*/devices/activation-codes/:id/revoke', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getRevokeCodeResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getListClientVersionsMockHandler = (overrideResponse?: ClientSeen[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ClientSeen[]> | ClientSeen[]), options?: RequestHandlerOptions) => {
   return http.get('*/devices/client-versions', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -2242,6 +2617,18 @@ export const getListClientVersionsMockHandler = (overrideResponse?: ClientSeen[]
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getListClientVersionsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDeviceSnapshotMockHandler = (overrideResponse?: DeviceSnapshot200 | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DeviceSnapshot200> | DeviceSnapshot200), options?: RequestHandlerOptions) => {
+  return http.get('*/devices/me/authz-snapshot', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getDeviceSnapshotResponseMock(),
       { status: 200
       })
   }, options)
@@ -3867,6 +4254,30 @@ export const getCreateOrgMockHandler = (overrideResponse?: Org | ((info: Paramet
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getCreateOrgResponseMock(),
       { status: 201
+      })
+  }, options)
+}
+
+export const getProvisionOrgMockHandler = (overrideResponse?: ProvisionedOrg | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ProvisionedOrg> | ProvisionedOrg), options?: RequestHandlerOptions) => {
+  return http.post('*/orgs/provision', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getProvisionOrgResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getListTemplatesMockHandler = (overrideResponse?: OrgTemplate[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OrgTemplate[]> | OrgTemplate[]), options?: RequestHandlerOptions) => {
+  return http.get('*/orgs/templates', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListTemplatesResponseMock(),
+      { status: 200
       })
   }, options)
 }
@@ -6503,6 +6914,18 @@ export const getCreateUserMockHandler = (overrideResponse?: CreateUserResponse |
   }, options)
 }
 
+export const getSuggestPinMockHandler = (overrideResponse?: PinSuggestion | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PinSuggestion> | PinSuggestion), options?: RequestHandlerOptions) => {
+  return http.get('*/users/pin-suggestion', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSuggestPinResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getGetUserMockHandler = (overrideResponse?: UserPublic | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<UserPublic> | UserPublic), options?: RequestHandlerOptions) => {
   return http.get('*/users/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -6629,10 +7052,26 @@ export const getMadarAPIMock = () => [
   getDeleteConversationMockHandler(),
   getRenameConversationMockHandler(),
   getGetJobMockHandler(),
+  getActivateMockHandler(),
+  getAuthzKeysMockHandler(),
   getLoginMockHandler(),
   getMeMockHandler(),
   getGetMyPermissionsMockHandler(),
   getResolveBranchMockHandler(),
+  getExplainMockHandler(),
+  getListFlagsMockHandler(),
+  getReviewFlagMockHandler(),
+  getGetMyAuthzMockHandler(),
+  getGetPolicyMockHandler(),
+  getSetPolicyMockHandler(),
+  getListRolesMockHandler(),
+  getCreateRoleMockHandler(),
+  getDeleteRoleMockHandler(),
+  getRenameRoleMockHandler(),
+  getSetRoleGrantMockHandler(),
+  getUserAccessMockHandler(),
+  getSetAssignmentsMockHandler(),
+  getSetOverrideMockHandler(),
   getListBookingsMockHandler(),
   getCreateBookingMockHandler(),
   getBookingAvailabilityMockHandler(),
@@ -6683,6 +7122,12 @@ export const getMadarAPIMock = () => [
   getListAddonCostsMockHandler(),
   getListMenuCatalogMockHandler(),
   getListSkuCostsMockHandler(),
+  getListCustomersMockHandler(),
+  getCreateCustomerMockHandler(),
+  getGetCustomerMockHandler(),
+  getUpdateCustomerMockHandler(),
+  getEraseCustomerMockHandler(),
+  getMergeCustomerMockHandler(),
   getListDeliveryOrdersMockHandler(),
   getGetDeliveryOrderMockHandler(),
   getCancelDeliveryOrderMockHandler(),
@@ -6704,7 +7149,11 @@ export const getMadarAPIMock = () => [
   getDeleteZoneMockHandler(),
   getUpdateZoneMockHandler(),
   getListDevicesMockHandler(),
+  getListCodesMockHandler(),
+  getCreateCodeMockHandler(),
+  getRevokeCodeMockHandler(),
   getListClientVersionsMockHandler(),
+  getDeviceSnapshotMockHandler(),
   getRegisterDeviceMockHandler(),
   getUpdateDeviceMockHandler(),
   getListDiscountsMockHandler(),
@@ -6845,6 +7294,8 @@ export const getMadarAPIMock = () => [
   getVoidOrderMockHandler(),
   getListOrgsMockHandler(),
   getCreateOrgMockHandler(),
+  getProvisionOrgMockHandler(),
+  getListTemplatesMockHandler(),
   getGetOrgMockHandler(),
   getDeleteOrgMockHandler(),
   getUpdateOrgMockHandler(),
@@ -7068,6 +7519,7 @@ export const getMadarAPIMock = () => [
   getUploadMenuItemImageMockHandler(),
   getListUsersMockHandler(),
   getCreateUserMockHandler(),
+  getSuggestPinMockHandler(),
   getGetUserMockHandler(),
   getDeleteUserMockHandler(),
   getUpdateUserMockHandler(),

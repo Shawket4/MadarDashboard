@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { useAuthz } from "@/data/authz/use-authz";
 import { cn } from "@/lib/utils";
 
 import { visibleSettings, type SettingsLeaf } from "./settings-nav";
@@ -31,8 +31,7 @@ const isActive = (item: SettingsLeaf, pathname: string, onIndex: boolean) =>
 
 export function SettingsShell() {
   const { t } = useTranslation();
-  const role = useAuthStore((s) => s.user?.role);
-  const groups = visibleSettings(role);
+  const groups = visibleSettings(useAuthz());
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const onIndex = pathname === "/settings" || pathname === "/settings/";

@@ -12,6 +12,13 @@ export interface CreateOrderRequest {
   change_given?: number | null;
   /** @nullable */
   created_at?: string | null;
+  /**
+     * A manual customer (phase 6), attached when the actor holds
+     * `customers.attach`. A merged id resolves; an unknown one is ignored —
+     * a sale is never refused over its customer.
+     * @nullable
+     */
+  customer_id?: string | null;
   /** @nullable */
   customer_name?: string | null;
   /**
