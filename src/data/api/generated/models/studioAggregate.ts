@@ -23,11 +23,18 @@ export interface StudioAggregate {
   /** @nullable */
   image_url?: string | null;
   is_active: boolean;
+  /** Live items whose recipe follows this one. */
+  linked_copy_ids?: string[];
   modifier_groups: ModifierGroupOut[];
   name: string;
   name_translations: unknown;
   options: ItemOptionOut[];
   org_id: string;
+  /**
+     * The item this one's recipe follows (linked copy), or `null`.
+     * @nullable
+     */
+  recipe_source_item_id?: string | null;
   /**
      * How the item is made, in order. Edited through `PUT /recipes/steps/{id}`
      * and saved by the studio alongside the recipe lines.

@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { GroupOptionRecipeLine } from './groupOptionRecipeLine';
 
 /**
  * A modifier option as returned by the reusable-group endpoints (org-scoped,
@@ -12,6 +13,8 @@ export interface GroupOptionOut {
   name: string;
   name_translations: unknown;
   price: number;
+  /** The option's recipe lines (base unit), ordered by ingredient name. */
+  recipe?: GroupOptionRecipeLine[];
   /** @nullable */
   replaces_ingredient_id?: string | null;
   sort: number;

@@ -9,6 +9,11 @@ export interface SyncOption {
   id: string;
   /** Effective availability (branch_channel → branch → channel → TRUE). */
   is_available: boolean;
+  /**
+     * Explicit preselect for non-swap groups (e.g. "White bread"). Swap groups
+     * derive their default from the drink's recipe; this is always `false` there.
+     */
+  is_default?: boolean;
   name: string;
   /** Effective price in piastres (branch_channel → branch → channel → catalog default). */
   price: number;

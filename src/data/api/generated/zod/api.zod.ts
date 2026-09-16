@@ -18,6 +18,8 @@ export const ListAddonItemsResponseItem = zod.object({
   "default_price": zod.number(),
   "id": zod.uuid(),
   "ingredients": zod.array(zod.object({
+  "category_id": zod.uuid().nullish().describe('The ingredient\'s category (additive, B12): lets the POS know an extra\nshot is a `coffee_bean` and follows the drink\'s chosen bean.'),
+  "category_slug": zod.string().nullish().describe('Slug of [`Self::category_id`] (`milk`, `coffee_bean`, `packaging`, …).'),
   "ingredient_name": zod.string(),
   "ingredient_unit": zod.string(),
   "org_ingredient_id": zod.uuid().nullish(),
@@ -51,6 +53,8 @@ export const CreateAddonItemResponse = zod.object({
   "default_price": zod.number(),
   "id": zod.uuid(),
   "ingredients": zod.array(zod.object({
+  "category_id": zod.uuid().nullish().describe('The ingredient\'s category (additive, B12): lets the POS know an extra\nshot is a `coffee_bean` and follows the drink\'s chosen bean.'),
+  "category_slug": zod.string().nullish().describe('Slug of [`Self::category_id`] (`milk`, `coffee_bean`, `packaging`, …).'),
   "ingredient_name": zod.string(),
   "ingredient_unit": zod.string(),
   "org_ingredient_id": zod.uuid().nullish(),
@@ -85,6 +89,8 @@ export const ListAddonCatalogResponse = zod.object({
   "default_price": zod.number(),
   "id": zod.uuid(),
   "ingredients": zod.array(zod.object({
+  "category_id": zod.uuid().nullish().describe('The ingredient\'s category (additive, B12): lets the POS know an extra\nshot is a `coffee_bean` and follows the drink\'s chosen bean.'),
+  "category_slug": zod.string().nullish().describe('Slug of [`Self::category_id`] (`milk`, `coffee_bean`, `packaging`, …).'),
   "ingredient_name": zod.string(),
   "ingredient_unit": zod.string(),
   "org_ingredient_id": zod.uuid().nullish(),
@@ -133,6 +139,8 @@ export const UpdateAddonItemResponse = zod.object({
   "default_price": zod.number(),
   "id": zod.uuid(),
   "ingredients": zod.array(zod.object({
+  "category_id": zod.uuid().nullish().describe('The ingredient\'s category (additive, B12): lets the POS know an extra\nshot is a `coffee_bean` and follows the drink\'s chosen bean.'),
+  "category_slug": zod.string().nullish().describe('Slug of [`Self::category_id`] (`milk`, `coffee_bean`, `packaging`, …).'),
   "ingredient_name": zod.string(),
   "ingredient_unit": zod.string(),
   "org_ingredient_id": zod.uuid().nullish(),
@@ -2761,6 +2769,8 @@ export const CatalogSyncResponse = zod.object({
   "catalog_revision": zod.number(),
   "changed": zod.boolean().describe('`false` when `since` equals the current revision (client is up to date;\n`items`\/`ingredients` are then empty). `true` ⇒ the full payload follows.'),
   "ingredients": zod.array(zod.object({
+  "category_id": zod.uuid().nullish().describe('The ingredient\'s category (additive, B12), so the POS can mirror the\nresolver\'s \"extras follow the drink\'s choice\" pass by slug.'),
+  "category_slug": zod.string().nullish().describe('Slug of [`Self::category_id`] (`milk`, `coffee_bean`, `packaging`, …).'),
   "id": zod.uuid(),
   "name": zod.string(),
   "unit": zod.string()
@@ -2769,6 +2779,7 @@ export const CatalogSyncResponse = zod.object({
   "category_id": zod.uuid().nullish(),
   "id": zod.uuid(),
   "modifier_groups": zod.array(zod.object({
+  "effect": zod.string().optional().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "group_id": zod.uuid(),
   "is_required": zod.boolean(),
   "legacy_addon_type": zod.string().nullish(),
@@ -2781,6 +2792,7 @@ export const CatalogSyncResponse = zod.object({
   "options": zod.array(zod.object({
   "id": zod.uuid(),
   "is_available": zod.boolean().describe('Effective availability (branch_channel → branch → channel → TRUE).'),
+  "is_default": zod.boolean().optional().describe('Explicit preselect for non-swap groups (e.g. \"White bread\"). Swap groups\nderive their default from the drink\'s recipe; this is always `false` there.'),
   "name": zod.string(),
   "price": zod.number().describe('Effective price in piastres (branch_channel → branch → channel → catalog default).'),
   "recipe": zod.array(zod.object({
@@ -2790,7 +2802,9 @@ export const CatalogSyncResponse = zod.object({
 }).describe('One recipe line of a modifier option: which ingredient the option deducts\n(or swaps in, when `quantity = 0`). Base-unit, yield-normalized values.')),
   "replaces_ingredient_id": zod.uuid().nullish().describe('The org_ingredient this option swaps out, if it is a swap-style option.')
 }).describe('A modifier option, with price\/availability resolved for `(branch, channel)`.')),
-  "selection_type": zod.string()
+  "selection_type": zod.string(),
+  "swap_category_id": zod.uuid().nullish().describe('For `swaps`: the ingredient category whose recipe line each option replaces.'),
+  "swap_category_slug": zod.string().nullish()
 }).describe('A modifier group attached to an item, with min\/max\/required resolved from the\nattachment overrides (falling back to the group defaults).')),
   "name": zod.string(),
   "name_translations": zod.unknown(),
@@ -5544,6 +5558,7 @@ export const ListIngredientCategoriesResponseItem = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
   "ingredient_count": zod.number().describe('Live (non-deleted) ingredients in this category.'),
+  "is_packaging": zod.boolean().describe('Cups, lids, straws: a dine-in sale skips every ingredient in a packaging\ncategory. The slug `packaging` is treated as packaging too.'),
   "name": zod.string(),
   "org_id": zod.uuid(),
   "slug": zod.string().describe('Stable machine key (`general`, `milk`, `coffee_bean`, …). `milk` and\n`coffee_bean` carry swap semantics in the menu; the slug never changes.'),
@@ -5558,6 +5573,7 @@ export const CreateIngredientCategoryParams = zod.object({
 })
 
 export const CreateIngredientCategoryBody = zod.object({
+  "is_packaging": zod.boolean().nullish().describe('Defaults to `true` for slug `packaging`, else `false`.'),
   "name": zod.string(),
   "slug": zod.string().nullish().describe('Optional explicit slug (`[a-z0-9_]`); derived from the name when omitted.'),
   "sort_order": zod.number().nullish()
@@ -5567,6 +5583,7 @@ export const CreateIngredientCategoryResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
   "ingredient_count": zod.number().describe('Live (non-deleted) ingredients in this category.'),
+  "is_packaging": zod.boolean().describe('Cups, lids, straws: a dine-in sale skips every ingredient in a packaging\ncategory. The slug `packaging` is treated as packaging too.'),
   "name": zod.string(),
   "org_id": zod.uuid(),
   "slug": zod.string().describe('Stable machine key (`general`, `milk`, `coffee_bean`, …). `milk` and\n`coffee_bean` carry swap semantics in the menu; the slug never changes.'),
@@ -5593,6 +5610,7 @@ export const UpdateIngredientCategoryParams = zod.object({
 })
 
 export const UpdateIngredientCategoryBody = zod.object({
+  "is_packaging": zod.boolean().nullish(),
   "name": zod.string().nullish(),
   "sort_order": zod.number().nullish()
 })
@@ -5601,6 +5619,7 @@ export const UpdateIngredientCategoryResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
   "ingredient_count": zod.number().describe('Live (non-deleted) ingredients in this category.'),
+  "is_packaging": zod.boolean().describe('Cups, lids, straws: a dine-in sale skips every ingredient in a packaging\ncategory. The slug `packaging` is treated as packaging too.'),
   "name": zod.string(),
   "org_id": zod.uuid(),
   "slug": zod.string().describe('Stable machine key (`general`, `milk`, `coffee_bean`, …). `milk` and\n`coffee_bean` carry swap semantics in the menu; the slug never changes.'),
@@ -6505,6 +6524,22 @@ export const GetLoyaltyWalletStatusResponse = zod.object({
 })
 
 
+export const PutSizeBaseParams = zod.object({
+  "size_id": zod.uuid().describe('menu_item_sizes ID')
+})
+
+export const PutSizeBaseBody = zod.object({
+  "base_id": zod.uuid().nullish().describe('`null` detaches the size from its base (its base lines are removed).')
+})
+
+export const PutSizeBaseResponse = zod.object({
+  "base_id": zod.uuid().nullish(),
+  "catalog_revision": zod.number(),
+  "size_id": zod.uuid(),
+  "sizes_changed": zod.number()
+})
+
+
 export const PutSizeRecipeParams = zod.object({
   "size_id": zod.uuid().describe('menu_item_sizes ID')
 })
@@ -6527,6 +6562,8 @@ export const PutSizeRecipeResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "size_id": zod.uuid()
@@ -7177,6 +7214,7 @@ export const DuplicateItemResponse = zod.object({
 })]).describe('Asset refs (WebP variants, signed), same as `GET \/menu-items\/{id}`.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "linked_copy_ids": zod.array(zod.uuid()).optional().describe('Live items whose recipe follows this one.'),
   "modifier_groups": zod.array(zod.object({
   "attachment_id": zod.uuid(),
   "group_id": zod.uuid(),
@@ -7201,6 +7239,8 @@ export const DuplicateItemResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "replaces_ingredient_id": zod.uuid().nullish()
@@ -7223,10 +7263,13 @@ export const DuplicateItemResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
+  "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
   "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
   "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
@@ -7241,6 +7284,7 @@ export const DuplicateItemResponse = zod.object({
   "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
 }).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')).describe('How the item is made, in order. Edited through `PUT \/recipes\/steps\/{id}`\nand saved by the studio alongside the recipe lines.'),
   "sizes": zod.array(zod.object({
+  "base_id": zod.uuid().nullish().describe('Recipe base this size expands (`PUT \/menu-item-sizes\/{id}\/base`), or `null`.'),
   "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
   "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
   "id": zod.uuid(),
@@ -7253,6 +7297,8 @@ export const DuplicateItemResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
@@ -7262,6 +7308,29 @@ export const DuplicateItemResponse = zod.object({
   "name": zod.string()
 }))
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
+
+
+export const CreateLinkedCopyParams = zod.object({
+  "id": zod.uuid().describe('Source menu item ID')
+})
+
+export const CreateLinkedCopyBody = zod.object({
+  "category_id": zod.uuid().nullish().describe('Menu category of the copy; `null` keeps the source\'s category.'),
+  "name": zod.string(),
+  "price": zod.number().describe('Price in piastres for every size of the copy (0 for a staff drink).')
+})
+
+export const CreateLinkedCopyResponse = zod.object({
+  "catalog_revision": zod.number(),
+  "link": zod.object({
+  "in_sync": zod.boolean().nullish().describe('For a copy: `true` when its stored lines equal the source\'s for every size label\nthe copy has (lint F19, twin drift). `null` for an item that is not a copy.'),
+  "linked_copy_ids": zod.array(zod.uuid()).describe('Live items whose recipe follows this one.'),
+  "menu_item_id": zod.uuid(),
+  "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows, or `null`.'),
+  "recipe_source_item_name": zod.string().nullish()
+}).describe('Link state of an item, from either side.'),
+  "menu_item_id": zod.uuid()
+})
 
 
 export const PutModifierGroupsParams = zod.object({
@@ -7353,6 +7422,7 @@ export const PutModifierGroupsResponse = zod.object({
 })]).describe('Asset refs (WebP variants, signed), same as `GET \/menu-items\/{id}`.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "linked_copy_ids": zod.array(zod.uuid()).optional().describe('Live items whose recipe follows this one.'),
   "modifier_groups": zod.array(zod.object({
   "attachment_id": zod.uuid(),
   "group_id": zod.uuid(),
@@ -7377,6 +7447,8 @@ export const PutModifierGroupsResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "replaces_ingredient_id": zod.uuid().nullish()
@@ -7399,10 +7471,13 @@ export const PutModifierGroupsResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
+  "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
   "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
   "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
@@ -7417,6 +7492,7 @@ export const PutModifierGroupsResponse = zod.object({
   "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
 }).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')).describe('How the item is made, in order. Edited through `PUT \/recipes\/steps\/{id}`\nand saved by the studio alongside the recipe lines.'),
   "sizes": zod.array(zod.object({
+  "base_id": zod.uuid().nullish().describe('Recipe base this size expands (`PUT \/menu-item-sizes\/{id}\/base`), or `null`.'),
   "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
   "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
   "id": zod.uuid(),
@@ -7429,6 +7505,8 @@ export const PutModifierGroupsResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
@@ -7559,6 +7637,7 @@ export const PutItemOptionsBody = zod.object({
   "recipe": zod.array(zod.object({
   "ingredient_id": zod.uuid(),
   "quantity": zod.number(),
+  "size_label": zod.string().nullish().describe('Size this amount is for (`Cup`, `Can`); `null`\/absent = every size. At order\ntime a line for the ordered size\'s exact label replaces the `null` line for the\nsame ingredient. Legacy tills only ever see the `null` lines.'),
   "unit": zod.string()
 }).describe('One recipe line as submitted to the option-recipe replace endpoint. `quantity`\nmay be 0 (a swap marker). Server normalizes to the ingredient base unit.')).nullish().describe('`null` = keep no recipe; else the option\'s replace-set of recipe lines.')
 }).describe('One priced optional in the item\'s per-item `Options` set. `id` present ⇒ update\nthat option; absent ⇒ create a new one. `recipe` null ⇒ leave the option with no\nrecipe lines; else the replace-set of its lines.'))
@@ -7577,6 +7656,8 @@ export const PutItemOptionsResponseItem = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')
@@ -7647,6 +7728,80 @@ export const DeleteAddonOverrideParams = zod.object({
 })
 
 export const DeleteAddonOverrideResponse = zod.void()
+
+
+export const PreviewMenuItemParams = zod.object({
+  "id": zod.uuid().describe('Menu item id')
+})
+
+export const PreviewMenuItemBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('Price and cost as at this branch; absent = catalogue \/ org-level cost.'),
+  "option_ids": zod.array(zod.uuid()).optional().describe('Chosen modifier options, including item-private optional-field ids.'),
+  "quantity": zod.number().optional(),
+  "service_mode": zod.string().nullish().describe('`takeaway` (default) | `dine_in`.'),
+  "size_label": zod.string().nullish().describe('Size to price and deduct; absent = the order path\'s default (base price,\nfirst size\'s recipe).')
+})
+
+export const PreviewMenuItemResponse = zod.object({
+  "cost": zod.object({
+  "cost_missing": zod.boolean().describe('At least one deducted line has no cost: `total` is partial.'),
+  "margin_pct": zod.number().nullish().describe('`(price − cost) \/ price` (fraction, like `\/costing`); null when the cost\nis partial or the price is 0.'),
+  "total": zod.number().describe('Piastres over the deducted lines with a known cost.')
+}),
+  "deductions": zod.array(zod.object({
+  "category_slug": zod.string(),
+  "ingredient_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "note": zod.string().nullish().describe('`swapped from X` | `follows the chosen X` | `skipped on dine-in`.'),
+  "quantity": zod.number(),
+  "skipped": zod.boolean().describe('Shown but not deducted (dine-in packaging).'),
+  "source": zod.string().describe('`recipe` | `swap` | `option` | `packaging`.'),
+  "unit": zod.string()
+})),
+  "defaults": zod.record(zod.string(), zod.uuid()).describe('Swap groups: group id → the option preselected by the recipe.'),
+  "price": zod.object({
+  "base": zod.number().describe('Unit price of the item\/size, piastres.'),
+  "options": zod.array(zod.object({
+  "name": zod.string(),
+  "option_id": zod.uuid(),
+  "price_delta": zod.number().describe('Piastres added to one unit (swap = difference over the default).'),
+  "reason": zod.string().describe('`swap over <default>` | `adds` | `none`.')
+})),
+  "total": zod.number().describe('(base + options) × quantity, piastres.')
+}),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish().describe('The size the preview resolved (the request\'s, else the default size).'),
+  "warnings": zod.array(zod.object({
+  "message": zod.string(),
+  "rule": zod.string().describe('`unit_conversion` | `swap_failed` | `optional_not_found` | `optional_size_mismatch`,\nor a lint rule id (`F4`…`F10`) when added by the preview.')
+}).describe('A resolution problem that the order path only logs; the preview returns it.'))
+})
+
+
+export const GetRecipeLinkParams = zod.object({
+  "id": zod.uuid().describe('Menu item ID')
+})
+
+export const GetRecipeLinkResponse = zod.object({
+  "in_sync": zod.boolean().nullish().describe('For a copy: `true` when its stored lines equal the source\'s for every size label\nthe copy has (lint F19, twin drift). `null` for an item that is not a copy.'),
+  "linked_copy_ids": zod.array(zod.uuid()).describe('Live items whose recipe follows this one.'),
+  "menu_item_id": zod.uuid(),
+  "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows, or `null`.'),
+  "recipe_source_item_name": zod.string().nullish()
+}).describe('Link state of an item, from either side.')
+
+
+export const DeleteRecipeLinkParams = zod.object({
+  "id": zod.uuid().describe('Linked copy menu item ID')
+})
+
+export const DeleteRecipeLinkResponse = zod.object({
+  "in_sync": zod.boolean().nullish().describe('For a copy: `true` when its stored lines equal the source\'s for every size label\nthe copy has (lint F19, twin drift). `null` for an item that is not a copy.'),
+  "linked_copy_ids": zod.array(zod.uuid()).describe('Live items whose recipe follows this one.'),
+  "menu_item_id": zod.uuid(),
+  "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows, or `null`.'),
+  "recipe_source_item_name": zod.string().nullish()
+}).describe('Link state of an item, from either side.')
 
 
 export const PutSizesParams = zod.object({
@@ -7736,6 +7891,7 @@ export const PutSizesResponse = zod.object({
 })]).describe('Asset refs (WebP variants, signed), same as `GET \/menu-items\/{id}`.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "linked_copy_ids": zod.array(zod.uuid()).optional().describe('Live items whose recipe follows this one.'),
   "modifier_groups": zod.array(zod.object({
   "attachment_id": zod.uuid(),
   "group_id": zod.uuid(),
@@ -7760,6 +7916,8 @@ export const PutSizesResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "replaces_ingredient_id": zod.uuid().nullish()
@@ -7782,10 +7940,13 @@ export const PutSizesResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
+  "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
   "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
   "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
@@ -7800,6 +7961,7 @@ export const PutSizesResponse = zod.object({
   "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
 }).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')).describe('How the item is made, in order. Edited through `PUT \/recipes\/steps\/{id}`\nand saved by the studio alongside the recipe lines.'),
   "sizes": zod.array(zod.object({
+  "base_id": zod.uuid().nullish().describe('Recipe base this size expands (`PUT \/menu-item-sizes\/{id}\/base`), or `null`.'),
   "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
   "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
   "id": zod.uuid(),
@@ -7812,6 +7974,8 @@ export const PutSizesResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
@@ -7927,6 +8091,7 @@ export const GetStudioResponse = zod.object({
 })]).describe('Asset refs (WebP variants, signed), same as `GET \/menu-items\/{id}`.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "linked_copy_ids": zod.array(zod.uuid()).optional().describe('Live items whose recipe follows this one.'),
   "modifier_groups": zod.array(zod.object({
   "attachment_id": zod.uuid(),
   "group_id": zod.uuid(),
@@ -7951,6 +8116,8 @@ export const GetStudioResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "replaces_ingredient_id": zod.uuid().nullish()
@@ -7973,10 +8140,13 @@ export const GetStudioResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
   "org_id": zod.uuid(),
+  "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
   "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
   "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
@@ -7991,6 +8161,7 @@ export const GetStudioResponse = zod.object({
   "preset_slug": zod.string().nullish().describe('The preset this step uses, if any.')
 }).describe('One step, resolved for display: whatever its kind, it has a name, and a\npreset step also carries its note and the animation to play.')).describe('How the item is made, in order. Edited through `PUT \/recipes\/steps\/{id}`\nand saved by the studio alongside the recipe lines.'),
   "sizes": zod.array(zod.object({
+  "base_id": zod.uuid().nullish().describe('Recipe base this size expands (`PUT \/menu-item-sizes\/{id}\/base`), or `null`.'),
   "cost_incomplete": zod.boolean().describe('`true` when at least one recipe line is unlinked\/uncosted (so `cost_piastres`, if\npresent, is a partial figure rather than the full COGS).'),
   "cost_piastres": zod.number().nullish().describe('Recipe cost rollup in piastres over the priced ingredients. `null` when there is\nno recipe or nothing is priced; a partial rollup returns the sum-so-far with\n`cost_incomplete = true`.'),
   "id": zod.uuid(),
@@ -8003,6 +8174,8 @@ export const GetStudioResponse = zod.object({
   "ingredient_name": zod.string(),
   "line_cost_piastres": zod.number().nullish().describe('Cost of this line in piastres. `null` = UNKNOWN (ingredient unlinked\/uncosted),\nnever shown as 0. A priced line with `quantity = 0` (swap marker) costs 0.'),
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
+  "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
@@ -8047,6 +8220,25 @@ export const DeletePriceOverrideBody = zod.object({
 })
 
 export const DeletePriceOverrideResponse = zod.void()
+
+
+export const GetMenuLintQueryParams = zod.object({
+  "org_id": zod.uuid().describe('Organization to lint.'),
+  "group_id": zod.uuid().nullish().describe('Only findings about this modifier group (for the group editor).')
+})
+
+export const GetMenuLintResponseItem = zod.object({
+  "entity_id": zod.uuid(),
+  "entity_name": zod.string(),
+  "entity_type": zod.string(),
+  "group_id": zod.uuid().nullish().describe('The modifier group the finding is about, when it is group-scoped.'),
+  "item_id": zod.uuid().nullish().describe('The menu item the finding is about, when it is item-scoped.'),
+  "message": zod.string(),
+  "rule": zod.string().describe('Audit rule id, e.g. `F4`.'),
+  "severity": zod.enum(['error', 'warn']),
+  "size_label": zod.string().nullish().describe('Set when the finding is about one size of an item.')
+}).describe('One finding. `entity_type` is `attachment` | `item` | `option` | `ingredient`.')
+export const GetMenuLintResponse = zod.array(GetMenuLintResponseItem)
 
 
 export const runMetricsQueryBodyWidgetsItemSpecTwoLimitMin = 0;
@@ -8189,10 +8381,12 @@ export const SchemaResponse = zod.object({
 
 
 export const ListGroupsQueryParams = zod.object({
-  "org_id": zod.uuid().describe('Organization whose reusable modifier groups to list')
+  "org_id": zod.uuid().describe('Organization whose reusable modifier groups to list'),
+  "include_inactive": zod.boolean().optional().describe('Also list deactivated groups (default false)')
 })
 
 export const ListGroupsResponseItem = zod.object({
+  "effect": zod.string().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "is_required": zod.boolean(),
@@ -8208,17 +8402,27 @@ export const ListGroupsResponseItem = zod.object({
   "name": zod.string(),
   "name_translations": zod.unknown(),
   "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish().describe('`null` = the generic line (every size); else the per-size amount for that\nsize label (menu modeling B9). The editor must round-trip it on save.'),
+  "unit": zod.string()
+}).describe('One recipe line of a modifier option, as the group editor shows it.')).optional().describe('The option\'s recipe lines (base unit), ordered by ingredient name.'),
   "replaces_ingredient_id": zod.uuid().nullish(),
   "sort": zod.number()
 }).describe('A modifier option as returned by the reusable-group endpoints (org-scoped,\nno per-item `included`\/cost context — that belongs to the studio aggregate).')),
   "org_id": zod.uuid(),
   "selection_type": zod.string(),
-  "sort": zod.number()
+  "sort": zod.number(),
+  "swap_category_id": zod.uuid().nullish().describe('For `swaps`: the ingredient category whose recipe line each option replaces.'),
+  "swap_category_slug": zod.string().nullish()
 }).describe('A reusable modifier group with its options (org-scoped catalog view).')
 export const ListGroupsResponse = zod.array(ListGroupsResponseItem)
 
 
 export const CreateGroupBody = zod.object({
+  "effect": zod.string().nullish().describe('`none` | `adds` | `swaps` (default: derived — `swaps` for `milk_type` \/\n`coffee_type`, else `adds`).'),
   "is_required": zod.boolean().optional(),
   "legacy_addon_type": zod.string().nullish().describe('The legacy addon type this group is presented as to OLD clients through\nthe compat shim (the managed addon-type dropdown, e.g. `milk_type` \/\n`coffee_type` \/ `extra`). Swap-family behavior keys on it. `null` = a\ncustom group with no legacy lineage — INVISIBLE to old clients (the shim\nprojects `type` from this value, and the old wire requires it), so set\nit whenever the pre-teardown fleet must see the group\'s options.'),
   "max_selections": zod.number().nullish(),
@@ -8226,10 +8430,12 @@ export const CreateGroupBody = zod.object({
   "name": zod.string(),
   "name_translations": zod.unknown().optional(),
   "selection_type": zod.string().describe('\'single\' | \'multi\'.'),
-  "sort": zod.number().optional()
+  "sort": zod.number().optional(),
+  "swap_category_id": zod.uuid().nullish().describe('Required meaning for `effect = swaps`: the ingredient category swapped.')
 })
 
 export const CreateGroupResponse = zod.object({
+  "effect": zod.string().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "is_required": zod.boolean(),
@@ -8245,12 +8451,21 @@ export const CreateGroupResponse = zod.object({
   "name": zod.string(),
   "name_translations": zod.unknown(),
   "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish().describe('`null` = the generic line (every size); else the per-size amount for that\nsize label (menu modeling B9). The editor must round-trip it on save.'),
+  "unit": zod.string()
+}).describe('One recipe line of a modifier option, as the group editor shows it.')).optional().describe('The option\'s recipe lines (base unit), ordered by ingredient name.'),
   "replaces_ingredient_id": zod.uuid().nullish(),
   "sort": zod.number()
 }).describe('A modifier option as returned by the reusable-group endpoints (org-scoped,\nno per-item `included`\/cost context — that belongs to the studio aggregate).')),
   "org_id": zod.uuid(),
   "selection_type": zod.string(),
-  "sort": zod.number()
+  "sort": zod.number(),
+  "swap_category_id": zod.uuid().nullish().describe('For `swaps`: the ingredient category whose recipe line each option replaces.'),
+  "swap_category_slug": zod.string().nullish()
 }).describe('A reusable modifier group with its options (org-scoped catalog view).')
 
 
@@ -8266,16 +8481,21 @@ export const PatchGroupParams = zod.object({
 })
 
 export const PatchGroupBody = zod.object({
+  "effect": zod.string().nullish().describe('`none` | `adds` | `swaps`. Changing it re-derives `legacy_addon_type` for old\ntills: swaps milk → `milk_type`, swaps coffee_bean → `coffee_type`; otherwise\nthe provided\/existing type (a magic type on a non-swap group becomes `extra`).'),
+  "is_active": zod.boolean().nullish().describe('Reactivate (`true`) or deactivate (`false`) the group.'),
   "is_required": zod.boolean().nullish(),
-  "max_selections": zod.number().nullish(),
+  "legacy_addon_type": zod.string().nullish().describe('Absent = keep; `null` = clear (group invisible to old tills); a string = set.'),
+  "max_selections": zod.number().nullish().describe('Absent = keep; `null` = no upper bound; a number = set.'),
   "min_selections": zod.number().nullish(),
   "name": zod.string().nullish(),
   "name_translations": zod.unknown().optional(),
   "selection_type": zod.string().nullish(),
-  "sort": zod.number().nullish()
-}).describe('Every field optional — only present keys are updated. `Option<Option<T>>` (with\n`deserialize_with`) is avoided; nullable columns that must be clearable\n(`max_selections`) are handled by a dedicated presence flag pattern below.')
+  "sort": zod.number().nullish(),
+  "swap_category_id": zod.uuid().nullish().describe('Absent = keep; `null` = clear; a category id of this org = set.')
+}).describe('Every field optional — only present keys are updated. Nullable columns that must\nbe clearable (`max_selections`, `swap_category_id`, `legacy_addon_type`) use\npresence: key absent = keep, `null` = clear, value = set.')
 
 export const PatchGroupResponse = zod.object({
+  "effect": zod.string().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "is_required": zod.boolean(),
@@ -8291,12 +8511,21 @@ export const PatchGroupResponse = zod.object({
   "name": zod.string(),
   "name_translations": zod.unknown(),
   "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish().describe('`null` = the generic line (every size); else the per-size amount for that\nsize label (menu modeling B9). The editor must round-trip it on save.'),
+  "unit": zod.string()
+}).describe('One recipe line of a modifier option, as the group editor shows it.')).optional().describe('The option\'s recipe lines (base unit), ordered by ingredient name.'),
   "replaces_ingredient_id": zod.uuid().nullish(),
   "sort": zod.number()
 }).describe('A modifier option as returned by the reusable-group endpoints (org-scoped,\nno per-item `included`\/cost context — that belongs to the studio aggregate).')),
   "org_id": zod.uuid(),
   "selection_type": zod.string(),
-  "sort": zod.number()
+  "sort": zod.number(),
+  "swap_category_id": zod.uuid().nullish().describe('For `swaps`: the ingredient category whose recipe line each option replaces.'),
+  "swap_category_slug": zod.string().nullish()
 }).describe('A reusable modifier group with its options (org-scoped catalog view).')
 
 
@@ -8320,9 +8549,48 @@ export const CreateOptionResponse = zod.object({
   "name": zod.string(),
   "name_translations": zod.unknown(),
   "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish().describe('`null` = the generic line (every size); else the per-size amount for that\nsize label (menu modeling B9). The editor must round-trip it on save.'),
+  "unit": zod.string()
+}).describe('One recipe line of a modifier option, as the group editor shows it.')).optional().describe('The option\'s recipe lines (base unit), ordered by ingredient name.'),
   "replaces_ingredient_id": zod.uuid().nullish(),
   "sort": zod.number()
 }).describe('A modifier option as returned by the reusable-group endpoints (org-scoped,\nno per-item `included`\/cost context — that belongs to the studio aggregate).')
+
+
+export const GetGroupUsageParams = zod.object({
+  "gid": zod.uuid().describe('Modifier group ID')
+})
+
+export const GetGroupUsageResponseItem = zod.object({
+  "category_id": zod.uuid().nullish(),
+  "category_name": zod.string().nullish(),
+  "default_option_id": zod.uuid().nullish().describe('Swap groups only: the option preselected on this item, i.e. the first offered\noption (sort, name) carrying the recipe\'s ingredient of the swap category, on\nthe item\'s first size that has one. `null` for non-swap groups or when the\nrecipe\'s ingredient is not offered (lint F4 \/ F5).'),
+  "included_option_count": zod.number().describe('Active options this item offers.'),
+  "included_option_ids": zod.array(zod.uuid()).nullish().describe('`null` = the item offers every option of the group.'),
+  "is_required": zod.boolean().describe('Effective for this item: attachment override, else the group default.'),
+  "item_id": zod.uuid(),
+  "item_is_active": zod.boolean(),
+  "item_name": zod.string(),
+  "legacy_origin": zod.string().nullish().describe('`slot` | `allowlist` | `options` (old-till provenance).'),
+  "max_selections": zod.number().nullish(),
+  "min_selections": zod.number(),
+  "warnings": zod.array(zod.object({
+  "entity_id": zod.uuid(),
+  "entity_name": zod.string(),
+  "entity_type": zod.string(),
+  "group_id": zod.uuid().nullish().describe('The modifier group the finding is about, when it is group-scoped.'),
+  "item_id": zod.uuid().nullish().describe('The menu item the finding is about, when it is item-scoped.'),
+  "message": zod.string(),
+  "rule": zod.string().describe('Audit rule id, e.g. `F4`.'),
+  "severity": zod.enum(['error', 'warn']),
+  "size_label": zod.string().nullish().describe('Set when the finding is about one size of an item.')
+}).describe('One finding. `entity_type` is `attachment` | `item` | `option` | `ingredient`.')).describe('Lint findings F4–F10 about this item and this group.')
+}).describe('One menu item a group is attached to, as the group editor lists it.')
+export const GetGroupUsageResponse = zod.array(GetGroupUsageResponseItem)
 
 
 export const DeleteOptionParams = zod.object({
@@ -8344,7 +8612,8 @@ export const PatchOptionBody = zod.object({
 
 }).optional(),
   "price": zod.number().nullish(),
-  "replaces_ingredient_id": zod.uuid().nullish()
+  "replaces_ingredient_id": zod.uuid().nullish().describe('Absent = keep; `null` = clear the swap link; an ingredient id = set.'),
+  "sort": zod.number().nullish().describe('Display order inside the group.')
 })
 
 export const PatchOptionResponse = zod.object({
@@ -8354,6 +8623,13 @@ export const PatchOptionResponse = zod.object({
   "name": zod.string(),
   "name_translations": zod.unknown(),
   "price": zod.number(),
+  "recipe": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish().describe('`null` = the generic line (every size); else the per-size amount for that\nsize label (menu modeling B9). The editor must round-trip it on save.'),
+  "unit": zod.string()
+}).describe('One recipe line of a modifier option, as the group editor shows it.')).optional().describe('The option\'s recipe lines (base unit), ordered by ingredient name.'),
   "replaces_ingredient_id": zod.uuid().nullish(),
   "sort": zod.number()
 }).describe('A modifier option as returned by the reusable-group endpoints (org-scoped,\nno per-item `included`\/cost context — that belongs to the studio aggregate).')
@@ -8366,6 +8642,7 @@ export const PutOptionRecipeParams = zod.object({
 export const PutOptionRecipeBodyItem = zod.object({
   "ingredient_id": zod.uuid(),
   "quantity": zod.number(),
+  "size_label": zod.string().nullish().describe('Size this amount is for (`Cup`, `Can`); `null`\/absent = every size. At order\ntime a line for the ordered size\'s exact label replaces the `null` line for the\nsame ingredient. Legacy tills only ever see the `null` lines.'),
   "unit": zod.string()
 }).describe('One recipe line as submitted to the option-recipe replace endpoint. `quantity`\nmay be 0 (a swap marker). Server normalizes to the ingredient base unit.')
 export const PutOptionRecipeBody = zod.array(PutOptionRecipeBodyItem)
@@ -8373,6 +8650,7 @@ export const PutOptionRecipeBody = zod.array(PutOptionRecipeBodyItem)
 export const PutOptionRecipeResponseItem = zod.object({
   "ingredient_id": zod.uuid(),
   "quantity": zod.number(),
+  "size_label": zod.string().nullish().describe('Size this amount is for (`Cup`, `Can`); `null`\/absent = every size. At order\ntime a line for the ordered size\'s exact label replaces the `null` line for the\nsame ingredient. Legacy tills only ever see the `null` lines.'),
   "unit": zod.string()
 }).describe('One recipe line as submitted to the option-recipe replace endpoint. `quantity`\nmay be 0 (a swap marker). Server normalizes to the ingredient base unit.')
 export const PutOptionRecipeResponse = zod.array(PutOptionRecipeResponseItem)
@@ -10184,6 +10462,118 @@ export const OrgQrResponse = zod.object({
 }).describe('JSON returned from every QR-generation endpoint.')
 
 
+export const ListRulesResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "lines": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.string().describe('Base-unit quantity as a string.'),
+  "sort": zod.number(),
+  "unit": zod.string()
+})),
+  "match_category_id": zod.uuid().nullish().describe('Menu category (`categories.id`) the rule matches, or `null` = any.'),
+  "match_item_id": zod.uuid().nullish().describe('One menu item the rule matches, or `null` = any.'),
+  "match_size_label": zod.string().nullish().describe('Exact size label the rule matches (`Cup`, `Can`), or `null` = any.'),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListRulesResponse = zod.array(ListRulesResponseItem)
+
+
+export const CreateRuleBody = zod.object({
+  "is_active": zod.boolean().nullish(),
+  "lines": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "quantity": zod.number(),
+  "unit": zod.string()
+})),
+  "match_category_id": zod.uuid().nullish(),
+  "match_item_id": zod.uuid().nullish(),
+  "match_size_label": zod.string().nullish(),
+  "name": zod.string(),
+  "sort": zod.number().nullish()
+})
+
+export const CreateRuleResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "lines": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.string().describe('Base-unit quantity as a string.'),
+  "sort": zod.number(),
+  "unit": zod.string()
+})),
+  "match_category_id": zod.uuid().nullish().describe('Menu category (`categories.id`) the rule matches, or `null` = any.'),
+  "match_item_id": zod.uuid().nullish().describe('One menu item the rule matches, or `null` = any.'),
+  "match_size_label": zod.string().nullish().describe('Exact size label the rule matches (`Cup`, `Can`), or `null` = any.'),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const ApplyRulesResponse = zod.object({
+  "catalog_revision": zod.number(),
+  "sizes_changed": zod.number().describe('Sizes (incl. linked copies) whose stored lines changed.'),
+  "sizes_seen": zod.number().describe('Sizes examined (every size of every live item in the org).'),
+  "sizes_with_manual_packaging": zod.number().describe('Sizes that still have an OWN line in a packaging category: typed by hand, they\nare kept (and win over a rule for the same ingredient) — review them.'),
+  "sizes_with_rule": zod.number().describe('Sizes that now carry at least one rule line.')
+})
+
+
+export const DeleteRuleParams = zod.object({
+  "id": zod.uuid().describe('Packaging rule ID')
+})
+
+export const DeleteRuleResponse = zod.void()
+
+
+export const PatchRuleParams = zod.object({
+  "id": zod.uuid().describe('Packaging rule ID')
+})
+
+export const PatchRuleBody = zod.object({
+  "is_active": zod.boolean().nullish(),
+  "lines": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "quantity": zod.number(),
+  "unit": zod.string()
+})).nullish(),
+  "match_category_id": zod.uuid().nullish(),
+  "match_item_id": zod.uuid().nullish(),
+  "match_size_label": zod.string().nullish(),
+  "name": zod.string().nullish(),
+  "sort": zod.number().nullish()
+}).describe('Partial update. A match field is replaced only when its key is present\n(`null` clears it); `lines`, when present, replaces the whole set.')
+
+export const PatchRuleResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "lines": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.string().describe('Base-unit quantity as a string.'),
+  "sort": zod.number(),
+  "unit": zod.string()
+})),
+  "match_category_id": zod.uuid().nullish().describe('Menu category (`categories.id`) the rule matches, or `null` = any.'),
+  "match_item_id": zod.uuid().nullish().describe('One menu item the rule matches, or `null` = any.'),
+  "match_size_label": zod.string().nullish().describe('Exact size label the rule matches (`Cup`, `Can`), or `null` = any.'),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
 export const ListPaymentMethodsResponseItem = zod.object({
   "color": zod.string(),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -11857,6 +12247,190 @@ export const StreamQueryParams = zod.object({
 })
 
 export const StreamResponse = zod.unknown()
+
+
+export const ListBasesResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "item_count": zod.number().describe('Distinct menu items those sizes belong to.'),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.string().describe('Base-unit quantity as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('`null` = applies to every size; else only to sizes with this exact label (and\nwins over a `null` line for the same ingredient).'),
+  "sort": zod.number(),
+  "unit": zod.string()
+}).describe('One line of a base, stored in the ingredient\'s base unit.')),
+  "name": zod.string(),
+  "name_ar": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "size_count": zod.number().describe('Item sizes currently pointing at this base.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListBasesResponse = zod.array(ListBasesResponseItem)
+
+
+export const CreateBaseBody = zod.object({
+  "is_active": zod.boolean().nullish(),
+  "lines": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish(),
+  "sort": zod.number().nullish(),
+  "unit": zod.string()
+}).describe('A line as submitted: quantity in `unit`, normalized to the ingredient\'s base unit\n(and grossed up by yield) exactly like a size recipe line.')).nullish().describe('Optional initial lines (same as `PUT \/recipe-bases\/{id}\/lines`).'),
+  "name": zod.string(),
+  "name_ar": zod.string().nullish()
+})
+
+export const CreateBaseResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "item_count": zod.number().describe('Distinct menu items those sizes belong to.'),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.string().describe('Base-unit quantity as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('`null` = applies to every size; else only to sizes with this exact label (and\nwins over a `null` line for the same ingredient).'),
+  "sort": zod.number(),
+  "unit": zod.string()
+}).describe('One line of a base, stored in the ingredient\'s base unit.')),
+  "name": zod.string(),
+  "name_ar": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "size_count": zod.number().describe('Item sizes currently pointing at this base.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const GetBaseParams = zod.object({
+  "id": zod.uuid().describe('Recipe base ID')
+})
+
+export const GetBaseResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "item_count": zod.number().describe('Distinct menu items those sizes belong to.'),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.string().describe('Base-unit quantity as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('`null` = applies to every size; else only to sizes with this exact label (and\nwins over a `null` line for the same ingredient).'),
+  "sort": zod.number(),
+  "unit": zod.string()
+}).describe('One line of a base, stored in the ingredient\'s base unit.')),
+  "name": zod.string(),
+  "name_ar": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "size_count": zod.number().describe('Item sizes currently pointing at this base.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const DeleteBaseParams = zod.object({
+  "id": zod.uuid().describe('Recipe base ID')
+})
+
+export const DeleteBaseResponse = zod.void()
+
+
+export const PatchBaseParams = zod.object({
+  "id": zod.uuid().describe('Recipe base ID')
+})
+
+export const PatchBaseBody = zod.object({
+  "is_active": zod.boolean().nullish().describe('Deactivating a base removes its expanded lines from every size using it\n(the pointer stays); reactivating restores them.'),
+  "name": zod.string().nullish(),
+  "name_ar": zod.string().nullish().describe('`\"\"` clears the Arabic name.')
+})
+
+export const PatchBaseResponse = zod.object({
+  "base": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "item_count": zod.number().describe('Distinct menu items those sizes belong to.'),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.string().describe('Base-unit quantity as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('`null` = applies to every size; else only to sizes with this exact label (and\nwins over a `null` line for the same ingredient).'),
+  "sort": zod.number(),
+  "unit": zod.string()
+}).describe('One line of a base, stored in the ingredient\'s base unit.')),
+  "name": zod.string(),
+  "name_ar": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "size_count": zod.number().describe('Item sizes currently pointing at this base.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "catalog_revision": zod.number(),
+  "sizes_changed": zod.number().describe('Sizes (incl. linked copies) whose stored lines changed.')
+}).describe('Result of any write that re-expanded recipes.')
+
+
+export const PutBaseLinesParams = zod.object({
+  "id": zod.uuid().describe('Recipe base ID')
+})
+
+export const PutBaseLinesBody = zod.object({
+  "lines": zod.array(zod.object({
+  "ingredient_id": zod.uuid(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish(),
+  "sort": zod.number().nullish(),
+  "unit": zod.string()
+}).describe('A line as submitted: quantity in `unit`, normalized to the ingredient\'s base unit\n(and grossed up by yield) exactly like a size recipe line.'))
+})
+
+export const PutBaseLinesResponse = zod.object({
+  "base": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "item_count": zod.number().describe('Distinct menu items those sizes belong to.'),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "quantity": zod.string().describe('Base-unit quantity as a string (numeric fidelity).'),
+  "size_label": zod.string().nullish().describe('`null` = applies to every size; else only to sizes with this exact label (and\nwins over a `null` line for the same ingredient).'),
+  "sort": zod.number(),
+  "unit": zod.string()
+}).describe('One line of a base, stored in the ingredient\'s base unit.')),
+  "name": zod.string(),
+  "name_ar": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "size_count": zod.number().describe('Item sizes currently pointing at this base.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "catalog_revision": zod.number(),
+  "sizes_changed": zod.number().describe('Sizes (incl. linked copies) whose stored lines changed.')
+}).describe('Result of any write that re-expanded recipes.')
+
+
+export const GetBaseUsageParams = zod.object({
+  "id": zod.uuid().describe('Recipe base ID')
+})
+
+export const GetBaseUsageResponse = zod.object({
+  "base_id": zod.uuid(),
+  "item_count": zod.number(),
+  "size_count": zod.number(),
+  "sizes": zod.array(zod.object({
+  "menu_item_id": zod.uuid(),
+  "menu_item_name": zod.string(),
+  "size_id": zod.uuid(),
+  "size_label": zod.string()
+}))
+})
 
 
 export const ListAddonIngredientsParams = zod.object({
