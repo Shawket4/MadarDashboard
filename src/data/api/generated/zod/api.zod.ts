@@ -1159,6 +1159,7 @@ export const ListBranchesResponseItem = zod.object({
   "old_bill_hours": zod.number().min(1).max(listBranchesResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1208,6 +1209,7 @@ export const CreateBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(createBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1246,6 +1248,7 @@ export const GetBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(getBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1311,6 +1314,7 @@ export const UpdateBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(updateBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -1387,6 +1391,7 @@ export const PatchBranchResponse = zod.object({
   "old_bill_hours": zod.number().min(1).max(patchBranchResponseOldBillHoursMax).describe('A bill left open longer than this many hours is flagged as OLD (till\nopen notice, close warning, Z report). 1..168, default 3.'),
   "org_id": zod.uuid(),
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
+  "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
@@ -11203,6 +11208,8 @@ export const PutRecipeStepsParams = zod.object({
 export const PutRecipeStepsBody = zod.object({
   "steps": zod.array(zod.object({
   "kind": zod.string().describe('`preset` | `custom`.'),
+  "note": zod.string().nullish().describe('What THIS item does at this step (\"40ml condensed milk, mixed with the\nshot first\"). Valid on a preset step too, where it replaces the\nlibrary\'s generic note without giving up the animation.'),
+  "note_ar": zod.string().nullish(),
   "preset_slug": zod.string().nullish().describe('Required for `preset`.'),
   "title": zod.string().nullish().describe('The typed name, for `custom`. Either language will do.'),
   "title_ar": zod.string().nullish()

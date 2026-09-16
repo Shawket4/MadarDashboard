@@ -415,8 +415,19 @@ export function MenuStudioPage() {
           await putRecipeSteps(itemId, {
             steps: steps.map((s) =>
               s.kind === "preset"
-                ? { kind: "preset", preset_slug: s.preset_slug }
-                : { kind: "custom", title: s.title.trim() || null, title_ar: s.title_ar.trim() || null },
+                ? {
+                    kind: "preset",
+                    preset_slug: s.preset_slug,
+                    note: s.note.trim() || null,
+                    note_ar: s.note_ar.trim() || null,
+                  }
+                : {
+                    kind: "custom",
+                    title: s.title.trim() || null,
+                    title_ar: s.title_ar.trim() || null,
+                    note: s.note.trim() || null,
+                    note_ar: s.note_ar.trim() || null,
+                  },
             ),
           });
         } catch (e) {

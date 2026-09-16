@@ -70,7 +70,7 @@ export function SectionSteps({ steps, setSteps }: Props) {
           return (
             <li
               key={`${step.kind}-${step.preset_slug ?? ""}-${idx}`}
-              className="flex items-center gap-3 rounded-lg border bg-card p-2.5"
+              className="flex items-start gap-3 rounded-lg border bg-card p-2.5"
             >
               <GripVertical aria-hidden className="size-4 shrink-0 text-muted-foreground/50" />
               <span className="w-5 shrink-0 text-center text-sm font-semibold tabular text-muted-foreground">
@@ -78,7 +78,7 @@ export function SectionSteps({ steps, setSteps }: Props) {
               </span>
               <StepPreview url={preset?.animation_url} size={44} play={false} />
 
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 space-y-2">
                 {step.kind === "preset" ? (
                   <>
                     <p className="truncate text-sm font-medium">
@@ -107,6 +107,29 @@ export function SectionSteps({ steps, setSteps }: Props) {
                     />
                   </div>
                 )}
+
+                {/* What this drink does at this step. On a preset it replaces
+                    the library's generic note and keeps the animation; leave it
+                    empty and the preset's own wording shows. */}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Input
+                    value={step.note}
+                    onChange={(e) => setTitle(idx, { note: e.target.value })}
+                    placeholder={t("menu.studio.steps.notePlaceholder", "For this drink — e.g. 40ml condensed milk")}
+                    aria-label={t("menu.studio.steps.noteEn", "Note (English)")}
+                    className="h-8 text-xs"
+                    maxLength={280}
+                  />
+                  <Input
+                    value={step.note_ar}
+                    onChange={(e) => setTitle(idx, { note_ar: e.target.value })}
+                    placeholder={t("menu.studio.steps.notePlaceholderAr", "ملاحظة لهذا المشروب")}
+                    dir="rtl"
+                    aria-label={t("menu.studio.steps.noteAr", "Note (Arabic)")}
+                    className="h-8 text-xs"
+                    maxLength={280}
+                  />
+                </div>
               </div>
 
               <div className="flex shrink-0 items-center gap-0.5">
@@ -144,7 +167,7 @@ export function SectionSteps({ steps, setSteps }: Props) {
         </Button>
         <Button
           type="button" variant="ghost" size="sm"
-          onClick={() => setSteps((prev) => [...prev, { kind: "custom", preset_slug: null, title: "", title_ar: "" }])}
+          onClick={() => setSteps((prev) => [...prev, { kind: "custom", preset_slug: null, title: "", title_ar: "", note: "", note_ar: "" }])}
         >
           <Type className="size-4" />
           {t("menu.studio.steps.addCustom", "Write your own")}
@@ -175,7 +198,7 @@ export function SectionSteps({ steps, setSteps }: Props) {
                   key={p.slug}
                   type="button"
                   onClick={() => {
-                    setSteps((prev) => [...prev, { kind: "preset", preset_slug: p.slug, title: "", title_ar: "" }]);
+                    setSteps((prev) => [...prev, { kind: "preset", preset_slug: p.slug, title: "", title_ar: "", note: "", note_ar: "" }]);
                     setPicking(false);
                   }}
                   className={cn(
@@ -197,7 +220,7 @@ export function SectionSteps({ steps, setSteps }: Props) {
             <Button
               type="button" variant="ghost"
               onClick={() => {
-                setSteps((prev) => [...prev, { kind: "custom", preset_slug: null, title: "", title_ar: "" }]);
+                setSteps((prev) => [...prev, { kind: "custom", preset_slug: null, title: "", title_ar: "", note: "", note_ar: "" }]);
                 setPicking(false);
               }}
             >
