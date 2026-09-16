@@ -5,14 +5,18 @@
 import {
   useGetAvailability,
   useGetEffective,
+  useCreateCode,
   useListClientVersions,
+  useListCodes,
   useListDevices,
+  useRevokeCode,
   usePutBranchAvailability,
   usePutDeviceAvailability,
   usePutUserAvailability,
   useUpdateDevice,
 } from "@/data/api/generated/api";
 import type {
+  ActivationCode,
   AllowList,
   ClientSeen,
   Device,
@@ -23,7 +27,7 @@ import type {
 import { queryClient } from "@/data/api/query";
 
 export type PatchDeviceRequest = UpdateDeviceRequest;
-export type { AllowList, ClientSeen, Device, DeviceKind, PaymentMethodAvailability };
+export type { ActivationCode, AllowList, ClientSeen, Device, DeviceKind, PaymentMethodAvailability };
 
 export type AvailabilityScope = "branches" | "users" | "devices";
 
@@ -41,6 +45,19 @@ export function useDevices(branchId: string | null | undefined) {
 /** Clients seen in the window (org-wide without a branch); `legacyOnly` keeps those still on pre-rework paths. */
 export function useClientVersions(branchId: string | null | undefined, legacyOnly: boolean, days = 14) {
   return useListClientVersions({ branch_id: branchId || undefined, legacy_only: legacyOnly, days });
+}
+
+/** A branch's device activation codes (POS_SIGNIN_OVERHAUL §4), newest first. */
+export function useActivationCodes(branchId: string | null | undefined) {
+  return useListCodes({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } });
+}
+
+export function useIssueActivationCode() {
+  return useCreateCode({ mutation: { onSuccess: () => void invalidate("/devices/activation-codes") } });
+}
+
+export function useRevokeActivationCode() {
+  return useRevokeCode({ mutation: { onSuccess: () => void invalidate("/devices/activation-codes") } });
 }
 
 export function usePatchDevice() {

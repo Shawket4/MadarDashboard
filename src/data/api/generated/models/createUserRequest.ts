@@ -25,11 +25,13 @@ export interface CreateUserRequest {
   /** @nullable */
   phone?: string | null;
   /**
-     * Required when `role = teller`. 4–6 ASCII digits.
-     * @minLength 4
+     * Required when `role = teller`. A NEW PIN is exactly 6 ASCII digits
+     * (owner decision, 2026-09-16); PINs already in use keep working at their
+     * old length. Ask `GET /users/pin-suggestion` for a free one.
+     * @minLength 6
      * @maxLength 6
      * @nullable
-     * @pattern ^[0-9]{4,6}$
+     * @pattern ^[0-9]{6}$
      */
   pin?: string | null;
   role: UserRole;

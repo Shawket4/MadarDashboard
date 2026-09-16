@@ -495,6 +495,44 @@ export const GetJobResponse = zod.object({
 })
 
 
+export const ActivateBody = zod.object({
+  "app_version": zod.string().nullish(),
+  "code": zod.string().describe('The 8-digit code from the dashboard.'),
+  "device_code": zod.string().nullish().describe('The device\'s short code on receipts (`T1`); a default is derived when\nabsent or invalid.'),
+  "device_id": zod.uuid().describe('The install\'s own id (the core\'s `lan_device_id`).'),
+  "platform": zod.string().nullish()
+})
+
+export const ActivateResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "device": zod.object({
+  "app_version": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "code": zod.string(),
+  "code_conflict": zod.boolean().describe('Another live device at the same branch uses the same code.'),
+  "first_seen_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "org_id": zod.uuid(),
+  "platform": zod.string().nullish(),
+  "retired_at": zod.iso.datetime({"offset":true}).nullish()
+}),
+  "device_token": zod.string().describe('The device\'s own credential. Returned ONCE; store it in the device\nvault. Sent later as `X-Madar-Device-Token`.'),
+  "org_id": zod.uuid(),
+  "org_name": zod.string()
+})
+
+
+export const AuthzKeysResponseItem = zod.object({
+  "kid": zod.string(),
+  "public_key": zod.string().describe('Hex-encoded 32-byte Ed25519 public key.')
+}).describe('A public key a device verifies snapshots with.')
+export const AuthzKeysResponse = zod.array(AuthzKeysResponseItem)
+
+
 export const loginBodyPinMin = 4;
 export const loginBodyPinMax = 6;
 
@@ -505,7 +543,7 @@ export const loginBodyPinRegExp = new RegExp('^[0-9]{4,6}$');
 export const LoginBody = zod.object({
   "branch_id": zod.uuid().nullish().describe('Required for PIN login. The org is derived from this branch server-side.'),
   "email": zod.email().nullish(),
-  "name": zod.string().nullish().describe('Teller\'s display name (required for PIN login, unused otherwise).'),
+  "name": zod.string().nullish().describe('The person\'s display name. Optional for PIN login: without it the PIN\nalone identifies the person (PIN-only sign-in, org-wide unique PINs).\nOld tablets send it and keep the name-narrowed lookup.'),
   "org_id": zod.uuid().nullish(),
   "password": zod.string().nullish(),
   "pin": zod.string().min(loginBodyPinMin).max(loginBodyPinMax).regex(loginBodyPinRegExp).nullish()
@@ -590,6 +628,430 @@ export const ResolveBranchResponse = zod.object({
   "branch_id": zod.uuid(),
   "branch_name": zod.string(),
   "distance_meters": zod.number().describe('Straight-line distance from the supplied coordinates to the branch, in metres.')
+})
+
+
+export const ExplainQueryParams = zod.object({
+  "user_id": zod.uuid(),
+  "capability": zod.string(),
+  "branch_id": zod.uuid().optional()
+})
+
+export const ExplainResponse = zod.object({
+  "ask_manager": zod.boolean(),
+  "capability": zod.string(),
+  "effective": zod.boolean(),
+  "label_ar": zod.string(),
+  "label_en": zod.string(),
+  "steps": zod.array(zod.object({
+  "applies_here": zod.boolean().nullish().describe('For an assignment step: does the assignment cover the branch asked about?'),
+  "branch_id": zod.uuid().nullish(),
+  "detail": zod.string().nullish(),
+  "grants": zod.boolean().nullish().describe('For an assignment step: does the role grant the capability?'),
+  "kind": zod.string().describe('owner | inactive | assignment | core | override_allow | override_deny |\nprotected | not_held | limit | ask_manager'),
+  "role_name": zod.string().nullish(),
+  "role_name_ar": zod.string().nullish().describe('The role\'s Arabic name, beside `role_name`.')
+}))
+})
+
+
+export const ListFlagsQueryParams = zod.object({
+  "include_reviewed": zod.boolean().optional().describe('Include flags already reviewed. Default false: the queue is what is left\nto look at.')
+})
+
+export const ListFlagsResponseItem = zod.object({
+  "author_id": zod.uuid(),
+  "author_name": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "capability": zod.string().describe('The `resource:action` cell the author did not hold.'),
+  "created_at": zod.iso.datetime({"offset":true}).describe('When it reached us. The gap is the offline window.'),
+  "id": zod.number(),
+  "occurred_at": zod.iso.datetime({"offset":true}).describe('When the act happened on the device.'),
+  "op": zod.string().describe('The replayed op, e.g. `CashMovement`.'),
+  "reason": zod.string().describe('`stale_snapshot` — they held it when they acted and the device had not\nheard the revocation yet. `unauthorized_offline` — nothing explains it.\n`pin_wrong_branch` — their correct PIN was typed at a branch they may\nnot sign in at (`op` = `PinSignIn`, `details.attempts` counts the tries).'),
+  "reviewed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "reviewed_by": zod.uuid().nullish()
+}).describe('One offline act that was accepted despite failing the permission re-check\n(PERMISSIONS_ARCHITECTURE §4.4.5). The money already moved; this is the\nowner\'s notice, not a rollback.')
+export const ListFlagsResponse = zod.array(ListFlagsResponseItem)
+
+
+/**
+ * @summary Mark one flag as looked at. It is an acknowledgement, not an approval: the
+act is already on the books either way, so there is nothing here to undo or
+let through.
+ */
+export const ReviewFlagParams = zod.object({
+  "id": zod.number()
+})
+
+export const ReviewFlagResponse = zod.object({
+  "author_id": zod.uuid(),
+  "author_name": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "capability": zod.string().describe('The `resource:action` cell the author did not hold.'),
+  "created_at": zod.iso.datetime({"offset":true}).describe('When it reached us. The gap is the offline window.'),
+  "id": zod.number(),
+  "occurred_at": zod.iso.datetime({"offset":true}).describe('When the act happened on the device.'),
+  "op": zod.string().describe('The replayed op, e.g. `CashMovement`.'),
+  "reason": zod.string().describe('`stale_snapshot` — they held it when they acted and the device had not\nheard the revocation yet. `unauthorized_offline` — nothing explains it.\n`pin_wrong_branch` — their correct PIN was typed at a branch they may\nnot sign in at (`op` = `PinSignIn`, `details.attempts` counts the tries).'),
+  "reviewed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "reviewed_by": zod.uuid().nullish()
+}).describe('One offline act that was accepted despite failing the permission re-check\n(PERMISSIONS_ARCHITECTURE §4.4.5). The money already moved; this is the\nowner\'s notice, not a rollback.')
+
+
+export const GetMyAuthzQueryParams = zod.object({
+  "branch_id": zod.uuid().optional()
+})
+
+export const getMyAuthzResponseSpecVersionMin = 0;
+
+
+
+export const GetMyAuthzResponse = zod.object({
+  "ask_manager": zod.array(zod.string()).describe('Capabilities not held that show \"ask a manager\" instead of nothing.'),
+  "branch_id": zod.uuid().nullish(),
+  "capabilities": zod.array(zod.string()).describe('Capability keys held.'),
+  "epoch": zod.number(),
+  "limits": zod.record(zod.string(), zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+})).describe('Limits on held capabilities, by key; absent = unlimited.'),
+  "owner": zod.boolean(),
+  "platform": zod.boolean(),
+  "role_kinds": zod.array(zod.string()).describe('Role kinds held here (org_admin, branch_manager, teller, waiter, kitchen).'),
+  "spec_version": zod.number().min(getMyAuthzResponseSpecVersionMin),
+  "user_id": zod.uuid()
+}).describe('What the signed-in person may do. The dashboard and POS gate on this.')
+
+
+export const GetPolicyResponseItem = zod.object({
+  "ask_manager": zod.boolean(),
+  "capability": zod.string()
+})
+export const GetPolicyResponse = zod.array(GetPolicyResponseItem)
+
+
+export const SetPolicyBody = zod.object({
+  "ask_manager": zod.boolean(),
+  "capability": zod.string()
+})
+
+export const SetPolicyResponseItem = zod.object({
+  "ask_manager": zod.boolean(),
+  "capability": zod.string()
+})
+export const SetPolicyResponse = zod.array(SetPolicyResponseItem)
+
+
+export const ListRolesResponseItem = zod.object({
+  "editable": zod.boolean().describe('The owner role holds everything and is not editable.'),
+  "grants": zod.array(zod.object({
+  "capability": zod.string(),
+  "limits": zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+}),
+  "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
+})),
+  "id": zod.uuid(),
+  "is_system": zod.boolean(),
+  "key": zod.string(),
+  "kind": zod.string().describe('What the role behaves like on older tablets, and its core grants.'),
+  "members": zod.number(),
+  "name_ar": zod.string(),
+  "name_en": zod.string()
+})
+export const ListRolesResponse = zod.array(ListRolesResponseItem)
+
+
+export const CreateRoleBody = zod.object({
+  "copy_from": zod.uuid().nullish().describe('Start from this role\'s grants; otherwise from the default template.'),
+  "kind": zod.string().describe('branch_manager | teller | waiter | kitchen'),
+  "name_ar": zod.string(),
+  "name_en": zod.string()
+})
+
+export const CreateRoleResponse = zod.object({
+  "editable": zod.boolean().describe('The owner role holds everything and is not editable.'),
+  "grants": zod.array(zod.object({
+  "capability": zod.string(),
+  "limits": zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+}),
+  "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
+})),
+  "id": zod.uuid(),
+  "is_system": zod.boolean(),
+  "key": zod.string(),
+  "kind": zod.string().describe('What the role behaves like on older tablets, and its core grants.'),
+  "members": zod.number(),
+  "name_ar": zod.string(),
+  "name_en": zod.string()
+})
+
+
+export const DeleteRoleParams = zod.object({
+  "id": zod.uuid().describe('Role ID')
+})
+
+export const DeleteRoleResponse = zod.void()
+
+
+export const RenameRoleParams = zod.object({
+  "id": zod.uuid().describe('Role ID')
+})
+
+export const RenameRoleBody = zod.object({
+  "name_ar": zod.string().nullish(),
+  "name_en": zod.string().nullish()
+})
+
+export const RenameRoleResponse = zod.object({
+  "editable": zod.boolean().describe('The owner role holds everything and is not editable.'),
+  "grants": zod.array(zod.object({
+  "capability": zod.string(),
+  "limits": zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+}),
+  "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
+})),
+  "id": zod.uuid(),
+  "is_system": zod.boolean(),
+  "key": zod.string(),
+  "kind": zod.string().describe('What the role behaves like on older tablets, and its core grants.'),
+  "members": zod.number(),
+  "name_ar": zod.string(),
+  "name_en": zod.string()
+})
+
+
+export const SetRoleGrantParams = zod.object({
+  "id": zod.uuid().describe('Role ID')
+})
+
+export const SetRoleGrantBody = zod.object({
+  "capability": zod.string(),
+  "granted": zod.boolean(),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+})]).optional()
+})
+
+export const SetRoleGrantResponse = zod.object({
+  "editable": zod.boolean().describe('The owner role holds everything and is not editable.'),
+  "grants": zod.array(zod.object({
+  "capability": zod.string(),
+  "limits": zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+}),
+  "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
+})),
+  "id": zod.uuid(),
+  "is_system": zod.boolean(),
+  "key": zod.string(),
+  "kind": zod.string().describe('What the role behaves like on older tablets, and its core grants.'),
+  "members": zod.number(),
+  "name_ar": zod.string(),
+  "name_en": zod.string()
+})
+
+
+export const UserAccessParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const UserAccessQueryParams = zod.object({
+  "branch_id": zod.uuid().optional()
+})
+
+export const UserAccessResponse = zod.object({
+  "assignments": zod.array(zod.object({
+  "all_branches": zod.boolean(),
+  "branch_ids": zod.array(zod.uuid()),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "role_id": zod.uuid(),
+  "role_name_ar": zod.string(),
+  "role_name_en": zod.string()
+})),
+  "branch_id": zod.uuid().nullish(),
+  "can_edit": zod.boolean().describe('Can the caller edit this person\'s access at all?'),
+  "capabilities": zod.array(zod.object({
+  "capability": zod.string(),
+  "editable": zod.boolean().describe('Can the caller change this row for this person?'),
+  "effective": zod.boolean().describe('Held here after everything.'),
+  "from_roles": zod.array(zod.string()).describe('Role names granting it (for \"Inherits from …\").'),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+})]).optional(),
+  "overrides": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "effect": zod.string(),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+})]).optional(),
+  "reason": zod.string().nullish(),
+  "valid_to": zod.iso.datetime({"offset":true}).nullish()
+})),
+  "source": zod.string().describe('Where the answer comes from: owner | core | allow | deny | role | none.')
+})),
+  "is_owner": zod.boolean(),
+  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | missing_authority).'),
+  "name": zod.string(),
+  "user_id": zod.uuid()
+})
+
+
+export const SetAssignmentsParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const SetAssignmentsBody = zod.object({
+  "assignments": zod.array(zod.object({
+  "all_branches": zod.boolean(),
+  "branch_ids": zod.array(zod.uuid()).optional(),
+  "role_id": zod.uuid()
+}))
+})
+
+export const SetAssignmentsResponse = zod.object({
+  "assignments": zod.array(zod.object({
+  "all_branches": zod.boolean(),
+  "branch_ids": zod.array(zod.uuid()),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "role_id": zod.uuid(),
+  "role_name_ar": zod.string(),
+  "role_name_en": zod.string()
+})),
+  "branch_id": zod.uuid().nullish(),
+  "can_edit": zod.boolean().describe('Can the caller edit this person\'s access at all?'),
+  "capabilities": zod.array(zod.object({
+  "capability": zod.string(),
+  "editable": zod.boolean().describe('Can the caller change this row for this person?'),
+  "effective": zod.boolean().describe('Held here after everything.'),
+  "from_roles": zod.array(zod.string()).describe('Role names granting it (for \"Inherits from …\").'),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+})]).optional(),
+  "overrides": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "effect": zod.string(),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+})]).optional(),
+  "reason": zod.string().nullish(),
+  "valid_to": zod.iso.datetime({"offset":true}).nullish()
+})),
+  "source": zod.string().describe('Where the answer comes from: owner | core | allow | deny | role | none.')
+})),
+  "is_owner": zod.boolean(),
+  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | missing_authority).'),
+  "name": zod.string(),
+  "user_id": zod.uuid()
+})
+
+
+export const SetOverrideParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const SetOverrideBody = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "capability": zod.string(),
+  "effect": zod.string().describe('inherit | allow | deny'),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+})]).optional(),
+  "reason": zod.string().nullish(),
+  "valid_to": zod.iso.datetime({"offset":true}).nullish()
+})
+
+export const SetOverrideResponse = zod.object({
+  "assignments": zod.array(zod.object({
+  "all_branches": zod.boolean(),
+  "branch_ids": zod.array(zod.uuid()),
+  "id": zod.uuid(),
+  "kind": zod.string(),
+  "role_id": zod.uuid(),
+  "role_name_ar": zod.string(),
+  "role_name_en": zod.string()
+})),
+  "branch_id": zod.uuid().nullish(),
+  "can_edit": zod.boolean().describe('Can the caller edit this person\'s access at all?'),
+  "capabilities": zod.array(zod.object({
+  "capability": zod.string(),
+  "editable": zod.boolean().describe('Can the caller change this row for this person?'),
+  "effective": zod.boolean().describe('Held here after everything.'),
+  "from_roles": zod.array(zod.string()).describe('Role names granting it (for \"Inherits from …\").'),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+})]).optional(),
+  "overrides": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "effect": zod.string(),
+  "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
+  "max_amount": zod.number().nullish().describe('Money, minor units.'),
+  "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
+})]).optional(),
+  "reason": zod.string().nullish(),
+  "valid_to": zod.iso.datetime({"offset":true}).nullish()
+})),
+  "source": zod.string().describe('Where the answer comes from: owner | core | allow | deny | role | none.')
+})),
+  "is_owner": zod.boolean(),
+  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | missing_authority).'),
+  "name": zod.string(),
+  "user_id": zod.uuid()
 })
 
 
@@ -2774,6 +3236,175 @@ export const ListSkuCostsResponseItem = zod.object({
 export const ListSkuCostsResponse = zod.array(ListSkuCostsResponseItem)
 
 
+export const ListCustomersQueryParams = zod.object({
+  "q": zod.string().optional().describe('Matches name (contains) or phone (digits).'),
+  "limit": zod.number().optional().describe('Default 100, at most 500.'),
+  "offset": zod.number().optional()
+})
+
+export const ListCustomersResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "orders_count": zod.number(),
+  "phone": zod.string().nullish(),
+  "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListCustomersResponse = zod.array(ListCustomersResponseItem)
+
+
+export const CreateCustomerBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch where the customer was added (a till sends its own).'),
+  "id": zod.uuid().nullish().describe('Client-minted id; a repeat with the same id returns the stored customer.'),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "phone": zod.string().nullish()
+})
+
+export const CreateCustomerResponse = zod.object({
+  "customer": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "orders_count": zod.number(),
+  "phone": zod.string().nullish(),
+  "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
+  "recent_orders": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "status": zod.string(),
+  "total_amount": zod.number()
+})),
+  "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
+})
+
+
+export const GetCustomerParams = zod.object({
+  "id": zod.uuid().describe('Customer id (a merged id resolves)')
+})
+
+export const GetCustomerResponse = zod.object({
+  "customer": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "orders_count": zod.number(),
+  "phone": zod.string().nullish(),
+  "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
+  "recent_orders": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "status": zod.string(),
+  "total_amount": zod.number()
+})),
+  "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
+})
+
+
+export const UpdateCustomerParams = zod.object({
+  "id": zod.uuid().describe('Customer id')
+})
+
+export const UpdateCustomerBody = zod.object({
+  "loyalty_customer_id": zod.uuid().nullish().describe('Absent = unchanged.'),
+  "name": zod.string().nullish(),
+  "notes": zod.string().nullish().describe('Absent = unchanged; `\"\"` clears.'),
+  "phone": zod.string().nullish().describe('Absent = unchanged; `\"\"` clears.'),
+  "unlink_loyalty": zod.boolean().optional().describe('`true` unlinks the loyalty member.')
+})
+
+export const UpdateCustomerResponse = zod.object({
+  "customer": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "orders_count": zod.number(),
+  "phone": zod.string().nullish(),
+  "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
+  "recent_orders": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "status": zod.string(),
+  "total_amount": zod.number()
+})),
+  "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
+})
+
+
+export const EraseCustomerParams = zod.object({
+  "id": zod.uuid().describe('Customer id')
+})
+
+export const EraseCustomerResponse = zod.void()
+
+
+export const MergeCustomerParams = zod.object({
+  "id": zod.uuid().describe('The duplicate, which stops being listed')
+})
+
+export const MergeCustomerBody = zod.object({
+  "into": zod.uuid().describe('The customer that stays.')
+})
+
+export const MergeCustomerResponse = zod.object({
+  "customer": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "orders_count": zod.number(),
+  "phone": zod.string().nullish(),
+  "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
+  "recent_orders": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "status": zod.string(),
+  "total_amount": zod.number()
+})),
+  "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
+})
+
+
 export const ListDeliveryOrdersQueryParams = zod.object({
   "branch_id": zod.uuid(),
   "status": zod.string().nullish().describe('Comma-separated statuses to include (default: all).'),
@@ -3510,6 +4141,66 @@ export const ListDevicesResponseItem = zod.object({
 export const ListDevicesResponse = zod.array(ListDevicesResponseItem)
 
 
+export const ListCodesQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const ListCodesResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "code": zod.string().describe('The 8 digits. Shown while free; kept afterwards so the list reads.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "expires_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "state": zod.enum(['free', 'used', 'expired', 'revoked']),
+  "used_at": zod.iso.datetime({"offset":true}).nullish(),
+  "used_by_device": zod.uuid().nullish()
+})
+export const ListCodesResponse = zod.array(ListCodesResponseItem)
+
+
+export const CreateCodeBody = zod.object({
+  "branch_id": zod.uuid(),
+  "kind": zod.union([zod.null(),zod.enum(['pos', 'kds', 'waiter']).describe('`pos` (default) | `kds` | `waiter`')]).optional(),
+  "label": zod.string().nullish().describe('A name for the tablet it is meant for (\"Front counter\").')
+})
+
+export const CreateCodeResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "code": zod.string().describe('The 8 digits. Shown while free; kept afterwards so the list reads.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "expires_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "state": zod.enum(['free', 'used', 'expired', 'revoked']),
+  "used_at": zod.iso.datetime({"offset":true}).nullish(),
+  "used_by_device": zod.uuid().nullish()
+})
+
+
+export const RevokeCodeParams = zod.object({
+  "id": zod.uuid().describe('Activation code id')
+})
+
+export const RevokeCodeResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "code": zod.string().describe('The 8 digits. Shown while free; kept afterwards so the list reads.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "expires_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "state": zod.enum(['free', 'used', 'expired', 'revoked']),
+  "used_at": zod.iso.datetime({"offset":true}).nullish(),
+  "used_by_device": zod.uuid().nullish()
+})
+
+
 export const ListClientVersionsQueryParams = zod.object({
   "legacy_only": zod.boolean().optional().describe('Only clients that took a legacy path within the window (default `true`).'),
   "days": zod.number().optional().describe('Look-back window in days, 1..=365 (default 14 — the G-old gate).'),
@@ -3531,6 +4222,16 @@ export const ListClientVersionsResponseItem = zod.object({
   "legacy_kinds": zod.array(zod.string()).describe('Every legacy kind this client has hit.')
 }).describe('One device (or device-less client) as last seen.')
 export const ListClientVersionsResponse = zod.array(ListClientVersionsResponseItem)
+
+
+export const DeviceSnapshotHeader = zod.object({
+  "X-Madar-Device": zod.string().describe('The device id'),
+  "X-Madar-Device-Token": zod.string().describe('The credential issued at activation')
+})
+
+export const DeviceSnapshotResponse = zod.looseObject({
+
+})
 
 
 export const RegisterDeviceBody = zod.object({
@@ -8344,6 +9045,7 @@ export const CreateOrderBody = zod.object({
   "branch_id": zod.uuid(),
   "change_given": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}).nullish(),
+  "customer_id": zod.uuid().nullish().describe('A manual customer (phase 6), attached when the actor holds\n`customers.attach`. A merged id resolves; an unknown one is ignored —\na sale is never refused over its customer.'),
   "customer_name": zod.string().nullish(),
   "device_code": zod.string().nullish().describe('The device\'s code; with `device_id` + `order_number` the number is stored verbatim.'),
   "device_id": zod.uuid().nullish().describe('The device ringing the order (else `X-Madar-Device`).'),
@@ -9070,6 +9772,7 @@ export const CreateOrgBody = zod.object({
   "slug": zod.string(),
   "tax_inclusive": zod.boolean().nullish().describe('Are menu prices tax-inclusive? Default false (tax added on top).'),
   "tax_rate": zod.number().nullish().describe('A FRACTION: 0.14 is 14%. Same unit as `PATCH \/orgs\/{id}`.'),
+  "template": zod.string().nullish().describe('Role template the org starts from: `restaurant` (default) or `cafe`.'),
   "timezone": zod.string().nullish()
 })
 
@@ -9097,6 +9800,71 @@ export const CreateOrgResponse = zod.object({
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
+
+
+export const ProvisionOrgBody = zod.object({
+  "branch": zod.object({
+  "address": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish()
+}),
+  "currency_code": zod.string().nullish(),
+  "name": zod.string(),
+  "owner": zod.object({
+  "email": zod.string(),
+  "name": zod.string(),
+  "password": zod.string().describe('At least 8 characters.'),
+  "pin": zod.string().nullish().describe('Optional six-digit PIN so the owner can also work a till.')
+}),
+  "slug": zod.string(),
+  "tax_rate": zod.number().nullish().describe('A FRACTION (0.14 = 14%). Default 0 (locked decision).'),
+  "template": zod.string().describe('`restaurant` or `cafe`.'),
+  "timezone": zod.string().nullish()
+})
+
+export const ProvisionOrgResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "org": zod.object({
+  "brand_accent": zod.string().nullish(),
+  "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_card_image": zod.string().nullish().describe('A wide photograph for the loyalty card. Own-org editable, like the logo.'),
+  "brand_foreground": zod.string().nullish(),
+  "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
+  "currency_code": zod.string(),
+  "custom_branding": zod.boolean().describe('The branding tier. Super admin only — see `UpdateOrgRequest`.'),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "logo_url": zod.string().nullish(),
+  "name": zod.string(),
+  "receipt_footer": zod.string().nullish(),
+  "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
+  "social_links": zod.looseObject({
+
+}).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax, and the receipt breaks it\nout backwards rather than adding it on at the till.'),
+  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
+  "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
+}),
+  "owner_id": zod.uuid(),
+  "template": zod.string()
+})
+
+
+export const listTemplatesResponseVersionMin = 0;
+
+
+
+export const ListTemplatesResponseItem = zod.object({
+  "key": zod.string(),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "roles": zod.array(zod.string()).describe('Role kinds the template is meant to use.'),
+  "version": zod.number().min(listTemplatesResponseVersionMin)
+})
+export const ListTemplatesResponse = zod.array(ListTemplatesResponseItem)
 
 
 export const GetOrgParams = zod.object({
@@ -15505,11 +16273,11 @@ export const ListUsersResponseItem = zod.object({
 export const ListUsersResponse = zod.array(ListUsersResponseItem)
 
 
-export const createUserBodyPinMin = 4;
+export const createUserBodyPinMin = 6;
 export const createUserBodyPinMax = 6;
 
 
-export const createUserBodyPinRegExp = new RegExp('^[0-9]{4,6}$');
+export const createUserBodyPinRegExp = new RegExp('^[0-9]{6}$');
 
 
 export const CreateUserBody = zod.object({
@@ -15519,7 +16287,7 @@ export const CreateUserBody = zod.object({
   "org_id": zod.uuid(),
   "password": zod.string().nullish().describe('Required when `role` is anything other than `teller`. Plain text;\nhashed server-side with bcrypt before storage.'),
   "phone": zod.string().nullish(),
-  "pin": zod.string().min(createUserBodyPinMin).max(createUserBodyPinMax).regex(createUserBodyPinRegExp).nullish().describe('Required when `role = teller`. 4–6 ASCII digits.'),
+  "pin": zod.string().min(createUserBodyPinMin).max(createUserBodyPinMax).regex(createUserBodyPinRegExp).nullish().describe('Required when `role = teller`. A NEW PIN is exactly 6 ASCII digits\n(owner decision, 2026-09-16); PINs already in use keep working at their\nold length. Ask `GET \/users\/pin-suggestion` for a free one.'),
   "role": zod.enum(['super_admin', 'org_admin', 'branch_manager', 'teller', 'waiter', 'kitchen'])
 })
 
@@ -15534,6 +16302,19 @@ export const CreateUserResponse = zod.object({
   "phone": zod.string().nullish(),
   "role": zod.enum(['super_admin', 'org_admin', 'branch_manager', 'teller', 'waiter', 'kitchen'])
 })
+})
+
+
+/**
+ * The owner's question was how the server can suggest a PIN when it stores no
+ * plaintext. The fingerprint answers it: pick a candidate, fingerprint it, one
+ * indexed lookup says taken or free. A handful of tries at most, and
+ * uniqueness stays a database property rather than something the application
+ * hopes it got right.
+ * @summary A free PIN for this org.
+ */
+export const SuggestPinResponse = zod.object({
+  "pin": zod.string().describe('Shown to the admin ONCE. Nothing stores it until it is set on a person.')
 })
 
 
@@ -15564,11 +16345,11 @@ export const UpdateUserParams = zod.object({
   "id": zod.uuid().describe('User ID')
 })
 
-export const updateUserBodyPinMin = 4;
+export const updateUserBodyPinMin = 6;
 export const updateUserBodyPinMax = 6;
 
 
-export const updateUserBodyPinRegExp = new RegExp('^[0-9]{4,6}$');
+export const updateUserBodyPinRegExp = new RegExp('^[0-9]{6}$');
 
 
 export const UpdateUserBody = zod.object({
@@ -15577,7 +16358,7 @@ export const UpdateUserBody = zod.object({
   "name": zod.string().nullish(),
   "password": zod.string().nullish().describe('Plain-text new password. Server-side bcrypt-hashed.'),
   "phone": zod.string().nullish(),
-  "pin": zod.string().min(updateUserBodyPinMin).max(updateUserBodyPinMax).regex(updateUserBodyPinRegExp).nullish(),
+  "pin": zod.string().min(updateUserBodyPinMin).max(updateUserBodyPinMax).regex(updateUserBodyPinRegExp).nullish().describe('A NEW PIN is exactly 6 digits; an existing shorter one keeps working\nuntil it is changed.'),
   "role": zod.union([zod.null(),zod.enum(['super_admin', 'org_admin', 'branch_manager', 'teller', 'waiter', 'kitchen']).describe('Only org-admins and above can change roles. Promoting to\n`super_admin` requires the caller to be a super-admin.')]).optional()
 })
 
