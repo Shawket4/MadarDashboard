@@ -617,6 +617,50 @@ export const ExplainResponse = zod.object({
 })
 
 
+export const ListFlagsQueryParams = zod.object({
+  "include_reviewed": zod.boolean().optional().describe('Include flags already reviewed. Default false: the queue is what is left\nto look at.')
+})
+
+export const ListFlagsResponseItem = zod.object({
+  "author_id": zod.uuid(),
+  "author_name": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "capability": zod.string().describe('The `resource:action` cell the author did not hold.'),
+  "created_at": zod.iso.datetime({"offset":true}).describe('When it reached us. The gap is the offline window.'),
+  "id": zod.number(),
+  "occurred_at": zod.iso.datetime({"offset":true}).describe('When the act happened on the device.'),
+  "op": zod.string().describe('The replayed op, e.g. `CashMovement`.'),
+  "reason": zod.string().describe('`stale_snapshot` — they held it when they acted and the device had not\nheard the revocation yet. `unauthorized_offline` — nothing explains it.'),
+  "reviewed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "reviewed_by": zod.uuid().nullish()
+}).describe('One offline act that was accepted despite failing the permission re-check\n(PERMISSIONS_ARCHITECTURE §4.4.5). The money already moved; this is the\nowner\'s notice, not a rollback.')
+export const ListFlagsResponse = zod.array(ListFlagsResponseItem)
+
+
+/**
+ * @summary Mark one flag as looked at. It is an acknowledgement, not an approval: the
+act is already on the books either way, so there is nothing here to undo or
+let through.
+ */
+export const ReviewFlagParams = zod.object({
+  "id": zod.number()
+})
+
+export const ReviewFlagResponse = zod.object({
+  "author_id": zod.uuid(),
+  "author_name": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "capability": zod.string().describe('The `resource:action` cell the author did not hold.'),
+  "created_at": zod.iso.datetime({"offset":true}).describe('When it reached us. The gap is the offline window.'),
+  "id": zod.number(),
+  "occurred_at": zod.iso.datetime({"offset":true}).describe('When the act happened on the device.'),
+  "op": zod.string().describe('The replayed op, e.g. `CashMovement`.'),
+  "reason": zod.string().describe('`stale_snapshot` — they held it when they acted and the device had not\nheard the revocation yet. `unauthorized_offline` — nothing explains it.'),
+  "reviewed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "reviewed_by": zod.uuid().nullish()
+}).describe('One offline act that was accepted despite failing the permission re-check\n(PERMISSIONS_ARCHITECTURE §4.4.5). The money already moved; this is the\nowner\'s notice, not a rollback.')
+
+
 export const GetMyAuthzQueryParams = zod.object({
   "branch_id": zod.uuid().optional()
 })
@@ -631,9 +675,11 @@ export const GetMyAuthzResponse = zod.object({
   "capabilities": zod.array(zod.string()).describe('Capability keys held.'),
   "epoch": zod.number(),
   "limits": zod.record(zod.string(), zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 })).describe('Limits on held capabilities, by key; absent = unlimited.'),
   "owner": zod.boolean(),
   "platform": zod.boolean(),
@@ -667,9 +713,11 @@ export const ListRolesResponseItem = zod.object({
   "grants": zod.array(zod.object({
   "capability": zod.string(),
   "limits": zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 }),
   "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
 })),
@@ -696,9 +744,11 @@ export const CreateRoleResponse = zod.object({
   "grants": zod.array(zod.object({
   "capability": zod.string(),
   "limits": zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 }),
   "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
 })),
@@ -733,9 +783,11 @@ export const RenameRoleResponse = zod.object({
   "grants": zod.array(zod.object({
   "capability": zod.string(),
   "limits": zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 }),
   "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
 })),
@@ -757,9 +809,11 @@ export const SetRoleGrantBody = zod.object({
   "capability": zod.string(),
   "granted": zod.boolean(),
   "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 })]).optional()
 })
 
@@ -768,9 +822,11 @@ export const SetRoleGrantResponse = zod.object({
   "grants": zod.array(zod.object({
   "capability": zod.string(),
   "limits": zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 }),
   "source": zod.string().describe('\"template\" or \"custom\" (an owner edited it).')
 })),
@@ -810,17 +866,21 @@ export const UserAccessResponse = zod.object({
   "effective": zod.boolean().describe('Held here after everything.'),
   "from_roles": zod.array(zod.string()).describe('Role names granting it (for \"Inherits from …\").'),
   "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 })]).optional(),
   "overrides": zod.array(zod.object({
   "branch_id": zod.uuid().nullish(),
   "effect": zod.string(),
   "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 })]).optional(),
   "reason": zod.string().nullish(),
   "valid_to": zod.iso.datetime({"offset":true}).nullish()
@@ -864,17 +924,21 @@ export const SetAssignmentsResponse = zod.object({
   "effective": zod.boolean().describe('Held here after everything.'),
   "from_roles": zod.array(zod.string()).describe('Role names granting it (for \"Inherits from …\").'),
   "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 })]).optional(),
   "overrides": zod.array(zod.object({
   "branch_id": zod.uuid().nullish(),
   "effect": zod.string(),
   "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 })]).optional(),
   "reason": zod.string().nullish(),
   "valid_to": zod.iso.datetime({"offset":true}).nullish()
@@ -897,9 +961,11 @@ export const SetOverrideBody = zod.object({
   "capability": zod.string(),
   "effect": zod.string().describe('inherit | allow | deny'),
   "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 })]).optional(),
   "reason": zod.string().nullish(),
   "valid_to": zod.iso.datetime({"offset":true}).nullish()
@@ -923,17 +989,21 @@ export const SetOverrideResponse = zod.object({
   "effective": zod.boolean().describe('Held here after everything.'),
   "from_roles": zod.array(zod.string()).describe('Role names granting it (for \"Inherits from …\").'),
   "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 })]).optional(),
   "overrides": zod.array(zod.object({
   "branch_id": zod.uuid().nullish(),
   "effect": zod.string(),
   "limits": zod.union([zod.null(),zod.object({
+  "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
   "max_percent": zod.number().nullish().describe('Basis points (1000 = 10%).'),
-  "max_value": zod.number().nullish().describe('Stock value, minor units.')
+  "max_value": zod.number().nullish().describe('Stock value, minor units.'),
+  "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 })]).optional(),
   "reason": zod.string().nullish(),
   "valid_to": zod.iso.datetime({"offset":true}).nullish()

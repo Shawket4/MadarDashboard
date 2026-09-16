@@ -3,6 +3,11 @@
 
 export interface LimitsView {
   /**
+     * How old the thing acted on may be, in minutes.
+     * @nullable
+     */
+  max_age_minutes?: number | null;
+  /**
      * Money, minor units.
      * @nullable
      */
@@ -17,4 +22,10 @@ export interface LimitsView {
      * @nullable
      */
   max_value?: number | null;
+  /**
+     * Only the person's own work. Absent means unrestricted, so a dashboard
+     * that predates the field keeps meaning what it always meant.
+     * @nullable
+     */
+  own?: boolean | null;
 }

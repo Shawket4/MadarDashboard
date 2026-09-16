@@ -258,6 +258,7 @@ import type {
   ListDevicesParams,
   ListDiscountsParams,
   ListEmployeesParams,
+  ListFlagsParams,
   ListFloorTablesParams,
   ListFloorTransfersParams,
   ListGroupsParams,
@@ -407,6 +408,7 @@ import type {
   RenameRoleRequest,
   ReorderCategoriesRequest,
   ReorderSuggestion,
+  ReplayFlag,
   RepricingReport,
   RequestDecision,
   ResolveBranchRequest,
@@ -1774,6 +1776,161 @@ export function useExplain<TData = Awaited<ReturnType<typeof explain>>, TError =
 
 
 
+
+export const listFlags = (
+    params?: ListFlagsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ReplayFlag[]>(
+      {url: `/authz/flags`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListFlagsQueryKey = (params?: ListFlagsParams,) => {
+    return [
+    `/authz/flags`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListFlagsQueryOptions = <TData = Awaited<ReturnType<typeof listFlags>>, TError = ErrorBody>(params?: ListFlagsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFlags>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFlagsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFlags>>> = ({ signal }) => listFlags(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFlags>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListFlagsQueryResult = NonNullable<Awaited<ReturnType<typeof listFlags>>>
+export type ListFlagsQueryError = ErrorBody
+
+
+export function useListFlags<TData = Awaited<ReturnType<typeof listFlags>>, TError = ErrorBody>(
+ params: undefined |  ListFlagsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFlags>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFlags>>,
+          TError,
+          Awaited<ReturnType<typeof listFlags>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFlags<TData = Awaited<ReturnType<typeof listFlags>>, TError = ErrorBody>(
+ params?: ListFlagsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFlags>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFlags>>,
+          TError,
+          Awaited<ReturnType<typeof listFlags>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFlags<TData = Awaited<ReturnType<typeof listFlags>>, TError = ErrorBody>(
+ params?: ListFlagsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFlags>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListFlags<TData = Awaited<ReturnType<typeof listFlags>>, TError = ErrorBody>(
+ params?: ListFlagsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFlags>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListFlagsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary Mark one flag as looked at. It is an acknowledgement, not an approval: the
+act is already on the books either way, so there is nothing here to undo or
+let through.
+ */
+export const reviewFlag = (
+    id: number,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ReplayFlag>(
+      {url: `/authz/flags/${id}/review`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getReviewFlagMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewFlag>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewFlag>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['reviewFlag'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewFlag>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  reviewFlag(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewFlagMutationResult = NonNullable<Awaited<ReturnType<typeof reviewFlag>>>
+
+    export type ReviewFlagMutationError = ErrorBody
+
+    /**
+ * @summary Mark one flag as looked at. It is an acknowledgement, not an approval: the
+act is already on the books either way, so there is nothing here to undo or
+let through.
+ */
+export const useReviewFlag = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewFlag>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reviewFlag>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getReviewFlagMutationOptions(options), queryClient);
+    }
 
 export const getMyAuthz = (
     params?: GetMyAuthzParams,

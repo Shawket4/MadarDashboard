@@ -2,12 +2,17 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "9340fc08b9f8fe19";
+export const SPEC_HASH = "0175f6125fe5d002";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
 export type CapabilityRisk = 'normal' | 'money' | 'pii' | 'admin';
-export type LimitKey = 'max_amount' | 'max_percent' | 'max_value';
+export type LimitKey =
+  | 'max_amount'
+  | 'max_percent'
+  | 'max_value'
+  | 'max_age_minutes'
+  | 'own';
 
 export type Capability =
   | "platform.orgs.create"
@@ -451,7 +456,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 61, key: "orders.create", legacy: "orders:create", group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: false, limits: [], pos: true, protected: false, en: "Ring up sales", ar: "تسجيل المبيعات", hintEn: null, hintAr: null },
   { id: 62, key: "orders.read", legacy: "orders:read", group: "selling", tier: "core", risk: "normal", defaults: ["org_admin", "branch_manager", "teller"], core: ["branch_manager", "teller"], approval: false, limits: [], pos: true, protected: false, en: "See orders", ar: "عرض الطلبات", hintEn: null, hintAr: null },
   { id: 63, key: "legacy.orders.update", legacy: "orders:update", group: "selling", tier: "legacy", risk: "normal", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Orders: update (legacy)", ar: "الطلبات: تعديل (قديم)", hintEn: null, hintAr: null },
-  { id: 64, key: "orders.void", legacy: "orders:delete", group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Void orders", ar: "إلغاء الطلبات", hintEn: null, hintAr: null },
+  { id: 64, key: "orders.void", legacy: "orders:delete", group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: true, limits: ["own", "max_age_minutes"], pos: true, protected: false, en: "Void orders", ar: "إلغاء الطلبات", hintEn: null, hintAr: null },
   { id: 65, key: "legacy.order_items.create", legacy: "order_items:create", group: "selling", tier: "legacy", risk: "normal", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Order items: create (legacy)", ar: "عناصر الطلب: إنشاء (قديم)", hintEn: null, hintAr: null },
   { id: 66, key: "legacy.order_items.read", legacy: "order_items:read", group: "selling", tier: "legacy", risk: "normal", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Order items: read (legacy)", ar: "عناصر الطلب: عرض (قديم)", hintEn: null, hintAr: null },
   { id: 67, key: "legacy.order_items.update", legacy: "order_items:update", group: "selling", tier: "legacy", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Order items: update (legacy)", ar: "عناصر الطلب: تعديل (قديم)", hintEn: null, hintAr: null },
