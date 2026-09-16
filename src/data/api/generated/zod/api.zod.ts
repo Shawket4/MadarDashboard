@@ -2663,7 +2663,8 @@ export const ListMenuCatalogQueryParams = zod.object({
   "per_page": zod.number().optional().describe('Page size (default 50, max 500).'),
   "branch_id": zod.uuid().optional().describe('When set, enables the per-branch override filter\/sort (LEFT JOINs the\nbranch\'s overrides). Prices in the response stay org-level.'),
   "overridden": zod.boolean().optional().describe('With `branch_id`: true → only items overridden at the branch; false →\nonly un-overridden; null → all.'),
-  "sort": zod.string().optional().describe('`\"overridden\"` → overridden items first (needs `branch_id`); otherwise A–Z.')
+  "sort": zod.string().optional().describe('`\"overridden\"` → overridden items first (needs `branch_id`); otherwise A–Z.'),
+  "has_recipe": zod.boolean().optional().describe('`false` → only items with NO recipe on any size: the onboarding\nworklist, everything that still deducts nothing and costs zero.\n`true` → only items that have one. Absent → all.')
 })
 
 export const ListMenuCatalogResponse = zod.object({
@@ -8367,6 +8368,7 @@ export const CreateOrderBody = zod.object({
   "method": zod.string(),
   "reference": zod.string().nullish()
 })).nullish(),
+  "service_mode": zod.string().nullish().describe('Where the drink is going: `\"takeaway\"` (default) or `\"dine_in\"`. NOT\n`order_type`: that is derived from whether a waiter\'s ticket was settled\nand decides the service charge. This says only whether the customer is\ndrinking in — so a counter shop with no floor can say it — and its only\neffect is that packaging (cups, lids, straws) is not deducted from\nstock. Absent ⇒ takeaway, which is what every client before this did.'),
   "subtotal": zod.number().nullish(),
   "tax_amount": zod.number().nullish(),
   "till_id": zod.uuid(),
@@ -14740,7 +14742,7 @@ export const OpenTillBody = zod.object({
   "id": zod.uuid().nullish(),
   "opened_at": zod.iso.datetime({"offset":true}).nullish(),
   "opening_cash": zod.number(),
-  "opening_cash_edited": zod.boolean().nullish(),
+  "opening_cash_edited": zod.boolean().nullish().describe('Ignored. The server decides whether the opening was an edit, from its\nown expected carryover — a stale device computes this against a figure\nthat has since moved on. Kept so older tablets keep parsing.'),
   "verification": zod.union([zod.null(),zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('Ignored on the live route (live writes `server`).')]).optional()
 })
 
