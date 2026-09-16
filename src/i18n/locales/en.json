@@ -4967,6 +4967,7 @@
       "empty": "No attendance recorded in this period",
       "unassigned": "Unassigned",
       "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m"
-    }
+    },
+    "noAccess": "Your account can't open this report. The owner can give you access."
   }
 }

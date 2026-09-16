@@ -67,6 +67,8 @@ import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { currencyLabel, fmtNumber } from "@/lib/format";
 import { PriceTaxHint } from "./price-tax-hint";
 
@@ -89,6 +91,8 @@ export function MenuItemsPage() {
   // Recipe filter: "missing" is the onboarding worklist — items that still
   // deduct nothing from stock and cost zero.
   const [recipeFilter, setRecipeFilter] = useState<"all" | "missing" | "has">("all");
+  // The filter reads recipes, so it is offered (and sent) only with recipes.read.
+  const canFilterRecipes = useAuthz().can(Cap.recipesRead);
   const [addonType, setAddonType] = useState(ALL);
   const [itemsPage, setItemsPage] = useState(0);
   const [itemsSearch, setItemsSearch] = useState("");
@@ -120,11 +124,11 @@ export function MenuItemsPage() {
       org_id: orgId ?? "",
       category_id: categoryFilter === ALL ? undefined : categoryFilter,
       search: itemsSearchQ || undefined,
-      has_recipe: recipeFilter === "all" ? undefined : recipeFilter === "has",
+      has_recipe: !canFilterRecipes || recipeFilter === "all" ? undefined : recipeFilter === "has",
       page: itemsPage + 1,
       per_page: ITEMS_PER_PAGE,
     }),
-    [orgId, categoryFilter, recipeFilter, itemsSearchQ, itemsPage],
+    [orgId, categoryFilter, recipeFilter, canFilterRecipes, itemsSearchQ, itemsPage],
   );
 
   const categories = useListCategories({ org_id: orgId ?? "" }, { query: { enabled } });
@@ -420,14 +424,16 @@ export function MenuItemsPage() {
                     {catList.map((c) => <SelectItem key={c.id} value={c.id}>{tname(c)}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Select value={recipeFilter} onValueChange={(v) => { setRecipeFilter(v as "all" | "missing" | "has"); setItemsPage(0); }}>
-                  <SelectTrigger className="h-9 w-auto min-w-36" aria-label={t("menu.recipeFilter", "Recipe")}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("menu.recipeAll", "Any recipe")}</SelectItem>
-                    <SelectItem value="missing">{t("menu.recipeMissing", "No recipe")}</SelectItem>
-                    <SelectItem value="has">{t("menu.recipeHas", "Has a recipe")}</SelectItem>
-                  </SelectContent>
-                </Select>
+{canFilterRecipes ? (
+                                  <Select value={recipeFilter} onValueChange={(v) => { setRecipeFilter(v as "all" | "missing" | "has"); setItemsPage(0); }}>
+                    <SelectTrigger className="h-9 w-auto min-w-36" aria-label={t("menu.recipeFilter", "Recipe")}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t("menu.recipeAll", "Any recipe")}</SelectItem>
+                      <SelectItem value="missing">{t("menu.recipeMissing", "No recipe")}</SelectItem>
+                      <SelectItem value="has">{t("menu.recipeHas", "Has a recipe")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : null}
                 {/* Rendered here rather than through the grid's own `onExport`
                     slot: that one cannot show a busy state, and walking the
                     whole catalog takes long enough that a button which looks

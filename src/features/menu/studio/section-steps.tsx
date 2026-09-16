@@ -18,6 +18,8 @@ import type { StepDraft } from "./util";
 interface Props {
   steps: StepDraft[];
   setSteps: Dispatch<SetStateAction<StepDraft[]>>;
+  /** Without recipes.edit the steps and their notes are shown, not edited. */
+  readOnly?: boolean;
 }
 
 /**
@@ -32,7 +34,7 @@ interface Props {
  * Amounts deliberately do not appear here. They live in the per-size recipe
  * above, which is the only place they can differ between a 12 oz and a 16 oz.
  */
-export function SectionSteps({ steps, setSteps }: Props) {
+export function SectionSteps({ steps, setSteps, readOnly = false }: Props) {
   const { t, i18n } = useTranslation();
   const [picking, setPicking] = useState(false);
   const presetsQ = useListStepPresets();
@@ -95,12 +97,14 @@ export function SectionSteps({ steps, setSteps }: Props) {
                     <Input
                       value={step.title}
                       onChange={(e) => setTitle(idx, { title: e.target.value })}
+                      disabled={readOnly}
                       placeholder={t("menu.studio.steps.titlePlaceholder", "What to do")}
                       aria-label={t("menu.studio.steps.titleEn", "Step (English)")}
                     />
                     <Input
                       value={step.title_ar}
                       onChange={(e) => setTitle(idx, { title_ar: e.target.value })}
+                      disabled={readOnly}
                       placeholder={t("menu.studio.steps.titlePlaceholderAr", "بالعربية")}
                       dir="rtl"
                       aria-label={t("menu.studio.steps.titleAr", "Step (Arabic)")}
@@ -115,6 +119,7 @@ export function SectionSteps({ steps, setSteps }: Props) {
                   <Input
                     value={step.note}
                     onChange={(e) => setTitle(idx, { note: e.target.value })}
+                    disabled={readOnly}
                     placeholder={t("menu.studio.steps.notePlaceholder", "For this drink — e.g. 40ml condensed milk")}
                     aria-label={t("menu.studio.steps.noteEn", "Note (English)")}
                     className="h-8 text-xs"
@@ -123,6 +128,7 @@ export function SectionSteps({ steps, setSteps }: Props) {
                   <Input
                     value={step.note_ar}
                     onChange={(e) => setTitle(idx, { note_ar: e.target.value })}
+                    disabled={readOnly}
                     placeholder={t("menu.studio.steps.notePlaceholderAr", "ملاحظة لهذا المشروب")}
                     dir="rtl"
                     aria-label={t("menu.studio.steps.noteAr", "Note (Arabic)")}
@@ -132,6 +138,7 @@ export function SectionSteps({ steps, setSteps }: Props) {
                 </div>
               </div>
 
+              {readOnly ? null : (
               <div className="flex shrink-0 items-center gap-0.5">
                 <Button
                   type="button" variant="ghost" size="icon" className="size-8"
@@ -155,11 +162,13 @@ export function SectionSteps({ steps, setSteps }: Props) {
                   <Trash2 className="size-4" />
                 </Button>
               </div>
+              )}
             </li>
           );
         })}
       </ol>
 
+      {readOnly ? null : (
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm" onClick={() => setPicking(true)}>
           <Plus className="size-4" />
@@ -173,6 +182,7 @@ export function SectionSteps({ steps, setSteps }: Props) {
           {t("menu.studio.steps.addCustom", "Write your own")}
         </Button>
       </div>
+      )}
 
       <Dialog open={picking} onOpenChange={setPicking}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">

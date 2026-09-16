@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Restricted } from "@/components/app/restricted";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useDisciplineReport } from "@/data/api/generated/api";
 import type { DisciplineRow } from "@/data/api/generated/models";
@@ -55,12 +58,19 @@ export function StaffDisciplinePage() {
   const { branchId, from, to, preset } = useScope();
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
+  // hr.attendance.read; the server ranks only the branches the person works at.
+  const authz = useAuthz();
+  const canSee = authz.can(Cap.hrAttendanceRead);
   const q = useDisciplineReport(
     { from: from ? localDate(from) : "", to: to ? localDate(to) : "", branch_id: branchId ?? undefined },
-    { query: { enabled: !!from && !!to } },
+    { query: { enabled: canSee && !!from && !!to } },
   );
 
   const groups = useMemo(() => groupByDepartment(q.data?.rows ?? []), [q.data]);
+
+  if (authz.ready && !canSee) {
+    return <Restricted title={t("reports.staff.title", "Staff discipline")} who={t("reports.noAccess", "Your account can't open this report. The owner can give you access.")} />;
+  }
 
   return (
     <Page>
