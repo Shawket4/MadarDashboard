@@ -413,7 +413,12 @@
     "leaveBlank": "Leave blank to keep",
     "deleteTitle": "Delete {{name}}'s account?",
     "deleteDescription": "They can no longer sign in to the dashboard or the POS. Their past orders and tills stay on record.",
-    "empty": "Staff accounts you add appear here"
+    "empty": "Staff accounts you add appear here",
+    "pinOptional": "Till PIN (optional)",
+    "emailOptional": "Email (optional)",
+    "passwordOptional": "Password (optional)",
+    "posCredHint2": "The PIN signs them in at a till. Add an email and password only if they also use the dashboard.",
+    "dashCredHint2": "The email and password sign them in to the dashboard. Add a PIN if they also work a till."
   },
   "permissions": {
     "title": "Permissions",
