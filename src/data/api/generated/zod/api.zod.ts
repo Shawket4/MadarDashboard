@@ -11811,6 +11811,34 @@ export const OrgConsumptionResponseItem = zod.object({
 export const OrgConsumptionResponse = zod.array(OrgConsumptionResponseItem)
 
 
+export const DiscountsAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const DiscountsAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const DiscountsAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
+
+
 export const OrgInventoryValuationParams = zod.object({
   "org_id": zod.uuid().describe('Organization ID')
 })
@@ -11847,6 +11875,62 @@ export const OrgLowStockResponseItem = zod.object({
   "unit": zod.string()
 })
 export const OrgLowStockResponse = zod.array(OrgLowStockResponseItem)
+
+
+export const PriceOverridesParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const PriceOverridesQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const PriceOverridesResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
+
+
+export const RefundsAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const RefundsAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const RefundsAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
 
 
 export const OrgShrinkageParams = zod.object({
@@ -11893,6 +11977,62 @@ export const OrgTaxReportResponse = zod.object({
   "tax_collected": zod.number().describe('Tax collected at sale time, before refunds.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "voided_orders": zod.number()
+})
+
+
+export const VoidsAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const VoidsAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const VoidsAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
+
+
+export const WaiversAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const WaiversAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const WaiversAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
 })
 
 

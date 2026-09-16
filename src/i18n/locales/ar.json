@@ -190,7 +190,10 @@
     "reportsLegal": "قانوني",
     "reportsOperations": "التشغيل",
     "reportsLoyalty": "الولاء",
-    "reportsStaff": "الموظفون"
+    "reportsStaff": "الموظفون",
+    "showLess": "عرض أقل",
+    "showMore": "عرض المزيد",
+    "showMoreCount": "{{count}} أخرى"
   },
   "auth": {
     "welcome": "مرحباً بعودتك",
@@ -4868,7 +4871,24 @@
     "legal": {
       "tax": "التقرير الضريبي",
       "noVat": "لا توجد ضريبة قيمة مضافة مفعّلة لهذه المنشأة",
-      "noVatHint": "حدد نسبة الضريبة من الإعدادات لعرض التقرير الضريبي هنا."
+      "noVatHint": "حدد نسبة الضريبة من الإعدادات لعرض التقرير الضريبي هنا.",
+      "title": "قانوني",
+      "tabs": {
+        "tax": "الضريبة",
+        "refunds": "المبالغ المستردة",
+        "voids": "الإلغاءات",
+        "discounts": "الخصومات",
+        "waivers": "الإعفاءات",
+        "priceOverrides": "تعديلات السعر"
+      },
+      "eventCount": "الأحداث",
+      "eventAmount": "إجمالي المبلغ",
+      "empty": "لا يوجد سجل في هذه الفترة",
+      "byReason": "حسب السبب",
+      "byDiscount": "حسب الخصم",
+      "byBranch": "حسب الفرع",
+      "byIssuer": "حسب الموظف",
+      "eventsCount": "{{n}} حدث"
     },
     "loyalty": {
       "title": "الولاء",

@@ -1,33 +1,19 @@
 import { useTranslation } from "react-i18next";
-import { Ban, CalendarRange, Coins, Landmark, Percent, Receipt, TrendingUp } from "lucide-react";
+import { Ban, Coins, Landmark, Percent, Receipt, TrendingUp } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
-import { useScope } from "@/data/scope/use-scope";
 import { useGetOrg, useOrgTaxReport } from "@/data/api/generated/api";
 import { fmtPercent } from "@/lib/format";
-
-const PRESET_FALLBACK: Record<string, string> = {
-  today: "Today",
-  yesterday: "Yesterday",
-  "7d": "Last 7 days",
-  "30d": "Last 30 days",
-  mtd: "Month to date",
-  custom: "Custom range",
-};
 
 /** Org-wide VAT/tax report. Meaningful only for a VAT-registered org
  * (tax_rate > 0); reading tax_rate needs orgs:read, which only
  * org_admin/super_admin hold by default. */
-export function TaxReportPage() {
+export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
   const { t } = useTranslation();
   const orgId = useOrgId();
-  const { from, to, preset } = useScope();
-  const range = { from: from ?? undefined, to: to ?? undefined };
-  const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
   const role = useAuthStore((s) => s.user?.role);
   const canSeeOrg = role === "org_admin" || role === "super_admin";
@@ -47,36 +33,25 @@ export function TaxReportPage() {
     { key: "net_revenue", label: t("dashboard.revenue", "Revenue"), icon: TrendingUp, accent: "neutral", value: d?.net_revenue ?? 0, formatType: "money", loading: q.isLoading },
   ];
 
-  return (
-    <Page>
-      <PageHeader
-        title={t("reports.legal.tax", "Tax report")}
-        subtitle={
-          <span className="inline-flex items-center gap-1.5">
-            <CalendarRange aria-hidden className="size-3.5" />
-            {periodLabel}
-          </span>
-        }
+  if (!orgQuery.isLoading && !isVatRegistered) {
+    return (
+      <EmptyState
+        icon={Landmark}
+        title={t("reports.legal.noVat", "This organization has no VAT configured")}
+        description={t("reports.legal.noVatHint", "Set a tax rate under Settings to see a tax report here.")}
       />
+    );
+  }
+  if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
 
-      {!orgQuery.isLoading && !isVatRegistered ? (
-        <EmptyState
-          icon={Landmark}
-          title={t("reports.legal.noVat", "This organization has no VAT configured")}
-          description={t("reports.legal.noVatHint", "Set a tax rate under Settings to see a tax report here.")}
-        />
-      ) : q.isError ? (
-        <ErrorState onRetry={() => q.refetch()} />
-      ) : (
-        <div className="space-y-4">
-          {d ? (
-            <p className="text-xs text-muted-foreground">
-              {t("analytics.tax.rateNote", "Org tax rate: {{rate}}", { rate: fmtPercent(d.org_tax_rate) })}
-            </p>
-          ) : null}
-          <LedgerStrip items={kpis} />
-        </div>
-      )}
-    </Page>
+  return (
+    <div className="space-y-4">
+      {d ? (
+        <p className="text-xs text-muted-foreground">
+          {t("analytics.tax.rateNote", "Org tax rate: {{rate}}", { rate: fmtPercent(d.org_tax_rate) })}
+        </p>
+      ) : null}
+      <LedgerStrip items={kpis} />
+    </div>
   );
 }

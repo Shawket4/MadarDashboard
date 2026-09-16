@@ -190,7 +190,10 @@
     "reportsLegal": "Legal",
     "reportsOperations": "Operations",
     "reportsLoyalty": "Loyalty",
-    "reportsStaff": "Staff"
+    "reportsStaff": "Staff",
+    "showLess": "Show less",
+    "showMore": "Show more",
+    "showMoreCount": "{{count}} more"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -4733,7 +4736,24 @@
     "legal": {
       "tax": "Tax report",
       "noVat": "This organization has no VAT configured",
-      "noVatHint": "Set a tax rate under Settings to see a tax report here."
+      "noVatHint": "Set a tax rate under Settings to see a tax report here.",
+      "title": "Legal",
+      "tabs": {
+        "tax": "Tax",
+        "refunds": "Refunds",
+        "voids": "Voids",
+        "discounts": "Discounts",
+        "waivers": "Waivers",
+        "priceOverrides": "Price overrides"
+      },
+      "eventCount": "Events",
+      "eventAmount": "Total amount",
+      "empty": "Nothing recorded in this period",
+      "byReason": "By reason",
+      "byDiscount": "By discount",
+      "byBranch": "By branch",
+      "byIssuer": "By staff member",
+      "eventsCount": "{{n}} events"
     },
     "loyalty": {
       "title": "Loyalty",

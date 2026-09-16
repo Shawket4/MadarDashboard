@@ -41,6 +41,7 @@ import type {
   AttendanceSettings,
   AttendanceSummary,
   AttendanceSummaryParams,
+  AuditReport,
   AuthPermissionsResponse,
   AvailabilityResponse,
   AvailableBundlesParams,
@@ -181,6 +182,7 @@ import type {
   DisciplineReport,
   DisciplineReportParams,
   Discount,
+  DiscountsAuditParams,
   DrinkRecipe,
   Employee,
   ErrorBody,
@@ -360,6 +362,7 @@ import type {
   PreviewRecipeRequest,
   PriceOverrideOut,
   PriceOverrideRequest,
+  PriceOverridesParams,
   PublicBookingBranch,
   PublicBookingChange,
   PublicBookingInfo,
@@ -399,6 +402,7 @@ import type {
   RecipeStepPreset,
   RefundFull,
   RefundIssued,
+  RefundsAuditParams,
   RegisterDeviceRequest,
   RegistryInfo,
   ReleaseTableRequest,
@@ -500,8 +504,10 @@ import type {
   VarianceReport,
   VoidOpenTicketRequest,
   VoidOrderRequest,
+  VoidsAuditParams,
   WaiterStatsReport,
   WaiveDeductionRequest,
+  WaiversAuditParams,
   WalletStatus,
   WasteReportRow,
   WhatsappStatus,
@@ -24887,6 +24893,101 @@ export function useOrgConsumption<TData = Awaited<ReturnType<typeof orgConsumpti
 
 
 
+export const discountsAudit = (
+    orgId: string,
+    params?: DiscountsAuditParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AuditReport>(
+      {url: `/reports/orgs/${orgId}/discounts-audit`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getDiscountsAuditQueryKey = (orgId: string,
+    params?: DiscountsAuditParams,) => {
+    return [
+    `/reports/orgs/${orgId}/discounts-audit`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getDiscountsAuditQueryOptions = <TData = Awaited<ReturnType<typeof discountsAudit>>, TError = ErrorBody>(orgId: string,
+    params?: DiscountsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof discountsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDiscountsAuditQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof discountsAudit>>> = ({ signal }) => discountsAudit(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof discountsAudit>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DiscountsAuditQueryResult = NonNullable<Awaited<ReturnType<typeof discountsAudit>>>
+export type DiscountsAuditQueryError = ErrorBody
+
+
+export function useDiscountsAudit<TData = Awaited<ReturnType<typeof discountsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  DiscountsAuditParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof discountsAudit>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof discountsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof discountsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDiscountsAudit<TData = Awaited<ReturnType<typeof discountsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: DiscountsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof discountsAudit>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof discountsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof discountsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDiscountsAudit<TData = Awaited<ReturnType<typeof discountsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: DiscountsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof discountsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDiscountsAudit<TData = Awaited<ReturnType<typeof discountsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: DiscountsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof discountsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDiscountsAuditQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const orgInventoryValuation = (
     orgId: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -25049,6 +25150,196 @@ export function useOrgLowStock<TData = Awaited<ReturnType<typeof orgLowStock>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getOrgLowStockQueryOptions(orgId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const priceOverrides = (
+    orgId: string,
+    params?: PriceOverridesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AuditReport>(
+      {url: `/reports/orgs/${orgId}/price-overrides`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPriceOverridesQueryKey = (orgId: string,
+    params?: PriceOverridesParams,) => {
+    return [
+    `/reports/orgs/${orgId}/price-overrides`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPriceOverridesQueryOptions = <TData = Awaited<ReturnType<typeof priceOverrides>>, TError = ErrorBody>(orgId: string,
+    params?: PriceOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof priceOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPriceOverridesQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof priceOverrides>>> = ({ signal }) => priceOverrides(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof priceOverrides>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PriceOverridesQueryResult = NonNullable<Awaited<ReturnType<typeof priceOverrides>>>
+export type PriceOverridesQueryError = ErrorBody
+
+
+export function usePriceOverrides<TData = Awaited<ReturnType<typeof priceOverrides>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  PriceOverridesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof priceOverrides>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof priceOverrides>>,
+          TError,
+          Awaited<ReturnType<typeof priceOverrides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePriceOverrides<TData = Awaited<ReturnType<typeof priceOverrides>>, TError = ErrorBody>(
+ orgId: string,
+    params?: PriceOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof priceOverrides>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof priceOverrides>>,
+          TError,
+          Awaited<ReturnType<typeof priceOverrides>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePriceOverrides<TData = Awaited<ReturnType<typeof priceOverrides>>, TError = ErrorBody>(
+ orgId: string,
+    params?: PriceOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof priceOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePriceOverrides<TData = Awaited<ReturnType<typeof priceOverrides>>, TError = ErrorBody>(
+ orgId: string,
+    params?: PriceOverridesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof priceOverrides>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPriceOverridesQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const refundsAudit = (
+    orgId: string,
+    params?: RefundsAuditParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AuditReport>(
+      {url: `/reports/orgs/${orgId}/refunds-audit`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getRefundsAuditQueryKey = (orgId: string,
+    params?: RefundsAuditParams,) => {
+    return [
+    `/reports/orgs/${orgId}/refunds-audit`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getRefundsAuditQueryOptions = <TData = Awaited<ReturnType<typeof refundsAudit>>, TError = ErrorBody>(orgId: string,
+    params?: RefundsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof refundsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getRefundsAuditQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof refundsAudit>>> = ({ signal }) => refundsAudit(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof refundsAudit>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type RefundsAuditQueryResult = NonNullable<Awaited<ReturnType<typeof refundsAudit>>>
+export type RefundsAuditQueryError = ErrorBody
+
+
+export function useRefundsAudit<TData = Awaited<ReturnType<typeof refundsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  RefundsAuditParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof refundsAudit>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof refundsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof refundsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRefundsAudit<TData = Awaited<ReturnType<typeof refundsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: RefundsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof refundsAudit>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof refundsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof refundsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRefundsAudit<TData = Awaited<ReturnType<typeof refundsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: RefundsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof refundsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useRefundsAudit<TData = Awaited<ReturnType<typeof refundsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: RefundsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof refundsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getRefundsAuditQueryOptions(orgId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -25239,6 +25530,196 @@ export function useOrgTaxReport<TData = Awaited<ReturnType<typeof orgTaxReport>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getOrgTaxReportQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const voidsAudit = (
+    orgId: string,
+    params?: VoidsAuditParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AuditReport>(
+      {url: `/reports/orgs/${orgId}/voids-audit`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getVoidsAuditQueryKey = (orgId: string,
+    params?: VoidsAuditParams,) => {
+    return [
+    `/reports/orgs/${orgId}/voids-audit`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getVoidsAuditQueryOptions = <TData = Awaited<ReturnType<typeof voidsAudit>>, TError = ErrorBody>(orgId: string,
+    params?: VoidsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof voidsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getVoidsAuditQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof voidsAudit>>> = ({ signal }) => voidsAudit(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof voidsAudit>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type VoidsAuditQueryResult = NonNullable<Awaited<ReturnType<typeof voidsAudit>>>
+export type VoidsAuditQueryError = ErrorBody
+
+
+export function useVoidsAudit<TData = Awaited<ReturnType<typeof voidsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  VoidsAuditParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof voidsAudit>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof voidsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof voidsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useVoidsAudit<TData = Awaited<ReturnType<typeof voidsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: VoidsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof voidsAudit>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof voidsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof voidsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useVoidsAudit<TData = Awaited<ReturnType<typeof voidsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: VoidsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof voidsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useVoidsAudit<TData = Awaited<ReturnType<typeof voidsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: VoidsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof voidsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getVoidsAuditQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const waiversAudit = (
+    orgId: string,
+    params?: WaiversAuditParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AuditReport>(
+      {url: `/reports/orgs/${orgId}/waivers-audit`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getWaiversAuditQueryKey = (orgId: string,
+    params?: WaiversAuditParams,) => {
+    return [
+    `/reports/orgs/${orgId}/waivers-audit`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getWaiversAuditQueryOptions = <TData = Awaited<ReturnType<typeof waiversAudit>>, TError = ErrorBody>(orgId: string,
+    params?: WaiversAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiversAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getWaiversAuditQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof waiversAudit>>> = ({ signal }) => waiversAudit(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof waiversAudit>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type WaiversAuditQueryResult = NonNullable<Awaited<ReturnType<typeof waiversAudit>>>
+export type WaiversAuditQueryError = ErrorBody
+
+
+export function useWaiversAudit<TData = Awaited<ReturnType<typeof waiversAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  WaiversAuditParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiversAudit>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof waiversAudit>>,
+          TError,
+          Awaited<ReturnType<typeof waiversAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWaiversAudit<TData = Awaited<ReturnType<typeof waiversAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: WaiversAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiversAudit>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof waiversAudit>>,
+          TError,
+          Awaited<ReturnType<typeof waiversAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWaiversAudit<TData = Awaited<ReturnType<typeof waiversAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: WaiversAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiversAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useWaiversAudit<TData = Awaited<ReturnType<typeof waiversAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: WaiversAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiversAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getWaiversAuditQueryOptions(orgId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
