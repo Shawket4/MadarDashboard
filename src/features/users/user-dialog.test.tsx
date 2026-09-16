@@ -12,9 +12,11 @@ import { describe, expect, it, vi } from "vitest";
 
 const createUser = vi.fn().mockResolvedValue({});
 const updateUser = vi.fn().mockResolvedValue({});
+const suggestPin = vi.fn().mockResolvedValue({ pin: "402913" });
 vi.mock("@/data/api/generated/api", () => ({
   createUser: (...a: unknown[]) => createUser(...a),
   updateUser: (...a: unknown[]) => updateUser(...a),
+  suggestPin: (...a: unknown[]) => suggestPin(...a),
   useListOrgs: () => ({ data: [] }),
 }));
 vi.mock("./util", () => ({ invalidateUsers: vi.fn() }));
@@ -72,5 +74,16 @@ describe("user dialog credentials", () => {
     expect(body.pin).toBe("123456");
     expect(body.password).toBe("hunter2hunter2");
     expect(body.email).toBe("t@example.com");
+  });
+
+  it("fills the PIN from the server's generator", async () => {
+    // The server finds a free PIN by fingerprinting candidates, so the admin
+    // never has to guess one that is already taken.
+    const user = userEvent.setup();
+    open();
+    await user.click(screen.getByRole("button", { name: /generate/i }));
+    await waitFor(() =>
+      expect(screen.getByLabelText(/PIN/i)).toHaveValue("402913"),
+    );
   });
 });

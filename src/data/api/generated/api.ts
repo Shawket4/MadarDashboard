@@ -356,6 +356,7 @@ import type {
   PeriodStatusRequest,
   Permission,
   PermissionMatrix,
+  PinSuggestion,
   PolicyEntry,
   PrepTimeInput,
   PreviewIngredient,
@@ -34294,6 +34295,104 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCreateUserMutationOptions(options), queryClient);
     }
+
+/**
+ * The owner's question was how the server can suggest a PIN when it stores no
+ * plaintext. The fingerprint answers it: pick a candidate, fingerprint it, one
+ * indexed lookup says taken or free. A handful of tries at most, and
+ * uniqueness stays a database property rather than something the application
+ * hopes it got right.
+ * @summary A free PIN for this org.
+ */
+export const suggestPin = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PinSuggestion>(
+      {url: `/users/pin-suggestion`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getSuggestPinQueryKey = () => {
+    return [
+    `/users/pin-suggestion`
+    ] as const;
+    }
+
+
+export const getSuggestPinQueryOptions = <TData = Awaited<ReturnType<typeof suggestPin>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestPin>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSuggestPinQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof suggestPin>>> = ({ signal }) => suggestPin(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof suggestPin>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SuggestPinQueryResult = NonNullable<Awaited<ReturnType<typeof suggestPin>>>
+export type SuggestPinQueryError = ErrorBody
+
+
+export function useSuggestPin<TData = Awaited<ReturnType<typeof suggestPin>>, TError = ErrorBody>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestPin>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suggestPin>>,
+          TError,
+          Awaited<ReturnType<typeof suggestPin>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuggestPin<TData = Awaited<ReturnType<typeof suggestPin>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestPin>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suggestPin>>,
+          TError,
+          Awaited<ReturnType<typeof suggestPin>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuggestPin<TData = Awaited<ReturnType<typeof suggestPin>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestPin>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A free PIN for this org.
+ */
+
+export function useSuggestPin<TData = Awaited<ReturnType<typeof suggestPin>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suggestPin>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSuggestPinQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getUser = (
     id: string,

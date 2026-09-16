@@ -493,6 +493,7 @@ export * from './periodPreset';
 export * from './periodStatusRequest';
 export * from './permission';
 export * from './permissionMatrix';
+export * from './pinSuggestion';
 export * from './pointsLiability';
 export * from './policyEntry';
 export * from './pOLineInput';

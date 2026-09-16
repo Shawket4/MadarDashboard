@@ -15712,11 +15712,11 @@ export const ListUsersResponseItem = zod.object({
 export const ListUsersResponse = zod.array(ListUsersResponseItem)
 
 
-export const createUserBodyPinMin = 4;
+export const createUserBodyPinMin = 6;
 export const createUserBodyPinMax = 6;
 
 
-export const createUserBodyPinRegExp = new RegExp('^[0-9]{4,6}$');
+export const createUserBodyPinRegExp = new RegExp('^[0-9]{6}$');
 
 
 export const CreateUserBody = zod.object({
@@ -15726,7 +15726,7 @@ export const CreateUserBody = zod.object({
   "org_id": zod.uuid(),
   "password": zod.string().nullish().describe('Required when `role` is anything other than `teller`. Plain text;\nhashed server-side with bcrypt before storage.'),
   "phone": zod.string().nullish(),
-  "pin": zod.string().min(createUserBodyPinMin).max(createUserBodyPinMax).regex(createUserBodyPinRegExp).nullish().describe('Required when `role = teller`. 4–6 ASCII digits.'),
+  "pin": zod.string().min(createUserBodyPinMin).max(createUserBodyPinMax).regex(createUserBodyPinRegExp).nullish().describe('Required when `role = teller`. A NEW PIN is exactly 6 ASCII digits\n(owner decision, 2026-09-16); PINs already in use keep working at their\nold length. Ask `GET \/users\/pin-suggestion` for a free one.'),
   "role": zod.enum(['super_admin', 'org_admin', 'branch_manager', 'teller', 'waiter', 'kitchen'])
 })
 
@@ -15741,6 +15741,19 @@ export const CreateUserResponse = zod.object({
   "phone": zod.string().nullish(),
   "role": zod.enum(['super_admin', 'org_admin', 'branch_manager', 'teller', 'waiter', 'kitchen'])
 })
+})
+
+
+/**
+ * The owner's question was how the server can suggest a PIN when it stores no
+ * plaintext. The fingerprint answers it: pick a candidate, fingerprint it, one
+ * indexed lookup says taken or free. A handful of tries at most, and
+ * uniqueness stays a database property rather than something the application
+ * hopes it got right.
+ * @summary A free PIN for this org.
+ */
+export const SuggestPinResponse = zod.object({
+  "pin": zod.string().describe('Shown to the admin ONCE. Nothing stores it until it is set on a person.')
 })
 
 
@@ -15771,11 +15784,11 @@ export const UpdateUserParams = zod.object({
   "id": zod.uuid().describe('User ID')
 })
 
-export const updateUserBodyPinMin = 4;
+export const updateUserBodyPinMin = 6;
 export const updateUserBodyPinMax = 6;
 
 
-export const updateUserBodyPinRegExp = new RegExp('^[0-9]{4,6}$');
+export const updateUserBodyPinRegExp = new RegExp('^[0-9]{6}$');
 
 
 export const UpdateUserBody = zod.object({
@@ -15784,7 +15797,7 @@ export const UpdateUserBody = zod.object({
   "name": zod.string().nullish(),
   "password": zod.string().nullish().describe('Plain-text new password. Server-side bcrypt-hashed.'),
   "phone": zod.string().nullish(),
-  "pin": zod.string().min(updateUserBodyPinMin).max(updateUserBodyPinMax).regex(updateUserBodyPinRegExp).nullish(),
+  "pin": zod.string().min(updateUserBodyPinMin).max(updateUserBodyPinMax).regex(updateUserBodyPinRegExp).nullish().describe('A NEW PIN is exactly 6 digits; an existing shorter one keeps working\nuntil it is changed.'),
   "role": zod.union([zod.null(),zod.enum(['super_admin', 'org_admin', 'branch_manager', 'teller', 'waiter', 'kitchen']).describe('Only org-admins and above can change roles. Promoting to\n`super_admin` requires the caller to be a super-admin.')]).optional()
 })
 

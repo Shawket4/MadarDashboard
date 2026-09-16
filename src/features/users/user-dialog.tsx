@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { createUser, updateUser, useListOrgs } from "@/data/api/generated/api";
+import { createUser, suggestPin, updateUser, useListOrgs } from "@/data/api/generated/api";
 import type { UserPublic, UserRole } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
@@ -61,7 +61,10 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
           phone: z.string().optional(),
           role: z.enum(["super_admin", "org_admin", "branch_manager", "teller", "waiter", "kitchen"]),
           org_id: z.string().optional(),
-          pin: z.string().regex(/^\d{4,6}$/, t("users.pinError", "PIN must be 4-6 digits")).optional().or(z.literal("")),
+          // A NEWLY issued PIN is six digits and unique across the org
+          // (POS_SIGNIN_OVERHAUL.md §3). Existing shorter PINs keep working —
+          // this only ever validates a PIN being SET.
+          pin: z.string().regex(/^\d{6}$/, t("users.pinError6", "PIN must be 6 digits")).optional().or(z.literal("")),
           password: z.string().optional(),
           is_active: z.boolean(),
         })
@@ -140,6 +143,22 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
     }
   };
 
+  // The server picks a PIN nobody in the org is using: it fingerprints
+  // candidates, so it can answer "is this free" without ever storing plaintext.
+  // The PIN is shown once, in the clear, because the admin has to read it out.
+  const [suggesting, setSuggesting] = useState(false);
+  const generatePin = async () => {
+    setSuggesting(true);
+    try {
+      const { pin } = await suggestPin();
+      form.setValue("pin", pin, { shouldValidate: true });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
   const selectedRole = form.watch("role");
   const pos = isPosRole(selectedRole);
 
@@ -195,9 +214,14 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
             <FormField control={form.control} name="pin" render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {pos ? t("users.pin", "PIN (4-6 digits)") : t("users.pinOptional", "Till PIN (optional)")}
+                  {pos ? t("users.pin6", "PIN (6 digits)") : t("users.pinOptional", "Till PIN (optional)")}
                 </FormLabel>
-                <FormControl><Input type="password" inputMode="numeric" maxLength={6} {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ""))} placeholder={editing ? "••••" : ""} /></FormControl>
+                <div className="flex items-center gap-2">
+                  <FormControl><Input type="text" inputMode="numeric" maxLength={6} {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ""))} placeholder={editing ? "••••••" : ""} /></FormControl>
+                  <Button type="button" variant="outline" loading={suggesting} onClick={generatePin}>
+                    {t("users.generatePin", "Generate")}
+                  </Button>
+                </div>
                 <FormMessage />
               </FormItem>
             )} />

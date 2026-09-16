@@ -418,7 +418,10 @@
     "emailOptional": "Email (optional)",
     "passwordOptional": "Password (optional)",
     "posCredHint2": "The PIN signs them in at a till. Add an email and password only if they also use the dashboard.",
-    "dashCredHint2": "The email and password sign them in to the dashboard. Add a PIN if they also work a till."
+    "dashCredHint2": "The email and password sign them in to the dashboard. Add a PIN if they also work a till.",
+    "pin6": "PIN (6 digits)",
+    "pinError6": "PIN must be 6 digits",
+    "generatePin": "Generate"
   },
   "permissions": {
     "title": "Permissions",
