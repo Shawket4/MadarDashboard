@@ -23,6 +23,7 @@ import { Route as AppOrdersRouteImport } from './routes/_app/orders'
 import { Route as AppFloorRouteImport } from './routes/_app/floor'
 import { Route as AppDiscountsRouteImport } from './routes/_app/discounts'
 import { Route as AppDevicesRouteImport } from './routes/_app/devices'
+import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppBranchesRouteImport } from './routes/_app/branches'
 import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
 import { Route as AppBasiraRouteImport } from './routes/_app/basira'
@@ -148,6 +149,11 @@ const AppDiscountsRoute = AppDiscountsRouteImport.update({
 const AppDevicesRoute = AppDevicesRouteImport.update({
   id: '/devices',
   path: '/devices',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppCustomersRoute = AppCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppBranchesRoute = AppBranchesRouteImport.update({
@@ -455,6 +461,7 @@ export interface FileRoutesByFullPath {
   '/basira': typeof AppBasiraRoute
   '/bookings': typeof AppBookingsRoute
   '/branches': typeof AppBranchesRoute
+  '/customers': typeof AppCustomersRoute
   '/devices': typeof AppDevicesRoute
   '/discounts': typeof AppDiscountsRoute
   '/floor': typeof AppFloorRoute
@@ -521,6 +528,7 @@ export interface FileRoutesByTo {
   '/basira': typeof AppBasiraRoute
   '/bookings': typeof AppBookingsRoute
   '/branches': typeof AppBranchesRoute
+  '/customers': typeof AppCustomersRoute
   '/devices': typeof AppDevicesRoute
   '/discounts': typeof AppDiscountsRoute
   '/floor': typeof AppFloorRoute
@@ -595,6 +603,7 @@ export interface FileRoutesById {
   '/_app/basira': typeof AppBasiraRoute
   '/_app/bookings': typeof AppBookingsRoute
   '/_app/branches': typeof AppBranchesRoute
+  '/_app/customers': typeof AppCustomersRoute
   '/_app/devices': typeof AppDevicesRoute
   '/_app/discounts': typeof AppDiscountsRoute
   '/_app/floor': typeof AppFloorRoute
@@ -670,6 +679,7 @@ export interface FileRouteTypes {
     | '/basira'
     | '/bookings'
     | '/branches'
+    | '/customers'
     | '/devices'
     | '/discounts'
     | '/floor'
@@ -736,6 +746,7 @@ export interface FileRouteTypes {
     | '/basira'
     | '/bookings'
     | '/branches'
+    | '/customers'
     | '/devices'
     | '/discounts'
     | '/floor'
@@ -809,6 +820,7 @@ export interface FileRouteTypes {
     | '/_app/basira'
     | '/_app/bookings'
     | '/_app/branches'
+    | '/_app/customers'
     | '/_app/devices'
     | '/_app/discounts'
     | '/_app/floor'
@@ -974,6 +986,13 @@ declare module '@tanstack/react-router' {
       path: '/devices'
       fullPath: '/devices'
       preLoaderRoute: typeof AppDevicesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/customers': {
+      id: '/_app/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AppCustomersRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/branches': {
@@ -1509,6 +1528,7 @@ interface AppRouteRouteChildren {
   AppBasiraRoute: typeof AppBasiraRoute
   AppBookingsRoute: typeof AppBookingsRoute
   AppBranchesRoute: typeof AppBranchesRoute
+  AppCustomersRoute: typeof AppCustomersRoute
   AppDevicesRoute: typeof AppDevicesRoute
   AppDiscountsRoute: typeof AppDiscountsRoute
   AppFloorRoute: typeof AppFloorRoute
@@ -1543,6 +1563,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppBasiraRoute: AppBasiraRoute,
   AppBookingsRoute: AppBookingsRoute,
   AppBranchesRoute: AppBranchesRoute,
+  AppCustomersRoute: AppCustomersRoute,
   AppDevicesRoute: AppDevicesRoute,
   AppDiscountsRoute: AppDiscountsRoute,
   AppFloorRoute: AppFloorRoute,

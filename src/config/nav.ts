@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Armchair,
+  Contact,
   ArrowLeftRight,
   Wallet,
   BadgePercent,
@@ -82,6 +83,7 @@ export const NAV: NavGroup[] = [
       { caps: [Cap.floorLayoutRead], to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
       { caps: [Cap.bookingsRead], to: "/bookings", labelKey: "nav.bookings", fallback: "Bookings", icon: CalendarClock },
       { caps: [Cap.tillRead], to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
+      { caps: [Cap.customersView], to: "/customers", labelKey: "nav.customers", fallback: "Customers", icon: Contact },
     ],
   },
   {
