@@ -2,6 +2,8 @@ import { Outlet, createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { SectionTabsProvider } from "@/components/app/section-tabs";
+import { useCan } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 
 /**
  * Access shell — merges Users and Roles & Permissions into one section with a
@@ -11,11 +13,13 @@ import { SectionTabsProvider } from "@/components/app/section-tabs";
  */
 function AccessLayout() {
   const { t } = useTranslation();
+  const canReview = useCan(Cap.approvalsReview);
   return (
     <SectionTabsProvider
       tabs={[
         { to: "/access/users", label: t("nav.users", "Users") },
         { to: "/access/roles", label: t("nav.rolesPermissions", "Roles & Permissions") },
+        ...(canReview ? [{ to: "/access/review", label: t("access.review.title", "Review") }] : []),
       ]}
     >
       <Outlet />

@@ -78,6 +78,7 @@ import { Route as AppDeliverySettingsRouteImport } from './routes/_app/delivery/
 import { Route as AppDeliveryChannelsRouteImport } from './routes/_app/delivery/channels'
 import { Route as AppAccessUsersRouteImport } from './routes/_app/access/users'
 import { Route as AppAccessRolesRouteImport } from './routes/_app/access/roles'
+import { Route as AppAccessReviewRouteImport } from './routes/_app/access/review'
 import { Route as AppMenuItemsItemIdRouteImport } from './routes/_app/menu/items_.$itemId'
 
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -430,6 +431,11 @@ const AppAccessRolesRoute = AppAccessRolesRouteImport.update({
   path: '/roles',
   getParentRoute: () => AppAccessRouteRoute,
 } as any)
+const AppAccessReviewRoute = AppAccessReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AppAccessRouteRoute,
+} as any)
 const AppMenuItemsItemIdRoute = AppMenuItemsItemIdRouteImport.update({
   id: '/items_/$itemId',
   path: '/items/$itemId',
@@ -459,6 +465,7 @@ export interface FileRoutesByFullPath {
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
+  '/access/review': typeof AppAccessReviewRoute
   '/access/roles': typeof AppAccessRolesRoute
   '/access/users': typeof AppAccessUsersRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -525,6 +532,7 @@ export interface FileRoutesByTo {
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
   '/': typeof AppIndexRoute
+  '/access/review': typeof AppAccessReviewRoute
   '/access/roles': typeof AppAccessRolesRoute
   '/access/users': typeof AppAccessUsersRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -598,6 +606,7 @@ export interface FileRoutesById {
   '/_app/tills': typeof AppTillsRoute
   '/_app/users': typeof AppUsersRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/access/review': typeof AppAccessReviewRoute
   '/_app/access/roles': typeof AppAccessRolesRoute
   '/_app/access/users': typeof AppAccessUsersRoute
   '/_app/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -671,6 +680,7 @@ export interface FileRouteTypes {
     | '/shifts'
     | '/tills'
     | '/users'
+    | '/access/review'
     | '/access/roles'
     | '/access/users'
     | '/delivery/channels'
@@ -737,6 +747,7 @@ export interface FileRouteTypes {
     | '/tills'
     | '/users'
     | '/'
+    | '/access/review'
     | '/access/roles'
     | '/access/users'
     | '/delivery/channels'
@@ -809,6 +820,7 @@ export interface FileRouteTypes {
     | '/_app/tills'
     | '/_app/users'
     | '/_app/'
+    | '/_app/access/review'
     | '/_app/access/roles'
     | '/_app/access/users'
     | '/_app/delivery/channels'
@@ -1349,6 +1361,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccessRolesRouteImport
       parentRoute: typeof AppAccessRouteRoute
     }
+    '/_app/access/review': {
+      id: '/_app/access/review'
+      path: '/review'
+      fullPath: '/access/review'
+      preLoaderRoute: typeof AppAccessReviewRouteImport
+      parentRoute: typeof AppAccessRouteRoute
+    }
     '/_app/menu/items_/$itemId': {
       id: '/_app/menu/items_/$itemId'
       path: '/items/$itemId'
@@ -1360,12 +1379,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppAccessRouteRouteChildren {
+  AppAccessReviewRoute: typeof AppAccessReviewRoute
   AppAccessRolesRoute: typeof AppAccessRolesRoute
   AppAccessUsersRoute: typeof AppAccessUsersRoute
   AppAccessIndexRoute: typeof AppAccessIndexRoute
 }
 
 const AppAccessRouteRouteChildren: AppAccessRouteRouteChildren = {
+  AppAccessReviewRoute: AppAccessReviewRoute,
   AppAccessRolesRoute: AppAccessRolesRoute,
   AppAccessUsersRoute: AppAccessUsersRoute,
   AppAccessIndexRoute: AppAccessIndexRoute,

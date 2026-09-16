@@ -4807,6 +4807,24 @@
     "whyNotHeld": "Result: not allowed",
     "why": "Why?",
     "resultAllowed": "Allowed",
-    "resultNotAllowed": "Not allowed"
+    "resultNotAllowed": "Not allowed",
+    "review": {
+      "title": "Review",
+      "subtitle": "Offline acts the permission check did not back, and PINs tried at the wrong branch.",
+      "person": "Person",
+      "what": "What happened",
+      "permission": "Permission",
+      "when": "When",
+      "showReviewed": "Show reviewed",
+      "reviewed": "Reviewed",
+      "markReviewed": "Mark reviewed",
+      "empty": "Nothing to review",
+      "emptyHint": "Flagged offline acts and wrong-branch PINs appear here.",
+      "reasons": {
+        "stale_snapshot": "Done offline before a permission change reached the till",
+        "unauthorized_offline": "Done offline without the permission",
+        "pin_wrong_branch": "Correct PIN at a branch they don't work at"
+      }
+    }
   }
 }
