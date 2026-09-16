@@ -896,7 +896,11 @@
     "deleteCategoryConsequence": "The category and its kitchen routing are removed. Its items stay on the menu without a category.",
     "priceIncludesTax": "Prices include tax ({{rate}})",
     "priceExcludesTax": "Tax ({{rate}}) is added at checkout",
-    "priceTaxBranchNote": "branches may override"
+    "priceTaxBranchNote": "branches may override",
+    "recipeFilter": "Recipe",
+    "recipeAll": "Any recipe",
+    "recipeMissing": "No recipe",
+    "recipeHas": "Has a recipe"
   },
   "recipes": {
     "title": "Recipes",

@@ -74,6 +74,16 @@ export interface CreateOrderRequest {
   payment_method: string;
   /** @nullable */
   payment_splits?: PaymentSplitInput[] | null;
+  /**
+     * Where the drink is going: `"takeaway"` (default) or `"dine_in"`. NOT
+     * `order_type`: that is derived from whether a waiter's ticket was settled
+     * and decides the service charge. This says only whether the customer is
+     * drinking in — so a counter shop with no floor can say it — and its only
+     * effect is that packaging (cups, lids, straws) is not deducted from
+     * stock. Absent ⇒ takeaway, which is what every client before this did.
+     * @nullable
+     */
+  service_mode?: string | null;
   /** @nullable */
   subtotal?: number | null;
   /** @nullable */

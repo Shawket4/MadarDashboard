@@ -30,4 +30,10 @@ overridden?: boolean;
  * `"overridden"` → overridden items first (needs `branch_id`); otherwise A–Z.
  */
 sort?: string;
+/**
+ * `false` → only items with NO recipe on any size: the onboarding
+ * worklist, everything that still deducts nothing and costs zero.
+ * `true` → only items that have one. Absent → all.
+ */
+has_recipe?: boolean;
 };

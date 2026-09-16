@@ -86,6 +86,9 @@ export function MenuItemsPage() {
 
   const [tab, setTab] = useState<"items" | "addons" | "categories">("items");
   const [categoryFilter, setCategoryFilter] = useState(ALL);
+  // Recipe filter: "missing" is the onboarding worklist — items that still
+  // deduct nothing from stock and cost zero.
+  const [recipeFilter, setRecipeFilter] = useState<"all" | "missing" | "has">("all");
   const [addonType, setAddonType] = useState(ALL);
   const [itemsPage, setItemsPage] = useState(0);
   const [itemsSearch, setItemsSearch] = useState("");
@@ -107,7 +110,7 @@ export function MenuItemsPage() {
   // Reset to first page when filters change.
   useEffect(() => {
     setItemsPage(0);
-  }, [categoryFilter, itemsSearchQ]);
+  }, [categoryFilter, recipeFilter, itemsSearchQ]);
 
   const queryClient = useQueryClient();
   const addonsActive = tab === "addons";
@@ -117,10 +120,11 @@ export function MenuItemsPage() {
       org_id: orgId ?? "",
       category_id: categoryFilter === ALL ? undefined : categoryFilter,
       search: itemsSearchQ || undefined,
+      has_recipe: recipeFilter === "all" ? undefined : recipeFilter === "has",
       page: itemsPage + 1,
       per_page: ITEMS_PER_PAGE,
     }),
-    [orgId, categoryFilter, itemsSearchQ, itemsPage],
+    [orgId, categoryFilter, recipeFilter, itemsSearchQ, itemsPage],
   );
 
   const categories = useListCategories({ org_id: orgId ?? "" }, { query: { enabled } });
@@ -414,6 +418,14 @@ export function MenuItemsPage() {
                   <SelectContent>
                     <SelectItem value={ALL}>{t("menu.allCategories", "All categories")}</SelectItem>
                     {catList.map((c) => <SelectItem key={c.id} value={c.id}>{tname(c)}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={recipeFilter} onValueChange={(v) => { setRecipeFilter(v as "all" | "missing" | "has"); setItemsPage(0); }}>
+                  <SelectTrigger className="h-9 w-auto min-w-36" aria-label={t("menu.recipeFilter", "Recipe")}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("menu.recipeAll", "Any recipe")}</SelectItem>
+                    <SelectItem value="missing">{t("menu.recipeMissing", "No recipe")}</SelectItem>
+                    <SelectItem value="has">{t("menu.recipeHas", "Has a recipe")}</SelectItem>
                   </SelectContent>
                 </Select>
                 {/* Rendered here rather than through the grid's own `onExport`

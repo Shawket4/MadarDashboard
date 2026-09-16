@@ -895,7 +895,11 @@
     "deleteCategoryConsequence": "ستُحذف الفئة وتوجيهها للمطبخ، وتبقى أصنافها في القائمة بدون فئة.",
     "priceIncludesTax": "الأسعار شاملة الضريبة ({{rate}})",
     "priceExcludesTax": "تُضاف الضريبة ({{rate}}) عند الدفع",
-    "priceTaxBranchNote": "قد تختلف في بعض الفروع"
+    "priceTaxBranchNote": "قد تختلف في بعض الفروع",
+    "recipeFilter": "الوصفة",
+    "recipeAll": "أي وصفة",
+    "recipeMissing": "بدون وصفة",
+    "recipeHas": "لها وصفة"
   },
   "recipes": {
     "title": "الوصفات",
