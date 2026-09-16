@@ -15,6 +15,11 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import type { IngredientCategoryExt } from "@/features/menu/recipe/modeling-api";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+
 import type { IngredientCategory } from "@/data/api/generated/models";
 import {
   createIngredientCategory, deleteIngredientCategory, updateIngredientCategory, updateInventorySettings,
@@ -28,6 +33,7 @@ import { invalidateInventory } from "./lib";
 export function SettingsPage() {
   const { t } = useTranslation();
   const orgId = useOrgId();
+  const canAdjust = useAuthz().can(Cap.inventoryAdjust);
   const settings = useGetInventorySettings(orgId ?? "", { query: { enabled: !!orgId } });
   const categories = useListIngredientCategories(orgId ?? "", { query: { enabled: !!orgId } });
 
@@ -82,6 +88,18 @@ export function SettingsPage() {
       toast.error(getErrorMessage(e));
     } finally {
       setAdding(false);
+    }
+  };
+
+  // TEMPORARY until generate:api on the modeling branch: `is_packaging` is not in
+  // the generated category type yet. The switch only renders when the server sends it.
+  const setPackaging = async (c: IngredientCategoryExt, is_packaging: boolean) => {
+    if (!orgId) return;
+    try {
+      await updateIngredientCategory(orgId, c.id, { is_packaging } as unknown as Parameters<typeof updateIngredientCategory>[2]);
+      await invalidateInventory();
+    } catch (e) {
+      toast.error(getErrorMessage(e));
     }
   };
 
@@ -186,6 +204,17 @@ export function SettingsPage() {
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
+                        {"is_packaging" in c ? (
+                          <label className="me-2 flex items-center gap-2 text-xs text-muted-foreground">
+                            {t("modeling.packaging.isPackaging", "Packaging")}
+                            <Switch
+                              checked={!!(c as IngredientCategoryExt).is_packaging}
+                              disabled={!canAdjust}
+                              onCheckedChange={(v) => void setPackaging(c as IngredientCategoryExt, v)}
+                              aria-label={t("modeling.packaging.isPackagingAria", "{{name}} is packaging", { name: c.name })}
+                            />
+                          </label>
+                        ) : null}
                         {c.slug === "general" ? <Badge variant="secondary">{t("inventory.settings.defaultCategory", "Default")}</Badge> : null}
                         <Button size="icon-sm" variant="ghost" onClick={() => setEditing({ id: c.id, name: c.name })} aria-label={t("common.edit", "Edit")}><Pencil className="size-4" /></Button>
                         {c.slug !== "general" ? (

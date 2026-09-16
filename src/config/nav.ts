@@ -100,6 +100,8 @@ export const NAV: NavGroup[] = [
           { caps: [Cap.menuItemsRead], to: "/menu/items", labelKey: "nav.items", fallback: "Items", icon: CupSoda },
           { caps: [Cap.menuItemsRead], to: "/menu/groups", labelKey: "nav.choiceGroups", fallback: "Choice groups", icon: ListChecks },
           { caps: [Cap.menuItemsEdit], to: "/menu/pricing", labelKey: "nav.pricingAvailability", fallback: "Pricing & Availability", icon: SlidersHorizontal },
+          { caps: [Cap.menuItemsRead], to: "/menu/bases", labelKey: "nav.recipeBases", fallback: "Recipe bases", icon: Layers },
+          { caps: [Cap.menuItemsRead], to: "/menu/packaging", labelKey: "nav.packagingRules", fallback: "Packaging rules", icon: Package },
         ],
       },
       { caps: [Cap.menuItemsRead], to: "/menu/bundles", labelKey: "nav.bundles", fallback: "Bundles", icon: Layers },
