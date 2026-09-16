@@ -4724,6 +4724,28 @@
       "noLegacyHint": "Nothing used a pre-rework path in the last {{count}} days.",
       "none": "No clients seen",
       "noneHint": "No app has called the server in the last {{count}} days."
+    },
+    "activation": {
+      "title": "Activation codes",
+      "subtitle": "Enter a code on a new tablet to bind it to this branch. Each code works once, for 24 hours.",
+      "code": "Code",
+      "when": "Expires / used",
+      "issue": "New code",
+      "issueTitle": "New activation code",
+      "issueHint": "On the tablet, choose “Activate with a code” and type it. It works once, within 24 hours.",
+      "labelField": "Tablet name (optional)",
+      "labelPlaceholder": "Front counter",
+      "revoke": "Withdraw",
+      "revokeTitle": "Withdraw this code?",
+      "revokeBody": "A tablet can no longer be activated with it.",
+      "empty": "No codes yet",
+      "emptyHint": "Issue a code, then type it on the tablet you are setting up.",
+      "states": {
+        "free": "Free",
+        "used": "Used",
+        "expired": "Expired",
+        "revoked": "Withdrawn"
+      }
     }
   },
   "access": {

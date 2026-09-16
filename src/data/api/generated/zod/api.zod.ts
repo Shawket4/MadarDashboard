@@ -495,6 +495,37 @@ export const GetJobResponse = zod.object({
 })
 
 
+export const ActivateBody = zod.object({
+  "app_version": zod.string().nullish(),
+  "code": zod.string().describe('The 8-digit code from the dashboard.'),
+  "device_code": zod.string().nullish().describe('The device\'s short code on receipts (`T1`); a default is derived when\nabsent or invalid.'),
+  "device_id": zod.uuid().describe('The install\'s own id (the core\'s `lan_device_id`).'),
+  "platform": zod.string().nullish()
+})
+
+export const ActivateResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "device": zod.object({
+  "app_version": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "code": zod.string(),
+  "code_conflict": zod.boolean().describe('Another live device at the same branch uses the same code.'),
+  "first_seen_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "org_id": zod.uuid(),
+  "platform": zod.string().nullish(),
+  "retired_at": zod.iso.datetime({"offset":true}).nullish()
+}),
+  "device_token": zod.string().describe('The device\'s own credential. Returned ONCE; store it in the device\nvault. Sent later as `X-Madar-Device-Token`.'),
+  "org_id": zod.uuid(),
+  "org_name": zod.string()
+})
+
+
 export const loginBodyPinMin = 4;
 export const loginBodyPinMax = 6;
 
@@ -630,7 +661,7 @@ export const ListFlagsResponseItem = zod.object({
   "id": zod.number(),
   "occurred_at": zod.iso.datetime({"offset":true}).describe('When the act happened on the device.'),
   "op": zod.string().describe('The replayed op, e.g. `CashMovement`.'),
-  "reason": zod.string().describe('`stale_snapshot` — they held it when they acted and the device had not\nheard the revocation yet. `unauthorized_offline` — nothing explains it.'),
+  "reason": zod.string().describe('`stale_snapshot` — they held it when they acted and the device had not\nheard the revocation yet. `unauthorized_offline` — nothing explains it.\n`pin_wrong_branch` — their correct PIN was typed at a branch they may\nnot sign in at (`op` = `PinSignIn`, `details.attempts` counts the tries).'),
   "reviewed_at": zod.iso.datetime({"offset":true}).nullish(),
   "reviewed_by": zod.uuid().nullish()
 }).describe('One offline act that was accepted despite failing the permission re-check\n(PERMISSIONS_ARCHITECTURE §4.4.5). The money already moved; this is the\nowner\'s notice, not a rollback.')
@@ -655,7 +686,7 @@ export const ReviewFlagResponse = zod.object({
   "id": zod.number(),
   "occurred_at": zod.iso.datetime({"offset":true}).describe('When the act happened on the device.'),
   "op": zod.string().describe('The replayed op, e.g. `CashMovement`.'),
-  "reason": zod.string().describe('`stale_snapshot` — they held it when they acted and the device had not\nheard the revocation yet. `unauthorized_offline` — nothing explains it.'),
+  "reason": zod.string().describe('`stale_snapshot` — they held it when they acted and the device had not\nheard the revocation yet. `unauthorized_offline` — nothing explains it.\n`pin_wrong_branch` — their correct PIN was typed at a branch they may\nnot sign in at (`op` = `PinSignIn`, `details.attempts` counts the tries).'),
   "reviewed_at": zod.iso.datetime({"offset":true}).nullish(),
   "reviewed_by": zod.uuid().nullish()
 }).describe('One offline act that was accepted despite failing the permission re-check\n(PERMISSIONS_ARCHITECTURE §4.4.5). The money already moved; this is the\nowner\'s notice, not a rollback.')
@@ -3932,6 +3963,66 @@ export const ListDevicesResponseItem = zod.object({
   "retired_at": zod.iso.datetime({"offset":true}).nullish()
 })
 export const ListDevicesResponse = zod.array(ListDevicesResponseItem)
+
+
+export const ListCodesQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const ListCodesResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "code": zod.string().describe('The 8 digits. Shown while free; kept afterwards so the list reads.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "expires_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "state": zod.enum(['free', 'used', 'expired', 'revoked']),
+  "used_at": zod.iso.datetime({"offset":true}).nullish(),
+  "used_by_device": zod.uuid().nullish()
+})
+export const ListCodesResponse = zod.array(ListCodesResponseItem)
+
+
+export const CreateCodeBody = zod.object({
+  "branch_id": zod.uuid(),
+  "kind": zod.union([zod.null(),zod.enum(['pos', 'kds', 'waiter']).describe('`pos` (default) | `kds` | `waiter`')]).optional(),
+  "label": zod.string().nullish().describe('A name for the tablet it is meant for (\"Front counter\").')
+})
+
+export const CreateCodeResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "code": zod.string().describe('The 8 digits. Shown while free; kept afterwards so the list reads.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "expires_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "state": zod.enum(['free', 'used', 'expired', 'revoked']),
+  "used_at": zod.iso.datetime({"offset":true}).nullish(),
+  "used_by_device": zod.uuid().nullish()
+})
+
+
+export const RevokeCodeParams = zod.object({
+  "id": zod.uuid().describe('Activation code id')
+})
+
+export const RevokeCodeResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "code": zod.string().describe('The 8 digits. Shown while free; kept afterwards so the list reads.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "expires_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
+  "label": zod.string().nullish(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "state": zod.enum(['free', 'used', 'expired', 'revoked']),
+  "used_at": zod.iso.datetime({"offset":true}).nullish(),
+  "used_by_device": zod.uuid().nullish()
+})
 
 
 export const ListClientVersionsQueryParams = zod.object({

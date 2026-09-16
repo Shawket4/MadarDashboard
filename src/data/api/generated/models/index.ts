@@ -2,6 +2,10 @@
 // @ts-nocheck
 
 export * from './acceptingInput';
+export * from './activateDeviceRequest';
+export * from './activateDeviceResponse';
+export * from './activationCode';
+export * from './activationCodeState';
 export * from './addonCost';
 export * from './addonIngredient';
 export * from './addonInput';
@@ -136,6 +140,7 @@ export * from './conversationDetail';
 export * from './conversationList';
 export * from './conversationSummary';
 export * from './correctRecordRequest';
+export * from './createActivationCodeRequest';
 export * from './createAddonItemRequest';
 export * from './createAddonItemRequestNameTranslations';
 export * from './createAddonSlotRequest';
@@ -339,6 +344,7 @@ export * from './listCategoriesParams';
 export * from './listChannelAddonOverridesParams';
 export * from './listChannelOverridesParams';
 export * from './listClientVersionsParams';
+export * from './listCodesParams';
 export * from './listConversationsParams';
 export * from './listDecisionsParams';
 export * from './listDeductionsParams';

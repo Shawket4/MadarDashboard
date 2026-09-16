@@ -21,6 +21,9 @@ import type {
 
 import type {
   AcceptingInput,
+  ActivateDeviceRequest,
+  ActivateDeviceResponse,
+  ActivationCode,
   AddRoundRequest,
   AddonCost,
   AddonIngredient,
@@ -112,6 +115,7 @@ import type {
   ConversationDetail,
   ConversationList,
   CorrectRecordRequest,
+  CreateActivationCodeRequest,
   CreateAddonItemRequest,
   CreateAddonSlotRequest,
   CreateAdjustmentRequest,
@@ -251,6 +255,7 @@ import type {
   ListChannelAddonOverridesParams,
   ListChannelOverridesParams,
   ListClientVersionsParams,
+  ListCodesParams,
   ListConversationsParams,
   ListDecisionsParams,
   ListDeductionsParams,
@@ -1397,6 +1402,65 @@ export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = E
 
 
 
+
+export const activate = (
+    activateDeviceRequest: ActivateDeviceRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ActivateDeviceResponse>(
+      {url: `/auth/activate-device`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: activateDeviceRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getActivateMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activate>>, TError,{data: ActivateDeviceRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof activate>>, TError,{data: ActivateDeviceRequest}, TContext> => {
+
+const mutationKey = ['activate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activate>>, {data: ActivateDeviceRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  activate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActivateMutationResult = NonNullable<Awaited<ReturnType<typeof activate>>>
+    export type ActivateMutationBody = ActivateDeviceRequest
+    export type ActivateMutationError = ErrorBody
+
+    export const useActivate = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activate>>, TError,{data: ActivateDeviceRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof activate>>,
+        TError,
+        {data: ActivateDeviceRequest},
+        TContext
+      > => {
+      return useMutation(getActivateMutationOptions(options), queryClient);
+    }
 
 export const login = (
     loginRequest: LoginRequest,
@@ -7905,6 +7969,210 @@ export function useListDevices<TData = Awaited<ReturnType<typeof listDevices>>, 
 
 
 
+
+export const listCodes = (
+    params: ListCodesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ActivationCode[]>(
+      {url: `/devices/activation-codes`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListCodesQueryKey = (params?: ListCodesParams,) => {
+    return [
+    `/devices/activation-codes`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListCodesQueryOptions = <TData = Awaited<ReturnType<typeof listCodes>>, TError = ErrorBody>(params: ListCodesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCodes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCodesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCodes>>> = ({ signal }) => listCodes(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCodes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCodesQueryResult = NonNullable<Awaited<ReturnType<typeof listCodes>>>
+export type ListCodesQueryError = ErrorBody
+
+
+export function useListCodes<TData = Awaited<ReturnType<typeof listCodes>>, TError = ErrorBody>(
+ params: ListCodesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCodes>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCodes>>,
+          TError,
+          Awaited<ReturnType<typeof listCodes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCodes<TData = Awaited<ReturnType<typeof listCodes>>, TError = ErrorBody>(
+ params: ListCodesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCodes>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCodes>>,
+          TError,
+          Awaited<ReturnType<typeof listCodes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCodes<TData = Awaited<ReturnType<typeof listCodes>>, TError = ErrorBody>(
+ params: ListCodesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCodes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListCodes<TData = Awaited<ReturnType<typeof listCodes>>, TError = ErrorBody>(
+ params: ListCodesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCodes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCodesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const createCode = (
+    createActivationCodeRequest: CreateActivationCodeRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ActivationCode>(
+      {url: `/devices/activation-codes`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createActivationCodeRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getCreateCodeMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCode>>, TError,{data: CreateActivationCodeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCode>>, TError,{data: CreateActivationCodeRequest}, TContext> => {
+
+const mutationKey = ['createCode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCode>>, {data: CreateActivationCodeRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCode(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCodeMutationResult = NonNullable<Awaited<ReturnType<typeof createCode>>>
+    export type CreateCodeMutationBody = CreateActivationCodeRequest
+    export type CreateCodeMutationError = ErrorBody
+
+    export const useCreateCode = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCode>>, TError,{data: CreateActivationCodeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createCode>>,
+        TError,
+        {data: CreateActivationCodeRequest},
+        TContext
+      > => {
+      return useMutation(getCreateCodeMutationOptions(options), queryClient);
+    }
+
+export const revokeCode = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ActivationCode>(
+      {url: `/devices/activation-codes/${id}/revoke`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getRevokeCodeMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeCode>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeCode>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['revokeCode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeCode>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  revokeCode(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeCodeMutationResult = NonNullable<Awaited<ReturnType<typeof revokeCode>>>
+
+    export type RevokeCodeMutationError = ErrorBody
+
+    export const useRevokeCode = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeCode>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeCode>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getRevokeCodeMutationOptions(options), queryClient);
+    }
 
 export const listClientVersions = (
     params?: ListClientVersionsParams,
