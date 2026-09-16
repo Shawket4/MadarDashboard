@@ -5,7 +5,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Ban, CalendarRange, Coins, Landmark, Percent, Receipt, ShoppingBasket, TrendingUp } from "lucide-react";
+import { Ban, CalendarRange, Coins, Percent, Receipt, ShoppingBasket, TrendingUp } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { CHART_AXIS_TICK, ChartCard, chartColor } from "@/components/app/chart-card";
@@ -26,11 +26,10 @@ import { PAYMENT_COLORS, type PaymentMethod } from "@/data/config/constants";
 import { useScope } from "@/data/scope/use-scope";
 import { usePageSearch } from "@/data/scope/use-page-search";
 import { useOrgId } from "@/hooks/use-org-id";
-import { useAuthStore } from "@/data/stores/auth.store";
 import {
   useBranchAddonSales, useBranchCombinedItemSales, useBranchSales,
   useBranchSalesPeakHours, useBranchSalesTimeseries, useBranchTellerStats,
-  useBranchWaiterStats, useGetOrg, useOrgBranchComparison, useOrgTaxReport,
+  useBranchWaiterStats, useOrgBranchComparison,
 } from "@/data/api/generated/api";
 import type { PeakHourPoint, TimeseriesPoint } from "@/data/api/generated/models";
 import { GRANULARITIES, type Granularity, type MethodMap, tName } from "./lib";
@@ -577,43 +576,9 @@ function BranchesTab({ orgId, range }: { orgId: string; range: Range }) {
   );
 }
 
-// ── Tax ──────────────────────────────────────────────────────────────────────
-function TaxTab({ orgId, range }: { orgId: string; range: Range }) {
-  const { t } = useTranslation();
-  const q = useOrgTaxReport(orgId, range, { query: { enabled: !!orgId } });
-  const d = q.data;
-  const taxableSales = d ? d.subtotal - d.discount_amount : 0;
-
-  const kpis: LedgerItem[] = [
-    { key: "taxable_sales", label: t("analytics.tax.taxableSales", "Taxable Sales"), icon: Receipt, accent: "neutral", value: taxableSales, formatType: "money", loading: q.isLoading },
-    { key: "tax_collected", label: t("analytics.tax.taxCollected", "Tax Collected"), icon: Percent, accent: "info", value: d?.tax_collected ?? 0, formatType: "money", loading: q.isLoading },
-    { key: "refunded_tax", label: t("analytics.tax.refundedTax", "Refunded Tax"), icon: Ban, accent: "warning", value: d?.refunded_tax ?? 0, formatType: "money", loading: q.isLoading },
-    { key: "net_tax_due", label: t("analytics.tax.netTaxDue", "Net Tax Due"), icon: Landmark, accent: "primary", value: d?.net_tax_due ?? 0, formatType: "money", loading: q.isLoading },
-    { key: "service_charge", label: t("analytics.tax.serviceCharge", "Service Charge"), icon: Coins, accent: "neutral", value: d?.service_charge_amount ?? 0, formatType: "money", loading: q.isLoading },
-    { key: "net_revenue", label: t("dashboard.revenue", "Revenue"), icon: TrendingUp, accent: "neutral", value: d?.net_revenue ?? 0, formatType: "money", loading: q.isLoading },
-  ];
-
-  return (
-    <div className="space-y-4">
-      {q.isError ? (
-        <ErrorState onRetry={() => q.refetch()} />
-      ) : (
-        <>
-          {d ? (
-            <p className="text-xs text-muted-foreground">
-              {t("analytics.tax.rateNote", "Org tax rate: {{rate}}", { rate: fmtPercent(d.org_tax_rate) })}
-            </p>
-          ) : null}
-          <LedgerStrip items={kpis} />
-        </>
-      )}
-    </div>
-  );
-}
-
 // ── Page ─────────────────────────────────────────────────────────────────────
-type TabKey = "overview" | "revenue" | "items" | "tellers" | "waiters" | "branches" | "tax";
-const BASE_TABS: TabKey[] = ["overview", "revenue", "items", "tellers", "waiters", "branches"];
+type TabKey = "overview" | "revenue" | "items" | "tellers" | "waiters" | "branches";
+const TABS: TabKey[] = ["overview", "revenue", "items", "tellers", "waiters", "branches"];
 
 export function AnalyticsPage() {
   const { t } = useTranslation();
@@ -621,16 +586,6 @@ export function AnalyticsPage() {
   const { scopeBranchId, from, to, preset } = useScope();
   const range: Range = { from: from ?? undefined, to: to ?? undefined };
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
-
-  // The tax tab is only worth showing for a VAT-registered org (tax_rate > 0),
-  // and reading tax_rate needs `orgs:read`, which only org_admin/super_admin
-  // hold by default — so skip the org fetch entirely for anyone else rather
-  // than let it 403 on every Analytics visit.
-  const role = useAuthStore((s) => s.user?.role);
-  const canSeeOrg = role === "org_admin" || role === "super_admin";
-  const orgQuery = useGetOrg(orgId ?? "", { query: { enabled: canSeeOrg && !!orgId } });
-  const showTax = canSeeOrg && Number(orgQuery.data?.tax_rate ?? 0) > 0;
-  const TABS: TabKey[] = showTax ? [...BASE_TABS, "tax"] : BASE_TABS;
 
   const [s, update] = usePageSearch<{ tab: TabKey; gran: Granularity }>();
   const tab: TabKey = s.tab && TABS.includes(s.tab) ? s.tab : "overview";
@@ -670,8 +625,7 @@ export function AnalyticsPage() {
         : tab === "items" ? <ItemsTab branchId={scopeBranchId} range={range} />
         : tab === "tellers" ? <TellersTab branchId={scopeBranchId} range={range} />
         : tab === "waiters" ? <WaitersTab branchId={scopeBranchId} range={range} />
-        : tab === "branches" ? <BranchesTab orgId={orgId ?? ""} range={range} />
-        : <TaxTab orgId={orgId ?? ""} range={range} />}
+        : <BranchesTab orgId={orgId ?? ""} range={range} />}
     </Page>
   );
 }

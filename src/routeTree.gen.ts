@@ -53,6 +53,9 @@ import { Route as AppSettingsDeliveryZonesRouteImport } from './routes/_app/sett
 import { Route as AppSettingsDeliveryRouteImport } from './routes/_app/settings/delivery'
 import { Route as AppSettingsBrandRouteImport } from './routes/_app/settings/brand'
 import { Route as AppSettingsBookingsRouteImport } from './routes/_app/settings/bookings'
+import { Route as AppReportsSalesRouteImport } from './routes/_app/reports/sales'
+import { Route as AppReportsLegalRouteImport } from './routes/_app/reports/legal'
+import { Route as AppReportsInventoryRouteImport } from './routes/_app/reports/inventory'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
 import { Route as AppMenuPricingRouteImport } from './routes/_app/menu/pricing'
 import { Route as AppMenuOverridesRouteImport } from './routes/_app/menu/overrides'
@@ -78,6 +81,8 @@ import { Route as AppDeliverySettingsRouteImport } from './routes/_app/delivery/
 import { Route as AppDeliveryChannelsRouteImport } from './routes/_app/delivery/channels'
 import { Route as AppAccessUsersRouteImport } from './routes/_app/access/users'
 import { Route as AppAccessRolesRouteImport } from './routes/_app/access/roles'
+import { Route as AppReportsOperationsTablesRouteImport } from './routes/_app/reports/operations/tables'
+import { Route as AppReportsOperationsProfitabilityRouteImport } from './routes/_app/reports/operations/profitability'
 import { Route as AppMenuItemsItemIdRouteImport } from './routes/_app/menu/items_.$itemId'
 
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -303,6 +308,21 @@ const AppSettingsBookingsRoute = AppSettingsBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
+const AppReportsSalesRoute = AppReportsSalesRouteImport.update({
+  id: '/reports/sales',
+  path: '/reports/sales',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppReportsLegalRoute = AppReportsLegalRouteImport.update({
+  id: '/reports/legal',
+  path: '/reports/legal',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppReportsInventoryRoute = AppReportsInventoryRouteImport.update({
+  id: '/reports/inventory',
+  path: '/reports/inventory',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppMenuRecipesRoute = AppMenuRecipesRouteImport.update({
   id: '/recipes',
   path: '/recipes',
@@ -430,6 +450,18 @@ const AppAccessRolesRoute = AppAccessRolesRouteImport.update({
   path: '/roles',
   getParentRoute: () => AppAccessRouteRoute,
 } as any)
+const AppReportsOperationsTablesRoute =
+  AppReportsOperationsTablesRouteImport.update({
+    id: '/reports/operations/tables',
+    path: '/reports/operations/tables',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsOperationsProfitabilityRoute =
+  AppReportsOperationsProfitabilityRouteImport.update({
+    id: '/reports/operations/profitability',
+    path: '/reports/operations/profitability',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppMenuItemsItemIdRoute = AppMenuItemsItemIdRouteImport.update({
   id: '/items_/$itemId',
   path: '/items/$itemId',
@@ -484,6 +516,9 @@ export interface FileRoutesByFullPath {
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
+  '/reports/inventory': typeof AppReportsInventoryRoute
+  '/reports/legal': typeof AppReportsLegalRoute
+  '/reports/sales': typeof AppReportsSalesRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -506,6 +541,8 @@ export interface FileRoutesByFullPath {
   '/menu/': typeof AppMenuIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
   '/menu/items/$itemId': typeof AppMenuItemsItemIdRoute
+  '/reports/operations/profitability': typeof AppReportsOperationsProfitabilityRoute
+  '/reports/operations/tables': typeof AppReportsOperationsTablesRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -550,6 +587,9 @@ export interface FileRoutesByTo {
   '/menu/overrides': typeof AppMenuOverridesRoute
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
+  '/reports/inventory': typeof AppReportsInventoryRoute
+  '/reports/legal': typeof AppReportsLegalRoute
+  '/reports/sales': typeof AppReportsSalesRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -572,6 +612,8 @@ export interface FileRoutesByTo {
   '/menu': typeof AppMenuIndexRoute
   '/settings': typeof AppSettingsIndexRoute
   '/menu/items/$itemId': typeof AppMenuItemsItemIdRoute
+  '/reports/operations/profitability': typeof AppReportsOperationsProfitabilityRoute
+  '/reports/operations/tables': typeof AppReportsOperationsTablesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -623,6 +665,9 @@ export interface FileRoutesById {
   '/_app/menu/overrides': typeof AppMenuOverridesRoute
   '/_app/menu/pricing': typeof AppMenuPricingRoute
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
+  '/_app/reports/inventory': typeof AppReportsInventoryRoute
+  '/_app/reports/legal': typeof AppReportsLegalRoute
+  '/_app/reports/sales': typeof AppReportsSalesRoute
   '/_app/settings/bookings': typeof AppSettingsBookingsRoute
   '/_app/settings/brand': typeof AppSettingsBrandRoute
   '/_app/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -645,6 +690,8 @@ export interface FileRoutesById {
   '/_app/menu/': typeof AppMenuIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
   '/_app/menu/items_/$itemId': typeof AppMenuItemsItemIdRoute
+  '/_app/reports/operations/profitability': typeof AppReportsOperationsProfitabilityRoute
+  '/_app/reports/operations/tables': typeof AppReportsOperationsTablesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -696,6 +743,9 @@ export interface FileRouteTypes {
     | '/menu/overrides'
     | '/menu/pricing'
     | '/menu/recipes'
+    | '/reports/inventory'
+    | '/reports/legal'
+    | '/reports/sales'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/delivery'
@@ -718,6 +768,8 @@ export interface FileRouteTypes {
     | '/menu/'
     | '/settings/'
     | '/menu/items/$itemId'
+    | '/reports/operations/profitability'
+    | '/reports/operations/tables'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -762,6 +814,9 @@ export interface FileRouteTypes {
     | '/menu/overrides'
     | '/menu/pricing'
     | '/menu/recipes'
+    | '/reports/inventory'
+    | '/reports/legal'
+    | '/reports/sales'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/delivery'
@@ -784,6 +839,8 @@ export interface FileRouteTypes {
     | '/menu'
     | '/settings'
     | '/menu/items/$itemId'
+    | '/reports/operations/profitability'
+    | '/reports/operations/tables'
   id:
     | '__root__'
     | '/_app'
@@ -834,6 +891,9 @@ export interface FileRouteTypes {
     | '/_app/menu/overrides'
     | '/_app/menu/pricing'
     | '/_app/menu/recipes'
+    | '/_app/reports/inventory'
+    | '/_app/reports/legal'
+    | '/_app/reports/sales'
     | '/_app/settings/bookings'
     | '/_app/settings/brand'
     | '/_app/settings/delivery'
@@ -856,6 +916,8 @@ export interface FileRouteTypes {
     | '/_app/menu/'
     | '/_app/settings/'
     | '/_app/menu/items_/$itemId'
+    | '/_app/reports/operations/profitability'
+    | '/_app/reports/operations/tables'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1174,6 +1236,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsBookingsRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
+    '/_app/reports/sales': {
+      id: '/_app/reports/sales'
+      path: '/reports/sales'
+      fullPath: '/reports/sales'
+      preLoaderRoute: typeof AppReportsSalesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/legal': {
+      id: '/_app/reports/legal'
+      path: '/reports/legal'
+      fullPath: '/reports/legal'
+      preLoaderRoute: typeof AppReportsLegalRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/inventory': {
+      id: '/_app/reports/inventory'
+      path: '/reports/inventory'
+      fullPath: '/reports/inventory'
+      preLoaderRoute: typeof AppReportsInventoryRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/menu/recipes': {
       id: '/_app/menu/recipes'
       path: '/recipes'
@@ -1349,6 +1432,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccessRolesRouteImport
       parentRoute: typeof AppAccessRouteRoute
     }
+    '/_app/reports/operations/tables': {
+      id: '/_app/reports/operations/tables'
+      path: '/reports/operations/tables'
+      fullPath: '/reports/operations/tables'
+      preLoaderRoute: typeof AppReportsOperationsTablesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/operations/profitability': {
+      id: '/_app/reports/operations/profitability'
+      path: '/reports/operations/profitability'
+      fullPath: '/reports/operations/profitability'
+      preLoaderRoute: typeof AppReportsOperationsProfitabilityRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/menu/items_/$itemId': {
       id: '/_app/menu/items_/$itemId'
       path: '/items/$itemId'
@@ -1505,11 +1602,16 @@ interface AppRouteRouteChildren {
   AppInsightsTablesRoute: typeof AppInsightsTablesRoute
   AppKitchenRoutingRoute: typeof AppKitchenRoutingRoute
   AppKitchenStationsRoute: typeof AppKitchenStationsRoute
+  AppReportsInventoryRoute: typeof AppReportsInventoryRoute
+  AppReportsLegalRoute: typeof AppReportsLegalRoute
+  AppReportsSalesRoute: typeof AppReportsSalesRoute
   AppStaffAttendanceRoute: typeof AppStaffAttendanceRoute
   AppStaffEmployeesRoute: typeof AppStaffEmployeesRoute
   AppStaffRequestsRoute: typeof AppStaffRequestsRoute
   AppStaffRulesRoute: typeof AppStaffRulesRoute
   AppStaffShiftsRoute: typeof AppStaffShiftsRoute
+  AppReportsOperationsProfitabilityRoute: typeof AppReportsOperationsProfitabilityRoute
+  AppReportsOperationsTablesRoute: typeof AppReportsOperationsTablesRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -1539,11 +1641,17 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppInsightsTablesRoute: AppInsightsTablesRoute,
   AppKitchenRoutingRoute: AppKitchenRoutingRoute,
   AppKitchenStationsRoute: AppKitchenStationsRoute,
+  AppReportsInventoryRoute: AppReportsInventoryRoute,
+  AppReportsLegalRoute: AppReportsLegalRoute,
+  AppReportsSalesRoute: AppReportsSalesRoute,
   AppStaffAttendanceRoute: AppStaffAttendanceRoute,
   AppStaffEmployeesRoute: AppStaffEmployeesRoute,
   AppStaffRequestsRoute: AppStaffRequestsRoute,
   AppStaffRulesRoute: AppStaffRulesRoute,
   AppStaffShiftsRoute: AppStaffShiftsRoute,
+  AppReportsOperationsProfitabilityRoute:
+    AppReportsOperationsProfitabilityRoute,
+  AppReportsOperationsTablesRoute: AppReportsOperationsTablesRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

@@ -184,7 +184,11 @@
     "bookings": "Bookings",
     "loyalty": "Loyalty",
     "tablesInsights": "Tables",
-    "devices": "Devices"
+    "devices": "Devices",
+    "reports": "Reports",
+    "reportsInventory": "Inventory",
+    "reportsLegal": "Legal",
+    "reportsOperations": "Operations"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -4721,6 +4725,13 @@
       "noLegacyHint": "Nothing used a pre-rework path in the last {{count}} days.",
       "none": "No clients seen",
       "noneHint": "No app has called the server in the last {{count}} days."
+    }
+  },
+  "reports": {
+    "legal": {
+      "tax": "Tax report",
+      "noVat": "This organization has no VAT configured",
+      "noVatHint": "Set a tax rate under Settings to see a tax report here."
     }
   }
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { BarChart3, Boxes, CircleHelp, Store, Wallet } from "lucide-react";
+import { BarChart3, Boxes, CalendarRange, CircleHelp, Store, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import { ProgressBar } from "@/components/app/progress-bar";
@@ -32,7 +32,7 @@ type ReportScope = "branch" | "org";
 export function ReportsPage() {
   const { t } = useTranslation();
   const orgId = useOrgId();
-  const { branchId, from, to } = useScope();
+  const { branchId, from, to, preset } = useScope();
 
   const [scope, setScope] = useState<ReportScope>(branchId ? "branch" : "org");
   const [tab, setTab] = useState("valuation");
@@ -170,6 +170,12 @@ export function ReportsPage() {
       <Tabs value={tab} onValueChange={setTab} className="gap-6">
         <PageHeader
           title={t("inventory.reports.title", "Inventory reports")}
+          subtitle={tab === "valuation" ? undefined : (
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarRange aria-hidden className="size-3.5" />
+              {t(`scope.preset.${preset ?? "30d"}`, preset ?? "30d")}
+            </span>
+          )}
           actions={<ExportButton onExport={handleExport} loading={exporting} disabled={branchGate || !currentCount} />}
           below={
             <>

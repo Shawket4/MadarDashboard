@@ -117,7 +117,7 @@ export function MarginWatchCard() {
 
           <div className="border-t pt-3">
             <Link
-              to="/insights/profitability"
+              to="/reports/operations/profitability"
               className="inline-flex items-center gap-1 text-sm font-medium text-foreground underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
               {t("insights.watch.viewAll", "Menu profitability")}
