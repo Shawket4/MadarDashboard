@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "918f490d11d81046";
+export const SPEC_HASH = "8ab016267a4f2ce9";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -191,6 +191,7 @@ export type Capability =
   | "loyalty.points.adjust"
   | "loyalty.members.delete"
   | "integrations.read"
+  | "customers.erase"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -371,6 +372,7 @@ export const Cap = {
   loyaltyPointsAdjust: "loyalty.points.adjust" as Capability,
   loyaltyMembersDelete: "loyalty.members.delete" as Capability,
   integrationsRead: "integrations.read" as Capability,
+  customersErase: "customers.erase" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -569,6 +571,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 216, key: "loyalty.points.adjust", legacy: null, group: "customers", tier: "advanced", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Add or remove a member's points by hand", ar: "إضافة نقاط العضو أو خصمها يدويًا", hintEn: null, hintAr: null },
   { id: 217, key: "loyalty.members.delete", legacy: null, group: "customers", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Delete loyalty members", ar: "حذف أعضاء الولاء", hintEn: null, hintAr: null },
   { id: 218, key: "integrations.read", legacy: null, group: "settings", tier: "advanced", risk: "admin", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See integrations and their API credentials", ar: "عرض التكاملات وبيانات اعتماد الواجهة البرمجية", hintEn: null, hintAr: null },
+  { id: 219, key: "customers.erase", legacy: null, group: "customers", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Erase a customer's personal data (PDPL)", ar: "محو البيانات الشخصية للعميل", hintEn: null, hintAr: null },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [

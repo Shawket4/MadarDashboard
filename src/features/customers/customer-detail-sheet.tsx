@@ -1,6 +1,6 @@
 /**
  * One customer: who they are, what they have spent, their recent orders, and
- * (for someone who may edit) edit, merge into another, and PDPL erase.
+ * (for someone who may edit) edit and merge into another; PDPL erase needs customers.erase.
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -41,6 +41,8 @@ export function CustomerDetailSheet({
   const side = i18n.dir() === "rtl" ? "left" : "right";
   const authz = useAuthz();
   const canEdit = authz.can(Cap.customersEdit);
+  // PDPL erase is its own capability: the owner's by default, never a manager's.
+  const canErase = authz.can(Cap.customersErase);
   const qc = useQueryClient();
   const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
@@ -109,20 +111,26 @@ export function CustomerDetailSheet({
 
               <CustomerSummary detail={detail.data} canSeeLoyalty={authz.canAny(Cap.loyaltyMembersList, Cap.loyaltyRead)} />
 
-              {canEdit ? (
+              {canEdit || canErase ? (
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-                    <Pencil className="size-4" />
-                    {t("common.edit", "Edit")}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setMerging(true)}>
-                    <GitMerge className="size-4" />
-                    {t("customers.mergeInto", "Merge into…")}
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-destructive" loading={erase.isPending} onClick={() => void doErase()}>
-                    <Eraser className="size-4" />
-                    {t("customers.erase", "Erase customer")}
-                  </Button>
+                  {canEdit ? (
+                    <>
+                      <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+                        <Pencil className="size-4" />
+                        {t("common.edit", "Edit")}
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setMerging(true)}>
+                        <GitMerge className="size-4" />
+                        {t("customers.mergeInto", "Merge into…")}
+                      </Button>
+                    </>
+                  ) : null}
+                  {canErase ? (
+                    <Button variant="outline" size="sm" className="text-destructive" loading={erase.isPending} onClick={() => void doErase()}>
+                      <Eraser className="size-4" />
+                      {t("customers.erase", "Erase customer")}
+                    </Button>
+                  ) : null}
                 </div>
               ) : null}
 
