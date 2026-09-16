@@ -17,7 +17,7 @@ import {
   setRoleGrant,
   useListRoles,
 } from "@/data/api/generated/api";
-import type { RoleView } from "@/data/api/generated/models";
+import type { LimitsView, RoleView } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { queryClient } from "@/data/api/query";
 import { useAuthz } from "@/data/authz/use-authz";
@@ -28,6 +28,7 @@ import { Restricted } from "@/components/app/restricted";
 import { AskManagerCard } from "./ask-manager-card";
 import { AlwaysOn, CapabilityGroups } from "./capability-groups";
 import { bilingual, isCoreFor, roleHolds } from "./catalog";
+import { LimitsButton } from "./limits-button";
 import { RoleDialog } from "./role-dialog";
 
 export function RolesPage() {
@@ -56,10 +57,10 @@ export function RolesPage() {
   };
   const refresh = () => queryClient.invalidateQueries({ queryKey: getListRolesQueryKey() });
 
-  const toggle = async (role: RoleView, meta: CapabilityMeta, granted: boolean) => {
+  const toggle = async (role: RoleView, meta: CapabilityMeta, granted: boolean, limits?: LimitsView) => {
     setBusy(meta.key);
     try {
-      await setRoleGrant(role.id, { capability: meta.key, granted });
+      await setRoleGrant(role.id, { capability: meta.key, granted, ...(limits ? { limits } : {}) });
       await refresh();
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -91,13 +92,24 @@ export function RolesPage() {
     if (!selected) return null;
     if (isCoreFor(meta, selected.kind)) return <AlwaysOn />;
     const on = held.has(meta.key);
+    const grant = selected.grants.find((g) => g.capability === meta.key);
     return (
-      <Switch
+      <span className="flex items-center gap-1">
+        {on && meta.limits.length > 0 ? (
+          <LimitsButton
+            meta={meta}
+            value={grant?.limits ?? null}
+            disabled={!canManage || !selected.editable || busy === meta.key}
+            onSave={(l) => void toggle(selected, meta, true, l)}
+          />
+        ) : null}
+        <Switch
         checked={on}
         disabled={!canManage || !selected.editable || busy === meta.key}
         onCheckedChange={(v) => void toggle(selected, meta, v)}
         aria-label={meta.key}
       />
+      </span>
     );
   };
 

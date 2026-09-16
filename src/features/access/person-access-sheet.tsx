@@ -28,6 +28,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import type { CapabilityMeta } from "@/generated/capabilities";
 
 import { AlwaysOn, CapabilityGroups } from "./capability-groups";
+import { LimitsButton } from "./limits-button";
 import { bilingual, capLabel } from "./catalog";
 
 type Effect = "inherit" | "allow" | "deny";
@@ -277,59 +278,6 @@ function AssignmentsEditor({
         </div>
       )}
     </section>
-  );
-}
-
-function LimitsButton({
-  meta,
-  value,
-  disabled,
-  onSave,
-}: {
-  meta: CapabilityMeta;
-  value: LimitsView | null;
-  disabled: boolean;
-  onSave: (l: LimitsView) => void;
-}) {
-  const { t } = useTranslation();
-  const [draft, setDraft] = useState<Record<string, string>>({});
-  const label: Record<string, string> = {
-    max_amount: t("access.maxAmount", "Most per action (EGP)"),
-    max_percent: t("access.maxPercent", "Most per action (%)"),
-    max_value: t("access.maxValue", "Most per action"),
-  };
-  return (
-    <Popover
-      onOpenChange={(o) => {
-        if (o) setDraft(Object.fromEntries(meta.limits.map((k) => [k, value?.[k] != null ? String(value[k]) : ""])));
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" disabled={disabled}>
-          {value && Object.values(value).some((v) => v != null) ? t("access.limited", "Limited") : t("access.limit", "Limit")}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-72 space-y-3">
-        {meta.limits.map((k) => (
-          <div key={k} className="space-y-1.5">
-            <Label>{label[k]}</Label>
-            <Input
-              inputMode="numeric"
-              value={draft[k] ?? ""}
-              placeholder={t("access.noLimit", "No limit")}
-              onChange={(e) => setDraft((p) => ({ ...p, [k]: e.target.value.replace(/[^0-9]/g, "") }))}
-            />
-          </div>
-        ))}
-        <Button
-          size="sm"
-          className="w-full"
-          onClick={() => onSave(Object.fromEntries(meta.limits.map((k) => [k, draft[k] ? Number(draft[k]) : null])) as LimitsView)}
-        >
-          {t("common.save", "Save")}
-        </Button>
-      </PopoverContent>
-    </Popover>
   );
 }
 

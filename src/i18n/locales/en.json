@@ -4825,6 +4825,9 @@
         "unauthorized_offline": "Done offline without the permission",
         "pin_wrong_branch": "Correct PIN at a branch they don't work at"
       }
-    }
+    },
+    "maxAgeMinutes": "Within minutes of the sale",
+    "ownOnly": "Only their own",
+    "overLimitHint": "Over a limit, the till asks a manager."
   }
 }
