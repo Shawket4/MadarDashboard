@@ -72,8 +72,6 @@ import { Cap } from "@/generated/capabilities";
 import { currencyLabel, fmtNumber } from "@/lib/format";
 import { PriceTaxHint } from "./price-tax-hint";
 import { LinkedCopyDialog } from "./recipe/linked-copy-dialog";
-import { useAuthz } from "@/data/authz/use-authz";
-import { Cap } from "@/generated/capabilities";
 
 
 const ALL = "__all__";

@@ -71,8 +71,6 @@ import { RecipeLinkBar } from "../recipe/recipe-link-bar";
 import { LinkedCopyDialog } from "../recipe/linked-copy-dialog";
 import { ownPayload, type SwapGroupInfo } from "../recipe/grid-model";
 import { SectionSteps } from "./section-steps";
-import { useAuthz } from "@/data/authz/use-authz";
-import { Cap } from "@/generated/capabilities";
 import { SectionModifiers } from "./section-modifiers";
 import { SectionOptions } from "./section-options";
 import { PreviewPanel } from "./preview/preview-panel";
