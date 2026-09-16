@@ -31,6 +31,7 @@ import {
   Trash2,
   Telescope,
   TrendingUp,
+  ListChecks,
   UserRound,
   Users,
   UtensilsCrossed,
@@ -97,6 +98,7 @@ export const NAV: NavGroup[] = [
         basePath: "/menu",
         children: [
           { caps: [Cap.menuItemsRead], to: "/menu/items", labelKey: "nav.items", fallback: "Items", icon: CupSoda },
+          { caps: [Cap.menuItemsRead], to: "/menu/groups", labelKey: "nav.choiceGroups", fallback: "Choice groups", icon: ListChecks },
           { caps: [Cap.menuItemsEdit], to: "/menu/pricing", labelKey: "nav.pricingAvailability", fallback: "Pricing & Availability", icon: SlidersHorizontal },
         ],
       },

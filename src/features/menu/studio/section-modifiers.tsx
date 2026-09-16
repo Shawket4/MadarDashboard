@@ -1,7 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, Layers, Plus, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Check, Layers, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +12,11 @@ import { Combobox } from "@/components/app/combobox";
 import { EmptyState } from "@/components/app/empty-state";
 import { useListGroups } from "@/data/api/generated/api";
 import type { GroupOut } from "@/data/api/generated/models";
-import { fmtMoney } from "@/lib/format";
-import { AddonDialog } from "@/features/menu/addon-dialog";
+import { fmtMoney, fmtUnit } from "@/lib/format";
+import { Cap } from "@/generated/capabilities";
+import { useCan } from "@/data/authz/use-authz";
+
+import { GroupEditorDialog } from "@/features/menu/groups/group-editor-dialog";
 import { invalidateStudio, type AttachDraft } from "./util";
 
 interface Props {
@@ -33,14 +37,15 @@ const humanizeType = (type: string | null | undefined): string | null => {
  * option in/out of the attachment's allowlist (all-included collapses to null);
  * min/max/required are per-attachment overrides. Attaching, detaching and every
  * override edit are drafts — Save replace-sets the attachments in current order.
- * Creating a brand-new group/option reuses the AddonDialog wiring (its managed
- * legacy-addon-type dropdown keeps old POS clients seeing the option).
+ * "New group" opens the choice-group editor and attaches the group it creates.
+ * Each option's recipe is shown read-only; "Edit group" opens the group editor.
  */
 export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props) {
   const { t } = useTranslation();
   const groupsQ = useListGroups({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const allGroups = useMemo(() => groupsQ.data ?? [], [groupsQ.data]);
-  const [newAddon, setNewAddon] = useState(false);
+  const [newGroup, setNewGroup] = useState(false);
+  const canEditGroups = useCan(Cap.menuItemsEdit);
 
   const attachedIds = useMemo(() => new Set(attached.map((a) => a.group_id)), [attached]);
   const pickable = useMemo(
@@ -53,8 +58,8 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
     hint: humanizeType(g.legacy_addon_type) ?? t("menu.studio.modifiers.option", "options"),
   }));
 
-  const attach = (groupId: string) => {
-    const g: GroupOut | undefined = allGroups.find((x) => x.id === groupId);
+  const attach = (groupId: string) => attachGroup(allGroups.find((x) => x.id === groupId));
+  const attachGroup = (g: GroupOut | undefined) => {
     if (!g) return;
     setAttached((prev) => [
       ...prev,
@@ -91,8 +96,8 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
     );
 
   /** Refresh the reusable-groups list after the create dialog closes. */
-  const onNewAddonOpenChange = (open: boolean) => {
-    setNewAddon(open);
+  const onNewGroupOpenChange = (open: boolean) => {
+    setNewGroup(open);
     if (!open) invalidateStudio(itemId);
   };
 
@@ -115,11 +120,18 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
                   ? t("menu.studio.modifiers.single", "Single choice")
                   : t("menu.studio.modifiers.multi", "Multi choice")}
               </Badge>
+              {canEditGroups ? (
+                <Button asChild variant="ghost" size="sm" className="ms-auto h-7 px-2 text-xs">
+                  <Link to="/menu/groups" search={{ edit: a.group_id }}>
+                    <Pencil className="size-3.5" /> {t("menu.groups.editGroup", "Edit group")}
+                  </Link>
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="ms-auto text-destructive"
+                className={canEditGroups ? "text-destructive" : "ms-auto text-destructive"}
                 aria-label={t("menu.studio.modifiers.detach", "Detach")}
                 onClick={() => detach(idx)}
               >
@@ -158,6 +170,31 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
                 </div>
               )}
             </div>
+
+            {/* What each option costs and deducts (read-only; edited in the group) */}
+            {a.allOptions.some((o) => o.recipe && o.recipe.length > 0) ? (
+              <ul className="mt-3 space-y-1 text-xs">
+                {a.allOptions.map((o) => (
+                  <li key={o.id} className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-medium">{o.name}</span>
+                    <span className="text-muted-foreground tabular">+{fmtMoney(o.price)}</span>
+                    <span className="text-muted-foreground">
+                      {o.recipe && o.recipe.length > 0
+                        ? o.recipe
+                            .map((r) => `${r.ingredient_name} ${parseFloat(r.quantity)} ${fmtUnit(r.unit)}`)
+                            .join(" · ")
+                        : t("menu.groups.studio.noStock", "no stock")}
+                    </span>
+                    {o.cost != null ? (
+                      <span className="text-muted-foreground tabular">
+                        {t("menu.groups.studio.cost", "cost")} {fmtMoney(o.cost)}
+                        {o.costIncomplete ? "+" : ""}
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
 
             {/* Per-attachment constraint overrides */}
             <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t pt-3">
@@ -204,13 +241,21 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
             disabled={pickable.length === 0}
           />
         </div>
-        <Button type="button" variant="outline" onClick={() => setNewAddon(true)} disabled={!orgId}>
-          <Plus className="size-4" /> {t("menu.newAddon", "New add-on")}
-        </Button>
+        {canEditGroups ? (
+          <Button type="button" variant="outline" onClick={() => setNewGroup(true)} disabled={!orgId}>
+            <Plus className="size-4" /> {t("menu.groups.new", "New group")}
+          </Button>
+        ) : null}
       </div>
 
-      {newAddon && orgId ? (
-        <AddonDialog orgId={orgId} addon={null} open={newAddon} onOpenChange={onNewAddonOpenChange} />
+      {newGroup && orgId && canEditGroups ? (
+        <GroupEditorDialog
+          orgId={orgId}
+          group={null}
+          open={newGroup}
+          onOpenChange={onNewGroupOpenChange}
+          onSaved={(g) => attachGroup(g)}
+        />
       ) : null}
     </div>
   );
