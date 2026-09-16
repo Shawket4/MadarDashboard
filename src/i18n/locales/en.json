@@ -184,7 +184,16 @@
     "bookings": "Bookings",
     "loyalty": "Loyalty",
     "tablesInsights": "Tables",
-    "devices": "Devices"
+    "devices": "Devices",
+    "reports": "Reports",
+    "reportsInventory": "Inventory",
+    "reportsLegal": "Legal",
+    "reportsOperations": "Operations",
+    "reportsLoyalty": "Loyalty",
+    "reportsStaff": "Staff",
+    "showLess": "Show less",
+    "showMore": "Show more",
+    "showMoreCount": "{{count}} more"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -1730,7 +1739,8 @@
       "tellers": "Tellers",
       "branches": "Branches",
       "inventory": "Inventory",
-      "waiters": "Waiters"
+      "waiters": "Waiters",
+      "tax": "Tax"
     },
     "granularity": {
       "peak_hours": "Peak Hours",
@@ -1777,7 +1787,15 @@
     "excludedFromCount": "Excluded from Items Sold",
     "nExcluded_one": "{{count}} item excluded",
     "nExcluded_other": "{{count}} items excluded",
-    "excludeScopeNote": "Hides items from the Items Sold count only. Revenue, orders, and all other figures always include every item."
+    "excludeScopeNote": "Hides items from the Items Sold count only. Revenue, orders, and all other figures always include every item.",
+    "tax": {
+      "taxableSales": "Taxable Sales",
+      "taxCollected": "Tax Collected",
+      "refundedTax": "Refunded Tax",
+      "netTaxDue": "Net Tax Due",
+      "serviceCharge": "Service Charge",
+      "rateNote": "Org tax rate: {{rate}}"
+    }
   },
   "discounts": {
     "title": "Discounts",
@@ -4716,6 +4734,49 @@
       "noLegacyHint": "Nothing used a pre-rework path in the last {{count}} days.",
       "none": "No clients seen",
       "noneHint": "No app has called the server in the last {{count}} days."
+    }
+  },
+  "reports": {
+    "legal": {
+      "tax": "Tax report",
+      "noVat": "This organization has no VAT configured",
+      "noVatHint": "Set a tax rate under Settings to see a tax report here.",
+      "title": "Legal",
+      "tabs": {
+        "tax": "Tax",
+        "refunds": "Refunds",
+        "voids": "Voids",
+        "discounts": "Discounts",
+        "waivers": "Waivers",
+        "priceOverrides": "Price overrides"
+      },
+      "eventCount": "Events",
+      "eventAmount": "Total amount",
+      "empty": "Nothing recorded in this period",
+      "byReason": "By reason",
+      "byDiscount": "By discount",
+      "byBranch": "By branch",
+      "byIssuer": "By staff member",
+      "eventsCount": "{{n}} events"
+    },
+    "loyalty": {
+      "title": "Loyalty",
+      "activeRate": "Active member rate",
+      "activeRateHint": "{{active}} of {{total}} members",
+      "redemptionRate": "Redemption rate",
+      "redemptionRateHint": "{{redeemed}} members have ever redeemed",
+      "redemptionRatio": "Points redeemed vs earned",
+      "redemptionRatioHint": "This period",
+      "repeatRate": "Repeat visit rate",
+      "repeatRateHint": "{{repeat}} of {{earning}} earning members came back",
+      "newShare": "New member share",
+      "newShareHint": "{{new}} of {{active}} active members joined this period"
+    },
+    "staff": {
+      "title": "Staff discipline",
+      "empty": "No attendance recorded in this period",
+      "unassigned": "Unassigned",
+      "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m"
     }
   }
 }

@@ -184,7 +184,16 @@
     "bookings": "الحجوزات",
     "loyalty": "الولاء",
     "tablesInsights": "الطاولات",
-    "devices": "الأجهزة"
+    "devices": "الأجهزة",
+    "reports": "التقارير",
+    "reportsInventory": "المخزون",
+    "reportsLegal": "قانوني",
+    "reportsOperations": "التشغيل",
+    "reportsLoyalty": "الولاء",
+    "reportsStaff": "الموظفون",
+    "showLess": "عرض أقل",
+    "showMore": "عرض المزيد",
+    "showMoreCount": "{{count}} أخرى"
   },
   "auth": {
     "welcome": "مرحباً بعودتك",
@@ -1732,7 +1741,8 @@
       "tellers": "الكاشيرز",
       "branches": "الفروع",
       "inventory": "المخزون",
-      "waiters": "النوادل"
+      "waiters": "النوادل",
+      "tax": "الضريبة"
     },
     "granularity": {
       "peak_hours": "ساعات الذروة",
@@ -1783,7 +1793,15 @@
     "nExcluded_few": "{{count}} أصناف مستبعدة",
     "nExcluded_many": "{{count}} صنفًا مستبعدًا",
     "nExcluded_other": "{{count}} صنف مستبعد",
-    "excludeScopeNote": "يُخفي الأصناف من عدّ الأصناف المباعة فقط. الإيراد والطلبات وكل الأرقام الأخرى تشمل دائمًا جميع الأصناف."
+    "excludeScopeNote": "يُخفي الأصناف من عدّ الأصناف المباعة فقط. الإيراد والطلبات وكل الأرقام الأخرى تشمل دائمًا جميع الأصناف.",
+    "tax": {
+      "taxableSales": "المبيعات الخاضعة للضريبة",
+      "taxCollected": "الضريبة المحصّلة",
+      "refundedTax": "الضريبة المستردة",
+      "netTaxDue": "صافي الضريبة المستحقة",
+      "serviceCharge": "رسوم الخدمة",
+      "rateNote": "نسبة الضريبة للمنشأة: {{rate}}"
+    }
   },
   "discounts": {
     "title": "الخصومات",
@@ -4851,6 +4869,49 @@
       "noLegacyHint": "لم يستخدم أي تطبيق مسارًا قديمًا خلال آخر {{count}} يوم.",
       "none": "لم يُرصد أي تطبيق",
       "noneHint": "لم يتصل أي تطبيق بالخادم خلال آخر {{count}} يوم."
+    }
+  },
+  "reports": {
+    "legal": {
+      "tax": "التقرير الضريبي",
+      "noVat": "لا توجد ضريبة قيمة مضافة مفعّلة لهذه المنشأة",
+      "noVatHint": "حدد نسبة الضريبة من الإعدادات لعرض التقرير الضريبي هنا.",
+      "title": "قانوني",
+      "tabs": {
+        "tax": "الضريبة",
+        "refunds": "المبالغ المستردة",
+        "voids": "الإلغاءات",
+        "discounts": "الخصومات",
+        "waivers": "الإعفاءات",
+        "priceOverrides": "تعديلات السعر"
+      },
+      "eventCount": "الأحداث",
+      "eventAmount": "إجمالي المبلغ",
+      "empty": "لا يوجد سجل في هذه الفترة",
+      "byReason": "حسب السبب",
+      "byDiscount": "حسب الخصم",
+      "byBranch": "حسب الفرع",
+      "byIssuer": "حسب الموظف",
+      "eventsCount": "{{n}} حدث"
+    },
+    "loyalty": {
+      "title": "الولاء",
+      "activeRate": "نسبة الأعضاء النشطين",
+      "activeRateHint": "{{active}} من {{total}} عضو",
+      "redemptionRate": "نسبة استبدال النقاط",
+      "redemptionRateHint": "{{redeemed}} عضو استبدلوا نقاطهم من قبل",
+      "redemptionRatio": "النقاط المستبدلة مقابل المكتسبة",
+      "redemptionRatioHint": "خلال هذه الفترة",
+      "repeatRate": "نسبة الزيارات المتكررة",
+      "repeatRateHint": "{{repeat}} من {{earning}} عضو عادوا مرة أخرى",
+      "newShare": "نسبة الأعضاء الجدد",
+      "newShareHint": "{{new}} من {{active}} عضو نشط انضموا خلال هذه الفترة"
+    },
+    "staff": {
+      "title": "انضباط الموظفين",
+      "empty": "لا يوجد سجل حضور في هذه الفترة",
+      "unassigned": "غير محدد",
+      "rowSummary": "{{late}} تأخير · {{absent}} غياب · {{minutes}} دقيقة"
     }
   }
 }

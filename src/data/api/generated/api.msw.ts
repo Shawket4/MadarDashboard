@@ -43,6 +43,7 @@ import type {
   AttendanceRecord,
   AttendanceSettings,
   AttendanceSummary,
+  AuditReport,
   AuthPermissionsResponse,
   AvailabilityResponse,
   AwardResult,
@@ -89,6 +90,7 @@ import type {
   DeliveryZone,
   Department,
   Device,
+  DisciplineReport,
   Discount,
   DrinkRecipe,
   Employee,
@@ -118,6 +120,7 @@ import type {
   LoginResponse,
   LowStockRow,
   LoyaltyAnalytics,
+  LoyaltyBehavior,
   LoyaltySettings,
   MarginLedgerReport,
   MarginTargets,
@@ -220,6 +223,7 @@ import type {
   Supplier,
   TableBookingHint,
   TableHistory,
+  TaxReport,
   TeamPresence,
   TellerStats,
   Till,
@@ -600,6 +604,8 @@ export const getGetLoyaltyAnalyticsResponseMock = (overrideResponse: Partial<Ext
 
 export const getLoyaltyAwardResponseMock = (overrideResponse: Partial<Extract<AwardResult, object>> = {}): AwardResult => ({already_awarded: faker.datatype.boolean(), member: {balance: faker.number.int(), can_redeem: faker.datatype.boolean(), enrolled_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), lifetime_points: faker.number.int(), lifetime_visits: faker.number.int(), locale: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), org_id: faker.string.uuid(), phone: faker.string.alpha({length: {min: 10, max: 20}}), points_balance: faker.number.int(), points_to_next_reward: faker.number.int(), progress_to_next: faker.number.int(), rewards_ready: faker.number.int(), visits_balance: faker.number.int()}, order_id: faker.string.uuid(), points_awarded: faker.number.int(), ...overrideResponse})
 
+export const getGetLoyaltyBehaviorResponseMock = (overrideResponse: Partial<Extract<LoyaltyBehavior, object>> = {}): LoyaltyBehavior => ({active_member_rate: faker.number.float({fractionDigits: 2}), active_members: faker.number.int(), from: faker.date.past().toISOString().slice(0, 19) + 'Z', members_ever_redeemed: faker.number.int(), new_member_share: faker.number.float({fractionDigits: 2}), new_members_active: faker.number.int(), one_time_members: faker.number.int(), redemption_rate: faker.number.float({fractionDigits: 2}), redemption_ratio: faker.number.float({fractionDigits: 2}), repeat_members: faker.number.int(), repeat_visit_rate: faker.number.float({fractionDigits: 2}), returning_members_active: faker.number.int(), to: faker.date.past().toISOString().slice(0, 19) + 'Z', total_members: faker.number.int(), ...overrideResponse})
+
 export const getPreviewLoyaltyBirthdayMessageResponseMock = (overrideResponse: Partial<Extract<BirthdayPreview, object>> = {}): BirthdayPreview => ({ar: faker.string.alpha({length: {min: 10, max: 20}}), en: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 export const getLoyaltyLookupResponseMock = (overrideResponse: Partial<Extract<ScanResult, object>> = {}): ScanResult => ({any_item: faker.datatype.boolean(), any_item_cost: faker.number.int(), max_rewards_per_order: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), member: {balance: faker.number.int(), can_redeem: faker.datatype.boolean(), enrolled_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), lifetime_points: faker.number.int(), lifetime_visits: faker.number.int(), locale: faker.string.alpha({length: {min: 10, max: 20}}), mode: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), next_reward_cost: faker.number.int(), org_id: faker.string.uuid(), phone: faker.string.alpha({length: {min: 10, max: 20}}), points_balance: faker.number.int(), points_to_next_reward: faker.number.int(), progress_to_next: faker.number.int(), rewards_ready: faker.number.int(), visits_balance: faker.number.int()}, recent: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({basis_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), created_by_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), currency: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), points: faker.number.int(), reverses_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), reward_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}})})), rewards: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({base_price: faker.number.int(), cost_amount: faker.number.int(), cost_currency: faker.string.alpha({length: {min: 10, max: 20}}), image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), menu_item_id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), sort_order: faker.number.int()})), ...overrideResponse})
@@ -964,11 +970,23 @@ export const getOrgBranchComparisonResponseMock = (overrideResponse: Partial<Ext
 
 export const getOrgConsumptionResponseMock = (): ConsumptionRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({consumed_qty: faker.number.float({fractionDigits: 2}), consumed_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), org_ingredient_id: faker.string.uuid(), unit: faker.string.alpha({length: {min: 10, max: 20}})})))
 
+export const getDiscountsAuditResponseMock = (overrideResponse: Partial<Extract<AuditReport, object>> = {}): AuditReport => ({by_issuer: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_minor: faker.number.int(), count: faker.number.int(), label: faker.string.alpha({length: {min: 10, max: 20}})})), by_reason: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_minor: faker.number.int(), count: faker.number.int(), label: faker.string.alpha({length: {min: 10, max: 20}})})), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), total_amount_minor: faker.number.int(), total_count: faker.number.int(), ...overrideResponse})
+
 export const getOrgInventoryValuationResponseMock = (overrideResponse: Partial<Extract<InventoryValuationReport, object>> = {}): InventoryValuationReport => ({items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({cost_per_unit: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), on_hand: faker.number.float({fractionDigits: 2}), org_ingredient_id: faker.string.uuid(), unit: faker.string.alpha({length: {min: 10, max: 20}}), value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined])})), total_value: faker.number.int(), unknown_cost_count: faker.number.int(), ...overrideResponse})
 
 export const getOrgLowStockResponseMock = (): LowStockRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), on_hand: faker.number.float({fractionDigits: 2}), org_ingredient_id: faker.string.uuid(), par_max: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), par_min: faker.number.float({fractionDigits: 2}), suggested_qty: faker.number.float({fractionDigits: 2}), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), unit: faker.string.alpha({length: {min: 10, max: 20}})})))
 
+export const getPriceOverridesResponseMock = (overrideResponse: Partial<Extract<AuditReport, object>> = {}): AuditReport => ({by_issuer: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_minor: faker.number.int(), count: faker.number.int(), label: faker.string.alpha({length: {min: 10, max: 20}})})), by_reason: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_minor: faker.number.int(), count: faker.number.int(), label: faker.string.alpha({length: {min: 10, max: 20}})})), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), total_amount_minor: faker.number.int(), total_count: faker.number.int(), ...overrideResponse})
+
+export const getRefundsAuditResponseMock = (overrideResponse: Partial<Extract<AuditReport, object>> = {}): AuditReport => ({by_issuer: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_minor: faker.number.int(), count: faker.number.int(), label: faker.string.alpha({length: {min: 10, max: 20}})})), by_reason: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_minor: faker.number.int(), count: faker.number.int(), label: faker.string.alpha({length: {min: 10, max: 20}})})), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), total_amount_minor: faker.number.int(), total_count: faker.number.int(), ...overrideResponse})
+
 export const getOrgShrinkageResponseMock = (): ShrinkageRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), org_ingredient_id: faker.string.uuid(), reason: faker.string.alpha({length: {min: 10, max: 20}}), shrinkage_qty: faker.number.float({fractionDigits: 2}), shrinkage_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), unit: faker.string.alpha({length: {min: 10, max: 20}})})))
+
+export const getOrgTaxReportResponseMock = (overrideResponse: Partial<Extract<TaxReport, object>> = {}): TaxReport => ({discount_amount: faker.number.int(), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), net_revenue: faker.number.int(), net_tax_due: faker.number.int(), order_count: faker.number.int(), org_tax_rate: faker.number.float({fractionDigits: 2}), refunded_tax: faker.number.int(), service_charge_amount: faker.number.int(), subtotal: faker.number.int(), tax_collected: faker.number.int(), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), voided_orders: faker.number.int(), ...overrideResponse})
+
+export const getVoidsAuditResponseMock = (overrideResponse: Partial<Extract<AuditReport, object>> = {}): AuditReport => ({by_issuer: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_minor: faker.number.int(), count: faker.number.int(), label: faker.string.alpha({length: {min: 10, max: 20}})})), by_reason: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_minor: faker.number.int(), count: faker.number.int(), label: faker.string.alpha({length: {min: 10, max: 20}})})), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), total_amount_minor: faker.number.int(), total_count: faker.number.int(), ...overrideResponse})
+
+export const getWaiversAuditResponseMock = (overrideResponse: Partial<Extract<AuditReport, object>> = {}): AuditReport => ({by_issuer: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_minor: faker.number.int(), count: faker.number.int(), label: faker.string.alpha({length: {min: 10, max: 20}})})), by_reason: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({amount_minor: faker.number.int(), count: faker.number.int(), label: faker.string.alpha({length: {min: 10, max: 20}})})), from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), to: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), total_amount_minor: faker.number.int(), total_count: faker.number.int(), ...overrideResponse})
 
 export const getOrgWasteReportResponseMock = (): WasteReportRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), org_ingredient_id: faker.string.uuid(), reason: faker.string.alpha({length: {min: 10, max: 20}}), unit: faker.string.alpha({length: {min: 10, max: 20}}), waste_qty: faker.number.float({fractionDigits: 2}), waste_value: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined])})))
 
@@ -1015,6 +1033,8 @@ export const getListDepartmentsResponseMock = (): Department[] => (Array.from({ 
 export const getCreateDepartmentResponseMock = (overrideResponse: Partial<Extract<Department, object>> = {}): Department => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', employee_count: faker.number.int(), id: faker.string.uuid(), manager_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), manager_user_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
 export const getUpdateDepartmentResponseMock = (overrideResponse: Partial<Extract<Department, object>> = {}): Department => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', employee_count: faker.number.int(), id: faker.string.uuid(), manager_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), manager_user_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getDisciplineReportResponseMock = (overrideResponse: Partial<Extract<DisciplineReport, object>> = {}): DisciplineReport => ({from: faker.date.past().toISOString().slice(0, 10), rows: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({absent_days: faker.number.int(), department_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), department_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), late_days: faker.number.int(), present_days: faker.number.int(), rank_in_department: faker.number.int(), total_late_minutes: faker.number.int(), user_id: faker.string.uuid(), user_name: faker.string.alpha({length: {min: 10, max: 20}})})), to: faker.date.past().toISOString().slice(0, 10), ...overrideResponse})
 
 export const getListEmployeesResponseMock = (): Employee[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({base_salary_piastres: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', department_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), department_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), emergency_contact_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), emergency_contact_phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), employee_code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), employment_status: faker.string.alpha({length: {min: 10, max: 20}}), hire_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), is_active: faker.datatype.boolean(), job_title: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), national_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), photo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.string.alpha({length: {min: 10, max: 20}}), termination_date: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', user_id: faker.string.uuid()})))
 
@@ -3055,6 +3075,18 @@ export const getLoyaltyAwardMockHandler = (overrideResponse?: AwardResult | ((in
   }, options)
 }
 
+export const getGetLoyaltyBehaviorMockHandler = (overrideResponse?: LoyaltyBehavior | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<LoyaltyBehavior> | LoyaltyBehavior), options?: RequestHandlerOptions) => {
+  return http.get('*/loyalty/behavior', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetLoyaltyBehaviorResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getPreviewLoyaltyBirthdayMessageMockHandler = (overrideResponse?: BirthdayPreview | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<BirthdayPreview> | BirthdayPreview), options?: RequestHandlerOptions) => {
   return http.post('*/loyalty/birthday-preview', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
 
@@ -5037,6 +5069,18 @@ export const getOrgConsumptionMockHandler = (overrideResponse?: ConsumptionRow[]
   }, options)
 }
 
+export const getDiscountsAuditMockHandler = (overrideResponse?: AuditReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AuditReport> | AuditReport), options?: RequestHandlerOptions) => {
+  return http.get('*/reports/orgs/:orgId/discounts-audit', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getDiscountsAuditResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getOrgInventoryValuationMockHandler = (overrideResponse?: InventoryValuationReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<InventoryValuationReport> | InventoryValuationReport), options?: RequestHandlerOptions) => {
   return http.get('*/reports/orgs/:orgId/inventory-valuation', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -5061,6 +5105,30 @@ export const getOrgLowStockMockHandler = (overrideResponse?: LowStockRow[] | ((i
   }, options)
 }
 
+export const getPriceOverridesMockHandler = (overrideResponse?: AuditReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AuditReport> | AuditReport), options?: RequestHandlerOptions) => {
+  return http.get('*/reports/orgs/:orgId/price-overrides', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPriceOverridesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getRefundsAuditMockHandler = (overrideResponse?: AuditReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AuditReport> | AuditReport), options?: RequestHandlerOptions) => {
+  return http.get('*/reports/orgs/:orgId/refunds-audit', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getRefundsAuditResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getOrgShrinkageMockHandler = (overrideResponse?: ShrinkageRow[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ShrinkageRow[]> | ShrinkageRow[]), options?: RequestHandlerOptions) => {
   return http.get('*/reports/orgs/:orgId/shrinkage', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -5068,6 +5136,42 @@ export const getOrgShrinkageMockHandler = (overrideResponse?: ShrinkageRow[] | (
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getOrgShrinkageResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getOrgTaxReportMockHandler = (overrideResponse?: TaxReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TaxReport> | TaxReport), options?: RequestHandlerOptions) => {
+  return http.get('*/reports/orgs/:orgId/tax', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getOrgTaxReportResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getVoidsAuditMockHandler = (overrideResponse?: AuditReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AuditReport> | AuditReport), options?: RequestHandlerOptions) => {
+  return http.get('*/reports/orgs/:orgId/voids-audit', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getVoidsAuditResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getWaiversAuditMockHandler = (overrideResponse?: AuditReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AuditReport> | AuditReport), options?: RequestHandlerOptions) => {
+  return http.get('*/reports/orgs/:orgId/waivers-audit', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getWaiversAuditResponseMock(),
       { status: 200
       })
   }, options)
@@ -5352,6 +5456,18 @@ export const getUpdateDepartmentMockHandler = (overrideResponse?: Department | (
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getUpdateDepartmentResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDisciplineReportMockHandler = (overrideResponse?: DisciplineReport | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DisciplineReport> | DisciplineReport), options?: RequestHandlerOptions) => {
+  return http.get('*/staff/discipline-report', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getDisciplineReportResponseMock(),
       { status: 200
       })
   }, options)
@@ -6661,6 +6777,7 @@ export const getMadarAPIMock = () => [
   getLoyaltyAdjustMockHandler(),
   getGetLoyaltyAnalyticsMockHandler(),
   getLoyaltyAwardMockHandler(),
+  getGetLoyaltyBehaviorMockHandler(),
   getPreviewLoyaltyBirthdayMessageMockHandler(),
   getLoyaltyLookupMockHandler(),
   getListLoyaltyMembersMockHandler(),
@@ -6829,9 +6946,15 @@ export const getMadarAPIMock = () => [
   getBranchWasteReportMockHandler(),
   getOrgBranchComparisonMockHandler(),
   getOrgConsumptionMockHandler(),
+  getDiscountsAuditMockHandler(),
   getOrgInventoryValuationMockHandler(),
   getOrgLowStockMockHandler(),
+  getPriceOverridesMockHandler(),
+  getRefundsAuditMockHandler(),
   getOrgShrinkageMockHandler(),
+  getOrgTaxReportMockHandler(),
+  getVoidsAuditMockHandler(),
+  getWaiversAuditMockHandler(),
   getOrgWasteReportMockHandler(),
   getShiftDeductionsMockHandler(),
   getShiftSummaryMockHandler(),
@@ -6856,6 +6979,7 @@ export const getMadarAPIMock = () => [
   getCreateDepartmentMockHandler(),
   getDeleteDepartmentMockHandler(),
   getUpdateDepartmentMockHandler(),
+  getDisciplineReportMockHandler(),
   getDeleteDocumentMockHandler(),
   getListEmployeesMockHandler(),
   getGetEmployeeMockHandler(),

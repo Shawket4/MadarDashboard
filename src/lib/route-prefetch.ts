@@ -146,6 +146,7 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
       break;
     case "/analytics":
     case "/insights/sales":
+    case "/reports/sales":
       // Default tab is Overview → branch sales summary.
       if (branchId) void qc.prefetchQuery(getBranchSalesQueryOptions(branchId, period));
       break;
@@ -200,6 +201,7 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
       break;
     case "/inventory/reports":
     case "/insights/inventory-reports":
+    case "/reports/inventory":
       // Default tab is Valuation.
       if (orgId) void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
       if (branchId) void qc.prefetchQuery(getBranchInventoryValuationQueryOptions(branchId));

@@ -28,6 +28,7 @@ import { fmtMoney, fmtMoneyCompact, fmtNumber } from "@/lib/format";
 import { TableHistory } from "@/features/floor/table-history";
 import {
   SPECS,
+  byTableSpec,
   fmtDwell,
   sectionsOf,
   toHourSeries,
@@ -55,7 +56,7 @@ export function TablesInsightsPage() {
           period: from || to ? { from, to } : { preset: "last_30_days" },
           widgets: [
             { key: "summary", spec: SPECS.summary },
-            { key: "byTable", spec: SPECS.byTable },
+            { key: "byTable", spec: byTableSpec(!!branchId) },
             { key: "byHour", spec: SPECS.byHour },
           ],
         },

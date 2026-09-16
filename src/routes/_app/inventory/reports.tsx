@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ReportsPage } from "@/features/inventory/reports-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/** Legacy path — inventory reports moved to Reports ▸ Inventory. */
 export const Route = createFileRoute("/_app/inventory/reports")({
-  component: ReportsPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/reports/inventory" });
+  },
 });

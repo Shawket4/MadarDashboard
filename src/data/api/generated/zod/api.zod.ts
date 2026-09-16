@@ -5302,6 +5302,30 @@ export const LoyaltyAwardResponse = zod.object({
 })
 
 
+export const GetLoyaltyBehaviorQueryParams = zod.object({
+  "branch_id": zod.uuid().nullish().describe('Omit for the whole organisation; supply a branch to narrow the\nredemption figures to it (the liability is org-wide either way — a\nbalance can be spent at any branch).'),
+  "from": zod.iso.datetime({"offset":true}).nullish().describe('Inclusive start of the range. Defaults to 30 days before `to`.'),
+  "to": zod.iso.datetime({"offset":true}).nullish().describe('Exclusive end of the range. Defaults to now.')
+})
+
+export const GetLoyaltyBehaviorResponse = zod.object({
+  "active_member_rate": zod.number().describe('`active_members \/ total_members`. `0.0` when there are no members.'),
+  "active_members": zod.number().describe('Distinct members with any loyalty transaction in the range.'),
+  "from": zod.iso.datetime({"offset":true}),
+  "members_ever_redeemed": zod.number().describe('Distinct members who have ever redeemed a reward. Org-wide, lifetime.'),
+  "new_member_share": zod.number().describe('`new_members_active \/ active_members`.'),
+  "new_members_active": zod.number().describe('Active members who enrolled during the range.'),
+  "one_time_members": zod.number().describe('Members with exactly 1 earning visit in the range.'),
+  "redemption_rate": zod.number().describe('`members_ever_redeemed \/ total_members`.'),
+  "redemption_ratio": zod.number().describe('`redeemed_points_period \/ earned_points_period` — the share of what\nwas earned in the range that got spent in it. Points earned before the\nrange and redeemed inside it are not the numerator\'s earn, so this can\nexceed 1.0 on a range with heavy redemption of an older balance.'),
+  "repeat_members": zod.number().describe('Members with 2+ earning visits in the range.'),
+  "repeat_visit_rate": zod.number().describe('`repeat_members \/ (repeat_members + one_time_members)`. `0.0` when\nnobody earned in the range.'),
+  "returning_members_active": zod.number().describe('Active members who enrolled before the range started.'),
+  "to": zod.iso.datetime({"offset":true}),
+  "total_members": zod.number().describe('Enrolled, not deleted, as of now. Org-wide.')
+}).describe('Behavioral rates over the range — how much of the member base actually\nuses the programme, not just what it\'s worth. `total_members` and\n`members_ever_redeemed` are org-wide and lifetime (a balance\/history isn\'t\nbranch-scoped); every other figure narrows to `branch_id` and the range,\nsame as [`LoyaltyAnalytics`].')
+
+
 /**
  * Rendered by the server, from the same `message_for` the sweep uses, because
  * a preview reimplemented in the dashboard is a preview that drifts — and the
@@ -11791,6 +11815,34 @@ export const OrgConsumptionResponseItem = zod.object({
 export const OrgConsumptionResponse = zod.array(OrgConsumptionResponseItem)
 
 
+export const DiscountsAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const DiscountsAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const DiscountsAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
+
+
 export const OrgInventoryValuationParams = zod.object({
   "org_id": zod.uuid().describe('Organization ID')
 })
@@ -11829,6 +11881,62 @@ export const OrgLowStockResponseItem = zod.object({
 export const OrgLowStockResponse = zod.array(OrgLowStockResponseItem)
 
 
+export const PriceOverridesParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const PriceOverridesQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const PriceOverridesResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
+
+
+export const RefundsAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const RefundsAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const RefundsAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
+
+
 export const OrgShrinkageParams = zod.object({
   "org_id": zod.uuid().describe('Organization ID')
 })
@@ -11848,6 +11956,88 @@ export const OrgShrinkageResponseItem = zod.object({
   "unit": zod.string()
 })
 export const OrgShrinkageResponse = zod.array(OrgShrinkageResponseItem)
+
+
+export const OrgTaxReportParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const OrgTaxReportQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const OrgTaxReportResponse = zod.object({
+  "discount_amount": zod.number(),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "net_revenue": zod.number().describe('`total_amount`, net of refunds, across every branch.'),
+  "net_tax_due": zod.number().describe('`tax_collected - refunded_tax` — what is actually owed for the period.'),
+  "order_count": zod.number(),
+  "org_tax_rate": zod.number().describe('The org\'s current tax rate, as a decimal fraction. Informational only —\nindividual orders carry the rate that was actually applied at sale\ntime (`tax_rate_applied`), which may differ if the rate changed since.'),
+  "refunded_tax": zod.number(),
+  "service_charge_amount": zod.number().describe('Net of refunded service charge.'),
+  "subtotal": zod.number().describe('Sum of `orders.subtotal` across every branch, before discount or tax.'),
+  "tax_collected": zod.number().describe('Tax collected at sale time, before refunds.'),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "voided_orders": zod.number()
+})
+
+
+export const VoidsAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const VoidsAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const VoidsAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
+
+
+export const WaiversAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const WaiversAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const WaiversAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
 
 
 export const OrgWasteReportParams = zod.object({
@@ -12694,6 +12884,29 @@ export const UpdateDepartmentResponse = zod.object({
   "name": zod.string(),
   "org_id": zod.uuid(),
   "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const DisciplineReportQueryParams = zod.object({
+  "from": zod.iso.date(),
+  "to": zod.iso.date(),
+  "branch_id": zod.uuid().optional().describe('Omit for every branch in the org.')
+})
+
+export const DisciplineReportResponse = zod.object({
+  "from": zod.iso.date(),
+  "rows": zod.array(zod.object({
+  "absent_days": zod.number(),
+  "department_id": zod.uuid().nullish().describe('`None` for a person with no department set — grouped as \"Unassigned\".'),
+  "department_name": zod.string().nullish(),
+  "late_days": zod.number(),
+  "present_days": zod.number(),
+  "rank_in_department": zod.number().describe('1 = best in this department: fewest absences, then fewest lates, then\nleast total late time. Ties share a rank (SQL `RANK()`), so a\ndepartment where everyone has a clean record is all `1`s.'),
+  "total_late_minutes": zod.number(),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+})),
+  "to": zod.iso.date()
 })
 
 

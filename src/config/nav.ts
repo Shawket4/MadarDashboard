@@ -109,16 +109,24 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
-    labelKey: "nav.insights",
-    fallback: "Insights",
+    labelKey: "nav.reports",
+    fallback: "Reports",
     entries: [
-      // AI analytics disabled 2026-08-31 pending rework. The backend returns 503
-      // ("AI analytics is not configured") once GEMINI_API_KEY/GROQ_API_KEY are
-      // unset, so this entry is hidden rather than leading users to an error.
-      // Re-enable by restoring this line and the keys in the backend .env.
-      { to: "/insights/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
-      { to: "/insights/profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
-      { to: "/insights/tables", labelKey: "nav.tablesInsights", fallback: "Tables", icon: Armchair },
+      { to: "/reports/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
+      { to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
+      { to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale, roles: ["org_admin", "super_admin"] },
+      { to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
+      { to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
+      {
+        labelKey: "nav.reportsOperations",
+        fallback: "Operations",
+        icon: TrendingUp,
+        basePath: "/reports/operations",
+        children: [
+          { to: "/reports/operations/profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
+          { to: "/reports/operations/tables", labelKey: "nav.tablesInsights", fallback: "Tables", icon: Armchair },
+        ],
+      },
     ],
   },
   {
@@ -137,7 +145,6 @@ export const NAV: NavGroup[] = [
           { to: "/inventory/purchasing", labelKey: "nav.invPurchasing", fallback: "Purchasing", icon: ShoppingCart },
           { to: "/inventory/waste", labelKey: "nav.invWaste", fallback: "Waste", icon: Trash2 },
           { to: "/inventory/transfers", labelKey: "nav.invTransfers", fallback: "Transfers", icon: ArrowLeftRight },
-          { to: "/inventory/reports", labelKey: "nav.invReports", fallback: "Reports", icon: FileBarChart },
           { to: "/inventory/settings", labelKey: "nav.invSettings", fallback: "Settings", icon: Settings2 },
         ],
       },

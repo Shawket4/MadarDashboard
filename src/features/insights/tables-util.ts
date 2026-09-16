@@ -40,13 +40,6 @@ export const SPECS = {
     dataset: "tables",
     measures: [...TABLE_MEASURES, "active_tables", "revenue_per_table"],
   },
-  byTable: {
-    dataset: "tables",
-    dimensions: ["branch", "section", "table"],
-    measures: [...TABLE_MEASURES],
-    sort: { measure: "turns", dir: "desc" },
-    limit: 500,
-  },
   byHour: {
     dataset: "tables",
     dimensions: ["hour"],
@@ -54,6 +47,21 @@ export const SPECS = {
     limit: 24,
   },
 } satisfies Record<string, QuerySpec>;
+
+/** The metrics engine caps queries at 2 dimensions. Scoped to one branch, the
+ * branch column is redundant (already dropped from the table) and section is
+ * unambiguous, so `section + table` fits. Org-wide, section names can collide
+ * across branches (two branches can both have a "Patio"), so `branch + table`
+ * is the safe pair — the section filter just won't appear at that scope. */
+export function byTableSpec(branchScoped: boolean): QuerySpec {
+  return {
+    dataset: "tables",
+    dimensions: branchScoped ? ["section", "table"] : ["branch", "table"],
+    measures: [...TABLE_MEASURES],
+    sort: { measure: "turns", dir: "desc" },
+    limit: 500,
+  };
+}
 
 type Row = Record<string, unknown>;
 
