@@ -71,6 +71,7 @@ import { asStudioExt, recipeLinkKey, useRecipeBases, useRecipeLink } from "../re
 import { SectionSteps } from "./section-steps";
 import { SectionModifiers } from "./section-modifiers";
 import { SectionOptions } from "./section-options";
+import { PreviewPanel } from "./preview/preview-panel";
 
 // NOTE: the route file is `items_.$itemId.tsx` (trailing underscore = un-nested
 // from the items LIST route), so the route id carries the underscore too.
@@ -145,7 +146,9 @@ export function MenuStudioPage() {
   const [pristine, setPristine] = useState<PristineSigs>(EMPTY_PRISTINE);
   const [saving, setSaving] = useState(false);
   const [staffCopyOpen, setStaffCopyOpen] = useState(false);
-  const canCreateItems = useAuthz().can(Cap.menuItemsCreate);
+  const authz = useAuthz();
+  const canCreateItems = authz.can(Cap.menuItemsCreate);
+  const canPreview = authz.can(Cap.menuItemsRead);
 
   // ── Modeling (bases · linked copies · swappable families) ───────────────────
   const studioExt = useMemo(() => (studio ? asStudioExt(studio) : null), [studio]);
@@ -732,6 +735,20 @@ export function MenuStudioPage() {
             ingredientOptions={ingredientOptions}
           />
         </SectionShell>
+
+        {canPreview ? (
+          <SectionShell
+            id="studio-section-preview"
+            title={t("modeling.preview.title", "Preview: what the POS shows and deducts")}
+            description={t(
+              "modeling.preview.desc",
+              "A dry run of the saved item on the server: pick a size and choices to see the price, the deductions and any issues. Save to refresh it with your edits.",
+            )}
+            dirty={false}
+          >
+            <PreviewPanel studio={studio} />
+          </SectionShell>
+        ) : null}
       </div>
 
       <LinkedCopyDialog

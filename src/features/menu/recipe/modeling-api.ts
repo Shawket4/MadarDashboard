@@ -246,3 +246,61 @@ export const deleteRecipeLink = (itemId: string) =>
 export const recipeLinkKey = (itemId: string) => ["/menu-items", itemId, "recipe-link"] as const;
 export const useRecipeLink = (itemId: string, enabled = true) =>
   useQuery({ queryKey: recipeLinkKey(itemId), queryFn: () => getRecipeLink(itemId), enabled: enabled && !!itemId });
+
+// ── Dry-run preview (stream E, MadarRust `src/menu/preview.rs`) ──────────────
+// TEMPORARY until `npm run generate:api` exports `PreviewRequest`/`PreviewResponse`.
+
+export type ServiceMode = "takeaway" | "dine_in";
+
+export interface PreviewRequest {
+  size_label?: string | null;
+  option_ids?: string[];
+  quantity?: number;
+  service_mode?: ServiceMode | null;
+  branch_id?: string | null;
+}
+
+export interface PreviewOptionPrice {
+  option_id: string;
+  name: string;
+  /** Piastres added to one unit. */
+  price_delta: number;
+  reason: string;
+}
+
+export interface PreviewDeduction {
+  ingredient_id: string | null;
+  name: string;
+  category_slug: string;
+  quantity: number;
+  unit: string;
+  source: "recipe" | "swap" | "option" | "packaging" | string;
+  note?: string | null;
+  skipped: boolean;
+}
+
+export interface PreviewResponse {
+  size_label: string | null;
+  quantity: number;
+  price: { base: number; options: PreviewOptionPrice[]; total: number };
+  deductions: PreviewDeduction[];
+  cost: { total: number; cost_missing: boolean; margin_pct: number | null };
+  warnings: { rule: string; message: string }[];
+  /** Swap group id → option preselected by the recipe. */
+  defaults: Record<string, string>;
+}
+
+export const previewMenuItem = (itemId: string, data: PreviewRequest, signal?: AbortSignal) =>
+  customInstance<PreviewResponse>({ url: `/menu-items/${itemId}/preview`, method: "POST", data, signal });
+
+/** Starts with `/menu-items` so `invalidateStudio` refreshes it after every Studio save. */
+export const menuItemPreviewKey = (itemId: string, body: PreviewRequest) =>
+  ["/menu-items", itemId, "preview", body] as const;
+
+export const useMenuItemPreview = (itemId: string, body: PreviewRequest, enabled = true) =>
+  useQuery({
+    queryKey: menuItemPreviewKey(itemId, body),
+    queryFn: ({ signal }) => previewMenuItem(itemId, body, signal),
+    enabled: enabled && !!itemId,
+    placeholderData: (prev) => prev,
+  });

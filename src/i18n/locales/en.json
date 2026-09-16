@@ -5160,6 +5160,33 @@
     "options": {
       "perSize": "Different amounts per size",
       "perSizeHint": "A size column replaces the All sizes amount for that size. Tills that predate per-size amounts use All sizes."
+    },
+    "preview": {
+      "title": "Preview: what the POS shows and deducts",
+      "desc": "A dry run of the saved item on the server: pick a size and choices to see the price, the deductions and any issues. Save to refresh it with your edits.",
+      "size": "Size",
+      "default": "(default)",
+      "itemOptions": "Item options",
+      "service": "Service",
+      "takeaway": "Takeaway",
+      "dineIn": "Dine-in",
+      "quantity": "Quantity",
+      "decrease": "Decrease",
+      "increase": "Increase",
+      "error": "Couldn't run the preview: {{error}}",
+      "price": "Price",
+      "deducts": "Deducts",
+      "noDeductions": "Nothing is deducted",
+      "cost": "Cost",
+      "costPartial": "partial, some costs missing",
+      "margin": "margin {{pct}}",
+      "noIssues": "No issues found",
+      "source": {
+        "recipe": "recipe",
+        "swap": "swap",
+        "option": "option",
+        "packaging": "packaging"
+      }
     }
   }
 }
