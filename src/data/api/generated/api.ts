@@ -178,6 +178,8 @@ import type {
   DeliveryZone,
   Department,
   Device,
+  DisciplineReport,
+  DisciplineReportParams,
   Discount,
   DrinkRecipe,
   Employee,
@@ -200,6 +202,7 @@ import type {
   GetCurrentTillParams,
   GetEffectiveParams,
   GetLoyaltyAnalyticsParams,
+  GetLoyaltyBehaviorParams,
   GetLoyaltyMemberParams,
   GetLoyaltyRewardItemsParams,
   GetLoyaltySettingsParams,
@@ -281,6 +284,7 @@ import type {
   LookupRequest,
   LowStockRow,
   LoyaltyAnalytics,
+  LoyaltyBehavior,
   LoyaltyJoinInfoParams,
   LoyaltySettings,
   ManualRecordRequest,
@@ -12041,6 +12045,94 @@ export const useLoyaltyAward = <TError = ErrorBody,
       > => {
       return useMutation(getLoyaltyAwardMutationOptions(options), queryClient);
     }
+
+export const getLoyaltyBehavior = (
+    params?: GetLoyaltyBehaviorParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<LoyaltyBehavior>(
+      {url: `/loyalty/behavior`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLoyaltyBehaviorQueryKey = (params?: GetLoyaltyBehaviorParams,) => {
+    return [
+    `/loyalty/behavior`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLoyaltyBehaviorQueryOptions = <TData = Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError = ErrorBody>(params?: GetLoyaltyBehaviorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoyaltyBehaviorQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoyaltyBehavior>>> = ({ signal }) => getLoyaltyBehavior(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLoyaltyBehaviorQueryResult = NonNullable<Awaited<ReturnType<typeof getLoyaltyBehavior>>>
+export type GetLoyaltyBehaviorQueryError = ErrorBody
+
+
+export function useGetLoyaltyBehavior<TData = Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError = ErrorBody>(
+ params: undefined |  GetLoyaltyBehaviorParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyBehavior>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyBehavior>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyBehavior<TData = Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError = ErrorBody>(
+ params?: GetLoyaltyBehaviorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyBehavior>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyBehavior>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyBehavior<TData = Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError = ErrorBody>(
+ params?: GetLoyaltyBehaviorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLoyaltyBehavior<TData = Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError = ErrorBody>(
+ params?: GetLoyaltyBehaviorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyBehavior>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLoyaltyBehaviorQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 /**
  * Rendered by the server, from the same `message_for` the sweep uses, because
@@ -26967,6 +27059,94 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateDepartmentMutationOptions(options), queryClient);
     }
+
+export const disciplineReport = (
+    params: DisciplineReportParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DisciplineReport>(
+      {url: `/staff/discipline-report`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getDisciplineReportQueryKey = (params?: DisciplineReportParams,) => {
+    return [
+    `/staff/discipline-report`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getDisciplineReportQueryOptions = <TData = Awaited<ReturnType<typeof disciplineReport>>, TError = ErrorBody>(params: DisciplineReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof disciplineReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDisciplineReportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof disciplineReport>>> = ({ signal }) => disciplineReport(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof disciplineReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DisciplineReportQueryResult = NonNullable<Awaited<ReturnType<typeof disciplineReport>>>
+export type DisciplineReportQueryError = ErrorBody
+
+
+export function useDisciplineReport<TData = Awaited<ReturnType<typeof disciplineReport>>, TError = ErrorBody>(
+ params: DisciplineReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof disciplineReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof disciplineReport>>,
+          TError,
+          Awaited<ReturnType<typeof disciplineReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDisciplineReport<TData = Awaited<ReturnType<typeof disciplineReport>>, TError = ErrorBody>(
+ params: DisciplineReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof disciplineReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof disciplineReport>>,
+          TError,
+          Awaited<ReturnType<typeof disciplineReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDisciplineReport<TData = Awaited<ReturnType<typeof disciplineReport>>, TError = ErrorBody>(
+ params: DisciplineReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof disciplineReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDisciplineReport<TData = Awaited<ReturnType<typeof disciplineReport>>, TError = ErrorBody>(
+ params: DisciplineReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof disciplineReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDisciplineReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const deleteDocument = (
     id: string,

@@ -53,7 +53,9 @@ import { Route as AppSettingsDeliveryZonesRouteImport } from './routes/_app/sett
 import { Route as AppSettingsDeliveryRouteImport } from './routes/_app/settings/delivery'
 import { Route as AppSettingsBrandRouteImport } from './routes/_app/settings/brand'
 import { Route as AppSettingsBookingsRouteImport } from './routes/_app/settings/bookings'
+import { Route as AppReportsStaffRouteImport } from './routes/_app/reports/staff'
 import { Route as AppReportsSalesRouteImport } from './routes/_app/reports/sales'
+import { Route as AppReportsLoyaltyRouteImport } from './routes/_app/reports/loyalty'
 import { Route as AppReportsLegalRouteImport } from './routes/_app/reports/legal'
 import { Route as AppReportsInventoryRouteImport } from './routes/_app/reports/inventory'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
@@ -308,9 +310,19 @@ const AppSettingsBookingsRoute = AppSettingsBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
+const AppReportsStaffRoute = AppReportsStaffRouteImport.update({
+  id: '/reports/staff',
+  path: '/reports/staff',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppReportsSalesRoute = AppReportsSalesRouteImport.update({
   id: '/reports/sales',
   path: '/reports/sales',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppReportsLoyaltyRoute = AppReportsLoyaltyRouteImport.update({
+  id: '/reports/loyalty',
+  path: '/reports/loyalty',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppReportsLegalRoute = AppReportsLegalRouteImport.update({
@@ -518,7 +530,9 @@ export interface FileRoutesByFullPath {
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/reports/inventory': typeof AppReportsInventoryRoute
   '/reports/legal': typeof AppReportsLegalRoute
+  '/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/reports/sales': typeof AppReportsSalesRoute
+  '/reports/staff': typeof AppReportsStaffRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -589,7 +603,9 @@ export interface FileRoutesByTo {
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/reports/inventory': typeof AppReportsInventoryRoute
   '/reports/legal': typeof AppReportsLegalRoute
+  '/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/reports/sales': typeof AppReportsSalesRoute
+  '/reports/staff': typeof AppReportsStaffRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -667,7 +683,9 @@ export interface FileRoutesById {
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
   '/_app/reports/inventory': typeof AppReportsInventoryRoute
   '/_app/reports/legal': typeof AppReportsLegalRoute
+  '/_app/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/_app/reports/sales': typeof AppReportsSalesRoute
+  '/_app/reports/staff': typeof AppReportsStaffRoute
   '/_app/settings/bookings': typeof AppSettingsBookingsRoute
   '/_app/settings/brand': typeof AppSettingsBrandRoute
   '/_app/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -745,7 +763,9 @@ export interface FileRouteTypes {
     | '/menu/recipes'
     | '/reports/inventory'
     | '/reports/legal'
+    | '/reports/loyalty'
     | '/reports/sales'
+    | '/reports/staff'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/delivery'
@@ -816,7 +836,9 @@ export interface FileRouteTypes {
     | '/menu/recipes'
     | '/reports/inventory'
     | '/reports/legal'
+    | '/reports/loyalty'
     | '/reports/sales'
+    | '/reports/staff'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/delivery'
@@ -893,7 +915,9 @@ export interface FileRouteTypes {
     | '/_app/menu/recipes'
     | '/_app/reports/inventory'
     | '/_app/reports/legal'
+    | '/_app/reports/loyalty'
     | '/_app/reports/sales'
+    | '/_app/reports/staff'
     | '/_app/settings/bookings'
     | '/_app/settings/brand'
     | '/_app/settings/delivery'
@@ -1236,11 +1260,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsBookingsRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
+    '/_app/reports/staff': {
+      id: '/_app/reports/staff'
+      path: '/reports/staff'
+      fullPath: '/reports/staff'
+      preLoaderRoute: typeof AppReportsStaffRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/reports/sales': {
       id: '/_app/reports/sales'
       path: '/reports/sales'
       fullPath: '/reports/sales'
       preLoaderRoute: typeof AppReportsSalesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/loyalty': {
+      id: '/_app/reports/loyalty'
+      path: '/reports/loyalty'
+      fullPath: '/reports/loyalty'
+      preLoaderRoute: typeof AppReportsLoyaltyRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/reports/legal': {
@@ -1604,7 +1642,9 @@ interface AppRouteRouteChildren {
   AppKitchenStationsRoute: typeof AppKitchenStationsRoute
   AppReportsInventoryRoute: typeof AppReportsInventoryRoute
   AppReportsLegalRoute: typeof AppReportsLegalRoute
+  AppReportsLoyaltyRoute: typeof AppReportsLoyaltyRoute
   AppReportsSalesRoute: typeof AppReportsSalesRoute
+  AppReportsStaffRoute: typeof AppReportsStaffRoute
   AppStaffAttendanceRoute: typeof AppStaffAttendanceRoute
   AppStaffEmployeesRoute: typeof AppStaffEmployeesRoute
   AppStaffRequestsRoute: typeof AppStaffRequestsRoute
@@ -1643,7 +1683,9 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppKitchenStationsRoute: AppKitchenStationsRoute,
   AppReportsInventoryRoute: AppReportsInventoryRoute,
   AppReportsLegalRoute: AppReportsLegalRoute,
+  AppReportsLoyaltyRoute: AppReportsLoyaltyRoute,
   AppReportsSalesRoute: AppReportsSalesRoute,
+  AppReportsStaffRoute: AppReportsStaffRoute,
   AppStaffAttendanceRoute: AppStaffAttendanceRoute,
   AppStaffEmployeesRoute: AppStaffEmployeesRoute,
   AppStaffRequestsRoute: AppStaffRequestsRoute,

@@ -115,6 +115,8 @@ export const NAV: NavGroup[] = [
       { to: "/reports/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
       { to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
       { to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale, roles: ["org_admin", "super_admin"] },
+      { to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
+      { to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
       {
         labelKey: "nav.reportsOperations",
         fallback: "Operations",

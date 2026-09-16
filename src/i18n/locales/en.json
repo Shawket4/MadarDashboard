@@ -188,7 +188,9 @@
     "reports": "Reports",
     "reportsInventory": "Inventory",
     "reportsLegal": "Legal",
-    "reportsOperations": "Operations"
+    "reportsOperations": "Operations",
+    "reportsLoyalty": "Loyalty",
+    "reportsStaff": "Staff"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -4732,6 +4734,25 @@
       "tax": "Tax report",
       "noVat": "This organization has no VAT configured",
       "noVatHint": "Set a tax rate under Settings to see a tax report here."
+    },
+    "loyalty": {
+      "title": "Loyalty",
+      "activeRate": "Active member rate",
+      "activeRateHint": "{{active}} of {{total}} members",
+      "redemptionRate": "Redemption rate",
+      "redemptionRateHint": "{{redeemed}} members have ever redeemed",
+      "redemptionRatio": "Points redeemed vs earned",
+      "redemptionRatioHint": "This period",
+      "repeatRate": "Repeat visit rate",
+      "repeatRateHint": "{{repeat}} of {{earning}} earning members came back",
+      "newShare": "New member share",
+      "newShareHint": "{{new}} of {{active}} active members joined this period"
+    },
+    "staff": {
+      "title": "Staff discipline",
+      "empty": "No attendance recorded in this period",
+      "unassigned": "Unassigned",
+      "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m"
     }
   }
 }

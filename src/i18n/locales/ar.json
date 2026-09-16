@@ -188,7 +188,9 @@
     "reports": "التقارير",
     "reportsInventory": "المخزون",
     "reportsLegal": "قانوني",
-    "reportsOperations": "التشغيل"
+    "reportsOperations": "التشغيل",
+    "reportsLoyalty": "الولاء",
+    "reportsStaff": "الموظفون"
   },
   "auth": {
     "welcome": "مرحباً بعودتك",
@@ -4867,6 +4869,25 @@
       "tax": "التقرير الضريبي",
       "noVat": "لا توجد ضريبة قيمة مضافة مفعّلة لهذه المنشأة",
       "noVatHint": "حدد نسبة الضريبة من الإعدادات لعرض التقرير الضريبي هنا."
+    },
+    "loyalty": {
+      "title": "الولاء",
+      "activeRate": "نسبة الأعضاء النشطين",
+      "activeRateHint": "{{active}} من {{total}} عضو",
+      "redemptionRate": "نسبة استبدال النقاط",
+      "redemptionRateHint": "{{redeemed}} عضو استبدلوا نقاطهم من قبل",
+      "redemptionRatio": "النقاط المستبدلة مقابل المكتسبة",
+      "redemptionRatioHint": "خلال هذه الفترة",
+      "repeatRate": "نسبة الزيارات المتكررة",
+      "repeatRateHint": "{{repeat}} من {{earning}} عضو عادوا مرة أخرى",
+      "newShare": "نسبة الأعضاء الجدد",
+      "newShareHint": "{{new}} من {{active}} عضو نشط انضموا خلال هذه الفترة"
+    },
+    "staff": {
+      "title": "انضباط الموظفين",
+      "empty": "لا يوجد سجل حضور في هذه الفترة",
+      "unassigned": "غير محدد",
+      "rowSummary": "{{late}} تأخير · {{absent}} غياب · {{minutes}} دقيقة"
     }
   }
 }
