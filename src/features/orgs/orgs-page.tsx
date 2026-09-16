@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { StatusPill } from "@/components/app/status-pill";
 import { RowAction } from "@/features/users/row-action";
 import { OrgDialog } from "./org-dialog";
+import { ProvisionWizard } from "./provision-wizard";
 import { invalidateOrgs } from "./util";
 import { deleteOrg, useListOrgs } from "@/data/api/generated/api";
 import type { Org } from "@/data/api/generated/models";
@@ -40,7 +41,8 @@ export function OrgsPage() {
   const [s, update] = usePageSearch<{ edit: string }>();
   const editId = s.edit ?? null;
   const editing = editId && editId !== "new" ? (orgs.find((o) => o.id === editId) ?? null) : null;
-  const dlgOpen = editId === "new" || !!editing;
+  const creating = editId === "new";
+  const dlgOpen = !!editing;
 
   const remove = async (o: Org) => {
     if (await confirm({ title: t("orgs.deleteTitle", { name: o.name, defaultValue: `Delete ${o.name}?` }), description: t("orgs.deleteDescription", "Every branch, user and menu under this organization is removed. This cannot be undone."), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
@@ -140,6 +142,7 @@ export function OrgsPage() {
           searchPlaceholder={t("common.search", "Search…")}
           emptyState={<EmptyState icon={Building2} title={t("orgs.empty", "Organizations you add appear here")} />}
         />
+      {creating ? <ProvisionWizard open onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}
       {dlgOpen ? <OrgDialog org={editing} open={dlgOpen} onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}
     </Page>
   );

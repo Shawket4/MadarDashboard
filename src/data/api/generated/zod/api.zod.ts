@@ -9748,6 +9748,7 @@ export const CreateOrgBody = zod.object({
   "slug": zod.string(),
   "tax_inclusive": zod.boolean().nullish().describe('Are menu prices tax-inclusive? Default false (tax added on top).'),
   "tax_rate": zod.number().nullish().describe('A FRACTION: 0.14 is 14%. Same unit as `PATCH \/orgs\/{id}`.'),
+  "template": zod.string().nullish().describe('Role template the org starts from: `restaurant` (default) or `cafe`.'),
   "timezone": zod.string().nullish()
 })
 
@@ -9775,6 +9776,71 @@ export const CreateOrgResponse = zod.object({
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
+
+
+export const ProvisionOrgBody = zod.object({
+  "branch": zod.object({
+  "address": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish()
+}),
+  "currency_code": zod.string().nullish(),
+  "name": zod.string(),
+  "owner": zod.object({
+  "email": zod.string(),
+  "name": zod.string(),
+  "password": zod.string().describe('At least 8 characters.'),
+  "pin": zod.string().nullish().describe('Optional six-digit PIN so the owner can also work a till.')
+}),
+  "slug": zod.string(),
+  "tax_rate": zod.number().nullish().describe('A FRACTION (0.14 = 14%). Default 0 (locked decision).'),
+  "template": zod.string().describe('`restaurant` or `cafe`.'),
+  "timezone": zod.string().nullish()
+})
+
+export const ProvisionOrgResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "org": zod.object({
+  "brand_accent": zod.string().nullish(),
+  "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
+  "brand_card_image": zod.string().nullish().describe('A wide photograph for the loyalty card. Own-org editable, like the logo.'),
+  "brand_foreground": zod.string().nullish(),
+  "brand_logo_is_mark": zod.boolean().nullish().describe('True when the logo is a shape on transparency, so a card may repaint it\nfor contrast (`branding::is_mark`). NULL until it has been looked at.'),
+  "currency_code": zod.string(),
+  "custom_branding": zod.boolean().describe('The branding tier. Super admin only — see `UpdateOrgRequest`.'),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "logo_url": zod.string().nullish(),
+  "name": zod.string(),
+  "receipt_footer": zod.string().nullish(),
+  "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
+  "social_links": zod.looseObject({
+
+}).describe('Where else to find the shop, keyed by platform. See `orgs::social`.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax, and the receipt breaks it\nout backwards rather than adding it on at the till.'),
+  "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
+  "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
+}),
+  "owner_id": zod.uuid(),
+  "template": zod.string()
+})
+
+
+export const listTemplatesResponseVersionMin = 0;
+
+
+
+export const ListTemplatesResponseItem = zod.object({
+  "key": zod.string(),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "roles": zod.array(zod.string()).describe('Role kinds the template is meant to use.'),
+  "version": zod.number().min(listTemplatesResponseVersionMin)
+})
+export const ListTemplatesResponse = zod.array(ListTemplatesResponseItem)
 
 
 export const GetOrgParams = zod.object({

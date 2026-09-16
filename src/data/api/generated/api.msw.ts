@@ -157,6 +157,7 @@ import type {
   OrgIngredient,
   OrgInventorySettings,
   OrgPaymentMethod,
+  OrgTemplate,
   OtpRequestResponse,
   OtpVerifyResponse,
   PaginatedAddonItems,
@@ -179,6 +180,7 @@ import type {
   PreviewIngredient,
   PriceOverrideOut,
   ProcessingGroupRef,
+  ProvisionedOrg,
   PublicBookingBranch,
   PublicBookingInfo,
   PublicBookingView,
@@ -842,6 +844,10 @@ export const getVoidOrderResponseMock = (overrideResponse: Partial<Extract<Order
 export const getListOrgsResponseMock = (): Org[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({brand_accent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_background: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_card_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_foreground: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_logo_is_mark: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), currency_code: faker.string.alpha({length: {min: 10, max: 20}}), custom_branding: faker.datatype.boolean(), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_table_for_orders: faker.datatype.boolean(), service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), social_links: {}, tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}})})))
 
 export const getCreateOrgResponseMock = (overrideResponse: Partial<Extract<Org, object>> = {}): Org => ({brand_accent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_background: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_card_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_foreground: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_logo_is_mark: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), currency_code: faker.string.alpha({length: {min: 10, max: 20}}), custom_branding: faker.datatype.boolean(), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_table_for_orders: faker.datatype.boolean(), service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), social_links: {}, tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getProvisionOrgResponseMock = (overrideResponse: Partial<Extract<ProvisionedOrg, object>> = {}): ProvisionedOrg => ({branch_id: faker.string.uuid(), org: {brand_accent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_background: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_card_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_foreground: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_logo_is_mark: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), currency_code: faker.string.alpha({length: {min: 10, max: 20}}), custom_branding: faker.datatype.boolean(), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_table_for_orders: faker.datatype.boolean(), service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), social_links: {}, tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}})}, owner_id: faker.string.uuid(), template: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getListTemplatesResponseMock = (): OrgTemplate[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({key: faker.string.alpha({length: {min: 10, max: 20}}), name_ar: faker.string.alpha({length: {min: 10, max: 20}}), name_en: faker.string.alpha({length: {min: 10, max: 20}}), roles: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), version: faker.number.int({min: 0})})))
 
 export const getGetOrgResponseMock = (overrideResponse: Partial<Extract<Org, object>> = {}): Org => ({brand_accent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_background: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_card_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_foreground: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_logo_is_mark: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), currency_code: faker.string.alpha({length: {min: 10, max: 20}}), custom_branding: faker.datatype.boolean(), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_table_for_orders: faker.datatype.boolean(), service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), social_links: {}, tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
@@ -4220,6 +4226,30 @@ export const getCreateOrgMockHandler = (overrideResponse?: Org | ((info: Paramet
   }, options)
 }
 
+export const getProvisionOrgMockHandler = (overrideResponse?: ProvisionedOrg | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ProvisionedOrg> | ProvisionedOrg), options?: RequestHandlerOptions) => {
+  return http.post('*/orgs/provision', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getProvisionOrgResponseMock(),
+      { status: 201
+      })
+  }, options)
+}
+
+export const getListTemplatesMockHandler = (overrideResponse?: OrgTemplate[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OrgTemplate[]> | OrgTemplate[]), options?: RequestHandlerOptions) => {
+  return http.get('*/orgs/templates', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListTemplatesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getGetOrgMockHandler = (overrideResponse?: Org | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Org> | Org), options?: RequestHandlerOptions) => {
   return http.get('*/orgs/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -7147,6 +7177,8 @@ export const getMadarAPIMock = () => [
   getVoidOrderMockHandler(),
   getListOrgsMockHandler(),
   getCreateOrgMockHandler(),
+  getProvisionOrgMockHandler(),
+  getListTemplatesMockHandler(),
   getGetOrgMockHandler(),
   getDeleteOrgMockHandler(),
   getUpdateOrgMockHandler(),

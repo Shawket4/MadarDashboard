@@ -344,6 +344,7 @@ import type {
   OrgPaymentMethod,
   OrgQrParams,
   OrgShrinkageParams,
+  OrgTemplate,
   OrgWasteReportParams,
   OtpRequestInput,
   OtpRequestResponse,
@@ -375,6 +376,8 @@ import type {
   PreviewRecipeRequest,
   PriceOverrideOut,
   PriceOverrideRequest,
+  ProvisionOrgRequest,
+  ProvisionedOrg,
   PublicBookingBranch,
   PublicBookingChange,
   PublicBookingInfo,
@@ -18569,6 +18572,9 @@ if(createOrgMultipart.tax_inclusive !== undefined && createOrgMultipart.tax_incl
 if(createOrgMultipart.tax_rate !== undefined && createOrgMultipart.tax_rate !== null) {
  formData.append(`tax_rate`, createOrgMultipart.tax_rate.toString())
  }
+if(createOrgMultipart.template !== undefined && createOrgMultipart.template !== null) {
+ formData.append(`template`, createOrgMultipart.template);
+ }
 if(createOrgMultipart.timezone !== undefined && createOrgMultipart.timezone !== null) {
  formData.append(`timezone`, createOrgMultipart.timezone);
  }
@@ -18625,6 +18631,152 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCreateOrgMutationOptions(options), queryClient);
     }
+
+export const provisionOrg = (
+    provisionOrgRequest: ProvisionOrgRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ProvisionedOrg>(
+      {url: `/orgs/provision`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: provisionOrgRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getProvisionOrgMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof provisionOrg>>, TError,{data: ProvisionOrgRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof provisionOrg>>, TError,{data: ProvisionOrgRequest}, TContext> => {
+
+const mutationKey = ['provisionOrg'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof provisionOrg>>, {data: ProvisionOrgRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  provisionOrg(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProvisionOrgMutationResult = NonNullable<Awaited<ReturnType<typeof provisionOrg>>>
+    export type ProvisionOrgMutationBody = ProvisionOrgRequest
+    export type ProvisionOrgMutationError = ErrorBody
+
+    export const useProvisionOrg = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof provisionOrg>>, TError,{data: ProvisionOrgRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof provisionOrg>>,
+        TError,
+        {data: ProvisionOrgRequest},
+        TContext
+      > => {
+      return useMutation(getProvisionOrgMutationOptions(options), queryClient);
+    }
+
+export const listTemplates = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrgTemplate[]>(
+      {url: `/orgs/templates`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListTemplatesQueryKey = () => {
+    return [
+    `/orgs/templates`
+    ] as const;
+    }
+
+
+export const getListTemplatesQueryOptions = <TData = Awaited<ReturnType<typeof listTemplates>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTemplatesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTemplates>>> = ({ signal }) => listTemplates(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof listTemplates>>>
+export type ListTemplatesQueryError = ErrorBody
+
+
+export function useListTemplates<TData = Awaited<ReturnType<typeof listTemplates>>, TError = ErrorBody>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTemplates>>,
+          TError,
+          Awaited<ReturnType<typeof listTemplates>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTemplates<TData = Awaited<ReturnType<typeof listTemplates>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTemplates>>,
+          TError,
+          Awaited<ReturnType<typeof listTemplates>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTemplates<TData = Awaited<ReturnType<typeof listTemplates>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListTemplates<TData = Awaited<ReturnType<typeof listTemplates>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListTemplatesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getOrg = (
     id: string,
