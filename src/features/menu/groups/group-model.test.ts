@@ -101,12 +101,23 @@ describe("effect ⇄ legacy_addon_type", () => {
 describe("option recipe lines", () => {
   const unitOf = (id: string) => (id === "oat" ? "g" : undefined);
   it("swap writes one line of 1 in the ingredient's unit", () => {
-    expect(optionRecipeLines("swaps", { swap_ingredient_id: "oat", lines: [] }, unitOf)).toEqual([{ ingredient_id: "oat", quantity: 1, unit: "g" }]);
+    expect(optionRecipeLines("swaps", { swap_ingredient_id: "oat", lines: [] }, unitOf)).toEqual([{ ingredient_id: "oat", quantity: 1, unit: "g", size_label: null }]);
   });
   it("adds writes the typed lines; nothing writes none", () => {
     const o = { swap_ingredient_id: "", lines: [{ ingredient_id: "syrup", quantity: 20, unit: "g" }] };
-    expect(optionRecipeLines("adds", o, unitOf)).toEqual([{ ingredient_id: "syrup", quantity: 20, unit: "g" }]);
+    expect(optionRecipeLines("adds", o, unitOf)).toEqual([{ ingredient_id: "syrup", quantity: 20, unit: "g", size_label: null }]);
     expect(optionRecipeLines("none", o, unitOf)).toEqual([]);
+  });
+  it("passes size_label through; blank means every size", () => {
+    const o = {
+      swap_ingredient_id: "",
+      lines: [
+        { ingredient_id: "syrup", quantity: 15, unit: "g", size_label: null },
+        { ingredient_id: "syrup", quantity: 20, unit: "g", size_label: "Can" },
+        { ingredient_id: "ice", quantity: 5, unit: "g", size_label: "" },
+      ],
+    };
+    expect(optionRecipeLines("adds", o, unitOf).map((l) => l.size_label)).toEqual([null, "Can", null]);
   });
 });
 
@@ -127,5 +138,18 @@ describe("group schema", () => {
     const r = schema.safeParse({ ...base, effect: "adds", options: [{ ...opt, lines: [line, line] }] });
     expect(r.success).toBe(false);
     expect(r.error?.issues[0].message).toBe("dup");
+  });
+
+  it("allows one line per (ingredient, size_label), rejects repeats within a size", () => {
+    const adds = { ...base, effect: "adds" } as const;
+    const all = { ingredient_id: "syrup", quantity: "15", unit: "g", size_label: null };
+    const can = { ingredient_id: "syrup", quantity: "20", unit: "g", size_label: "Can" };
+    expect(schema.safeParse({ ...adds, options: [{ ...opt, lines: [all, can] }] }).success).toBe(true);
+    const r = schema.safeParse({ ...adds, options: [{ ...opt, lines: [all, can, { ...can, quantity: "25" }] }] });
+    expect(r.success).toBe(false);
+    expect(r.error?.issues[0].path).toEqual(["options", 0, "lines", 2, "ingredient_id"]);
+    // An absent label and a null label are the same "All sizes" column.
+    const bare = { ingredient_id: "syrup", quantity: "15", unit: "g" };
+    expect(schema.safeParse({ ...adds, options: [{ ...opt, lines: [bare, all] }] }).success).toBe(false);
   });
 });

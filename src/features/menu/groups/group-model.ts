@@ -124,6 +124,8 @@ export const makeGroupSchema = (m: GroupSchemaMessages) => {
     ingredient_id: z.string().min(1, m.required),
     quantity: z.coerce.number<string | number>().positive(m.qtyPositive),
     unit: z.string().min(1),
+    /** `null`/absent = every size; else only sizes with this label (per-size amounts). */
+    size_label: z.string().nullable().optional(),
   });
   const option = z.object({
     /** Server id; absent for a row added in this session. */
@@ -154,12 +156,15 @@ export const makeGroupSchema = (m: GroupSchemaMessages) => {
           ctx.addIssue({ code: "custom", path: ["options", i, "swap_ingredient_id"], message: m.swapNeedsIngredient });
         }
         if (v.effect === "adds") {
+          // Unique per (ingredient, size_label): the same syrup may appear once for
+          // "All sizes" and once per size column.
           const seen = new Set<string>();
           o.lines.forEach((l, j) => {
-            if (l.ingredient_id && seen.has(l.ingredient_id)) {
+            const key = JSON.stringify([l.ingredient_id, l.size_label || null]);
+            if (l.ingredient_id && seen.has(key)) {
               ctx.addIssue({ code: "custom", path: ["options", i, "lines", j, "ingredient_id"], message: m.duplicateIngredient });
             }
-            seen.add(l.ingredient_id);
+            seen.add(key);
           });
         }
       });
@@ -181,14 +186,16 @@ export const optionRecipeLines = (
   effect: Effect,
   o: Pick<GroupFormValues["options"][number], "swap_ingredient_id" | "lines">,
   unitOf: (ingredientId: string) => string | undefined,
-): { ingredient_id: string; quantity: number; unit: string }[] => {
+): { ingredient_id: string; quantity: number; unit: string; size_label: string | null }[] => {
   if (effect === "swaps") {
     return o.swap_ingredient_id
-      ? [{ ingredient_id: o.swap_ingredient_id, quantity: 1, unit: unitOf(o.swap_ingredient_id) ?? "pcs" }]
+      ? [{ ingredient_id: o.swap_ingredient_id, quantity: 1, unit: unitOf(o.swap_ingredient_id) ?? "pcs", size_label: null }]
       : [];
   }
   if (effect === "adds") {
-    return o.lines.filter((l) => l.ingredient_id).map((l) => ({ ingredient_id: l.ingredient_id, quantity: l.quantity, unit: l.unit }));
+    return o.lines
+      .filter((l) => l.ingredient_id)
+      .map((l) => ({ ingredient_id: l.ingredient_id, quantity: l.quantity, unit: l.unit, size_label: l.size_label || null }));
   }
   return [];
 };

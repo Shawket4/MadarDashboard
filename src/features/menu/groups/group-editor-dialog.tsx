@@ -39,6 +39,9 @@ import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtMoney, fmtUnit, piastresToEgp } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { arOf, invalidateCatalog } from "../util";
+import type { OptionRecipeLineInputExt } from "../recipe/modeling-api";
+import { OptionSizeGrid } from "./option-size-grid";
+import { useGroupUsage } from "./use-group-usage";
 import {
   SWAP_SLUGS,
   effectToLegacyType,
@@ -77,8 +80,8 @@ const EMPTY: GroupFormInput = {
   options: [],
 };
 
-const recipeSig = (lines: { ingredient_id: string; quantity: number; unit: string }[]) =>
-  JSON.stringify(lines.map((l) => [l.ingredient_id, Number(l.quantity), l.unit]));
+const recipeSig = (lines: { ingredient_id: string; quantity: number; unit: string; size_label: string | null }[]) =>
+  JSON.stringify(lines.map((l) => [l.ingredient_id, Number(l.quantity), l.unit, l.size_label]));
 
 /**
  * The choice-group editor (MENU_MODELING_AUDIT §4.1). One form: name, pick
@@ -98,6 +101,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
   const catalog = useMemo(() => catalogQ.data ?? [], [catalogQ.data]);
   const catalogById = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
   const groupsQ = useListGroups({ org_id: orgId }, { query: { enabled: open && !!orgId } });
+  const usage = useGroupUsage(orgId, open && !!group);
 
   const optionIds = useMemo(() => group?.options.map((o) => o.id) ?? [], [group]);
   const recipes = useQueries({
@@ -148,7 +152,13 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
           swap_ingredient_id: lines[0]?.org_ingredient_id ?? o.replaces_ingredient_id ?? "",
           lines: lines
             .filter((l) => l.org_ingredient_id)
-            .map((l) => ({ ingredient_id: l.org_ingredient_id!, quantity: String(l.quantity_used), unit: l.unit })),
+            .map((l) => ({
+              ingredient_id: l.org_ingredient_id!,
+              quantity: String(l.quantity_used),
+              unit: l.unit,
+              // Not in the generated type until the Orval regeneration.
+              size_label: (l as { size_label?: string | null }).size_label ?? null,
+            })),
         })),
     };
     // recipesKey stands in for the query results' identity.
@@ -164,6 +174,13 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
       form.reset(seeded);
     }
   }, [open, seeded, form]);
+
+  // Size labels of the items this group is attached to: the per-size columns.
+  const itemSizeLabels = useMemo(() => {
+    const set = new Set<string>();
+    for (const u of (group && usage.byGroup.get(group.id)) || []) for (const l of u.size_labels) set.add(l);
+    return [...set];
+  }, [group, usage.byGroup]);
 
   const effect = useWatch({ control: form.control, name: "effect" });
   const pick = useWatch({ control: form.control, name: "pick" });
@@ -259,7 +276,8 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
             )
           : [];
         if (recipeSig(next) !== recipeSig(prevLines)) {
-          await putOptionRecipe(optionId, next);
+          // `size_label` is not in the generated OptionRecipeLineInput until the Orval regeneration.
+          await putOptionRecipe(optionId, next as OptionRecipeLineInputExt[] as Parameters<typeof putOptionRecipe>[1]);
         }
       }
 
@@ -458,6 +476,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                     swapOptions={swapOptions}
                     ingredientOptions={ingredientOptions}
                     catalogById={catalogById}
+                    itemSizeLabels={itemSizeLabels}
                     onRemove={() => options.remove(i)}
                   />
                 ))}
@@ -510,14 +529,22 @@ interface OptionRowProps {
   swapOptions: ComboboxOption[];
   ingredientOptions: ComboboxOption[];
   catalogById: Map<string, OrgIngredient>;
+  /** Size labels of the items the group is attached to. */
+  itemSizeLabels: string[];
   onRemove: () => void;
 }
 
-function OptionRow({ index, control, effect, swapOptions, ingredientOptions, catalogById, onRemove }: OptionRowProps) {
+function OptionRow({ index, control, effect, swapOptions, ingredientOptions, catalogById, itemSizeLabels, onRemove }: OptionRowProps) {
   const { t } = useTranslation();
-  const { setValue } = useFormContext<GroupFormInput, unknown, GroupFormValues>();
+  const { setValue, formState } = useFormContext<GroupFormInput, unknown, GroupFormValues>();
   const lines = useFieldArray({ control, name: `options.${index}.lines` });
   const watchedLines = useWatch({ control, name: `options.${index}.lines` });
+  // Attached items' sizes, plus any label already on a line (e.g. a size since renamed).
+  const sizeLabels = useMemo(() => {
+    const set = new Set(itemSizeLabels);
+    for (const l of watchedLines ?? []) if (l.size_label) set.add(l.size_label);
+    return [...set];
+  }, [itemSizeLabels, watchedLines]);
 
   const cost = useMemo(() => {
     if (effect !== "adds" || !watchedLines?.length) return null;
@@ -609,71 +636,82 @@ function OptionRow({ index, control, effect, swapOptions, ingredientOptions, cat
       ) : effect === "adds" ? (
         <div className="mt-2 space-y-2">
           <span className="block text-xs font-medium text-muted-foreground">{t("menu.groups.editor.deducts", "Deducts")}</span>
-          {lines.fields.map((lf, j) => (
-            <div key={lf.id} className="flex flex-wrap items-start gap-2">
-              <FormField
-                control={control}
-                name={`options.${index}.lines.${j}.ingredient_id`}
-                render={({ field }) => (
-                  <FormItem className="min-w-48 flex-1">
-                    <Combobox
-                      options={ingredientOptions}
-                      value={field.value || null}
-                      onChange={(id) => {
-                        field.onChange(id);
-                        const unit = catalogById.get(id)?.unit;
-                        if (unit) setValue(`options.${index}.lines.${j}.unit`, unit);
-                      }}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name={`options.${index}.lines.${j}.quantity`}
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center gap-1.5">
-                      <FormControl>
-                        <Input
-                          type="number"
-                          inputMode="decimal"
-                          step="any"
-                          min="0"
-                          className="h-9 w-24 tabular"
-                          aria-label={t("menu.groups.editor.amount", "Amount")}
-                          {...field}
-                          value={field.value as number | string}
+          <OptionSizeGrid
+            gridId={`opt-${index}`}
+            lines={watchedLines ?? []}
+            sizeLabels={sizeLabels}
+            onChange={(next) => setValue(`options.${index}.lines`, next, { shouldDirty: true, shouldValidate: formState.isSubmitted })}
+            catalogById={catalogById}
+            ingredientOptions={ingredientOptions}
+          >
+            <div className="space-y-2">
+              {lines.fields.map((lf, j) => (
+                <div key={lf.id} className="flex flex-wrap items-start gap-2">
+                  <FormField
+                    control={control}
+                    name={`options.${index}.lines.${j}.ingredient_id`}
+                    render={({ field }) => (
+                      <FormItem className="min-w-48 flex-1">
+                        <Combobox
+                          options={ingredientOptions}
+                          value={field.value || null}
+                          onChange={(id) => {
+                            field.onChange(id);
+                            const unit = catalogById.get(id)?.unit;
+                            if (unit) setValue(`options.${index}.lines.${j}.unit`, unit);
+                          }}
                         />
-                      </FormControl>
-                      <span className="w-8 text-xs text-muted-foreground">{fmtUnit(watchedLines?.[j]?.unit)}</span>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t("menu.groups.editor.removeLine", "Remove ingredient")}
-                onClick={() => lines.remove(j)}
-              >
-                <Trash2 className="size-4" />
-              </Button>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name={`options.${index}.lines.${j}.quantity`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center gap-1.5">
+                          <FormControl>
+                            <Input
+                              type="number"
+                              inputMode="decimal"
+                              step="any"
+                              min="0"
+                              className="h-9 w-24 tabular"
+                              aria-label={t("menu.groups.editor.amount", "Amount")}
+                              {...field}
+                              value={field.value as number | string}
+                            />
+                          </FormControl>
+                          <span className="w-8 text-xs text-muted-foreground">{fmtUnit(watchedLines?.[j]?.unit)}</span>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("menu.groups.editor.removeLine", "Remove ingredient")}
+                    onClick={() => lines.remove(j)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex flex-wrap items-center gap-3">
+                <Button type="button" variant="ghost" size="sm" onClick={() => lines.append({ ingredient_id: "", quantity: "", unit: "g" })}>
+                  <Plus className="size-4" /> {t("menu.groups.editor.addLine", "Add ingredient")}
+                </Button>
+                {cost != null ? (
+                  <span className="text-xs text-muted-foreground tabular">
+                    {t("menu.groups.editor.cost", "Cost")} {fmtMoney(cost)}
+                  </span>
+                ) : null}
+              </div>
             </div>
-          ))}
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" variant="ghost" size="sm" onClick={() => lines.append({ ingredient_id: "", quantity: "", unit: "g" })}>
-              <Plus className="size-4" /> {t("menu.groups.editor.addLine", "Add ingredient")}
-            </Button>
-            {cost != null ? (
-              <span className="text-xs text-muted-foreground tabular">
-                {t("menu.groups.editor.cost", "Cost")} {fmtMoney(cost)}
-              </span>
-            ) : null}
-          </div>
+          </OptionSizeGrid>
         </div>
       ) : null}
     </div>

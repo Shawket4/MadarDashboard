@@ -10,6 +10,8 @@ export interface GroupUse {
   is_required: boolean;
   min: number;
   max: number | null;
+  /** The item's size labels (Cup, Can…), offered as per-size columns in the group editor. */
+  size_labels: string[];
 }
 
 /**
@@ -19,18 +21,18 @@ export interface GroupUse {
  * that are active and available at that branch, so the count is a floor, not
  * an exact figure, for items disabled there.
  */
-export function useGroupUsage(orgId: string | null) {
+export function useGroupUsage(orgId: string | null, enabled = true) {
   const { branchId: scoped } = useScope();
-  const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId && !scoped } });
+  const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: enabled && !!orgId && !scoped } });
   const branchId = scoped ?? branchesQ.data?.[0]?.id ?? null;
-  const syncQ = useCatalogSync({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } });
+  const syncQ = useCatalogSync({ branch_id: branchId ?? "" }, { query: { enabled: enabled && !!branchId } });
 
   const byGroup = useMemo(() => {
     const m = new Map<string, GroupUse[]>();
     for (const item of syncQ.data?.items ?? []) {
       for (const g of item.modifier_groups) {
         const list = m.get(g.group_id) ?? [];
-        list.push({ item_id: item.id, item_name: item.name, is_required: g.is_required, min: g.min, max: g.max ?? null });
+        list.push({ item_id: item.id, item_name: item.name, is_required: g.is_required, min: g.min, max: g.max ?? null, size_labels: item.sizes.map((s) => s.label) });
         m.set(g.group_id, list);
       }
     }
