@@ -20,7 +20,9 @@ export interface LoginRequest {
   /** @nullable */
   email?: string | null;
   /**
-     * Teller's display name (required for PIN login, unused otherwise).
+     * The person's display name. Optional for PIN login: without it the PIN
+     * alone identifies the person (PIN-only sign-in, org-wide unique PINs).
+     * Old tablets send it and keep the name-narrowed lookup.
      * @nullable
      */
   name?: string | null;

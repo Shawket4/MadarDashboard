@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { GitBranch, Pencil, Plus, Shield, Trash2, Users as UsersIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -18,6 +17,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { UserDialog } from "./user-dialog";
 import { BranchAssignDialog } from "./branch-assign-dialog";
 import { RowAction } from "./row-action";
+import { PersonAccessSheet } from "@/features/access/person-access-sheet";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { invalidateUsers } from "./util";
 import { deleteUser, useListUsers } from "@/data/api/generated/api";
 import type { UserPublic, UserRole } from "@/data/api/generated/models";
@@ -41,7 +43,9 @@ export function UsersPage() {
   const logoUrl = useExportLogo();
   const [exporting, setExporting] = useState(false);
 
-  const [s, update] = usePageSearch<{ edit: string; branches: string }>();
+  const authz = useAuthz();
+  const [s, update] = usePageSearch<{ edit: string; branches: string; access: string }>();
+  const accessUser = s.access ? (users.find((u) => u.id === s.access) ?? null) : null;
   const editId = s.edit ?? null;
   const editing = editId && editId !== "new" ? (users.find((u) => u.id === editId) ?? null) : null;
   const dlgOpen = editId === "new" || !!editing;
@@ -104,12 +108,12 @@ export function UsersPage() {
     const assignable = u.role === "branch_manager" || u.role === "teller" || u.role === "waiter" || u.role === "kitchen";
     return (
       <>
-        <RowAction asChild label={t("users.permissions", "Manage permissions")}>
-          <Link to="/access/roles" search={{ user: u.id } as never}><Shield className="size-4" /></Link>
-        </RowAction>
+        {authz.can(Cap.staffPermissionsRead) ? (
+          <RowAction label={t("users.permissions", "Manage permissions")} onClick={() => update({ access: u.id })}><Shield className="size-4" /></RowAction>
+        ) : null}
         {assignable ? <RowAction label={t("users.assignBranches", "Assign branches")} onClick={() => update({ branches: u.id })}><GitBranch className="size-4" /></RowAction> : null}
-        <RowAction label={t("common.edit", "Edit")} onClick={() => update({ edit: u.id })}><Pencil className="size-4" /></RowAction>
-        <RowAction destructive label={t("common.delete", "Delete")} onClick={() => void remove(u)}><Trash2 className="size-4" /></RowAction>
+        {authz.can(Cap.staffUsersEdit) ? <RowAction label={t("common.edit", "Edit")} onClick={() => update({ edit: u.id })}><Pencil className="size-4" /></RowAction> : null}
+        {authz.can(Cap.staffUsersDelete) ? <RowAction destructive label={t("common.delete", "Delete")} onClick={() => void remove(u)}><Trash2 className="size-4" /></RowAction> : null}
       </>
     );
   };
@@ -140,6 +144,7 @@ export function UsersPage() {
         emptyState={<EmptyState icon={UsersIcon} title={t("users.empty", "Staff accounts you add appear here")} />}
       />
       {dlgOpen ? <UserDialog orgId={orgId} user={editing} open={dlgOpen} onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}
+      {accessUser ? <PersonAccessSheet user={accessUser} open onOpenChange={(o) => { if (!o) update({ access: undefined }); }} /> : null}
       {branchUser ? <BranchAssignDialog user={branchUser} open onOpenChange={(o) => { if (!o) update({ branches: undefined }); }} /> : null}
     </Page>
   );

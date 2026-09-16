@@ -12,6 +12,10 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { customInstance } from "@/data/api/custom-instance";
+import type { Capability } from "@/generated/capabilities";
+
+/** TEMPORARY until authz regen: not in the generated `Cap` map yet. */
+export const MENU_PACKAGING_RULES_APPLY = "menu.packaging_rules.apply" as Capability;
 import type { IngredientCategory, RecipeLineOut, SizeOut, StudioAggregate } from "@/data/api/generated/models";
 
 // ── Additive fields on existing shapes ───────────────────────────────────────

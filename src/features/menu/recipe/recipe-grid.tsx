@@ -26,6 +26,9 @@ import { Combobox, type ComboboxOption } from "@/components/app/combobox";
 import type { OrgIngredient } from "@/data/api/generated/models";
 import { currencyLabel, egpToPiastres, fmtMoney, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+
 import { FixCostPopover } from "../studio/fix-cost-popover";
 import { newBlockKey, type RecipeLineDraft, type SizeBlockDraft } from "../studio/util";
 import {
@@ -120,7 +123,8 @@ export function RecipeGrid({
   toolbar,
 }: Props) {
   const { t } = useTranslation();
-  const readOnly = followsName != null;
+  const locked = !useAuthz().can(Cap.menuItemsEdit);
+  const readOnly = followsName != null || locked;
   const [scaleFor, setScaleFor] = useState<string | null>(null);
 
   const rows = useMemo(() => buildGridRows(blocks), [blocks]);
@@ -277,7 +281,7 @@ export function RecipeGrid({
   return (
     <div className="space-y-3">
       {toolbar}
-      {readOnly ? (
+      {followsName != null ? (
         <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
           {t("modeling.grid.followsReadOnly", "This recipe follows {{name}}. Unlink it to edit amounts here.", {
             name: followsName,
@@ -315,9 +319,11 @@ export function RecipeGrid({
                           value={b.label}
                           placeholder={t("menu.studio.sizes.labelPh", "e.g. Small")}
                           aria-label={t("menu.sizeLabel", "Label")}
+                          disabled={locked}
                           onChange={(e) => patchBlock(b.key, { label: e.target.value })}
                           className="h-8 w-24 font-medium"
                         />
+                        {!locked ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -370,6 +376,7 @@ export function RecipeGrid({
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+                        ) : null}
                       </div>
                     </th>
                   );
@@ -391,6 +398,7 @@ export function RecipeGrid({
                     data-col={b.key}
                     value={b.price}
                     aria-label={t("modeling.grid.priceAria", "Price of {{size}}", { size: b.label })}
+                    disabled={locked}
                     onKeyDown={onCellKey}
                     onChange={(e) => patchBlock(b.key, { price: cleanQty(e.target.value) })}
                     className="h-8 w-28 text-end tabular-nums"

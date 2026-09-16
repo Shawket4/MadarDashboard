@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getErrorMessage } from "@/data/api/errors";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+
 import { putSizeBase, type RecipeBaseOut } from "./modeling-api";
 
 const NONE = "__none";
@@ -25,6 +28,7 @@ interface Props {
 export function BasePicker({ sizes, bases, disabled, onChanged }: Props) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
+  const canEdit = useAuthz().can(Cap.menuItemsEdit);
 
   const ids = new Set(sizes.map((s) => s.baseId ?? NONE));
   const value = sizes.length === 0 ? NONE : ids.size === 1 ? [...ids][0] : MIXED;
@@ -52,7 +56,7 @@ export function BasePicker({ sizes, bases, disabled, onChanged }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Label className="text-sm text-muted-foreground">{t("modeling.base.label", "Base")}</Label>
-      <Select value={value} onValueChange={(v) => void apply(v)} disabled={disabled || busy || sizes.length === 0}>
+      <Select value={value} onValueChange={(v) => void apply(v)} disabled={!canEdit || disabled || busy || sizes.length === 0}>
         <SelectTrigger className="h-8 w-48" aria-label={t("modeling.base.label", "Base")}>
           <SelectValue />
         </SelectTrigger>

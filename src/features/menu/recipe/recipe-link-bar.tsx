@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { getErrorMessage } from "@/data/api/errors";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+
 import { deleteRecipeLink, type RecipeLinkInfo } from "./modeling-api";
 
 interface Props {
@@ -23,6 +26,7 @@ interface Props {
 export function RecipeLinkBar({ itemId, sourceItemId, linkedCopyIds, link, nameOf, onChanged }: Props) {
   const { t } = useTranslation();
   const confirm = useConfirm();
+  const canEdit = useAuthz().can(Cap.menuItemsEdit);
 
   if (sourceItemId) {
     const name = link?.recipe_source_item_name ?? nameOf(sourceItemId) ?? "—";
@@ -55,9 +59,11 @@ export function RecipeLinkBar({ itemId, sourceItemId, linkedCopyIds, link, nameO
         {link?.in_sync === false ? (
           <Badge variant="outline">{t("modeling.linked.outOfSync", "Out of sync")}</Badge>
         ) : null}
-        <Button type="button" variant="ghost" size="sm" onClick={() => void unlink()}>
-          <Unlink className="size-4" /> {t("modeling.linked.unlink", "Unlink")}
-        </Button>
+        {canEdit ? (
+          <Button type="button" variant="ghost" size="sm" onClick={() => void unlink()}>
+            <Unlink className="size-4" /> {t("modeling.linked.unlink", "Unlink")}
+          </Button>
+        ) : null}
       </span>
     );
   }

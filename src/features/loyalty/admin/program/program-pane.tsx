@@ -27,7 +27,7 @@ import { fromWire, programSchema, toWire, type ProgramValues } from "./form-sche
 import { TextRow, ToggleRow } from "./fields";
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorState } from "@/components/app/empty-state";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { useAuthz } from "@/data/authz/use-authz";
 
 import { loyaltyAccess } from "../../shared/access";
 
@@ -36,8 +36,8 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
   const confirm = useConfirm();
   const { query, settings, inherited } = useProgram(scope);
   const save = usePutLoyaltySettings();
-  const role = useAuthStore((s) => s.user?.role);
-  const { canEditProgram } = loyaltyAccess(role);
+  const authz = useAuthz();
+  const { canEditProgram } = loyaltyAccess(authz);
 
   const form = useForm<ProgramValues>({
     resolver: zodResolver(programSchema),

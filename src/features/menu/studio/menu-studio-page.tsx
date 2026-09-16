@@ -32,6 +32,9 @@ import {
 import type { ItemOptionInput, StudioAggregate } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { queryClient } from "@/data/api/query";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+
 import { egpToPiastres } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -142,6 +145,7 @@ export function MenuStudioPage() {
   const [pristine, setPristine] = useState<PristineSigs>(EMPTY_PRISTINE);
   const [saving, setSaving] = useState(false);
   const [staffCopyOpen, setStaffCopyOpen] = useState(false);
+  const canCreateItems = useAuthz().can(Cap.menuItemsCreate);
 
   // ── Modeling (bases · linked copies · swappable families) ───────────────────
   const studioExt = useMemo(() => (studio ? asStudioExt(studio) : null), [studio]);
@@ -600,7 +604,7 @@ export function MenuStudioPage() {
                 <ArrowRight className="size-3.5 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </Button>
-            {!sourceItemId ? (
+            {!sourceItemId && canCreateItems ? (
               <Button type="button" variant="outline" size="sm" onClick={() => setStaffCopyOpen(true)}>
                 <UserRound className="size-4" /> {t("modeling.linked.action", "Create staff copy…")}
               </Button>

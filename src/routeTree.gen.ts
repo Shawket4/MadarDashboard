@@ -23,6 +23,7 @@ import { Route as AppOrdersRouteImport } from './routes/_app/orders'
 import { Route as AppFloorRouteImport } from './routes/_app/floor'
 import { Route as AppDiscountsRouteImport } from './routes/_app/discounts'
 import { Route as AppDevicesRouteImport } from './routes/_app/devices'
+import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppBranchesRouteImport } from './routes/_app/branches'
 import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
 import { Route as AppBasiraRouteImport } from './routes/_app/basira'
@@ -85,6 +86,7 @@ import { Route as AppDeliverySettingsRouteImport } from './routes/_app/delivery/
 import { Route as AppDeliveryChannelsRouteImport } from './routes/_app/delivery/channels'
 import { Route as AppAccessUsersRouteImport } from './routes/_app/access/users'
 import { Route as AppAccessRolesRouteImport } from './routes/_app/access/roles'
+import { Route as AppAccessReviewRouteImport } from './routes/_app/access/review'
 import { Route as AppReportsOperationsTablesRouteImport } from './routes/_app/reports/operations/tables'
 import { Route as AppReportsOperationsProfitabilityRouteImport } from './routes/_app/reports/operations/profitability'
 import { Route as AppMenuItemsItemIdRouteImport } from './routes/_app/menu/items_.$itemId'
@@ -156,6 +158,11 @@ const AppDiscountsRoute = AppDiscountsRouteImport.update({
 const AppDevicesRoute = AppDevicesRouteImport.update({
   id: '/devices',
   path: '/devices',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppCustomersRoute = AppCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppBranchesRoute = AppBranchesRouteImport.update({
@@ -474,6 +481,11 @@ const AppAccessRolesRoute = AppAccessRolesRouteImport.update({
   path: '/roles',
   getParentRoute: () => AppAccessRouteRoute,
 } as any)
+const AppAccessReviewRoute = AppAccessReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AppAccessRouteRoute,
+} as any)
 const AppReportsOperationsTablesRoute =
   AppReportsOperationsTablesRouteImport.update({
     id: '/reports/operations/tables',
@@ -505,6 +517,7 @@ export interface FileRoutesByFullPath {
   '/basira': typeof AppBasiraRoute
   '/bookings': typeof AppBookingsRoute
   '/branches': typeof AppBranchesRoute
+  '/customers': typeof AppCustomersRoute
   '/devices': typeof AppDevicesRoute
   '/discounts': typeof AppDiscountsRoute
   '/floor': typeof AppFloorRoute
@@ -515,6 +528,7 @@ export interface FileRoutesByFullPath {
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
+  '/access/review': typeof AppAccessReviewRoute
   '/access/roles': typeof AppAccessRolesRoute
   '/access/users': typeof AppAccessUsersRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -579,6 +593,7 @@ export interface FileRoutesByTo {
   '/basira': typeof AppBasiraRoute
   '/bookings': typeof AppBookingsRoute
   '/branches': typeof AppBranchesRoute
+  '/customers': typeof AppCustomersRoute
   '/devices': typeof AppDevicesRoute
   '/discounts': typeof AppDiscountsRoute
   '/floor': typeof AppFloorRoute
@@ -590,6 +605,7 @@ export interface FileRoutesByTo {
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
   '/': typeof AppIndexRoute
+  '/access/review': typeof AppAccessReviewRoute
   '/access/roles': typeof AppAccessRolesRoute
   '/access/users': typeof AppAccessUsersRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -661,6 +677,7 @@ export interface FileRoutesById {
   '/_app/basira': typeof AppBasiraRoute
   '/_app/bookings': typeof AppBookingsRoute
   '/_app/branches': typeof AppBranchesRoute
+  '/_app/customers': typeof AppCustomersRoute
   '/_app/devices': typeof AppDevicesRoute
   '/_app/discounts': typeof AppDiscountsRoute
   '/_app/floor': typeof AppFloorRoute
@@ -672,6 +689,7 @@ export interface FileRoutesById {
   '/_app/tills': typeof AppTillsRoute
   '/_app/users': typeof AppUsersRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/access/review': typeof AppAccessReviewRoute
   '/_app/access/roles': typeof AppAccessRolesRoute
   '/_app/access/users': typeof AppAccessUsersRoute
   '/_app/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -744,6 +762,7 @@ export interface FileRouteTypes {
     | '/basira'
     | '/bookings'
     | '/branches'
+    | '/customers'
     | '/devices'
     | '/discounts'
     | '/floor'
@@ -754,6 +773,7 @@ export interface FileRouteTypes {
     | '/shifts'
     | '/tills'
     | '/users'
+    | '/access/review'
     | '/access/roles'
     | '/access/users'
     | '/delivery/channels'
@@ -818,6 +838,7 @@ export interface FileRouteTypes {
     | '/basira'
     | '/bookings'
     | '/branches'
+    | '/customers'
     | '/devices'
     | '/discounts'
     | '/floor'
@@ -829,6 +850,7 @@ export interface FileRouteTypes {
     | '/tills'
     | '/users'
     | '/'
+    | '/access/review'
     | '/access/roles'
     | '/access/users'
     | '/delivery/channels'
@@ -899,6 +921,7 @@ export interface FileRouteTypes {
     | '/_app/basira'
     | '/_app/bookings'
     | '/_app/branches'
+    | '/_app/customers'
     | '/_app/devices'
     | '/_app/discounts'
     | '/_app/floor'
@@ -910,6 +933,7 @@ export interface FileRouteTypes {
     | '/_app/tills'
     | '/_app/users'
     | '/_app/'
+    | '/_app/access/review'
     | '/_app/access/roles'
     | '/_app/access/users'
     | '/_app/delivery/channels'
@@ -1072,6 +1096,13 @@ declare module '@tanstack/react-router' {
       path: '/devices'
       fullPath: '/devices'
       preLoaderRoute: typeof AppDevicesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/customers': {
+      id: '/_app/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AppCustomersRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/branches': {
@@ -1508,6 +1539,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccessRolesRouteImport
       parentRoute: typeof AppAccessRouteRoute
     }
+    '/_app/access/review': {
+      id: '/_app/access/review'
+      path: '/review'
+      fullPath: '/access/review'
+      preLoaderRoute: typeof AppAccessReviewRouteImport
+      parentRoute: typeof AppAccessRouteRoute
+    }
     '/_app/reports/operations/tables': {
       id: '/_app/reports/operations/tables'
       path: '/reports/operations/tables'
@@ -1533,12 +1571,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppAccessRouteRouteChildren {
+  AppAccessReviewRoute: typeof AppAccessReviewRoute
   AppAccessRolesRoute: typeof AppAccessRolesRoute
   AppAccessUsersRoute: typeof AppAccessUsersRoute
   AppAccessIndexRoute: typeof AppAccessIndexRoute
 }
 
 const AppAccessRouteRouteChildren: AppAccessRouteRouteChildren = {
+  AppAccessReviewRoute: AppAccessReviewRoute,
   AppAccessRolesRoute: AppAccessRolesRoute,
   AppAccessUsersRoute: AppAccessUsersRoute,
   AppAccessIndexRoute: AppAccessIndexRoute,
@@ -1665,6 +1705,7 @@ interface AppRouteRouteChildren {
   AppBasiraRoute: typeof AppBasiraRoute
   AppBookingsRoute: typeof AppBookingsRoute
   AppBranchesRoute: typeof AppBranchesRoute
+  AppCustomersRoute: typeof AppCustomersRoute
   AppDevicesRoute: typeof AppDevicesRoute
   AppDiscountsRoute: typeof AppDiscountsRoute
   AppFloorRoute: typeof AppFloorRoute
@@ -1706,6 +1747,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppBasiraRoute: AppBasiraRoute,
   AppBookingsRoute: AppBookingsRoute,
   AppBranchesRoute: AppBranchesRoute,
+  AppCustomersRoute: AppCustomersRoute,
   AppDevicesRoute: AppDevicesRoute,
   AppDiscountsRoute: AppDiscountsRoute,
   AppFloorRoute: AppFloorRoute,

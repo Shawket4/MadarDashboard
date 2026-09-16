@@ -18,6 +18,9 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { getErrorMessage } from "@/data/api/errors";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+
 import { useOrgId } from "@/hooks/use-org-id";
 import { invalidateCatalog } from "../util";
 import type { GridBlock } from "./grid-model";
@@ -46,6 +49,7 @@ export function RecipeBasesPage() {
   const qc = useQueryClient();
   const basesQ = useRecipeBases(!!orgId);
   const [editing, setEditing] = useState<RecipeBaseOut | "new" | null>(null);
+  const canEdit = useAuthz().can(Cap.menuItemsEdit);
 
   const remove = async (b: RecipeBaseOut) => {
     const ok = await confirm({
@@ -76,9 +80,11 @@ export function RecipeBasesPage() {
           "Lines several drinks share. Edit once and every size using the base follows.",
         )}
         actions={
-          <Button size="sm" onClick={() => setEditing("new")}>
-            <Plus className="size-4" /> {t("modeling.bases.new", "New base")}
-          </Button>
+          canEdit ? (
+            <Button size="sm" onClick={() => setEditing("new")}>
+              <Plus className="size-4" /> {t("modeling.bases.new", "New base")}
+            </Button>
+          ) : undefined
         }
       />
       {basesQ.isLoading ? (
@@ -113,6 +119,7 @@ export function RecipeBasesPage() {
                   {t("modeling.bases.lineCount", "{{count}} lines", { count: b.lines.length })}
                 </p>
               </div>
+              {canEdit ? (
               <div className="flex shrink-0 items-center gap-1">
                 <Button size="icon-sm" variant="ghost" onClick={() => setEditing(b)} aria-label={t("common.edit", "Edit")}>
                   <Pencil className="size-4" />
@@ -127,6 +134,7 @@ export function RecipeBasesPage() {
                   <Trash2 className="size-4" />
                 </Button>
               </div>
+              ) : null}
             </li>
           ))}
         </ul>

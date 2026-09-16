@@ -70,6 +70,9 @@ import { useScope } from "@/data/scope/use-scope";
 import { currencyLabel, fmtNumber } from "@/lib/format";
 import { PriceTaxHint } from "./price-tax-hint";
 import { LinkedCopyDialog } from "./recipe/linked-copy-dialog";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+
 
 const ALL = "__all__";
 const ITEMS_PER_PAGE = 24;
@@ -80,6 +83,7 @@ export function MenuItemsPage() {
   const confirm = useConfirm();
   const navigate = useNavigate();
   const orgId = useOrgId();
+  const canCreateStaffCopy = useAuthz().can(Cap.menuItemsCreate);
   const enabled = !!orgId;
   // When a single branch is scoped (top bar), each card gets an inline
   // "Available at this branch" toggle. No branch selected → org catalog only.
@@ -465,9 +469,11 @@ export function MenuItemsPage() {
                 <DropdownMenuItem onClick={() => void duplicate(m)}>
                   <Copy className="size-4" /> {t("menu.grid.duplicate", "Duplicate")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStaffCopyOf(m)}>
-                  <UserRound className="size-4" /> {t("modeling.linked.action", "Create staff copy…")}
-                </DropdownMenuItem>
+                {canCreateStaffCopy ? (
+                  <DropdownMenuItem onClick={() => setStaffCopyOf(m)}>
+                    <UserRound className="size-4" /> {t("modeling.linked.action", "Create staff copy…")}
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(m.name, t("menu.deleteItemConsequence", "It leaves the POS menu at every branch, with its sizes, recipe and branch prices. Past orders keep their lines."), () => delItem.mutate({ id: m.id }))}>
                   <Trash2 className="size-4" /> {t("common.delete", "Delete")}
                 </DropdownMenuItem>

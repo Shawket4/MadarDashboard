@@ -1,4 +1,5 @@
 import { http, HttpResponse, passthrough } from "msw";
+import { defaultsFor } from "@/data/authz/use-authz";
 
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import {
@@ -294,6 +295,11 @@ export const handlers = [
   // ── Auth ──────────────────────────────────────────────────────────────────
   http.post("*/auth/login", () =>
     HttpResponse.json({ token: MOCK_TOKEN, user: MOCK_USER, currency_code: "EGP", tax_rate: 0.14 }),
+  ),
+  // Effective permissions: the mock user holds the owner defaults. Listed
+  // before "*/me", which would otherwise answer this path with the wrong shape.
+  http.get("*/authz/me", () =>
+    HttpResponse.json(defaultsFor(MOCK_USER.role, MOCK_USER.id)),
   ),
   http.get("*/me", () =>
     HttpResponse.json({ user: MOCK_USER, currency_code: "EGP", tax_rate: 0.14 }),

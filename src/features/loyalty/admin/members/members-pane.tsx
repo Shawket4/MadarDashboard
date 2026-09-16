@@ -26,7 +26,7 @@ import {
 } from "@/data/api/generated/api";
 import type { MemberView } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { useAuthz } from "@/data/authz/use-authz";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
@@ -48,7 +48,8 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
   // Super admin only: it reads Madar's plumbing out of Google in Google's own
   // vocabulary, which is nothing an org manager could act on. The endpoint
   // refuses them too, so this is presentation, not the guard.
-  const access = loyaltyAccess(useAuthStore((s) => s.user?.role));
+  const authz = useAuthz();
+  const access = loyaltyAccess(authz);
   const isSuperAdmin = access.canInspectWallet;
   const [openMember, setOpenMember] = useState<string | null>(null);
   const [adjusting, setAdjusting] = useState<MemberView | null>(null);

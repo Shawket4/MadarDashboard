@@ -21,6 +21,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useListCategories, useListMenuCatalog } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+
 import { getTranslatedName } from "@/lib/translation";
 import { useOrgId } from "@/hooks/use-org-id";
 import { invalidateCatalog } from "../util";
@@ -28,6 +31,7 @@ import { ownPayload, type GridBlock } from "./grid-model";
 import { LabelGridEditor } from "./label-grid-editor";
 import { useIngredientPicker } from "./use-ingredient-picker";
 import {
+  MENU_PACKAGING_RULES_APPLY,
   applyPackagingRules,
   createPackagingRule,
   deletePackagingRule,
@@ -53,6 +57,9 @@ export function PackagingRulesPage() {
   const rulesQ = usePackagingRules(!!orgId);
   const [editing, setEditing] = useState<PackagingRuleOut | "new" | null>(null);
   const [applying, setApplying] = useState(false);
+  const authz = useAuthz();
+  const canEdit = authz.can(Cap.menuItemsEdit);
+  const canApply = authz.can(MENU_PACKAGING_RULES_APPLY);
   const [result, setResult] = useState<ApplyPackagingRulesResult | null>(null);
 
   const categoriesQ = useListCategories({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
@@ -111,12 +118,16 @@ export function PackagingRulesPage() {
         )}
         actions={
           <>
-            <Button size="sm" variant="outline" loading={applying} onClick={() => void apply()}>
-              <Play className="size-4" /> {t("modeling.packaging.apply", "Apply rules")}
-            </Button>
-            <Button size="sm" onClick={() => setEditing("new")}>
-              <Plus className="size-4" /> {t("modeling.packaging.new", "New rule")}
-            </Button>
+            {canApply ? (
+              <Button size="sm" variant="outline" loading={applying} onClick={() => void apply()}>
+                <Play className="size-4" /> {t("modeling.packaging.apply", "Apply rules")}
+              </Button>
+            ) : null}
+            {canEdit ? (
+              <Button size="sm" onClick={() => setEditing("new")}>
+                <Plus className="size-4" /> {t("modeling.packaging.new", "New rule")}
+              </Button>
+            ) : null}
           </>
         }
       />
@@ -172,6 +183,7 @@ export function PackagingRulesPage() {
                     {r.lines.map((l) => `${l.ingredient_name} ${Number(l.quantity)}`).join(", ") || "—"}
                   </p>
                 </div>
+                {canEdit ? (
                 <div className="flex shrink-0 items-center gap-1">
                   <Button size="icon-sm" variant="ghost" onClick={() => setEditing(r)} aria-label={t("common.edit", "Edit")}>
                     <Pencil className="size-4" />
@@ -186,6 +198,7 @@ export function PackagingRulesPage() {
                     <Trash2 className="size-4" />
                   </Button>
                 </div>
+                ) : null}
               </li>
             );
           })}

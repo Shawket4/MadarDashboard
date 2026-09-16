@@ -17,10 +17,12 @@ export interface UpdateUserRequest {
   /** @nullable */
   phone?: string | null;
   /**
-     * @minLength 4
+     * A NEW PIN is exactly 6 digits; an existing shorter one keeps working
+     * until it is changed.
+     * @minLength 6
      * @maxLength 6
      * @nullable
-     * @pattern ^[0-9]{4,6}$
+     * @pattern ^[0-9]{6}$
      */
   pin?: string | null;
   role?: null | UserRole;

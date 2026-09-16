@@ -22,7 +22,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { queryClient } from "@/data/api/query";
 import { getErrorMessage } from "@/data/api/errors";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
@@ -80,8 +81,9 @@ function startOfToday(): string {
 export function TillsPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
-  const role = useAuthStore((s) => s.user?.role);
-  const canManage = role === "super_admin" || role === "org_admin" || role === "branch_manager";
+  const authz = useAuthz();
+  const canForceClose = authz.can(Cap.tillForceClose);
+  const canDelete = authz.can(Cap.tillDelete);
   const { branchId, scopeBranchId, isAllBranches } = useScope();
 
   const navigate = useNavigate();
@@ -195,13 +197,13 @@ export function TillsPage() {
             <DropdownMenuItem onClick={() => setCloseTill(s)}>{t("tills.closeTill", "Close till")}</DropdownMenuItem>
           </>
         ) : null}
-        {canManage && s.status === "open" ? (
+        {canForceClose && s.status === "open" ? (
           <DropdownMenuItem variant="destructive" onClick={() => onForceClose(s)}>
             <XCircle className="size-4" />
             {t("tills.forceClose", "Force close")}
           </DropdownMenuItem>
         ) : null}
-        {canManage ? (
+        {canDelete ? (
           <DropdownMenuItem variant="destructive" onClick={() => onDelete(s)}>
             <Trash2 className="size-4" />
             {t("common.delete", "Delete")}
