@@ -63,6 +63,8 @@ interface Props {
   usedOn?: number | null;
   onManageItems?: () => void;
   onSaved?: (group: GroupOut) => void;
+  /** View without edit rights: every control disabled, no Save. */
+  readOnly?: boolean;
 }
 
 const EMPTY: GroupFormInput = {
@@ -88,7 +90,7 @@ const recipeSig = (lines: { ingredient_id: string; quantity: number; unit: strin
  * creation: PatchGroupRequest has no `legacy_addon_type` yet, so an existing
  * group's effect can only move between "Nothing" and "Adds ingredients".
  */
-export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, onManageItems, onSaved }: Props) {
+export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, onManageItems, onSaved, readOnly = false }: Props) {
   const { t } = useTranslation();
   const editing = !!group;
 
@@ -301,7 +303,8 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(submit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(submit)}>
+              <fieldset disabled={readOnly} className="space-y-6">
               <BilingualField control={form.control} enName="name" arName="name_ar" label={t("common.name", "Name")} />
 
               {/* What does choosing do? */}
@@ -481,13 +484,16 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                 </div>
               ) : null}
 
-              <DialogFooter>
+              </fieldset>
+              <DialogFooter className="mt-6">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  {t("common.cancel", "Cancel")}
+                  {readOnly ? t("common.close", "Close") : t("common.cancel", "Cancel")}
                 </Button>
-                <Button type="submit" loading={busy}>
-                  {t("common.save", "Save")}
-                </Button>
+                {readOnly ? null : (
+                  <Button type="submit" loading={busy}>
+                    {t("common.save", "Save")}
+                  </Button>
+                )}
               </DialogFooter>
             </form>
           </Form>

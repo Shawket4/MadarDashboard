@@ -30,6 +30,9 @@ import { deleteGroup, patchGroup, useListGroups } from "@/data/api/generated/api
 import type { GroupOut } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
+import { Cap } from "@/generated/capabilities";
+import { useCan } from "@/data/authz/use-authz";
+
 import { cn } from "@/lib/utils";
 import { arOf, invalidateCatalog } from "../util";
 import { GroupEditorDialog } from "./group-editor-dialog";
@@ -51,6 +54,7 @@ export function GroupsPage() {
   const { t } = useTranslation();
   const orgId = useOrgId();
   const confirm = useConfirm();
+  const canEdit = useCan(Cap.menuItemsEdit);
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { edit?: string };
 
@@ -73,7 +77,7 @@ export function GroupsPage() {
   const setEdit = (edit: string | undefined) =>
     void navigate({ to: ".", replace: true, search: (prev: Record<string, unknown>) => ({ ...prev, edit }) });
   const editing = search.edit && search.edit !== "new" ? (groups.find((g) => g.id === search.edit) ?? null) : null;
-  const editorOpen = search.edit === "new" || !!editing;
+  const editorOpen = (search.edit === "new" && canEdit) || !!editing;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -144,9 +148,11 @@ export function GroupsPage() {
         title={t("menu.groups.title", "Choice groups")}
         subtitle={t("menu.groups.subtitle", "Milk, beans, flavours, extras: the choices the cashier offers on items.")}
         actions={
-          <Button onClick={() => setEdit("new")}>
-            <Plus className="size-4" /> {t("menu.groups.new", "New group")}
-          </Button>
+          canEdit ? (
+            <Button onClick={() => setEdit("new")}>
+              <Plus className="size-4" /> {t("menu.groups.new", "New group")}
+            </Button>
+          ) : null
         }
       />
 
@@ -164,6 +170,7 @@ export function GroupsPage() {
                   count={order.length}
                   usedOn={usage.ready ? (usage.byGroup.get(g.id)?.length ?? 0) : null}
                   disabled={saving}
+                  canEdit={canEdit}
                   onMoveUp={() => move(idx, idx - 1)}
                   onMoveDown={() => move(idx, idx + 1)}
                   onEdit={() => setEdit(g.id)}
@@ -187,6 +194,7 @@ export function GroupsPage() {
           usedOn={editing && usage.ready ? (usage.byGroup.get(editing.id)?.length ?? 0) : null}
           onManageItems={editing ? () => setManaging(editing) : undefined}
           onSaved={() => void groupsQ.refetch()}
+          readOnly={!canEdit}
         />
       ) : null}
       {managing ? (
@@ -194,6 +202,7 @@ export function GroupsPage() {
           orgId={orgId}
           group={managing}
           uses={usage.byGroup.get(managing.id) ?? []}
+          readOnly={!canEdit}
           open={!!managing}
           onOpenChange={(o) => {
             if (!o) setManaging(null);
@@ -210,6 +219,7 @@ function GroupRow({
   count,
   usedOn,
   disabled,
+  canEdit,
   onMoveUp,
   onMoveDown,
   onEdit,
@@ -221,6 +231,7 @@ function GroupRow({
   count: number;
   usedOn: number | null;
   disabled: boolean;
+  canEdit: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onEdit: () => void;
@@ -228,7 +239,7 @@ function GroupRow({
   onDelete: () => void;
 }) {
   const { t } = useTranslation();
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: group.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: group.id, disabled: !canEdit });
   const ar = arOf(group.name_translations);
   const rule = selectionToPickRule(group);
   const pickLabel =
@@ -250,6 +261,7 @@ function GroupRow({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn("flex flex-wrap items-center gap-3 rounded-lg border bg-card p-2.5", isDragging && "z-10 opacity-70 shadow-lg")}
     >
+      {canEdit ? (
       <button
         type="button"
         className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground/60 hover:bg-secondary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
@@ -259,6 +271,7 @@ function GroupRow({
       >
         <GripVertical className="size-4" aria-hidden />
       </button>
+      ) : null}
 
       <button type="button" onClick={onEdit} className="min-w-40 flex-1 text-start">
         <span className="block truncate text-sm font-medium">{group.name}</span>
@@ -291,6 +304,8 @@ function GroupRow({
       </Button>
 
       <div className="flex shrink-0 items-center gap-0.5">
+        {canEdit ? (
+          <>
         <Button type="button" variant="ghost" size="icon" className="size-8" disabled={disabled || index === 0} onClick={onMoveUp} aria-label={t("menu.studio.steps.moveUp", "Move up")}>
           <ArrowUp className="size-4" />
         </Button>
@@ -303,6 +318,8 @@ function GroupRow({
         <Button type="button" variant="ghost" size="icon" className="size-8 text-destructive" onClick={onDelete} aria-label={t("common.delete", "Delete")}>
           <Trash2 className="size-4" />
         </Button>
+          </>
+        ) : null}
       </div>
     </li>
   );

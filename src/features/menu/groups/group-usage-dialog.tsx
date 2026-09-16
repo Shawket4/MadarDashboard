@@ -27,6 +27,7 @@ interface Props {
   uses: GroupUse[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  readOnly?: boolean;
 }
 
 /**
@@ -35,7 +36,7 @@ interface Props {
  * endpoint the Menu Studio saves with (`PUT /menu-items/{id}/modifier-groups`):
  * read the item's current attachments, add or drop this group, write back.
  */
-export function GroupUsageDialog({ orgId, group, uses, open, onOpenChange }: Props) {
+export function GroupUsageDialog({ orgId, group, uses, open, onOpenChange, readOnly = false }: Props) {
   const { t } = useTranslation();
   const itemsQ = useListMenuItems({ org_id: orgId }, { query: { enabled: open } });
   const items = useMemo(
@@ -130,7 +131,7 @@ export function GroupUsageDialog({ orgId, group, uses, open, onOpenChange }: Pro
             return (
               <li key={item.id}>
                 <label className="flex items-center gap-3 px-3 py-2 text-sm">
-                  <Checkbox checked={picked.has(item.id)} onCheckedChange={() => toggle(item.id)} />
+                  <Checkbox disabled={readOnly} checked={picked.has(item.id)} onCheckedChange={() => toggle(item.id)} />
                   <span className="min-w-0 flex-1 truncate">{item.name}</span>
                   {!item.is_active ? (
                     <Badge variant="outline" className="font-normal">
@@ -151,9 +152,11 @@ export function GroupUsageDialog({ orgId, group, uses, open, onOpenChange }: Pro
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.cancel", "Cancel")}
           </Button>
-          <Button type="button" onClick={() => void apply()} loading={busy} disabled={!dirty}>
-            {t("menu.groups.usage.apply", "Apply")}
-          </Button>
+          {readOnly ? null : (
+            <Button type="button" onClick={() => void apply()} loading={busy} disabled={!dirty}>
+              {t("menu.groups.usage.apply", "Apply")}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

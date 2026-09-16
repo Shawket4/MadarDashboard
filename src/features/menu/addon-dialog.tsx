@@ -36,6 +36,9 @@ import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, piastresToEgp } from "@/lib/format";
 import { arOf, invalidateCatalog } from "./util";
 import { GroupEditorDialog } from "./groups/group-editor-dialog";
+import { Cap } from "@/generated/capabilities";
+import { useCan } from "@/data/authz/use-authz";
+
 
 interface Props {
   orgId: string;
@@ -62,6 +65,7 @@ export function AddonDialog({ orgId, addon, open, onOpenChange }: Props) {
   // Shared groups only; the item-private "Options" sets carry no legacy type.
   const groupChoices = useMemo(() => groups.filter((g) => g.legacy_addon_type != null), [groups]);
   const [newGroup, setNewGroup] = useState(false);
+  const canEditGroups = useCan(Cap.menuItemsEdit);
 
   const schema = useMemo(
     () =>
@@ -166,11 +170,11 @@ export function AddonDialog({ orgId, addon, open, onOpenChange }: Props) {
                       <p className="text-xs text-muted-foreground">
                         {t("menu.addonTypeLocked", "The type (group) can't change — recreate the add-on to move it.")}
                       </p>
-                    ) : (
+                    ) : canEditGroups ? (
                       <Button type="button" variant="link" size="sm" className="h-auto justify-start p-0" onClick={() => setNewGroup(true)}>
                         <Plus className="size-3.5" /> {t("menu.groups.new", "New group")}
                       </Button>
-                    )}
+                    ) : null}
                     <FormMessage />
                   </FormItem>
                 )}

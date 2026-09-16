@@ -13,6 +13,9 @@ import { EmptyState } from "@/components/app/empty-state";
 import { useListGroups } from "@/data/api/generated/api";
 import type { GroupOut } from "@/data/api/generated/models";
 import { fmtMoney, fmtUnit } from "@/lib/format";
+import { Cap } from "@/generated/capabilities";
+import { useCan } from "@/data/authz/use-authz";
+
 import { GroupEditorDialog } from "@/features/menu/groups/group-editor-dialog";
 import { invalidateStudio, type AttachDraft } from "./util";
 
@@ -42,6 +45,7 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
   const groupsQ = useListGroups({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const allGroups = useMemo(() => groupsQ.data ?? [], [groupsQ.data]);
   const [newGroup, setNewGroup] = useState(false);
+  const canEditGroups = useCan(Cap.menuItemsEdit);
 
   const attachedIds = useMemo(() => new Set(attached.map((a) => a.group_id)), [attached]);
   const pickable = useMemo(
@@ -116,16 +120,18 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
                   ? t("menu.studio.modifiers.single", "Single choice")
                   : t("menu.studio.modifiers.multi", "Multi choice")}
               </Badge>
-              <Button asChild variant="ghost" size="sm" className="ms-auto h-7 px-2 text-xs">
-                <Link to="/menu/groups" search={{ edit: a.group_id }}>
-                  <Pencil className="size-3.5" /> {t("menu.groups.editGroup", "Edit group")}
-                </Link>
-              </Button>
+              {canEditGroups ? (
+                <Button asChild variant="ghost" size="sm" className="ms-auto h-7 px-2 text-xs">
+                  <Link to="/menu/groups" search={{ edit: a.group_id }}>
+                    <Pencil className="size-3.5" /> {t("menu.groups.editGroup", "Edit group")}
+                  </Link>
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="text-destructive"
+                className={canEditGroups ? "text-destructive" : "ms-auto text-destructive"}
                 aria-label={t("menu.studio.modifiers.detach", "Detach")}
                 onClick={() => detach(idx)}
               >
@@ -235,12 +241,14 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
             disabled={pickable.length === 0}
           />
         </div>
-        <Button type="button" variant="outline" onClick={() => setNewGroup(true)} disabled={!orgId}>
-          <Plus className="size-4" /> {t("menu.groups.new", "New group")}
-        </Button>
+        {canEditGroups ? (
+          <Button type="button" variant="outline" onClick={() => setNewGroup(true)} disabled={!orgId}>
+            <Plus className="size-4" /> {t("menu.groups.new", "New group")}
+          </Button>
+        ) : null}
       </div>
 
-      {newGroup && orgId ? (
+      {newGroup && orgId && canEditGroups ? (
         <GroupEditorDialog
           orgId={orgId}
           group={null}
