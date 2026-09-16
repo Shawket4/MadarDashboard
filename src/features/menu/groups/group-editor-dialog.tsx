@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFieldArray, useForm, useFormContext, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { useQueries } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Info, Plus, Trash2 } from "lucide-react";
 
@@ -26,12 +25,12 @@ import {
   createGroup,
   createOption,
   deleteOption,
-  getListAddonIngredientsQueryOptions,
   listGroups,
   patchGroup,
   patchOption,
   putOptionRecipe,
   useListCatalog,
+  useListIngredientCategories,
   useListGroups,
 } from "@/data/api/generated/api";
 import type { GroupOut, OrgIngredient } from "@/data/api/generated/models";
@@ -40,13 +39,13 @@ import { egpToPiastres, fmtMoney, fmtUnit, piastresToEgp } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { arOf, invalidateCatalog } from "../util";
 import { OptionSizeGrid } from "./option-size-grid";
-import { useGroupUsage } from "./use-group-usage";
+import { useGroupSizeLabels } from "./use-group-usage";
 import {
   SWAP_SLUGS,
+  SWAP_TYPES,
   effectToLegacyType,
   formPickRule,
-  isSwapType,
-  legacyTypeToEffect,
+  groupEffect,
   makeGroupSchema,
   optionRecipeLines,
   pickRuleToSelection,
@@ -69,13 +68,16 @@ interface Props {
   readOnly?: boolean;
 }
 
+const isLegacySwap = (type: string | null | undefined) => type === SWAP_TYPES.milk || type === SWAP_TYPES.beans;
+
 const EMPTY: GroupFormInput = {
   name: "",
   name_ar: "",
   pick: "any",
   up_to: 1,
   effect: "adds",
-  swap_target: "milk",
+  swap_category_id: "",
+  is_active: true,
   options: [],
 };
 
@@ -100,14 +102,10 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
   const catalog = useMemo(() => catalogQ.data ?? [], [catalogQ.data]);
   const catalogById = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
   const groupsQ = useListGroups({ org_id: orgId }, { query: { enabled: open && !!orgId } });
-  const usage = useGroupUsage(orgId, open && !!group);
-
-  const optionIds = useMemo(() => group?.options.map((o) => o.id) ?? [], [group]);
-  const recipes = useQueries({
-    queries: optionIds.map((id) => getListAddonIngredientsQueryOptions(id, { query: { enabled: open } })),
-  });
-  const recipesLoaded = recipes.every((q) => q.isSuccess || q.isError);
-  const recipesKey = recipes.map((q) => q.dataUpdatedAt).join(",");
+  const categoriesQ = useListIngredientCategories(orgId, { query: { enabled: open && !!orgId } });
+  const categories = useMemo(() => categoriesQ.data ?? [], [categoriesQ.data]);
+  // Size labels of the items this group is attached to: the per-size columns.
+  const itemSizeLabels = useGroupSizeLabels(group?.id ?? null, open && !!group);
 
   const schema = useMemo(
     () =>
@@ -115,6 +113,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
         required: t("common.requiredField", "This field is required"),
         maxAtLeastOne: t("menu.groups.editor.maxAtLeastOne", "Must be at least 1"),
         swapNeedsIngredient: t("menu.groups.editor.swapNeedsIngredient", "Pick the ingredient this option pours"),
+        swapNeedsCategory: t("menu.groups.editor.swapNeedsCategory", "Pick the ingredient category this group swaps"),
         duplicateIngredient: t("menu.groups.editor.duplicateIngredient", "This ingredient is already on this option"),
         qtyPositive: t("menu.groups.editor.qtyPositive", "Enter an amount above 0"),
       }),
@@ -124,45 +123,44 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
   const form = useForm<GroupFormInput, unknown, GroupFormValues>({ resolver: zodResolver(schema), defaultValues: EMPTY });
   const options = useFieldArray({ control: form.control, name: "options" });
 
-  // Seed once the option recipes are in (the form is the dirty store).
+  // Seed from the group; each option carries its recipe lines (the form is the dirty store).
   const seeded = useMemo<GroupFormInput | null>(() => {
     if (!group) return EMPTY;
-    if (!recipesLoaded) return null;
-    const lineSets = recipes.map((q) => q.data ?? []);
-    const anyLines = lineSets.some((ls) => ls.length > 0);
-    const { effect, swapTarget } = legacyTypeToEffect(group.legacy_addon_type, anyLines);
+    if ((group.effect === "swaps" || isLegacySwap(group.legacy_addon_type)) && !group.swap_category_id && categoriesQ.isLoading) return null;
+    const anyLines = group.options.some((o) => (o.recipe ?? []).length > 0);
+    const effect = groupEffect(group, anyLines);
     const rule = selectionToPickRule(group);
+    // Groups from before `swap_category_id`: the swap family's category by slug.
+    const legacySlug =
+      group.legacy_addon_type === SWAP_TYPES.beans ? SWAP_SLUGS.beans : group.legacy_addon_type === SWAP_TYPES.milk ? SWAP_SLUGS.milk : null;
+    const swapCategoryId = group.swap_category_id ?? categories.find((c) => legacySlug && c.slug === legacySlug)?.id ?? "";
     return {
       name: group.name,
       name_ar: arOf(group.name_translations),
       pick: rule.kind,
       up_to: rule.kind === "up_to" ? rule.max : 1,
       effect,
-      swap_target: swapTarget ?? "milk",
+      swap_category_id: swapCategoryId,
+      is_active: group.is_active,
       options: [...group.options]
-        .map((o, i) => ({ o, lines: lineSets[i] ?? [] }))
-        .sort((a, b) => a.o.sort - b.o.sort)
-        .map(({ o, lines }) => ({
+        .sort((a, b) => a.sort - b.sort)
+        .map((o) => ({
           id: o.id,
           name: o.name,
           name_ar: arOf(o.name_translations),
           price: String(piastresToEgp(o.price)),
           is_active: o.is_active,
-          swap_ingredient_id: lines[0]?.org_ingredient_id ?? o.replaces_ingredient_id ?? "",
-          lines: lines
-            .filter((l) => l.org_ingredient_id)
-            .map((l) => ({
-              ingredient_id: l.org_ingredient_id!,
-              quantity: String(l.quantity_used),
-              unit: l.unit,
-              // Not in the generated type until the Orval regeneration.
-              size_label: (l as { size_label?: string | null }).size_label ?? null,
-            })),
+          is_default: o.is_default,
+          swap_ingredient_id: o.replaces_ingredient_id ?? o.recipe?.[0]?.ingredient_id ?? "",
+          lines: (o.recipe ?? []).map((l) => ({
+            ingredient_id: l.ingredient_id,
+            quantity: String(l.quantity),
+            unit: l.unit,
+            size_label: l.size_label ?? null,
+          })),
         })),
     };
-    // recipesKey stands in for the query results' identity.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [group, recipesLoaded, recipesKey]);
+  }, [group, categories, categoriesQ.isLoading]);
 
   // Seed once per opening: a background refetch must not wipe what's typed.
   const seededOnce = useRef(false);
@@ -174,19 +172,13 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
     }
   }, [open, seeded, form]);
 
-  // Size labels of the items this group is attached to: the per-size columns.
-  const itemSizeLabels = useMemo(() => {
-    const set = new Set<string>();
-    for (const u of (group && usage.byGroup.get(group.id)) || []) for (const l of u.size_labels) set.add(l);
-    return [...set];
-  }, [group, usage.byGroup]);
-
   const effect = useWatch({ control: form.control, name: "effect" });
   const pick = useWatch({ control: form.control, name: "pick" });
-  const swapTarget = useWatch({ control: form.control, name: "swap_target" });
-  const lockedSwap = editing && isSwapType(group?.legacy_addon_type);
-  // A PATCH can't clear max_selections, so an existing capped group can't become "any number".
-  const anyBlocked = editing && group?.max_selections != null && !lockedSwap;
+  const swapCategoryId = useWatch({ control: form.control, name: "swap_category_id" });
+  const categoryOptions = useMemo<ComboboxOption[]>(
+    () => categories.map((c) => ({ value: c.id, label: c.name })),
+    [categories],
+  );
 
   const ingredientOptions = useMemo<ComboboxOption[]>(
     () =>
@@ -198,9 +190,9 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
   const swapOptions = useMemo<ComboboxOption[]>(
     () =>
       catalog
-        .filter((c) => c.is_active && c.category_slug === SWAP_SLUGS[swapTarget])
+        .filter((c) => c.is_active && c.category_id === swapCategoryId)
         .map((c) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit) })),
-    [catalog, swapTarget],
+    [catalog, swapCategoryId],
   );
 
   const submit = async (v: GroupFormValues) => {
@@ -214,8 +206,13 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
           name_translations: { ...(group.name_translations as object), ar: v.name_ar },
           selection_type: sel.selection_type,
           min_selections: sel.min_selections,
-          max_selections: sel.max_selections ?? undefined,
+          // `null` clears the limit ("any number").
+          max_selections: sel.max_selections,
           is_required: sel.is_required,
+          is_active: v.is_active,
+          effect: v.effect,
+          // The server derives `legacy_addon_type` from the effect and category.
+          swap_category_id: v.effect === "swaps" ? v.swap_category_id : null,
         });
       } else {
         const taken = (groupsQ.data ?? []).map((g) => g.legacy_addon_type).filter((x): x is string => !!x);
@@ -224,8 +221,12 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
           name_translations: v.name_ar ? { ar: v.name_ar } : {},
           ...sel,
           sort: groupsQ.data?.length ?? 0,
-          legacy_addon_type: effectToLegacyType(v.effect, v.effect === "swaps" ? v.swap_target : null, v.name, taken),
+          effect: v.effect,
+          swap_category_id: v.effect === "swaps" ? v.swap_category_id : null,
+          // Swaps: derived server-side from the category. Others: a name-derived type old tills show as its own section.
+          legacy_addon_type: v.effect === "swaps" ? null : effectToLegacyType(v.effect, null, v.name, taken),
         });
+        if (!v.is_active) saved = await patchGroup(saved.id, { is_active: false });
       }
 
       const originals = new Map((group?.options ?? []).map((o) => [o.id, o]));
@@ -233,7 +234,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
       const kept = new Set(v.options.map((o) => o.id).filter(Boolean));
       for (const id of originals.keys()) if (!kept.has(id)) await deleteOption(id);
 
-      for (const o of v.options) {
+      for (const [sort, o] of v.options.entries()) {
         const price = egpToPiastres(o.price);
         const swapIng = v.effect === "swaps" && o.swap_ingredient_id ? o.swap_ingredient_id : null;
         let optionId = o.id;
@@ -244,14 +245,19 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
             arOf(prev.name_translations) !== o.name_ar ||
             prev.price !== price ||
             prev.is_active !== o.is_active ||
-            (swapIng && prev.replaces_ingredient_id !== swapIng)
+            prev.is_default !== o.is_default ||
+            prev.sort !== sort ||
+            (prev.replaces_ingredient_id ?? null) !== swapIng
           ) {
             await patchOption(optionId, {
               name: o.name,
               name_translations: { ...(prev.name_translations as object), ar: o.name_ar },
               price,
               is_active: o.is_active,
-              replaces_ingredient_id: swapIng ?? undefined,
+              is_default: o.is_default,
+              sort,
+              // `null` clears the swap link (e.g. the group stopped swapping).
+              replaces_ingredient_id: swapIng,
             });
           }
         } else {
@@ -264,6 +270,8 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
               replaces_ingredient_id: swapIng,
             })
           ).id;
+          // CreateOptionRequest has no sort/is_default: set them right after.
+          await patchOption(optionId, { sort, is_default: o.is_default });
         }
         const next = optionRecipeLines(v.effect, o, unitOf);
         const before = o.id ? seededById.get(o.id) : undefined;
@@ -298,7 +306,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
   const pickOptions = [
     { value: "exactly_one" as const, label: t("menu.groups.pick.exactlyOne", "Exactly 1") },
     { value: "up_to" as const, label: t("menu.groups.pick.upTo", "Up to…") },
-    ...(anyBlocked ? [] : [{ value: "any" as const, label: t("menu.groups.pick.any", "Any number") }]),
+    { value: "any" as const, label: t("menu.groups.pick.any", "Any number") },
   ];
 
   return (
@@ -332,14 +340,12 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                   render={({ field }) => (
                     <div role="radiogroup" className="space-y-1.5">
                       {(["none", "adds", "swaps"] as const).map((value) => {
-                        const disabled = editing && (lockedSwap ? value !== "swaps" : value === "swaps");
                         return (
                           <label
                             key={value}
                             className={cn(
                               "flex items-center gap-2 rounded-md border px-3 py-2 text-sm",
                               field.value === value && "border-primary bg-accent/50",
-                              disabled && "opacity-50",
                             )}
                           >
                             <input
@@ -347,7 +353,6 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                               name={field.name}
                               value={value}
                               checked={field.value === value}
-                              disabled={disabled}
                               onChange={() => field.onChange(value)}
                               className="accent-primary"
                             />
@@ -360,21 +365,21 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                                 {t("menu.groups.effect.swapsPrefix", "Swaps the drink's")}
                                 <FormField
                                   control={form.control}
-                                  name="swap_target"
-                                  render={({ field: target }) => (
-                                    <SegmentedControl
-                                      value={target.value}
-                                      onChange={(x) => {
-                                        if (!lockedSwap && !editing) {
-                                          target.onChange(x);
+                                  name="swap_category_id"
+                                  render={({ field: cat }) => (
+                                    <FormItem className="space-y-0">
+                                      <Combobox
+                                        options={categoryOptions}
+                                        value={cat.value || null}
+                                        onChange={(id) => {
+                                          cat.onChange(id);
                                           field.onChange("swaps");
-                                        }
-                                      }}
-                                      options={[
-                                        { value: "milk" as const, label: t("menu.groups.swap.milk", "Milk") },
-                                        { value: "beans" as const, label: t("menu.groups.swap.beans", "Beans") },
-                                      ]}
-                                    />
+                                        }}
+                                        placeholder={t("menu.groups.editor.swapCategoryPh", "Ingredient category")}
+                                        className="w-48"
+                                      />
+                                      <FormMessage />
+                                    </FormItem>
                                   )}
                                 />
                                 {t("menu.groups.effect.swapsSuffix", "for the chosen one")}
@@ -386,13 +391,6 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                     </div>
                   )}
                 />
-                {editing ? (
-                  <p className="text-xs text-muted-foreground">
-                    {lockedSwap
-                      ? t("menu.groups.editor.swapLocked", "A swap group stays a swap group. To stop swapping, create a new group.")
-                      : t("menu.groups.editor.effectLocked", "An existing group can't start swapping. Create a new swap group instead.")}
-                  </p>
-                ) : null}
                 {effect === "none" && editing ? (
                   <p className="text-xs text-muted-foreground">
                     {t("menu.groups.editor.noneClears", "Saving as Nothing removes the ingredient lines from these options.")}
@@ -439,11 +437,6 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                     ) : null}
                   </div>
                 )}
-                {anyBlocked && effect !== "swaps" ? (
-                  <p className="text-xs text-muted-foreground">
-                    {t("menu.groups.editor.anyBlocked", "This group has a limit. Removing the limit isn't possible yet; raise it instead.")}
-                  </p>
-                ) : null}
               </fieldset>
 
               {/* Options */}
@@ -459,9 +452,9 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                 </p>
                 {effect === "swaps" && swapOptions.length === 0 && !catalogQ.isLoading ? (
                   <p className="text-xs text-destructive">
-                    {swapTarget === "milk"
-                      ? t("menu.groups.editor.noMilk", "No ingredient is in the Milk category yet. Put your milks in it under Inventory settings.")
-                      : t("menu.groups.editor.noBeans", "No ingredient is in the Coffee bean category yet. Put your beans in it under Inventory settings.")}
+                    {swapCategoryId
+                      ? t("menu.groups.editor.noSwapIngredients", "No active ingredient is in this category yet. Put them in it under Inventory settings.")
+                      : t("menu.groups.editor.swapPickCategory", "Pick the ingredient category this group swaps.")}
                   </p>
                 ) : null}
 
@@ -475,6 +468,13 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                     ingredientOptions={ingredientOptions}
                     catalogById={catalogById}
                     itemSizeLabels={itemSizeLabels}
+                    onDefaultOn={() => {
+                      // One default per single-choice group.
+                      if (effect !== "swaps" && pick !== "exactly_one" && !(pick === "up_to" && form.getValues("up_to") === 1)) return;
+                      form.getValues("options").forEach((_, k) => {
+                        if (k !== i) form.setValue(`options.${k}.is_default`, false, { shouldDirty: true });
+                      });
+                    }}
                     onRemove={() => options.remove(i)}
                   />
                 ))}
@@ -483,7 +483,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    options.append({ name: "", name_ar: "", price: "0", is_active: true, swap_ingredient_id: "", lines: [] })
+                    options.append({ name: "", name_ar: "", price: "0", is_active: true, is_default: false, swap_ingredient_id: "", lines: [] })
                   }
                 >
                   <Plus className="size-4" /> {t("menu.groups.editor.addOption", "Add option")}
@@ -529,10 +529,12 @@ interface OptionRowProps {
   catalogById: Map<string, OrgIngredient>;
   /** Size labels of the items the group is attached to. */
   itemSizeLabels: string[];
+  /** Called when this option becomes the default, so single-choice groups keep one. */
+  onDefaultOn: () => void;
   onRemove: () => void;
 }
 
-function OptionRow({ index, control, effect, swapOptions, ingredientOptions, catalogById, itemSizeLabels, onRemove }: OptionRowProps) {
+function OptionRow({ index, control, effect, swapOptions, ingredientOptions, catalogById, itemSizeLabels, onDefaultOn, onRemove }: OptionRowProps) {
   const { t } = useTranslation();
   const { setValue, formState } = useFormContext<GroupFormInput, unknown, GroupFormValues>();
   const lines = useFieldArray({ control, name: `options.${index}.lines` });
@@ -558,7 +560,7 @@ function OptionRow({ index, control, effect, swapOptions, ingredientOptions, cat
 
   return (
     <div className="rounded-lg border p-3">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_7rem_auto_auto] sm:items-end">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_7rem_auto_auto_auto] sm:items-end">
         <FormField
           control={control}
           name={`options.${index}.name`}
@@ -604,6 +606,22 @@ function OptionRow({ index, control, effect, swapOptions, ingredientOptions, cat
             <label className="flex h-9 items-center gap-2 text-xs text-muted-foreground">
               <Switch checked={field.value} onCheckedChange={field.onChange} />
               {t("common.active", "Active")}
+            </label>
+          )}
+        />
+        <FormField
+          control={control}
+          name={`options.${index}.is_default`}
+          render={({ field }) => (
+            <label className="flex h-9 items-center gap-2 text-xs text-muted-foreground">
+              <Switch
+                checked={field.value}
+                onCheckedChange={(on) => {
+                  field.onChange(on);
+                  if (on) onDefaultOn();
+                }}
+              />
+              {t("menu.groups.editor.isDefault", "Default")}
             </label>
           )}
         />

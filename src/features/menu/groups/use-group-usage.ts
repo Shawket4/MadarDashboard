@@ -1,43 +1,53 @@
 import { useMemo } from "react";
+import { useQueries, useQuery } from "@tanstack/react-query";
 
-import { useCatalogSync, useListBranches } from "@/data/api/generated/api";
-import { useScope } from "@/data/scope/use-scope";
+import { getGetGroupUsageQueryOptions, getGetMenuItemQueryOptions } from "@/data/api/generated/api";
+import type { GroupUsageItem } from "@/data/api/generated/models";
 
-export interface GroupUse {
-  item_id: string;
-  item_name: string;
-  /** Effective required state on that item (group default or its override). */
-  is_required: boolean;
-  min: number;
-  max: number | null;
-  /** The item's size labels (Cup, Can…), offered as per-size columns in the group editor. */
-  size_labels: string[];
+/**
+ * Which items each group is attached to (`GET /modifier-groups/{id}/usage`),
+ * one query per group. Includes inactive items (`item_is_active`).
+ */
+export function useGroupUsage(groupIds: string[], enabled = true) {
+  const results = useQueries({
+    queries: groupIds.map((id) => getGetGroupUsageQueryOptions(id, { query: { enabled } })),
+  });
+  const key = results.map((r) => r.dataUpdatedAt).join(",");
+
+  const byGroup = useMemo(() => {
+    const m = new Map<string, GroupUsageItem[]>();
+    groupIds.forEach((id, i) => {
+      const data = results[i]?.data;
+      if (data) m.set(id, data);
+    });
+    return m;
+    // `key` stands in for the query results' identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupIds, key]);
+
+  return {
+    byGroup,
+    /** Usage of `id` once loaded, else `null`. */
+    countOf: (id: string) => byGroup.get(id)?.length ?? null,
+    isLoading: results.some((r) => r.isLoading),
+  };
 }
 
 /**
- * Which items each group is attached to. There is no "attachments of a group"
- * endpoint, so this reads the POS catalog payload (`/catalog/sync`) for the
- * scoped branch, or the org's first branch. That payload carries only items
- * that are active and available at that branch, so the count is a floor, not
- * an exact figure, for items disabled there.
+ * Distinct size labels (Cup, Can…) of the items a group is attached to: the
+ * per-size columns the option grid offers. Reads each attached item.
  */
-export function useGroupUsage(orgId: string | null, enabled = true) {
-  const { branchId: scoped } = useScope();
-  const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: enabled && !!orgId && !scoped } });
-  const branchId = scoped ?? branchesQ.data?.[0]?.id ?? null;
-  const syncQ = useCatalogSync({ branch_id: branchId ?? "" }, { query: { enabled: enabled && !!branchId } });
-
-  const byGroup = useMemo(() => {
-    const m = new Map<string, GroupUse[]>();
-    for (const item of syncQ.data?.items ?? []) {
-      for (const g of item.modifier_groups) {
-        const list = m.get(g.group_id) ?? [];
-        list.push({ item_id: item.id, item_name: item.name, is_required: g.is_required, min: g.min, max: g.max ?? null, size_labels: item.sizes.map((s) => s.label) });
-        m.set(g.group_id, list);
-      }
-    }
-    return m;
-  }, [syncQ.data]);
-
-  return { byGroup, isLoading: syncQ.isLoading || (!scoped && branchesQ.isLoading), ready: !!syncQ.data };
+export function useGroupSizeLabels(groupId: string | null, enabled = true) {
+  const usageQ = useQuery(getGetGroupUsageQueryOptions(groupId ?? "", { query: { enabled: enabled && !!groupId } }));
+  const itemIds = useMemo(() => (usageQ.data ?? []).map((u) => u.item_id), [usageQ.data]);
+  const items = useQueries({
+    queries: itemIds.map((id) => getGetMenuItemQueryOptions(id, { query: { enabled } })),
+  });
+  const key = items.map((q) => q.dataUpdatedAt).join(",");
+  return useMemo(() => {
+    const set = new Set<string>();
+    for (const q of items) for (const s of q.data?.sizes ?? []) if (s.label) set.add(s.label);
+    return [...set];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 }

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   effectToLegacyType,
   formPickRule,
+  groupEffect,
   legacyTypeToEffect,
   makeGroupSchema,
   optionRecipeLines,
@@ -122,9 +123,9 @@ describe("option recipe lines", () => {
 });
 
 describe("group schema", () => {
-  const schema = makeGroupSchema({ required: "req", maxAtLeastOne: "max", swapNeedsIngredient: "swap", duplicateIngredient: "dup", qtyPositive: "qty" });
-  const base = { name: "Milk", name_ar: "", pick: "exactly_one", up_to: 1, effect: "swaps", swap_target: "milk" } as const;
-  const opt = { name: "Oat", name_ar: "", price: "55", is_active: true, swap_ingredient_id: "", lines: [] };
+  const schema = makeGroupSchema({ required: "req", maxAtLeastOne: "max", swapNeedsIngredient: "swap", swapNeedsCategory: "cat", duplicateIngredient: "dup", qtyPositive: "qty" });
+  const base = { name: "Milk", name_ar: "", pick: "exactly_one", up_to: 1, effect: "swaps", swap_category_id: "cat-milk", is_active: true } as const;
+  const opt = { name: "Oat", name_ar: "", price: "55", is_active: true, is_default: false, swap_ingredient_id: "", lines: [] };
 
   it("requires an ingredient on every swap option", () => {
     const r = schema.safeParse({ ...base, options: [opt] });
@@ -151,5 +152,20 @@ describe("group schema", () => {
     // An absent label and a null label are the same "All sizes" column.
     const bare = { ingredient_id: "syrup", quantity: "15", unit: "g" };
     expect(schema.safeParse({ ...adds, options: [{ ...opt, lines: [bare, all] }] }).success).toBe(false);
+  });
+
+  it("a swap group needs a category", () => {
+    const r = schema.safeParse({ ...base, swap_category_id: "", options: [] });
+    expect(r.success).toBe(false);
+    expect(r.error?.issues[0].message).toBe("cat");
+    expect(schema.safeParse({ ...base, effect: "adds", swap_category_id: "", options: [] }).success).toBe(true);
+  });
+});
+
+describe("groupEffect", () => {
+  it("prefers the explicit effect, falls back to the legacy type", () => {
+    expect(groupEffect({ effect: "none", legacy_addon_type: "milk_type" }, false)).toBe("none");
+    expect(groupEffect({ effect: null, legacy_addon_type: "milk_type" }, false)).toBe("swaps");
+    expect(groupEffect({ legacy_addon_type: "extra" }, true)).toBe("adds");
   });
 });

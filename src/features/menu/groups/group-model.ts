@@ -109,12 +109,22 @@ export const legacyTypeToEffect = (
   return { effect: anyOptionHasLines ? "adds" : "none", swapTarget: null };
 };
 
+/** The effect a stored group has: the explicit column, else inferred from the legacy type. */
+export const groupEffect = (
+  g: { effect?: string | null; legacy_addon_type?: string | null },
+  anyOptionHasLines: boolean,
+): Effect =>
+  g.effect === "none" || g.effect === "adds" || g.effect === "swaps"
+    ? g.effect
+    : legacyTypeToEffect(g.legacy_addon_type, anyOptionHasLines).effect;
+
 // ── Form schema ──────────────────────────────────────────────────────────────
 
 export interface GroupSchemaMessages {
   required: string;
   maxAtLeastOne: string;
   swapNeedsIngredient: string;
+  swapNeedsCategory: string;
   duplicateIngredient: string;
   qtyPositive: string;
 }
@@ -135,6 +145,8 @@ export const makeGroupSchema = (m: GroupSchemaMessages) => {
     /** EGP as typed. */
     price: z.coerce.number<string | number>().min(0),
     is_active: z.boolean(),
+    /** Preselected on the till (swap groups: the recipe's own ingredient). */
+    is_default: z.boolean(),
     /** Swap groups: the one ingredient the option pours instead. */
     swap_ingredient_id: z.string(),
     /** Adds groups: the lines deducted when chosen. */
@@ -147,10 +159,15 @@ export const makeGroupSchema = (m: GroupSchemaMessages) => {
       pick: z.enum(["exactly_one", "up_to", "any"]),
       up_to: z.coerce.number<string | number>().int().min(1, m.maxAtLeastOne),
       effect: z.enum(["none", "adds", "swaps"]),
-      swap_target: z.enum(["milk", "beans"]),
+      /** Swap groups: the ingredient category whose members the options pour. */
+      swap_category_id: z.string(),
+      is_active: z.boolean(),
       options: z.array(option),
     })
     .superRefine((v, ctx) => {
+      if (v.effect === "swaps" && !v.swap_category_id) {
+        ctx.addIssue({ code: "custom", path: ["swap_category_id"], message: m.swapNeedsCategory });
+      }
       v.options.forEach((o, i) => {
         if (v.effect === "swaps" && !o.swap_ingredient_id) {
           ctx.addIssue({ code: "custom", path: ["options", i, "swap_ingredient_id"], message: m.swapNeedsIngredient });

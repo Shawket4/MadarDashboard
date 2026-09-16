@@ -15,16 +15,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { getStudio, putModifierGroups, useListMenuItems } from "@/data/api/generated/api";
-import type { GroupOut } from "@/data/api/generated/models";
+import type { GroupOut, GroupUsageItem } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { queryClient } from "@/data/api/query";
 import { invalidateCatalog } from "../util";
-import type { GroupUse } from "./use-group-usage";
 
 interface Props {
   orgId: string;
   group: GroupOut;
-  uses: GroupUse[];
+  uses: GroupUsageItem[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   readOnly?: boolean;
@@ -100,7 +99,7 @@ export function GroupUsageDialog({ orgId, group, uses, open, onOpenChange, readO
     setBusy(false);
     void invalidateCatalog();
     void queryClient.invalidateQueries({
-      predicate: (q) => typeof q.queryKey[0] === "string" && (q.queryKey[0].startsWith("/catalog") || q.queryKey[0].includes("/studio")),
+      predicate: (q) => typeof q.queryKey[0] === "string" && (q.queryKey[0].startsWith("/catalog") || q.queryKey[0].includes("/studio") || q.queryKey[0].startsWith("/modifier-groups")),
     });
     if (failed === 0) {
       toast.success(t("common.savedChanges", "Changes saved"));

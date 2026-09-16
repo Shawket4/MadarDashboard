@@ -18,6 +18,7 @@ const GROUPS = [
     sort: 0,
     is_active: true,
     legacy_addon_type: "milk_type",
+    effect: "swaps",
     options: [],
   },
 ];
@@ -36,7 +37,7 @@ vi.mock("@/data/authz/use-authz", async () => {
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn(), useSearch: () => ({}) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
 vi.mock("@/components/app/confirm-dialog", () => ({ useConfirm: () => vi.fn() }));
-vi.mock("./use-group-usage", () => ({ useGroupUsage: () => ({ byGroup: new Map(), ready: true, isLoading: false }) }));
+vi.mock("./use-group-usage", () => ({ useGroupUsage: () => ({ byGroup: new Map(), countOf: () => 0, isLoading: false }) }));
 vi.mock("./group-editor-dialog", () => ({ GroupEditorDialog: () => null }));
 vi.mock("./group-usage-dialog", () => ({ GroupUsageDialog: () => null }));
 

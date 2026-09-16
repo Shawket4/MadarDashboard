@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
 import { arOf, invalidateCatalog } from "../util";
 import { GroupEditorDialog } from "./group-editor-dialog";
 import { GroupUsageDialog } from "./group-usage-dialog";
-import { isSwapType, selectionToPickRule, SWAP_TYPES } from "./group-model";
+import { isSwapType, selectionToPickRule, SWAP_SLUGS, SWAP_TYPES } from "./group-model";
 import { useGroupUsage } from "./use-group-usage";
 
 /** The item-private "Options" sets are groups with no legacy type; they are
@@ -58,12 +58,13 @@ export function GroupsPage() {
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { edit?: string };
 
-  const groupsQ = useListGroups({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
+  const groupsQ = useListGroups({ org_id: orgId ?? "", include_inactive: true }, { query: { enabled: !!orgId } });
   const groups = useMemo(
     () => (groupsQ.data ?? []).filter(isSharedGroup).sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name)),
     [groupsQ.data],
   );
-  const usage = useGroupUsage(orgId);
+  const groupIds = useMemo(() => groups.map((g) => g.id), [groups]);
+  const usage = useGroupUsage(groupIds, !!orgId);
 
   const [order, setOrder] = useState<GroupOut[]>(groups);
   const [saving, setSaving] = useState(false);
@@ -168,7 +169,7 @@ export function GroupsPage() {
                   group={g}
                   index={idx}
                   count={order.length}
-                  usedOn={usage.ready ? (usage.byGroup.get(g.id)?.length ?? 0) : null}
+                  usedOn={usage.countOf(g.id)}
                   disabled={saving}
                   canEdit={canEdit}
                   onMoveUp={() => move(idx, idx - 1)}
@@ -191,7 +192,7 @@ export function GroupsPage() {
           onOpenChange={(o) => {
             if (!o) setEdit(undefined);
           }}
-          usedOn={editing && usage.ready ? (usage.byGroup.get(editing.id)?.length ?? 0) : null}
+          usedOn={editing ? usage.countOf(editing.id) : null}
           onManageItems={editing ? () => setManaging(editing) : undefined}
           onSaved={() => void groupsQ.refetch()}
           readOnly={!canEdit}
@@ -248,11 +249,17 @@ function GroupRow({
       : rule.kind === "up_to"
         ? t("menu.groups.pick.upToShort", { count: rule.max, defaultValue: "Pick up to {{count}}" })
         : t("menu.groups.pick.anyShort", "Pick any number");
-  const effectLabel =
-    group.legacy_addon_type === SWAP_TYPES.milk
-      ? t("menu.groups.effect.swapsMilk", "Swaps the drink's milk")
-      : group.legacy_addon_type === SWAP_TYPES.beans
-        ? t("menu.groups.effect.swapsBeans", "Swaps the drink's beans")
+  const swaps = group.effect === "swaps" || isSwapType(group.legacy_addon_type);
+  const effectLabel = swaps
+    ? group.swap_category_slug === SWAP_SLUGS.beans || group.legacy_addon_type === SWAP_TYPES.beans
+      ? t("menu.groups.effect.swapsBeans", "Swaps the drink's beans")
+      : group.swap_category_slug && group.swap_category_slug !== SWAP_SLUGS.milk
+        ? t("menu.groups.effect.swapsOther", "Swaps an ingredient")
+        : t("menu.groups.effect.swapsMilk", "Swaps the drink's milk")
+    : group.effect === "adds"
+      ? t("menu.groups.effect.adds", "Adds ingredients")
+      : group.effect === "none"
+        ? t("menu.groups.effect.none", "Nothing to stock (just a note or a price)")
         : t("menu.groups.effect.addsOrNothing", "Adds ingredients or nothing");
 
   return (
@@ -286,7 +293,7 @@ function GroupRow({
         <Badge variant="outline" className="font-normal">
           {pickLabel}
         </Badge>
-        <Badge variant={isSwapType(group.legacy_addon_type) ? "default" : "secondary"} className="font-normal">
+        <Badge variant={swaps ? "default" : "secondary"} className="font-normal">
           {effectLabel}
         </Badge>
         <Badge variant="secondary" className="font-normal tabular">

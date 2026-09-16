@@ -971,11 +971,8 @@
         "swapsSuffix": "for the chosen one",
         "swapsMilk": "Swaps the drink's milk",
         "swapsBeans": "Swaps the drink's beans",
-        "addsOrNothing": "Adds ingredients or nothing"
-      },
-      "swap": {
-        "milk": "Milk",
-        "beans": "Beans"
+        "addsOrNothing": "Adds ingredients or nothing",
+        "swapsOther": "Swaps an ingredient"
       },
       "editor": {
         "newTitle": "New choice group",
@@ -984,17 +981,12 @@
         "effectLabel": "What does choosing do?",
         "pickLabel": "Customer must pick",
         "optionsLabel": "Options",
-        "swapLocked": "A swap group stays a swap group. To stop swapping, create a new group.",
-        "effectLocked": "An existing group can't start swapping. Create a new swap group instead.",
         "noneClears": "Saving as Nothing removes the ingredient lines from these options.",
         "swapExactlyOne": "Exactly 1. A drink has one milk and one bean, so a swap group always takes exactly one choice.",
-        "anyBlocked": "This group has a limit. Removing the limit isn't possible yet; raise it instead.",
         "upToCount": "Most choices",
         "swapHelp": "The drink's own recipe decides the default and the amount (e.g. Latte 280 g). Choosing Oat pours 280 g of Oat Milk instead. The price is what the option adds on top.",
         "addsHelp": "These amounts are deducted on top of the drink's recipe whenever the option is chosen.",
         "noneHelp": "Choosing an option only changes the price and the ticket. No stock moves.",
-        "noMilk": "No ingredient is in the Milk category yet. Put your milks in it under Inventory settings.",
-        "noBeans": "No ingredient is in the Coffee bean category yet. Put your beans in it under Inventory settings.",
         "addOption": "Add option",
         "optionNamePh": "e.g. Oat",
         "arabicName": "Arabic name",
@@ -1009,7 +1001,12 @@
         "maxAtLeastOne": "Must be at least 1",
         "swapNeedsIngredient": "Pick the ingredient this option pours",
         "duplicateIngredient": "This ingredient is already on this option",
-        "qtyPositive": "Enter an amount above 0"
+        "qtyPositive": "Enter an amount above 0",
+        "swapNeedsCategory": "Pick the ingredient category this group swaps",
+        "swapCategoryPh": "Ingredient category",
+        "noSwapIngredients": "No active ingredient is in this category yet. Put them in it under Inventory settings.",
+        "swapPickCategory": "Pick the ingredient category this group swaps.",
+        "isDefault": "Default"
       },
       "usage": {
         "title": "Items offering {{name}}",
