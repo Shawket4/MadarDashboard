@@ -10,9 +10,13 @@ import type { StudioAggregate } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useMenuItemPreview, type PreviewResponse, type ServiceMode } from "../../recipe/modeling-api";
+import { useQuery } from "@tanstack/react-query";
+import { previewMenuItem } from "@/data/api/generated/api";
+import type { PreviewRequest, PreviewResponse } from "@/data/api/generated/models";
 import {
   EMPTY_SELECTION,
+  menuItemPreviewKey,
+  type ServiceMode,
   pickedIn,
   toPreviewBody,
   toPreviewGroups,
@@ -248,4 +252,14 @@ export function PreviewPanel({ studio }: { studio: StudioAggregate }) {
       </div>
     </div>
   );
+}
+
+/** `POST /menu-items/{id}/preview` is a dry run, so it is read as a query (Orval generates a mutation). */
+function useMenuItemPreview(itemId: string, body: PreviewRequest) {
+  return useQuery({
+    queryKey: menuItemPreviewKey(itemId, body),
+    queryFn: ({ signal }) => previewMenuItem(itemId, body, undefined, signal),
+    enabled: !!itemId,
+    placeholderData: (prev) => prev,
+  });
 }

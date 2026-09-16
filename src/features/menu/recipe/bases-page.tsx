@@ -28,15 +28,15 @@ import { LabelGridEditor } from "./label-grid-editor";
 import { useIngredientPicker } from "./use-ingredient-picker";
 import { ALL_SIZES, addLabelColumn, fromLabelBlocks, removeLabelColumn, toLabelBlocks } from "./label-model";
 import {
-  createRecipeBase,
-  deleteRecipeBase,
-  patchRecipeBase,
-  putRecipeBaseLines,
-  recipeBasesKey,
-  useRecipeBases,
-  useRecipeBaseUsage,
-  type RecipeBaseOut,
-} from "./modeling-api";
+  createBase,
+  deleteBase,
+  getListBasesQueryKey,
+  patchBase,
+  putBaseLines,
+  useGetBaseUsage,
+  useListBases,
+} from "@/data/api/generated/api";
+import type { RecipeBaseOut } from "@/data/api/generated/models";
 
 /**
  * Recipe bases: shared line sets (e.g. "Blended matcha") that item sizes expand.
@@ -47,7 +47,7 @@ export function RecipeBasesPage() {
   const orgId = useOrgId();
   const confirm = useConfirm();
   const qc = useQueryClient();
-  const basesQ = useRecipeBases(!!orgId);
+  const basesQ = useListBases({ query: { enabled: !!orgId } });
   const [editing, setEditing] = useState<RecipeBaseOut | "new" | null>(null);
   const canEdit = useAuthz().can(Cap.menuItemsEdit);
 
@@ -62,9 +62,9 @@ export function RecipeBasesPage() {
     });
     if (!ok) return;
     try {
-      await deleteRecipeBase(b.id);
+      await deleteBase(b.id);
       toast.success(t("modeling.bases.deleted", "Base deleted"));
-      void qc.invalidateQueries({ queryKey: recipeBasesKey });
+      void qc.invalidateQueries({ queryKey: getListBasesQueryKey() });
       void invalidateCatalog();
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -163,7 +163,7 @@ function BaseEditorDialog({
   const { t } = useTranslation();
   const qc = useQueryClient();
   const { catalogById, ingredientOptions } = useIngredientPicker(orgId);
-  const usageQ = useRecipeBaseUsage(open && base ? base.id : null);
+  const usageQ = useGetBaseUsage(base?.id ?? "", { query: { enabled: open && !!base } });
   const allLabel = t("modeling.grid.allSizes", "All sizes");
 
   const schema = useMemo(
@@ -192,21 +192,21 @@ function BaseEditorDialog({
     const lines = fromLabelBlocks(blocks).map((l, i) => ({ ...l, sort: i }));
     try {
       if (!base) {
-        await createRecipeBase({ name: v.name.trim(), name_ar: v.name_ar.trim() || null, is_active: v.is_active, lines });
+        await createBase({ name: v.name.trim(), name_ar: v.name_ar.trim() || null, is_active: v.is_active, lines });
         toast.success(t("modeling.bases.created", "Base created"));
       } else {
         let changed = 0;
         if (v.name.trim() !== base.name || (v.name_ar.trim() || null) !== base.name_ar || v.is_active !== base.is_active) {
-          const r = await patchRecipeBase(base.id, { name: v.name.trim(), name_ar: v.name_ar.trim() || null, is_active: v.is_active });
+          const r = await patchBase(base.id, { name: v.name.trim(), name_ar: v.name_ar.trim() || null, is_active: v.is_active });
           changed += r.sizes_changed;
         }
         if (JSON.stringify(fromLabelBlocks(blocks)) !== pristineLines) {
-          const r = await putRecipeBaseLines(base.id, lines);
+          const r = await putBaseLines(base.id, { lines });
           changed += r.sizes_changed;
         }
         toast.success(t("modeling.bases.saved", "Base saved · {{count}} sizes updated", { count: changed }));
       }
-      void qc.invalidateQueries({ queryKey: recipeBasesKey });
+      void qc.invalidateQueries({ queryKey: getListBasesQueryKey() });
       void invalidateCatalog();
       onOpenChange(false);
     } catch (e) {

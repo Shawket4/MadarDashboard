@@ -17,18 +17,13 @@ vi.mock("@/data/api/generated/api", () => ({
   useListCategories: () => ({ data: [] }),
   useListMenuCatalog: () => ({ data: { data: [] } }),
   useListCatalog: () => ({ data: [] }),
+  getListRulesQueryKey: () => ["/packaging-rules"],
+  useListRules: () => ({
+    data: [{ id: "r1", org_id: "o", name: "Iced cup", match_category_id: null, match_size_label: "Cup", match_item_id: null, sort: 0, is_active: true, lines: [], created_at: "", updated_at: "" }],
+    isLoading: false,
+    isError: false,
+  }),
 }));
-vi.mock("./modeling-api", async () => {
-  const real = await vi.importActual<typeof import("./modeling-api")>("./modeling-api");
-  return {
-    ...real,
-    usePackagingRules: () => ({
-      data: [{ id: "r1", org_id: "o", name: "Iced cup", match_category_id: null, match_size_label: "Cup", match_item_id: null, sort: 0, is_active: true, lines: [], created_at: "", updated_at: "" }],
-      isLoading: false,
-      isError: false,
-    }),
-  };
-});
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");

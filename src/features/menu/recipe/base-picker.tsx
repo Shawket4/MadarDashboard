@@ -10,7 +10,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 
-import { putSizeBase, type RecipeBaseOut } from "./modeling-api";
+import { putSizeBase } from "@/data/api/generated/api";
+import type { RecipeBaseOut } from "@/data/api/generated/models";
 
 const NONE = "__none";
 const MIXED = "__mixed";
@@ -38,7 +39,7 @@ export function BasePicker({ sizes, bases, disabled, onChanged }: Props) {
     const baseId = next === NONE ? null : next;
     setBusy(true);
     try {
-      for (const s of sizes) await putSizeBase(s.id, baseId);
+      for (const s of sizes) await putSizeBase(s.id, { base_id: baseId });
       toast.success(
         baseId
           ? t("modeling.base.applied", "Base applied to {{count}} sizes", { count: sizes.length })

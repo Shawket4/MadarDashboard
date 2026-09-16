@@ -6,8 +6,7 @@ import {
 } from "@/data/api/generated/api";
 import type { ModifierGroupOut, StudioAggregate } from "@/data/api/generated/models";
 import { piastresToEgp } from "@/lib/format";
-import { normalizeSource, ownRecipeSig } from "../recipe/grid-model";
-import { asStudioExt, type LineSource } from "../recipe/modeling-api";
+import { normalizeSource, ownRecipeSig, type LineSource } from "../recipe/grid-model";
 
 /**
  * Invalidate the Menu Studio aggregate + live-cost queries for one item, plus the
@@ -149,7 +148,7 @@ export const toItemValues = (s: StudioAggregate): ItemDraftValues => ({
 });
 
 export const toSizeBlocks = (s: StudioAggregate): SizeBlockDraft[] =>
-  [...asStudioExt(s).sizes]
+  [...s.sizes]
     .filter((z) => z.is_active)
     .sort((a, b) => a.sort - b.sort)
     .map((z) => {

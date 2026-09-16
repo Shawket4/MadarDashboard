@@ -39,7 +39,6 @@ import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtMoney, fmtUnit, piastresToEgp } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { arOf, invalidateCatalog } from "../util";
-import type { OptionRecipeLineInputExt } from "../recipe/modeling-api";
 import { OptionSizeGrid } from "./option-size-grid";
 import { useGroupUsage } from "./use-group-usage";
 import {
@@ -276,8 +275,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
             )
           : [];
         if (recipeSig(next) !== recipeSig(prevLines)) {
-          // `size_label` is not in the generated OptionRecipeLineInput until the Orval regeneration.
-          await putOptionRecipe(optionId, next as OptionRecipeLineInputExt[] as Parameters<typeof putOptionRecipe>[1]);
+          await putOptionRecipe(optionId, next);
         }
       }
 

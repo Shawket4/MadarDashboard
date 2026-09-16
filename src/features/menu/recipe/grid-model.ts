@@ -6,7 +6,8 @@
  * `PUT /menu-item-sizes/{sid}/recipe`. Lines expanded server-side from a recipe base,
  * a packaging rule or a linked source are shown read-only and never saved.
  */
-import type { LineSource } from "./modeling-api";
+/** Where a stored size recipe line came from. Legacy rows (`null`) are `own`. */
+export type LineSource = "own" | "base" | "rule" | "linked";
 
 export interface GridLine {
   ingredient_id: string;

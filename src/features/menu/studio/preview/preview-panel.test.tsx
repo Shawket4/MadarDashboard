@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { PreviewResponse } from "../../recipe/modeling-api";
+import type { PreviewResponse } from "@/data/api/generated/models";
 
 const response: PreviewResponse = {
   size_label: "Can",
@@ -59,6 +59,7 @@ describe("PreviewPanel", () => {
     expect(screen.getByText("F4")).toBeInTheDocument();
     expect(customInstance).toHaveBeenCalledWith(
       expect.objectContaining({ url: "/menu-items/m-1/preview", method: "POST", data: expect.objectContaining({ quantity: 1, service_mode: "takeaway" }) }),
+      undefined, // the generated client's per-request options
     );
   });
 });

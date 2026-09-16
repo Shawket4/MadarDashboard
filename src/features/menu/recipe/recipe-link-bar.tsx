@@ -10,7 +10,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 
-import { deleteRecipeLink, type RecipeLinkInfo } from "./modeling-api";
+import { deleteRecipeLink } from "@/data/api/generated/api";
+import type { RecipeLinkInfo } from "@/data/api/generated/models";
 
 interface Props {
   itemId: string;

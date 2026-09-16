@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import type { IngredientCategoryExt } from "@/features/menu/recipe/modeling-api";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 
@@ -91,12 +90,10 @@ export function SettingsPage() {
     }
   };
 
-  // TEMPORARY until generate:api on the modeling branch: `is_packaging` is not in
-  // the generated category type yet. The switch only renders when the server sends it.
-  const setPackaging = async (c: IngredientCategoryExt, is_packaging: boolean) => {
+  const setPackaging = async (c: IngredientCategory, is_packaging: boolean) => {
     if (!orgId) return;
     try {
-      await updateIngredientCategory(orgId, c.id, { is_packaging } as unknown as Parameters<typeof updateIngredientCategory>[2]);
+      await updateIngredientCategory(orgId, c.id, { is_packaging });
       await invalidateInventory();
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -204,13 +201,13 @@ export function SettingsPage() {
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
-                        {"is_packaging" in c ? (
+                        {c.is_packaging != null ? (
                           <label className="me-2 flex items-center gap-2 text-xs text-muted-foreground">
                             {t("modeling.packaging.isPackaging", "Packaging")}
                             <Switch
-                              checked={!!(c as IngredientCategoryExt).is_packaging}
+                              checked={c.is_packaging}
                               disabled={!canAdjust}
-                              onCheckedChange={(v) => void setPackaging(c as IngredientCategoryExt, v)}
+                              onCheckedChange={(v) => void setPackaging(c, v)}
                               aria-label={t("modeling.packaging.isPackagingAria", "{{name}} is packaging", { name: c.name })}
                             />
                           </label>

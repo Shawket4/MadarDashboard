@@ -19,7 +19,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useListCategories, useListMenuCatalog } from "@/data/api/generated/api";
+import {
+  applyRules,
+  createRule,
+  deleteRule,
+  getListRulesQueryKey,
+  patchRule,
+  useListCategories,
+  useListMenuCatalog,
+  useListRules,
+} from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
@@ -30,17 +39,7 @@ import { invalidateCatalog } from "../util";
 import { ownPayload, type GridBlock } from "./grid-model";
 import { LabelGridEditor } from "./label-grid-editor";
 import { useIngredientPicker } from "./use-ingredient-picker";
-import {
-  MENU_PACKAGING_RULES_APPLY,
-  applyPackagingRules,
-  createPackagingRule,
-  deletePackagingRule,
-  packagingRulesKey,
-  patchPackagingRule,
-  usePackagingRules,
-  type ApplyPackagingRulesResult,
-  type PackagingRuleOut,
-} from "./modeling-api";
+import type { ApplyPackagingRulesResult, PackagingRuleOut } from "@/data/api/generated/models";
 
 const ANY = "";
 
@@ -54,12 +53,12 @@ export function PackagingRulesPage() {
   const orgId = useOrgId();
   const confirm = useConfirm();
   const qc = useQueryClient();
-  const rulesQ = usePackagingRules(!!orgId);
+  const rulesQ = useListRules({ query: { enabled: !!orgId } });
   const [editing, setEditing] = useState<PackagingRuleOut | "new" | null>(null);
   const [applying, setApplying] = useState(false);
   const authz = useAuthz();
   const canEdit = authz.can(Cap.menuItemsEdit);
-  const canApply = authz.can(MENU_PACKAGING_RULES_APPLY);
+  const canApply = authz.can(Cap.menuPackagingRulesApply);
   const [result, setResult] = useState<ApplyPackagingRulesResult | null>(null);
 
   const categoriesQ = useListCategories({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
@@ -82,7 +81,7 @@ export function PackagingRulesPage() {
   const apply = async () => {
     setApplying(true);
     try {
-      const r = await applyPackagingRules();
+      const r = await applyRules();
       setResult(r);
       void invalidateCatalog();
     } catch (e) {
@@ -100,8 +99,8 @@ export function PackagingRulesPage() {
     });
     if (!ok) return;
     try {
-      await deletePackagingRule(r.id);
-      void qc.invalidateQueries({ queryKey: packagingRulesKey });
+      await deleteRule(r.id);
+      void qc.invalidateQueries({ queryKey: getListRulesQueryKey() });
     } catch (e) {
       toast.error(getErrorMessage(e));
     }
@@ -166,8 +165,8 @@ export function PackagingRulesPage() {
         <ul className="divide-y rounded-lg border">
           {rules.map((r) => {
             const match = [
-              labelOf(itemOptions, r.match_item_id),
-              labelOf(categoryOptions, r.match_category_id),
+              labelOf(itemOptions, r.match_item_id ?? null),
+              labelOf(categoryOptions, r.match_category_id ?? null),
               r.match_size_label,
             ].filter(Boolean);
             return (
@@ -288,10 +287,10 @@ function RuleDialog({
       lines: ownPayload(blocks[0]?.lines ?? []),
     };
     try {
-      if (rule) await patchPackagingRule(rule.id, body);
-      else await createPackagingRule(body);
+      if (rule) await patchRule(rule.id, body);
+      else await createRule(body);
       toast.success(t("modeling.packaging.saved", "Rule saved. Apply rules to update existing sizes."));
-      void qc.invalidateQueries({ queryKey: packagingRulesKey });
+      void qc.invalidateQueries({ queryKey: getListRulesQueryKey() });
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));

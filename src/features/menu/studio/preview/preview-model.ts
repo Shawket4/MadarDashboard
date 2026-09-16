@@ -1,5 +1,11 @@
 import type { StudioAggregate } from "@/data/api/generated/models";
-import type { PreviewRequest, ServiceMode } from "../../recipe/modeling-api";
+import type { PreviewRequest } from "@/data/api/generated/models";
+
+/** `PreviewRequest.service_mode` values the server accepts (typed as a plain string in the spec). */
+export type ServiceMode = "takeaway" | "dine_in";
+
+/** Starts with `/menu-items` so `invalidateStudio` refreshes it after every Studio save. */
+export const menuItemPreviewKey = (itemId: string, body: PreviewRequest) => ["/menu-items", itemId, "preview", body] as const;
 
 export interface PreviewOption {
   id: string;

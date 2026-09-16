@@ -10,11 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Combobox } from "@/components/app/combobox";
-import { useListCategories } from "@/data/api/generated/api";
+import { createLinkedCopy, useListCategories } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { currencyLabel, egpToPiastres } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
-import { createLinkedCopy } from "./modeling-api";
 
 interface Props {
   open: boolean;

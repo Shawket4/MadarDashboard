@@ -28,6 +28,9 @@ import {
   uploadMenuItemImage,
   useGetStudio,
   useListCatalog,
+  getGetRecipeLinkQueryKey,
+  useGetRecipeLink,
+  useListBases,
 } from "@/data/api/generated/api";
 import type { ItemOptionInput, StudioAggregate } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -67,7 +70,6 @@ import { BasePicker } from "../recipe/base-picker";
 import { RecipeLinkBar } from "../recipe/recipe-link-bar";
 import { LinkedCopyDialog } from "../recipe/linked-copy-dialog";
 import { ownPayload, type SwapGroupInfo } from "../recipe/grid-model";
-import { asStudioExt, recipeLinkKey, useRecipeBases, useRecipeLink } from "../recipe/modeling-api";
 import { SectionSteps } from "./section-steps";
 import { SectionModifiers } from "./section-modifiers";
 import { SectionOptions } from "./section-options";
@@ -151,13 +153,12 @@ export function MenuStudioPage() {
   const canPreview = authz.can(Cap.menuItemsRead);
 
   // ── Modeling (bases · linked copies · swappable families) ───────────────────
-  const studioExt = useMemo(() => (studio ? asStudioExt(studio) : null), [studio]);
-  const sourceItemId = studioExt?.recipe_source_item_id ?? null;
-  const linkedCopyIds = useMemo(() => studioExt?.linked_copy_ids ?? [], [studioExt]);
-  const basesQ = useRecipeBases(!!studio);
+    const sourceItemId = studio?.recipe_source_item_id ?? null;
+  const linkedCopyIds = useMemo(() => studio?.linked_copy_ids ?? [], [studio]);
+  const basesQ = useListBases({ query: { enabled: !!studio } });
   const bases = useMemo(() => basesQ.data ?? [], [basesQ.data]);
   const baseNames = useMemo(() => new Map(bases.map((b) => [b.id, b.name])), [bases]);
-  const linkQ = useRecipeLink(itemId, !!sourceItemId || linkedCopyIds.length > 0);
+  const linkQ = useGetRecipeLink(itemId, { query: { enabled: !!itemId && (!!sourceItemId || linkedCopyIds.length > 0) } });
   const copyItemQs = useQueries({
     queries: linkedCopyIds.map((id) => getGetMenuItemQueryOptions(id)),
   });
@@ -687,7 +688,7 @@ export function MenuStudioPage() {
                   nameOf={(id) => copyNames.get(id)}
                   onChanged={() => {
                     invalidateStudio(itemId);
-                    void queryClient.invalidateQueries({ queryKey: recipeLinkKey(itemId) });
+                    void queryClient.invalidateQueries({ queryKey: getGetRecipeLinkQueryKey(itemId) });
                   }}
                 />
               </div>
