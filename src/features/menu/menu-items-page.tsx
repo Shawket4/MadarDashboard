@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
-import { ChefHat, Copy, CupSoda, Pencil, Percent, Store, Tag, Trash2, UtensilsCrossed } from "lucide-react";
+import { ChefHat, Copy, CupSoda, Pencil, Percent, Store, Tag, Trash2, UserRound, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -69,6 +69,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { currencyLabel, fmtNumber } from "@/lib/format";
 import { PriceTaxHint } from "./price-tax-hint";
+import { LinkedCopyDialog } from "./recipe/linked-copy-dialog";
 
 const ALL = "__all__";
 const ITEMS_PER_PAGE = 24;
@@ -223,6 +224,8 @@ export function MenuItemsPage() {
       onErr(e);
     }
   };
+
+  const [staffCopyOf, setStaffCopyOf] = useState<MenuItem | null>(null);
 
   const duplicate = async (item: MenuItem) => {
     try {
@@ -462,6 +465,9 @@ export function MenuItemsPage() {
                 <DropdownMenuItem onClick={() => void duplicate(m)}>
                   <Copy className="size-4" /> {t("menu.grid.duplicate", "Duplicate")}
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStaffCopyOf(m)}>
+                  <UserRound className="size-4" /> {t("modeling.linked.action", "Create staff copy…")}
+                </DropdownMenuItem>
                 <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(m.name, t("menu.deleteItemConsequence", "It leaves the POS menu at every branch, with its sizes, recipe and branch prices. Past orders keep their lines."), () => delItem.mutate({ id: m.id }))}>
                   <Trash2 className="size-4" /> {t("common.delete", "Delete")}
                 </DropdownMenuItem>
@@ -557,6 +563,13 @@ export function MenuItemsPage() {
         )}
       </div>
 
+      <LinkedCopyDialog
+        open={!!staffCopyOf}
+        onOpenChange={(o) => !o && setStaffCopyOf(null)}
+        orgId={orgId}
+        item={staffCopyOf}
+        onCreated={() => void invalidateCatalog()}
+      />
       <MenuItemDialog orgId={orgId} categories={catList} item={editingItem} defaultCategoryId={categoryFilter !== ALL ? categoryFilter : null} open={itemOpen} onOpenChange={setItemOpen} />
       <AddonDialog orgId={orgId} addon={editingAddon} open={addonOpen} onOpenChange={setAddonOpen} />
       <AddonRecipeDialog orgId={orgId ?? ""} addon={recipeAddon} open={recipeOpen} onOpenChange={setRecipeOpen} />

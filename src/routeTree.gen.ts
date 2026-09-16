@@ -60,9 +60,11 @@ import { Route as AppReportsLegalRouteImport } from './routes/_app/reports/legal
 import { Route as AppReportsInventoryRouteImport } from './routes/_app/reports/inventory'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
 import { Route as AppMenuPricingRouteImport } from './routes/_app/menu/pricing'
+import { Route as AppMenuPackagingRouteImport } from './routes/_app/menu/packaging'
 import { Route as AppMenuOverridesRouteImport } from './routes/_app/menu/overrides'
 import { Route as AppMenuItemsRouteImport } from './routes/_app/menu/items'
 import { Route as AppMenuBundlesRouteImport } from './routes/_app/menu/bundles'
+import { Route as AppMenuBasesRouteImport } from './routes/_app/menu/bases'
 import { Route as AppKitchenStationsRouteImport } from './routes/_app/kitchen/stations'
 import { Route as AppKitchenRoutingRouteImport } from './routes/_app/kitchen/routing'
 import { Route as AppInventoryWasteRouteImport } from './routes/_app/inventory/waste'
@@ -345,6 +347,11 @@ const AppMenuPricingRoute = AppMenuPricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
+const AppMenuPackagingRoute = AppMenuPackagingRouteImport.update({
+  id: '/packaging',
+  path: '/packaging',
+  getParentRoute: () => AppMenuRouteRoute,
+} as any)
 const AppMenuOverridesRoute = AppMenuOverridesRouteImport.update({
   id: '/overrides',
   path: '/overrides',
@@ -358,6 +365,11 @@ const AppMenuItemsRoute = AppMenuItemsRouteImport.update({
 const AppMenuBundlesRoute = AppMenuBundlesRouteImport.update({
   id: '/bundles',
   path: '/bundles',
+  getParentRoute: () => AppMenuRouteRoute,
+} as any)
+const AppMenuBasesRoute = AppMenuBasesRouteImport.update({
+  id: '/bases',
+  path: '/bases',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
 const AppKitchenStationsRoute = AppKitchenStationsRouteImport.update({
@@ -523,9 +535,11 @@ export interface FileRoutesByFullPath {
   '/inventory/waste': typeof AppInventoryWasteRoute
   '/kitchen/routing': typeof AppKitchenRoutingRoute
   '/kitchen/stations': typeof AppKitchenStationsRoute
+  '/menu/bases': typeof AppMenuBasesRoute
   '/menu/bundles': typeof AppMenuBundlesRoute
   '/menu/items': typeof AppMenuItemsRoute
   '/menu/overrides': typeof AppMenuOverridesRoute
+  '/menu/packaging': typeof AppMenuPackagingRoute
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/reports/inventory': typeof AppReportsInventoryRoute
@@ -596,9 +610,11 @@ export interface FileRoutesByTo {
   '/inventory/waste': typeof AppInventoryWasteRoute
   '/kitchen/routing': typeof AppKitchenRoutingRoute
   '/kitchen/stations': typeof AppKitchenStationsRoute
+  '/menu/bases': typeof AppMenuBasesRoute
   '/menu/bundles': typeof AppMenuBundlesRoute
   '/menu/items': typeof AppMenuItemsRoute
   '/menu/overrides': typeof AppMenuOverridesRoute
+  '/menu/packaging': typeof AppMenuPackagingRoute
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/reports/inventory': typeof AppReportsInventoryRoute
@@ -676,9 +692,11 @@ export interface FileRoutesById {
   '/_app/inventory/waste': typeof AppInventoryWasteRoute
   '/_app/kitchen/routing': typeof AppKitchenRoutingRoute
   '/_app/kitchen/stations': typeof AppKitchenStationsRoute
+  '/_app/menu/bases': typeof AppMenuBasesRoute
   '/_app/menu/bundles': typeof AppMenuBundlesRoute
   '/_app/menu/items': typeof AppMenuItemsRoute
   '/_app/menu/overrides': typeof AppMenuOverridesRoute
+  '/_app/menu/packaging': typeof AppMenuPackagingRoute
   '/_app/menu/pricing': typeof AppMenuPricingRoute
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
   '/_app/reports/inventory': typeof AppReportsInventoryRoute
@@ -756,9 +774,11 @@ export interface FileRouteTypes {
     | '/inventory/waste'
     | '/kitchen/routing'
     | '/kitchen/stations'
+    | '/menu/bases'
     | '/menu/bundles'
     | '/menu/items'
     | '/menu/overrides'
+    | '/menu/packaging'
     | '/menu/pricing'
     | '/menu/recipes'
     | '/reports/inventory'
@@ -829,9 +849,11 @@ export interface FileRouteTypes {
     | '/inventory/waste'
     | '/kitchen/routing'
     | '/kitchen/stations'
+    | '/menu/bases'
     | '/menu/bundles'
     | '/menu/items'
     | '/menu/overrides'
+    | '/menu/packaging'
     | '/menu/pricing'
     | '/menu/recipes'
     | '/reports/inventory'
@@ -908,9 +930,11 @@ export interface FileRouteTypes {
     | '/_app/inventory/waste'
     | '/_app/kitchen/routing'
     | '/_app/kitchen/stations'
+    | '/_app/menu/bases'
     | '/_app/menu/bundles'
     | '/_app/menu/items'
     | '/_app/menu/overrides'
+    | '/_app/menu/packaging'
     | '/_app/menu/pricing'
     | '/_app/menu/recipes'
     | '/_app/reports/inventory'
@@ -1309,6 +1333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMenuPricingRouteImport
       parentRoute: typeof AppMenuRouteRoute
     }
+    '/_app/menu/packaging': {
+      id: '/_app/menu/packaging'
+      path: '/packaging'
+      fullPath: '/menu/packaging'
+      preLoaderRoute: typeof AppMenuPackagingRouteImport
+      parentRoute: typeof AppMenuRouteRoute
+    }
     '/_app/menu/overrides': {
       id: '/_app/menu/overrides'
       path: '/overrides'
@@ -1328,6 +1359,13 @@ declare module '@tanstack/react-router' {
       path: '/bundles'
       fullPath: '/menu/bundles'
       preLoaderRoute: typeof AppMenuBundlesRouteImport
+      parentRoute: typeof AppMenuRouteRoute
+    }
+    '/_app/menu/bases': {
+      id: '/_app/menu/bases'
+      path: '/bases'
+      fullPath: '/menu/bases'
+      preLoaderRoute: typeof AppMenuBasesRouteImport
       parentRoute: typeof AppMenuRouteRoute
     }
     '/_app/kitchen/stations': {
@@ -1557,9 +1595,11 @@ const AppInventoryRouteRouteWithChildren =
   AppInventoryRouteRoute._addFileChildren(AppInventoryRouteRouteChildren)
 
 interface AppMenuRouteRouteChildren {
+  AppMenuBasesRoute: typeof AppMenuBasesRoute
   AppMenuBundlesRoute: typeof AppMenuBundlesRoute
   AppMenuItemsRoute: typeof AppMenuItemsRoute
   AppMenuOverridesRoute: typeof AppMenuOverridesRoute
+  AppMenuPackagingRoute: typeof AppMenuPackagingRoute
   AppMenuPricingRoute: typeof AppMenuPricingRoute
   AppMenuRecipesRoute: typeof AppMenuRecipesRoute
   AppMenuIndexRoute: typeof AppMenuIndexRoute
@@ -1567,9 +1607,11 @@ interface AppMenuRouteRouteChildren {
 }
 
 const AppMenuRouteRouteChildren: AppMenuRouteRouteChildren = {
+  AppMenuBasesRoute: AppMenuBasesRoute,
   AppMenuBundlesRoute: AppMenuBundlesRoute,
   AppMenuItemsRoute: AppMenuItemsRoute,
   AppMenuOverridesRoute: AppMenuOverridesRoute,
+  AppMenuPackagingRoute: AppMenuPackagingRoute,
   AppMenuPricingRoute: AppMenuPricingRoute,
   AppMenuRecipesRoute: AppMenuRecipesRoute,
   AppMenuIndexRoute: AppMenuIndexRoute,

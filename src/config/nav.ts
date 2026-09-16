@@ -95,6 +95,8 @@ export const NAV: NavGroup[] = [
         children: [
           { to: "/menu/items", labelKey: "nav.items", fallback: "Items", icon: CupSoda },
           { to: "/menu/pricing", labelKey: "nav.pricingAvailability", fallback: "Pricing & Availability", icon: SlidersHorizontal },
+          { to: "/menu/bases", labelKey: "nav.recipeBases", fallback: "Recipe bases", icon: Layers },
+          { to: "/menu/packaging", labelKey: "nav.packagingRules", fallback: "Packaging rules", icon: Package },
         ],
       },
       { to: "/menu/bundles", labelKey: "nav.bundles", fallback: "Bundles", icon: Layers },
