@@ -3,25 +3,23 @@ import { Ban, Coins, Landmark, Percent, Receipt, TrendingUp } from "lucide-react
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useOrgId } from "@/hooks/use-org-id";
-import { useAuthStore } from "@/data/stores/auth.store";
-import { useGetOrg, useOrgTaxReport } from "@/data/api/generated/api";
+import { useOrgTaxReport } from "@/data/api/generated/api";
 import { fmtPercent } from "@/lib/format";
 
-/** Org-wide VAT/tax report. Meaningful only for a VAT-registered org
- * (tax_rate > 0); reading tax_rate needs orgs:read, which only
- * org_admin/super_admin hold by default. */
+/** VAT/tax report, across the branches the caller may see. Meaningful only
+ * for a VAT-registered org. The report carries the org's rate itself, so no
+ * separate org read is needed (that needs orgs:read, which a branch manager
+ * lacks, and would wrongly show them "no VAT configured"). */
 export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
   const { t } = useTranslation();
   const orgId = useOrgId();
 
-  const role = useAuthStore((s) => s.user?.role);
-  const canSeeOrg = role === "org_admin" || role === "super_admin";
-  const orgQuery = useGetOrg(orgId ?? "", { query: { enabled: canSeeOrg && !!orgId } });
-  const isVatRegistered = Number(orgQuery.data?.tax_rate ?? 0) > 0;
-
-  const q = useOrgTaxReport(orgId ?? "", range, { query: { enabled: !!orgId && isVatRegistered } });
+  const q = useOrgTaxReport(orgId ?? "", range, { query: { enabled: !!orgId } });
   const d = q.data;
+  // Tax collected under an earlier rate still counts even if the rate is now 0.
+  const isVatRegistered = !!d && (d.org_tax_rate > 0 || d.tax_collected > 0 || d.refunded_tax > 0);
   const taxableSales = d ? d.subtotal - d.discount_amount : 0;
 
   const kpis: LedgerItem[] = [
@@ -33,7 +31,9 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
     { key: "net_revenue", label: t("dashboard.revenue", "Revenue"), icon: TrendingUp, accent: "neutral", value: d?.net_revenue ?? 0, formatType: "money", loading: q.isLoading },
   ];
 
-  if (!orgQuery.isLoading && !isVatRegistered) {
+  if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
+  if (!orgId || q.isLoading) return <Skeleton className="h-28 w-full" />;
+  if (!isVatRegistered) {
     return (
       <EmptyState
         icon={Landmark}
@@ -42,7 +42,6 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
       />
     );
   }
-  if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
 
   return (
     <div className="space-y-4">

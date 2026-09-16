@@ -72,8 +72,9 @@ function BreakdownCard({
           <p className="text-sm text-muted-foreground">{t("reports.legal.empty", "Nothing recorded in this period")}</p>
         ) : (
           <ul className="divide-y text-sm">
-            {rows.map((r) => (
-              <li key={r.label} className="flex items-center justify-between gap-3 py-2.5">
+            {rows.map((r, i) => (
+              // Labels can repeat (two staff with the same name are separate rows).
+              <li key={`${i}:${r.label}`} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="min-w-0">
                   <p className="truncate font-medium">{r.label}</p>
                   <p className="text-xs text-muted-foreground">{t("reports.legal.eventsCount", { defaultValue: "{{n}} events", n: fmtNumber(r.count) })}</p>

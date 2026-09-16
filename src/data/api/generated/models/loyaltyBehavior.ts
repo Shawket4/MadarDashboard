@@ -11,10 +11,17 @@
 export interface LoyaltyBehavior {
   /** `active_members / total_members`. `0.0` when there are no members. */
   active_member_rate: number;
-  /** Distinct members with any loyalty transaction in the range. */
+  /**
+     * Distinct (not deleted) members with any loyalty transaction in the
+     * range — deleted members are left out of every count so no rate over
+     * `total_members` can exceed 1.
+     */
   active_members: number;
   from: string;
-  /** Distinct members who have ever redeemed a reward. Org-wide, lifetime. */
+  /**
+     * Distinct (not deleted) members who have ever redeemed a reward.
+     * Org-wide, lifetime.
+     */
   members_ever_redeemed: number;
   /** `new_members_active / active_members`. */
   new_member_share: number;

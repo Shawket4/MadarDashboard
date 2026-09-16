@@ -5310,9 +5310,9 @@ export const GetLoyaltyBehaviorQueryParams = zod.object({
 
 export const GetLoyaltyBehaviorResponse = zod.object({
   "active_member_rate": zod.number().describe('`active_members \/ total_members`. `0.0` when there are no members.'),
-  "active_members": zod.number().describe('Distinct members with any loyalty transaction in the range.'),
+  "active_members": zod.number().describe('Distinct (not deleted) members with any loyalty transaction in the\nrange — deleted members are left out of every count so no rate over\n`total_members` can exceed 1.'),
   "from": zod.iso.datetime({"offset":true}),
-  "members_ever_redeemed": zod.number().describe('Distinct members who have ever redeemed a reward. Org-wide, lifetime.'),
+  "members_ever_redeemed": zod.number().describe('Distinct (not deleted) members who have ever redeemed a reward.\nOrg-wide, lifetime.'),
   "new_member_share": zod.number().describe('`new_members_active \/ active_members`.'),
   "new_members_active": zod.number().describe('Active members who enrolled during the range.'),
   "one_time_members": zod.number().describe('Members with exactly 1 earning visit in the range.'),
@@ -11978,7 +11978,7 @@ export const OrgTaxReportResponse = zod.object({
   "refunded_tax": zod.number(),
   "service_charge_amount": zod.number().describe('Net of refunded service charge.'),
   "subtotal": zod.number().describe('Sum of `orders.subtotal` across every branch, before discount or tax.'),
-  "tax_collected": zod.number().describe('Tax collected at sale time, before refunds.'),
+  "tax_collected": zod.number().describe('Tax on every non-voided sale in the range, before refunds (a sale later\nrefunded in full included).'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "voided_orders": zod.number()
 })
