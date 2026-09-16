@@ -98,7 +98,19 @@ export interface AttachDraft {
   /** null = offer all of the group's options; else the allowlisted subset. */
   included_option_ids: string[] | null;
   /** All options the group offers (for the allowlist chips). */
-  allOptions: { id: string; name: string; price: number }[];
+  allOptions: AttachOptionDraft[];
+}
+
+/** One option of an attached group. `recipe`/`cost` come from the studio
+ * aggregate; a group attached in this session (from the org list) has none yet. */
+export interface AttachOptionDraft {
+  id: string;
+  name: string;
+  price: number;
+  recipe?: { ingredient_name: string; quantity: string; unit: string }[];
+  /** Piastres; null = unknown. */
+  cost?: number | null;
+  costIncomplete?: boolean;
 }
 
 /** One item-only option row (old options tab row model, minus its own save). */
@@ -153,7 +165,14 @@ export const toSizeBlocks = (s: StudioAggregate): SizeBlockDraft[] =>
     });
 
 export const toAttachDraft = (g: ModifierGroupOut): AttachDraft => {
-  const allOptions = g.options.map((o) => ({ id: o.id, name: o.name, price: o.price }));
+  const allOptions: AttachOptionDraft[] = g.options.map((o) => ({
+    id: o.id,
+    name: o.name,
+    price: o.price,
+    recipe: o.recipe.map((r) => ({ ingredient_name: r.ingredient_name, quantity: r.quantity, unit: r.unit })),
+    cost: o.cost_piastres ?? null,
+    costIncomplete: o.cost_incomplete,
+  }));
   const includedIds = g.options.filter((o) => o.included).map((o) => o.id);
   const allIncluded = includedIds.length === allOptions.length;
   return {

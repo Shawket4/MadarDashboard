@@ -27,6 +27,7 @@ import {
   createOption,
   deleteOption,
   getListAddonIngredientsQueryOptions,
+  listGroups,
   patchGroup,
   patchOption,
   putOptionRecipe,
@@ -256,7 +257,11 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
 
       toast.success(t("common.savedChanges", "Changes saved"));
       void invalidateCatalog();
-      onSaved?.(saved);
+      if (onSaved) {
+        // `saved` predates the option writes; hand back the group with its options.
+        const fresh = await listGroups({ org_id: orgId }).catch(() => []);
+        onSaved(fresh.find((g) => g.id === saved.id) ?? saved);
+      }
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
