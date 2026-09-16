@@ -121,9 +121,9 @@ export const NAV: NavGroup[] = [
     entries: [
       { caps: [Cap.ordersRead], to: "/reports/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
       { caps: [Cap.inventoryRead], to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
-      // The legal audit trail (refunds, voids, discounts, waivers, overrides) was
-      // owner-only by role; its capability is the owner's review of flagged acts.
-      { caps: [Cap.approvalsReview], to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
+      // Tax and the audit trail (refunds, voids, discounts, waivers, overrides):
+      // reports.legal, owner and manager by default, a manager's own branches.
+      { caps: [Cap.reportsLegal], to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
       { caps: [Cap.loyaltyMembersList], to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
       { caps: [Cap.hrAttendanceRead], to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
       {

@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "ad2d3780b952c67e";
+export const SPEC_HASH = "8bf9edcd367ce5ed";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -192,6 +192,7 @@ export type Capability =
   | "loyalty.members.delete"
   | "integrations.read"
   | "customers.erase"
+  | "reports.legal"
   | "menu.packaging_rules.apply"
 ;
 
@@ -374,6 +375,7 @@ export const Cap = {
   loyaltyMembersDelete: "loyalty.members.delete" as Capability,
   integrationsRead: "integrations.read" as Capability,
   customersErase: "customers.erase" as Capability,
+  reportsLegal: "reports.legal" as Capability,
   menuPackagingRulesApply: "menu.packaging_rules.apply" as Capability,
 } as const;
 
@@ -574,7 +576,8 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 217, key: "loyalty.members.delete", legacy: null, group: "customers", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Delete loyalty members", ar: "حذف أعضاء الولاء", hintEn: null, hintAr: null },
   { id: 218, key: "integrations.read", legacy: null, group: "settings", tier: "advanced", risk: "admin", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See integrations and their API credentials", ar: "عرض التكاملات وبيانات اعتماد الواجهة البرمجية", hintEn: null, hintAr: null },
   { id: 219, key: "customers.erase", legacy: null, group: "customers", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Erase a customer's personal data (PDPL)", ar: "محو البيانات الشخصية للعميل", hintEn: null, hintAr: null },
-  { id: 220, key: "menu.packaging_rules.apply", legacy: null, group: "menu", tier: "advanced", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Re-apply packaging rules to every menu item", ar: "إعادة تطبيق قواعد التغليف على جميع أصناف القائمة", hintEn: null, hintAr: null },
+  { id: 220, key: "reports.legal", legacy: null, group: "reports", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See legal reports: tax, refunds, voids, discounts, waivers and price overrides", ar: "عرض التقارير القانونية: الضريبة والمرتجعات والإلغاءات والخصومات والإعفاءات وتعديلات الأسعار", hintEn: "They name the staff who gave money back. A manager sees only their own branches.", hintAr: "تُظهر أسماء الموظفين الذين أعادوا المال. يرى المدير فروعه فقط." },
+  { id: 221, key: "menu.packaging_rules.apply", legacy: null, group: "menu", tier: "advanced", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Re-apply packaging rules to every menu item", ar: "إعادة تطبيق قواعد التغليف على جميع أصناف القائمة", hintEn: null, hintAr: null },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [

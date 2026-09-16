@@ -194,10 +194,10 @@
     "showLess": "Show less",
     "showMore": "Show more",
     "showMoreCount": "{{count}} more",
+    "customers": "Customers",
     "choiceGroups": "Choice groups",
     "recipeBases": "Recipe bases",
-    "packagingRules": "Packaging rules",
-    "customers": "Customers"
+    "packagingRules": "Packaging rules"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -5050,7 +5050,8 @@
       "empty": "No attendance recorded in this period",
       "unassigned": "Unassigned",
       "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m"
-    }
+    },
+    "noAccess": "Your account can't open this report. The owner can give you access."
   },
   "modeling": {
     "packaging": {

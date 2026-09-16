@@ -10,7 +10,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
-  return { ...real, useAuthz: () => real.authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: true, platform: false, role_kinds: [], capabilities: [], ask_manager: [], limits: {} }) };
+  return { ...real, useAuthz: () => real.authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: true, platform: false, role_kinds: ["org_admin"], capabilities: ["recipes.read", "recipes.edit", "menu.items.read", "menu.items.edit"], ask_manager: [], limits: {} }) };
 });
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),

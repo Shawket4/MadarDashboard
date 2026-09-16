@@ -4,6 +4,9 @@ import { CalendarRange, Gift, Percent, RotateCcw, UserPlus, Users } from "lucide
 import { Page, PageHeader } from "@/components/app/page";
 import { ErrorState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { Restricted } from "@/components/app/restricted";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useGetLoyaltyBehavior } from "@/data/api/generated/api";
 import { fmtNumber } from "@/lib/format";
@@ -27,7 +30,10 @@ export function LoyaltyReportPage() {
   const range = { branch_id: branchId ?? undefined, from: from ?? undefined, to: to ?? undefined };
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
-  const q = useGetLoyaltyBehavior(range);
+  // loyalty.members.list; the server counts only the branches the person works at.
+  const authz = useAuthz();
+  const canSee = authz.can(Cap.loyaltyMembersList);
+  const q = useGetLoyaltyBehavior(range, { query: { enabled: canSee } });
   const d = q.data;
 
   const kpis: LedgerItem[] = [
@@ -93,6 +99,10 @@ export function LoyaltyReportPage() {
       }),
     },
   ];
+
+  if (authz.ready && !canSee) {
+    return <Restricted title={t("reports.loyalty.title", "Loyalty")} who={t("reports.noAccess", "Your account can't open this report. The owner can give you access.")} />;
+  }
 
   return (
     <Page>

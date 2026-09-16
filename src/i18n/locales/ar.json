@@ -194,10 +194,10 @@
     "showLess": "عرض أقل",
     "showMore": "عرض المزيد",
     "showMoreCount": "{{count}} أخرى",
+    "customers": "العملاء",
     "choiceGroups": "مجموعات الاختيار",
     "recipeBases": "قواعد الوصفات",
-    "packagingRules": "قواعد التغليف",
-    "customers": "العملاء"
+    "packagingRules": "قواعد التغليف"
   },
   "auth": {
     "welcome": "مرحباً بعودتك",
@@ -5201,7 +5201,8 @@
       "empty": "لا يوجد سجل حضور في هذه الفترة",
       "unassigned": "غير محدد",
       "rowSummary": "{{late}} تأخير · {{absent}} غياب · {{minutes}} دقيقة"
-    }
+    },
+    "noAccess": "لا يمكن لحسابك فتح هذا التقرير. يمكن للمالك منحك الصلاحية."
   },
   "modeling": {
     "packaging": {

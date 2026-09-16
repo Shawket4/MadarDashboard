@@ -71,6 +71,8 @@ import { RecipeLinkBar } from "../recipe/recipe-link-bar";
 import { LinkedCopyDialog } from "../recipe/linked-copy-dialog";
 import { ownPayload, type SwapGroupInfo } from "../recipe/grid-model";
 import { SectionSteps } from "./section-steps";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { SectionModifiers } from "./section-modifiers";
 import { SectionOptions } from "./section-options";
 import { PreviewPanel } from "./preview/preview-panel";
@@ -114,6 +116,8 @@ const EMPTY_ITEM: ItemDraftValues = {
  */
 export function MenuStudioPage() {
   const { t, i18n } = useTranslation();
+  // Steps (and their per-drink notes) are part of the recipe: recipes.edit.
+  const canEditSteps = useAuthz().can(Cap.recipesEdit);
   const { itemId } = routeApi.useParams();
   const { tab } = routeApi.useSearch();
   const navigate = useNavigate();
@@ -453,7 +457,7 @@ export function MenuStudioPage() {
 
       // 5 · Steps — replace-set in current order. A preset step sends only its
       // slug; the library owns its name, so nothing here can drift from it.
-      if (stepsDirty) {
+      if (stepsDirty && canEditSteps) {
         try {
           await putRecipeSteps(itemId, {
             steps: steps.map((s) =>
@@ -705,7 +709,7 @@ export function MenuStudioPage() {
           )}
           dirty={stepsDirty}
         >
-          <SectionSteps steps={steps} setSteps={setSteps} />
+          <SectionSteps steps={steps} setSteps={setSteps} readOnly={!canEditSteps} />
         </SectionShell>
 
         <SectionShell

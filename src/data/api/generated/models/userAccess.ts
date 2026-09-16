@@ -12,7 +12,7 @@ export interface UserAccess {
   capabilities: CapabilityAccess[];
   is_owner: boolean;
   /**
-     * Why not, when not (self | owner | not_dominant | missing_authority).
+     * Why not, when not (self | owner | not_dominant | not_above | missing_authority).
      * @nullable
      */
   locked_reason?: string | null;

@@ -5,6 +5,8 @@ import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrgId } from "@/hooks/use-org-id";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { useOrgTaxReport } from "@/data/api/generated/api";
 import { fmtPercent } from "@/lib/format";
 
@@ -15,8 +17,9 @@ import { fmtPercent } from "@/lib/format";
 export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
   const { t } = useTranslation();
   const orgId = useOrgId();
+  const canSee = useAuthz().can(Cap.reportsLegal);
 
-  const q = useOrgTaxReport(orgId ?? "", range, { query: { enabled: !!orgId } });
+  const q = useOrgTaxReport(orgId ?? "", range, { query: { enabled: !!orgId && canSee } });
   const d = q.data;
   // Tax collected under an earlier rate still counts even if the rate is now 0.
   const isVatRegistered = !!d && (d.org_tax_rate > 0 || d.tax_collected > 0 || d.refunded_tax > 0);

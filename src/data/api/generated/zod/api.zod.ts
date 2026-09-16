@@ -934,7 +934,7 @@ export const UserAccessResponse = zod.object({
   "source": zod.string().describe('Where the answer comes from: owner | core | allow | deny | role | none.')
 })),
   "is_owner": zod.boolean(),
-  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | missing_authority).'),
+  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | not_above | missing_authority).'),
   "name": zod.string(),
   "user_id": zod.uuid()
 })
@@ -992,7 +992,7 @@ export const SetAssignmentsResponse = zod.object({
   "source": zod.string().describe('Where the answer comes from: owner | core | allow | deny | role | none.')
 })),
   "is_owner": zod.boolean(),
-  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | missing_authority).'),
+  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | not_above | missing_authority).'),
   "name": zod.string(),
   "user_id": zod.uuid()
 })
@@ -1057,7 +1057,7 @@ export const SetOverrideResponse = zod.object({
   "source": zod.string().describe('Where the answer comes from: owner | core | allow | deny | role | none.')
 })),
   "is_owner": zod.boolean(),
-  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | missing_authority).'),
+  "locked_reason": zod.string().nullish().describe('Why not, when not (self | owner | not_dominant | not_above | missing_authority).'),
   "name": zod.string(),
   "user_id": zod.uuid()
 })

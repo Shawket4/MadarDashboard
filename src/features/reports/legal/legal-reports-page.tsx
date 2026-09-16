@@ -5,6 +5,9 @@ import { CalendarRange } from "lucide-react";
 import { Page, PageHeader } from "@/components/app/page";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs } from "@/components/ui/tabs";
+import { Restricted } from "@/components/app/restricted";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import {
   useDiscountsAudit, usePriceOverrides, useRefundsAudit, useVoidsAudit, useWaiversAudit,
@@ -38,7 +41,10 @@ export function LegalReportsPage() {
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
   const [tab, setTab] = useState<TabKey>("tax");
-  const enabled = !!orgId;
+  // reports.legal (tax and every audit); a manager sees only their branches.
+  const authz = useAuthz();
+  const canSee = authz.can(Cap.reportsLegal);
+  const enabled = !!orgId && canSee;
 
   const refunds = useRefundsAudit(orgId ?? "", range, { query: { enabled: enabled && tab === "refunds" } });
   const voids = useVoidsAudit(orgId ?? "", range, { query: { enabled: enabled && tab === "voids" } });
@@ -54,6 +60,10 @@ export function LegalReportsPage() {
     waivers: t("reports.legal.tabs.waivers", "Waivers"),
     price_overrides: t("reports.legal.tabs.priceOverrides", "Price overrides"),
   };
+
+  if (authz.ready && !canSee) {
+    return <Restricted title={t("reports.legal.title", "Legal")} who={t("reports.noAccess", "Your account can't open this report. The owner can give you access.")} />;
+  }
 
   return (
     <Page>
