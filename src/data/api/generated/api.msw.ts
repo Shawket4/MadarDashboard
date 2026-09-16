@@ -47,6 +47,7 @@ import type {
   AttendanceSettings,
   AttendanceSummary,
   AuthPermissionsResponse,
+  AuthzPublicKey,
   AvailabilityResponse,
   AwardResult,
   BirthdayPreview,
@@ -82,6 +83,8 @@ import type {
   CreateUserResponse,
   CredentialSummary,
   CredentialWithSecret,
+  Customer,
+  CustomerDetail,
   DecisionOut,
   DeductionLogRow,
   DeliveryMenu,
@@ -92,6 +95,7 @@ import type {
   DeliveryZone,
   Department,
   Device,
+  DeviceSnapshot200,
   Discount,
   DrinkRecipe,
   Employee,
@@ -288,6 +292,8 @@ export const getGetJobResponseAssetJobResultMock = (overrideResponse: Partial<As
 export const getGetJobResponseMock = (overrideResponse: Partial<Extract<AssetJobView, object>> = {}): AssetJobView => ({error: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), result: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getGetJobResponseAssetJobResultMock()},]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 export const getActivateResponseMock = (overrideResponse: Partial<Extract<ActivateDeviceResponse, object>> = {}): ActivateDeviceResponse => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), device: {app_version: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), code: faker.string.alpha({length: {min: 10, max: 20}}), code_conflict: faker.datatype.boolean(), first_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), kind: faker.helpers.arrayElement(Object.values(DeviceKind)), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', org_id: faker.string.uuid(), platform: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), retired_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined])}, device_token: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), org_name: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getAuthzKeysResponseMock = (): AuthzPublicKey[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({kid: faker.string.alpha({length: {min: 10, max: 20}}), public_key: faker.string.alpha({length: {min: 10, max: 20}})})))
 
 export const getLoginResponseTillBriefMock = (overrideResponse: Partial<TillBrief> = {}): TillBrief => ({...{branch_id: faker.string.uuid(), device_code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), device_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', opened_while_another_open: faker.datatype.boolean(), status: faker.helpers.arrayElement(Object.values(TillStatus)), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), verification: faker.helpers.arrayElement(Object.values(TillVerification))}, ...overrideResponse});
 
@@ -493,6 +499,16 @@ export const getListMenuCatalogResponseMock = (overrideResponse: Partial<Extract
 
 export const getListSkuCostsResponseMock = (): SkuCost[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), cost_missing: faker.datatype.boolean(), food_cost_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), item_name: faker.string.alpha({length: {min: 10, max: 20}}), margin_pct: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), menu_item_id: faker.string.uuid(), price: faker.number.int(), size_label: faker.string.alpha({length: {min: 10, max: 20}})})))
 
+export const getListCustomersResponseMock = (): Customer[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
+
+export const getCreateCustomerResponseMock = (overrideResponse: Partial<Extract<CustomerDetail, object>> = {}): CustomerDetail => (faker.helpers.arrayElement([{customer: {created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, merged_from: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), recent_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), total_amount: faker.number.int()})), resolved_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse}, {customer: {created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, merged_from: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), recent_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), total_amount: faker.number.int()})), resolved_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse}]))
+
+export const getGetCustomerResponseMock = (overrideResponse: Partial<Extract<CustomerDetail, object>> = {}): CustomerDetail => ({customer: {created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, merged_from: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), recent_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), total_amount: faker.number.int()})), resolved_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
+
+export const getUpdateCustomerResponseMock = (overrideResponse: Partial<Extract<CustomerDetail, object>> = {}): CustomerDetail => ({customer: {created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, merged_from: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), recent_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), total_amount: faker.number.int()})), resolved_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
+
+export const getMergeCustomerResponseMock = (overrideResponse: Partial<Extract<CustomerDetail, object>> = {}): CustomerDetail => ({customer: {created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), last_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), loyalty_customer_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), orders_count: faker.number.int(), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), total_spent: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}, merged_from: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.uuid())), recent_orders: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), order_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), total_amount: faker.number.int()})), resolved_from: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
+
 export const getListDeliveryOrdersResponseMock = (): DeliveryOrder[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({address_line: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.string.uuid(), cancel_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cancel_restocked: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), cart: {}, channel: faker.string.alpha({length: {min: 10, max: 20}}), confirmed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), delivered_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), delivery_fee: faker.number.int(), delivery_notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), delivery_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), delivery_zone_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), discount_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), discount_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), discount_rate: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), discount_type: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), discount_value: faker.helpers.arrayElement([faker.number.int(), undefined]), distance_source: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), extra_prep_minutes: faker.number.int(), floor: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), landmark: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), out_for_delivery_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), payment_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), payment_method_hint: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), place_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), preparing_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), receipt_printed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), rejected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), road_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), service_charge_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), service_charge_rate_applied: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), subtotal: faker.number.int(), tax_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), tax_inclusive: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), tax_rate_applied: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), total: faker.number.int(), unit_number: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
 
 export const getGetDeliveryOrderResponseMock = (overrideResponse: Partial<Extract<DeliveryOrder, object>> = {}): DeliveryOrder => ({address_line: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.string.uuid(), cancel_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), cancel_restocked: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), cancelled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), cart: {}, channel: faker.string.alpha({length: {min: 10, max: 20}}), confirmed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', customer_lat: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_lng: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), customer_name: faker.string.alpha({length: {min: 10, max: 20}}), customer_phone: faker.string.alpha({length: {min: 10, max: 20}}), delivered_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), delivery_fee: faker.number.int(), delivery_notes: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), delivery_ref: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), delivery_zone_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), discount_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), discount_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), discount_rate: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), discount_type: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), discount_value: faker.helpers.arrayElement([faker.number.int(), undefined]), distance_source: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), extra_prep_minutes: faker.number.int(), floor: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), landmark: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), order_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), org_id: faker.string.uuid(), otp_verified: faker.datatype.boolean(), out_for_delivery_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), payment_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), payment_method_hint: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), place_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), preparing_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ready_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), receipt_printed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), rejected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), road_distance_meters: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), service_charge_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), service_charge_rate_applied: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), subtotal: faker.number.int(), tax_amount: faker.helpers.arrayElement([faker.number.int(), undefined]), tax_inclusive: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), tax_rate_applied: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), total: faker.number.int(), unit_number: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
@@ -536,6 +552,8 @@ export const getCreateCodeResponseMock = (overrideResponse: Partial<Extract<Acti
 export const getRevokeCodeResponseMock = (overrideResponse: Partial<Extract<ActivationCode, object>> = {}): ActivationCode => ({branch_id: faker.string.uuid(), code: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', expires_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), kind: faker.helpers.arrayElement(Object.values(DeviceKind)), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), revoked_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), state: faker.helpers.arrayElement(Object.values(ActivationCodeState)), used_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), used_by_device: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
 
 export const getListClientVersionsResponseMock = (): ClientSeen[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({app_version: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), client: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), device_code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), first_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', last_legacy_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), last_legacy_kind: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_legacy_path: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', legacy_kinds: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}})))})))
+
+export const getDeviceSnapshotResponseMock = (): DeviceSnapshot200 => ({})
 
 export const getRegisterDeviceResponseMock = (overrideResponse: Partial<Extract<Device, object>> = {}): Device => ({app_version: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), code: faker.string.alpha({length: {min: 10, max: 20}}), code_conflict: faker.datatype.boolean(), first_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), kind: faker.helpers.arrayElement(Object.values(DeviceKind)), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', org_id: faker.string.uuid(), platform: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), retired_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), ...overrideResponse})
 
@@ -1400,6 +1418,18 @@ export const getActivateMockHandler = (overrideResponse?: ActivateDeviceResponse
   }, options)
 }
 
+export const getAuthzKeysMockHandler = (overrideResponse?: AuthzPublicKey[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AuthzPublicKey[]> | AuthzPublicKey[]), options?: RequestHandlerOptions) => {
+  return http.get('*/auth/authz-keys', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAuthzKeysResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getLoginMockHandler = (overrideResponse?: LoginResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<LoginResponse> | LoginResponse), options?: RequestHandlerOptions) => {
   return http.post('*/auth/login', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
 
@@ -2202,6 +2232,76 @@ export const getListSkuCostsMockHandler = (overrideResponse?: SkuCost[] | ((info
   }, options)
 }
 
+export const getListCustomersMockHandler = (overrideResponse?: Customer[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Customer[]> | Customer[]), options?: RequestHandlerOptions) => {
+  return http.get('*/customers', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListCustomersResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getCreateCustomerMockHandler = (overrideResponse?: CustomerDetail | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CustomerDetail> | CustomerDetail), options?: RequestHandlerOptions) => {
+  return http.post('*/customers', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getCreateCustomerResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getGetCustomerMockHandler = (overrideResponse?: CustomerDetail | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<CustomerDetail> | CustomerDetail), options?: RequestHandlerOptions) => {
+  return http.get('*/customers/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetCustomerResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getUpdateCustomerMockHandler = (overrideResponse?: CustomerDetail | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<CustomerDetail> | CustomerDetail), options?: RequestHandlerOptions) => {
+  return http.patch('*/customers/:id', async (info: Parameters<Parameters<typeof http.patch>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getUpdateCustomerResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getEraseCustomerMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.post('*/customers/:id/erase', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getMergeCustomerMockHandler = (overrideResponse?: CustomerDetail | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CustomerDetail> | CustomerDetail), options?: RequestHandlerOptions) => {
+  return http.post('*/customers/:id/merge', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getMergeCustomerResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getListDeliveryOrdersMockHandler = (overrideResponse?: DeliveryOrder[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DeliveryOrder[]> | DeliveryOrder[]), options?: RequestHandlerOptions) => {
   return http.get('*/delivery-orders', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -2491,6 +2591,18 @@ export const getListClientVersionsMockHandler = (overrideResponse?: ClientSeen[]
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getListClientVersionsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getDeviceSnapshotMockHandler = (overrideResponse?: DeviceSnapshot200 | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DeviceSnapshot200> | DeviceSnapshot200), options?: RequestHandlerOptions) => {
+  return http.get('*/devices/me/authz-snapshot', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getDeviceSnapshotResponseMock(),
       { status: 200
       })
   }, options)
@@ -6795,6 +6907,7 @@ export const getMadarAPIMock = () => [
   getRenameConversationMockHandler(),
   getGetJobMockHandler(),
   getActivateMockHandler(),
+  getAuthzKeysMockHandler(),
   getLoginMockHandler(),
   getMeMockHandler(),
   getGetMyPermissionsMockHandler(),
@@ -6863,6 +6976,12 @@ export const getMadarAPIMock = () => [
   getListAddonCostsMockHandler(),
   getListMenuCatalogMockHandler(),
   getListSkuCostsMockHandler(),
+  getListCustomersMockHandler(),
+  getCreateCustomerMockHandler(),
+  getGetCustomerMockHandler(),
+  getUpdateCustomerMockHandler(),
+  getEraseCustomerMockHandler(),
+  getMergeCustomerMockHandler(),
   getListDeliveryOrdersMockHandler(),
   getGetDeliveryOrderMockHandler(),
   getCancelDeliveryOrderMockHandler(),
@@ -6888,6 +7007,7 @@ export const getMadarAPIMock = () => [
   getCreateCodeMockHandler(),
   getRevokeCodeMockHandler(),
   getListClientVersionsMockHandler(),
+  getDeviceSnapshotMockHandler(),
   getRegisterDeviceMockHandler(),
   getUpdateDeviceMockHandler(),
   getListDiscountsMockHandler(),

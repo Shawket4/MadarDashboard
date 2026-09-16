@@ -526,6 +526,13 @@ export const ActivateResponse = zod.object({
 })
 
 
+export const AuthzKeysResponseItem = zod.object({
+  "kid": zod.string(),
+  "public_key": zod.string().describe('Hex-encoded 32-byte Ed25519 public key.')
+}).describe('A public key a device verifies snapshots with.')
+export const AuthzKeysResponse = zod.array(AuthzKeysResponseItem)
+
+
 export const loginBodyPinMin = 4;
 export const loginBodyPinMax = 6;
 
@@ -536,7 +543,7 @@ export const loginBodyPinRegExp = new RegExp('^[0-9]{4,6}$');
 export const LoginBody = zod.object({
   "branch_id": zod.uuid().nullish().describe('Required for PIN login. The org is derived from this branch server-side.'),
   "email": zod.email().nullish(),
-  "name": zod.string().nullish().describe('Teller\'s display name (required for PIN login, unused otherwise).'),
+  "name": zod.string().nullish().describe('The person\'s display name. Optional for PIN login: without it the PIN\nalone identifies the person (PIN-only sign-in, org-wide unique PINs).\nOld tablets send it and keep the name-narrowed lookup.'),
   "org_id": zod.uuid().nullish(),
   "password": zod.string().nullish(),
   "pin": zod.string().min(loginBodyPinMin).max(loginBodyPinMax).regex(loginBodyPinRegExp).nullish()
@@ -3229,6 +3236,175 @@ export const ListSkuCostsResponseItem = zod.object({
 export const ListSkuCostsResponse = zod.array(ListSkuCostsResponseItem)
 
 
+export const ListCustomersQueryParams = zod.object({
+  "q": zod.string().optional().describe('Matches name (contains) or phone (digits).'),
+  "limit": zod.number().optional().describe('Default 100, at most 500.'),
+  "offset": zod.number().optional()
+})
+
+export const ListCustomersResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "orders_count": zod.number(),
+  "phone": zod.string().nullish(),
+  "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListCustomersResponse = zod.array(ListCustomersResponseItem)
+
+
+export const CreateCustomerBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch where the customer was added (a till sends its own).'),
+  "id": zod.uuid().nullish().describe('Client-minted id; a repeat with the same id returns the stored customer.'),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "phone": zod.string().nullish()
+})
+
+export const CreateCustomerResponse = zod.object({
+  "customer": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "orders_count": zod.number(),
+  "phone": zod.string().nullish(),
+  "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
+  "recent_orders": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "status": zod.string(),
+  "total_amount": zod.number()
+})),
+  "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
+})
+
+
+export const GetCustomerParams = zod.object({
+  "id": zod.uuid().describe('Customer id (a merged id resolves)')
+})
+
+export const GetCustomerResponse = zod.object({
+  "customer": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "orders_count": zod.number(),
+  "phone": zod.string().nullish(),
+  "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
+  "recent_orders": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "status": zod.string(),
+  "total_amount": zod.number()
+})),
+  "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
+})
+
+
+export const UpdateCustomerParams = zod.object({
+  "id": zod.uuid().describe('Customer id')
+})
+
+export const UpdateCustomerBody = zod.object({
+  "loyalty_customer_id": zod.uuid().nullish().describe('Absent = unchanged.'),
+  "name": zod.string().nullish(),
+  "notes": zod.string().nullish().describe('Absent = unchanged; `\"\"` clears.'),
+  "phone": zod.string().nullish().describe('Absent = unchanged; `\"\"` clears.'),
+  "unlink_loyalty": zod.boolean().optional().describe('`true` unlinks the loyalty member.')
+})
+
+export const UpdateCustomerResponse = zod.object({
+  "customer": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "orders_count": zod.number(),
+  "phone": zod.string().nullish(),
+  "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
+  "recent_orders": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "status": zod.string(),
+  "total_amount": zod.number()
+})),
+  "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
+})
+
+
+export const EraseCustomerParams = zod.object({
+  "id": zod.uuid().describe('Customer id')
+})
+
+export const EraseCustomerResponse = zod.void()
+
+
+export const MergeCustomerParams = zod.object({
+  "id": zod.uuid().describe('The duplicate, which stops being listed')
+})
+
+export const MergeCustomerBody = zod.object({
+  "into": zod.uuid().describe('The customer that stays.')
+})
+
+export const MergeCustomerResponse = zod.object({
+  "customer": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "loyalty_customer_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "notes": zod.string().nullish(),
+  "orders_count": zod.number(),
+  "phone": zod.string().nullish(),
+  "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
+  "recent_orders": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "status": zod.string(),
+  "total_amount": zod.number()
+})),
+  "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
+})
+
+
 export const ListDeliveryOrdersQueryParams = zod.object({
   "branch_id": zod.uuid(),
   "status": zod.string().nullish().describe('Comma-separated statuses to include (default: all).'),
@@ -4046,6 +4222,16 @@ export const ListClientVersionsResponseItem = zod.object({
   "legacy_kinds": zod.array(zod.string()).describe('Every legacy kind this client has hit.')
 }).describe('One device (or device-less client) as last seen.')
 export const ListClientVersionsResponse = zod.array(ListClientVersionsResponseItem)
+
+
+export const DeviceSnapshotHeader = zod.object({
+  "X-Madar-Device": zod.string().describe('The device id'),
+  "X-Madar-Device-Token": zod.string().describe('The credential issued at activation')
+})
+
+export const DeviceSnapshotResponse = zod.looseObject({
+
+})
 
 
 export const RegisterDeviceBody = zod.object({
@@ -8835,6 +9021,7 @@ export const CreateOrderBody = zod.object({
   "branch_id": zod.uuid(),
   "change_given": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}).nullish(),
+  "customer_id": zod.uuid().nullish().describe('A manual customer (phase 6), attached when the actor holds\n`customers.attach`. A merged id resolves; an unknown one is ignored —\na sale is never refused over its customer.'),
   "customer_name": zod.string().nullish(),
   "device_code": zod.string().nullish().describe('The device\'s code; with `device_id` + `order_number` the number is stored verbatim.'),
   "device_id": zod.uuid().nullish().describe('The device ringing the order (else `X-Madar-Device`).'),
