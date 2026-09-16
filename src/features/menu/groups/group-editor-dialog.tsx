@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFieldArray, useForm, useFormContext, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -153,8 +153,14 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [group, recipesLoaded, recipesKey]);
 
+  // Seed once per opening: a background refetch must not wipe what's typed.
+  const seededOnce = useRef(false);
   useEffect(() => {
-    if (open && seeded) form.reset(seeded);
+    if (!open) seededOnce.current = false;
+    else if (seeded && !seededOnce.current) {
+      seededOnce.current = true;
+      form.reset(seeded);
+    }
   }, [open, seeded, form]);
 
   const effect = useWatch({ control: form.control, name: "effect" });
