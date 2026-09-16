@@ -22,7 +22,13 @@ vi.mock("../util", () => ({ invalidateCatalog: vi.fn() }));
 
 // Only the "Item details" section (the image) is under test — the rest of
 // the studio pulls in its own large hook surface (recipes, modifiers…).
-vi.mock("./section-sizes", () => ({ SectionSizes: () => null }));
+vi.mock("../recipe/recipe-grid", () => ({ RecipeGrid: () => null }));
+vi.mock("../recipe/modeling-api", () => ({
+  asStudioExt: (s: unknown) => s,
+  recipeLinkKey: (id: string) => ["link", id],
+  useRecipeBases: () => ({ data: [] }),
+  useRecipeLink: () => ({ data: undefined }),
+}));
 vi.mock("./section-steps", () => ({ SectionSteps: () => null }));
 vi.mock("./section-modifiers", () => ({ SectionModifiers: () => null }));
 vi.mock("./section-options", () => ({ SectionOptions: () => null }));
@@ -32,6 +38,7 @@ vi.mock("@/data/api/generated/api", () => ({
   useListCatalog: () => ({ data: [] }),
   useListCategories: () => ({ data: [] }),
   duplicateItem: vi.fn(),
+  getGetMenuItemQueryOptions: (id: string) => ({ queryKey: ["item", id], queryFn: vi.fn() }),
   putItemOptions: vi.fn(),
   putModifierGroups: vi.fn(),
   putRecipeSteps: vi.fn(),

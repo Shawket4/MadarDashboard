@@ -6,6 +6,8 @@ import {
 } from "@/data/api/generated/api";
 import type { ModifierGroupOut, StudioAggregate } from "@/data/api/generated/models";
 import { piastresToEgp } from "@/lib/format";
+import { normalizeSource, ownRecipeSig } from "../recipe/grid-model";
+import { asStudioExt, type LineSource } from "../recipe/modeling-api";
 
 /**
  * Invalidate the Menu Studio aggregate + live-cost queries for one item, plus the
@@ -67,6 +69,8 @@ export interface RecipeLineDraft {
   /** Quantity as typed (text) — parsed on save. */
   quantity: string;
   unit: string;
+  /** `own` (absent) lines are editable; `base`/`rule`/`linked` are server-expanded, read-only. */
+  source?: LineSource;
 }
 
 /** One size block: the size row + its inline recipe (mirrors SizeOut 1:1). */
@@ -83,6 +87,8 @@ export interface SizeBlockDraft {
   seededPrice: string | null;
   /** Server cost rollup from the seeded SizeOut; null for new blocks. */
   serverCost: { piastres: number | null; incomplete: boolean } | null;
+  /** Recipe base this size expands (server `base_id`). */
+  baseId?: string | null;
   lines: RecipeLineDraft[];
 }
 
@@ -131,7 +137,7 @@ export const toItemValues = (s: StudioAggregate): ItemDraftValues => ({
 });
 
 export const toSizeBlocks = (s: StudioAggregate): SizeBlockDraft[] =>
-  [...s.sizes]
+  [...asStudioExt(s).sizes]
     .filter((z) => z.is_active)
     .sort((a, b) => a.sort - b.sort)
     .map((z) => {
@@ -144,10 +150,12 @@ export const toSizeBlocks = (s: StudioAggregate): SizeBlockDraft[] =>
         seededLabel: z.label,
         seededPrice: price,
         serverCost: { piastres: z.cost_piastres ?? null, incomplete: z.cost_incomplete },
+        baseId: z.base_id ?? null,
         lines: z.recipe.map((r) => ({
           ingredient_id: r.ingredient_id,
           quantity: String(parseFloat(r.quantity)),
           unit: r.unit,
+          source: normalizeSource(r.source),
         })),
       };
     });
@@ -224,8 +232,8 @@ export const itemSig = (v: ItemDraftValues): string =>
 export const sizesSig = (blocks: SizeBlockDraft[]): string =>
   JSON.stringify(blocks.map((b) => [b.label, b.price]));
 
-export const recipeSig = (lines: RecipeLineDraft[]): string =>
-  JSON.stringify(lines.map((l) => [l.ingredient_id, l.quantity, l.unit]));
+/** Only the own lines the save would send (sourced lines never make a size dirty). */
+export const recipeSig = (lines: RecipeLineDraft[]): string => ownRecipeSig(lines);
 
 export const modifiersSig = (attached: AttachDraft[]): string =>
   JSON.stringify(
