@@ -138,6 +138,8 @@ export const MOCK_TIMESERIES: TimeseriesPoint[] = Array.from({ length: 30 }, (_,
     discount: Math.round(revenue * 0.04),
     tax: Math.round(revenue * 0.14),
     revenue_by_method: {},
+    line_items: Math.round(orders * 2.3),
+    addons: Math.round(orders * 0.6),
   };
 });
 

@@ -11771,7 +11771,9 @@ export const BranchSalesTimeseriesQueryParams = zod.object({
 })
 
 export const BranchSalesTimeseriesResponseItem = zod.object({
+  "addons": zod.number().describe('SUM(order_item_addons.quantity) across non-voided orders in this period.'),
   "discount": zod.number(),
+  "line_items": zod.number().describe('SUM(order_items.quantity) across non-voided orders in this period.'),
   "orders": zod.number(),
   "period": zod.string(),
   "refunded": zod.number().optional(),

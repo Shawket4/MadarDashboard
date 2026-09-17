@@ -267,6 +267,20 @@ function RevenueSplitTooltip({ active, payload }: { active?: boolean; payload?: 
           ))}
         </div>
       ) : null}
+      <div className="mt-1.5 space-y-1 border-t pt-1.5">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{t("dashboard.orders", "Orders")}</span>
+          <span className="tabular text-foreground">{fmtNumber(point.orders)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{t("analytics.itemsSold", "Items Sold")}</span>
+          <span className="tabular text-foreground">{fmtNumber(point.line_items)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{t("analytics.addonsSold", "Add-ons Sold")}</span>
+          <span className="tabular text-foreground">{fmtNumber(point.addons)}</span>
+        </div>
+      </div>
     </div>
   );
 }
