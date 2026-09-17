@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCountPayload, countsDue, isVarianceFlagged, missingReasons, needsFirstCount, parseCount } from "./lib";
+import {
+  buildCountPayload,
+  countsDue,
+  isVarianceFlagged,
+  missingReasons,
+  needsFirstCount,
+  parseCount,
+  wasteSource,
+  wasteWhen,
+} from "./lib";
 
 /**
  * The count editor gates "Review & finalize" on the same rule the backend
@@ -62,5 +71,20 @@ describe("first-run and counts due", () => {
       { last_counted_at: "2026-08-01T00:00:00Z" },
     ];
     expect(countsDue(rows, now)).toBe(2);
+  });
+});
+
+describe("waste log source", () => {
+  it("reads the server's source, and falls back for an older backend", () => {
+    expect(wasteSource({ waste_source: "pos" })).toBe("pos");
+    expect(wasteSource({ waste_source: null, source_type: "order" })).toBe("order");
+    expect(wasteSource({ source_type: "waste" })).toBe("dashboard");
+  });
+
+  it("dates a queued till waste by when it happened on the device", () => {
+    expect(wasteWhen({ occurred_at: "2026-09-17T08:00:00Z", created_at: "2026-09-17T10:00:00Z" })).toBe(
+      "2026-09-17T08:00:00Z",
+    );
+    expect(wasteWhen({ occurred_at: null, created_at: "2026-09-17T10:00:00Z" })).toBe("2026-09-17T10:00:00Z");
   });
 });

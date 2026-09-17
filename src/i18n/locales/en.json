@@ -1249,7 +1249,19 @@
       "nothingOnHand": "nothing on hand",
       "recorded": "Waste recorded",
       "reportFailed": "Couldn't load waste by reason",
-      "noReasonData": "Waste by reason appears once waste is logged in this period."
+      "noReasonData": "Waste by reason appears once waste is logged in this period.",
+      "source": "Source",
+      "sources": {
+        "pos": "Till",
+        "dashboard": "Dashboard",
+        "order": "Voided order"
+      },
+      "device": "Device {{name}}",
+      "deviceColumn": "Device",
+      "approvedBy": "Approved by {{name}}",
+      "approvedByColumn": "Approved by",
+      "fromItem": "From {{item}} × {{qty}}",
+      "item": "Menu item"
     },
     "stocktakes": {
       "title": "Stock counts",

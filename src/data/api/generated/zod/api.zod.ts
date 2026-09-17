@@ -5261,6 +5261,7 @@ export const ListMovementsQueryParams = zod.object({
 })
 
 export const ListMovementsResponseItem = zod.object({
+  "approved_by_name": zod.string().nullish().describe('The manager who approved it on the till.'),
   "balance_after": zod.number(),
   "below_zero": zod.boolean(),
   "branch_id": zod.uuid(),
@@ -5269,17 +5270,28 @@ export const ListMovementsResponseItem = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "created_by_name": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_name": zod.string().nullish(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
   "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
+  "occurred_at": zod.iso.datetime({"offset":true}).nullish().describe('When it happened on the device (a queued waste lands later).'),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number().describe('Signed delta applied to stock (consumption negative, replenishment positive).'),
   "reason": zod.string().nullish(),
   "source_id": zod.uuid().nullish(),
   "source_type": zod.string().nullish(),
+  "till_id": zod.uuid().nullish(),
   "unit": zod.string(),
-  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.')
+  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.'),
+  "waste_quantity": zod.number().nullish().describe('The quantity as the person typed it, in `waste_unit`.'),
+  "waste_size_label": zod.string().nullish(),
+  "waste_source": zod.string().nullish().describe('`pos` | `dashboard` | `order` (a voided made order).'),
+  "waste_subject_kind": zod.string().nullish().describe('`ingredient` | `menu_item`, when the waste was recorded with a header.'),
+  "waste_subject_name": zod.string().nullish().describe('What the person picked (the menu item for an exploded item waste).'),
+  "waste_unit": zod.string().nullish(),
+  "waste_value_minor": zod.number().nullish().describe('The whole waste\'s value (all its lines), piastres.')
 })
 export const ListMovementsResponse = zod.array(ListMovementsResponseItem)
 
@@ -5378,6 +5390,7 @@ export const ListWasteQueryParams = zod.object({
 })
 
 export const ListWasteResponseItem = zod.object({
+  "approved_by_name": zod.string().nullish().describe('The manager who approved it on the till.'),
   "balance_after": zod.number(),
   "below_zero": zod.boolean(),
   "branch_id": zod.uuid(),
@@ -5386,17 +5399,28 @@ export const ListWasteResponseItem = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "created_by_name": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_name": zod.string().nullish(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
   "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
+  "occurred_at": zod.iso.datetime({"offset":true}).nullish().describe('When it happened on the device (a queued waste lands later).'),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number().describe('Signed delta applied to stock (consumption negative, replenishment positive).'),
   "reason": zod.string().nullish(),
   "source_id": zod.uuid().nullish(),
   "source_type": zod.string().nullish(),
+  "till_id": zod.uuid().nullish(),
   "unit": zod.string(),
-  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.')
+  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.'),
+  "waste_quantity": zod.number().nullish().describe('The quantity as the person typed it, in `waste_unit`.'),
+  "waste_size_label": zod.string().nullish(),
+  "waste_source": zod.string().nullish().describe('`pos` | `dashboard` | `order` (a voided made order).'),
+  "waste_subject_kind": zod.string().nullish().describe('`ingredient` | `menu_item`, when the waste was recorded with a header.'),
+  "waste_subject_name": zod.string().nullish().describe('What the person picked (the menu item for an exploded item waste).'),
+  "waste_unit": zod.string().nullish(),
+  "waste_value_minor": zod.number().nullish().describe('The whole waste\'s value (all its lines), piastres.')
 })
 export const ListWasteResponse = zod.array(ListWasteResponseItem)
 
@@ -5413,6 +5437,7 @@ export const CreateWasteBody = zod.object({
 })
 
 export const CreateWasteResponse = zod.object({
+  "approved_by_name": zod.string().nullish().describe('The manager who approved it on the till.'),
   "balance_after": zod.number(),
   "below_zero": zod.boolean(),
   "branch_id": zod.uuid(),
@@ -5421,17 +5446,28 @@ export const CreateWasteResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "created_by_name": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_name": zod.string().nullish(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
   "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
+  "occurred_at": zod.iso.datetime({"offset":true}).nullish().describe('When it happened on the device (a queued waste lands later).'),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number().describe('Signed delta applied to stock (consumption negative, replenishment positive).'),
   "reason": zod.string().nullish(),
   "source_id": zod.uuid().nullish(),
   "source_type": zod.string().nullish(),
+  "till_id": zod.uuid().nullish(),
   "unit": zod.string(),
-  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.')
+  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.'),
+  "waste_quantity": zod.number().nullish().describe('The quantity as the person typed it, in `waste_unit`.'),
+  "waste_size_label": zod.string().nullish(),
+  "waste_source": zod.string().nullish().describe('`pos` | `dashboard` | `order` (a voided made order).'),
+  "waste_subject_kind": zod.string().nullish().describe('`ingredient` | `menu_item`, when the waste was recorded with a header.'),
+  "waste_subject_name": zod.string().nullish().describe('What the person picked (the menu item for an exploded item waste).'),
+  "waste_unit": zod.string().nullish(),
+  "waste_value_minor": zod.number().nullish().describe('The whole waste\'s value (all its lines), piastres.')
 })
 
 
@@ -5706,6 +5742,53 @@ export const UpdateTransferResponse = zod.object({
   "source_branch_id": zod.uuid(),
   "source_branch_name": zod.string(),
   "unit": zod.string()
+})
+
+
+/**
+ * @summary POST /inventory/waste — record waste at a branch (ingredient or menu item).
+ */
+export const RecordWasteBody = zod.object({
+  "branch_id": zod.uuid(),
+  "device_id": zod.uuid().nullish(),
+  "id": zod.uuid().describe('Client-minted; the idempotency key.'),
+  "note": zod.string().nullish(),
+  "occurred_at": zod.iso.datetime({"offset":true}).nullish().describe('When it happened on the device. Default: now.'),
+  "quantity": zod.number().describe('In `unit`. Whole units for a menu item.'),
+  "reason": zod.string().describe('expired | spoiled | damaged | overproduction | theft | other'),
+  "size_label": zod.string().nullish().describe('Menu items only: the size whose recipe is wasted (default: the first size).'),
+  "subject_id": zod.uuid().describe('An org ingredient id, or a menu item id.'),
+  "subject_kind": zod.string().describe('`ingredient` | `menu_item`'),
+  "till_id": zod.uuid().nullish(),
+  "unit": zod.string().nullish().describe('`g` | `kg` | `ml` | `l` | `pcs`. Default: the ingredient\'s own unit; a\nmenu item is always `pcs`.')
+}).describe('One waste as a till (or the API) records it.')
+
+export const RecordWasteResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "created": zod.boolean().describe('`false` when this id had already been recorded (nothing new was posted).'),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "balance_after": zod.number(),
+  "below_zero": zod.boolean(),
+  "ingredient_name": zod.string(),
+  "movement_id": zod.uuid(),
+  "org_ingredient_id": zod.uuid(),
+  "quantity": zod.number().describe('Signed ledger delta (negative), in the ingredient\'s unit.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Piastres per unit; `null` = unknown.')
+}).describe('One ingredient line of a recorded waste.')),
+  "note": zod.string().nullish(),
+  "occurred_at": zod.iso.datetime({"offset":true}),
+  "quantity": zod.number(),
+  "reason": zod.string(),
+  "recorded_by": zod.uuid().nullish(),
+  "size_label": zod.string().nullish(),
+  "source": zod.string(),
+  "subject_kind": zod.string(),
+  "subject_name": zod.string(),
+  "unit": zod.string(),
+  "value_minor": zod.number().nullish().describe('Piastres at the branch\'s unit costs; `null` when no line had a cost.'),
+  "value_partial": zod.boolean()
 })
 
 
