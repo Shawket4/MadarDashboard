@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "40f2bfbe2e7d59ff";
+export const SPEC_HASH = "5fc9caad25e48a37";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -194,6 +194,7 @@ export type Capability =
   | "customers.erase"
   | "reports.legal"
   | "menu.packaging_rules.apply"
+  | "orders.held.resume_others"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -377,6 +378,7 @@ export const Cap = {
   customersErase: "customers.erase" as Capability,
   reportsLegal: "reports.legal" as Capability,
   menuPackagingRulesApply: "menu.packaging_rules.apply" as Capability,
+  ordersHeldResumeOthers: "orders.held.resume_others" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -578,6 +580,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 219, key: "customers.erase", legacy: null, group: "customers", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Erase a customer's personal data (PDPL)", ar: "محو البيانات الشخصية للعميل", hintEn: null, hintAr: null },
   { id: 220, key: "reports.legal", legacy: null, group: "reports", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See legal reports: tax, refunds, voids, discounts, waivers and price overrides", ar: "عرض التقارير القانونية: الضريبة والمرتجعات والإلغاءات والخصومات والإعفاءات وتعديلات الأسعار", hintEn: "They name the staff who gave money back. A manager sees only their own branches.", hintAr: "تُظهر أسماء الموظفين الذين أعادوا المال. يرى المدير فروعه فقط." },
   { id: 221, key: "menu.packaging_rules.apply", legacy: null, group: "menu", tier: "advanced", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Re-apply packaging rules to every menu item", ar: "إعادة تطبيق قواعد التغليف على جميع أصناف القائمة", hintEn: null, hintAr: null },
+  { id: 222, key: "orders.held.resume_others", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Resume an order someone else started", ar: "استئناف طلب بدأه شخص آخر", hintEn: "A held order another person parked on this till. Without it, a manager enters their PIN.", hintAr: "طلب معلّق تركه شخص آخر على هذا الجهاز. بدونها يُدخل المدير رمزه." },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [

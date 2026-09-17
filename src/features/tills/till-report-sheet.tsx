@@ -80,6 +80,16 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
                   {report.open_bills_at_close != null ? (
                     <Row label={t("tills.openBillsAtClose", "Open bills at close")} value={String(report.open_bills_at_close)} />
                   ) : null}
+                  {report.held_orders_left_open ? (
+                    <Row
+                      label={t("tills.heldOrdersLeftOpen", "Held orders left open")}
+                      value={
+                        report.held_orders_left_open_total != null
+                          ? `${report.held_orders_left_open} · ${fmtMoney(report.held_orders_left_open_total)}`
+                          : String(report.held_orders_left_open)
+                      }
+                    />
+                  ) : null}
                   {report.old_bills_at_close != null ? (
                     <Row label={t("tills.oldBillsAtClose", "Old open bills at close")} value={String(report.old_bills_at_close)} />
                   ) : null}
