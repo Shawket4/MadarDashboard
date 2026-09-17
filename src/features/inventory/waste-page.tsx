@@ -24,7 +24,7 @@ import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { WasteDialog } from "./waste-dialog";
-import { wasteSource, wasteWhen } from "./lib";
+import { wasteReceivedLate, wasteSource, wasteWhen } from "./lib";
 
 export function WastePage() {
   const { t } = useTranslation();
@@ -66,10 +66,26 @@ export function WastePage() {
   const columns = useMemo<ColumnDef<StockMovement>[]>(
     () => [
       {
-        accessorKey: "created_at",
+        // When the waste HAPPENED (the backend orders by the same time). The
+        // server's receive time only when it is more than 5 minutes off: a
+        // waste queued on a till that was offline.
+        id: "occurred_at",
+        accessorFn: (m) => wasteWhen(m),
         header: t("common.date", "Date"),
         meta: { label: t("common.date", "Date"), numeric: true, align: "start" },
-        cell: ({ row }) => fmtDateTime(wasteWhen(row.original)),
+        cell: ({ row }) => {
+          const late = wasteReceivedLate(row.original);
+          return (
+            <span className="flex flex-col">
+              <span>{fmtDateTime(wasteWhen(row.original))}</span>
+              {late ? (
+                <span className="text-xs text-muted-foreground">
+                  {t("inventory.waste.received", { when: fmtDateTime(late), defaultValue: `Received ${fmtDateTime(late)}` })}
+                </span>
+              ) : null}
+            </span>
+          );
+        },
       },
       ...(isAllBranches
         ? ([{
@@ -151,6 +167,11 @@ export function WastePage() {
                   {t("inventory.waste.device", "Device {{name}}", { name: m.device_name })}
                 </span>
               ) : null}
+              {source === "refund" && m.order_display_number ? (
+                <span className="text-xs text-muted-foreground">
+                  {t("inventory.waste.refundOf", { number: m.order_display_number, defaultValue: `Refund of order ${m.order_display_number}` })}
+                </span>
+              ) : null}
             </span>
           );
         },
@@ -172,6 +193,7 @@ export function WastePage() {
       }));
       const cols: ExcelColumn<StockMovement>[] = [
         { header: t("common.date", "Date"), accessor: (m) => wasteWhen(m), type: "dateTime", width: 20 },
+        { header: t("inventory.waste.receivedColumn", "Received"), accessor: (m) => wasteReceivedLate(m) ?? "", type: "dateTime", width: 20 },
         { header: t("inventory.waste.ingredient", "Ingredient"), accessor: (m) => m.ingredient_name, type: "text", width: 28 },
         { header: t("inventory.waste.quantity", "Quantity"), accessor: (m) => Math.abs(m.quantity), type: "number", width: 14 },
         { header: t("inventory.catalog.unit", "Unit"), accessor: (m) => fmtUnit(m.unit), type: "text", width: 10 },
@@ -181,6 +203,7 @@ export function WastePage() {
         { header: t("inventory.waste.item", "Menu item"), accessor: (m) => (m.waste_subject_kind === "menu_item" ? m.waste_subject_name ?? "" : ""), type: "text", width: 22 },
         { header: t("inventory.waste.source", "Source"), accessor: (m) => t(`inventory.waste.sources.${wasteSource(m)}`), type: "text", width: 14 },
         { header: t("inventory.waste.deviceColumn", "Device"), accessor: (m) => m.device_name ?? "", type: "text", width: 12 },
+        { header: t("inventory.waste.orderColumn", "Order"), accessor: (m) => m.order_display_number ?? "", type: "text", width: 12 },
       ];
       await exportToExcel({ filename: "Madar-Waste", logoUrl, sheets: [{ name: t("inventory.waste.title", "Waste log"), title: t("inventory.waste.title", "Waste log"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {

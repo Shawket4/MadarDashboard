@@ -52,7 +52,12 @@ export function WasteDialog({ branchId, open, onOpenChange, presetIngredientId }
         value: s.org_ingredient_id,
         label: s.ingredient_name,
         keywords: s.category_name,
-        hint: s.on_hand > 0 ? `${fmtNumber(s.on_hand)} ${fmtUnit(s.unit)}` : t("inventory.waste.nothingOnHand", "nothing on hand"),
+        hint:
+          s.on_hand > 0
+            ? `${fmtNumber(s.on_hand)} ${fmtUnit(s.unit)}`
+            : s.on_hand < 0
+              ? t("inventory.catalog.belowZeroHint", { qty: `${fmtNumber(s.on_hand)} ${fmtUnit(s.unit)}`, defaultValue: `${fmtNumber(s.on_hand)} ${fmtUnit(s.unit)} (below zero)` })
+              : t("inventory.waste.nothingOnHand", "nothing on hand"),
       })),
     [stock.data, t],
   );
