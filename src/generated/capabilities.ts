@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "5fc9caad25e48a37";
+export const SPEC_HASH = "2b48981f7519fdeb";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -450,7 +450,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 47, key: "inventory.counts.edit", legacy: "stocktakes:update", group: "inventory", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Count and finalize stock counts", ar: "إدخال الجرد واعتماده", hintEn: null, hintAr: null },
   { id: 48, key: "legacy.stocktakes.delete", legacy: "stocktakes:delete", group: "inventory", tier: "legacy", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Stock counts: delete (legacy)", ar: "الجرد: حذف (قديم)", hintEn: null, hintAr: null },
   { id: 49, key: "inventory.waste.record", legacy: "inventory_waste:create", group: "inventory", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: ["max_value"], pos: true, protected: false, en: "Record waste", ar: "تسجيل الهالك", hintEn: "Off for tellers by default. Turn it on to let the till record waste.", hintAr: "مغلق للكاشير افتراضيًا. فعّله ليسجل الكاشير الهالك من نقطة البيع." },
-  { id: 50, key: "inventory.waste.read", legacy: "inventory_waste:read", group: "inventory", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See waste records", ar: "عرض سجلات الهالك", hintEn: null, hintAr: null },
+  { id: 50, key: "inventory.waste.read", legacy: "inventory_waste:read", group: "inventory", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See waste records", ar: "عرض سجلات التالف", hintEn: null, hintAr: null },
   { id: 51, key: "legacy.inventory_waste.update", legacy: "inventory_waste:update", group: "inventory", tier: "legacy", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Waste: update (legacy)", ar: "الهالك: تعديل (قديم)", hintEn: null, hintAr: null },
   { id: 52, key: "legacy.inventory_waste.delete", legacy: "inventory_waste:delete", group: "inventory", tier: "legacy", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Waste: delete (legacy)", ar: "الهالك: حذف (قديم)", hintEn: null, hintAr: null },
   { id: 53, key: "purchasing.suppliers.create", legacy: "suppliers:create", group: "purchasing", tier: "advanced", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Add suppliers", ar: "إضافة موردين", hintEn: null, hintAr: null },
