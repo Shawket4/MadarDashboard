@@ -3,6 +3,7 @@
 import type { LoyaltyRedemptionInput } from './loyaltyRedemptionInput';
 import type { OrderItemInput } from './orderItemInput';
 import type { PaymentSplitInput } from './paymentSplitInput';
+import type { ReplayApproval } from './replayApproval';
 
 export interface CreateOrderRequest {
   /** @nullable */
@@ -66,6 +67,7 @@ export interface CreateOrderRequest {
   /** @nullable */
   idempotency_key?: string | null;
   items: OrderItemInput[];
+  live_approval?: null | ReplayApproval;
   /**
      * The loyalty member spending a balance on this sale. Required when
      * `loyalty_redemptions` is non-empty, and ONLY for that: earning is a

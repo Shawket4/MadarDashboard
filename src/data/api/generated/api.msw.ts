@@ -65,6 +65,7 @@ import type {
   BranchStockReport,
   BranchStockRow,
   BranchTable,
+  BulkReviewResult,
   BundlePerformanceResponse,
   BundleSalesRow,
   BundleWithComponents,
@@ -336,6 +337,8 @@ export const getResolveBranchResponseMock = (overrideResponse: Partial<Extract<R
 export const getExplainResponseMock = (overrideResponse: Partial<Extract<Explanation, object>> = {}): Explanation => ({ask_manager: faker.datatype.boolean(), capability: faker.string.alpha({length: {min: 10, max: 20}}), effective: faker.datatype.boolean(), label_ar: faker.string.alpha({length: {min: 10, max: 20}}), label_en: faker.string.alpha({length: {min: 10, max: 20}}), steps: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({applies_here: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), detail: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), grants: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), role_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role_name_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), ...overrideResponse})
 
 export const getListFlagsResponseMock = (): ReplayFlag[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({author_id: faker.string.uuid(), author_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), capability: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.number.int(), occurred_at: faker.date.past().toISOString().slice(0, 19) + 'Z', op: faker.string.alpha({length: {min: 10, max: 20}}), reason: faker.string.alpha({length: {min: 10, max: 20}}), reviewed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reviewed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined])})))
+
+export const getBulkReviewFlagsResponseMock = (overrideResponse: Partial<Extract<BulkReviewResult, object>> = {}): BulkReviewResult => ({pending: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.number.int(), reason: faker.string.alpha({length: {min: 10, max: 20}})})), resolved: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.number.int())), ...overrideResponse})
 
 export const getReviewFlagResponseMock = (overrideResponse: Partial<Extract<ReplayFlag, object>> = {}): ReplayFlag => ({author_id: faker.string.uuid(), author_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), capability: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.number.int(), occurred_at: faker.date.past().toISOString().slice(0, 19) + 'Z', op: faker.string.alpha({length: {min: 10, max: 20}}), reason: faker.string.alpha({length: {min: 10, max: 20}}), reviewed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), reviewed_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), ...overrideResponse})
 
@@ -1617,6 +1620,18 @@ export const getListFlagsMockHandler = (overrideResponse?: ReplayFlag[] | ((info
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getListFlagsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getBulkReviewFlagsMockHandler = (overrideResponse?: BulkReviewResult | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<BulkReviewResult> | BulkReviewResult), options?: RequestHandlerOptions) => {
+  return http.post('*/authz/flags/bulk-review', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getBulkReviewFlagsResponseMock(),
       { status: 200
       })
   }, options)
@@ -7594,6 +7609,7 @@ export const getMadarAPIMock = () => [
   getResolveBranchMockHandler(),
   getExplainMockHandler(),
   getListFlagsMockHandler(),
+  getBulkReviewFlagsMockHandler(),
   getReviewFlagMockHandler(),
   getGetMyAuthzMockHandler(),
   getGetPolicyMockHandler(),

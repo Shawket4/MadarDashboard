@@ -684,6 +684,27 @@ export const ListFlagsResponse = zod.array(ListFlagsResponseItem)
 
 
 /**
+ * @summary Resolve many flags at once — "select many" or "everything for this till or
+day" from the dashboard's review queue (owner, 2026-09-17). Extends
+[`review_flag`] rather than duplicating it: same capability, same
+semantics (an acknowledgement, not an approval), now with an optional note
+and one id at a time so a bad id among many never loses the rest.
+ */
+export const BulkReviewFlagsBody = zod.object({
+  "flag_ids": zod.array(zod.number()).describe('Every open flag to resolve at once — a till, a day, or a hand-picked\nselection. Order does not matter; each id is its own transaction.'),
+  "note": zod.string().nullish()
+})
+
+export const BulkReviewFlagsResponse = zod.object({
+  "pending": zod.array(zod.object({
+  "id": zod.number(),
+  "reason": zod.string()
+})).describe('An id this call could not resolve, and why. Never silently dropped.'),
+  "resolved": zod.array(zod.number()).describe('Ids that are now reviewed (already reviewed counts as resolved too —\nresubmitting the same batch never fails or double-records).')
+})
+
+
+/**
  * @summary Mark one flag as looked at. It is an acknowledgement, not an approval: the
 act is already on the books either way, so there is nothing here to undo or
 let through.
@@ -5764,6 +5785,14 @@ export const RecordWasteBody = zod.object({
   "branch_id": zod.uuid(),
   "device_id": zod.uuid().nullish(),
   "id": zod.uuid().describe('Client-minted; the idempotency key.'),
+  "live_approval": zod.union([zod.null(),zod.object({
+  "amount_minor": zod.number().nullish(),
+  "approver_id": zod.uuid(),
+  "capability": zod.string().describe('Capability key, e.g. `orders.void`.'),
+  "id": zod.uuid(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for an act capped by `max_percent` (a discount). Additive.'),
+  "value_minor": zod.number().nullish().describe('The value an approval covered (`max_value` limits, e.g. a waste).')
+}).describe('A manager\'s one-time PIN approval for the LIVE route (owner,\n2026-09-17), over the person\'s `max_value` limit. Additive.')]).optional(),
   "note": zod.string().nullish(),
   "occurred_at": zod.iso.datetime({"offset":true}).nullish().describe('When it happened on the device. Default: now.'),
   "quantity": zod.number().describe('In `unit`. Whole units for a menu item.'),
@@ -9129,9 +9158,22 @@ export const settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin = 0;
 export const SettleOpenTicketBody = zod.object({
   "amount_tendered": zod.number().nullish(),
   "change_given": zod.number().nullish().describe('What the till handed back. Recorded as the drawer saw it, like a\ncounter sale\'s; absent, it is derived from `amount_tendered` and the\nserver\'s total.'),
+  "discount_amount": zod.number().nullish().describe('What the till actually took off this bill, in minor units — the figure\nthe drawer charged. Additive; absent, the server computes it as before.\nThis is also what a replayed bill keeps when its preset has since been\nswitched off: the money as rung, never recomputed from a dead rule.'),
+  "discount_applied_by": zod.uuid().nullish().describe('Who put the discount on the bill. Read on replay (live, it is the\ncashier holding the token). Additive.'),
+  "discount_approval_id": zod.uuid().nullish().describe('The manager approval that let the bill\'s discount past the cashier\'s\ncap, verified at replay like a counter sale\'s. Additive.'),
   "discount_id": zod.uuid().nullish().describe('Settle-time discount. ABSENT (all three fields) means the waiter\'s\nticket discount is inherited, as it always was — but the till can now\nsee that discount on the ticket view. The literal `discount_type:\n\"none\"` settles with no discount at all; any other value (or a\n`discount_id`) replaces the waiter\'s.'),
+  "discount_kind": zod.string().nullish().describe('Which discount act this bill performs: `preset` | `manual_amount` |\n`manual_percent`. A table bill is gated exactly like a counter sale, so\nit names its act in the same vocabulary. ADDITIVE — an older tablet\nsends nothing and the kind is derived as it always was (a `discount_id`\nmeans preset, an ad-hoc discount is manual of its type).'),
+  "discount_percent_bps": zod.number().nullish().describe('Basis points for a percentage bill discount (1250 = 12.5%). Additive.'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().nullish(),
+  "live_approval": zod.union([zod.null(),zod.object({
+  "amount_minor": zod.number().nullish(),
+  "approver_id": zod.uuid(),
+  "capability": zod.string().describe('Capability key, e.g. `orders.void`.'),
+  "id": zod.uuid(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for an act capped by `max_percent` (a discount). Additive.'),
+  "value_minor": zod.number().nullish().describe('The value an approval covered (`max_value` limits, e.g. a waste).')
+}).describe('A manager\'s one-time PIN approval for the LIVE settle route (owner,\n2026-09-17), same shape and same verification as the replay one.\nAdditive.')]).optional(),
   "loyalty_customer_id": zod.uuid().nullish().describe('The member spending a balance on this settle, when rewards are applied.'),
   "loyalty_redemptions": zod.array(zod.object({
   "item_index": zod.number().min(settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin).nullish().describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.\n\nOptional because a TICKET settle names its lines by id instead (see\n`ticket_line_id`) and the server fills this in — a till settling a ticket\ncannot see the order the server will flatten its rounds into, and a\nguessed index takes the wrong item off the bill.'),
@@ -9507,6 +9549,14 @@ export const CreateOrderBody = zod.object({
   "size_label": zod.string().nullish(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })),
+  "live_approval": zod.union([zod.null(),zod.object({
+  "amount_minor": zod.number().nullish(),
+  "approver_id": zod.uuid(),
+  "capability": zod.string().describe('Capability key, e.g. `orders.void`.'),
+  "id": zod.uuid(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for an act capped by `max_percent` (a discount). Additive.'),
+  "value_minor": zod.number().nullish().describe('The value an approval covered (`max_value` limits, e.g. a waste).')
+}).describe('A manager\'s one-time PIN approval for the LIVE route (owner,\n2026-09-17): the offline queue has always carried an `approval` on the\nreplay envelope; this is the same object, sent with the live request\ninstead, so a live over-cap discount need not queue to be approved.\nVerified the same way replay verifies one; `discount_approval_id`\nabove is set from its `id` once verified. Additive.')]).optional(),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member spending a balance on this sale. Required when\n`loyalty_redemptions` is non-empty, and ONLY for that: earning is a\nseparate, later act (`POST \/loyalty\/award`), so a sale that redeems\nnothing never names a member here.'),
   "loyalty_redemptions": zod.array(zod.object({
   "item_index": zod.number().min(createOrderBodyLoyaltyRedemptionsItemItemIndexMin).nullish().describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.\n\nOptional because a TICKET settle names its lines by id instead (see\n`ticket_line_id`) and the server fills this in — a till settling a ticket\ncannot see the order the server will flatten its rounds into, and a\nguessed index takes the wrong item off the bill.'),

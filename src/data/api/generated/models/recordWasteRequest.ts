@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { ReplayApproval } from './replayApproval';
 
 /**
  * One waste as a till (or the API) records it.
@@ -10,6 +11,7 @@ export interface RecordWasteRequest {
   device_id?: string | null;
   /** Client-minted; the idempotency key. */
   id: string;
+  live_approval?: null | ReplayApproval;
   /** @nullable */
   note?: string | null;
   /**

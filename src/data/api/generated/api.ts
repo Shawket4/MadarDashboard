@@ -93,6 +93,8 @@ import type {
   BranchTellerStatsParams,
   BranchWaiterStatsParams,
   BranchWasteReportParams,
+  BulkReviewRequest,
+  BulkReviewResult,
   BundlePerformanceParams,
   BundlePerformanceResponse,
   BundleSalesRow,
@@ -2086,6 +2088,79 @@ export function useListFlags<TData = Awaited<ReturnType<typeof listFlags>>, TErr
 
 
 
+
+/**
+ * @summary Resolve many flags at once — "select many" or "everything for this till or
+day" from the dashboard's review queue (owner, 2026-09-17). Extends
+[`review_flag`] rather than duplicating it: same capability, same
+semantics (an acknowledgement, not an approval), now with an optional note
+and one id at a time so a bad id among many never loses the rest.
+ */
+export const bulkReviewFlags = (
+    bulkReviewRequest: BulkReviewRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BulkReviewResult>(
+      {url: `/authz/flags/bulk-review`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: bulkReviewRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBulkReviewFlagsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkReviewFlags>>, TError,{data: BulkReviewRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof bulkReviewFlags>>, TError,{data: BulkReviewRequest}, TContext> => {
+
+const mutationKey = ['bulkReviewFlags'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkReviewFlags>>, {data: BulkReviewRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  bulkReviewFlags(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BulkReviewFlagsMutationResult = NonNullable<Awaited<ReturnType<typeof bulkReviewFlags>>>
+    export type BulkReviewFlagsMutationBody = BulkReviewRequest
+    export type BulkReviewFlagsMutationError = ErrorBody
+
+    /**
+ * @summary Resolve many flags at once — "select many" or "everything for this till or
+day" from the dashboard's review queue (owner, 2026-09-17). Extends
+[`review_flag`] rather than duplicating it: same capability, same
+semantics (an acknowledgement, not an approval), now with an optional note
+and one id at a time so a bad id among many never loses the rest.
+ */
+export const useBulkReviewFlags = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkReviewFlags>>, TError,{data: BulkReviewRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof bulkReviewFlags>>,
+        TError,
+        {data: BulkReviewRequest},
+        TContext
+      > => {
+      return useMutation(getBulkReviewFlagsMutationOptions(options), queryClient);
+    }
 
 /**
  * @summary Mark one flag as looked at. It is an acknowledgement, not an approval: the
