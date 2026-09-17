@@ -1260,7 +1260,19 @@
       "nothingOnHand": "لا يوجد متوفر",
       "recorded": "تم تسجيل الهالك",
       "reportFailed": "تعذّر تحميل الهالك حسب السبب",
-      "noReasonData": "يظهر الهالك حسب السبب بمجرد تسجيل هالك في هذه الفترة."
+      "noReasonData": "يظهر الهالك حسب السبب بمجرد تسجيل هالك في هذه الفترة.",
+      "source": "المصدر",
+      "sources": {
+        "pos": "نقطة البيع",
+        "dashboard": "لوحة التحكم",
+        "order": "طلب ملغى"
+      },
+      "device": "الجهاز {{name}}",
+      "deviceColumn": "الجهاز",
+      "approvedBy": "وافق {{name}}",
+      "approvedByColumn": "وافق عليه",
+      "fromItem": "من {{item}} × {{qty}}",
+      "item": "صنف المنيو"
     },
     "stocktakes": {
       "title": "جرد المخزون",
@@ -1988,7 +2000,15 @@
     "amountOff": "خصم {{value}}",
     "activate": "تفعيل الخصم",
     "deactivate": "تعطيل الخصم",
-    "deleteConsequence": "لن يتمكن الكاشير من تطبيقه عند الدفع، وتحتفظ الطلبات السابقة بالخصم الذي حصلت عليه."
+    "deleteConsequence": "لن يتمكن الكاشير من تطبيقه عند الدفع، وتحتفظ الطلبات السابقة بالخصم الذي حصلت عليه.",
+    "kind": {
+      "preset": "خصم جاهز",
+      "manualAmount": "مبلغ يدوي",
+      "manualPercent": "نسبة يدوية",
+      "unattributed": "غير مسجل"
+    },
+    "appliedBy": "بواسطة {{name}}",
+    "approvedBy": "بموافقة {{name}}"
   },
   "bundles": {
     "title": "الباقات",
@@ -5214,7 +5234,10 @@
       "byIssuer": "حسب الموظف",
       "eventsCount": "{{n}} حدث",
       "eventPoints": "النقاط المعدّلة",
-      "byType": "حسب النوع"
+      "byType": "حسب النوع",
+      "byKind": "حسب النوع",
+      "discountSales": "المبيعات المخصومة",
+      "flagged": "مُعلَّم"
     },
     "loyalty": {
       "title": "الولاء",

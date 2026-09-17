@@ -114,13 +114,17 @@ export function PublicOrderingPage({
   const [historyOpen, setHistoryOpen] = useState(false);
 
   // Profile data loads in the background after phone is resolved (non-blocking).
+  // The backend REQUIRES the OTP device token for history and saved addresses
+  // (401 without it), so only ask when we have one; with no token the guest
+  // simply has no history/saved addresses (e.g. branches with OTP turned off).
+  const hasGuestToken = !!resolvedPhone?.deviceToken;
   const { data: orders = [] } = useGuestOrderHistory(
     {
       phone: resolvedPhone ? normalizePhone(resolvedPhone.phone) : "",
       org_id: orgId,
       device_token: resolvedPhone?.deviceToken || null,
     },
-    { query: { enabled: !!resolvedPhone, staleTime: 60_000, retry: false } },
+    { query: { enabled: hasGuestToken, staleTime: 60_000, retry: false } },
   );
   const { data: locations = [] } = useGuestPastLocations(
     {
@@ -128,7 +132,7 @@ export function PublicOrderingPage({
       org_id: orgId,
       device_token: resolvedPhone?.deviceToken || null,
     },
-    { query: { enabled: !!resolvedPhone, staleTime: 60_000, retry: false } },
+    { query: { enabled: hasGuestToken, staleTime: 60_000, retry: false } },
   );
 
   // Derive customer name from the most recent order (for checkout pre-fill).
@@ -637,6 +641,12 @@ export function PublicOrderingPage({
         data: { phone: normalizePhone(form.phone), code },
       });
       setDeviceToken(form.phone, res.device_token);
+      // A token verified at checkout also unlocks this guest's history.
+      setResolvedPhone((prev) =>
+        prev && normalizePhone(prev.phone) === normalizePhone(form.phone)
+          ? { ...prev, deviceToken: res.device_token }
+          : prev,
+      );
       await submitOrder(res.device_token);
     } catch {
       setOtpError(t("order.otp.errInvalid"));

@@ -33,8 +33,32 @@ export interface CreateOrderRequest {
   device_id?: string | null;
   /** @nullable */
   discount_amount?: number | null;
+  /**
+     * Who put the discount on the sale (the signed-in till person). Read on
+     * replay only; live, it is the caller. Additive.
+     * @nullable
+     */
+  discount_applied_by?: string | null;
+  /**
+     * The manager approval (`approval.id` on the replay envelope) that let
+     * the discount past the person's cap. Additive.
+     * @nullable
+     */
+  discount_approval_id?: string | null;
   /** @nullable */
   discount_id?: string | null;
+  /**
+     * Which discount act this is: `preset` | `manual_amount` | `manual_percent`.
+     * Absent (older clients): a `discount_id` means preset, an ad-hoc discount
+     * is manual of its type. Additive.
+     * @nullable
+     */
+  discount_kind?: string | null;
+  /**
+     * The percentage asked for, in basis points (1250 = 12.5%). Additive.
+     * @nullable
+     */
+  discount_percent_bps?: number | null;
   /** @nullable */
   discount_type?: string | null;
   /** @nullable */
