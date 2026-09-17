@@ -77,6 +77,7 @@ import type {
   BranchMenuOverride,
   BranchMenuOverrideInput,
   BranchPoLeadTimeParams,
+  BranchPosMetricsParams,
   BranchQrParams,
   BranchSalesParams,
   BranchSalesPeakDaysParams,
@@ -409,6 +410,7 @@ import type {
   PinSuggestion,
   PoLeadTimeReport,
   PolicyEntry,
+  PosMetricsReport,
   PrepTimeInput,
   PreviewIngredient,
   PreviewRecipeRequest,
@@ -462,6 +464,7 @@ import type {
   RecipeLinkInfo,
   RecipeStep,
   RecipeStepPreset,
+  RecordWasteRequest,
   RefundFull,
   RefundIssued,
   RefundsAuditParams,
@@ -584,6 +587,7 @@ import type {
   WaiveDeductionRequest,
   WaiversAuditParams,
   WalletStatus,
+  WasteRecorded,
   WasteReportRow,
   WhatsappStatus,
   WorkShift,
@@ -12825,6 +12829,71 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUpdateTransferMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary POST /inventory/waste — record waste at a branch (ingredient or menu item).
+ */
+export const recordWaste = (
+    recordWasteRequest: RecordWasteRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<WasteRecorded>(
+      {url: `/inventory/waste`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: recordWasteRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getRecordWasteMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordWaste>>, TError,{data: RecordWasteRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordWaste>>, TError,{data: RecordWasteRequest}, TContext> => {
+
+const mutationKey = ['recordWaste'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordWaste>>, {data: RecordWasteRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordWaste(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordWasteMutationResult = NonNullable<Awaited<ReturnType<typeof recordWaste>>>
+    export type RecordWasteMutationBody = RecordWasteRequest
+    export type RecordWasteMutationError = ErrorBody
+
+    /**
+ * @summary POST /inventory/waste — record waste at a branch (ingredient or menu item).
+ */
+export const useRecordWaste = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordWaste>>, TError,{data: RecordWasteRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recordWaste>>,
+        TError,
+        {data: RecordWasteRequest},
+        TContext
+      > => {
+      return useMutation(getRecordWasteMutationOptions(options), queryClient);
     }
 
 export const bump = (
@@ -27803,6 +27872,101 @@ export function useBranchPoLeadTime<TData = Awaited<ReturnType<typeof branchPoLe
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getBranchPoLeadTimeQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const branchPosMetrics = (
+    branchId: string,
+    params: BranchPosMetricsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PosMetricsReport>(
+      {url: `/reports/branches/${branchId}/pos-metrics`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchPosMetricsQueryKey = (branchId: string,
+    params?: BranchPosMetricsParams,) => {
+    return [
+    `/reports/branches/${branchId}/pos-metrics`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchPosMetricsQueryOptions = <TData = Awaited<ReturnType<typeof branchPosMetrics>>, TError = ErrorBody>(branchId: string,
+    params: BranchPosMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchPosMetricsQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchPosMetrics>>> = ({ signal }) => branchPosMetrics(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchPosMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof branchPosMetrics>>>
+export type BranchPosMetricsQueryError = ErrorBody
+
+
+export function useBranchPosMetrics<TData = Awaited<ReturnType<typeof branchPosMetrics>>, TError = ErrorBody>(
+ branchId: string,
+    params: BranchPosMetricsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchPosMetrics>>,
+          TError,
+          Awaited<ReturnType<typeof branchPosMetrics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchPosMetrics<TData = Awaited<ReturnType<typeof branchPosMetrics>>, TError = ErrorBody>(
+ branchId: string,
+    params: BranchPosMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchPosMetrics>>,
+          TError,
+          Awaited<ReturnType<typeof branchPosMetrics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchPosMetrics<TData = Awaited<ReturnType<typeof branchPosMetrics>>, TError = ErrorBody>(
+ branchId: string,
+    params: BranchPosMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchPosMetrics<TData = Awaited<ReturnType<typeof branchPosMetrics>>, TError = ErrorBody>(
+ branchId: string,
+    params: BranchPosMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchPosMetricsQueryOptions(branchId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

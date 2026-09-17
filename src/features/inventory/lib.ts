@@ -153,3 +153,56 @@ export const STOCKTAKE_STATUS_TONES: Record<string, StatusTone> = {
   finalized: "success",
   cancelled: "danger",
 };
+
+/**
+ * Where a waste log line came from: the till (`pos`), the dashboard, a refunded
+ * sale (`refund`: the food was served, so its stock stays deducted and counts
+ * as waste), or a made order voided before voids always restocked (`order`).
+ * Older backends send no source: a line tied to an order is a void, anything
+ * else was entered here.
+ */
+export type WasteSource = "pos" | "dashboard" | "refund" | "order";
+
+export function wasteSource(m: {
+  waste_source?: string | null;
+  source_type?: string | null;
+}): WasteSource {
+  if (
+    m.waste_source === "pos" ||
+    m.waste_source === "order" ||
+    m.waste_source === "refund" ||
+    m.waste_source === "dashboard"
+  ) {
+    return m.waste_source;
+  }
+  if (m.source_type === "refund") return "refund";
+  return m.source_type === "order" ? "order" : "dashboard";
+}
+
+/** When it happened: on the device for a till's queued waste, else when it was posted. */
+export function wasteWhen(m: { occurred_at?: string | null; created_at: string }): string {
+  return m.occurred_at ?? m.created_at;
+}
+
+/**
+ * A queued waste reaches the server later than it happened. The log shows the
+ * receive time as secondary info only when the gap is meaningful: more than
+ * {@link RECEIVED_LATE_MS} (5 minutes) either way. Null otherwise.
+ */
+export const RECEIVED_LATE_MS = 5 * 60 * 1000;
+
+export function wasteReceivedLate(m: {
+  occurred_at?: string | null;
+  received_at?: string | null;
+  created_at: string;
+}): string | null {
+  const received = m.received_at ?? m.created_at;
+  if (!m.occurred_at) return null;
+  const gap = Math.abs(Date.parse(received) - Date.parse(m.occurred_at));
+  return Number.isFinite(gap) && gap > RECEIVED_LATE_MS ? received : null;
+}
+
+/** Stock below zero is allowed (a till that was offline could not know), and always shown as such. */
+export function isBelowZero(onHand: number | null | undefined): boolean {
+  return onHand != null && Number.isFinite(onHand) && onHand < 0;
+}

@@ -1165,7 +1165,9 @@
       "reorderLevels": "Reorder levels",
       "reorderPoint": "Reorder point",
       "uncategorized": "Uncategorized",
-      "yieldPct": "Yield % (after trim/loss)"
+      "yieldPct": "Yield % (after trim/loss)",
+      "belowZero": "Below zero",
+      "belowZeroHint": "{{qty}} (below zero)"
     },
     "stock": {
       "title": "Branch stock",
@@ -1232,7 +1234,9 @@
         "damaged": "Damaged",
         "overproduction": "Overproduction",
         "theft": "Theft",
-        "other": "Other"
+        "other": "Other",
+        "refund": "Refunded sale",
+        "order_cancelled": "Voided order"
       },
       "onHandHint": "{{qty}} {{unit}} on hand",
       "byReason": "By reason",
@@ -1249,7 +1253,24 @@
       "nothingOnHand": "nothing on hand",
       "recorded": "Waste recorded",
       "reportFailed": "Couldn't load waste by reason",
-      "noReasonData": "Waste by reason appears once waste is logged in this period."
+      "noReasonData": "Waste by reason appears once waste is logged in this period.",
+      "source": "Source",
+      "sources": {
+        "pos": "Till",
+        "dashboard": "Dashboard",
+        "order": "Voided order",
+        "refund": "Refund"
+      },
+      "device": "Device {{name}}",
+      "deviceColumn": "Device",
+      "approvedBy": "Approved by {{name}}",
+      "approvedByColumn": "Approved by",
+      "fromItem": "From {{item}} × {{qty}}",
+      "item": "Menu item",
+      "received": "Received {{when}}",
+      "receivedColumn": "Received",
+      "refundOf": "Refund of order {{number}}",
+      "orderColumn": "Order"
     },
     "stocktakes": {
       "title": "Stock counts",
@@ -1970,7 +1991,15 @@
     "amountOff": "{{value}} off",
     "activate": "Activate discount",
     "deactivate": "Deactivate discount",
-    "deleteConsequence": "Cashiers can no longer apply it at checkout. Past orders keep the discount they were given."
+    "deleteConsequence": "Cashiers can no longer apply it at checkout. Past orders keep the discount they were given.",
+    "kind": {
+      "preset": "Preset",
+      "manualAmount": "Amount by hand",
+      "manualPercent": "Percent by hand",
+      "unattributed": "Not recorded"
+    },
+    "appliedBy": "by {{name}}",
+    "approvedBy": "approved by {{name}}"
   },
   "bundles": {
     "title": "Bundles",
@@ -5069,7 +5098,10 @@
       "byIssuer": "By staff member",
       "eventsCount": "{{n}} events",
       "eventPoints": "Points moved",
-      "byType": "By type"
+      "byType": "By type",
+      "byKind": "By kind",
+      "discountSales": "Discounted sales",
+      "flagged": "Flagged"
     },
     "loyalty": {
       "title": "Loyalty",

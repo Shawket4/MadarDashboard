@@ -8,7 +8,11 @@ export interface VoidOrderRequest {
      */
   note?: string | null;
   reason: string;
-  /** @nullable */
+  /**
+     * Ignored: a void always puts the sale's stock back. Kept so older tills
+     * that still send it are read, not refused.
+     * @nullable
+     */
   restore_inventory?: boolean | null;
   /** @nullable */
   voided_at?: string | null;

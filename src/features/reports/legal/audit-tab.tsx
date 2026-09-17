@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Coins, ListChecks, UserRound } from "lucide-react";
+import { Coins, ListChecks, Tag, UserRound } from "lucide-react";
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AuditReport } from "@/data/api/generated/models";
+import { Badge } from "@/components/ui/badge";
+import type { AuditReport, DiscountAuditEntry } from "@/data/api/generated/models";
+import { bpsLabel, discountKindLabel } from "@/features/discounts/discount-attribution";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
-import { fmtMoney, fmtNumber } from "@/lib/format";
+import { fmtDateTime, fmtMoney, fmtNumber } from "@/lib/format";
 
 interface AuditRow {
   label: string;
@@ -120,6 +122,15 @@ export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: 
         <div className="grid gap-4 lg:grid-cols-2">
           <BreakdownCard icon={ListChecks} title={reasonLabel} rows={d.by_reason} amount={amount} />
           <BreakdownCard icon={UserRound} title={t("reports.legal.byIssuer", "By staff member")} rows={d.by_issuer} amount={amount} />
+          {d.by_kind ? (
+            <BreakdownCard
+              icon={Tag}
+              title={t("reports.legal.byKind", "By kind")}
+              rows={d.by_kind.map((r) => ({ ...r, label: discountKindLabel(t, r.label) }))}
+              amount={amount}
+            />
+          ) : null}
+          {d.entries && d.entries.length > 0 ? <DiscountEntriesCard entries={d.entries} /> : null}
         </div>
       )}
     </div>
@@ -166,6 +177,50 @@ function BreakdownCard({
             ))}
           </ul>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The discounts audit's per-sale list: what kind, how much, who applied it,
+ * who approved it, and whether the server flagged it. */
+function DiscountEntriesCard({ entries }: { entries: DiscountAuditEntry[] }) {
+  const { t } = useTranslation();
+  return (
+    <Card className="py-0 lg:col-span-2">
+      <CardHeader className="pt-4">
+        <CardTitle className="flex items-center gap-1.5 text-base">
+          <ListChecks aria-hidden className="size-4 text-muted-foreground" />
+          {t("reports.legal.discountSales", "Discounted sales")}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <ul className="divide-y text-sm">
+          {entries.map((e) => (
+            <li key={e.order_id} className="flex items-center justify-between gap-3 py-2.5">
+              <div className="min-w-0">
+                <p className="flex flex-wrap items-center gap-2 font-medium">
+                  <span className="truncate">{e.order_ref ?? e.order_id.slice(0, 8)}</span>
+                  <span className="text-muted-foreground">{discountKindLabel(t, e.kind)}</span>
+                  {e.preset_name ? <span>{e.preset_name}</span> : null}
+                  {bpsLabel(e.percent_bps) ? <span className="font-mono tabular-nums">{bpsLabel(e.percent_bps)}</span> : null}
+                  {e.flagged ? <Badge variant="destructive">{t("reports.legal.flagged", "Flagged")}</Badge> : null}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {[
+                    e.branch_name,
+                    fmtDateTime(e.created_at),
+                    e.applied_by_name ? t("discounts.appliedBy", { defaultValue: "by {{name}}", name: e.applied_by_name }) : null,
+                    e.approved_by_name ? t("discounts.approvedBy", { defaultValue: "approved by {{name}}", name: e.approved_by_name }) : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              </div>
+              <span className="shrink-0 font-mono tabular-nums">{fmtMoney(e.amount_minor)}</span>
+            </li>
+          ))}
+        </ul>
       </CardContent>
     </Card>
   );

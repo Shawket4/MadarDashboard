@@ -5261,6 +5261,7 @@ export const ListMovementsQueryParams = zod.object({
 })
 
 export const ListMovementsResponseItem = zod.object({
+  "approved_by_name": zod.string().nullish().describe('The manager who approved it on the till.'),
   "balance_after": zod.number(),
   "below_zero": zod.boolean(),
   "branch_id": zod.uuid(),
@@ -5269,17 +5270,32 @@ export const ListMovementsResponseItem = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "created_by_name": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_name": zod.string().nullish(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
   "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
+  "occurred_at": zod.iso.datetime({"offset":true}).nullish().describe('When the waste HAPPENED: the device\'s time for a till waste, the\nrefund\'s `issued_at`, the void\'s `voided_at`, else the post time. The\nlog is ordered by it.'),
+  "order_display_number": zod.string().nullish(),
+  "order_id": zod.uuid().nullish().describe('A refund\'s or void\'s waste: the sale.'),
+  "received_at": zod.iso.datetime({"offset":true}).nullish().describe('When the server received it (= `created_at`). Differs from\n`occurred_at` when a till queued the waste offline.'),
+  "refund_id": zod.uuid().nullish().describe('A refund\'s waste: the refund it came from.'),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number().describe('Signed delta applied to stock (consumption negative, replenishment positive).'),
   "reason": zod.string().nullish(),
   "source_id": zod.uuid().nullish(),
   "source_type": zod.string().nullish(),
+  "till_id": zod.uuid().nullish(),
   "unit": zod.string(),
-  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.')
+  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.'),
+  "waste_quantity": zod.number().nullish().describe('The quantity as the person typed it, in `waste_unit`.'),
+  "waste_size_label": zod.string().nullish(),
+  "waste_source": zod.string().nullish().describe('`pos` | `dashboard` | `refund` (a refunded sale\'s stock) | `order` (a\nmade order voided before voids always restocked).'),
+  "waste_subject_kind": zod.string().nullish().describe('`ingredient` | `menu_item`, when the waste was recorded with a header.'),
+  "waste_subject_name": zod.string().nullish().describe('What the person picked (the menu item for an exploded item waste).'),
+  "waste_unit": zod.string().nullish(),
+  "waste_value_minor": zod.number().nullish().describe('The whole waste\'s value (all its lines), piastres.')
 })
 export const ListMovementsResponse = zod.array(ListMovementsResponseItem)
 
@@ -5378,6 +5394,7 @@ export const ListWasteQueryParams = zod.object({
 })
 
 export const ListWasteResponseItem = zod.object({
+  "approved_by_name": zod.string().nullish().describe('The manager who approved it on the till.'),
   "balance_after": zod.number(),
   "below_zero": zod.boolean(),
   "branch_id": zod.uuid(),
@@ -5386,17 +5403,32 @@ export const ListWasteResponseItem = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "created_by_name": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_name": zod.string().nullish(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
   "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
+  "occurred_at": zod.iso.datetime({"offset":true}).nullish().describe('When the waste HAPPENED: the device\'s time for a till waste, the\nrefund\'s `issued_at`, the void\'s `voided_at`, else the post time. The\nlog is ordered by it.'),
+  "order_display_number": zod.string().nullish(),
+  "order_id": zod.uuid().nullish().describe('A refund\'s or void\'s waste: the sale.'),
+  "received_at": zod.iso.datetime({"offset":true}).nullish().describe('When the server received it (= `created_at`). Differs from\n`occurred_at` when a till queued the waste offline.'),
+  "refund_id": zod.uuid().nullish().describe('A refund\'s waste: the refund it came from.'),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number().describe('Signed delta applied to stock (consumption negative, replenishment positive).'),
   "reason": zod.string().nullish(),
   "source_id": zod.uuid().nullish(),
   "source_type": zod.string().nullish(),
+  "till_id": zod.uuid().nullish(),
   "unit": zod.string(),
-  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.')
+  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.'),
+  "waste_quantity": zod.number().nullish().describe('The quantity as the person typed it, in `waste_unit`.'),
+  "waste_size_label": zod.string().nullish(),
+  "waste_source": zod.string().nullish().describe('`pos` | `dashboard` | `refund` (a refunded sale\'s stock) | `order` (a\nmade order voided before voids always restocked).'),
+  "waste_subject_kind": zod.string().nullish().describe('`ingredient` | `menu_item`, when the waste was recorded with a header.'),
+  "waste_subject_name": zod.string().nullish().describe('What the person picked (the menu item for an exploded item waste).'),
+  "waste_unit": zod.string().nullish(),
+  "waste_value_minor": zod.number().nullish().describe('The whole waste\'s value (all its lines), piastres.')
 })
 export const ListWasteResponse = zod.array(ListWasteResponseItem)
 
@@ -5413,6 +5445,7 @@ export const CreateWasteBody = zod.object({
 })
 
 export const CreateWasteResponse = zod.object({
+  "approved_by_name": zod.string().nullish().describe('The manager who approved it on the till.'),
   "balance_after": zod.number(),
   "below_zero": zod.boolean(),
   "branch_id": zod.uuid(),
@@ -5421,17 +5454,32 @@ export const CreateWasteResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "created_by_name": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_name": zod.string().nullish(),
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
   "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
+  "occurred_at": zod.iso.datetime({"offset":true}).nullish().describe('When the waste HAPPENED: the device\'s time for a till waste, the\nrefund\'s `issued_at`, the void\'s `voided_at`, else the post time. The\nlog is ordered by it.'),
+  "order_display_number": zod.string().nullish(),
+  "order_id": zod.uuid().nullish().describe('A refund\'s or void\'s waste: the sale.'),
+  "received_at": zod.iso.datetime({"offset":true}).nullish().describe('When the server received it (= `created_at`). Differs from\n`occurred_at` when a till queued the waste offline.'),
+  "refund_id": zod.uuid().nullish().describe('A refund\'s waste: the refund it came from.'),
   "org_ingredient_id": zod.uuid(),
   "quantity": zod.number().describe('Signed delta applied to stock (consumption negative, replenishment positive).'),
   "reason": zod.string().nullish(),
   "source_id": zod.uuid().nullish(),
   "source_type": zod.string().nullish(),
+  "till_id": zod.uuid().nullish(),
   "unit": zod.string(),
-  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.')
+  "unit_cost": zod.number().nullish().describe('Piastres per unit at movement time; `null` ⟺ unknown.'),
+  "waste_quantity": zod.number().nullish().describe('The quantity as the person typed it, in `waste_unit`.'),
+  "waste_size_label": zod.string().nullish(),
+  "waste_source": zod.string().nullish().describe('`pos` | `dashboard` | `refund` (a refunded sale\'s stock) | `order` (a\nmade order voided before voids always restocked).'),
+  "waste_subject_kind": zod.string().nullish().describe('`ingredient` | `menu_item`, when the waste was recorded with a header.'),
+  "waste_subject_name": zod.string().nullish().describe('What the person picked (the menu item for an exploded item waste).'),
+  "waste_unit": zod.string().nullish(),
+  "waste_value_minor": zod.number().nullish().describe('The whole waste\'s value (all its lines), piastres.')
 })
 
 
@@ -5706,6 +5754,53 @@ export const UpdateTransferResponse = zod.object({
   "source_branch_id": zod.uuid(),
   "source_branch_name": zod.string(),
   "unit": zod.string()
+})
+
+
+/**
+ * @summary POST /inventory/waste — record waste at a branch (ingredient or menu item).
+ */
+export const RecordWasteBody = zod.object({
+  "branch_id": zod.uuid(),
+  "device_id": zod.uuid().nullish(),
+  "id": zod.uuid().describe('Client-minted; the idempotency key.'),
+  "note": zod.string().nullish(),
+  "occurred_at": zod.iso.datetime({"offset":true}).nullish().describe('When it happened on the device. Default: now.'),
+  "quantity": zod.number().describe('In `unit`. Whole units for a menu item.'),
+  "reason": zod.string().describe('expired | spoiled | damaged | overproduction | theft | other'),
+  "size_label": zod.string().nullish().describe('Menu items only: the size whose recipe is wasted (default: the first size).'),
+  "subject_id": zod.uuid().describe('An org ingredient id, or a menu item id.'),
+  "subject_kind": zod.string().describe('`ingredient` | `menu_item`'),
+  "till_id": zod.uuid().nullish(),
+  "unit": zod.string().nullish().describe('`g` | `kg` | `ml` | `l` | `pcs`. Default: the ingredient\'s own unit; a\nmenu item is always `pcs`.')
+}).describe('One waste as a till (or the API) records it.')
+
+export const RecordWasteResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "created": zod.boolean().describe('`false` when this id had already been recorded (nothing new was posted).'),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "balance_after": zod.number(),
+  "below_zero": zod.boolean(),
+  "ingredient_name": zod.string(),
+  "movement_id": zod.uuid(),
+  "org_ingredient_id": zod.uuid(),
+  "quantity": zod.number().describe('Signed ledger delta (negative), in the ingredient\'s unit.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Piastres per unit; `null` = unknown.')
+}).describe('One ingredient line of a recorded waste.')),
+  "note": zod.string().nullish(),
+  "occurred_at": zod.iso.datetime({"offset":true}),
+  "quantity": zod.number(),
+  "reason": zod.string(),
+  "recorded_by": zod.uuid().nullish(),
+  "size_label": zod.string().nullish(),
+  "source": zod.string(),
+  "subject_kind": zod.string(),
+  "subject_name": zod.string(),
+  "unit": zod.string(),
+  "value_minor": zod.number().nullish().describe('Piastres at the branch\'s unit costs; `null` when no line had a cost.'),
+  "value_partial": zod.boolean()
 })
 
 
@@ -9071,7 +9166,13 @@ export const SettleOpenTicketResponse = zod.object({
   "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
   "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
+  "discount_applied_by": zod.uuid().nullish().describe('Who applied the discount. Additive.'),
+  "discount_applied_by_name": zod.string().nullish(),
+  "discount_approval_id": zod.uuid().nullish().describe('The manager approval that let the discount past the person\'s cap. Additive.'),
+  "discount_approved_by_name": zod.string().nullish().describe('The approving manager\'s name, when the approval was recorded. Additive.'),
   "discount_id": zod.uuid().nullish(),
+  "discount_kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`; `null` without a\ndiscount or on sales from before discounts were attributed. Additive.'),
+  "discount_percent_bps": zod.number().nullish().describe('The percentage asked for, in basis points. Additive.'),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
@@ -9275,7 +9376,13 @@ export const ListOrdersResponse = zod.object({
   "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
   "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
+  "discount_applied_by": zod.uuid().nullish().describe('Who applied the discount. Additive.'),
+  "discount_applied_by_name": zod.string().nullish(),
+  "discount_approval_id": zod.uuid().nullish().describe('The manager approval that let the discount past the person\'s cap. Additive.'),
+  "discount_approved_by_name": zod.string().nullish().describe('The approving manager\'s name, when the approval was recorded. Additive.'),
   "discount_id": zod.uuid().nullish(),
+  "discount_kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`; `null` without a\ndiscount or on sales from before discounts were attributed. Additive.'),
+  "discount_percent_bps": zod.number().nullish().describe('The percentage asked for, in basis points. Additive.'),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
@@ -9363,7 +9470,11 @@ export const CreateOrderBody = zod.object({
   "device_code": zod.string().nullish().describe('The device\'s code; with `device_id` + `order_number` the number is stored verbatim.'),
   "device_id": zod.uuid().nullish().describe('The device ringing the order (else `X-Madar-Device`).'),
   "discount_amount": zod.number().nullish(),
+  "discount_applied_by": zod.uuid().nullish().describe('Who put the discount on the sale (the signed-in till person). Read on\nreplay only; live, it is the caller. Additive.'),
+  "discount_approval_id": zod.uuid().nullish().describe('The manager approval (`approval.id` on the replay envelope) that let\nthe discount past the person\'s cap. Additive.'),
   "discount_id": zod.uuid().nullish(),
+  "discount_kind": zod.string().nullish().describe('Which discount act this is: `preset` | `manual_amount` | `manual_percent`.\nAbsent (older clients): a `discount_id` means preset, an ad-hoc discount\nis manual of its type. Additive.'),
+  "discount_percent_bps": zod.number().nullish().describe('The percentage asked for, in basis points (1250 = 12.5%). Additive.'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().nullish(),
   "idempotency_key": zod.uuid().nullish(),
@@ -9431,7 +9542,13 @@ export const CreateOrderResponse = zod.object({
   "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
   "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
+  "discount_applied_by": zod.uuid().nullish().describe('Who applied the discount. Additive.'),
+  "discount_applied_by_name": zod.string().nullish(),
+  "discount_approval_id": zod.uuid().nullish().describe('The manager approval that let the discount past the person\'s cap. Additive.'),
+  "discount_approved_by_name": zod.string().nullish().describe('The approving manager\'s name, when the approval was recorded. Additive.'),
   "discount_id": zod.uuid().nullish(),
+  "discount_kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`; `null` without a\ndiscount or on sales from before discounts were attributed. Additive.'),
+  "discount_percent_bps": zod.number().nullish().describe('The percentage asked for, in basis points. Additive.'),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
@@ -9611,7 +9728,13 @@ export const ExportOrdersResponse = zod.object({
   "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
   "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
+  "discount_applied_by": zod.uuid().nullish().describe('Who applied the discount. Additive.'),
+  "discount_applied_by_name": zod.string().nullish(),
+  "discount_approval_id": zod.uuid().nullish().describe('The manager approval that let the discount past the person\'s cap. Additive.'),
+  "discount_approved_by_name": zod.string().nullish().describe('The approving manager\'s name, when the approval was recorded. Additive.'),
   "discount_id": zod.uuid().nullish(),
+  "discount_kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`; `null` without a\ndiscount or on sales from before discounts were attributed. Additive.'),
+  "discount_percent_bps": zod.number().nullish().describe('The percentage asked for, in basis points. Additive.'),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
@@ -9816,7 +9939,13 @@ export const GetOrderResponse = zod.object({
   "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
   "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
+  "discount_applied_by": zod.uuid().nullish().describe('Who applied the discount. Additive.'),
+  "discount_applied_by_name": zod.string().nullish(),
+  "discount_approval_id": zod.uuid().nullish().describe('The manager approval that let the discount past the person\'s cap. Additive.'),
+  "discount_approved_by_name": zod.string().nullish().describe('The approving manager\'s name, when the approval was recorded. Additive.'),
   "discount_id": zod.uuid().nullish(),
+  "discount_kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`; `null` without a\ndiscount or on sales from before discounts were attributed. Additive.'),
+  "discount_percent_bps": zod.number().nullish().describe('The percentage asked for, in basis points. Additive.'),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
@@ -9977,7 +10106,7 @@ export const VoidOrderParams = zod.object({
 export const VoidOrderBody = zod.object({
   "note": zod.string().nullish().describe('Free-text explanation. Required when `reason` is \"other\".'),
   "reason": zod.string(),
-  "restore_inventory": zod.boolean().nullish(),
+  "restore_inventory": zod.boolean().nullish().describe('Ignored: a void always puts the sale\'s stock back. Kept so older tills\nthat still send it are read, not refused.'),
   "voided_at": zod.iso.datetime({"offset":true}).nullish()
 })
 
@@ -9995,7 +10124,13 @@ export const VoidOrderResponse = zod.object({
   "device_code": zod.string().nullish().describe('That device\'s code (`36B`), stored with the order. `null` when server-numbered.'),
   "device_id": zod.uuid().nullish().describe('The device that numbered this sale (contract R4). `null` for server-numbered\norders (old clients, dashboard, delivery).'),
   "discount_amount": zod.number(),
+  "discount_applied_by": zod.uuid().nullish().describe('Who applied the discount. Additive.'),
+  "discount_applied_by_name": zod.string().nullish(),
+  "discount_approval_id": zod.uuid().nullish().describe('The manager approval that let the discount past the person\'s cap. Additive.'),
+  "discount_approved_by_name": zod.string().nullish().describe('The approving manager\'s name, when the approval was recorded. Additive.'),
   "discount_id": zod.uuid().nullish(),
+  "discount_kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`; `null` without a\ndiscount or on sales from before discounts were attributed. Additive.'),
+  "discount_percent_bps": zod.number().nullish().describe('The percentage asked for, in basis points. Additive.'),
   "discount_rate": zod.number().optional().describe('The stored value — a fraction for a percentage. Same column as\n[`Order::discount_value`].'),
   "discount_type": zod.string().nullish(),
   "discount_value": zod.number().describe('LEGACY SPELLING — an integer, 0-100 for a percentage. See\n`discounts::wire`: every shipped till was generated against `integer`,\nand a double here fails to deserialise the whole ORDER, not just this\nfield. Read [`Order::discount_rate`] for the stored number.'),
@@ -12989,6 +13124,51 @@ export const BranchPoLeadTimeResponse = zod.object({
 })
 
 
+export const BranchPosMetricsParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const BranchPosMetricsQueryParams = zod.object({
+  "from": zod.iso.date().describe('First branch-local day, `YYYY-MM-DD` (inclusive).'),
+  "to": zod.iso.date().describe('Last branch-local day, `YYYY-MM-DD` (inclusive).')
+})
+
+export const BranchPosMetricsResponse = zod.object({
+  "average_ticket": zod.number().describe('`net_sales \/ order_count`, rounded half up; 0 with no sales.'),
+  "branch_id": zod.uuid(),
+  "from": zod.iso.date(),
+  "gross_sales": zod.number(),
+  "hourly": zod.array(zod.object({
+  "hour": zod.number().describe('Branch-local hour of day, 0–23.'),
+  "net_sales": zod.number(),
+  "order_count": zod.number()
+})).describe('Always 24 rows, hour 0 first.'),
+  "net_sales": zod.number().describe('Sold sales net of refunds against them (`branch_sales.total_revenue`).'),
+  "order_count": zod.number().describe('Sold sales (`branch_sales.total_orders`).'),
+  "refunded_amount": zod.number(),
+  "refunded_orders_count": zod.number().describe('Sales refunded in full (out of every sold figure above).'),
+  "refunds_issued_amount": zod.number(),
+  "refunds_issued_count": zod.number().describe('Refunds ISSUED inside the window at this branch, whichever sale they refund.'),
+  "tenders": zod.array(zod.object({
+  "amount": zod.number(),
+  "method": zod.string(),
+  "order_count": zod.number().describe('Sold sales with at least one leg in this method.')
+})).describe('By amount, largest first.'),
+  "timezone": zod.string().describe('The IANA zone the days were cut in.'),
+  "to": zod.iso.date(),
+  "top_items": zod.array(zod.object({
+  "item_id": zod.uuid().nullish().describe('The menu item or bundle; null for a line with neither.'),
+  "item_name": zod.string(),
+  "quantity": zod.number(),
+  "revenue": zod.number().describe('Σ line totals (before refunds), as `branch_sales.top_items.revenue`.')
+})).describe('Top [`TOP_ITEMS`] by quantity (then revenue, then name).'),
+  "voided_amount": zod.number(),
+  "voided_count": zod.number(),
+  "window_from": zod.iso.datetime({"offset":true}).describe('`[window_from, window_to)`: local midnight of `from` to local midnight after `to`.'),
+  "window_to": zod.iso.datetime({"offset":true})
+})
+
+
 export const BranchSalesParams = zod.object({
   "branch_id": zod.uuid()
 })
@@ -13275,11 +13455,31 @@ export const AttendanceCorrectionsAuditResponse = zod.object({
   "count": zod.number(),
   "label": zod.string()
 })),
+  "by_kind": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
   "count": zod.number(),
   "label": zod.string()
 })),
+  "entries": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "applied_by_name": zod.string().nullish().describe('Who applied it (the till operator for older sales).'),
+  "approval_id": zod.uuid().nullish(),
+  "approved_by_name": zod.string().nullish(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "flagged": zod.boolean().describe('The sale was replayed with a discount its author was not allowed and\nno valid manager approval (`authz_replay_flags`).'),
+  "kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`, or `null` before attribution.'),
+  "order_id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for a percentage.'),
+  "preset_id": zod.uuid().nullish(),
+  "preset_name": zod.string().nullish()
+}).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
@@ -13354,11 +13554,31 @@ export const DeductionOverridesAuditResponse = zod.object({
   "count": zod.number(),
   "label": zod.string()
 })),
+  "by_kind": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
   "count": zod.number(),
   "label": zod.string()
 })),
+  "entries": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "applied_by_name": zod.string().nullish().describe('Who applied it (the till operator for older sales).'),
+  "approval_id": zod.uuid().nullish(),
+  "approved_by_name": zod.string().nullish(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "flagged": zod.boolean().describe('The sale was replayed with a discount its author was not allowed and\nno valid manager approval (`authz_replay_flags`).'),
+  "kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`, or `null` before attribution.'),
+  "order_id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for a percentage.'),
+  "preset_id": zod.uuid().nullish(),
+  "preset_name": zod.string().nullish()
+}).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
@@ -13382,11 +13602,31 @@ export const DiscountsAuditResponse = zod.object({
   "count": zod.number(),
   "label": zod.string()
 })),
+  "by_kind": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
   "count": zod.number(),
   "label": zod.string()
 })),
+  "entries": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "applied_by_name": zod.string().nullish().describe('Who applied it (the till operator for older sales).'),
+  "approval_id": zod.uuid().nullish(),
+  "approved_by_name": zod.string().nullish(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "flagged": zod.boolean().describe('The sale was replayed with a discount its author was not allowed and\nno valid manager approval (`authz_replay_flags`).'),
+  "kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`, or `null` before attribution.'),
+  "order_id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for a percentage.'),
+  "preset_id": zod.uuid().nullish(),
+  "preset_name": zod.string().nullish()
+}).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
@@ -13448,11 +13688,31 @@ export const LoyaltyAdjustmentsAuditResponse = zod.object({
   "count": zod.number(),
   "label": zod.string()
 })),
+  "by_kind": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
   "count": zod.number(),
   "label": zod.string()
 })),
+  "entries": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "applied_by_name": zod.string().nullish().describe('Who applied it (the till operator for older sales).'),
+  "approval_id": zod.uuid().nullish(),
+  "approved_by_name": zod.string().nullish(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "flagged": zod.boolean().describe('The sale was replayed with a discount its author was not allowed and\nno valid manager approval (`authz_replay_flags`).'),
+  "kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`, or `null` before attribution.'),
+  "order_id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for a percentage.'),
+  "preset_id": zod.uuid().nullish(),
+  "preset_name": zod.string().nullish()
+}).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
@@ -13476,11 +13736,31 @@ export const ManualDeductionsAuditResponse = zod.object({
   "count": zod.number(),
   "label": zod.string()
 })),
+  "by_kind": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
   "count": zod.number(),
   "label": zod.string()
 })),
+  "entries": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "applied_by_name": zod.string().nullish().describe('Who applied it (the till operator for older sales).'),
+  "approval_id": zod.uuid().nullish(),
+  "approved_by_name": zod.string().nullish(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "flagged": zod.boolean().describe('The sale was replayed with a discount its author was not allowed and\nno valid manager approval (`authz_replay_flags`).'),
+  "kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`, or `null` before attribution.'),
+  "order_id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for a percentage.'),
+  "preset_id": zod.uuid().nullish(),
+  "preset_name": zod.string().nullish()
+}).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
@@ -13553,11 +13833,31 @@ export const PriceOverridesResponse = zod.object({
   "count": zod.number(),
   "label": zod.string()
 })),
+  "by_kind": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
   "count": zod.number(),
   "label": zod.string()
 })),
+  "entries": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "applied_by_name": zod.string().nullish().describe('Who applied it (the till operator for older sales).'),
+  "approval_id": zod.uuid().nullish(),
+  "approved_by_name": zod.string().nullish(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "flagged": zod.boolean().describe('The sale was replayed with a discount its author was not allowed and\nno valid manager approval (`authz_replay_flags`).'),
+  "kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`, or `null` before attribution.'),
+  "order_id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for a percentage.'),
+  "preset_id": zod.uuid().nullish(),
+  "preset_name": zod.string().nullish()
+}).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
@@ -13581,11 +13881,31 @@ export const RefundsAuditResponse = zod.object({
   "count": zod.number(),
   "label": zod.string()
 })),
+  "by_kind": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
   "count": zod.number(),
   "label": zod.string()
 })),
+  "entries": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "applied_by_name": zod.string().nullish().describe('Who applied it (the till operator for older sales).'),
+  "approval_id": zod.uuid().nullish(),
+  "approved_by_name": zod.string().nullish(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "flagged": zod.boolean().describe('The sale was replayed with a discount its author was not allowed and\nno valid manager approval (`authz_replay_flags`).'),
+  "kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`, or `null` before attribution.'),
+  "order_id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for a percentage.'),
+  "preset_id": zod.uuid().nullish(),
+  "preset_name": zod.string().nullish()
+}).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
@@ -13675,11 +13995,31 @@ export const VoidsAuditResponse = zod.object({
   "count": zod.number(),
   "label": zod.string()
 })),
+  "by_kind": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
   "count": zod.number(),
   "label": zod.string()
 })),
+  "entries": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "applied_by_name": zod.string().nullish().describe('Who applied it (the till operator for older sales).'),
+  "approval_id": zod.uuid().nullish(),
+  "approved_by_name": zod.string().nullish(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "flagged": zod.boolean().describe('The sale was replayed with a discount its author was not allowed and\nno valid manager approval (`authz_replay_flags`).'),
+  "kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`, or `null` before attribution.'),
+  "order_id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for a percentage.'),
+  "preset_id": zod.uuid().nullish(),
+  "preset_name": zod.string().nullish()
+}).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
@@ -13703,11 +14043,31 @@ export const WaiversAuditResponse = zod.object({
   "count": zod.number(),
   "label": zod.string()
 })),
+  "by_kind": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
   "count": zod.number(),
   "label": zod.string()
 })),
+  "entries": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "applied_by_name": zod.string().nullish().describe('Who applied it (the till operator for older sales).'),
+  "approval_id": zod.uuid().nullish(),
+  "approved_by_name": zod.string().nullish(),
+  "branch_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "flagged": zod.boolean().describe('The sale was replayed with a discount its author was not allowed and\nno valid manager approval (`authz_replay_flags`).'),
+  "kind": zod.string().nullish().describe('`preset` | `manual_amount` | `manual_percent`, or `null` before attribution.'),
+  "order_id": zod.uuid(),
+  "order_ref": zod.string().nullish(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for a percentage.'),
+  "preset_id": zod.uuid().nullish(),
+  "preset_name": zod.string().nullish()
+}).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
