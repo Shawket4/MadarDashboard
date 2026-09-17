@@ -1,35 +1,102 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Coins, ListChecks, UserRound } from "lucide-react";
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
+import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AuditReport } from "@/data/api/generated/models";
+import { getErrorMessage } from "@/data/api/errors";
+import { useExportLogo } from "@/hooks/use-export-logo";
+import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
 import { fmtMoney, fmtNumber } from "@/lib/format";
+
+interface AuditRow {
+  label: string;
+  count: number;
+  amount_minor: number;
+}
 
 interface AuditTabProps {
   query: { data?: AuditReport; isLoading: boolean; isError: boolean; refetch: () => void };
   /** The 2nd breakdown card's title (`by_reason`) — "Reason", "Void reason",
    * "Discount", "Branch"… whatever the report's second axis actually is. */
   reasonLabel: string;
+  /** Sheet/filename title for the Excel export — the report's own name. */
+  exportTitle: string;
 }
 
+const AUDIT_COLS: ExcelColumn<AuditRow>[] = [
+  { header: "Label", accessor: (r) => r.label, type: "text", width: 28 },
+  { header: "Events", accessor: (r) => r.count, type: "integer", width: 12, total: true },
+  { header: "Amount", accessor: (r) => r.amount_minor, type: "money", width: 16, total: true },
+];
+
 /** Every legal/compliance audit report shares this shape (a total plus a
- * reason and an issuer breakdown), so one component renders all five. */
-export function AuditTab({ query, reasonLabel }: AuditTabProps) {
+ * reason and an issuer breakdown), so one component renders all nine. */
+export function AuditTab({ query, reasonLabel, exportTitle }: AuditTabProps) {
   const { t } = useTranslation();
   const d = query.data;
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const kpis: LedgerItem[] = [
     { key: "count", label: t("reports.legal.eventCount", "Events"), icon: ListChecks, accent: "primary", value: d?.total_count ?? 0, formatType: "number", loading: query.isLoading },
     { key: "amount", label: t("reports.legal.eventAmount", "Total amount"), icon: Coins, accent: "warning", value: d?.total_amount_minor ?? 0, formatType: "money", loading: query.isLoading },
   ];
 
+  const buildSheets = () => [
+    {
+      name: reasonLabel.slice(0, 31),
+      title: exportTitle,
+      subtitle: reasonLabel,
+      rows: (d?.by_reason ?? []) as unknown as Record<string, unknown>[],
+      columns: AUDIT_COLS as unknown as ExcelColumn<Record<string, unknown>>[],
+      stats: [
+        { label: t("reports.legal.eventCount", "Events"), value: d?.total_count ?? 0, type: "number" as const },
+        { label: t("reports.legal.eventAmount", "Total amount"), value: d?.total_amount_minor ?? 0, type: "money" as const },
+      ],
+    },
+    {
+      name: t("reports.legal.byIssuer", "By staff member").slice(0, 31),
+      title: exportTitle,
+      subtitle: t("reports.legal.byIssuer", "By staff member"),
+      rows: (d?.by_issuer ?? []) as unknown as Record<string, unknown>[],
+      columns: AUDIT_COLS as unknown as ExcelColumn<Record<string, unknown>>[],
+    },
+  ];
+
+  const handleExport = async () => {
+    if (!d) return;
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: `Madar-${exportTitle}`, logoUrl, sheets: buildSheets() });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    if (!d) return;
+    try {
+      await exportToCsv({ filename: `Madar-${exportTitle}`, sheets: buildSheets() });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
   if (query.isError) return <ErrorState onRetry={() => query.refetch()} />;
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <ExportButton onExport={handleExport} onExportCsv={handleExportCsv} loading={exporting} disabled={!d || d.total_count === 0} size="sm" />
+      </div>
       <LedgerStrip items={kpis} />
 
       {query.isLoading ? (
@@ -72,9 +139,8 @@ function BreakdownCard({
           <p className="text-sm text-muted-foreground">{t("reports.legal.empty", "Nothing recorded in this period")}</p>
         ) : (
           <ul className="divide-y text-sm">
-            {rows.map((r, i) => (
-              // Labels can repeat (two staff with the same name are separate rows).
-              <li key={`${i}:${r.label}`} className="flex items-center justify-between gap-3 py-2.5">
+            {rows.map((r) => (
+              <li key={r.label} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="min-w-0">
                   <p className="truncate font-medium">{r.label}</p>
                   <p className="text-xs text-muted-foreground">{t("reports.legal.eventsCount", { defaultValue: "{{n}} events", n: fmtNumber(r.count) })}</p>

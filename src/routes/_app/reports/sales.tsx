@@ -1,12 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AnalyticsPage } from "@/features/analytics/analytics-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** Sales reports — order/revenue/item/staff analytics.
- *  ?tab selects the report; ?gran sets the timeseries granularity. */
+/** Legacy path — sales analytics moved to Reports ▸ Operations. */
 export const Route = createFileRoute("/_app/reports/sales")({
-  validateSearch: (s: Record<string, unknown>): { tab?: string; gran?: string } => ({
-    tab: typeof s.tab === "string" ? s.tab : undefined,
-    gran: typeof s.gran === "string" ? s.gran : undefined,
-  }),
-  component: AnalyticsPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/reports/operations" });
+  },
 });

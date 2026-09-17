@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { TablesInsightsPage } from "@/features/insights/tables-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** Table analytics — turns, covers, dwell and revenue per table and cover.
- *  Branch + period come from the global scope bar. */
+/** Legacy path — table analytics is now a tab on Reports ▸ Operations. */
 export const Route = createFileRoute("/_app/reports/operations/tables")({
-  component: TablesInsightsPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/reports/operations" });
+  },
 });

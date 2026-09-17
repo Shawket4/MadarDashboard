@@ -107,7 +107,9 @@
       "rejected": "مرفوض",
       "ignored": "تم التجاهل"
     },
-    "ok": "حسنًا"
+    "ok": "حسنًا",
+    "exportExcel": "تصدير Excel",
+    "exportCsv": "تصدير CSV"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -197,7 +199,8 @@
     "customers": "العملاء",
     "choiceGroups": "مجموعات الاختيار",
     "recipeBases": "قواعد الوصفات",
-    "packagingRules": "قواعد التغليف"
+    "packagingRules": "قواعد التغليف",
+    "reportsFinancial": "المالية"
   },
   "auth": {
     "welcome": "مرحباً بعودتك",
@@ -1446,7 +1449,21 @@
       "noDataPeriod": "لا توجد بيانات مسجّلة لهذا النطاق وهذه الفترة.",
       "valuationFailed": "تعذّر تحميل تقييم المخزون",
       "unknownCostLabel": "تكلفة غير معروفة",
-      "noValuation": "تظهر قيمة المخزون حسب الفئة بعد جرد الفرع."
+      "noValuation": "تظهر قيمة المخزون حسب الفئة بعد جرد الفرع.",
+      "supplierSpend": "إنفاق الموردين",
+      "poLeadTime": "مدة توريد الطلبات",
+      "supplier": "المورد",
+      "orders": "الطلبات",
+      "totalSpend": "إجمالي الإنفاق",
+      "ordersReceived": "الطلبات المستلمة",
+      "avgLeadDays": "متوسط مدة التوريد (أيام)",
+      "currentCost": "التكلفة الحالية",
+      "priceStreak": "اتجاه السعر",
+      "streakBadge": "+{{pct}}% خلال {{count}} توريدات",
+      "suggestion": "اقتراح",
+      "switchTo": "التحويل إلى {{supplier}} ({{cost}})",
+      "noCostTrend": "لا يوجد صنف سجّل 3 ارتفاعات متتالية في السعر من مورده الحالي خلال هذه الفترة.",
+      "materialCostTrend": "اتجاه تكلفة المواد"
     },
     "adjustments": {
       "title": "التسويات",
@@ -1535,7 +1552,8 @@
       "startFirstCount": "جرد مخزون هذا الفرع",
       "suggested": "اطلب",
       "deliveriesFailed": "تعذّر تحميل التوريدات",
-      "wasteFailed": "تعذّر تحميل هالك اليوم"
+      "wasteFailed": "تعذّر تحميل هالك اليوم",
+      "noLowStock": "لا شيء تحت حد إعادة الطلب"
     },
     "settings": {
       "title": "إعدادات المخزون",
@@ -1805,7 +1823,8 @@
     "loyaltyMember": "عضو الولاء",
     "loyaltyMemberForgotten": "عضو محذوف",
     "emptyTitle": "لا توجد طلبات في هذه الفترة",
-    "emptyBody": "تظهر هنا المبيعات المسجّلة على الكاشير لهذا الفرع وهذه الفترة."
+    "emptyBody": "تظهر هنا المبيعات المسجّلة على الكاشير لهذا الفرع وهذه الفترة.",
+    "takeaway": "استلام"
   },
   "ordersExport": {
     "title": "تصدير الطلبات",
@@ -1872,12 +1891,14 @@
       "branches": "الفروع",
       "inventory": "المخزون",
       "waiters": "النوادل",
-      "tax": "الضريبة"
+      "tax": "الضريبة",
+      "channel": "القناة"
     },
     "granularity": {
       "peak_hours": "ساعات الذروة",
       "daily": "يومي",
-      "monthly": "شهري"
+      "monthly": "شهري",
+      "peak_days": "أيام الذروة"
     },
     "revenueByHour": "الإيراد حسب الساعة",
     "ordersByHour": "الطلبات حسب الساعة",
@@ -1931,7 +1952,13 @@
       "netTaxDue": "صافي الضريبة المستحقة",
       "serviceCharge": "رسوم الخدمة",
       "rateNote": "نسبة الضريبة للمنشأة: {{rate}}"
-    }
+    },
+    "revenueByChannel": "الإيرادات حسب القناة",
+    "channelDetails": "تفاصيل القناة",
+    "revenueByWeekday": "الإيرادات حسب يوم الأسبوع",
+    "ordersByWeekday": "الطلبات حسب يوم الأسبوع",
+    "discountsByWeekday": "الخصومات حسب يوم الأسبوع",
+    "addonsSold": "الإضافات المباعة"
   },
   "discounts": {
     "title": "الخصومات",
@@ -5172,7 +5199,11 @@
         "voids": "الإلغاءات",
         "discounts": "الخصومات",
         "waivers": "الإعفاءات",
-        "priceOverrides": "تعديلات السعر"
+        "priceOverrides": "تعديلات السعر",
+        "manualDeductions": "الخصومات اليدوية",
+        "deductionOverrides": "تعديلات الخصومات",
+        "loyaltyAdjustments": "تعديلات الولاء",
+        "attendanceCorrections": "تصحيحات الحضور"
       },
       "eventCount": "الأحداث",
       "eventAmount": "إجمالي المبلغ",
@@ -5181,7 +5212,9 @@
       "byDiscount": "حسب الخصم",
       "byBranch": "حسب الفرع",
       "byIssuer": "حسب الموظف",
-      "eventsCount": "{{n}} حدث"
+      "eventsCount": "{{n}} حدث",
+      "eventPoints": "النقاط المعدّلة",
+      "byType": "حسب النوع"
     },
     "loyalty": {
       "title": "الولاء",
@@ -5194,7 +5227,21 @@
       "repeatRate": "نسبة الزيارات المتكررة",
       "repeatRateHint": "{{repeat}} من {{earning}} عضو عادوا مرة أخرى",
       "newShare": "نسبة الأعضاء الجدد",
-      "newShareHint": "{{new}} من {{active}} عضو نشط انضموا خلال هذه الفترة"
+      "newShareHint": "{{new}} من {{active}} عضو نشط انضموا خلال هذه الفترة",
+      "tabs": {
+        "overview": "نظرة عامة",
+        "campaigns": "الحملات",
+        "liability": "الالتزامات"
+      },
+      "campaign": {
+        "winback": "استعادة العملاء",
+        "birthday": "عيد الميلاد"
+      },
+      "campaignHint": "{{returned}} من {{sent}} من الأعضاء المستهدَفين عادوا للشراء خلال 30 يومًا",
+      "noCampaigns": "لم يتم إرسال أي حملات لهذا النطاق والفترة.",
+      "liabilityTrend": "اتجاه الالتزامات",
+      "liabilityTrendHint": "صافي {{unit}} المكتسبة مطروحًا منها المستبدلة أسبوعيًا",
+      "noLiability": "لا يوجد نشاط ولاء لهذا النطاق والفترة."
     },
     "staff": {
       "title": "انضباط الموظفين",
@@ -5202,7 +5249,33 @@
       "unassigned": "غير محدد",
       "rowSummary": "{{late}} تأخير · {{absent}} غياب · {{minutes}} دقيقة"
     },
-    "noAccess": "لا يمكن لحسابك فتح هذا التقرير. يمكن للمالك منحك الصلاحية."
+    "noAccess": "لا يمكن لحسابك فتح هذا التقرير. يمكن للمالك منحك الصلاحية.",
+    "operations": {
+      "tabs": {
+        "waiters": "النُدُل",
+        "channel": "القناة",
+        "supplierSpend": "إنفاق الموردين",
+        "poLeadTime": "مدة توريد الطلبات",
+        "tables": "الطاولات",
+        "overview": "نظرة عامة",
+        "items": "الأصناف",
+        "tellers": "الكاشيرات",
+        "branches": "الفروع",
+        "lowStock": "مخزون منخفض"
+      },
+      "title": "العمليات"
+    },
+    "financial": {
+      "title": "المالية",
+      "tabs": {
+        "profitability": "ربحية القائمة",
+        "revenue": "الإيرادات",
+        "channel": "القناة",
+        "valuation": "التقييم",
+        "supplierSpend": "إنفاق الموردين",
+        "materialCostTrend": "اتجاه تكلفة المواد"
+      }
+    }
   },
   "modeling": {
     "packaging": {

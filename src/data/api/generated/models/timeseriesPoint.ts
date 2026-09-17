@@ -2,7 +2,11 @@
 // @ts-nocheck
 
 export interface TimeseriesPoint {
+  /** SUM(order_item_addons.quantity) across non-voided orders in this period. */
+  addons: number;
   discount: number;
+  /** SUM(order_items.quantity) across non-voided orders in this period. */
+  line_items: number;
   orders: number;
   period: string;
   refunded?: number;

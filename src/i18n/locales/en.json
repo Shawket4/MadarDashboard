@@ -107,7 +107,9 @@
       "rejected": "Rejected",
       "ignored": "Ignored"
     },
-    "ok": "OK"
+    "ok": "OK",
+    "exportExcel": "Export Excel",
+    "exportCsv": "Export CSV"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -197,7 +199,8 @@
     "customers": "Customers",
     "choiceGroups": "Choice groups",
     "recipeBases": "Recipe bases",
-    "packagingRules": "Packaging rules"
+    "packagingRules": "Packaging rules",
+    "reportsFinancial": "Financial"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -1435,7 +1438,21 @@
       "noDataPeriod": "Nothing recorded for this scope and period.",
       "valuationFailed": "Couldn't load stock valuation",
       "unknownCostLabel": "Unknown cost",
-      "noValuation": "Stock value by category appears after a branch is counted."
+      "noValuation": "Stock value by category appears after a branch is counted.",
+      "supplierSpend": "Supplier spend",
+      "poLeadTime": "PO lead time",
+      "supplier": "Supplier",
+      "orders": "Orders",
+      "totalSpend": "Total spend",
+      "ordersReceived": "Orders received",
+      "avgLeadDays": "Avg lead time (days)",
+      "currentCost": "Current cost",
+      "priceStreak": "Price trend",
+      "streakBadge": "+{{pct}}% over {{count}} deliveries",
+      "suggestion": "Suggestion",
+      "switchTo": "Switch to {{supplier}} ({{cost}})",
+      "noCostTrend": "Nothing has had 3 straight price rises from its current supplier this period.",
+      "materialCostTrend": "Material cost trend"
     },
     "adjustments": {
       "title": "Adjustments",
@@ -1524,7 +1541,8 @@
       "startFirstCount": "Count this branch's stock",
       "suggested": "Order",
       "deliveriesFailed": "Couldn't load deliveries",
-      "wasteFailed": "Couldn't load today's waste"
+      "wasteFailed": "Couldn't load today's waste",
+      "noLowStock": "Nothing below its reorder point"
     },
     "settings": {
       "title": "Inventory settings",
@@ -1791,7 +1809,8 @@
     "loyaltyMemberForgotten": "Deleted member",
     "allTills": "All tills",
     "emptyTitle": "No orders in this range",
-    "emptyBody": "Sales rung on the POS for this branch and period appear here."
+    "emptyBody": "Sales rung on the POS for this branch and period appear here.",
+    "takeaway": "Takeaway"
   },
   "ordersExport": {
     "title": "Export Orders",
@@ -1858,12 +1877,14 @@
       "branches": "Branches",
       "inventory": "Inventory",
       "waiters": "Waiters",
-      "tax": "Tax"
+      "tax": "Tax",
+      "channel": "Channel"
     },
     "granularity": {
       "peak_hours": "Peak Hours",
       "daily": "Daily",
-      "monthly": "Monthly"
+      "monthly": "Monthly",
+      "peak_days": "Peak Days"
     },
     "revenueByHour": "Revenue by Hour",
     "ordersByHour": "Orders by Hour",
@@ -1913,7 +1934,13 @@
       "netTaxDue": "Net Tax Due",
       "serviceCharge": "Service Charge",
       "rateNote": "Org tax rate: {{rate}}"
-    }
+    },
+    "revenueByChannel": "Revenue by Channel",
+    "channelDetails": "Channel Details",
+    "revenueByWeekday": "Revenue by Day of Week",
+    "ordersByWeekday": "Orders by Day of Week",
+    "discountsByWeekday": "Discounts by Day of Week",
+    "addonsSold": "Add-ons Sold"
   },
   "discounts": {
     "title": "Discounts",
@@ -5021,7 +5048,11 @@
         "voids": "Voids",
         "discounts": "Discounts",
         "waivers": "Waivers",
-        "priceOverrides": "Price overrides"
+        "priceOverrides": "Price overrides",
+        "manualDeductions": "Manual deductions",
+        "deductionOverrides": "Deduction overrides",
+        "loyaltyAdjustments": "Loyalty adjustments",
+        "attendanceCorrections": "Attendance corrections"
       },
       "eventCount": "Events",
       "eventAmount": "Total amount",
@@ -5030,7 +5061,9 @@
       "byDiscount": "By discount",
       "byBranch": "By branch",
       "byIssuer": "By staff member",
-      "eventsCount": "{{n}} events"
+      "eventsCount": "{{n}} events",
+      "eventPoints": "Points moved",
+      "byType": "By type"
     },
     "loyalty": {
       "title": "Loyalty",
@@ -5043,7 +5076,21 @@
       "repeatRate": "Repeat visit rate",
       "repeatRateHint": "{{repeat}} of {{earning}} earning members came back",
       "newShare": "New member share",
-      "newShareHint": "{{new}} of {{active}} active members joined this period"
+      "newShareHint": "{{new}} of {{active}} active members joined this period",
+      "tabs": {
+        "overview": "Overview",
+        "campaigns": "Campaigns",
+        "liability": "Liability"
+      },
+      "campaign": {
+        "winback": "Win-back",
+        "birthday": "Birthday"
+      },
+      "campaignHint": "{{returned}} of {{sent}} nudged members earned again within 30 days",
+      "noCampaigns": "No outreach sent for this scope and period.",
+      "liabilityTrend": "Liability trend",
+      "liabilityTrendHint": "Net {{unit}} earned minus redeemed each week",
+      "noLiability": "No loyalty activity for this scope and period."
     },
     "staff": {
       "title": "Staff discipline",
@@ -5051,7 +5098,33 @@
       "unassigned": "Unassigned",
       "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m"
     },
-    "noAccess": "Your account can't open this report. The owner can give you access."
+    "noAccess": "Your account can't open this report. The owner can give you access.",
+    "operations": {
+      "tabs": {
+        "waiters": "Waiters",
+        "channel": "Channel",
+        "supplierSpend": "Supplier spend",
+        "poLeadTime": "PO lead time",
+        "tables": "Tables",
+        "overview": "Overview",
+        "items": "Items",
+        "tellers": "Tellers",
+        "branches": "Branches",
+        "lowStock": "Low stock"
+      },
+      "title": "Operations"
+    },
+    "financial": {
+      "title": "Financial",
+      "tabs": {
+        "profitability": "Menu profitability",
+        "revenue": "Revenue",
+        "channel": "Channel",
+        "valuation": "Valuation",
+        "supplierSpend": "Supplier spend",
+        "materialCostTrend": "Material cost trend"
+      }
+    }
   },
   "modeling": {
     "packaging": {

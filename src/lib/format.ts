@@ -262,7 +262,7 @@ export const cairoParts = (iso: string): { y: number; m: number; d: number } => 
 };
 
 /** Format a period timestamp for charts based on granularity */
-export const fmtPeriod = (iso: string, granularity: "hourly" | "daily" | "monthly" | "peak_hours"): string => {
+export const fmtPeriod = (iso: string, granularity: "hourly" | "daily" | "monthly" | "peak_hours" | "peak_days"): string => {
   const d = new Date(iso);
   const opts: Intl.DateTimeFormatOptions =
     granularity === "hourly"

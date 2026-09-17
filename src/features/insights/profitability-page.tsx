@@ -28,7 +28,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DecisionsTab } from "./decisions-tab";
@@ -256,6 +256,41 @@ export function ProfitabilityPage() {
     }
   };
 
+  const handleExportCsv = async () => {
+    type Row = Record<string, string | number | null>;
+    const cols: ExcelColumn<Row>[] = [
+      { header: t("insights.columns.item", "Item"), accessor: (r) => r.item, type: "text" },
+      { header: t("insights.columns.size", "Size"), accessor: (r) => r.size, type: "text" },
+      { header: t("insights.class.all", "All classes"), accessor: (r) => r.cls, type: "text" },
+      { header: t("insights.columns.sold", "Sold"), accessor: (r) => r.sold, type: "number" },
+      { header: t("insights.columns.revenue", "Revenue"), accessor: (r) => r.revenue, type: "money" },
+      { header: t("insights.columns.cost", "Cost"), accessor: (r) => r.cost, type: "money" },
+      { header: t("insights.columns.margin", "Margin"), accessor: (r) => r.margin, type: "money" },
+      { header: t("insights.columns.marginPct", "Margin %"), accessor: (r) => r.marginPct, type: "number" },
+      { header: t("insights.columns.flags", "Flags"), accessor: (r) => r.flags, type: "text" },
+    ];
+    const data: Row[] = rows.map((r) => ({
+      item: r.item_name,
+      size: r.size_label,
+      cls: r.class ? t(`insights.class.${r.class}`, r.class) : "",
+      sold: r.quantity_sold,
+      revenue: r.revenue,
+      cost: r.cost ?? null,
+      margin: r.margin ?? null,
+      marginPct: r.margin_pct != null ? Math.round(r.margin_pct * 10) / 10 : null,
+      flags: r.flags.map((f) => f.kind).join(", "),
+    }));
+    const title = t("insights.profitability.title", "Menu profitability");
+    try {
+      await exportToCsv({
+        filename: `Madar-${title}`,
+        sheets: [{ name: title, title, rows: data as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],
+      });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
   const columns: ColumnDef<MarginLedgerRow>[] = [
     {
       id: "item",
@@ -405,7 +440,7 @@ export function ProfitabilityPage() {
                     {t("insights.profitability.flaggedOnly", "Flagged only")}
                   </Label>
                 </div>
-                <ExportButton size="sm" onExport={handleExport} loading={exporting} disabled={rows.length === 0} />
+                <ExportButton size="sm" onExport={handleExport} onExportCsv={handleExportCsv} loading={exporting} disabled={rows.length === 0} />
               </div>
             }
             emptyState={

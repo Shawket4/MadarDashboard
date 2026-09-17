@@ -7,10 +7,12 @@ import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs } from "@/components/ui/tabs";
 import { Restricted } from "@/components/app/restricted";
 import { useAuthz } from "@/data/authz/use-authz";
-import { Cap } from "@/generated/capabilities";
+import { Cap, type Capability } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import {
-  useDiscountsAudit, usePriceOverrides, useRefundsAudit, useVoidsAudit, useWaiversAudit,
+  useAttendanceCorrectionsAudit, useDeductionOverridesAudit, useDiscountsAudit,
+  useLoyaltyAdjustmentsAudit, useManualDeductionsAudit, usePriceOverrides,
+  useRefundsAudit, useVoidsAudit, useWaiversAudit,
 } from "@/data/api/generated/api";
 import { useOrgId } from "@/hooks/use-org-id";
 import { AuditTab } from "./audit-tab";
@@ -25,14 +27,30 @@ const PRESET_FALLBACK: Record<string, string> = {
   custom: "Custom range",
 };
 
-type TabKey = "tax" | "refunds" | "voids" | "discounts" | "waivers" | "price_overrides";
-const TABS: TabKey[] = ["tax", "refunds", "voids", "discounts", "waivers", "price_overrides"];
+type TabKey =
+  | "tax" | "refunds" | "voids" | "discounts" | "waivers" | "price_overrides"
+  | "manual_deductions" | "deduction_overrides" | "loyalty_adjustments" | "attendance_corrections";
 
-/** Legal / compliance reports: the VAT summary plus an audit trail of money
- * given away or corrected after a sale — refunds, voids, discounts,
- * service-charge waivers, and price overrides. Every audit tab is the same
- * report shape from the backend (a total plus a reason and an issuer
- * breakdown), rendered by the shared `AuditTab`. */
+const TABS: TabKey[] = [
+  "tax", "refunds", "voids", "discounts", "waivers", "price_overrides",
+  "manual_deductions", "deduction_overrides", "loyalty_adjustments", "attendance_corrections",
+];
+
+/** Every tab is reports.legal; these also show pay or attendance, which the
+ *  server checks separately (payroll is owner-only by default). */
+const EXTRA_CAP: Partial<Record<TabKey, Capability>> = {
+  manual_deductions: Cap.hrPayrollRead,
+  deduction_overrides: Cap.hrPayrollRead,
+  attendance_corrections: Cap.hrAttendanceRead,
+};
+
+/** Legal / compliance reports: the VAT summary plus an audit trail of every
+ * kind of money or record a human corrected after the fact — refunds,
+ * voids, discounts, service-charge waivers, price overrides, manual payroll
+ * deductions, deduction overrides/waivers, manual loyalty adjustments, and
+ * attendance corrections. Every audit tab but Tax is the same report shape
+ * from the backend (a total plus a reason and an issuer breakdown),
+ * rendered by the shared `AuditTab`. */
 export function LegalReportsPage() {
   const { t } = useTranslation();
   const orgId = useOrgId();
@@ -40,17 +58,24 @@ export function LegalReportsPage() {
   const range = { from: from ?? undefined, to: to ?? undefined };
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
-  const [tab, setTab] = useState<TabKey>("tax");
+  const [picked, setTab] = useState<TabKey>("tax");
   // reports.legal (tax and every audit); a manager sees only their branches.
   const authz = useAuthz();
   const canSee = authz.can(Cap.reportsLegal);
+  const visible = TABS.filter((k) => !EXTRA_CAP[k] || authz.can(EXTRA_CAP[k]));
+  const tab = visible.includes(picked) ? picked : "tax";
   const enabled = !!orgId && canSee;
+  const on = (k: TabKey) => enabled && tab === k && visible.includes(k);
 
-  const refunds = useRefundsAudit(orgId ?? "", range, { query: { enabled: enabled && tab === "refunds" } });
-  const voids = useVoidsAudit(orgId ?? "", range, { query: { enabled: enabled && tab === "voids" } });
-  const discounts = useDiscountsAudit(orgId ?? "", range, { query: { enabled: enabled && tab === "discounts" } });
-  const waivers = useWaiversAudit(orgId ?? "", range, { query: { enabled: enabled && tab === "waivers" } });
-  const overrides = usePriceOverrides(orgId ?? "", range, { query: { enabled: enabled && tab === "price_overrides" } });
+  const refunds = useRefundsAudit(orgId ?? "", range, { query: { enabled: on("refunds") } });
+  const voids = useVoidsAudit(orgId ?? "", range, { query: { enabled: on("voids") } });
+  const discounts = useDiscountsAudit(orgId ?? "", range, { query: { enabled: on("discounts") } });
+  const waivers = useWaiversAudit(orgId ?? "", range, { query: { enabled: on("waivers") } });
+  const overrides = usePriceOverrides(orgId ?? "", range, { query: { enabled: on("price_overrides") } });
+  const manualDeductions = useManualDeductionsAudit(orgId ?? "", range, { query: { enabled: on("manual_deductions") } });
+  const deductionOverrides = useDeductionOverridesAudit(orgId ?? "", range, { query: { enabled: on("deduction_overrides") } });
+  const loyaltyAdjustments = useLoyaltyAdjustmentsAudit(orgId ?? "", range, { query: { enabled: on("loyalty_adjustments") } });
+  const attendanceCorrections = useAttendanceCorrectionsAudit(orgId ?? "", range, { query: { enabled: on("attendance_corrections") } });
 
   const TAB_LABEL: Record<TabKey, string> = {
     tax: t("reports.legal.tabs.tax", "Tax"),
@@ -59,11 +84,20 @@ export function LegalReportsPage() {
     discounts: t("reports.legal.tabs.discounts", "Discounts"),
     waivers: t("reports.legal.tabs.waivers", "Waivers"),
     price_overrides: t("reports.legal.tabs.priceOverrides", "Price overrides"),
+    manual_deductions: t("reports.legal.tabs.manualDeductions", "Manual deductions"),
+    deduction_overrides: t("reports.legal.tabs.deductionOverrides", "Deduction overrides"),
+    loyalty_adjustments: t("reports.legal.tabs.loyaltyAdjustments", "Loyalty adjustments"),
+    attendance_corrections: t("reports.legal.tabs.attendanceCorrections", "Attendance corrections"),
   };
 
   if (authz.ready && !canSee) {
     return <Restricted title={t("reports.legal.title", "Legal")} who={t("reports.noAccess", "Your account can't open this report. The owner can give you access.")} />;
   }
+
+  const byReason = t("reports.legal.byReason", "By reason");
+  const byDiscount = t("reports.legal.byDiscount", "By discount");
+  const byBranch = t("reports.legal.byBranch", "By branch");
+  const byType = t("reports.legal.byType", "By type");
 
   return (
     <Page>
@@ -78,7 +112,7 @@ export function LegalReportsPage() {
         below={
           <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
             <PageTabsList>
-              {TABS.map((k) => (
+              {visible.map((k) => (
                 <PageTabsTrigger key={k} value={k} className="first:ps-0">{TAB_LABEL[k]}</PageTabsTrigger>
               ))}
             </PageTabsList>
@@ -87,11 +121,15 @@ export function LegalReportsPage() {
       />
 
       {tab === "tax" ? <TaxTab range={range} />
-        : tab === "refunds" ? <AuditTab query={refunds} reasonLabel={t("reports.legal.byReason", "By reason")} />
-        : tab === "voids" ? <AuditTab query={voids} reasonLabel={t("reports.legal.byReason", "By reason")} />
-        : tab === "discounts" ? <AuditTab query={discounts} reasonLabel={t("reports.legal.byDiscount", "By discount")} />
-        : tab === "waivers" ? <AuditTab query={waivers} reasonLabel={t("reports.legal.byBranch", "By branch")} />
-        : <AuditTab query={overrides} reasonLabel={t("reports.legal.byBranch", "By branch")} />}
+        : tab === "refunds" ? <AuditTab query={refunds} reasonLabel={byReason} exportTitle={TAB_LABEL.refunds} />
+        : tab === "voids" ? <AuditTab query={voids} reasonLabel={byReason} exportTitle={TAB_LABEL.voids} />
+        : tab === "discounts" ? <AuditTab query={discounts} reasonLabel={byDiscount} exportTitle={TAB_LABEL.discounts} />
+        : tab === "waivers" ? <AuditTab query={waivers} reasonLabel={byBranch} exportTitle={TAB_LABEL.waivers} />
+        : tab === "price_overrides" ? <AuditTab query={overrides} reasonLabel={byBranch} exportTitle={TAB_LABEL.price_overrides} />
+        : tab === "manual_deductions" ? <AuditTab query={manualDeductions} reasonLabel={byReason} exportTitle={TAB_LABEL.manual_deductions} />
+        : tab === "deduction_overrides" ? <AuditTab query={deductionOverrides} reasonLabel={byType} exportTitle={TAB_LABEL.deduction_overrides} />
+        : tab === "loyalty_adjustments" ? <AuditTab query={loyaltyAdjustments} reasonLabel={byBranch} exportTitle={TAB_LABEL.loyalty_adjustments} />
+        : <AuditTab query={attendanceCorrections} reasonLabel={byReason} exportTitle={TAB_LABEL.attendance_corrections} />}
     </Page>
   );
 }

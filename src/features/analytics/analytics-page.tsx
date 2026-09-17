@@ -1,13 +1,12 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "motion/react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Ban, CalendarRange, Coins, Percent, Receipt, ShoppingBasket, TrendingUp } from "lucide-react";
+import { Ban, Coins, Percent, Receipt, ShoppingBasket, TrendingUp } from "lucide-react";
 
-import { Page, PageHeader } from "@/components/app/page";
 import { CHART_AXIS_TICK, ChartCard, chartColor } from "@/components/app/chart-card";
 import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
@@ -17,38 +16,23 @@ import { cn } from "@/lib/utils";
 import type { ColumnDef } from "@tanstack/react-table";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ExcludeItemsControl, excludeItemsParam, useExcludedItems } from "@/components/app/exclude-items-control";
-import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs } from "@/components/ui/tabs";
 import { fadeInUp, staggerContainer } from "@/lib/motion";
 import { fmtHour, fmtPercent, fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod } from "@/lib/format";
 import { PAYMENT_COLORS, type PaymentMethod } from "@/data/config/constants";
-import { useScope } from "@/data/scope/use-scope";
-import { usePageSearch } from "@/data/scope/use-page-search";
-import { useOrgId } from "@/hooks/use-org-id";
 import {
-  useBranchAddonSales, useBranchCombinedItemSales, useBranchSales,
-  useBranchSalesPeakHours, useBranchSalesTimeseries, useBranchTellerStats,
+  useBranchAddonSales, useBranchChannelBreakdown, useBranchCombinedItemSales, useBranchSales,
+  useBranchSalesPeakDays, useBranchSalesPeakHours, useBranchSalesTimeseries, useBranchTellerStats,
   useBranchWaiterStats, useOrgBranchComparison,
 } from "@/data/api/generated/api";
-import type { PeakHourPoint, TimeseriesPoint } from "@/data/api/generated/models";
+import type { PeakDayPoint, PeakHourPoint, TimeseriesPoint } from "@/data/api/generated/models";
+import { WEEKDAYS } from "@/features/staff/util";
 import { GRANULARITIES, type Granularity, type MethodMap, tName } from "./lib";
-import { AnalyticsExportButton } from "./analytics-export-button";
 
-type Range = { from?: string; to?: string };
-
+export type Range = { from?: string; to?: string };
 
 const AXIS = CHART_AXIS_TICK;
 const grid = <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />;
-
-const PRESET_FALLBACK: Record<string, string> = {
-  today: "Today",
-  yesterday: "Yesterday",
-  "7d": "Last 7 days",
-  "30d": "Last 30 days",
-  mtd: "Month to date",
-  custom: "Custom range",
-};
 
 function ChartFrame({ children }: { children: React.ReactNode }) {
   return <div className="h-72 w-full">{children}</div>;
@@ -71,7 +55,7 @@ function ChartEmpty({ className }: { className?: string }) {
 }
 
 // ── Overview ────────────────────────────────────────────────────────────────
-function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
+export function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t, i18n } = useTranslation();
   const reduced = useReducedMotion();
   // Excluded from the Items Sold KPI only (server ignores it everywhere else).
@@ -208,10 +192,12 @@ function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
   );
 }
 
-// Peak-hours tooltip — avg/day, share of total, and period total for each hour bucket.
-function PeakHoursTooltip({ active, payload, type }: {
+// Peak-hours / peak-days tooltip — avg/bucket, share of total, period total,
+// and (regardless of which of revenue/orders is charted) orders, line items
+// and add-ons sold in that bucket.
+function PeakTooltip({ active, payload, type }: {
   active?: boolean;
-  payload?: { payload: PeakHourPoint & { label: string } }[];
+  payload?: { payload: (PeakHourPoint | PeakDayPoint) & { label: string } }[];
   type: "revenue" | "orders";
 }) {
   const { t } = useTranslation();
@@ -222,7 +208,7 @@ function PeakHoursTooltip({ active, payload, type }: {
   const totalVal  = isRevenue ? fmtMoney(p.revenue)             : fmtNumber(p.orders);
   const pct       = isRevenue ? p.revenue_pct                   : p.orders_pct;
   return (
-    <div className="min-w-44 rounded-lg border bg-popover px-3 py-2 text-xs shadow-md">
+    <div className="min-w-48 rounded-lg border bg-popover px-3 py-2 text-xs shadow-md">
       {p.label ? <div className="mb-1.5 font-medium text-foreground">{p.label}</div> : null}
       <div className="flex items-center justify-between gap-4">
         <span className="text-muted-foreground">{t("analytics.avgPerDay", "Avg / Day")}</span>
@@ -235,6 +221,20 @@ function PeakHoursTooltip({ active, payload, type }: {
       <div className="mt-1.5 border-t pt-1.5 flex items-center justify-between gap-4">
         <span className="text-muted-foreground">{t("analytics.periodTotal", "Period Total")}</span>
         <span className="tabular text-muted-foreground">{totalVal}</span>
+      </div>
+      <div className="mt-1.5 border-t pt-1.5 space-y-1">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{t("dashboard.orders", "Orders")}</span>
+          <span className="tabular text-foreground">{fmtNumber(p.orders)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{t("analytics.itemsSold", "Items Sold")}</span>
+          <span className="tabular text-foreground">{fmtNumber(p.line_items)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{t("analytics.addonsSold", "Add-ons Sold")}</span>
+          <span className="tabular text-foreground">{fmtNumber(p.addons)}</span>
+        </div>
       </div>
     </div>
   );
@@ -267,24 +267,50 @@ function RevenueSplitTooltip({ active, payload }: { active?: boolean; payload?: 
           ))}
         </div>
       ) : null}
+      <div className="mt-1.5 space-y-1 border-t pt-1.5">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{t("dashboard.orders", "Orders")}</span>
+          <span className="tabular text-foreground">{fmtNumber(point.orders)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{t("analytics.itemsSold", "Items Sold")}</span>
+          <span className="tabular text-foreground">{fmtNumber(point.line_items)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{t("analytics.addonsSold", "Add-ons Sold")}</span>
+          <span className="tabular text-foreground">{fmtNumber(point.addons)}</span>
+        </div>
+      </div>
     </div>
   );
 }
 
 // ── Revenue (timeseries + peak hours) ───────────────────────────────────────
-function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; range: Range; gran: Granularity; setGran: (g: Granularity) => void }) {
+export function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; range: Range; gran: Granularity; setGran: (g: Granularity) => void }) {
   const { t } = useTranslation();
   const reduced = useReducedMotion();
-  const isPeak = gran === "peak_hours";
+  const isPeak = gran === "peak_hours" || gran === "peak_days";
 
   const tsQ = useBranchSalesTimeseries(branchId, { ...range, granularity: gran }, { query: { enabled: !!branchId && !isPeak } });
   const tsData = useMemo(() => (tsQ.data ?? []).map((p) => ({ ...p, label: fmtPeriod(p.period, gran) })), [tsQ.data, gran]);
 
-  const phQ = useBranchSalesPeakHours(branchId, range, { query: { enabled: !!branchId && isPeak } });
+  const phQ = useBranchSalesPeakHours(branchId, range, { query: { enabled: !!branchId && gran === "peak_hours" } });
   const phData = useMemo(() => (phQ.data ?? []).map((p) => ({ ...p, label: fmtHour(p.hour) })), [phQ.data]);
 
-  const isLoading = isPeak ? phQ.isLoading : tsQ.isLoading;
-  const isError = isPeak ? phQ.isError : tsQ.isError;
+  const pdQ = useBranchSalesPeakDays(branchId, range, { query: { enabled: !!branchId && gran === "peak_days" } });
+  const pdData = useMemo(
+    () => (pdQ.data ?? []).map((p) => ({
+      ...p,
+      label: t(WEEKDAYS[p.day_of_week].labelKey, WEEKDAYS[p.day_of_week].fallback),
+    })),
+    [pdQ.data, t],
+  );
+
+  const peakQ = gran === "peak_days" ? pdQ : phQ;
+  const peakData = gran === "peak_days" ? pdData : phData;
+
+  const isLoading = isPeak ? peakQ.isLoading : tsQ.isLoading;
+  const isError = isPeak ? peakQ.isError : tsQ.isError;
 
   return (
     <div className="space-y-4">
@@ -294,19 +320,31 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
         options={GRANULARITIES.map((g) => ({ value: g, label: t(`analytics.granularity.${g}`, g) }))}
       />
 
-      <ChartCard title={isPeak ? t("analytics.revenueByHour", "Revenue by Hour") : t("analytics.revenueOverTime", "Revenue Over Time")}>
-        {isLoading ? <ChartSkeleton /> : isError ? <ChartError className="h-72" onRetry={() => (isPeak ? phQ.refetch() : tsQ.refetch())} /> : (isPeak ? phData : tsData).length === 0
+      <ChartCard title={
+        gran === "peak_hours" ? t("analytics.revenueByHour", "Revenue by Hour")
+          : gran === "peak_days" ? t("analytics.revenueByWeekday", "Revenue by Day of Week")
+            : t("analytics.revenueOverTime", "Revenue Over Time")
+      }>
+        {isLoading ? <ChartSkeleton /> : isError ? <ChartError className="h-72" onRetry={() => (isPeak ? peakQ.refetch() : tsQ.refetch())} /> : (isPeak ? peakData : tsData).length === 0
           ? <ChartEmpty className="h-72" />
           : (
             <ChartFrame>
               <ResponsiveContainer width="100%" height="100%">
                 {isPeak ? (
-                  <BarChart data={phData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+                  <BarChart data={peakData as Record<string, string | number>[]} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
                     {grid}
-                    <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={2} />
+                    <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={gran === "peak_hours" ? 2 : 0} />
                     <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={64} />
-                    <Tooltip cursor={{ fill: "var(--muted)" }} content={<PeakHoursTooltip type="revenue" />} />
+                    <Tooltip cursor={{ fill: "var(--muted)" }} content={<PeakTooltip type="revenue" />} />
                     <Bar dataKey="avg_revenue_per_day" name={t("dashboard.revenue", "Revenue")} fill={chartColor(0)} radius={[4, 4, 0, 0]} maxBarSize={56} isAnimationActive={!reduced} />
+                  </BarChart>
+                ) : gran === "monthly" ? (
+                  <BarChart data={tsData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+                    {grid}
+                    <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} />
+                    <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={64} />
+                    <Tooltip cursor={{ fill: "var(--muted)" }} content={<RevenueSplitTooltip />} />
+                    <Bar dataKey="revenue" name={t("dashboard.revenue", "Revenue")} fill={chartColor(0)} radius={[4, 4, 0, 0]} maxBarSize={56} isAnimationActive={!reduced} />
                   </BarChart>
                 ) : (
                   <AreaChart data={tsData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
@@ -335,17 +373,21 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
         className="grid gap-4 lg:grid-cols-2"
       >
         <motion.div variants={fadeInUp}>
-          <ChartCard title={isPeak ? t("analytics.ordersByHour", "Orders by Hour") : t("analytics.ordersOverTime", "Orders Over Time")}>
-            {isLoading ? <ChartSkeleton /> : isError ? <ChartError className="h-72" onRetry={() => (isPeak ? phQ.refetch() : tsQ.refetch())} /> : (isPeak ? phData : tsData).length === 0
+          <ChartCard title={
+            gran === "peak_hours" ? t("analytics.ordersByHour", "Orders by Hour")
+              : gran === "peak_days" ? t("analytics.ordersByWeekday", "Orders by Day of Week")
+                : t("analytics.ordersOverTime", "Orders Over Time")
+          }>
+            {isLoading ? <ChartSkeleton /> : isError ? <ChartError className="h-72" onRetry={() => (isPeak ? peakQ.refetch() : tsQ.refetch())} /> : (isPeak ? peakData : tsData).length === 0
               ? <ChartEmpty className="h-72" />
               : (
                 <ChartFrame>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={(isPeak ? phData : tsData) as Record<string, string | number>[]} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+                    <BarChart data={(isPeak ? peakData : tsData) as Record<string, string | number>[]} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
                       {grid}
-                      <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={isPeak ? 2 : 0} />
+                      <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={gran === "peak_hours" ? 2 : 0} />
                       <YAxis tick={AXIS} tickLine={false} axisLine={false} allowDecimals={isPeak} width={36} tickFormatter={isPeak ? (v) => fmtNumber(Number(v), { maximumFractionDigits: 1 }) : undefined} />
-                      <Tooltip cursor={{ fill: "var(--muted)" }} content={isPeak ? <PeakHoursTooltip type="orders" /> : <ChartTooltipContent formatter={(v) => fmtNumber(v)} />} />
+                      <Tooltip cursor={{ fill: "var(--muted)" }} content={isPeak ? <PeakTooltip type="orders" /> : <ChartTooltipContent formatter={(v) => fmtNumber(v)} />} />
                       <Bar dataKey={isPeak ? "avg_orders_per_day" : "orders"} name={t("dashboard.orders", "Orders")} fill={chartColor(1)} radius={[4, 4, 0, 0]} maxBarSize={56} isAnimationActive={!reduced} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -355,16 +397,20 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
         </motion.div>
 
         <motion.div variants={fadeInUp}>
-          <ChartCard title={isPeak ? t("analytics.discountsByHour", "Discounts by Hour") : t("analytics.discountsOverTime", "Discounts Over Time")}>
-            {isLoading ? <ChartSkeleton /> : isError ? <ChartError className="h-72" onRetry={() => (isPeak ? phQ.refetch() : tsQ.refetch())} /> : (isPeak ? phData : tsData).length === 0
+          <ChartCard title={
+            gran === "peak_hours" ? t("analytics.discountsByHour", "Discounts by Hour")
+              : gran === "peak_days" ? t("analytics.discountsByWeekday", "Discounts by Day of Week")
+                : t("analytics.discountsOverTime", "Discounts Over Time")
+          }>
+            {isLoading ? <ChartSkeleton /> : isError ? <ChartError className="h-72" onRetry={() => (isPeak ? peakQ.refetch() : tsQ.refetch())} /> : (isPeak ? peakData : tsData).length === 0
               ? <ChartEmpty className="h-72" />
               : (
                 <ChartFrame>
                   <ResponsiveContainer width="100%" height="100%">
                     {isPeak ? (
-                      <BarChart data={phData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+                      <BarChart data={peakData as Record<string, string | number>[]} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
                         {grid}
-                        <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={2} />
+                        <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={gran === "peak_hours" ? 2 : 0} />
                         <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={64} />
                         <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => fmtMoney(v)} />} />
                         <Bar dataKey="discount" name={t("nav.discounts", "Discounts")} fill={chartColor(3)} radius={[4, 4, 0, 0]} maxBarSize={56} isAnimationActive={!reduced} />
@@ -395,7 +441,7 @@ function RevenueTab({ branchId, range, gran, setGran }: { branchId: string; rang
 }
 
 // ── Items ────────────────────────────────────────────────────────────────────
-function ItemsTab({ branchId, range }: { branchId: string; range: Range }) {
+export function ItemsTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t, i18n } = useTranslation();
   const items = useBranchCombinedItemSales(branchId, { ...range, limit: 50 }, { query: { enabled: !!branchId } });
   const addons = useBranchAddonSales(branchId, { ...range, limit: 20 }, { query: { enabled: !!branchId } });
@@ -426,7 +472,7 @@ function ItemsTab({ branchId, range }: { branchId: string; range: Range }) {
 }
 
 // ── Tellers ──────────────────────────────────────────────────────────────────
-function TellersTab({ branchId, range }: { branchId: string; range: Range }) {
+export function TellersTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t } = useTranslation();
   const reduced = useReducedMotion();
 
@@ -474,7 +520,7 @@ function TellersTab({ branchId, range }: { branchId: string; range: Range }) {
 }
 
 // ── Waiters ──────────────────────────────────────────────────────────────────
-function WaitersTab({ branchId, range }: { branchId: string; range: Range }) {
+export function WaitersTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t } = useTranslation();
   const reduced = useReducedMotion();
 
@@ -532,7 +578,7 @@ function WaitersTab({ branchId, range }: { branchId: string; range: Range }) {
 }
 
 // ── Branches (org comparison) ────────────────────────────────────────────────
-function BranchesTab({ orgId, range }: { orgId: string; range: Range }) {
+export function BranchesTab({ orgId, range }: { orgId: string; range: Range }) {
   const { t } = useTranslation();
   const reduced = useReducedMotion();
   const q = useOrgBranchComparison(orgId, range, { query: { enabled: !!orgId } });
@@ -576,56 +622,45 @@ function BranchesTab({ orgId, range }: { orgId: string; range: Range }) {
   );
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
-type TabKey = "overview" | "revenue" | "items" | "tellers" | "waiters" | "branches";
-const TABS: TabKey[] = ["overview", "revenue", "items", "tellers", "waiters", "branches"];
-
-export function AnalyticsPage() {
+// ── Channel (dine-in / takeaway / delivery) ─────────────────────────────────
+export function ChannelTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t } = useTranslation();
-  const orgId = useOrgId();
-  const { scopeBranchId, from, to, preset } = useScope();
-  const range: Range = { from: from ?? undefined, to: to ?? undefined };
-  const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
-
-  const [s, update] = usePageSearch<{ tab: TabKey; gran: Granularity }>();
-  const tab: TabKey = s.tab && TABS.includes(s.tab) ? s.tab : "overview";
-  const defaultGran: Granularity = preset === "today" || preset === "yesterday" ? "peak_hours" : "daily";
-  const gran: Granularity = s.gran ?? defaultGran;
+  const reduced = useReducedMotion();
+  const q = useBranchChannelBreakdown(branchId, range, { query: { enabled: !!branchId } });
+  const rows = useMemo(() => q.data ?? [], [q.data]);
+  const label = useCallback((channel: string) => t(`orders.${channel === "dine_in" ? "dineIn" : channel}`, channel), [t]);
+  const channelCols = useMemo<ColumnDef<(typeof rows)[number]>[]>(() => [
+    { id: "channel", header: t("orders.channel", "Channel"), meta: { label: t("orders.channel", "Channel"), phone: "title" }, cell: ({ row: { original: r } }) => <span className="font-medium">{label(r.channel)}</span> },
+    { id: "orders", header: t("dashboard.orders", "Orders"), meta: { label: t("dashboard.orders", "Orders"), numeric: true }, cell: ({ row: { original: r } }) => fmtNumber(r.orders) },
+    { id: "revenue", header: t("dashboard.revenue", "Revenue"), meta: { label: t("dashboard.revenue", "Revenue"), numeric: true }, cell: ({ row: { original: r } }) => <span className="font-semibold">{fmtMoney(r.revenue)}</span> },
+    { id: "aov", header: t("analytics.aov", "AOV"), meta: { label: t("analytics.aov", "AOV"), numeric: true }, cell: ({ row: { original: r } }) => fmtMoney(r.avg_order_value) },
+  ], [t, label]);
+  const chart = useMemo(() => rows.map((r) => ({ name: label(r.channel), revenue: r.revenue })), [rows, label]);
 
   return (
-    <Page>
-      <PageHeader
-        title={t("analytics.title", "Analytics")}
-        subtitle={
-          <span className="inline-flex items-center gap-1.5">
-            <CalendarRange aria-hidden className="size-3.5" />
-            {periodLabel}
-          </span>
-        }
-        actions={
-          <AnalyticsExportButton
-            tab={tab}
-            branchId={scopeBranchId}
-            orgId={orgId ?? ""}
-            range={range}
-            periodLabel={periodLabel}
-          />
-        }
-        below={
-          <Tabs value={tab} onValueChange={(v) => update({ tab: v as TabKey })}>
-            <PageTabsList>
-              {TABS.map((k) => <PageTabsTrigger key={k} value={k} className="first:ps-0">{t(`analytics.tabs.${k}`, k)}</PageTabsTrigger>)}
-            </PageTabsList>
-          </Tabs>
-        }
-      />
+    <div className="space-y-4">
+      <ChartCard title={t("analytics.revenueByChannel", "Revenue by Channel")}>
+        {q.isLoading ? <ChartSkeleton /> : q.isError ? <ChartError className="h-72" onRetry={() => q.refetch()} /> : chart.length === 0
+          ? <ChartEmpty className="h-72" />
+          : (
+            <ChartFrame>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chart} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+                  {grid}
+                  <XAxis dataKey="name" tick={AXIS} tickLine={false} axisLine={false} interval={0} />
+                  <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={64} />
+                  <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => fmtMoney(v)} />} />
+                  <Bar dataKey="revenue" fill={chartColor(0)} radius={[4, 4, 0, 0]} maxBarSize={72} isAnimationActive={!reduced} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartFrame>
+          )}
+      </ChartCard>
 
-      {tab === "overview" ? <OverviewTab branchId={scopeBranchId} range={range} />
-        : tab === "revenue" ? <RevenueTab branchId={scopeBranchId} range={range} gran={gran} setGran={(g) => update({ gran: g })} />
-        : tab === "items" ? <ItemsTab branchId={scopeBranchId} range={range} />
-        : tab === "tellers" ? <TellersTab branchId={scopeBranchId} range={range} />
-        : tab === "waiters" ? <WaitersTab branchId={scopeBranchId} range={range} />
-        : <BranchesTab orgId={orgId ?? ""} range={range} />}
-    </Page>
+      <ChartCard title={t("analytics.channelDetails", "Channel Details")} contentClassName="px-0 sm:px-0">
+        <DataTable framed={false} hideViewOptions columns={channelCols} data={rows} loading={q.isLoading} error={q.error} onRetry={() => q.refetch()} emptyState={<ChartEmpty />} getRowId={(r) => r.channel} pageSize={50} />
+      </ChartCard>
+    </div>
   );
 }
+

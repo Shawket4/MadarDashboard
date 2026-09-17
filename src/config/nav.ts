@@ -5,13 +5,13 @@ import {
   ArrowLeftRight,
   Wallet,
   BadgePercent,
-  BarChart3,
   Boxes,
   Building2,
   CalendarClock,
   CalendarRange,
   ClipboardList,
   Tablet,
+  Coins,
   CupSoda,
   FileBarChart,
   Home,
@@ -119,23 +119,14 @@ export const NAV: NavGroup[] = [
     labelKey: "nav.reports",
     fallback: "Reports",
     entries: [
-      { caps: [Cap.ordersRead], to: "/reports/sales", labelKey: "nav.salesInsights", fallback: "Sales", icon: BarChart3 },
+      // Every entry on a capability; a page hides the tabs its person can't read.
+      { caps: [Cap.ordersRead], to: "/reports/operations", labelKey: "nav.reportsOperations", fallback: "Operations", icon: TrendingUp },
+      { caps: [Cap.ordersRead, Cap.inventoryRead, Cap.purchasingOrdersRead], to: "/reports/financial", labelKey: "nav.reportsFinancial", fallback: "Financial", icon: Coins },
       { caps: [Cap.inventoryRead], to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
-      // Tax and the audit trail (refunds, voids, discounts, waivers, overrides):
-      // reports.legal, owner and manager by default, a manager's own branches.
+      // Tax and the audit trail: reports.legal, owner and manager by default, a manager's own branches.
       { caps: [Cap.reportsLegal], to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
       { caps: [Cap.loyaltyMembersList], to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
       { caps: [Cap.hrAttendanceRead], to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
-      {
-        labelKey: "nav.reportsOperations",
-        fallback: "Operations",
-        icon: TrendingUp,
-        basePath: "/reports/operations",
-        children: [
-          { caps: [Cap.ordersRead], to: "/reports/operations/profitability", labelKey: "nav.menuProfitability", fallback: "Menu profitability", icon: TrendingUp },
-          { caps: [Cap.ordersRead], to: "/reports/operations/tables", labelKey: "nav.tablesInsights", fallback: "Tables", icon: Armchair },
-        ],
-      },
     ],
   },
   {

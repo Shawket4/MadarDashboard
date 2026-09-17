@@ -1,9 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** Legacy path — analytics moved to Reports ▸ Sales. */
+/** Legacy path — analytics moved to Reports ▸ Operations. */
 export const Route = createFileRoute("/_app/analytics")({
-  // Keep ?tab / ?gran so bookmarked report links still land on their tab.
-  beforeLoad: ({ search }) => {
-    throw redirect({ to: "/reports/sales", search: search as { tab?: string; gran?: string } });
+  beforeLoad: () => {
+    throw redirect({ to: "/reports/operations" });
   },
 });
