@@ -3791,7 +3791,13 @@
     "history": "All tills",
     "noOpenHint": "A till opens when a teller starts selling on a POS.",
     "allStatuses": "All statuses",
-    "emptyHint": "Tills appear here once a teller opens one, and stay for the record after they close."
+    "emptyHint": "Tills appear here once a teller opens one, and stay for the record after they close.",
+    "spotViews": {
+      "title": "Spot reports viewed",
+      "empty": "Nobody has viewed the spot report for this till.",
+      "unlockedBy": "unlocked by {{name}}",
+      "printed": "Printed"
+    }
   },
   "aiChat": {
     "title": "Ask your data",
