@@ -9,6 +9,9 @@ import { ExportButton } from "@/components/app/export-button";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { EmptyState } from "@/components/app/empty-state";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Restricted } from "@/components/app/restricted";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import {
   useBranchConsumption, useBranchPoLeadTime, useBranchShrinkage, useBranchWasteReport,
   useOrgConsumption, useOrgPoLeadTime, useOrgShrinkage, useOrgWasteReport,
@@ -45,7 +48,11 @@ export function InventoryReportsPage() {
   const isBranch = scope === "branch";
   const scopeId = isBranch ? branchId : orgId;
   const range = { from: from ?? undefined, to: to ?? undefined };
-  const on = (key: TabKey) => tab === key && !!scopeId;
+  // inventory.read for the page; PO lead time is purchasing (purchasing.orders.read).
+  const authz = useAuthz();
+  const canLead = authz.can(Cap.purchasingOrdersRead);
+  const canSee = authz.can(Cap.inventoryRead);
+  const on = (key: TabKey) => canSee && tab === key && !!scopeId && (key !== "poLeadTime" || canLead);
 
   const branchCons = useBranchConsumption(branchId ?? "", range, { query: { enabled: isBranch && on("consumption") && !!branchId } });
   const orgCons = useOrgConsumption(orgId ?? "", range, { query: { enabled: !isBranch && on("consumption") && !!orgId } });
@@ -95,6 +102,10 @@ export function InventoryReportsPage() {
         : tab === "waste" ? (wasteReport.data?.length ?? 0)
           : (poLeadTime.data?.by_supplier.length ?? 0);
 
+  if (authz.ready && !canSee) {
+    return <Restricted title={t("inventory.reports.title", "Inventory reports")} who={t("reports.noAccess", "Your account can't open this report. The owner can give you access.")} />;
+  }
+
   if (!orgId) {
     return (
       <Page>
@@ -126,7 +137,7 @@ export function InventoryReportsPage() {
                 <PageTabsTrigger value="consumption" className="first:ps-0">{t("inventory.reports.consumption", "Consumption")}</PageTabsTrigger>
                 <PageTabsTrigger value="shrinkage">{t("inventory.reports.shrinkage", "Shrinkage")}</PageTabsTrigger>
                 <PageTabsTrigger value="waste">{t("inventory.reports.wasteReport", "Waste")}</PageTabsTrigger>
-                <PageTabsTrigger value="poLeadTime">{t("inventory.reports.poLeadTime", "PO lead time")}</PageTabsTrigger>
+                {canLead ? <PageTabsTrigger value="poLeadTime">{t("inventory.reports.poLeadTime", "PO lead time")}</PageTabsTrigger> : null}
                 <PageTabsTrigger value="lowStock">{t("reports.operations.tabs.lowStock", "Low stock")}</PageTabsTrigger>
               </PageTabsList>
               {SCOPED_TABS.has(tab) ? (
@@ -156,9 +167,11 @@ export function InventoryReportsPage() {
             <TabsContent value="waste">
               <WasteTab wasteReport={wasteReport} noData={noData} />
             </TabsContent>
-            <TabsContent value="poLeadTime">
-              <PoLeadTimeTab poLeadTime={poLeadTime} noData={noData} />
-            </TabsContent>
+            {canLead ? (
+              <TabsContent value="poLeadTime">
+                <PoLeadTimeTab poLeadTime={poLeadTime} noData={noData} />
+              </TabsContent>
+            ) : null}
             <TabsContent value="lowStock">
               <LowStockTab orgId={orgId} branchId={branchId} />
             </TabsContent>

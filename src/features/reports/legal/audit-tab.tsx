@@ -27,26 +27,36 @@ interface AuditTabProps {
   reasonLabel: string;
   /** Sheet/filename title for the Excel export — the report's own name. */
   exportTitle: string;
+  /** What `amount_minor` measures: money (default), loyalty points/visits
+   *  (loyalty adjustments), or nothing (attendance corrections). */
+  amount?: "money" | "points" | "none";
 }
 
-const AUDIT_COLS: ExcelColumn<AuditRow>[] = [
-  { header: "Label", accessor: (r) => r.label, type: "text", width: 28 },
-  { header: "Events", accessor: (r) => r.count, type: "integer", width: 12, total: true },
-  { header: "Amount", accessor: (r) => r.amount_minor, type: "money", width: 16, total: true },
-];
+function auditCols(amount: "money" | "points" | "none"): ExcelColumn<AuditRow>[] {
+  const cols: ExcelColumn<AuditRow>[] = [
+    { header: "Label", accessor: (r) => r.label, type: "text", width: 28 },
+    { header: "Events", accessor: (r) => r.count, type: "integer", width: 12, total: true },
+  ];
+  if (amount !== "none") {
+    cols.push({ header: amount === "points" ? "Points" : "Amount", accessor: (r) => r.amount_minor, type: amount === "points" ? "integer" : "money", width: 16, total: true });
+  }
+  return cols;
+}
 
 /** Every legal/compliance audit report shares this shape (a total plus a
  * reason and an issuer breakdown), so one component renders all nine. */
-export function AuditTab({ query, reasonLabel, exportTitle }: AuditTabProps) {
+export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: AuditTabProps) {
   const { t } = useTranslation();
   const d = query.data;
   const logoUrl = useExportLogo();
   const [exporting, setExporting] = useState(false);
 
+  const amountLabel = amount === "points" ? t("reports.legal.eventPoints", "Points moved") : t("reports.legal.eventAmount", "Total amount");
   const kpis: LedgerItem[] = [
     { key: "count", label: t("reports.legal.eventCount", "Events"), icon: ListChecks, accent: "primary", value: d?.total_count ?? 0, formatType: "number", loading: query.isLoading },
-    { key: "amount", label: t("reports.legal.eventAmount", "Total amount"), icon: Coins, accent: "warning", value: d?.total_amount_minor ?? 0, formatType: "money", loading: query.isLoading },
+    ...(amount === "none" ? [] : [{ key: "amount", label: amountLabel, icon: Coins, accent: "warning", value: d?.total_amount_minor ?? 0, formatType: amount === "points" ? "number" : "money", loading: query.isLoading } as LedgerItem]),
   ];
+  const cols = auditCols(amount);
 
   const buildSheets = () => [
     {
@@ -54,10 +64,10 @@ export function AuditTab({ query, reasonLabel, exportTitle }: AuditTabProps) {
       title: exportTitle,
       subtitle: reasonLabel,
       rows: (d?.by_reason ?? []) as unknown as Record<string, unknown>[],
-      columns: AUDIT_COLS as unknown as ExcelColumn<Record<string, unknown>>[],
+      columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
       stats: [
         { label: t("reports.legal.eventCount", "Events"), value: d?.total_count ?? 0, type: "number" as const },
-        { label: t("reports.legal.eventAmount", "Total amount"), value: d?.total_amount_minor ?? 0, type: "money" as const },
+        ...(amount === "none" ? [] : [{ label: amountLabel, value: d?.total_amount_minor ?? 0, type: (amount === "points" ? "number" : "money") as "number" | "money" }]),
       ],
     },
     {
@@ -65,7 +75,7 @@ export function AuditTab({ query, reasonLabel, exportTitle }: AuditTabProps) {
       title: exportTitle,
       subtitle: t("reports.legal.byIssuer", "By staff member"),
       rows: (d?.by_issuer ?? []) as unknown as Record<string, unknown>[],
-      columns: AUDIT_COLS as unknown as ExcelColumn<Record<string, unknown>>[],
+      columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
     },
   ];
 
@@ -108,8 +118,8 @@ export function AuditTab({ query, reasonLabel, exportTitle }: AuditTabProps) {
         <EmptyState title={t("reports.legal.empty", "Nothing recorded in this period")} />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          <BreakdownCard icon={ListChecks} title={reasonLabel} rows={d.by_reason} />
-          <BreakdownCard icon={UserRound} title={t("reports.legal.byIssuer", "By staff member")} rows={d.by_issuer} />
+          <BreakdownCard icon={ListChecks} title={reasonLabel} rows={d.by_reason} amount={amount} />
+          <BreakdownCard icon={UserRound} title={t("reports.legal.byIssuer", "By staff member")} rows={d.by_issuer} amount={amount} />
         </div>
       )}
     </div>
@@ -120,10 +130,12 @@ function BreakdownCard({
   icon: Icon,
   title,
   rows,
+  amount,
 }: {
   icon: typeof ListChecks;
   title: string;
   rows: { label: string; count: number; amount_minor: number }[];
+  amount: "money" | "points" | "none";
 }) {
   const { t } = useTranslation();
   return (
@@ -145,7 +157,11 @@ function BreakdownCard({
                   <p className="truncate font-medium">{r.label}</p>
                   <p className="text-xs text-muted-foreground">{t("reports.legal.eventsCount", { defaultValue: "{{n}} events", n: fmtNumber(r.count) })}</p>
                 </div>
-                <span className="shrink-0 font-mono tabular-nums">{fmtMoney(r.amount_minor)}</span>
+                {amount === "none" ? null : (
+                  <span className="shrink-0 font-mono tabular-nums">
+                    {amount === "points" ? fmtNumber(r.amount_minor) : fmtMoney(r.amount_minor)}
+                  </span>
+                )}
               </li>
             ))}
           </ul>

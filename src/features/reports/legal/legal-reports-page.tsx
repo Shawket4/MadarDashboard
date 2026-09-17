@@ -128,8 +128,8 @@ export function LegalReportsPage() {
         : tab === "price_overrides" ? <AuditTab query={overrides} reasonLabel={byBranch} exportTitle={TAB_LABEL.price_overrides} />
         : tab === "manual_deductions" ? <AuditTab query={manualDeductions} reasonLabel={byReason} exportTitle={TAB_LABEL.manual_deductions} />
         : tab === "deduction_overrides" ? <AuditTab query={deductionOverrides} reasonLabel={byType} exportTitle={TAB_LABEL.deduction_overrides} />
-        : tab === "loyalty_adjustments" ? <AuditTab query={loyaltyAdjustments} reasonLabel={byBranch} exportTitle={TAB_LABEL.loyalty_adjustments} />
-        : <AuditTab query={attendanceCorrections} reasonLabel={byReason} exportTitle={TAB_LABEL.attendance_corrections} />}
+        : tab === "loyalty_adjustments" ? <AuditTab query={loyaltyAdjustments} reasonLabel={byBranch} exportTitle={TAB_LABEL.loyalty_adjustments} amount="points" />
+        : <AuditTab query={attendanceCorrections} reasonLabel={byReason} exportTitle={TAB_LABEL.attendance_corrections} amount="none" />}
     </Page>
   );
 }
