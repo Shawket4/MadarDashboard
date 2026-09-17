@@ -12989,6 +12989,51 @@ export const BranchPoLeadTimeResponse = zod.object({
 })
 
 
+export const BranchPosMetricsParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const BranchPosMetricsQueryParams = zod.object({
+  "from": zod.iso.date().describe('First branch-local day, `YYYY-MM-DD` (inclusive).'),
+  "to": zod.iso.date().describe('Last branch-local day, `YYYY-MM-DD` (inclusive).')
+})
+
+export const BranchPosMetricsResponse = zod.object({
+  "average_ticket": zod.number().describe('`net_sales \/ order_count`, rounded half up; 0 with no sales.'),
+  "branch_id": zod.uuid(),
+  "from": zod.iso.date(),
+  "gross_sales": zod.number(),
+  "hourly": zod.array(zod.object({
+  "hour": zod.number().describe('Branch-local hour of day, 0–23.'),
+  "net_sales": zod.number(),
+  "order_count": zod.number()
+})).describe('Always 24 rows, hour 0 first.'),
+  "net_sales": zod.number().describe('Sold sales net of refunds against them (`branch_sales.total_revenue`).'),
+  "order_count": zod.number().describe('Sold sales (`branch_sales.total_orders`).'),
+  "refunded_amount": zod.number(),
+  "refunded_orders_count": zod.number().describe('Sales refunded in full (out of every sold figure above).'),
+  "refunds_issued_amount": zod.number(),
+  "refunds_issued_count": zod.number().describe('Refunds ISSUED inside the window at this branch, whichever sale they refund.'),
+  "tenders": zod.array(zod.object({
+  "amount": zod.number(),
+  "method": zod.string(),
+  "order_count": zod.number().describe('Sold sales with at least one leg in this method.')
+})).describe('By amount, largest first.'),
+  "timezone": zod.string().describe('The IANA zone the days were cut in.'),
+  "to": zod.iso.date(),
+  "top_items": zod.array(zod.object({
+  "item_id": zod.uuid().nullish().describe('The menu item or bundle; null for a line with neither.'),
+  "item_name": zod.string(),
+  "quantity": zod.number(),
+  "revenue": zod.number().describe('Σ line totals (before refunds), as `branch_sales.top_items.revenue`.')
+})).describe('Top [`TOP_ITEMS`] by quantity (then revenue, then name).'),
+  "voided_amount": zod.number(),
+  "voided_count": zod.number(),
+  "window_from": zod.iso.datetime({"offset":true}).describe('`[window_from, window_to)`: local midnight of `from` to local midnight after `to`.'),
+  "window_to": zod.iso.datetime({"offset":true})
+})
+
+
 export const BranchSalesParams = zod.object({
   "branch_id": zod.uuid()
 })
