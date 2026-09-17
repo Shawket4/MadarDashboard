@@ -14229,30 +14229,21 @@ export const GetShiftReportResponse = zod.object({
   "safe_drops": zod.number(),
   "service_charge_waived_amount": zod.number().optional(),
   "service_charge_waived_count": zod.number().optional().describe('Table bills whose service charge was removed (`orders:waive_service`),\nand what those charges came to. Not part of any total.'),
-  "spot_checks": zod.array(zod.object({
+  "spot_views": zod.array(zod.object({
   "approval_id": zod.uuid().nullish(),
   "approved_by": zod.uuid().nullish(),
   "approved_by_name": zod.string().nullish(),
   "branch_id": zod.uuid(),
-  "cash_discrepancy": zod.number().describe('`counted_cash - expected_cash`.'),
-  "checked_at": zod.iso.datetime({"offset":true}),
-  "checked_by": zod.uuid(),
-  "checked_by_name": zod.string(),
-  "counted_cash": zod.number(),
   "created_at": zod.iso.datetime({"offset":true}),
   "device_id": zod.uuid().nullish(),
-  "expected_cash": zod.number(),
   "id": zod.uuid(),
-  "methods": zod.array(zod.object({
-  "counted": zod.number().nullish().describe('Null when this method was not counted.'),
-  "discrepancy": zod.number().nullish().describe('`counted - expected`, null when not counted.'),
-  "expected": zod.number(),
-  "is_cash": zod.boolean(),
-  "method": zod.string()
-}).describe('One payment method on a spot check: what the system expected and, when the\ncounter counted it, what they found. Cash is always the first line.')),
-  "note": zod.string().nullish(),
-  "till_id": zod.uuid()
-})).optional().describe('Cash spot checks taken on this till, oldest first. Additive.'),
+  "printed": zod.boolean(),
+  "printed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "till_id": zod.uuid(),
+  "viewed_at": zod.iso.datetime({"offset":true}),
+  "viewed_by": zod.uuid(),
+  "viewed_by_name": zod.string()
+})).optional().describe('Who viewed (and printed) the cash spot report of this till, oldest first. Additive.'),
   "standard_float": zod.number().nullish().describe('`branches.standard_float`.'),
   "suggested_safe_drop": zod.number().nullish(),
   "timezone": zod.string().nullish(),
@@ -17064,30 +17055,21 @@ export const GetTillReportResponse = zod.object({
   "safe_drops": zod.number(),
   "service_charge_waived_amount": zod.number().optional(),
   "service_charge_waived_count": zod.number().optional().describe('Table bills whose service charge was removed (`orders:waive_service`),\nand what those charges came to. Not part of any total.'),
-  "spot_checks": zod.array(zod.object({
+  "spot_views": zod.array(zod.object({
   "approval_id": zod.uuid().nullish(),
   "approved_by": zod.uuid().nullish(),
   "approved_by_name": zod.string().nullish(),
   "branch_id": zod.uuid(),
-  "cash_discrepancy": zod.number().describe('`counted_cash - expected_cash`.'),
-  "checked_at": zod.iso.datetime({"offset":true}),
-  "checked_by": zod.uuid(),
-  "checked_by_name": zod.string(),
-  "counted_cash": zod.number(),
   "created_at": zod.iso.datetime({"offset":true}),
   "device_id": zod.uuid().nullish(),
-  "expected_cash": zod.number(),
   "id": zod.uuid(),
-  "methods": zod.array(zod.object({
-  "counted": zod.number().nullish().describe('Null when this method was not counted.'),
-  "discrepancy": zod.number().nullish().describe('`counted - expected`, null when not counted.'),
-  "expected": zod.number(),
-  "is_cash": zod.boolean(),
-  "method": zod.string()
-}).describe('One payment method on a spot check: what the system expected and, when the\ncounter counted it, what they found. Cash is always the first line.')),
-  "note": zod.string().nullish(),
-  "till_id": zod.uuid()
-})).optional().describe('Cash spot checks taken on this till, oldest first. Additive.'),
+  "printed": zod.boolean(),
+  "printed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "till_id": zod.uuid(),
+  "viewed_at": zod.iso.datetime({"offset":true}),
+  "viewed_by": zod.uuid(),
+  "viewed_by_name": zod.string()
+})).optional().describe('Who viewed (and printed) the cash spot report of this till, oldest first. Additive.'),
   "standard_float": zod.number().nullish().describe('`branches.standard_float`.'),
   "suggested_safe_drop": zod.number().nullish(),
   "timezone": zod.string().nullish(),
@@ -17156,81 +17138,61 @@ export const GetTillReportResponse = zod.object({
 }))
 
 
-export const ListSpotChecksParams = zod.object({
+export const ListSpotViewsParams = zod.object({
   "till_id": zod.uuid().describe('Till ID')
 })
 
-export const ListSpotChecksResponseItem = zod.object({
+export const ListSpotViewsResponseItem = zod.object({
   "approval_id": zod.uuid().nullish(),
   "approved_by": zod.uuid().nullish(),
   "approved_by_name": zod.string().nullish(),
   "branch_id": zod.uuid(),
-  "cash_discrepancy": zod.number().describe('`counted_cash - expected_cash`.'),
-  "checked_at": zod.iso.datetime({"offset":true}),
-  "checked_by": zod.uuid(),
-  "checked_by_name": zod.string(),
-  "counted_cash": zod.number(),
   "created_at": zod.iso.datetime({"offset":true}),
   "device_id": zod.uuid().nullish(),
-  "expected_cash": zod.number(),
   "id": zod.uuid(),
-  "methods": zod.array(zod.object({
-  "counted": zod.number().nullish().describe('Null when this method was not counted.'),
-  "discrepancy": zod.number().nullish().describe('`counted - expected`, null when not counted.'),
-  "expected": zod.number(),
-  "is_cash": zod.boolean(),
-  "method": zod.string()
-}).describe('One payment method on a spot check: what the system expected and, when the\ncounter counted it, what they found. Cash is always the first line.')),
-  "note": zod.string().nullish(),
-  "till_id": zod.uuid()
+  "printed": zod.boolean(),
+  "printed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "till_id": zod.uuid(),
+  "viewed_at": zod.iso.datetime({"offset":true}),
+  "viewed_by": zod.uuid(),
+  "viewed_by_name": zod.string()
 })
-export const ListSpotChecksResponse = zod.array(ListSpotChecksResponseItem)
+export const ListSpotViewsResponse = zod.array(ListSpotViewsResponseItem)
 
 
-export const CreateSpotCheckParams = zod.object({
+export const CreateSpotViewParams = zod.object({
   "till_id": zod.uuid().describe('Till ID')
 })
 
-export const CreateSpotCheckBody = zod.object({
-  "approval_id": zod.uuid().nullish().describe('Replay only: the approval id carried on the envelope (ignored live).'),
-  "approved_by": zod.uuid().nullish().describe('Replay only: the person whose PIN unlocked this check (ignored live).'),
-  "checked_at": zod.iso.datetime({"offset":true}).nullish(),
-  "counted_cash": zod.number().describe('The cash counted in the drawer, minor units.'),
+export const CreateSpotViewBody = zod.object({
+  "approval": zod.union([zod.null(),zod.object({
+  "approver_id": zod.uuid(),
+  "capability": zod.string().describe('Always `till.cash_spot_check`.'),
+  "id": zod.uuid()
+}).describe('Live route: the one-time unlock, when the caller does not hold\n`till.cash_spot_check`. (Replay carries it on the envelope.)')]).optional(),
+  "approval_id": zod.uuid().nullish().describe('Set by replay from a verified envelope approval (ignored live).'),
+  "approved_by": zod.uuid().nullish().describe('Set by replay from a verified envelope approval (ignored live).'),
   "device_id": zod.uuid().nullish(),
-  "expected_cash": zod.number().nullish().describe('The expected cash the counter saw. Absent → the server computes it now.'),
-  "id": zod.uuid().nullish().describe('Client-minted id; a retried or replayed check with the same id is one check.'),
-  "methods": zod.array(zod.object({
-  "counted": zod.number().nullish(),
-  "expected": zod.number().nullish().describe('The expected figure the counter saw. Absent → the server\'s own figure.'),
-  "is_cash": zod.boolean().optional(),
-  "method": zod.string()
-})).nullish().describe('Per-method expected \/ counted figures. Absent → the server\'s own totals, uncounted.'),
-  "note": zod.string().nullish()
+  "id": zod.uuid().nullish().describe('Client-minted id; a retry, a replay or the print of the same view is one row.'),
+  "printed": zod.boolean().optional().describe('The spot report was printed.'),
+  "printed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "viewed_at": zod.iso.datetime({"offset":true}).nullish()
 })
 
-export const CreateSpotCheckResponse = zod.object({
+export const CreateSpotViewResponse = zod.object({
   "approval_id": zod.uuid().nullish(),
   "approved_by": zod.uuid().nullish(),
   "approved_by_name": zod.string().nullish(),
   "branch_id": zod.uuid(),
-  "cash_discrepancy": zod.number().describe('`counted_cash - expected_cash`.'),
-  "checked_at": zod.iso.datetime({"offset":true}),
-  "checked_by": zod.uuid(),
-  "checked_by_name": zod.string(),
-  "counted_cash": zod.number(),
   "created_at": zod.iso.datetime({"offset":true}),
   "device_id": zod.uuid().nullish(),
-  "expected_cash": zod.number(),
   "id": zod.uuid(),
-  "methods": zod.array(zod.object({
-  "counted": zod.number().nullish().describe('Null when this method was not counted.'),
-  "discrepancy": zod.number().nullish().describe('`counted - expected`, null when not counted.'),
-  "expected": zod.number(),
-  "is_cash": zod.boolean(),
-  "method": zod.string()
-}).describe('One payment method on a spot check: what the system expected and, when the\ncounter counted it, what they found. Cash is always the first line.')),
-  "note": zod.string().nullish(),
-  "till_id": zod.uuid()
+  "printed": zod.boolean(),
+  "printed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "till_id": zod.uuid(),
+  "viewed_at": zod.iso.datetime({"offset":true}),
+  "viewed_by": zod.uuid(),
+  "viewed_by_name": zod.string()
 })
 
 

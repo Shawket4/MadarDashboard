@@ -3763,19 +3763,11 @@
     "noOpenHint": "A till opens when a teller starts selling on a POS.",
     "allStatuses": "All statuses",
     "emptyHint": "Tills appear here once a teller opens one, and stay for the record after they close.",
-    "spotChecks": {
-      "title": "Spot checks",
-      "empty": "No spot checks were taken on this till.",
-      "even": "Even",
-      "over": "Over",
-      "short": "Short",
-      "checkedBy": "Checked by {{name}}",
-      "approvedBy": "approved by {{name}}",
-      "counted": "Counted",
-      "expected": "Expected",
-      "methods_one": "{{count}} method",
-      "methods_other": "{{count}} methods",
-      "notCounted": "Not counted"
+    "spotViews": {
+      "title": "Spot reports viewed",
+      "empty": "Nobody has viewed the spot report for this till.",
+      "unlockedBy": "unlocked by {{name}}",
+      "printed": "Printed"
     }
   },
   "aiChat": {

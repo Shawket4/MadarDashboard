@@ -103,7 +103,6 @@ import type {
   CardView,
   CashMovement,
   CashMovementRequest,
-  CashSpotCheckRequest,
   CatalogSyncParams,
   CatalogSyncResponse,
   Category,
@@ -504,6 +503,7 @@ import type {
   SizeBaseResult,
   SizeCostOut,
   SkuCost,
+  SpotViewRequest,
   StaffDocument,
   StaffRequest,
   StationRoutes,
@@ -531,7 +531,7 @@ import type {
   TillPreFill,
   TillRefunds,
   TillReportResponse,
-  TillSpotCheck,
+  TillSpotView,
   TimeseriesPoint,
   TopUpRequest,
   TransferView,
@@ -38310,14 +38310,14 @@ export function useGetTillReport<TData = Awaited<ReturnType<typeof getTillReport
 
 
 
-export const listSpotChecks = (
+export const listSpotViews = (
     tillId: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
-      return customInstance<TillSpotCheck[]>(
-      {url: `/tills/${tillId}/spot-checks`, method: 'GET', signal
+      return customInstance<TillSpotView[]>(
+      {url: `/tills/${tillId}/spot-views`, method: 'GET', signal
     },
       options);
     }
@@ -38325,66 +38325,66 @@ export const listSpotChecks = (
 
 
 
-export const getListSpotChecksQueryKey = (tillId: string,) => {
+export const getListSpotViewsQueryKey = (tillId: string,) => {
     return [
-    `/tills/${tillId}/spot-checks`
+    `/tills/${tillId}/spot-views`
     ] as const;
     }
 
 
-export const getListSpotChecksQueryOptions = <TData = Awaited<ReturnType<typeof listSpotChecks>>, TError = ErrorBody>(tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotChecks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getListSpotViewsQueryOptions = <TData = Awaited<ReturnType<typeof listSpotViews>>, TError = ErrorBody>(tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListSpotChecksQueryKey(tillId);
+  const queryKey =  queryOptions?.queryKey ?? getListSpotViewsQueryKey(tillId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSpotChecks>>> = ({ signal }) => listSpotChecks(tillId, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSpotViews>>> = ({ signal }) => listSpotViews(tillId, requestOptions, signal);
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: tillId !== null && tillId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSpotChecks>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: tillId !== null && tillId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type ListSpotChecksQueryResult = NonNullable<Awaited<ReturnType<typeof listSpotChecks>>>
-export type ListSpotChecksQueryError = ErrorBody
+export type ListSpotViewsQueryResult = NonNullable<Awaited<ReturnType<typeof listSpotViews>>>
+export type ListSpotViewsQueryError = ErrorBody
 
 
-export function useListSpotChecks<TData = Awaited<ReturnType<typeof listSpotChecks>>, TError = ErrorBody>(
- tillId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotChecks>>, TError, TData>> & Pick<
+export function useListSpotViews<TData = Awaited<ReturnType<typeof listSpotViews>>, TError = ErrorBody>(
+ tillId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listSpotChecks>>,
+          Awaited<ReturnType<typeof listSpotViews>>,
           TError,
-          Awaited<ReturnType<typeof listSpotChecks>>
+          Awaited<ReturnType<typeof listSpotViews>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListSpotChecks<TData = Awaited<ReturnType<typeof listSpotChecks>>, TError = ErrorBody>(
- tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotChecks>>, TError, TData>> & Pick<
+export function useListSpotViews<TData = Awaited<ReturnType<typeof listSpotViews>>, TError = ErrorBody>(
+ tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listSpotChecks>>,
+          Awaited<ReturnType<typeof listSpotViews>>,
           TError,
-          Awaited<ReturnType<typeof listSpotChecks>>
+          Awaited<ReturnType<typeof listSpotViews>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListSpotChecks<TData = Awaited<ReturnType<typeof listSpotChecks>>, TError = ErrorBody>(
- tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotChecks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export function useListSpotViews<TData = Awaited<ReturnType<typeof listSpotViews>>, TError = ErrorBody>(
+ tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useListSpotChecks<TData = Awaited<ReturnType<typeof listSpotChecks>>, TError = ErrorBody>(
- tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotChecks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export function useListSpotViews<TData = Awaited<ReturnType<typeof listSpotViews>>, TError = ErrorBody>(
+ tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListSpotChecksQueryOptions(tillId,options)
+  const queryOptions = getListSpotViewsQueryOptions(tillId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -38397,17 +38397,17 @@ export function useListSpotChecks<TData = Awaited<ReturnType<typeof listSpotChec
 
 
 
-export const createSpotCheck = (
+export const createSpotView = (
     tillId: string,
-    cashSpotCheckRequest: CashSpotCheckRequest,
+    spotViewRequest: SpotViewRequest,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
-      return customInstance<TillSpotCheck>(
-      {url: `/tills/${tillId}/spot-checks`, method: 'POST',
+      return customInstance<TillSpotView>(
+      {url: `/tills/${tillId}/spot-views`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: cashSpotCheckRequest, signal
+      data: spotViewRequest, signal
     },
       options);
     }
@@ -38415,11 +38415,11 @@ export const createSpotCheck = (
 
 
 
-export const getCreateSpotCheckMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSpotCheck>>, TError,{tillId: string;data: CashSpotCheckRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createSpotCheck>>, TError,{tillId: string;data: CashSpotCheckRequest}, TContext> => {
+export const getCreateSpotViewMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSpotView>>, TError,{tillId: string;data: SpotViewRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSpotView>>, TError,{tillId: string;data: SpotViewRequest}, TContext> => {
 
-const mutationKey = ['createSpotCheck'];
+const mutationKey = ['createSpotView'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -38429,10 +38429,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSpotCheck>>, {tillId: string;data: CashSpotCheckRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSpotView>>, {tillId: string;data: SpotViewRequest}> = (props) => {
           const {tillId,data} = props ?? {};
 
-          return  createSpotCheck(tillId,data,requestOptions)
+          return  createSpotView(tillId,data,requestOptions)
         }
 
 
@@ -38442,19 +38442,19 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type CreateSpotCheckMutationResult = NonNullable<Awaited<ReturnType<typeof createSpotCheck>>>
-    export type CreateSpotCheckMutationBody = CashSpotCheckRequest
-    export type CreateSpotCheckMutationError = ErrorBody
+    export type CreateSpotViewMutationResult = NonNullable<Awaited<ReturnType<typeof createSpotView>>>
+    export type CreateSpotViewMutationBody = SpotViewRequest
+    export type CreateSpotViewMutationError = ErrorBody
 
-    export const useCreateSpotCheck = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSpotCheck>>, TError,{tillId: string;data: CashSpotCheckRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+    export const useCreateSpotView = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSpotView>>, TError,{tillId: string;data: SpotViewRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createSpotCheck>>,
+        Awaited<ReturnType<typeof createSpotView>>,
         TError,
-        {tillId: string;data: CashSpotCheckRequest},
+        {tillId: string;data: SpotViewRequest},
         TContext
       > => {
-      return useMutation(getCreateSpotCheckMutationOptions(options), queryClient);
+      return useMutation(getCreateSpotViewMutationOptions(options), queryClient);
     }
 
 /**
