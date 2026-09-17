@@ -462,6 +462,7 @@ import type {
   RecipeLinkInfo,
   RecipeStep,
   RecipeStepPreset,
+  RecordWasteRequest,
   RefundFull,
   RefundIssued,
   RefundsAuditParams,
@@ -582,6 +583,7 @@ import type {
   WaiveDeductionRequest,
   WaiversAuditParams,
   WalletStatus,
+  WasteRecorded,
   WasteReportRow,
   WhatsappStatus,
   WorkShift,
@@ -12823,6 +12825,71 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUpdateTransferMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary POST /inventory/waste — record waste at a branch (ingredient or menu item).
+ */
+export const recordWaste = (
+    recordWasteRequest: RecordWasteRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<WasteRecorded>(
+      {url: `/inventory/waste`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: recordWasteRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getRecordWasteMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordWaste>>, TError,{data: RecordWasteRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordWaste>>, TError,{data: RecordWasteRequest}, TContext> => {
+
+const mutationKey = ['recordWaste'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordWaste>>, {data: RecordWasteRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordWaste(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordWasteMutationResult = NonNullable<Awaited<ReturnType<typeof recordWaste>>>
+    export type RecordWasteMutationBody = RecordWasteRequest
+    export type RecordWasteMutationError = ErrorBody
+
+    /**
+ * @summary POST /inventory/waste — record waste at a branch (ingredient or menu item).
+ */
+export const useRecordWaste = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordWaste>>, TError,{data: RecordWasteRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recordWaste>>,
+        TError,
+        {data: RecordWasteRequest},
+        TContext
+      > => {
+      return useMutation(getRecordWasteMutationOptions(options), queryClient);
     }
 
 export const bump = (
