@@ -149,7 +149,7 @@
     "invItems": "الأصناف",
     "invPurchasing": "المشتريات",
     "invCounts": "جرد المخزون",
-    "invWaste": "الهالك",
+    "invWaste": "التالف",
     "invTransfers": "التحويلات",
     "invReports": "التقارير",
     "invSettings": "الإعدادات",
@@ -502,7 +502,7 @@
       "soft_serve_batches": "تشغيلات الآيس كريم",
       "settings": "الإعدادات",
       "stocktakes": "الجرد",
-      "inventory_waste": "هدر المخزون",
+      "inventory_waste": "تالف المخزون",
       "suppliers": "الموردون",
       "purchase_orders": "أوامر الشراء",
       "tills": "الورديات"
@@ -1130,7 +1130,7 @@
       "catalog": "الكتالوج",
       "stock": "المخزون",
       "movements": "الحركات",
-      "waste": "الهدر",
+      "waste": "التالف",
       "stocktakes": "الجرد",
       "purchasing": "المشتريات",
       "reports": "التقارير",
@@ -1222,7 +1222,7 @@
         "void_restock": "إعادة بعد الإلغاء",
         "adjustment_add": "تعديل +",
         "adjustment_remove": "تعديل −",
-        "waste": "هدر",
+        "waste": "تالف",
         "transfer_out": "تحويل صادر",
         "transfer_in": "تحويل وارد",
         "purchase_in": "شراء",
@@ -1231,22 +1231,22 @@
       "loadFailed": "تعذّر تحميل سجل المخزون"
     },
     "waste": {
-      "title": "سجل الهدر",
-      "record": "تسجيل هدر",
-      "recordTitle": "تسجيل هدر",
+      "title": "سجل التالف",
+      "record": "تسجيل تالف",
+      "recordTitle": "تسجيل تالف",
       "reason": "السبب",
       "quantity": "الكمية",
       "note": "ملاحظة",
-      "noWaste": "لا يوجد هدر مسجّل",
+      "noWaste": "مفيش تالف مسجّل",
       "ingredient": "المكوّن",
       "reasons": {
         "expired": "منتهي الصلاحية",
-        "spoiled": "تالف",
-        "damaged": "متضرّر",
-        "overproduction": "إنتاج زائد",
+        "spoiled": "بايظ",
+        "damaged": "مكسور",
+        "overproduction": "إنتاج زايد",
         "theft": "سرقة",
         "other": "أخرى",
-        "refund": "طلب مسترد",
+        "refund": "طلب مرتجع",
         "order_cancelled": "طلب ملغى"
       },
       "onHandHint": "{{qty}} {{unit}} متوفر",
@@ -1262,15 +1262,15 @@
       "countFirstHint": "لا يوجد مخزون مسجل لهذا الفرع بعد.",
       "countFirstLink": "اجرده أولًا",
       "nothingOnHand": "لا يوجد متوفر",
-      "recorded": "تم تسجيل الهالك",
-      "reportFailed": "تعذّر تحميل الهالك حسب السبب",
-      "noReasonData": "يظهر الهالك حسب السبب بمجرد تسجيل هالك في هذه الفترة.",
+      "recorded": "اتسجل التالف",
+      "reportFailed": "التالف حسب السبب مش راضي يحمّل",
+      "noReasonData": "التالف حسب السبب هيظهر أول ما يتسجل تالف في الفترة دي.",
       "source": "المصدر",
       "sources": {
         "pos": "نقطة البيع",
         "dashboard": "لوحة التحكم",
-        "order": "طلب ملغى",
-        "refund": "استرداد"
+        "order": "إلغاء طلب",
+        "refund": "مرتجع"
       },
       "device": "الجهاز {{name}}",
       "deviceColumn": "الجهاز",
@@ -1280,7 +1280,7 @@
       "item": "صنف المنيو",
       "received": "وصل {{when}}",
       "receivedColumn": "وقت الوصول",
-      "refundOf": "استرداد الطلب {{number}}",
+      "refundOf": "مرتجع الطلب {{number}}",
       "orderColumn": "الطلب"
     },
     "stocktakes": {
@@ -1439,13 +1439,13 @@
       "valuation": "التقييم",
       "lowStock": "المخزون المنخفض",
       "consumption": "الاستهلاك",
-      "wasteReport": "الهدر",
+      "wasteReport": "التالف",
       "totalValue": "القيمة الإجمالية",
       "unknownCost": "{{count}} بتكلفة غير معروفة",
       "value": "القيمة",
       "consumed": "المستهلك",
       "consumedValue": "قيمة المستهلك",
-      "wasteValue": "قيمة الهدر",
+      "wasteValue": "قيمة التالف",
       "deficit": "العجز",
       "noData": "لا توجد بيانات",
       "scope": "النطاق",
@@ -1560,9 +1560,9 @@
       "createPo": "إنشاء أمر شراء",
       "arriving": "تصل اليوم",
       "noDeliveries": "لا توجد توريدات مجدولة اليوم",
-      "todaysWaste": "هالك اليوم",
-      "noWasteToday": "لا يوجد هالك مسجل اليوم",
-      "logWaste": "تسجيل هالك",
+      "todaysWaste": "تالف النهارده",
+      "noWasteToday": "مفيش تالف مسجل النهارده",
+      "logWaste": "تسجيل تالف",
       "receive": "استلام",
       "statusCritical": "حرج",
       "statusLow": "منخفض",
@@ -1573,7 +1573,7 @@
       "startFirstCount": "جرد مخزون هذا الفرع",
       "suggested": "اطلب",
       "deliveriesFailed": "تعذّر تحميل التوريدات",
-      "wasteFailed": "تعذّر تحميل هالك اليوم",
+      "wasteFailed": "تالف النهارده مش راضي يحمّل",
       "noLowStock": "لا شيء تحت حد إعادة الطلب"
     },
     "settings": {
@@ -2010,12 +2010,12 @@
     "amountOff": "خصم {{value}}",
     "activate": "تفعيل الخصم",
     "deactivate": "تعطيل الخصم",
-    "deleteConsequence": "لن يتمكن الكاشير من تطبيقه عند الدفع، وتحتفظ الطلبات السابقة بالخصم الذي حصلت عليه.",
+    "deleteConsequence": "الكاشير مش هيقدر يطبقه عند الدفع، والطلبات القديمة هتفضل بالخصم اللي اتعمل عليها.",
     "kind": {
       "preset": "خصم جاهز",
-      "manualAmount": "مبلغ يدوي",
-      "manualPercent": "نسبة يدوية",
-      "unattributed": "غير مسجل"
+      "manualAmount": "مبلغ بإيده",
+      "manualPercent": "نسبة بإيده",
+      "unattributed": "مش مسجل"
     },
     "appliedBy": "بواسطة {{name}}",
     "approvedBy": "بموافقة {{name}}"
@@ -2785,7 +2785,7 @@
     "inventory": {
       "eyebrow": "ضبط المخزون",
       "title": "اكتشف الفاقد قبل أن يلتهم ربحك",
-      "subtitle": "اجرد المخزون، وسجّل الهالك، وانقل بين الفروع — ودع مدار يُنبّهك بما نقص وما اختفى، مع أثره بالقروش.",
+      "subtitle": "اجرد المخزون، وسجّل التالف، وانقل بين الفروع — ودع مدار يُنبّهك بما نقص وما اختفى، مع أثره بالقروش.",
       "variance": {
         "title": "الجرد والفروقات",
         "desc": "قارن ما على الرف بما يتوقّعه النظام — كل فرق يُحدَّد ويُسعَّر ويُفسَّر."
@@ -2840,7 +2840,7 @@
         },
         "inventory": {
           "title": "مخزون تراكمي",
-          "desc": "جرد وتحويلات وهدر — تُعكَس بقيود تعويضية، ولا تُحذف أبدًا."
+          "desc": "جرد وتحويلات وتالف — تُعكَس بقيود تعويضية، ولا تُحذف أبدًا."
         },
         "shifts": {
           "title": "الورديات والنقد",
@@ -3904,12 +3904,12 @@
     "history": "كل الورديات",
     "noOpenHint": "تُفتح الوردية عندما يبدأ الكاشير البيع على نقطة البيع.",
     "allStatuses": "كل الحالات",
-    "emptyHint": "تظهر الورديات هنا بمجرد أن يفتحها الكاشير، وتبقى للسجل بعد إغلاقها.",
-    "heldOrdersLeftOpen": "طلبات معلّقة تُركت مفتوحة",
+    "emptyHint": "الورديات بتظهر هنا أول ما الكاشير يفتح وردية، وبتفضل في السجل بعد ما تتقفل.",
+    "heldOrdersLeftOpen": "طلبات معلّقة سايبة مفتوحة",
     "spotViews": {
-      "title": "مرات عرض تقرير الجرد المفاجئ",
-      "empty": "لم يعرض أحد تقرير الجرد المفاجئ لهذه الوردية.",
-      "unlockedBy": "بفتح من {{name}}",
+      "title": "مرات فتح تقرير الخزنة",
+      "empty": "محدش فتح تقرير الخزنة للوردية دي.",
+      "unlockedBy": "فتحه {{name}}",
       "printed": "مطبوع"
     }
   },
@@ -5252,8 +5252,8 @@
       "eventsCount": "{{n}} حدث",
       "eventPoints": "النقاط المعدّلة",
       "byType": "حسب النوع",
-      "byKind": "حسب النوع",
-      "discountSales": "المبيعات المخصومة",
+      "byKind": "حسب نوع الخصم",
+      "discountSales": "مبيعات عليها خصم",
       "flagged": "مُعلَّم"
     },
     "loyalty": {
