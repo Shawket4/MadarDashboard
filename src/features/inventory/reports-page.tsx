@@ -1,314 +1,354 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { BarChart3, Boxes, CalendarRange, CircleHelp, Store, Wallet } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowRight, BarChart3, CalendarRange, CircleHelp, TrendingUp, Wallet } from "lucide-react";
 
 import { ProgressBar } from "@/components/app/progress-bar";
-import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { SectionHeader } from "@/components/app/section-header";
-import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
-import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SegmentedControl } from "@/components/app/segmented-control";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import {
-  useBranchConsumption, useBranchInventoryValuation, useBranchShrinkage,
-  useBranchWasteReport, useListCatalog, useOrgConsumption, useOrgInventoryValuation, useOrgShrinkage,
-  useOrgWasteReport,
-} from "@/data/api/generated/api";
-import { getErrorMessage } from "@/data/api/errors";
-import { useExportLogo } from "@/hooks/use-export-logo";
-import { useOrgId } from "@/hooks/use-org-id";
-import { useScope } from "@/data/scope/use-scope";
+import type {
+  ConsumptionRow, InventoryValuationReport, MaterialCostTrendRow, PoLeadTimeReport, ShrinkageRow,
+  SupplierSpendRow, WasteReportRow,
+} from "@/data/api/generated/models";
 import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import type { ExcelColumn } from "@/lib/excel";
 
-type ReportScope = "branch" | "org";
+type Query<T> = { data: T | undefined; isLoading: boolean; isError: boolean; error: unknown; refetch: () => unknown };
 
-export function ReportsPage() {
+/**
+ * Builds the exportable sheet for whichever inventory report tab is active.
+ * Used by Reports ▸ Operations, which owns its own header-level export.
+ */
+export function buildInventoryExportSheet(
+  tab: string,
+  isBranch: boolean,
+  t: ReturnType<typeof useTranslation>["t"],
+  data: {
+    byCategory: { rows: [string, number][] };
+    consumption: ConsumptionRow[] | undefined;
+    shrinkage: ShrinkageRow[] | undefined;
+    wasteReport: WasteReportRow[] | undefined;
+    supplierSpend?: SupplierSpendRow[] | undefined;
+    poLeadTime?: PoLeadTimeReport | undefined;
+  },
+) {
+  type Row = Record<string, string | number | null>;
+  let title = "";
+  let cols: ExcelColumn<Row>[] = [];
+  let rows: Row[] = [];
+  const item = t("inventory.reports.ingredient", "Item");
+  const reasonH = t("inventory.reports.reason", "Reason");
+  const qtyH = t("inventory.reports.qty", "Quantity");
+  const unitH = t("inventory.catalog.unit", "Unit");
+
+  if (tab === "valuation") {
+    title = t("inventory.reports.valuation", "Valuation");
+    cols = [
+      { header: t("inventory.reports.byCategory", "By category"), accessor: (r) => r.category, type: "text", width: 24 },
+      { header: t("inventory.reports.totalValue", "Total value"), accessor: (r) => r.value, type: "money", width: 16 },
+    ];
+    rows = data.byCategory.rows.map(([cat, val]) => ({ category: cat, value: val }));
+  } else if (tab === "consumption") {
+    title = t("inventory.reports.consumption", "Consumption");
+    cols = [
+      { header: item, accessor: (r) => r.item, type: "text", width: 28 },
+      { header: qtyH, accessor: (r) => r.qty, type: "number", width: 14 },
+      { header: unitH, accessor: (r) => r.unit, type: "text", width: 10 },
+      { header: t("inventory.reports.consumedValue", "Consumed value"), accessor: (r) => r.value, type: "money", width: 16 },
+    ];
+    rows = (data.consumption ?? []).map((r) => ({ item: r.ingredient_name, qty: r.consumed_qty, unit: fmtUnit(r.unit), value: r.consumed_value ?? null }));
+  } else if (tab === "shrinkage") {
+    title = t("inventory.reports.shrinkage", "Shrinkage");
+    cols = [
+      { header: item, accessor: (r) => r.item, type: "text", width: 28 },
+      { header: reasonH, accessor: (r) => r.reason, type: "text", width: 18 },
+      { header: qtyH, accessor: (r) => r.qty, type: "number", width: 14 },
+      { header: unitH, accessor: (r) => r.unit, type: "text", width: 10 },
+      { header: t("inventory.reports.value", "Value"), accessor: (r) => r.value, type: "money", width: 14 },
+    ];
+    rows = (data.shrinkage ?? []).map((r) => ({
+      item: r.ingredient_name,
+      reason: r.reason === "unexplained" ? t("inventory.varianceReasons.other", "Other") : t(`inventory.varianceReasons.${r.reason}`, r.reason),
+      qty: r.shrinkage_qty, unit: fmtUnit(r.unit), value: r.shrinkage_value ?? null,
+    }));
+  } else if (tab === "waste") {
+    title = t("inventory.reports.wasteReport", "Waste");
+    cols = [
+      { header: item, accessor: (r) => r.item, type: "text", width: 28 },
+      { header: reasonH, accessor: (r) => r.reason, type: "text", width: 18 },
+      { header: qtyH, accessor: (r) => r.qty, type: "number", width: 14 },
+      { header: unitH, accessor: (r) => r.unit, type: "text", width: 10 },
+      { header: t("inventory.reports.wasteValue", "Waste value"), accessor: (r) => r.value, type: "money", width: 14 },
+    ];
+    rows = (data.wasteReport ?? []).map((r) => ({
+      item: r.ingredient_name, reason: t(`inventory.waste.reasons.${r.reason}`, r.reason),
+      qty: r.waste_qty, unit: fmtUnit(r.unit), value: r.waste_value ?? null,
+    }));
+  } else if (tab === "supplierSpend") {
+    title = t("inventory.reports.supplierSpend", "Supplier spend");
+    cols = [
+      { header: t("inventory.reports.supplier", "Supplier"), accessor: (r) => r.supplier, type: "text", width: 28 },
+      { header: t("inventory.reports.orders", "Orders"), accessor: (r) => r.orders, type: "number", width: 12 },
+      { header: t("inventory.reports.totalSpend", "Total spend"), accessor: (r) => r.value, type: "money", width: 16 },
+    ];
+    rows = (data.supplierSpend ?? []).map((r) => ({ supplier: r.supplier_name, orders: r.orders, value: r.total_spend }));
+  } else {
+    title = t("inventory.reports.poLeadTime", "PO lead time");
+    cols = [
+      { header: t("inventory.reports.supplier", "Supplier"), accessor: (r) => r.supplier, type: "text", width: 28 },
+      { header: t("inventory.reports.ordersReceived", "Orders received"), accessor: (r) => r.orders, type: "number", width: 14 },
+      { header: t("inventory.reports.avgLeadDays", "Avg lead time (days)"), accessor: (r) => r.value, type: "number", width: 18 },
+    ];
+    rows = (data.poLeadTime?.by_supplier ?? []).map((r) => ({ supplier: r.supplier_name, orders: r.orders_received, value: r.avg_lead_time_days }));
+  }
+  const scopeLabel = isBranch ? t("inventory.reports.branch", "This branch") : t("inventory.reports.org", "Whole organization");
+  return { title, subtitle: scopeLabel, rows: rows as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] };
+}
+
+/** Total stock value plus a by-category breakdown. `byCategory` is computed by
+ *  the caller (it's also what the page's own Excel export sends) and handed
+ *  down rather than recomputed here. */
+export function ValuationTab({ valuation, catalogLoading, byCategory }: {
+  valuation: Query<InventoryValuationReport>;
+  catalogLoading: boolean;
+  byCategory: { rows: [string, number][]; max: number };
+}) {
   const { t } = useTranslation();
-  const orgId = useOrgId();
-  const { branchId, from, to, preset } = useScope();
-
-  const [scope, setScope] = useState<ReportScope>(branchId ? "branch" : "org");
-  const [tab, setTab] = useState("valuation");
-  const [exporting, setExporting] = useState(false);
-  const logoUrl = useExportLogo();
-
-  const isBranch = scope === "branch";
-  const scopeId = isBranch ? branchId : orgId;
-  const range = { from: from ?? undefined, to: to ?? undefined };
-  const on = (key: string) => tab === key && !!scopeId;
-
-  // Valuation
-  const branchVal = useBranchInventoryValuation(branchId ?? "", { query: { enabled: isBranch && on("valuation") && !!branchId } });
-  const orgVal = useOrgInventoryValuation(orgId ?? "", { query: { enabled: !isBranch && on("valuation") && !!orgId } });
-  const valuation = isBranch ? branchVal : orgVal;
-  const catalog = useListCatalog(orgId ?? "", { query: { enabled: on("valuation") && !!orgId } });
-
-  // Consumption
-  const branchCons = useBranchConsumption(branchId ?? "", range, { query: { enabled: isBranch && on("consumption") && !!branchId } });
-  const orgCons = useOrgConsumption(orgId ?? "", range, { query: { enabled: !isBranch && on("consumption") && !!orgId } });
-  const consumption = isBranch ? branchCons : orgCons;
-
-  // Shrinkage
-  const branchShr = useBranchShrinkage(branchId ?? "", range, { query: { enabled: isBranch && on("shrinkage") && !!branchId } });
-  const orgShr = useOrgShrinkage(orgId ?? "", range, { query: { enabled: !isBranch && on("shrinkage") && !!orgId } });
-  const shrinkage = isBranch ? branchShr : orgShr;
-
-  // Waste
-  const branchWaste = useBranchWasteReport(branchId ?? "", range, { query: { enabled: isBranch && on("waste") && !!branchId } });
-  const orgWaste = useOrgWasteReport(orgId ?? "", range, { query: { enabled: !isBranch && on("waste") && !!orgId } });
-  const wasteReport = isBranch ? branchWaste : orgWaste;
-
-  const byCategory = useMemo(() => {
-    const cat = new Map<string, string>();
-    for (const c of catalog.data ?? []) cat.set(c.id, c.category_name);
-    const sums = new Map<string, number>();
-    for (const it of valuation.data?.items ?? []) {
-      if (it.value == null) continue;
-      const key = cat.get(it.org_ingredient_id) ?? t("inventory.catalog.uncategorized", "Uncategorized");
-      sums.set(key, (sums.get(key) ?? 0) + it.value);
-    }
-    const rows = Array.from(sums.entries()).sort((a, b) => b[1] - a[1]);
-    const max = rows.reduce((m, [, v]) => Math.max(m, v), 0);
-    return { rows, max };
-  }, [catalog.data, valuation.data, t]);
-
-  // Export the currently-visible report tab. Every one of these endpoints
-  // returns its whole aggregate for the scope and date range in one response —
-  // they are roll-ups, not row listings — so there is no paging to walk.
-  const handleExport = async () => {
-    type Row = Record<string, string | number | null>;
-    let title = "";
-    let cols: ExcelColumn<Row>[] = [];
-    let rows: Row[] = [];
-    const item = t("inventory.reports.ingredient", "Item");
-    const reasonH = t("inventory.reports.reason", "Reason");
-    const qtyH = t("inventory.reports.qty", "Quantity");
-    const unitH = t("inventory.catalog.unit", "Unit");
-
-    if (tab === "valuation") {
-      title = t("inventory.reports.valuation", "Valuation");
-      cols = [
-        { header: t("inventory.reports.byCategory", "By category"), accessor: (r) => r.category, type: "text", width: 24 },
-        { header: t("inventory.reports.totalValue", "Total value"), accessor: (r) => r.value, type: "money", width: 16 },
-      ];
-      rows = byCategory.rows.map(([cat, val]) => ({ category: cat, value: val }));
-    } else if (tab === "consumption") {
-      title = t("inventory.reports.consumption", "Consumption");
-      cols = [
-        { header: item, accessor: (r) => r.item, type: "text", width: 28 },
-        { header: qtyH, accessor: (r) => r.qty, type: "number", width: 14 },
-        { header: unitH, accessor: (r) => r.unit, type: "text", width: 10 },
-        { header: t("inventory.reports.consumedValue", "Consumed value"), accessor: (r) => r.value, type: "money", width: 16 },
-      ];
-      rows = (consumption.data ?? []).map((r) => ({ item: r.ingredient_name, qty: r.consumed_qty, unit: fmtUnit(r.unit), value: r.consumed_value ?? null }));
-    } else if (tab === "shrinkage") {
-      title = t("inventory.reports.shrinkage", "Shrinkage");
-      cols = [
-        { header: item, accessor: (r) => r.item, type: "text", width: 28 },
-        { header: reasonH, accessor: (r) => r.reason, type: "text", width: 18 },
-        { header: qtyH, accessor: (r) => r.qty, type: "number", width: 14 },
-        { header: unitH, accessor: (r) => r.unit, type: "text", width: 10 },
-        { header: t("inventory.reports.value", "Value"), accessor: (r) => r.value, type: "money", width: 14 },
-      ];
-      rows = (shrinkage.data ?? []).map((r) => ({
-        item: r.ingredient_name,
-        reason: r.reason === "unexplained" ? t("inventory.varianceReasons.other", "Other") : t(`inventory.varianceReasons.${r.reason}`, r.reason),
-        qty: r.shrinkage_qty, unit: fmtUnit(r.unit), value: r.shrinkage_value ?? null,
-      }));
-    } else {
-      title = t("inventory.reports.wasteReport", "Waste");
-      cols = [
-        { header: item, accessor: (r) => r.item, type: "text", width: 28 },
-        { header: reasonH, accessor: (r) => r.reason, type: "text", width: 18 },
-        { header: qtyH, accessor: (r) => r.qty, type: "number", width: 14 },
-        { header: unitH, accessor: (r) => r.unit, type: "text", width: 10 },
-        { header: t("inventory.reports.wasteValue", "Waste value"), accessor: (r) => r.value, type: "money", width: 14 },
-      ];
-      rows = (wasteReport.data ?? []).map((r) => ({
-        item: r.ingredient_name, reason: t(`inventory.waste.reasons.${r.reason}`, r.reason),
-        qty: r.waste_qty, unit: fmtUnit(r.unit), value: r.waste_value ?? null,
-      }));
-    }
-    const scopeLabel = isBranch ? t("inventory.reports.branch", "This branch") : t("inventory.reports.org", "Whole organization");
-    setExporting(true);
-    try {
-      await exportToExcel({ filename: `Madar-${title}`, logoUrl, sheets: [{ name: title, title, subtitle: scopeLabel, rows: rows as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const currentCount =
-    tab === "valuation" ? byCategory.rows.length
-      : tab === "consumption" ? (consumption.data?.length ?? 0)
-        : tab === "shrinkage" ? (shrinkage.data?.length ?? 0)
-          : (wasteReport.data?.length ?? 0);
-
-  if (!orgId) {
+  if (valuation.isError) {
     return (
-      <Page>
-        <PageHeader title={t("inventory.reports.title", "Inventory reports")} />
-        <EmptyState icon={Boxes} title={t("inventory.pickOrg", "Select an organization to manage inventory")} />
-      </Page>
+      <ErrorState
+        title={t("inventory.reports.valuationFailed", "Couldn't load stock valuation")}
+        onRetry={() => void valuation.refetch()}
+      />
     );
   }
+  return (
+    <>
+      <LedgerStrip
+        className="lg:max-w-2xl"
+        items={[
+          { key: "value", label: t("inventory.reports.totalValue", "Total value"), value: valuation.data?.total_value ?? 0, formatType: "money", icon: Wallet, loading: valuation.isLoading },
+          { key: "unknown", label: t("inventory.reports.unknownCostLabel", "Unknown cost"), value: valuation.data?.unknown_cost_count ?? 0, icon: CircleHelp, accent: (valuation.data?.unknown_cost_count ?? 0) > 0 ? "warning" : "neutral", loading: valuation.isLoading },
+        ] satisfies LedgerItem[]}
+      />
+      <section className="space-y-3">
+        <SectionHeader title={t("inventory.reports.byCategory", "By category")} />
+        {valuation.isLoading || catalogLoading ? (
+          <div className="space-y-4 rounded-2xl border bg-card p-5">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="flex justify-between"><Skeleton className="h-4 w-28" /><Skeleton className="h-4 w-20" /></div>
+                <Skeleton className="h-2 w-full" />
+              </div>
+            ))}
+          </div>
+        ) : byCategory.rows.length === 0 ? (
+          <EmptyState className="py-8" title={t("inventory.reports.noValuation", "Stock value by category appears after a branch is counted.")} />
+        ) : (
+          <div className="space-y-4 rounded-2xl border bg-card p-5">
+            {byCategory.rows.map(([cat, val]) => (
+              <div key={cat} className="space-y-1.5">
+                <div className="flex items-center justify-between gap-4 text-sm">
+                  <span className="font-medium">{cat}</span>
+                  <bdi className="font-mono tabular">{fmtMoney(val)}</bdi>
+                </div>
+                <ProgressBar value={val} max={byCategory.max} ariaLabel={cat} className="h-2" />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
 
-  const branchGate = isBranch && !branchId;
-  const noData = t("inventory.reports.noDataPeriod", "Nothing recorded for this scope and period.");
+export function ConsumptionTab({ consumption, noData }: { consumption: Query<ConsumptionRow[]>; noData: string }) {
+  const { t } = useTranslation();
+  return (
+    <ReportTable
+      query={consumption}
+      empty={noData}
+      head={[
+        { label: t("inventory.reports.ingredient", "Item") },
+        { label: t("inventory.reports.qty", "Quantity"), numeric: true },
+        { label: t("inventory.reports.consumedValue", "Consumed value"), numeric: true },
+      ]}
+      rows={(consumption.data ?? []).map((r) => ({
+        key: r.org_ingredient_id,
+        cells: [r.ingredient_name, `${fmtNumber(r.consumed_qty)} ${fmtUnit(r.unit)}`, fmtMoney(r.consumed_value)],
+      }))}
+    />
+  );
+}
+
+export function ShrinkageTab({ shrinkage, noData }: { shrinkage: Query<ShrinkageRow[]>; noData: string }) {
+  const { t } = useTranslation();
+  return (
+    <ReportTable
+      query={shrinkage}
+      empty={noData}
+      head={[
+        { label: t("inventory.reports.ingredient", "Item") },
+        { label: t("inventory.reports.reason", "Reason") },
+        { label: t("inventory.reports.qty", "Quantity"), numeric: true },
+        { label: t("inventory.reports.value", "Value"), numeric: true },
+      ]}
+      rows={(shrinkage.data ?? []).map((r, i) => ({
+        key: `${r.org_ingredient_id}-${r.reason}-${i}`,
+        cells: [
+          r.ingredient_name,
+          r.reason === "unexplained" ? t("inventory.varianceReasons.other", "Other") : t(`inventory.varianceReasons.${r.reason}`, r.reason),
+          `${fmtNumber(r.shrinkage_qty)} ${fmtUnit(r.unit)}`,
+          fmtMoney(r.shrinkage_value),
+        ],
+      }))}
+    />
+  );
+}
+
+export function WasteTab({ wasteReport, noData }: { wasteReport: Query<WasteReportRow[]>; noData: string }) {
+  const { t } = useTranslation();
+  return (
+    <ReportTable
+      query={wasteReport}
+      empty={noData}
+      head={[
+        { label: t("inventory.reports.ingredient", "Item") },
+        { label: t("inventory.reports.reason", "Reason") },
+        { label: t("inventory.reports.qty", "Quantity"), numeric: true },
+        { label: t("inventory.reports.wasteValue", "Waste value"), numeric: true },
+      ]}
+      rows={(wasteReport.data ?? []).map((r, i) => ({
+        key: `${r.org_ingredient_id}-${r.reason}-${i}`,
+        cells: [r.ingredient_name, t(`inventory.waste.reasons.${r.reason}`, r.reason), `${fmtNumber(r.waste_qty)} ${fmtUnit(r.unit)}`, fmtMoney(r.waste_value)],
+      }))}
+    />
+  );
+}
+
+export function SupplierSpendTab({ supplierSpend, noData }: { supplierSpend: Query<SupplierSpendRow[]>; noData: string }) {
+  const { t } = useTranslation();
+  return (
+    <ReportTable
+      query={supplierSpend}
+      empty={noData}
+      head={[
+        { label: t("inventory.reports.supplier", "Supplier") },
+        { label: t("inventory.reports.orders", "Orders"), numeric: true },
+        { label: t("inventory.reports.totalSpend", "Total spend"), numeric: true },
+      ]}
+      rows={(supplierSpend.data ?? []).map((r, i) => ({
+        key: r.supplier_id ?? `${r.supplier_name}-${i}`,
+        cells: [r.supplier_name, fmtNumber(r.orders), fmtMoney(r.total_spend)],
+      }))}
+    />
+  );
+}
+
+export function PoLeadTimeTab({ poLeadTime, noData }: { poLeadTime: Query<PoLeadTimeReport>; noData: string }) {
+  const { t } = useTranslation();
+  const rows = poLeadTime.data?.by_supplier ?? [];
+  return (
+    <div className="space-y-4">
+      <LedgerStrip
+        className="lg:max-w-md"
+        items={[{
+          key: "overall",
+          label: t("inventory.reports.avgLeadDays", "Avg lead time (days)"),
+          value: fmtNumber(poLeadTime.data?.overall_avg_days ?? 0, { maximumFractionDigits: 1 }),
+          icon: CalendarRange,
+          loading: poLeadTime.isLoading,
+        }]}
+      />
+      <ReportTable
+        query={poLeadTime}
+        empty={noData}
+        head={[
+          { label: t("inventory.reports.supplier", "Supplier") },
+          { label: t("inventory.reports.ordersReceived", "Orders received"), numeric: true },
+          { label: t("inventory.reports.avgLeadDays", "Avg lead time (days)"), numeric: true },
+        ]}
+        rows={rows.map((r, i) => ({
+          key: r.supplier_id ?? `${r.supplier_name}-${i}`,
+          cells: [r.supplier_name, fmtNumber(r.orders_received), fmtNumber(r.avg_lead_time_days, { maximumFractionDigits: 1 })],
+        }))}
+      />
+    </div>
+  );
+}
+
+/** Ingredients whose current supplier has raised the price 3+ deliveries in
+ *  a row, with a cheaper alternative supplier named when the data shows one. */
+export function MaterialCostTrendTab({ trend, noData }: { trend: Query<MaterialCostTrendRow[]>; noData: string }) {
+  const { t } = useTranslation();
+  const rows = useMemo(() => trend.data ?? [], [trend.data]);
+  const columns = useMemo<ColumnDef<MaterialCostTrendRow>[]>(() => [
+    {
+      id: "ingredient",
+      header: t("inventory.reports.ingredient", "Item"),
+      meta: { label: t("inventory.reports.ingredient", "Item"), phone: "title" },
+      cell: ({ row: { original: r } }) => <span className="font-medium">{r.ingredient_name}</span>,
+    },
+    {
+      id: "supplier",
+      header: t("inventory.reports.supplier", "Supplier"),
+      meta: { label: t("inventory.reports.supplier", "Supplier") },
+      cell: ({ row: { original: r } }) => r.current_supplier_name,
+    },
+    {
+      id: "cost",
+      header: t("inventory.reports.currentCost", "Current cost"),
+      meta: { label: t("inventory.reports.currentCost", "Current cost"), numeric: true },
+      cell: ({ row: { original: r } }) => fmtMoney(r.current_cost),
+    },
+    {
+      id: "streak",
+      header: t("inventory.reports.priceStreak", "Price trend"),
+      meta: { label: t("inventory.reports.priceStreak", "Price trend"), numeric: true },
+      cell: ({ row: { original: r } }) => (
+        <Badge variant="destructive" className="gap-1">
+          <TrendingUp className="size-3" aria-hidden />
+          {t("inventory.reports.streakBadge", "+{{pct}}% over {{count}} deliveries", {
+            pct: fmtNumber(r.pct_increase, { maximumFractionDigits: 1 }),
+            count: r.streak_length,
+          })}
+        </Badge>
+      ),
+    },
+    {
+      id: "suggestion",
+      header: t("inventory.reports.suggestion", "Suggestion"),
+      meta: { label: t("inventory.reports.suggestion", "Suggestion") },
+      cell: ({ row: { original: r } }) => (
+        r.cheaper_supplier_name ? (
+          <Badge variant="secondary" className="gap-1">
+            <ArrowRight className="size-3" aria-hidden />
+            {t("inventory.reports.switchTo", "Switch to {{supplier}} ({{cost}})", {
+              supplier: r.cheaper_supplier_name,
+              cost: fmtMoney(r.cheaper_cost ?? 0),
+            })}
+          </Badge>
+        ) : <span className="text-muted-foreground">—</span>
+      ),
+    },
+  ], [t]);
 
   return (
-    <Page>
-      <Tabs value={tab} onValueChange={setTab} className="gap-6">
-        <PageHeader
-          title={t("inventory.reports.title", "Inventory reports")}
-          subtitle={tab === "valuation" ? undefined : (
-            <span className="inline-flex items-center gap-1.5">
-              <CalendarRange aria-hidden className="size-3.5" />
-              {t(`scope.preset.${preset ?? "30d"}`, preset ?? "30d")}
-            </span>
-          )}
-          actions={<ExportButton onExport={handleExport} loading={exporting} disabled={branchGate || !currentCount} />}
-          below={
-            <>
-              <PageTabsList>
-                <PageTabsTrigger value="valuation" className="first:ps-0">{t("inventory.reports.valuation", "Valuation")}</PageTabsTrigger>
-                <PageTabsTrigger value="consumption">{t("inventory.reports.consumption", "Consumption")}</PageTabsTrigger>
-                <PageTabsTrigger value="shrinkage">{t("inventory.reports.shrinkage", "Shrinkage")}</PageTabsTrigger>
-                <PageTabsTrigger value="waste">{t("inventory.reports.wasteReport", "Waste")}</PageTabsTrigger>
-              </PageTabsList>
-              <SegmentedControl<ReportScope>
-                value={scope}
-                onChange={setScope}
-                options={[
-                  { value: "branch", label: t("inventory.reports.branch", "This branch") },
-                  { value: "org", label: t("inventory.reports.org", "Whole organization") },
-                ]}
-              />
-            </>
-          }
-        />
-
-        {branchGate ? (
-          <EmptyState icon={Store} title={t("inventory.pickBranch", "Select a branch to manage its stock")} />
-        ) : (
-          <>
-            {/* Valuation */}
-            <TabsContent value="valuation" className="space-y-6">
-              {valuation.isError ? (
-                <ErrorState
-                  title={t("inventory.reports.valuationFailed", "Couldn't load stock valuation")}
-                  onRetry={() => void valuation.refetch()}
-                />
-              ) : (
-                <>
-                  <LedgerStrip
-                    className="lg:max-w-2xl"
-                    items={[
-                      { key: "value", label: t("inventory.reports.totalValue", "Total value"), value: valuation.data?.total_value ?? 0, formatType: "money", icon: Wallet, loading: valuation.isLoading },
-                      { key: "unknown", label: t("inventory.reports.unknownCostLabel", "Unknown cost"), value: valuation.data?.unknown_cost_count ?? 0, icon: CircleHelp, accent: (valuation.data?.unknown_cost_count ?? 0) > 0 ? "warning" : "neutral", loading: valuation.isLoading },
-                    ] satisfies LedgerItem[]}
-                  />
-                  <section className="space-y-3">
-                    <SectionHeader title={t("inventory.reports.byCategory", "By category")} />
-                    {valuation.isLoading || catalog.isLoading ? (
-                      <div className="space-y-4 rounded-2xl border bg-card p-5">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                          <div key={i} className="space-y-2">
-                            <div className="flex justify-between"><Skeleton className="h-4 w-28" /><Skeleton className="h-4 w-20" /></div>
-                            <Skeleton className="h-2 w-full" />
-                          </div>
-                        ))}
-                      </div>
-                    ) : byCategory.rows.length === 0 ? (
-                      <EmptyState className="py-8" title={t("inventory.reports.noValuation", "Stock value by category appears after a branch is counted.")} />
-                    ) : (
-                      <div className="space-y-4 rounded-2xl border bg-card p-5">
-                        {byCategory.rows.map(([cat, val]) => (
-                          <div key={cat} className="space-y-1.5">
-                            <div className="flex items-center justify-between gap-4 text-sm">
-                              <span className="font-medium">{cat}</span>
-                              <bdi className="font-mono tabular">{fmtMoney(val)}</bdi>
-                            </div>
-                            <ProgressBar value={val} max={byCategory.max} ariaLabel={cat} className="h-2" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </section>
-                </>
-              )}
-            </TabsContent>
-
-            {/* Consumption */}
-            <TabsContent value="consumption">
-              <ReportTable
-                query={consumption}
-                empty={noData}
-                head={[
-                  { label: t("inventory.reports.ingredient", "Item") },
-                  { label: t("inventory.reports.qty", "Quantity"), numeric: true },
-                  { label: t("inventory.reports.consumedValue", "Consumed value"), numeric: true },
-                ]}
-                rows={(consumption.data ?? []).map((r) => ({
-                  key: r.org_ingredient_id,
-                  cells: [r.ingredient_name, `${fmtNumber(r.consumed_qty)} ${fmtUnit(r.unit)}`, fmtMoney(r.consumed_value)],
-                }))}
-              />
-            </TabsContent>
-
-            {/* Shrinkage */}
-            <TabsContent value="shrinkage">
-              <ReportTable
-                query={shrinkage}
-                empty={noData}
-                head={[
-                  { label: t("inventory.reports.ingredient", "Item") },
-                  { label: t("inventory.reports.reason", "Reason") },
-                  { label: t("inventory.reports.qty", "Quantity"), numeric: true },
-                  { label: t("inventory.reports.value", "Value"), numeric: true },
-                ]}
-                rows={(shrinkage.data ?? []).map((r, i) => ({
-                  key: `${r.org_ingredient_id}-${r.reason}-${i}`,
-                  cells: [
-                    r.ingredient_name,
-                    r.reason === "unexplained" ? t("inventory.varianceReasons.other", "Other") : t(`inventory.varianceReasons.${r.reason}`, r.reason),
-                    `${fmtNumber(r.shrinkage_qty)} ${fmtUnit(r.unit)}`,
-                    fmtMoney(r.shrinkage_value),
-                  ],
-                }))}
-              />
-            </TabsContent>
-
-            {/* Waste */}
-            <TabsContent value="waste">
-              <ReportTable
-                query={wasteReport}
-                empty={noData}
-                head={[
-                  { label: t("inventory.reports.ingredient", "Item") },
-                  { label: t("inventory.reports.reason", "Reason") },
-                  { label: t("inventory.reports.qty", "Quantity"), numeric: true },
-                  { label: t("inventory.reports.wasteValue", "Waste value"), numeric: true },
-                ]}
-                rows={(wasteReport.data ?? []).map((r, i) => ({
-                  key: `${r.org_ingredient_id}-${r.reason}-${i}`,
-                  cells: [r.ingredient_name, t(`inventory.waste.reasons.${r.reason}`, r.reason), `${fmtNumber(r.waste_qty)} ${fmtUnit(r.unit)}`, fmtMoney(r.waste_value)],
-                }))}
-              />
-            </TabsContent>
-          </>
-        )}
-      </Tabs>
-    </Page>
+    <DataTable
+      columns={columns}
+      data={rows}
+      loading={trend.isLoading}
+      error={trend.error}
+      onRetry={() => void trend.refetch()}
+      getRowId={(r) => r.org_ingredient_id}
+      pageSize={25}
+      hideViewOptions
+      emptyState={<EmptyState icon={TrendingUp} title={noData} description={t("inventory.reports.noCostTrend", "Nothing has had 3 straight price rises from its current supplier this period.")} />}
+    />
   );
 }
 

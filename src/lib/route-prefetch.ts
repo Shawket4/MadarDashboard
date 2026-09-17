@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { openTillsQueryOptions } from "@/features/tills/api";
 import {
+  getBranchConsumptionQueryOptions,
   getBranchInventoryValuationQueryOptions,
   getBranchLowStockQueryOptions,
   getBranchSalesQueryOptions,
@@ -19,6 +20,7 @@ import {
   getListDiscountsQueryOptions,
   getListMenuCatalogQueryOptions,
   getListMenuItemsQueryOptions,
+  getMenuMarginLedgerQueryOptions,
   getListOrdersQueryOptions,
   getListOrgsQueryOptions,
   getListPaymentMethodsQueryOptions,
@@ -29,6 +31,7 @@ import {
   getListUsersQueryOptions,
   getListWasteQueryOptions,
   getOrgBranchComparisonQueryOptions,
+  getOrgConsumptionQueryOptions,
   getOrgInventoryValuationQueryOptions,
   getOrgLowStockQueryOptions,
 } from "@/data/api/generated/api";
@@ -147,8 +150,21 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
     case "/analytics":
     case "/insights/sales":
     case "/reports/sales":
-      // Default tab is Overview → branch sales summary.
+      // Legacy paths — all now redirect into Reports ▸ Operations.
       if (branchId) void qc.prefetchQuery(getBranchSalesQueryOptions(branchId, period));
+      break;
+    case "/reports/operations":
+      // Default tab is Tables; also warm Overview since it's one click away.
+      if (branchId) void qc.prefetchQuery(getBranchSalesQueryOptions(branchId, period));
+      break;
+    case "/reports/financial":
+      // Default tab is Menu Profitability.
+      if (orgId) void qc.prefetchQuery(getMenuMarginLedgerQueryOptions(branchId ?? ALL_BRANCHES_ID, period));
+      break;
+    case "/reports/inventory":
+      // Default tab is Consumption.
+      if (branchId) void qc.prefetchQuery(getBranchConsumptionQueryOptions(branchId, period));
+      else if (orgId) void qc.prefetchQuery(getOrgConsumptionQueryOptions(orgId, period));
       break;
     case "/inventory": // sidebar parent + redirect target
     case "/inventory/today":
@@ -201,11 +217,9 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
       break;
     case "/inventory/reports":
     case "/insights/inventory-reports":
-    case "/reports/inventory":
-      // Default tab is Valuation.
-      if (orgId) void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
-      if (branchId) void qc.prefetchQuery(getBranchInventoryValuationQueryOptions(branchId));
-      else if (orgId) void qc.prefetchQuery(getOrgInventoryValuationQueryOptions(orgId));
+      // Legacy paths — both now redirect into Reports ▸ Inventory.
+      if (branchId) void qc.prefetchQuery(getBranchConsumptionQueryOptions(branchId, period));
+      else if (orgId) void qc.prefetchQuery(getOrgConsumptionQueryOptions(orgId, period));
       break;
     case "/inventory/settings":
       if (orgId) void qc.prefetchQuery(getGetInventorySettingsQueryOptions(orgId));

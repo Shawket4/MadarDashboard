@@ -17,15 +17,15 @@ import { toast } from "sonner";
 
 import { ExportButton } from "@/components/app/export-button";
 import {
-  branchAddonSales, branchCombinedItemSales, branchTellerStats, branchWaiterStats,
-  orgBranchComparison,
+  branchAddonSales, branchChannelBreakdown, branchCombinedItemSales, branchTellerStats,
+  branchWaiterStats, orgBranchComparison,
 } from "@/data/api/generated/api";
 import type {
-  AddonSalesRow, BranchComparison, CombinedItemSalesRow, TellerStats, WaiterStats,
+  AddonSalesRow, BranchComparison, ChannelBreakdownRow, CombinedItemSalesRow, TellerStats, WaiterStats,
 } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, type ExcelColumn, type ExcelSheet } from "@/lib/excel";
+import { exportToExcel, exportToCsv, type ExcelColumn, type ExcelSheet } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { tName } from "./lib";
 
@@ -45,7 +45,7 @@ const EXPORT_LIMIT = 1000;
 
 type Sheets = ExcelSheet<Record<string, unknown>>[];
 
-const EXPORTABLE = new Set<string>(["items", "tellers", "waiters", "branches"]);
+const EXPORTABLE = new Set<string>(["items", "tellers", "waiters", "branches", "channel"]);
 
 export function AnalyticsExportButton({
   tab,
@@ -151,21 +151,38 @@ export function AnalyticsExportButton({
     return [{ name: title, title, totals: true, ...cast(report.branches, cols) }];
   };
 
+  const channelSheets = async (): Promise<Sheets> => {
+    const rows = await branchChannelBreakdown(branchId, range, EXPORT_REQUEST);
+    const label = (channel: string) => t(`orders.${channel === "dine_in" ? "dineIn" : channel}`, channel);
+    const cols: ExcelColumn<ChannelBreakdownRow>[] = [
+      { header: t("orders.channel", "Channel"), accessor: (r) => label(r.channel), type: "text", width: 20 },
+      { header: t("dashboard.orders", "Orders"), accessor: (r) => r.orders, type: "integer", width: 12, total: true },
+      { header: t("dashboard.revenue", "Revenue"), accessor: (r) => r.revenue, type: "money", width: 16, total: true },
+      { header: t("analytics.aov", "AOV"), accessor: (r) => r.avg_order_value, type: "money", width: 14 },
+    ];
+    const title = t("analytics.channelDetails", "Channel Details");
+    return [{ name: title, title, totals: true, ...cast(rows, cols) }];
+  };
+
+  const getSheets = (): Promise<Sheets> =>
+    tab === "items"
+      ? itemsSheets()
+      : tab === "tellers"
+        ? tellersSheets()
+        : tab === "waiters"
+          ? waitersSheets()
+          : tab === "channel"
+            ? channelSheets()
+            : branchesSheets();
+
   const handleExport = async () => {
     setExporting(true);
     try {
-      const sheets = tab === "items"
-        ? await itemsSheets()
-        : tab === "tellers"
-          ? await tellersSheets()
-          : tab === "waiters"
-            ? await waitersSheets()
-            : await branchesSheets();
       await exportToExcel({
         filename: `Madar-Analytics-${tab}`,
         logoUrl,
         meta: periodLabel,
-        sheets,
+        sheets: await getSheets(),
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -174,6 +191,14 @@ export function AnalyticsExportButton({
     }
   };
 
+  const handleExportCsv = async () => {
+    try {
+      await exportToCsv({ filename: `Madar-Analytics-${tab}`, sheets: await getSheets() });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
   const missingScope = tab === "branches" ? !orgId : !branchId;
-  return <ExportButton onExport={handleExport} loading={exporting} disabled={missingScope} className="shrink-0" />;
+  return <ExportButton onExport={handleExport} onExportCsv={handleExportCsv} loading={exporting} disabled={missingScope} className="shrink-0" />;
 }

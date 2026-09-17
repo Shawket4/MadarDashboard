@@ -37,6 +37,7 @@ import type {
   AnalyticsResponse,
   AssetJobView,
   AssignBranchRequest,
+  AttendanceCorrectionsAuditParams,
   AttendanceRecord,
   AttendanceSettings,
   AttendanceSummary,
@@ -61,15 +62,19 @@ import type {
   BranchAddonSalesParams,
   BranchBookingQrParams,
   BranchBundleSalesParams,
+  BranchChannelBreakdownParams,
   BranchCombinedItemSalesParams,
   BranchConsumptionParams,
   BranchDeliverySalesParams,
   BranchDeliverySettings,
   BranchLoyaltyQrParams,
+  BranchMaterialCostTrendParams,
   BranchMenuOverride,
   BranchMenuOverrideInput,
+  BranchPoLeadTimeParams,
   BranchQrParams,
   BranchSalesParams,
+  BranchSalesPeakDaysParams,
   BranchSalesPeakHoursParams,
   BranchSalesReport,
   BranchSalesTimeseriesParams,
@@ -77,6 +82,7 @@ import type {
   BranchShrinkageParams,
   BranchStockReport,
   BranchStockRow,
+  BranchSupplierSpendParams,
   BranchTable,
   BranchTellerStatsParams,
   BranchWaiterStatsParams,
@@ -85,6 +91,7 @@ import type {
   BundlePerformanceResponse,
   BundleSalesRow,
   BundleWithComponents,
+  CampaignEffectiveness,
   CancelBookingRequest,
   CancelInput,
   CardPreferences,
@@ -97,6 +104,7 @@ import type {
   CategoryRouteInput,
   ChannelAddonOverride,
   ChannelAddonOverrideInput,
+  ChannelBreakdownRow,
   ChannelMenuOverride,
   ChannelOverrideInput,
   CheckInRequest,
@@ -158,6 +166,7 @@ import type {
   CredentialWithSecret,
   DecisionOut,
   DeductionLogRow,
+  DeductionOverridesAuditParams,
   DeleteAddonIngredientParams,
   DeleteBranchAddonOverrideParams,
   DeleteBranchMenuOverrideParams,
@@ -205,6 +214,8 @@ import type {
   GetEffectiveParams,
   GetLoyaltyAnalyticsParams,
   GetLoyaltyBehaviorParams,
+  GetLoyaltyCampaignEffectivenessParams,
+  GetLoyaltyLiabilityTrendParams,
   GetLoyaltyMemberParams,
   GetLoyaltyRewardItemsParams,
   GetLoyaltySettingsParams,
@@ -235,6 +246,7 @@ import type {
   LeaveType,
   LegacyListTillEntitiesParams,
   LegacyTill,
+  LiabilityTrend,
   ListAddonCatalogParams,
   ListAddonCostsParams,
   ListAddonItemsParams,
@@ -285,16 +297,19 @@ import type {
   LoginResponse,
   LookupRequest,
   LowStockRow,
+  LoyaltyAdjustmentsAuditParams,
   LoyaltyAnalytics,
   LoyaltyBehavior,
   LoyaltyJoinInfoParams,
   LoyaltySettings,
+  ManualDeductionsAuditParams,
   ManualRecordRequest,
   MarginLedgerReport,
   MarginTargets,
   MarginWatch,
   MarginWatchParams,
   MarketingLink,
+  MaterialCostTrendRow,
   MeResponse,
   MemberDetail,
   MemberView,
@@ -329,9 +344,12 @@ import type {
   OrgIngredient,
   OrgInventorySettings,
   OrgLoyaltyQrParams,
+  OrgMaterialCostTrendParams,
   OrgPaymentMethod,
+  OrgPoLeadTimeParams,
   OrgQrParams,
   OrgShrinkageParams,
+  OrgSupplierSpendParams,
   OrgTaxReportParams,
   OrgWasteReportParams,
   OtpRequestInput,
@@ -353,10 +371,12 @@ import type {
   PayrollAdjustment,
   PayrollPeriod,
   Payslip,
+  PeakDayPoint,
   PeakHourPoint,
   PeriodStatusRequest,
   Permission,
   PermissionMatrix,
+  PoLeadTimeReport,
   PrepTimeInput,
   PreviewIngredient,
   PreviewRecipeRequest,
@@ -447,6 +467,7 @@ import type {
   SuggestedComponent,
   SuggestedComponentsParams,
   Supplier,
+  SupplierSpendRow,
   SwapTablesRequest,
   TableHistory,
   TableHistoryParams,
@@ -12212,6 +12233,182 @@ export const usePreviewLoyaltyBirthdayMessage = <TError = ErrorBody,
       return useMutation(getPreviewLoyaltyBirthdayMessageMutationOptions(options), queryClient);
     }
 
+export const getLoyaltyCampaignEffectiveness = (
+    params?: GetLoyaltyCampaignEffectivenessParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CampaignEffectiveness>(
+      {url: `/loyalty/campaign-effectiveness`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLoyaltyCampaignEffectivenessQueryKey = (params?: GetLoyaltyCampaignEffectivenessParams,) => {
+    return [
+    `/loyalty/campaign-effectiveness`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLoyaltyCampaignEffectivenessQueryOptions = <TData = Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError = ErrorBody>(params?: GetLoyaltyCampaignEffectivenessParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoyaltyCampaignEffectivenessQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>> = ({ signal }) => getLoyaltyCampaignEffectiveness(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLoyaltyCampaignEffectivenessQueryResult = NonNullable<Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>>
+export type GetLoyaltyCampaignEffectivenessQueryError = ErrorBody
+
+
+export function useGetLoyaltyCampaignEffectiveness<TData = Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError = ErrorBody>(
+ params: undefined |  GetLoyaltyCampaignEffectivenessParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyCampaignEffectiveness<TData = Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError = ErrorBody>(
+ params?: GetLoyaltyCampaignEffectivenessParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyCampaignEffectiveness<TData = Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError = ErrorBody>(
+ params?: GetLoyaltyCampaignEffectivenessParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLoyaltyCampaignEffectiveness<TData = Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError = ErrorBody>(
+ params?: GetLoyaltyCampaignEffectivenessParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyCampaignEffectiveness>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLoyaltyCampaignEffectivenessQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLoyaltyLiabilityTrend = (
+    params?: GetLoyaltyLiabilityTrendParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<LiabilityTrend>(
+      {url: `/loyalty/liability-trend`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLoyaltyLiabilityTrendQueryKey = (params?: GetLoyaltyLiabilityTrendParams,) => {
+    return [
+    `/loyalty/liability-trend`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLoyaltyLiabilityTrendQueryOptions = <TData = Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError = ErrorBody>(params?: GetLoyaltyLiabilityTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoyaltyLiabilityTrendQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>> = ({ signal }) => getLoyaltyLiabilityTrend(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLoyaltyLiabilityTrendQueryResult = NonNullable<Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>>
+export type GetLoyaltyLiabilityTrendQueryError = ErrorBody
+
+
+export function useGetLoyaltyLiabilityTrend<TData = Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError = ErrorBody>(
+ params: undefined |  GetLoyaltyLiabilityTrendParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyLiabilityTrend<TData = Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError = ErrorBody>(
+ params?: GetLoyaltyLiabilityTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyLiabilityTrend<TData = Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError = ErrorBody>(
+ params?: GetLoyaltyLiabilityTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLoyaltyLiabilityTrend<TData = Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError = ErrorBody>(
+ params?: GetLoyaltyLiabilityTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyLiabilityTrend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLoyaltyLiabilityTrendQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 /**
  * A POST rather than a GET because the member token is a bearer-ish secret: in
  * a query string it would land in access logs, browser history and any proxy
@@ -23492,6 +23689,101 @@ export function useBranchBundleSales<TData = Awaited<ReturnType<typeof branchBun
 
 
 
+export const branchChannelBreakdown = (
+    branchId: string,
+    params?: BranchChannelBreakdownParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ChannelBreakdownRow[]>(
+      {url: `/reports/branches/${branchId}/channel-breakdown`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchChannelBreakdownQueryKey = (branchId: string,
+    params?: BranchChannelBreakdownParams,) => {
+    return [
+    `/reports/branches/${branchId}/channel-breakdown`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchChannelBreakdownQueryOptions = <TData = Awaited<ReturnType<typeof branchChannelBreakdown>>, TError = ErrorBody>(branchId: string,
+    params?: BranchChannelBreakdownParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchChannelBreakdown>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchChannelBreakdownQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchChannelBreakdown>>> = ({ signal }) => branchChannelBreakdown(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchChannelBreakdown>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchChannelBreakdownQueryResult = NonNullable<Awaited<ReturnType<typeof branchChannelBreakdown>>>
+export type BranchChannelBreakdownQueryError = ErrorBody
+
+
+export function useBranchChannelBreakdown<TData = Awaited<ReturnType<typeof branchChannelBreakdown>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  BranchChannelBreakdownParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchChannelBreakdown>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchChannelBreakdown>>,
+          TError,
+          Awaited<ReturnType<typeof branchChannelBreakdown>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchChannelBreakdown<TData = Awaited<ReturnType<typeof branchChannelBreakdown>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchChannelBreakdownParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchChannelBreakdown>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchChannelBreakdown>>,
+          TError,
+          Awaited<ReturnType<typeof branchChannelBreakdown>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchChannelBreakdown<TData = Awaited<ReturnType<typeof branchChannelBreakdown>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchChannelBreakdownParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchChannelBreakdown>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchChannelBreakdown<TData = Awaited<ReturnType<typeof branchChannelBreakdown>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchChannelBreakdownParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchChannelBreakdown>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchChannelBreakdownQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const branchConsumption = (
     branchId: string,
     params?: BranchConsumptionParams,
@@ -23951,6 +24243,196 @@ export function useBranchLowStock<TData = Awaited<ReturnType<typeof branchLowSto
 
 
 
+export const branchMaterialCostTrend = (
+    branchId: string,
+    params?: BranchMaterialCostTrendParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MaterialCostTrendRow[]>(
+      {url: `/reports/branches/${branchId}/material-cost-trend`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchMaterialCostTrendQueryKey = (branchId: string,
+    params?: BranchMaterialCostTrendParams,) => {
+    return [
+    `/reports/branches/${branchId}/material-cost-trend`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchMaterialCostTrendQueryOptions = <TData = Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError = ErrorBody>(branchId: string,
+    params?: BranchMaterialCostTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchMaterialCostTrendQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchMaterialCostTrend>>> = ({ signal }) => branchMaterialCostTrend(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchMaterialCostTrendQueryResult = NonNullable<Awaited<ReturnType<typeof branchMaterialCostTrend>>>
+export type BranchMaterialCostTrendQueryError = ErrorBody
+
+
+export function useBranchMaterialCostTrend<TData = Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  BranchMaterialCostTrendParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchMaterialCostTrend>>,
+          TError,
+          Awaited<ReturnType<typeof branchMaterialCostTrend>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchMaterialCostTrend<TData = Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchMaterialCostTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchMaterialCostTrend>>,
+          TError,
+          Awaited<ReturnType<typeof branchMaterialCostTrend>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchMaterialCostTrend<TData = Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchMaterialCostTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchMaterialCostTrend<TData = Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchMaterialCostTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchMaterialCostTrend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchMaterialCostTrendQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const branchPoLeadTime = (
+    branchId: string,
+    params?: BranchPoLeadTimeParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PoLeadTimeReport>(
+      {url: `/reports/branches/${branchId}/po-lead-time`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchPoLeadTimeQueryKey = (branchId: string,
+    params?: BranchPoLeadTimeParams,) => {
+    return [
+    `/reports/branches/${branchId}/po-lead-time`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchPoLeadTimeQueryOptions = <TData = Awaited<ReturnType<typeof branchPoLeadTime>>, TError = ErrorBody>(branchId: string,
+    params?: BranchPoLeadTimeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPoLeadTime>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchPoLeadTimeQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchPoLeadTime>>> = ({ signal }) => branchPoLeadTime(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchPoLeadTime>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchPoLeadTimeQueryResult = NonNullable<Awaited<ReturnType<typeof branchPoLeadTime>>>
+export type BranchPoLeadTimeQueryError = ErrorBody
+
+
+export function useBranchPoLeadTime<TData = Awaited<ReturnType<typeof branchPoLeadTime>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  BranchPoLeadTimeParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPoLeadTime>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchPoLeadTime>>,
+          TError,
+          Awaited<ReturnType<typeof branchPoLeadTime>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchPoLeadTime<TData = Awaited<ReturnType<typeof branchPoLeadTime>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchPoLeadTimeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPoLeadTime>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchPoLeadTime>>,
+          TError,
+          Awaited<ReturnType<typeof branchPoLeadTime>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchPoLeadTime<TData = Awaited<ReturnType<typeof branchPoLeadTime>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchPoLeadTimeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPoLeadTime>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchPoLeadTime<TData = Awaited<ReturnType<typeof branchPoLeadTime>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchPoLeadTimeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPoLeadTime>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchPoLeadTimeQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const branchSales = (
     branchId: string,
     params?: BranchSalesParams,
@@ -24034,6 +24516,101 @@ export function useBranchSales<TData = Awaited<ReturnType<typeof branchSales>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getBranchSalesQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const branchSalesPeakDays = (
+    branchId: string,
+    params?: BranchSalesPeakDaysParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PeakDayPoint[]>(
+      {url: `/reports/branches/${branchId}/sales/peak-days`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchSalesPeakDaysQueryKey = (branchId: string,
+    params?: BranchSalesPeakDaysParams,) => {
+    return [
+    `/reports/branches/${branchId}/sales/peak-days`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchSalesPeakDaysQueryOptions = <TData = Awaited<ReturnType<typeof branchSalesPeakDays>>, TError = ErrorBody>(branchId: string,
+    params?: BranchSalesPeakDaysParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchSalesPeakDays>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchSalesPeakDaysQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchSalesPeakDays>>> = ({ signal }) => branchSalesPeakDays(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchSalesPeakDays>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchSalesPeakDaysQueryResult = NonNullable<Awaited<ReturnType<typeof branchSalesPeakDays>>>
+export type BranchSalesPeakDaysQueryError = ErrorBody
+
+
+export function useBranchSalesPeakDays<TData = Awaited<ReturnType<typeof branchSalesPeakDays>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  BranchSalesPeakDaysParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchSalesPeakDays>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchSalesPeakDays>>,
+          TError,
+          Awaited<ReturnType<typeof branchSalesPeakDays>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchSalesPeakDays<TData = Awaited<ReturnType<typeof branchSalesPeakDays>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchSalesPeakDaysParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchSalesPeakDays>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchSalesPeakDays>>,
+          TError,
+          Awaited<ReturnType<typeof branchSalesPeakDays>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchSalesPeakDays<TData = Awaited<ReturnType<typeof branchSalesPeakDays>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchSalesPeakDaysParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchSalesPeakDays>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchSalesPeakDays<TData = Awaited<ReturnType<typeof branchSalesPeakDays>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchSalesPeakDaysParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchSalesPeakDays>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchSalesPeakDaysQueryOptions(branchId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -24418,6 +24995,101 @@ export function useBranchStock<TData = Awaited<ReturnType<typeof branchStock>>, 
 
 
 
+export const branchSupplierSpend = (
+    branchId: string,
+    params?: BranchSupplierSpendParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SupplierSpendRow[]>(
+      {url: `/reports/branches/${branchId}/supplier-spend`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchSupplierSpendQueryKey = (branchId: string,
+    params?: BranchSupplierSpendParams,) => {
+    return [
+    `/reports/branches/${branchId}/supplier-spend`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchSupplierSpendQueryOptions = <TData = Awaited<ReturnType<typeof branchSupplierSpend>>, TError = ErrorBody>(branchId: string,
+    params?: BranchSupplierSpendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchSupplierSpend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchSupplierSpendQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchSupplierSpend>>> = ({ signal }) => branchSupplierSpend(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchSupplierSpend>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchSupplierSpendQueryResult = NonNullable<Awaited<ReturnType<typeof branchSupplierSpend>>>
+export type BranchSupplierSpendQueryError = ErrorBody
+
+
+export function useBranchSupplierSpend<TData = Awaited<ReturnType<typeof branchSupplierSpend>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  BranchSupplierSpendParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchSupplierSpend>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchSupplierSpend>>,
+          TError,
+          Awaited<ReturnType<typeof branchSupplierSpend>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchSupplierSpend<TData = Awaited<ReturnType<typeof branchSupplierSpend>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchSupplierSpendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchSupplierSpend>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchSupplierSpend>>,
+          TError,
+          Awaited<ReturnType<typeof branchSupplierSpend>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchSupplierSpend<TData = Awaited<ReturnType<typeof branchSupplierSpend>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchSupplierSpendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchSupplierSpend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchSupplierSpend<TData = Awaited<ReturnType<typeof branchSupplierSpend>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchSupplierSpendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchSupplierSpend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchSupplierSpendQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const branchTellerStats = (
     branchId: string,
     params?: BranchTellerStatsParams,
@@ -24703,6 +25375,101 @@ export function useBranchWasteReport<TData = Awaited<ReturnType<typeof branchWas
 
 
 
+export const attendanceCorrectionsAudit = (
+    orgId: string,
+    params?: AttendanceCorrectionsAuditParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AuditReport>(
+      {url: `/reports/orgs/${orgId}/attendance-corrections-audit`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getAttendanceCorrectionsAuditQueryKey = (orgId: string,
+    params?: AttendanceCorrectionsAuditParams,) => {
+    return [
+    `/reports/orgs/${orgId}/attendance-corrections-audit`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getAttendanceCorrectionsAuditQueryOptions = <TData = Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError = ErrorBody>(orgId: string,
+    params?: AttendanceCorrectionsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAttendanceCorrectionsAuditQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof attendanceCorrectionsAudit>>> = ({ signal }) => attendanceCorrectionsAudit(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AttendanceCorrectionsAuditQueryResult = NonNullable<Awaited<ReturnType<typeof attendanceCorrectionsAudit>>>
+export type AttendanceCorrectionsAuditQueryError = ErrorBody
+
+
+export function useAttendanceCorrectionsAudit<TData = Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  AttendanceCorrectionsAuditParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof attendanceCorrectionsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof attendanceCorrectionsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAttendanceCorrectionsAudit<TData = Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: AttendanceCorrectionsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof attendanceCorrectionsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof attendanceCorrectionsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAttendanceCorrectionsAudit<TData = Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: AttendanceCorrectionsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useAttendanceCorrectionsAudit<TData = Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: AttendanceCorrectionsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof attendanceCorrectionsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAttendanceCorrectionsAuditQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const orgBranchComparison = (
     orgId: string,
     params?: OrgBranchComparisonParams,
@@ -24881,6 +25648,101 @@ export function useOrgConsumption<TData = Awaited<ReturnType<typeof orgConsumpti
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getOrgConsumptionQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const deductionOverridesAudit = (
+    orgId: string,
+    params?: DeductionOverridesAuditParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AuditReport>(
+      {url: `/reports/orgs/${orgId}/deduction-overrides-audit`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getDeductionOverridesAuditQueryKey = (orgId: string,
+    params?: DeductionOverridesAuditParams,) => {
+    return [
+    `/reports/orgs/${orgId}/deduction-overrides-audit`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getDeductionOverridesAuditQueryOptions = <TData = Awaited<ReturnType<typeof deductionOverridesAudit>>, TError = ErrorBody>(orgId: string,
+    params?: DeductionOverridesAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deductionOverridesAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDeductionOverridesAuditQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof deductionOverridesAudit>>> = ({ signal }) => deductionOverridesAudit(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof deductionOverridesAudit>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DeductionOverridesAuditQueryResult = NonNullable<Awaited<ReturnType<typeof deductionOverridesAudit>>>
+export type DeductionOverridesAuditQueryError = ErrorBody
+
+
+export function useDeductionOverridesAudit<TData = Awaited<ReturnType<typeof deductionOverridesAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  DeductionOverridesAuditParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof deductionOverridesAudit>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deductionOverridesAudit>>,
+          TError,
+          Awaited<ReturnType<typeof deductionOverridesAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDeductionOverridesAudit<TData = Awaited<ReturnType<typeof deductionOverridesAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: DeductionOverridesAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deductionOverridesAudit>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deductionOverridesAudit>>,
+          TError,
+          Awaited<ReturnType<typeof deductionOverridesAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDeductionOverridesAudit<TData = Awaited<ReturnType<typeof deductionOverridesAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: DeductionOverridesAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deductionOverridesAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDeductionOverridesAudit<TData = Awaited<ReturnType<typeof deductionOverridesAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: DeductionOverridesAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deductionOverridesAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDeductionOverridesAuditQueryOptions(orgId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -25150,6 +26012,386 @@ export function useOrgLowStock<TData = Awaited<ReturnType<typeof orgLowStock>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getOrgLowStockQueryOptions(orgId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const loyaltyAdjustmentsAudit = (
+    orgId: string,
+    params?: LoyaltyAdjustmentsAuditParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AuditReport>(
+      {url: `/reports/orgs/${orgId}/loyalty-adjustments-audit`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyAdjustmentsAuditQueryKey = (orgId: string,
+    params?: LoyaltyAdjustmentsAuditParams,) => {
+    return [
+    `/reports/orgs/${orgId}/loyalty-adjustments-audit`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getLoyaltyAdjustmentsAuditQueryOptions = <TData = Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError = ErrorBody>(orgId: string,
+    params?: LoyaltyAdjustmentsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLoyaltyAdjustmentsAuditQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>> = ({ signal }) => loyaltyAdjustmentsAudit(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LoyaltyAdjustmentsAuditQueryResult = NonNullable<Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>>
+export type LoyaltyAdjustmentsAuditQueryError = ErrorBody
+
+
+export function useLoyaltyAdjustmentsAudit<TData = Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  LoyaltyAdjustmentsAuditParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyAdjustmentsAudit<TData = Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: LoyaltyAdjustmentsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLoyaltyAdjustmentsAudit<TData = Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: LoyaltyAdjustmentsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useLoyaltyAdjustmentsAudit<TData = Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: LoyaltyAdjustmentsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyAdjustmentsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLoyaltyAdjustmentsAuditQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const manualDeductionsAudit = (
+    orgId: string,
+    params?: ManualDeductionsAuditParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<AuditReport>(
+      {url: `/reports/orgs/${orgId}/manual-deductions-audit`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getManualDeductionsAuditQueryKey = (orgId: string,
+    params?: ManualDeductionsAuditParams,) => {
+    return [
+    `/reports/orgs/${orgId}/manual-deductions-audit`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getManualDeductionsAuditQueryOptions = <TData = Awaited<ReturnType<typeof manualDeductionsAudit>>, TError = ErrorBody>(orgId: string,
+    params?: ManualDeductionsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof manualDeductionsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getManualDeductionsAuditQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof manualDeductionsAudit>>> = ({ signal }) => manualDeductionsAudit(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof manualDeductionsAudit>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ManualDeductionsAuditQueryResult = NonNullable<Awaited<ReturnType<typeof manualDeductionsAudit>>>
+export type ManualDeductionsAuditQueryError = ErrorBody
+
+
+export function useManualDeductionsAudit<TData = Awaited<ReturnType<typeof manualDeductionsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  ManualDeductionsAuditParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof manualDeductionsAudit>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof manualDeductionsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof manualDeductionsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useManualDeductionsAudit<TData = Awaited<ReturnType<typeof manualDeductionsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: ManualDeductionsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof manualDeductionsAudit>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof manualDeductionsAudit>>,
+          TError,
+          Awaited<ReturnType<typeof manualDeductionsAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useManualDeductionsAudit<TData = Awaited<ReturnType<typeof manualDeductionsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: ManualDeductionsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof manualDeductionsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useManualDeductionsAudit<TData = Awaited<ReturnType<typeof manualDeductionsAudit>>, TError = ErrorBody>(
+ orgId: string,
+    params?: ManualDeductionsAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof manualDeductionsAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getManualDeductionsAuditQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const orgMaterialCostTrend = (
+    orgId: string,
+    params?: OrgMaterialCostTrendParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MaterialCostTrendRow[]>(
+      {url: `/reports/orgs/${orgId}/material-cost-trend`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getOrgMaterialCostTrendQueryKey = (orgId: string,
+    params?: OrgMaterialCostTrendParams,) => {
+    return [
+    `/reports/orgs/${orgId}/material-cost-trend`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getOrgMaterialCostTrendQueryOptions = <TData = Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError = ErrorBody>(orgId: string,
+    params?: OrgMaterialCostTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOrgMaterialCostTrendQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof orgMaterialCostTrend>>> = ({ signal }) => orgMaterialCostTrend(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OrgMaterialCostTrendQueryResult = NonNullable<Awaited<ReturnType<typeof orgMaterialCostTrend>>>
+export type OrgMaterialCostTrendQueryError = ErrorBody
+
+
+export function useOrgMaterialCostTrend<TData = Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  OrgMaterialCostTrendParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgMaterialCostTrend>>,
+          TError,
+          Awaited<ReturnType<typeof orgMaterialCostTrend>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgMaterialCostTrend<TData = Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgMaterialCostTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgMaterialCostTrend>>,
+          TError,
+          Awaited<ReturnType<typeof orgMaterialCostTrend>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgMaterialCostTrend<TData = Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgMaterialCostTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useOrgMaterialCostTrend<TData = Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgMaterialCostTrendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgMaterialCostTrend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOrgMaterialCostTrendQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const orgPoLeadTime = (
+    orgId: string,
+    params?: OrgPoLeadTimeParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PoLeadTimeReport>(
+      {url: `/reports/orgs/${orgId}/po-lead-time`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getOrgPoLeadTimeQueryKey = (orgId: string,
+    params?: OrgPoLeadTimeParams,) => {
+    return [
+    `/reports/orgs/${orgId}/po-lead-time`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getOrgPoLeadTimeQueryOptions = <TData = Awaited<ReturnType<typeof orgPoLeadTime>>, TError = ErrorBody>(orgId: string,
+    params?: OrgPoLeadTimeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgPoLeadTime>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOrgPoLeadTimeQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof orgPoLeadTime>>> = ({ signal }) => orgPoLeadTime(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof orgPoLeadTime>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OrgPoLeadTimeQueryResult = NonNullable<Awaited<ReturnType<typeof orgPoLeadTime>>>
+export type OrgPoLeadTimeQueryError = ErrorBody
+
+
+export function useOrgPoLeadTime<TData = Awaited<ReturnType<typeof orgPoLeadTime>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  OrgPoLeadTimeParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgPoLeadTime>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgPoLeadTime>>,
+          TError,
+          Awaited<ReturnType<typeof orgPoLeadTime>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgPoLeadTime<TData = Awaited<ReturnType<typeof orgPoLeadTime>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgPoLeadTimeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgPoLeadTime>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgPoLeadTime>>,
+          TError,
+          Awaited<ReturnType<typeof orgPoLeadTime>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgPoLeadTime<TData = Awaited<ReturnType<typeof orgPoLeadTime>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgPoLeadTimeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgPoLeadTime>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useOrgPoLeadTime<TData = Awaited<ReturnType<typeof orgPoLeadTime>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgPoLeadTimeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgPoLeadTime>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOrgPoLeadTimeQueryOptions(orgId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -25435,6 +26677,101 @@ export function useOrgShrinkage<TData = Awaited<ReturnType<typeof orgShrinkage>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getOrgShrinkageQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const orgSupplierSpend = (
+    orgId: string,
+    params?: OrgSupplierSpendParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SupplierSpendRow[]>(
+      {url: `/reports/orgs/${orgId}/supplier-spend`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getOrgSupplierSpendQueryKey = (orgId: string,
+    params?: OrgSupplierSpendParams,) => {
+    return [
+    `/reports/orgs/${orgId}/supplier-spend`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getOrgSupplierSpendQueryOptions = <TData = Awaited<ReturnType<typeof orgSupplierSpend>>, TError = ErrorBody>(orgId: string,
+    params?: OrgSupplierSpendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgSupplierSpend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOrgSupplierSpendQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof orgSupplierSpend>>> = ({ signal }) => orgSupplierSpend(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof orgSupplierSpend>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OrgSupplierSpendQueryResult = NonNullable<Awaited<ReturnType<typeof orgSupplierSpend>>>
+export type OrgSupplierSpendQueryError = ErrorBody
+
+
+export function useOrgSupplierSpend<TData = Awaited<ReturnType<typeof orgSupplierSpend>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  OrgSupplierSpendParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgSupplierSpend>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgSupplierSpend>>,
+          TError,
+          Awaited<ReturnType<typeof orgSupplierSpend>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgSupplierSpend<TData = Awaited<ReturnType<typeof orgSupplierSpend>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgSupplierSpendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgSupplierSpend>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgSupplierSpend>>,
+          TError,
+          Awaited<ReturnType<typeof orgSupplierSpend>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgSupplierSpend<TData = Awaited<ReturnType<typeof orgSupplierSpend>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgSupplierSpendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgSupplierSpend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useOrgSupplierSpend<TData = Awaited<ReturnType<typeof orgSupplierSpend>>, TError = ErrorBody>(
+ orgId: string,
+    params?: OrgSupplierSpendParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgSupplierSpend>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOrgSupplierSpendQueryOptions(orgId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

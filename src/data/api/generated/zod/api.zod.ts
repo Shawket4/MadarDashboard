@@ -5371,6 +5371,41 @@ export const PreviewLoyaltyBirthdayMessageResponse = zod.object({
 }).describe('The birthday greeting as it would actually be sent, in both languages.')
 
 
+export const GetLoyaltyCampaignEffectivenessQueryParams = zod.object({
+  "branch_id": zod.uuid().nullish().describe('Omit for the whole organisation; supply a branch to narrow the\nredemption figures to it (the liability is org-wide either way — a\nbalance can be spent at any branch).'),
+  "from": zod.iso.datetime({"offset":true}).nullish().describe('Inclusive start of the range. Defaults to 30 days before `to`.'),
+  "to": zod.iso.datetime({"offset":true}).nullish().describe('Exclusive end of the range. Defaults to now.')
+})
+
+export const GetLoyaltyCampaignEffectivenessResponse = zod.object({
+  "campaigns": zod.array(zod.object({
+  "campaign": zod.string().describe('`\"winback\"` or `\"birthday\"`.'),
+  "return_rate": zod.number().describe('`returned_within_30d \/ sent`. `0.0` when nothing was sent.'),
+  "returned_within_30d": zod.number(),
+  "sent": zod.number()
+}).describe('One outreach campaign\'s return-on-nudge: did the member earn again within\n30 days of the message.')),
+  "from": zod.iso.datetime({"offset":true}),
+  "to": zod.iso.datetime({"offset":true})
+})
+
+
+export const GetLoyaltyLiabilityTrendQueryParams = zod.object({
+  "branch_id": zod.uuid().nullish().describe('Omit for the whole organisation; supply a branch to narrow the\nredemption figures to it (the liability is org-wide either way — a\nbalance can be spent at any branch).'),
+  "from": zod.iso.datetime({"offset":true}).nullish().describe('Inclusive start of the range. Defaults to 30 days before `to`.'),
+  "to": zod.iso.datetime({"offset":true}).nullish().describe('Exclusive end of the range. Defaults to now.')
+})
+
+export const GetLoyaltyLiabilityTrendResponse = zod.object({
+  "currency": zod.string(),
+  "from": zod.iso.datetime({"offset":true}),
+  "points": zod.array(zod.object({
+  "outstanding": zod.number().describe('Net points\/visits change in that week (earn − redeem, reversals\nnetted in) — not a running balance. See [`LiabilityTrend`].'),
+  "week": zod.iso.datetime({"offset":true})
+})),
+  "to": zod.iso.datetime({"offset":true})
+}).describe('A weekly trend of the programme\'s liability, in the org\'s live currency\n(points or visits — never both; see [`PointsLiability`]).\n\n`loyalty_customers.points_balance`\/`visits_balance` are CURRENT balances\nwith no history table, so this is not a snapshot of the outstanding\nbalance at each week — it is each week\'s \*net change\* (earned minus\nredeemed, reversals netted in), read straight off the ledger. Summing\n`outstanding` across every week since the programme started would\nreconstruct the current balance; a single week says whether that week\ngrew or shrank the liability.')
+
+
 /**
  * A POST rather than a GET because the member token is a bearer-ish secret: in
  * a query string it would land in access logs, browser history and any proxy
@@ -11428,6 +11463,25 @@ export const BranchBundleSalesResponseItem = zod.object({
 export const BranchBundleSalesResponse = zod.array(BranchBundleSalesResponseItem)
 
 
+export const BranchChannelBreakdownParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const BranchChannelBreakdownQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const BranchChannelBreakdownResponseItem = zod.object({
+  "avg_order_value": zod.number(),
+  "channel": zod.string(),
+  "orders": zod.number(),
+  "revenue": zod.number()
+})
+export const BranchChannelBreakdownResponse = zod.array(BranchChannelBreakdownResponseItem)
+
+
 export const BranchConsumptionParams = zod.object({
   "branch_id": zod.uuid().describe('Branch ID')
 })
@@ -11540,6 +11594,55 @@ export const BranchLowStockResponseItem = zod.object({
 export const BranchLowStockResponse = zod.array(BranchLowStockResponseItem)
 
 
+export const BranchMaterialCostTrendParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const BranchMaterialCostTrendQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const BranchMaterialCostTrendResponseItem = zod.object({
+  "base_cost": zod.number().describe('Piastres per base stock unit, the receipt just before the streak began.'),
+  "cheaper_cost": zod.number().nullish(),
+  "cheaper_supplier_id": zod.uuid().nullish(),
+  "cheaper_supplier_name": zod.string().nullish(),
+  "current_cost": zod.number().describe('Piastres per base stock unit, most recent receipt.'),
+  "current_supplier_id": zod.uuid().nullish(),
+  "current_supplier_name": zod.string(),
+  "ingredient_name": zod.string(),
+  "org_ingredient_id": zod.uuid(),
+  "pct_increase": zod.number().describe('`(current_cost - base_cost) \/ base_cost \* 100`, 1 dp.'),
+  "streak_length": zod.number().describe('Number of consecutive received deliveries, most recent first, each\npricier than the one before it.')
+})
+export const BranchMaterialCostTrendResponse = zod.array(BranchMaterialCostTrendResponseItem)
+
+
+export const BranchPoLeadTimeParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const BranchPoLeadTimeQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const BranchPoLeadTimeResponse = zod.object({
+  "by_supplier": zod.array(zod.object({
+  "avg_lead_time_days": zod.number(),
+  "orders_received": zod.number(),
+  "supplier_id": zod.uuid().nullish(),
+  "supplier_name": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "overall_avg_days": zod.number(),
+  "to": zod.iso.datetime({"offset":true}).nullish()
+})
+
+
 export const BranchSalesParams = zod.object({
   "branch_id": zod.uuid()
 })
@@ -11603,6 +11706,33 @@ export const BranchSalesResponse = zod.object({
 })
 
 
+export const BranchSalesPeakDaysParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const BranchSalesPeakDaysQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const BranchSalesPeakDaysResponseItem = zod.object({
+  "addons": zod.number().describe('SUM(order_item_addons.quantity) across non-voided orders on this weekday.'),
+  "avg_orders_per_day": zod.number().describe('Orders averaged over how many times this weekday occurred (may be fractional).'),
+  "avg_revenue_per_day": zod.number().describe('Revenue in piastres averaged over how many times this weekday occurred in the queried range.'),
+  "day_of_week": zod.number().describe('Day of week per `EXTRACT(dow ...)`: 0 = Sunday .. 6 = Saturday.'),
+  "discount": zod.number(),
+  "line_items": zod.number().describe('SUM(order_items.quantity) across non-voided orders on this weekday.'),
+  "orders": zod.number(),
+  "orders_pct": zod.number().describe('This weekday\'s orders as a percentage of the period total (0–100, 1 dp).'),
+  "revenue": zod.number(),
+  "revenue_pct": zod.number().describe('This weekday\'s revenue as a percentage of the period total (0–100, 1 dp).'),
+  "tax": zod.number(),
+  "voided": zod.number()
+})
+export const BranchSalesPeakDaysResponse = zod.array(BranchSalesPeakDaysResponseItem)
+
+
 export const BranchSalesPeakHoursParams = zod.object({
   "branch_id": zod.uuid()
 })
@@ -11614,10 +11744,12 @@ export const BranchSalesPeakHoursQueryParams = zod.object({
 })
 
 export const BranchSalesPeakHoursResponseItem = zod.object({
+  "addons": zod.number().describe('SUM(order_item_addons.quantity) across non-voided orders in this hour bucket.'),
   "avg_orders_per_day": zod.number().describe('Orders averaged over the number of calendar days (may be fractional).'),
   "avg_revenue_per_day": zod.number().describe('Revenue in piastres averaged over the number of calendar days in the queried range.'),
   "discount": zod.number(),
   "hour": zod.number(),
+  "line_items": zod.number().describe('SUM(order_items.quantity) across non-voided orders in this hour bucket.'),
   "orders": zod.number(),
   "orders_pct": zod.number().describe('This hour\'s orders as a percentage of the period total (0–100, 1 dp).'),
   "revenue": zod.number(),
@@ -11691,6 +11823,25 @@ export const BranchStockResponse = zod.object({
 })
 
 
+export const BranchSupplierSpendParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const BranchSupplierSpendQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const BranchSupplierSpendResponseItem = zod.object({
+  "orders": zod.number(),
+  "supplier_id": zod.uuid().nullish(),
+  "supplier_name": zod.string(),
+  "total_spend": zod.number()
+})
+export const BranchSupplierSpendResponse = zod.array(BranchSupplierSpendResponseItem)
+
+
 export const BranchTellerStatsParams = zod.object({
   "branch_id": zod.uuid()
 })
@@ -11760,6 +11911,34 @@ export const BranchWasteReportResponseItem = zod.object({
 export const BranchWasteReportResponse = zod.array(BranchWasteReportResponseItem)
 
 
+export const AttendanceCorrectionsAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const AttendanceCorrectionsAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const AttendanceCorrectionsAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
+
+
 export const OrgBranchComparisonParams = zod.object({
   "org_id": zod.uuid()
 })
@@ -11809,6 +11988,34 @@ export const OrgConsumptionResponseItem = zod.object({
   "unit": zod.string()
 })
 export const OrgConsumptionResponse = zod.array(OrgConsumptionResponseItem)
+
+
+export const DeductionOverridesAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const DeductionOverridesAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const DeductionOverridesAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
 
 
 export const DiscountsAuditParams = zod.object({
@@ -11875,6 +12082,111 @@ export const OrgLowStockResponseItem = zod.object({
   "unit": zod.string()
 })
 export const OrgLowStockResponse = zod.array(OrgLowStockResponseItem)
+
+
+export const LoyaltyAdjustmentsAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const LoyaltyAdjustmentsAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const LoyaltyAdjustmentsAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
+
+
+export const ManualDeductionsAuditParams = zod.object({
+  "org_id": zod.uuid()
+})
+
+export const ManualDeductionsAuditQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const ManualDeductionsAuditResponse = zod.object({
+  "by_issuer": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "by_reason": zod.array(zod.object({
+  "amount_minor": zod.number(),
+  "count": zod.number(),
+  "label": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "to": zod.iso.datetime({"offset":true}).nullish(),
+  "total_amount_minor": zod.number(),
+  "total_count": zod.number()
+})
+
+
+export const OrgMaterialCostTrendParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID')
+})
+
+export const OrgMaterialCostTrendQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const OrgMaterialCostTrendResponseItem = zod.object({
+  "base_cost": zod.number().describe('Piastres per base stock unit, the receipt just before the streak began.'),
+  "cheaper_cost": zod.number().nullish(),
+  "cheaper_supplier_id": zod.uuid().nullish(),
+  "cheaper_supplier_name": zod.string().nullish(),
+  "current_cost": zod.number().describe('Piastres per base stock unit, most recent receipt.'),
+  "current_supplier_id": zod.uuid().nullish(),
+  "current_supplier_name": zod.string(),
+  "ingredient_name": zod.string(),
+  "org_ingredient_id": zod.uuid(),
+  "pct_increase": zod.number().describe('`(current_cost - base_cost) \/ base_cost \* 100`, 1 dp.'),
+  "streak_length": zod.number().describe('Number of consecutive received deliveries, most recent first, each\npricier than the one before it.')
+})
+export const OrgMaterialCostTrendResponse = zod.array(OrgMaterialCostTrendResponseItem)
+
+
+export const OrgPoLeadTimeParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID')
+})
+
+export const OrgPoLeadTimeQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const OrgPoLeadTimeResponse = zod.object({
+  "by_supplier": zod.array(zod.object({
+  "avg_lead_time_days": zod.number(),
+  "orders_received": zod.number(),
+  "supplier_id": zod.uuid().nullish(),
+  "supplier_name": zod.string()
+})),
+  "from": zod.iso.datetime({"offset":true}).nullish(),
+  "overall_avg_days": zod.number(),
+  "to": zod.iso.datetime({"offset":true}).nullish()
+})
 
 
 export const PriceOverridesParams = zod.object({
@@ -11952,6 +12264,25 @@ export const OrgShrinkageResponseItem = zod.object({
   "unit": zod.string()
 })
 export const OrgShrinkageResponse = zod.array(OrgShrinkageResponseItem)
+
+
+export const OrgSupplierSpendParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID')
+})
+
+export const OrgSupplierSpendQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const OrgSupplierSpendResponseItem = zod.object({
+  "orders": zod.number(),
+  "supplier_id": zod.uuid().nullish(),
+  "supplier_name": zod.string(),
+  "total_spend": zod.number()
+})
+export const OrgSupplierSpendResponse = zod.array(OrgSupplierSpendResponseItem)
 
 
 export const OrgTaxReportParams = zod.object({

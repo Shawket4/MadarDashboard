@@ -1,12 +1,27 @@
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from "recharts";
 import { CalendarRange, Gift, Percent, RotateCcw, UserPlus, Users } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
-import { ErrorState } from "@/components/app/empty-state";
+import { ErrorState, EmptyState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ProgressBar } from "@/components/app/progress-bar";
+import { CHART_AXIS_TICK, ChartCard, chartColor } from "@/components/app/chart-card";
+import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { useScope } from "@/data/scope/use-scope";
-import { useGetLoyaltyBehavior } from "@/data/api/generated/api";
-import { fmtNumber } from "@/lib/format";
+import {
+  useGetLoyaltyBehavior, useGetLoyaltyCampaignEffectiveness, useGetLoyaltyLiabilityTrend,
+} from "@/data/api/generated/api";
+import { fmtNumber, fmtPercent } from "@/lib/format";
+import { currencyLabel } from "@/features/loyalty/shared/util";
+
+const AXIS = CHART_AXIS_TICK;
 
 const PRESET_FALLBACK: Record<string, string> = {
   today: "Today",
@@ -94,19 +109,110 @@ export function LoyaltyReportPage() {
     },
   ];
 
+  const [tab, setTab] = useState("overview");
+
   return (
     <Page>
-      <PageHeader
-        title={t("reports.loyalty.title", "Loyalty")}
-        subtitle={
-          <span className="inline-flex items-center gap-1.5">
-            <CalendarRange aria-hidden className="size-3.5" />
-            {periodLabel}
-          </span>
-        }
-      />
+      <Tabs value={tab} onValueChange={setTab} className="gap-6">
+        <PageHeader
+          title={t("reports.loyalty.title", "Loyalty")}
+          subtitle={
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarRange aria-hidden className="size-3.5" />
+              {periodLabel}
+            </span>
+          }
+          below={
+            <PageTabsList>
+              <PageTabsTrigger value="overview" className="first:ps-0">{t("reports.loyalty.tabs.overview", "Overview")}</PageTabsTrigger>
+              <PageTabsTrigger value="campaigns">{t("reports.loyalty.tabs.campaigns", "Campaigns")}</PageTabsTrigger>
+              <PageTabsTrigger value="liability">{t("reports.loyalty.tabs.liability", "Liability")}</PageTabsTrigger>
+            </PageTabsList>
+          }
+        />
 
-      {q.isError ? <ErrorState onRetry={() => q.refetch()} /> : <LedgerStrip items={kpis} />}
+        <TabsContent value="overview">
+          {q.isError ? <ErrorState onRetry={() => q.refetch()} /> : <LedgerStrip items={kpis} />}
+        </TabsContent>
+        <TabsContent value="campaigns">
+          <CampaignsTab branchId={branchId} from={from} to={to} />
+        </TabsContent>
+        <TabsContent value="liability">
+          <LiabilityTab branchId={branchId} from={from} to={to} />
+        </TabsContent>
+      </Tabs>
     </Page>
+  );
+}
+
+const CAMPAIGN_LABELS: Record<string, string> = { winback: "Win-back", birthday: "Birthday" };
+
+function CampaignsTab({ branchId, from, to }: { branchId: string | null; from: string | null; to: string | null }) {
+  const { t } = useTranslation();
+  const q = useGetLoyaltyCampaignEffectiveness({ branch_id: branchId ?? undefined, from: from ?? undefined, to: to ?? undefined });
+  const rows = q.data?.campaigns ?? [];
+
+  if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
+  if (q.isLoading) {
+    return (
+      <div className="space-y-4 rounded-2xl border bg-card p-5">
+        {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
+      </div>
+    );
+  }
+  if (rows.length === 0 || rows.every((r) => r.sent === 0)) {
+    return <EmptyState title={t("reports.loyalty.noCampaigns", "No outreach sent for this scope and period.")} />;
+  }
+  return (
+    <div className="space-y-4 rounded-2xl border bg-card p-5">
+      {rows.map((r) => (
+        <div key={r.campaign} className="space-y-1.5">
+          <div className="flex items-center justify-between gap-4 text-sm">
+            <span className="font-medium">{t(`reports.loyalty.campaign.${r.campaign}`, CAMPAIGN_LABELS[r.campaign] ?? r.campaign)}</span>
+            <bdi className="font-mono tabular">{fmtPercent(r.return_rate)}</bdi>
+          </div>
+          <ProgressBar value={r.return_rate} max={1} ariaLabel={r.campaign} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            {t("reports.loyalty.campaignHint", "{{returned}} of {{sent}} nudged members earned again within 30 days", {
+              returned: fmtNumber(r.returned_within_30d),
+              sent: fmtNumber(r.sent),
+            })}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LiabilityTab({ branchId, from, to }: { branchId: string | null; from: string | null; to: string | null }) {
+  const { t } = useTranslation();
+  const q = useGetLoyaltyLiabilityTrend({ branch_id: branchId ?? undefined, from: from ?? undefined, to: to ?? undefined });
+  const currency = q.data?.currency ?? "points";
+  const chart = useMemo(
+    () => (q.data?.points ?? []).map((p) => ({ week: p.week, outstanding: p.outstanding })),
+    [q.data],
+  );
+
+  return (
+    <ChartCard
+      title={t("reports.loyalty.liabilityTrend", "Liability trend")}
+      description={t("reports.loyalty.liabilityTrendHint", "Net {{unit}} earned minus redeemed each week", { unit: currencyLabel(currency) })}
+    >
+      {q.isLoading ? <Skeleton className="h-72 w-full" /> : q.isError ? <ErrorState className="h-72" onRetry={() => q.refetch()} /> : chart.length === 0
+        ? <EmptyState className="h-72" title={t("reports.loyalty.noLiability", "No loyalty activity for this scope and period.")} />
+        : (
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chart} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="week" tick={AXIS} tickLine={false} axisLine={false} />
+                <YAxis tick={AXIS} tickLine={false} axisLine={false} width={48} />
+                <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => `${fmtNumber(Number(v))} ${currencyLabel(currency, Number(v))}`} />} />
+                <Bar dataKey="outstanding" fill={chartColor(0)} radius={[4, 4, 0, 0]} maxBarSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+    </ChartCard>
   );
 }

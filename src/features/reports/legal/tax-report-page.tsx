@@ -1,12 +1,28 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Ban, Coins, Landmark, Percent, Receipt, TrendingUp } from "lucide-react";
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
+import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useGetOrg, useOrgTaxReport } from "@/data/api/generated/api";
+import { getErrorMessage } from "@/data/api/errors";
+import { useExportLogo } from "@/hooks/use-export-logo";
+import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
 import { fmtPercent } from "@/lib/format";
+
+interface TaxRow {
+  label: string;
+  value: number;
+}
+
+const TAX_COLS: ExcelColumn<TaxRow>[] = [
+  { header: "Figure", accessor: (r) => r.label, type: "text", width: 24 },
+  { header: "Amount", accessor: (r) => r.value, type: "money", width: 16 },
+];
 
 /** Org-wide VAT/tax report. Meaningful only for a VAT-registered org
  * (tax_rate > 0); reading tax_rate needs orgs:read, which only
@@ -14,6 +30,8 @@ import { fmtPercent } from "@/lib/format";
 export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
   const { t } = useTranslation();
   const orgId = useOrgId();
+  const logoUrl = useExportLogo();
+  const [exporting, setExporting] = useState(false);
 
   const role = useAuthStore((s) => s.user?.role);
   const canSeeOrg = role === "org_admin" || role === "super_admin";
@@ -33,6 +51,38 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
     { key: "net_revenue", label: t("dashboard.revenue", "Revenue"), icon: TrendingUp, accent: "neutral", value: d?.net_revenue ?? 0, formatType: "money", loading: q.isLoading },
   ];
 
+  const buildSheet = () => {
+    const rows: TaxRow[] = kpis.map((k) => ({ label: k.label, value: Number(k.value) || 0 }));
+    return {
+      name: t("reports.legal.tabs.tax", "Tax").slice(0, 31),
+      title: t("reports.legal.tabs.tax", "Tax"),
+      subtitle: t("analytics.tax.rateNote", "Org tax rate: {{rate}}", { rate: fmtPercent(d?.org_tax_rate ?? 0) }),
+      rows: rows as unknown as Record<string, unknown>[],
+      columns: TAX_COLS as unknown as ExcelColumn<Record<string, unknown>>[],
+    };
+  };
+
+  const handleExport = async () => {
+    if (!d) return;
+    setExporting(true);
+    try {
+      await exportToExcel({ filename: t("reports.legal.tabs.tax", "Tax"), logoUrl, sheets: [buildSheet()] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    if (!d) return;
+    try {
+      await exportToCsv({ filename: t("reports.legal.tabs.tax", "Tax"), sheets: [buildSheet()] });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
   if (!orgQuery.isLoading && !isVatRegistered) {
     return (
       <EmptyState
@@ -46,11 +96,14 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
 
   return (
     <div className="space-y-4">
-      {d ? (
-        <p className="text-xs text-muted-foreground">
-          {t("analytics.tax.rateNote", "Org tax rate: {{rate}}", { rate: fmtPercent(d.org_tax_rate) })}
-        </p>
-      ) : null}
+      <div className="flex items-center justify-between">
+        {d ? (
+          <p className="text-xs text-muted-foreground">
+            {t("analytics.tax.rateNote", "Org tax rate: {{rate}}", { rate: fmtPercent(d.org_tax_rate) })}
+          </p>
+        ) : <span />}
+        <ExportButton onExport={handleExport} onExportCsv={handleExportCsv} loading={exporting} disabled={!d} size="sm" />
+      </div>
       <LedgerStrip items={kpis} />
     </div>
   );

@@ -14,6 +14,7 @@ import type { Order } from "@/data/api/generated/models/order";
 import type { OrderSummary } from "@/data/api/generated/models/orderSummary";
 import type { PaginatedOrders } from "@/data/api/generated/models/paginatedOrders";
 import type { PeakHourPoint } from "@/data/api/generated/models/peakHourPoint";
+import type { PeakDayPoint } from "@/data/api/generated/models/peakDayPoint";
 import type { UserPublic } from "@/data/types";
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 
@@ -156,10 +157,36 @@ export const MOCK_PEAK_HOURS: PeakHourPoint[] = _ph_raw.map((r, hour) => ({
   voided: Math.round(r.orders * 0.018),
   discount: Math.round(r.revenue * 0.04),
   tax: Math.round(r.revenue * 0.14),
+  line_items: Math.round(r.orders * 2.3),
+  addons: Math.round(r.orders * 0.6),
   avg_revenue_per_day: Math.round(r.revenue / MOCK_DEMO_DAYS),
   avg_orders_per_day: r.orders / MOCK_DEMO_DAYS,
   revenue_pct: _ph_total_rev > 0 ? Math.round(r.revenue / _ph_total_rev * 1000) / 10 : 0,
   orders_pct: _ph_total_ord > 0 ? Math.round(r.orders / _ph_total_ord * 1000) / 10 : 0,
+}));
+
+// Weekend-heavy café pattern: Sun=0 .. Sat=6, Fri/Sat busiest.
+const WEEKDAY_WEIGHTS = [0.14, 0.11, 0.11, 0.12, 0.13, 0.19, 0.2];
+const MOCK_DEMO_WEEKS = MOCK_DEMO_DAYS / 7;
+const _pd_raw = WEEKDAY_WEIGHTS.map((w) => {
+  const revenue = Math.round(w * 14_500_000);
+  return { revenue, orders: Math.round(revenue / 7_850) };
+});
+const _pd_total_rev = _pd_raw.reduce((s, r) => s + r.revenue, 0);
+const _pd_total_ord = _pd_raw.reduce((s, r) => s + r.orders, 0);
+export const MOCK_PEAK_DAYS: PeakDayPoint[] = _pd_raw.map((r, day_of_week) => ({
+  day_of_week,
+  revenue: r.revenue,
+  orders: r.orders,
+  voided: Math.round(r.orders * 0.018),
+  discount: Math.round(r.revenue * 0.04),
+  tax: Math.round(r.revenue * 0.14),
+  line_items: Math.round(r.orders * 2.3),
+  addons: Math.round(r.orders * 0.6),
+  avg_revenue_per_day: Math.round(r.revenue / MOCK_DEMO_WEEKS),
+  avg_orders_per_day: r.orders / MOCK_DEMO_WEEKS,
+  revenue_pct: _pd_total_rev > 0 ? Math.round(r.revenue / _pd_total_rev * 1000) / 10 : 0,
+  orders_pct: _pd_total_ord > 0 ? Math.round(r.orders / _pd_total_ord * 1000) / 10 : 0,
 }));
 
 // Top sellers + sales-by-category for the analytics overview tab + leaderboards.

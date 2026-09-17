@@ -295,6 +295,56 @@ function buildSheet(
   void lastCol;
 }
 
+const csvCell = (v: string): string => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+
+const csvValue = (raw: unknown, type: ColumnType | undefined): string => {
+  if (raw == null) return "";
+  switch (type) {
+    case "money":
+      return csvCell(String(typeof raw === "number" ? raw / 100 : raw));
+    case "date":
+    case "dateTime": {
+      const d = raw instanceof Date ? raw : new Date(String(raw));
+      return Number.isNaN(d.getTime()) ? "" : d.toISOString();
+    }
+    default:
+      return csvCell(String(raw));
+  }
+};
+
+export interface CsvConfig {
+  filename: string;
+  sheets: ExcelSheet<Record<string, unknown>>[];
+}
+
+/**
+ * CSV sibling of `exportToExcel` — no ExcelJS, no styling, just rows. RFC 4180
+ * quoting, `money` columns divided back to a plain number, dates as ISO strings.
+ *
+ * A CSV is one flat file, so a multi-sheet config exports only the first sheet.
+ * ponytail: no zip dependency in this repo for a "one file per sheet" export;
+ * add one (or a zip lib) only if a multi-sheet CSV is actually requested.
+ */
+export async function exportToCsv(config: CsvConfig): Promise<void> {
+  const t = i18n.getFixedT(null, "translation");
+  const sheet = config.sheets[0];
+  if (!sheet || config.sheets.every((s) => s.rows.length === 0)) {
+    toast.error(t("excel.nothingToExport", "Nothing to export"));
+    return;
+  }
+  if (config.sheets.length > 1) {
+    console.warn(`exportToCsv: ${config.sheets.length} sheets given, exporting only "${sheet.name}"`);
+  }
+
+  const header = sheet.columns.map((c) => csvCell(c.header)).join(",");
+  const lines = sheet.rows.map((row) =>
+    sheet.columns.map((c) => csvValue(c.accessor(row), c.type)).join(","),
+  );
+  const blob = new Blob([[header, ...lines].join("\r\n")], { type: "text/csv;charset=utf-8" });
+  downloadBlob(blob, `${config.filename}-${new Date().toISOString().slice(0, 10)}.csv`);
+  toast.success(t("excel.done", { count: sheet.rows.length, defaultValue: `Exported ${sheet.rows.length} rows` }));
+}
+
 export async function exportToExcel(config: ExcelConfig): Promise<void> {
   const t = i18n.getFixedT(null, "translation");
   if (config.sheets.every((s) => s.rows.length === 0)) {
