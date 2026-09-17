@@ -91,6 +91,14 @@ export interface CreateOrderRequest {
      * @nullable
      */
   service_mode?: string | null;
+  /**
+     * The person who started this sale's cart, when the till says it was not
+     * the person ringing it (a held order resumed after a teller switch).
+     * Recorded when it names someone of the same org; anything else is
+     * dropped with a warning, never refused. Additive; older tills omit it.
+     * @nullable
+     */
+  started_by?: string | null;
   /** @nullable */
   subtotal?: number | null;
   /** @nullable */

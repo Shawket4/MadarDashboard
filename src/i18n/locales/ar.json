@@ -1824,7 +1824,8 @@
     "loyaltyMemberForgotten": "عضو محذوف",
     "emptyTitle": "لا توجد طلبات في هذه الفترة",
     "emptyBody": "تظهر هنا المبيعات المسجّلة على الكاشير لهذا الفرع وهذه الفترة.",
-    "takeaway": "استلام"
+    "takeaway": "استلام",
+    "startedBy": "بدأه"
   },
   "ordersExport": {
     "title": "تصدير الطلبات",

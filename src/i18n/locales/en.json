@@ -1810,7 +1810,8 @@
     "allTills": "All tills",
     "emptyTitle": "No orders in this range",
     "emptyBody": "Sales rung on the POS for this branch and period appear here.",
-    "takeaway": "Takeaway"
+    "takeaway": "Takeaway",
+    "startedBy": "Started by"
   },
   "ordersExport": {
     "title": "Export Orders",

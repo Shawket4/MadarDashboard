@@ -182,6 +182,15 @@ export interface Order {
   service_charge_waived_by_name?: string | null;
   /** DEPRECATED: same value as `till_id` (required by POS v0.5.1/v0.6.0). */
   shift_id: string;
+  /**
+     * Who started this sale's cart when it is not the person who rang it: a
+     * held order resumed after a teller switch on the till. `null` otherwise.
+     * Additive.
+     * @nullable
+     */
+  started_by?: string | null;
+  /** @nullable */
+  started_by_name?: string | null;
   status: string;
   subtotal: number;
   tax_amount: number;
