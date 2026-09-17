@@ -10,6 +10,7 @@ import { APP_TZ } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
 import { fmtDate } from "@/lib/format";
 import { dayBoundaryISO } from "@/data/scope/presets";
+import { daysIntoWeek, WEEK_ORDER } from "@/lib/week";
 
 type DayParts = { y: number; m: number; d: number };
 
@@ -105,7 +106,7 @@ export function DateRangePicker({ preset, from, to, presets, onSelectPreset, onA
   const daysInMonth = new TZDate(year, month + 1, 0, tz).getDate();
   const firstDay = new TZDate(year, month, 1, tz).getDay();
   const cells: (number | null)[] = [
-    ...Array(firstDay).fill(null),
+    ...Array(daysIntoWeek(firstDay)).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];
 
@@ -121,7 +122,8 @@ export function DateRangePicker({ preset, from, to, presets, onSelectPreset, onA
   );
   const weekdayNames = React.useMemo(() => {
     const fmt = new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: tz });
-    return Array.from({ length: 7 }, (_, i) => fmt.format(new TZDate(2024, 0, 7 + i, tz))); // Sun..Sat
+    // 7 Jan 2024 is a Sunday (getDay 0); the columns start on WEEK_START.
+    return WEEK_ORDER.map((day) => fmt.format(new TZDate(2024, 0, 7 + day, tz)));
   }, [locale, tz]);
 
   const activeLabel =

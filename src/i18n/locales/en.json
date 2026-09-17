@@ -1894,7 +1894,7 @@
     "periodTotal": "Period Total",
     "revenueByPayment": "Revenue by Payment Method",
     "topItems": "Top Items",
-    "topItemsRev": "Top Items by Revenue",
+    "topItemsQty": "Top Items by Quantity Sold",
     "revenueOverTime": "Revenue Over Time",
     "ordersOverTime": "Orders Over Time",
     "discountsOverTime": "Discounts Over Time",

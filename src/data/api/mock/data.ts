@@ -191,13 +191,14 @@ export const MOCK_PEAK_DAYS: PeakDayPoint[] = _pd_raw.map((r, day_of_week) => ({
   orders_pct: _pd_total_ord > 0 ? Math.round(r.orders / _pd_total_ord * 1000) / 10 : 0,
 }));
 
-// Top sellers + sales-by-category for the analytics overview tab + leaderboards.
+// Top sellers + sales-by-category for the analytics overview tab + leaderboards,
+// ranked as the backend ranks them: quantity, then revenue, then name.
 const TOP_ITEMS = [
   { menu_item_id: "mi_latte", item_name: "Latte", item_name_translations: { ar: "لاتيه" }, quantity_sold: 142, revenue: 852_000 },
-  { menu_item_id: "mi_frappuccino", item_name: "Frappuccino", item_name_translations: { ar: "فرابيتشينو" }, quantity_sold: 67, revenue: 569_500 },
-  { menu_item_id: "mi_cheesecake", item_name: "Cheesecake", item_name_translations: { ar: "تشيز كيك" }, quantity_sold: 62, revenue: 558_000 },
   { menu_item_id: "mi_cappuccino", item_name: "Cappuccino", item_name_translations: { ar: "كابوتشينو" }, quantity_sold: 98, revenue: 539_000 },
   { menu_item_id: "mi_americano", item_name: "Americano", item_name_translations: { ar: "أمريكانو" }, quantity_sold: 89, revenue: 400_500 },
+  { menu_item_id: "mi_frappuccino", item_name: "Frappuccino", item_name_translations: { ar: "فرابيتشينو" }, quantity_sold: 67, revenue: 569_500 },
+  { menu_item_id: "mi_cheesecake", item_name: "Cheesecake", item_name_translations: { ar: "تشيز كيك" }, quantity_sold: 62, revenue: 558_000 },
   { menu_item_id: "mi_flatwhite", item_name: "Flat White", item_name_translations: { ar: "فلات وايت" }, quantity_sold: 54, revenue: 351_000 },
   { menu_item_id: "mi_matcha", item_name: "Matcha Latte", item_name_translations: { ar: "ماتشا لاتيه" }, quantity_sold: 34, revenue: 255_000 },
 ];
