@@ -1982,7 +1982,15 @@
     "amountOff": "{{value}} off",
     "activate": "Activate discount",
     "deactivate": "Deactivate discount",
-    "deleteConsequence": "Cashiers can no longer apply it at checkout. Past orders keep the discount they were given."
+    "deleteConsequence": "Cashiers can no longer apply it at checkout. Past orders keep the discount they were given.",
+    "kind": {
+      "preset": "Preset",
+      "manualAmount": "Amount by hand",
+      "manualPercent": "Percent by hand",
+      "unattributed": "Not recorded"
+    },
+    "appliedBy": "by {{name}}",
+    "approvedBy": "approved by {{name}}"
   },
   "bundles": {
     "title": "Bundles",
@@ -5075,7 +5083,10 @@
       "byIssuer": "By staff member",
       "eventsCount": "{{n}} events",
       "eventPoints": "Points moved",
-      "byType": "By type"
+      "byType": "By type",
+      "byKind": "By kind",
+      "discountSales": "Discounted sales",
+      "flagged": "Flagged"
     },
     "loyalty": {
       "title": "Loyalty",

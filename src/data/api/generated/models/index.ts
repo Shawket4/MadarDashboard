@@ -270,6 +270,7 @@ export * from './disciplineReport';
 export * from './disciplineReportParams';
 export * from './disciplineRow';
 export * from './discount';
+export * from './discountAuditEntry';
 export * from './discountNameTranslations';
 export * from './discountsAuditParams';
 export * from './drinkRecipe';
