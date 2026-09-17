@@ -19,7 +19,9 @@ import { setParLevels, useListMovements } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { invalidateInventory } from "./lib";
+import { StatusPill } from "@/components/app/status-pill";
+import { invalidateInventory, isBelowZero } from "./lib";
+import { belowZeroClass } from "./on-hand";
 
 interface Props {
   item: OrgIngredient | null;
@@ -101,9 +103,14 @@ export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdi
               {/* Book stock — read-only, from the ledger */}
               <div className="rounded-lg border p-3">
                 <p className="text-[13px] font-medium text-muted-foreground">{t("inventory.catalog.onHand", "On hand")}</p>
-                <p className={cn("mt-1 font-mono text-2xl font-semibold tabular", (stockRow?.on_hand ?? 0) < 0 && "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]")}>
+                <p className={cn("mt-1 font-mono text-2xl font-semibold tabular", belowZeroClass(stockRow?.on_hand))}>
                   <bdi>{fmtNumber(stockRow?.on_hand ?? 0)}</bdi> <span className="font-sans text-base font-normal text-muted-foreground">{fmtUnit(item?.unit)}</span>
                 </p>
+                {isBelowZero(stockRow?.on_hand) ? (
+                  <p className="mt-1">
+                    <StatusPill tone="danger" size="sm">{t("inventory.catalog.belowZero", "Below zero")}</StatusPill>
+                  </p>
+                ) : null}
                 <p className="mt-1 text-xs text-muted-foreground">
                   {stockRow?.last_counted_at
                     ? t("inventory.catalog.lastCounted", { when: fmtDateTime(stockRow.last_counted_at), defaultValue: `Last counted ${fmtDateTime(stockRow.last_counted_at)}` })

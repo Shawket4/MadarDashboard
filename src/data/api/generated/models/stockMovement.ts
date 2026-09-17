@@ -38,15 +38,35 @@ export interface StockMovement {
   /** @nullable */
   note?: string | null;
   /**
-     * When it happened on the device (a queued waste lands later).
+     * When the waste HAPPENED: the device's time for a till waste, the
+     * refund's `issued_at`, the void's `voided_at`, else the post time. The
+     * log is ordered by it.
      * @nullable
      */
   occurred_at?: string | null;
+  /** @nullable */
+  order_display_number?: string | null;
+  /**
+     * A refund's or void's waste: the sale.
+     * @nullable
+     */
+  order_id?: string | null;
   org_ingredient_id: string;
   /** Signed delta applied to stock (consumption negative, replenishment positive). */
   quantity: number;
   /** @nullable */
   reason?: string | null;
+  /**
+     * When the server received it (= `created_at`). Differs from
+     * `occurred_at` when a till queued the waste offline.
+     * @nullable
+     */
+  received_at?: string | null;
+  /**
+     * A refund's waste: the refund it came from.
+     * @nullable
+     */
+  refund_id?: string | null;
   /** @nullable */
   source_id?: string | null;
   /** @nullable */
@@ -67,7 +87,8 @@ export interface StockMovement {
   /** @nullable */
   waste_size_label?: string | null;
   /**
-     * `pos` | `dashboard` | `order` (a voided made order).
+     * `pos` | `dashboard` | `refund` (a refunded sale's stock) | `order` (a
+     * made order voided before voids always restocked).
      * @nullable
      */
   waste_source?: string | null;

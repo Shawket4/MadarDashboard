@@ -889,10 +889,26 @@ function shiftReport(shiftId: string) {
     cash_movements_in,
     cash_movements_out,
     cash_movements_net: cash_movements_in - cash_movements_out,
+    spot_views: MOCK_TILL_SPOT_VIEWS(shift.id),
     printed_at: NOW_ISO,
   };
 }
 export const MOCK_TILL_REPORT = shiftReport;
+
+/** TillSpotView[] for a till: one unlocked by a manager and printed; one plain look. */
+export function MOCK_TILL_SPOT_VIEWS(tillId: string) {
+  const shift = MOCK_SHIFTS.find((s) => s.id === tillId) ?? MOCK_SHIFTS[1];
+  const base = { till_id: shift.id, branch_id: shift.branch_id, device_id: null };
+  return [
+    { ...base, id: `${shift.id}_sv1`, viewed_by: "usr_mona", viewed_by_name: "Mona Adel",
+      printed: true, printed_at: "2026-06-15T13:01:00Z",
+      approved_by: "usr_demo_admin", approved_by_name: "Shawket Ibrahim", approval_id: "apr_sv1",
+      viewed_at: "2026-06-15T13:00:00Z", created_at: "2026-06-15T13:00:00Z" },
+    { ...base, id: `${shift.id}_sv2`, viewed_by: "usr_demo_admin", viewed_by_name: "Shawket Ibrahim",
+      printed: false, printed_at: null, approved_by: null, approved_by_name: null, approval_id: null,
+      viewed_at: "2026-06-15T17:30:00Z", created_at: "2026-06-15T17:30:00Z" },
+  ];
+}
 
 // ── Permissions ──────────────────────────────────────────────────────────────
 

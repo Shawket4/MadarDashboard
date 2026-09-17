@@ -10,6 +10,7 @@ import { DataTable } from "@/components/app/data-table";
 import { ListCard, ListRow } from "@/components/app/list-row";
 import { SectionHeader } from "@/components/app/section-header";
 import { StatusPill } from "@/components/app/status-pill";
+import { OnHand } from "./on-hand";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -102,7 +103,7 @@ export function TodayPage() {
       ),
     },
     { id: "branch", header: t("inventory.reports.branchName", "Branch"), meta: { label: t("inventory.reports.branchName", "Branch") }, cell: ({ row }) => row.original.branch_name },
-    { id: "onHand", header: t("inventory.today.onHand", "On hand"), meta: { label: t("inventory.today.onHand", "On hand"), numeric: true }, cell: ({ row: { original: r } }) => `${fmtNumber(r.on_hand)} ${fmtUnit(r.unit)}` },
+    { id: "onHand", header: t("inventory.today.onHand", "On hand"), meta: { label: t("inventory.today.onHand", "On hand"), numeric: true }, cell: ({ row: { original: r } }) => <OnHand qty={r.on_hand} unit={r.unit} /> },
     { id: "par", header: t("inventory.today.reorderPoint", "Reorder point"), meta: { label: t("inventory.today.reorderPoint", "Reorder point"), numeric: true }, cell: ({ row: { original: r } }) => `${fmtNumber(r.par_min)} ${fmtUnit(r.unit)}` },
     { id: "suggested", header: t("inventory.today.suggested", "Order"), meta: { label: t("inventory.today.suggested", "Order"), numeric: true }, cell: ({ row: { original: r } }) => `${fmtNumber(r.suggested_qty)} ${fmtUnit(r.unit)}` },
     { id: "supplier", header: t("inventory.catalog.supplier", "Supplier"), meta: { label: t("inventory.catalog.supplier", "Supplier") }, cell: ({ row }) => row.original.supplier_name ?? <span className="text-muted-foreground">—</span> },

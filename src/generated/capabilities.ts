@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "666def07ce1e64f5";
+export const SPEC_HASH = "5fc9caad25e48a37";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -194,6 +194,7 @@ export type Capability =
   | "customers.erase"
   | "reports.legal"
   | "menu.packaging_rules.apply"
+  | "orders.held.resume_others"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -377,6 +378,7 @@ export const Cap = {
   customersErase: "customers.erase" as Capability,
   reportsLegal: "reports.legal" as Capability,
   menuPackagingRulesApply: "menu.packaging_rules.apply" as Capability,
+  ordersHeldResumeOthers: "orders.held.resume_others" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -559,7 +561,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 200, key: "pos.sign_in", legacy: null, group: "till", tier: "core", risk: "normal", defaults: ["org_admin", "branch_manager", "teller", "waiter", "kitchen"], core: ["teller", "waiter"], approval: false, limits: [], pos: true, protected: false, en: "Sign in at a till with a PIN", ar: "تسجيل الدخول على نقطة البيع برقم سري", hintEn: null, hintAr: null },
   { id: 201, key: "till.force_close", legacy: null, group: "till", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: true, protected: false, en: "Force-close someone else's till", ar: "إغلاق درج موظف آخر إجباريًا", hintEn: null, hintAr: null },
   { id: 202, key: "till.read.branch", legacy: null, group: "till", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: true, protected: false, en: "See every till at the branch", ar: "عرض كل أدراج الفرع", hintEn: null, hintAr: null },
-  { id: 203, key: "till.cash_spot_check", legacy: null, group: "till", tier: "configurable", risk: "money", defaults: [], core: [], approval: true, limits: [], pos: true, protected: false, en: "Count the drawer during a shift (spot check)", ar: "جرد الدرج أثناء الوردية (جرد مفاجئ)", hintEn: "Off for everyone by default. With \"ask a manager\", a teller can request one and a manager approves with their PIN.", hintAr: "مغلق للجميع افتراضيًا. مع \"اطلب من المدير\" يمكن للكاشير طلبه ويوافق المدير برقمه السري." },
+  { id: 203, key: "till.cash_spot_check", legacy: null, group: "till", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Cash spot: see and print the live drawer figures", ar: "الجرد المفاجئ: عرض أرقام الخزنة المباشرة وطباعتها", hintEn: "On for owners and managers: Cash spot shows the full live till report (expected cash, every payment method, all figures) and prints it, and the expected figures show before closing. Without it a person counts blind at close and sees the report after closing; someone holding it can unlock one look with their PIN. Every look is recorded.", hintAr: "مفعّل للمالك والمديرين: يعرض الجرد المفاجئ تقرير الوردية المباشر كاملًا (النقد المتوقع، كل طرق الدفع، كل الأرقام) ويطبعه، وتظهر الأرقام المتوقعة قبل الإغلاق. بدونه يعدّ الشخص عند الإغلاق دون رؤية المتوقع ويرى التقرير بعد الإغلاق؛ ويمكن لمن يملكه فتح عرض واحد برقمه السري. كل عرض يُسجَّل." },
   { id: 204, key: "orders.discount.preset", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager", "teller", "waiter"], core: [], approval: true, limits: ["max_percent", "max_amount"], pos: true, protected: false, en: "Apply a preset discount", ar: "تطبيق خصم جاهز", hintEn: null, hintAr: null },
   { id: 205, key: "orders.discount.manual_amount", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: true, limits: ["max_amount"], pos: true, protected: false, en: "Enter a discount amount by hand", ar: "إدخال قيمة خصم يدويًا", hintEn: null, hintAr: null },
   { id: 206, key: "orders.discount.manual_percent", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: true, limits: ["max_percent"], pos: true, protected: false, en: "Enter a discount percentage by hand", ar: "إدخال نسبة خصم يدويًا", hintEn: null, hintAr: null },
@@ -578,6 +580,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 219, key: "customers.erase", legacy: null, group: "customers", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Erase a customer's personal data (PDPL)", ar: "محو البيانات الشخصية للعميل", hintEn: null, hintAr: null },
   { id: 220, key: "reports.legal", legacy: null, group: "reports", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See legal reports: tax, refunds, voids, discounts, waivers and price overrides", ar: "عرض التقارير القانونية: الضريبة والمرتجعات والإلغاءات والخصومات والإعفاءات وتعديلات الأسعار", hintEn: "They name the staff who gave money back. A manager sees only their own branches.", hintAr: "تُظهر أسماء الموظفين الذين أعادوا المال. يرى المدير فروعه فقط." },
   { id: 221, key: "menu.packaging_rules.apply", legacy: null, group: "menu", tier: "advanced", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Re-apply packaging rules to every menu item", ar: "إعادة تطبيق قواعد التغليف على جميع أصناف القائمة", hintEn: null, hintAr: null },
+  { id: 222, key: "orders.held.resume_others", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Resume an order someone else started", ar: "استئناف طلب بدأه شخص آخر", hintEn: "A held order another person parked on this till. Without it, a manager enters their PIN.", hintAr: "طلب معلّق تركه شخص آخر على هذا الجهاز. بدونها يُدخل المدير رمزه." },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [

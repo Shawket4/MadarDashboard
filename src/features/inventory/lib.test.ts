@@ -7,6 +7,8 @@ import {
   missingReasons,
   needsFirstCount,
   parseCount,
+  isBelowZero,
+  wasteReceivedLate,
   wasteSource,
   wasteWhen,
 } from "./lib";
@@ -79,6 +81,8 @@ describe("waste log source", () => {
     expect(wasteSource({ waste_source: "pos" })).toBe("pos");
     expect(wasteSource({ waste_source: null, source_type: "order" })).toBe("order");
     expect(wasteSource({ source_type: "waste" })).toBe("dashboard");
+    expect(wasteSource({ waste_source: "refund" })).toBe("refund");
+    expect(wasteSource({ waste_source: null, source_type: "refund" })).toBe("refund");
   });
 
   it("dates a queued till waste by when it happened on the device", () => {
@@ -86,5 +90,26 @@ describe("waste log source", () => {
       "2026-09-17T08:00:00Z",
     );
     expect(wasteWhen({ occurred_at: null, created_at: "2026-09-17T10:00:00Z" })).toBe("2026-09-17T10:00:00Z");
+  });
+});
+
+describe("waste log receive time", () => {
+  it("shows when the server received it only past five minutes", () => {
+    const occurred = "2026-09-17T08:00:00Z";
+    expect(wasteReceivedLate({ occurred_at: occurred, received_at: "2026-09-17T08:04:59Z", created_at: "x" })).toBeNull();
+    expect(wasteReceivedLate({ occurred_at: occurred, received_at: "2026-09-17T08:05:01Z", created_at: "x" })).toBe(
+      "2026-09-17T08:05:01Z",
+    );
+    expect(wasteReceivedLate({ occurred_at: occurred, created_at: "2026-09-17T11:00:00Z" })).toBe("2026-09-17T11:00:00Z");
+    expect(wasteReceivedLate({ occurred_at: null, created_at: "2026-09-17T11:00:00Z" })).toBeNull();
+  });
+});
+
+describe("below zero", () => {
+  it("marks only a negative figure", () => {
+    expect(isBelowZero(-0.5)).toBe(true);
+    expect(isBelowZero(0)).toBe(false);
+    expect(isBelowZero(3)).toBe(false);
+    expect(isBelowZero(null)).toBe(false);
   });
 });

@@ -14,6 +14,13 @@ export type TillReportResponse = TillReportFigures & ({
      * available (then it is never newer than any cursor). Additive.
      */
   as_of_seq?: number;
+  /**
+     * "N held orders left open" at this close (see [`Till`]). Additive.
+     * @nullable
+     */
+  held_orders_left_open?: number | null;
+  /** @nullable */
+  held_orders_left_open_total?: number | null;
   /** @nullable */
   old_bills_at_close?: number | null;
   /** @nullable */
