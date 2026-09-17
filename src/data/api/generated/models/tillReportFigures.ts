@@ -2,6 +2,7 @@
 // @ts-nocheck
 import type { CashMovementSummaryRow } from './cashMovementSummaryRow';
 import type { PaymentSummaryRow } from './paymentSummaryRow';
+import type { TillSpotCheck } from './tillSpotCheck';
 
 /**
  * The report figures shared by the new `TillReportResponse` and the legacy
@@ -36,6 +37,8 @@ export interface TillReportFigures {
      * and what those charges came to. Not part of any total.
      */
   service_charge_waived_count?: number;
+  /** Cash spot checks taken on this till, oldest first. Additive. */
+  spot_checks?: TillSpotCheck[];
   /**
      * `branches.standard_float`.
      * @nullable

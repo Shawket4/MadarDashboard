@@ -24,6 +24,7 @@ import {
   useAddCashMovement as useAddCashMovementMutation,
   useTillDeductions as useTillDeductionsQuery,
   useTillSummary as useTillSummaryQuery,
+  useListSpotChecks,
 } from "@/data/api/generated/api";
 import type {
   CloseTillMethod,
@@ -43,6 +44,7 @@ import type {
   TillReconciliationLine as GenTillReconciliationLine,
   TillReportResponse as GenTillReportResponse,
   TillStatus,
+  TillSpotCheck,
   TillVerification,
 } from "@/data/api/generated/models";
 import { queryClient } from "@/data/api/query";
@@ -67,6 +69,7 @@ export type {
   Till,
   TillBrief,
   TillPreFill,
+  TillSpotCheck,
   TillStatus,
   TillVerification,
 };
@@ -124,6 +127,11 @@ export function useTillSummary(id: string | null, enabled = true) {
 /** T16: `/reports/tills/{id}/deductions` — stock the till's orders consumed. */
 export function useTillDeductions(id: string | null, enabled = true) {
   return useTillDeductionsQuery(id ?? "", { query: { enabled: !!id && enabled } });
+}
+
+/** T17: `/tills/{id}/spot-checks` — mid-till cash spot checks, oldest first. */
+export function useTillSpotChecks(id: string | null, enabled = true) {
+  return useListSpotChecks(id ?? "", { query: { enabled: !!id && enabled } });
 }
 
 /** T8: what the close form reconciles. */

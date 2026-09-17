@@ -3874,7 +3874,25 @@
     "history": "كل الورديات",
     "noOpenHint": "تُفتح الوردية عندما يبدأ الكاشير البيع على نقطة البيع.",
     "allStatuses": "كل الحالات",
-    "emptyHint": "تظهر الورديات هنا بمجرد أن يفتحها الكاشير، وتبقى للسجل بعد إغلاقها."
+    "emptyHint": "تظهر الورديات هنا بمجرد أن يفتحها الكاشير، وتبقى للسجل بعد إغلاقها.",
+    "spotChecks": {
+      "title": "الجرد المفاجئ",
+      "empty": "لم يُجرَ أي جرد مفاجئ على هذه الوردية.",
+      "even": "مطابق",
+      "over": "زيادة",
+      "short": "عجز",
+      "checkedBy": "جرده {{name}}",
+      "approvedBy": "بموافقة {{name}}",
+      "counted": "المعدود",
+      "expected": "المتوقع",
+      "methods_zero": "{{count}} طرق",
+      "methods_one": "طريقة واحدة",
+      "methods_two": "طريقتان",
+      "methods_few": "{{count}} طرق",
+      "methods_many": "{{count}} طريقة",
+      "methods_other": "{{count}} طريقة",
+      "notCounted": "لم يُعد"
+    }
   },
   "aiChat": {
     "title": "اسأل بياناتك",

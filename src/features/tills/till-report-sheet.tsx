@@ -20,6 +20,7 @@ import { useTillReport, useTillSummary } from "./api";
 import { FlagBadge, VerificationBadge } from "./till-badges";
 import { ReconciliationTable } from "./reconciliation-table";
 import { TillDeductions } from "./till-deductions";
+import { TillSpotChecks } from "./till-spot-checks";
 import { fmtDateTime, fmtMoney, fmtMoneySigned } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -198,6 +199,8 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
                   ) : null}
                 </CardContent>
               </Card>
+
+              <TillSpotChecks tillId={tillId} enabled={open} />
 
               <TillDeductions tillId={tillId} enabled={open} />
 

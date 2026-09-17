@@ -888,10 +888,31 @@ function shiftReport(shiftId: string) {
     cash_movements_in,
     cash_movements_out,
     cash_movements_net: cash_movements_in - cash_movements_out,
+    spot_checks: MOCK_TILL_SPOT_CHECKS(shift.id),
     printed_at: NOW_ISO,
   };
 }
 export const MOCK_TILL_REPORT = shiftReport;
+
+/** TillSpotCheck[] for a till: one short, approved; one even. */
+export function MOCK_TILL_SPOT_CHECKS(tillId: string) {
+  const shift = MOCK_SHIFTS.find((s) => s.id === tillId) ?? MOCK_SHIFTS[1];
+  const base = { till_id: shift.id, branch_id: shift.branch_id, device_id: null, approval_id: null, approved_by: null, approved_by_name: null };
+  return [
+    { ...base, id: `${shift.id}_sc1`, counted_cash: 402_000, expected_cash: 412_000, cash_discrepancy: -10_000,
+      methods: [
+        { method: "cash", is_cash: true, expected: 412_000, counted: 402_000, discrepancy: -10_000 },
+        { method: "card", is_cash: false, expected: 210_000, counted: null, discrepancy: null },
+      ],
+      note: "Short by a 100 note", checked_by: "usr_mona", checked_by_name: "Mona Adel",
+      approved_by: "usr_demo_admin", approved_by_name: "Shawket Ibrahim", approval_id: "apr_sc1",
+      checked_at: "2026-06-15T13:00:00Z", created_at: "2026-06-15T13:00:00Z" },
+    { ...base, id: `${shift.id}_sc2`, counted_cash: 655_000, expected_cash: 655_000, cash_discrepancy: 0,
+      methods: [{ method: "cash", is_cash: true, expected: 655_000, counted: 655_000, discrepancy: 0 }],
+      note: null, checked_by: "usr_mona", checked_by_name: "Mona Adel",
+      checked_at: "2026-06-15T17:30:00Z", created_at: "2026-06-15T17:30:00Z" },
+  ];
+}
 
 // ── Permissions ──────────────────────────────────────────────────────────────
 
