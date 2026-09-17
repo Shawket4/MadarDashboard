@@ -36,6 +36,7 @@ import {
   MOCK_QR,
   MOCK_REORDER_SUGGESTIONS,
   MOCK_TILL_REPORT,
+  MOCK_TILL_SPOT_VIEWS,
   MOCK_SHRINKAGE,
   MOCK_STOCKTAKES,
   MOCK_SUPPLIERS,
@@ -533,6 +534,7 @@ export const handlers = [
   ),
   http.get("*/tills/branches/:branchId", ({ params }) => HttpResponse.json(tillsPage(params.branchId as string))),
   http.get("*/tills/:tillId/report", ({ params }) => HttpResponse.json(MOCK_TILL_REPORT(params.tillId as string))),
+  http.get("*/tills/:tillId/spot-views", ({ params }) => HttpResponse.json(MOCK_TILL_SPOT_VIEWS(params.tillId as string))),
   http.get("*/tills/:tillId/cash-movements", () => HttpResponse.json([])),
 
   // ── Delivery settings ─────────────────────────────────────────────────────

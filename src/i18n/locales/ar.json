@@ -1176,7 +1176,9 @@
       "reorderLevels": "حدود إعادة الطلب",
       "reorderPoint": "حد إعادة الطلب",
       "uncategorized": "بدون فئة",
-      "yieldPct": "نسبة الاستفادة % (بعد التقشير/الفاقد)"
+      "yieldPct": "نسبة الاستفادة % (بعد التقشير/الفاقد)",
+      "belowZero": "تحت الصفر",
+      "belowZeroHint": "{{qty}} (تحت الصفر)"
     },
     "stock": {
       "title": "مخزون الفرع",
@@ -1243,7 +1245,9 @@
         "damaged": "متضرّر",
         "overproduction": "إنتاج زائد",
         "theft": "سرقة",
-        "other": "أخرى"
+        "other": "أخرى",
+        "refund": "طلب مسترد",
+        "order_cancelled": "طلب ملغى"
       },
       "onHandHint": "{{qty}} {{unit}} متوفر",
       "byReason": "حسب السبب",
@@ -1260,7 +1264,24 @@
       "nothingOnHand": "لا يوجد متوفر",
       "recorded": "تم تسجيل الهالك",
       "reportFailed": "تعذّر تحميل الهالك حسب السبب",
-      "noReasonData": "يظهر الهالك حسب السبب بمجرد تسجيل هالك في هذه الفترة."
+      "noReasonData": "يظهر الهالك حسب السبب بمجرد تسجيل هالك في هذه الفترة.",
+      "source": "المصدر",
+      "sources": {
+        "pos": "نقطة البيع",
+        "dashboard": "لوحة التحكم",
+        "order": "طلب ملغى",
+        "refund": "استرداد"
+      },
+      "device": "الجهاز {{name}}",
+      "deviceColumn": "الجهاز",
+      "approvedBy": "وافق {{name}}",
+      "approvedByColumn": "وافق عليه",
+      "fromItem": "من {{item}} × {{qty}}",
+      "item": "صنف المنيو",
+      "received": "وصل {{when}}",
+      "receivedColumn": "وقت الوصول",
+      "refundOf": "استرداد الطلب {{number}}",
+      "orderColumn": "الطلب"
     },
     "stocktakes": {
       "title": "جرد المخزون",
@@ -1989,7 +2010,15 @@
     "amountOff": "خصم {{value}}",
     "activate": "تفعيل الخصم",
     "deactivate": "تعطيل الخصم",
-    "deleteConsequence": "لن يتمكن الكاشير من تطبيقه عند الدفع، وتحتفظ الطلبات السابقة بالخصم الذي حصلت عليه."
+    "deleteConsequence": "لن يتمكن الكاشير من تطبيقه عند الدفع، وتحتفظ الطلبات السابقة بالخصم الذي حصلت عليه.",
+    "kind": {
+      "preset": "خصم جاهز",
+      "manualAmount": "مبلغ يدوي",
+      "manualPercent": "نسبة يدوية",
+      "unattributed": "غير مسجل"
+    },
+    "appliedBy": "بواسطة {{name}}",
+    "approvedBy": "بموافقة {{name}}"
   },
   "bundles": {
     "title": "الباقات",
@@ -3876,7 +3905,13 @@
     "noOpenHint": "تُفتح الوردية عندما يبدأ الكاشير البيع على نقطة البيع.",
     "allStatuses": "كل الحالات",
     "emptyHint": "تظهر الورديات هنا بمجرد أن يفتحها الكاشير، وتبقى للسجل بعد إغلاقها.",
-    "heldOrdersLeftOpen": "طلبات معلّقة تُركت مفتوحة"
+    "heldOrdersLeftOpen": "طلبات معلّقة تُركت مفتوحة",
+    "spotViews": {
+      "title": "مرات عرض تقرير الجرد المفاجئ",
+      "empty": "لم يعرض أحد تقرير الجرد المفاجئ لهذه الوردية.",
+      "unlockedBy": "بفتح من {{name}}",
+      "printed": "مطبوع"
+    }
   },
   "aiChat": {
     "title": "اسأل بياناتك",
@@ -5216,7 +5251,10 @@
       "byIssuer": "حسب الموظف",
       "eventsCount": "{{n}} حدث",
       "eventPoints": "النقاط المعدّلة",
-      "byType": "حسب النوع"
+      "byType": "حسب النوع",
+      "byKind": "حسب النوع",
+      "discountSales": "المبيعات المخصومة",
+      "flagged": "مُعلَّم"
     },
     "loyalty": {
       "title": "الولاء",

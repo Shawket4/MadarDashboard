@@ -77,6 +77,7 @@ import type {
   BranchMenuOverride,
   BranchMenuOverrideInput,
   BranchPoLeadTimeParams,
+  BranchPosMetricsParams,
   BranchQrParams,
   BranchSalesParams,
   BranchSalesPeakDaysParams,
@@ -409,6 +410,7 @@ import type {
   PinSuggestion,
   PoLeadTimeReport,
   PolicyEntry,
+  PosMetricsReport,
   PrepTimeInput,
   PreviewIngredient,
   PreviewRecipeRequest,
@@ -462,6 +464,7 @@ import type {
   RecipeLinkInfo,
   RecipeStep,
   RecipeStepPreset,
+  RecordWasteRequest,
   RefundFull,
   RefundIssued,
   RefundsAuditParams,
@@ -503,6 +506,7 @@ import type {
   SizeBaseResult,
   SizeCostOut,
   SkuCost,
+  SpotViewRequest,
   StaffDocument,
   StaffRequest,
   StationRoutes,
@@ -530,6 +534,7 @@ import type {
   TillPreFill,
   TillRefunds,
   TillReportResponse,
+  TillSpotView,
   TimeseriesPoint,
   TopUpRequest,
   TransferView,
@@ -582,6 +587,7 @@ import type {
   WaiveDeductionRequest,
   WaiversAuditParams,
   WalletStatus,
+  WasteRecorded,
   WasteReportRow,
   WhatsappStatus,
   WorkShift,
@@ -12823,6 +12829,71 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUpdateTransferMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary POST /inventory/waste — record waste at a branch (ingredient or menu item).
+ */
+export const recordWaste = (
+    recordWasteRequest: RecordWasteRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<WasteRecorded>(
+      {url: `/inventory/waste`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: recordWasteRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getRecordWasteMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordWaste>>, TError,{data: RecordWasteRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordWaste>>, TError,{data: RecordWasteRequest}, TContext> => {
+
+const mutationKey = ['recordWaste'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordWaste>>, {data: RecordWasteRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordWaste(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordWasteMutationResult = NonNullable<Awaited<ReturnType<typeof recordWaste>>>
+    export type RecordWasteMutationBody = RecordWasteRequest
+    export type RecordWasteMutationError = ErrorBody
+
+    /**
+ * @summary POST /inventory/waste — record waste at a branch (ingredient or menu item).
+ */
+export const useRecordWaste = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordWaste>>, TError,{data: RecordWasteRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recordWaste>>,
+        TError,
+        {data: RecordWasteRequest},
+        TContext
+      > => {
+      return useMutation(getRecordWasteMutationOptions(options), queryClient);
     }
 
 export const bump = (
@@ -27813,6 +27884,101 @@ export function useBranchPoLeadTime<TData = Awaited<ReturnType<typeof branchPoLe
 
 
 
+export const branchPosMetrics = (
+    branchId: string,
+    params: BranchPosMetricsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PosMetricsReport>(
+      {url: `/reports/branches/${branchId}/pos-metrics`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchPosMetricsQueryKey = (branchId: string,
+    params?: BranchPosMetricsParams,) => {
+    return [
+    `/reports/branches/${branchId}/pos-metrics`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchPosMetricsQueryOptions = <TData = Awaited<ReturnType<typeof branchPosMetrics>>, TError = ErrorBody>(branchId: string,
+    params: BranchPosMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchPosMetricsQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchPosMetrics>>> = ({ signal }) => branchPosMetrics(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchPosMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof branchPosMetrics>>>
+export type BranchPosMetricsQueryError = ErrorBody
+
+
+export function useBranchPosMetrics<TData = Awaited<ReturnType<typeof branchPosMetrics>>, TError = ErrorBody>(
+ branchId: string,
+    params: BranchPosMetricsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchPosMetrics>>,
+          TError,
+          Awaited<ReturnType<typeof branchPosMetrics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchPosMetrics<TData = Awaited<ReturnType<typeof branchPosMetrics>>, TError = ErrorBody>(
+ branchId: string,
+    params: BranchPosMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchPosMetrics>>,
+          TError,
+          Awaited<ReturnType<typeof branchPosMetrics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchPosMetrics<TData = Awaited<ReturnType<typeof branchPosMetrics>>, TError = ErrorBody>(
+ branchId: string,
+    params: BranchPosMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchPosMetrics<TData = Awaited<ReturnType<typeof branchPosMetrics>>, TError = ErrorBody>(
+ branchId: string,
+    params: BranchPosMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchPosMetrics>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchPosMetricsQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const branchSales = (
     branchId: string,
     params?: BranchSalesParams,
@@ -38307,6 +38473,153 @@ export function useGetTillReport<TData = Awaited<ReturnType<typeof getTillReport
 
 
 
+
+export const listSpotViews = (
+    tillId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TillSpotView[]>(
+      {url: `/tills/${tillId}/spot-views`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListSpotViewsQueryKey = (tillId: string,) => {
+    return [
+    `/tills/${tillId}/spot-views`
+    ] as const;
+    }
+
+
+export const getListSpotViewsQueryOptions = <TData = Awaited<ReturnType<typeof listSpotViews>>, TError = ErrorBody>(tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSpotViewsQueryKey(tillId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSpotViews>>> = ({ signal }) => listSpotViews(tillId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: tillId !== null && tillId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSpotViewsQueryResult = NonNullable<Awaited<ReturnType<typeof listSpotViews>>>
+export type ListSpotViewsQueryError = ErrorBody
+
+
+export function useListSpotViews<TData = Awaited<ReturnType<typeof listSpotViews>>, TError = ErrorBody>(
+ tillId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSpotViews>>,
+          TError,
+          Awaited<ReturnType<typeof listSpotViews>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSpotViews<TData = Awaited<ReturnType<typeof listSpotViews>>, TError = ErrorBody>(
+ tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSpotViews>>,
+          TError,
+          Awaited<ReturnType<typeof listSpotViews>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSpotViews<TData = Awaited<ReturnType<typeof listSpotViews>>, TError = ErrorBody>(
+ tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListSpotViews<TData = Awaited<ReturnType<typeof listSpotViews>>, TError = ErrorBody>(
+ tillId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSpotViews>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSpotViewsQueryOptions(tillId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const createSpotView = (
+    tillId: string,
+    spotViewRequest: SpotViewRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TillSpotView>(
+      {url: `/tills/${tillId}/spot-views`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: spotViewRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getCreateSpotViewMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSpotView>>, TError,{tillId: string;data: SpotViewRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSpotView>>, TError,{tillId: string;data: SpotViewRequest}, TContext> => {
+
+const mutationKey = ['createSpotView'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSpotView>>, {tillId: string;data: SpotViewRequest}> = (props) => {
+          const {tillId,data} = props ?? {};
+
+          return  createSpotView(tillId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSpotViewMutationResult = NonNullable<Awaited<ReturnType<typeof createSpotView>>>
+    export type CreateSpotViewMutationBody = SpotViewRequest
+    export type CreateSpotViewMutationError = ErrorBody
+
+    export const useCreateSpotView = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSpotView>>, TError,{tillId: string;data: SpotViewRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createSpotView>>,
+        TError,
+        {tillId: string;data: SpotViewRequest},
+        TContext
+      > => {
+      return useMutation(getCreateSpotViewMutationOptions(options), queryClient);
+    }
 
 /**
  * @summary The full set of selectable IANA timezones — the labels of the `timezone_name`

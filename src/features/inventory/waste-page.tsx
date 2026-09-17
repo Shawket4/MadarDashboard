@@ -10,6 +10,7 @@ import { SectionHeader } from "@/components/app/section-header";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { StockMovement } from "@/data/api/generated/models";
@@ -17,10 +18,13 @@ import { listWaste, useBranchWasteReport, useListWaste } from "@/data/api/genera
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useScope } from "@/data/scope/use-scope";
+import { useCan } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { WasteDialog } from "./waste-dialog";
+import { wasteReceivedLate, wasteSource, wasteWhen } from "./lib";
 
 export function WastePage() {
   const { t } = useTranslation();
@@ -28,6 +32,7 @@ export function WastePage() {
   const [logOpen, setLogOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const logoUrl = useExportLogo();
+  const canRecord = useCan(Cap.inventoryWasteRecord);
 
   // The waste log scopes to the selected branch or rolls up across the org
   // ("All branches"). Logging waste needs a concrete branch (gated below).
@@ -61,10 +66,26 @@ export function WastePage() {
   const columns = useMemo<ColumnDef<StockMovement>[]>(
     () => [
       {
-        accessorKey: "created_at",
+        // When the waste HAPPENED (the backend orders by the same time). The
+        // server's receive time only when it is more than 5 minutes off: a
+        // waste queued on a till that was offline.
+        id: "occurred_at",
+        accessorFn: (m) => wasteWhen(m),
         header: t("common.date", "Date"),
         meta: { label: t("common.date", "Date"), numeric: true, align: "start" },
-        cell: ({ row }) => fmtDateTime(row.original.created_at),
+        cell: ({ row }) => {
+          const late = wasteReceivedLate(row.original);
+          return (
+            <span className="flex flex-col">
+              <span>{fmtDateTime(wasteWhen(row.original))}</span>
+              {late ? (
+                <span className="text-xs text-muted-foreground">
+                  {t("inventory.waste.received", { when: fmtDateTime(late), defaultValue: `Received ${fmtDateTime(late)}` })}
+                </span>
+              ) : null}
+            </span>
+          );
+        },
       },
       ...(isAllBranches
         ? ([{
@@ -74,7 +95,30 @@ export function WastePage() {
             cell: ({ row }) => <span>{row.original.branch_name ?? "—"}</span>,
           }] as ColumnDef<StockMovement>[])
         : []),
-      { accessorKey: "ingredient_name", header: t("inventory.waste.ingredient", "Ingredient"), meta: { label: t("inventory.waste.ingredient", "Ingredient"), phone: "title" }, cell: ({ row }) => <span className="font-medium">{row.original.ingredient_name}</span> },
+      {
+        accessorKey: "ingredient_name",
+        header: t("inventory.waste.ingredient", "Ingredient"),
+        meta: { label: t("inventory.waste.ingredient", "Ingredient"), phone: "title" },
+        cell: ({ row }) => {
+          const m = row.original;
+          // A menu item wasted at the till comes off stock as its recipe: say
+          // which item each ingredient line came from.
+          const fromItem = m.waste_subject_kind === "menu_item" && m.waste_subject_name;
+          return (
+            <span className="flex flex-col">
+              <span className="font-medium">{m.ingredient_name}</span>
+              {fromItem ? (
+                <span className="text-xs text-muted-foreground">
+                  {t("inventory.waste.fromItem", "From {{item}} × {{qty}}", {
+                    item: m.waste_size_label ? `${m.waste_subject_name} (${m.waste_size_label})` : m.waste_subject_name,
+                    qty: fmtNumber(m.waste_quantity ?? 0),
+                  })}
+                </span>
+              ) : null}
+            </span>
+          );
+        },
+      },
       {
         accessorKey: "quantity",
         header: t("inventory.waste.quantity", "Quantity"),
@@ -92,7 +136,45 @@ export function WastePage() {
         accessorKey: "created_by_name",
         header: t("inventory.waste.by", "By"),
         meta: { label: t("inventory.waste.by", "By") },
-        cell: ({ row }) => row.original.created_by_name ?? "—",
+        cell: ({ row }) => {
+          const m = row.original;
+          return (
+            <span className="flex flex-col">
+              <span>{m.created_by_name ?? "—"}</span>
+              {m.approved_by_name ? (
+                <span className="text-xs text-muted-foreground">
+                  {t("inventory.waste.approvedBy", "Approved by {{name}}", { name: m.approved_by_name })}
+                </span>
+              ) : null}
+            </span>
+          );
+        },
+      },
+      {
+        id: "source",
+        header: t("inventory.waste.source", "Source"),
+        meta: { label: t("inventory.waste.source", "Source") },
+        cell: ({ row }) => {
+          const m = row.original;
+          const source = wasteSource(m);
+          return (
+            <span className="flex flex-col items-start gap-0.5">
+              <Badge variant={source === "pos" ? "secondary" : "outline"}>
+                {t(`inventory.waste.sources.${source}`)}
+              </Badge>
+              {m.device_name ? (
+                <span className="text-xs text-muted-foreground">
+                  {t("inventory.waste.device", "Device {{name}}", { name: m.device_name })}
+                </span>
+              ) : null}
+              {source === "refund" && m.order_display_number ? (
+                <span className="text-xs text-muted-foreground">
+                  {t("inventory.waste.refundOf", { number: m.order_display_number, defaultValue: `Refund of order ${m.order_display_number}` })}
+                </span>
+              ) : null}
+            </span>
+          );
+        },
       },
     ],
     [t, isAllBranches],
@@ -110,12 +192,18 @@ export function WastePage() {
         rows: await listWaste(scopeBranchId, { limit, offset }, EXPORT_REQUEST),
       }));
       const cols: ExcelColumn<StockMovement>[] = [
-        { header: t("common.date", "Date"), accessor: (m) => m.created_at, type: "dateTime", width: 20 },
+        { header: t("common.date", "Date"), accessor: (m) => wasteWhen(m), type: "dateTime", width: 20 },
+        { header: t("inventory.waste.receivedColumn", "Received"), accessor: (m) => wasteReceivedLate(m) ?? "", type: "dateTime", width: 20 },
         { header: t("inventory.waste.ingredient", "Ingredient"), accessor: (m) => m.ingredient_name, type: "text", width: 28 },
         { header: t("inventory.waste.quantity", "Quantity"), accessor: (m) => Math.abs(m.quantity), type: "number", width: 14 },
         { header: t("inventory.catalog.unit", "Unit"), accessor: (m) => fmtUnit(m.unit), type: "text", width: 10 },
         { header: t("inventory.waste.reason", "Reason"), accessor: (m) => (m.reason ? t(`inventory.waste.reasons.${m.reason}`, m.reason) : "—"), type: "text", width: 18 },
         { header: t("inventory.waste.by", "By"), accessor: (m) => m.created_by_name ?? "—", type: "text", width: 18 },
+        { header: t("inventory.waste.approvedByColumn", "Approved by"), accessor: (m) => m.approved_by_name ?? "", type: "text", width: 18 },
+        { header: t("inventory.waste.item", "Menu item"), accessor: (m) => (m.waste_subject_kind === "menu_item" ? m.waste_subject_name ?? "" : ""), type: "text", width: 22 },
+        { header: t("inventory.waste.source", "Source"), accessor: (m) => t(`inventory.waste.sources.${wasteSource(m)}`), type: "text", width: 14 },
+        { header: t("inventory.waste.deviceColumn", "Device"), accessor: (m) => m.device_name ?? "", type: "text", width: 12 },
+        { header: t("inventory.waste.orderColumn", "Order"), accessor: (m) => m.order_display_number ?? "", type: "text", width: 12 },
       ];
       await exportToExcel({ filename: "Madar-Waste", logoUrl, sheets: [{ name: t("inventory.waste.title", "Waste log"), title: t("inventory.waste.title", "Waste log"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
@@ -132,7 +220,7 @@ export function WastePage() {
         actions={
           <>
           <ExportButton onExport={handleExport} loading={exporting} disabled={!(waste.data?.length)} />
-          {branchId ? (
+          {branchId && canRecord ? (
             <Button onClick={() => setLogOpen(true)}>
               <Trash2 className="size-4" />
               {t("inventory.waste.record", "Record waste")}
