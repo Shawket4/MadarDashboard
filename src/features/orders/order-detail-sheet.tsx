@@ -24,6 +24,7 @@ import { fmtDateTimeFull, fmtMoney, fmtNumber, fmtPercent, fmtUnit } from "@/lib
 import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 
+import { discountAttribution } from "@/features/discounts/discount-attribution";
 import { orderRewards } from "./reward-lines";
 
 interface Deduction {
@@ -406,7 +407,12 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                     />
                   ) : null}
                   {order.discount_amount > 0 ? (
-                    <SummaryLine label={t("orders.discount", "Discount")} value={fmtMoney(-order.discount_amount)} />
+                    <>
+                      <SummaryLine label={t("orders.discount", "Discount")} value={fmtMoney(-order.discount_amount)} />
+                      {discountAttribution(t, order) ? (
+                        <p className="pb-1 text-xs text-muted-foreground">{discountAttribution(t, order)}</p>
+                      ) : null}
+                    </>
                   ) : null}
                   {order.tax_amount > 0 ? <SummaryLine label={t("orders.tax", "Tax")} value={fmtMoney(order.tax_amount)} /> : null}
                   {order.tip_amount ? <SummaryLine label={t("orders.tip", "Tip")} value={fmtMoney(order.tip_amount)} /> : null}
