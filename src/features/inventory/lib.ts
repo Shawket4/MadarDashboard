@@ -153,3 +153,25 @@ export const STOCKTAKE_STATUS_TONES: Record<string, StatusTone> = {
   finalized: "success",
   cancelled: "danger",
 };
+
+/**
+ * Where a waste log line came from: the till (`pos`), the dashboard, or a
+ * voided made order (`order`). Older backends send no source: a line tied to
+ * an order is a void, anything else was entered here.
+ */
+export type WasteSource = "pos" | "dashboard" | "order";
+
+export function wasteSource(m: {
+  waste_source?: string | null;
+  source_type?: string | null;
+}): WasteSource {
+  if (m.waste_source === "pos" || m.waste_source === "order" || m.waste_source === "dashboard") {
+    return m.waste_source;
+  }
+  return m.source_type === "order" ? "order" : "dashboard";
+}
+
+/** When it happened: on the device for a till's queued waste, else when it was posted. */
+export function wasteWhen(m: { occurred_at?: string | null; created_at: string }): string {
+  return m.occurred_at ?? m.created_at;
+}

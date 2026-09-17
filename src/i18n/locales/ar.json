@@ -1260,7 +1260,19 @@
       "nothingOnHand": "لا يوجد متوفر",
       "recorded": "تم تسجيل الهالك",
       "reportFailed": "تعذّر تحميل الهالك حسب السبب",
-      "noReasonData": "يظهر الهالك حسب السبب بمجرد تسجيل هالك في هذه الفترة."
+      "noReasonData": "يظهر الهالك حسب السبب بمجرد تسجيل هالك في هذه الفترة.",
+      "source": "المصدر",
+      "sources": {
+        "pos": "نقطة البيع",
+        "dashboard": "لوحة التحكم",
+        "order": "طلب ملغى"
+      },
+      "device": "الجهاز {{name}}",
+      "deviceColumn": "الجهاز",
+      "approvedBy": "وافق {{name}}",
+      "approvedByColumn": "وافق عليه",
+      "fromItem": "من {{item}} × {{qty}}",
+      "item": "صنف المنيو"
     },
     "stocktakes": {
       "title": "جرد المخزون",
