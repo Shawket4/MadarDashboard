@@ -1165,7 +1165,9 @@
       "reorderLevels": "Reorder levels",
       "reorderPoint": "Reorder point",
       "uncategorized": "Uncategorized",
-      "yieldPct": "Yield % (after trim/loss)"
+      "yieldPct": "Yield % (after trim/loss)",
+      "belowZero": "Below zero",
+      "belowZeroHint": "{{qty}} (below zero)"
     },
     "stock": {
       "title": "Branch stock",
@@ -1232,7 +1234,9 @@
         "damaged": "Damaged",
         "overproduction": "Overproduction",
         "theft": "Theft",
-        "other": "Other"
+        "other": "Other",
+        "refund": "Refunded sale",
+        "order_cancelled": "Voided order"
       },
       "onHandHint": "{{qty}} {{unit}} on hand",
       "byReason": "By reason",
@@ -1254,14 +1258,19 @@
       "sources": {
         "pos": "Till",
         "dashboard": "Dashboard",
-        "order": "Voided order"
+        "order": "Voided order",
+        "refund": "Refund"
       },
       "device": "Device {{name}}",
       "deviceColumn": "Device",
       "approvedBy": "Approved by {{name}}",
       "approvedByColumn": "Approved by",
       "fromItem": "From {{item}} × {{qty}}",
-      "item": "Menu item"
+      "item": "Menu item",
+      "received": "Received {{when}}",
+      "receivedColumn": "Received",
+      "refundOf": "Refund of order {{number}}",
+      "orderColumn": "Order"
     },
     "stocktakes": {
       "title": "Stock counts",

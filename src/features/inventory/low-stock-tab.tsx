@@ -10,6 +10,7 @@ import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { StatusPill } from "@/components/app/status-pill";
+import { OnHand } from "./on-hand";
 import { useBranchLowStock, useOrgLowStock } from "@/data/api/generated/api";
 import type { LowStockRow } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -46,7 +47,7 @@ export function LowStockTab({ orgId, branchId }: { orgId: string; branchId: stri
       meta: { label: t("inventory.reports.branchName", "Branch") },
       cell: ({ row }: { row: { original: LowStockRow } }) => row.original.branch_name,
     } as ColumnDef<LowStockRow>]),
-    { id: "onHand", header: t("inventory.today.onHand", "On hand"), meta: { label: t("inventory.today.onHand", "On hand"), numeric: true }, cell: ({ row: { original: r } }) => `${fmtNumber(r.on_hand)} ${fmtUnit(r.unit)}` },
+    { id: "onHand", header: t("inventory.today.onHand", "On hand"), meta: { label: t("inventory.today.onHand", "On hand"), numeric: true }, cell: ({ row: { original: r } }) => <OnHand qty={r.on_hand} unit={r.unit} /> },
     { id: "par", header: t("inventory.today.reorderPoint", "Reorder point"), meta: { label: t("inventory.today.reorderPoint", "Reorder point"), numeric: true }, cell: ({ row: { original: r } }) => `${fmtNumber(r.par_min)} ${fmtUnit(r.unit)}` },
     { id: "suggested", header: t("inventory.today.suggested", "Order"), meta: { label: t("inventory.today.suggested", "Order"), numeric: true }, cell: ({ row: { original: r } }) => `${fmtNumber(r.suggested_qty)} ${fmtUnit(r.unit)}` },
     { id: "supplier", header: t("inventory.catalog.supplier", "Supplier"), meta: { label: t("inventory.catalog.supplier", "Supplier") }, cell: ({ row }) => row.original.supplier_name ?? <span className="text-muted-foreground">—</span> },

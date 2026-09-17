@@ -1176,7 +1176,9 @@
       "reorderLevels": "حدود إعادة الطلب",
       "reorderPoint": "حد إعادة الطلب",
       "uncategorized": "بدون فئة",
-      "yieldPct": "نسبة الاستفادة % (بعد التقشير/الفاقد)"
+      "yieldPct": "نسبة الاستفادة % (بعد التقشير/الفاقد)",
+      "belowZero": "تحت الصفر",
+      "belowZeroHint": "{{qty}} (تحت الصفر)"
     },
     "stock": {
       "title": "مخزون الفرع",
@@ -1243,7 +1245,9 @@
         "damaged": "متضرّر",
         "overproduction": "إنتاج زائد",
         "theft": "سرقة",
-        "other": "أخرى"
+        "other": "أخرى",
+        "refund": "طلب مسترد",
+        "order_cancelled": "طلب ملغى"
       },
       "onHandHint": "{{qty}} {{unit}} متوفر",
       "byReason": "حسب السبب",
@@ -1265,14 +1269,19 @@
       "sources": {
         "pos": "نقطة البيع",
         "dashboard": "لوحة التحكم",
-        "order": "طلب ملغى"
+        "order": "طلب ملغى",
+        "refund": "استرداد"
       },
       "device": "الجهاز {{name}}",
       "deviceColumn": "الجهاز",
       "approvedBy": "وافق {{name}}",
       "approvedByColumn": "وافق عليه",
       "fromItem": "من {{item}} × {{qty}}",
-      "item": "صنف المنيو"
+      "item": "صنف المنيو",
+      "received": "وصل {{when}}",
+      "receivedColumn": "وقت الوصول",
+      "refundOf": "استرداد الطلب {{number}}",
+      "orderColumn": "الطلب"
     },
     "stocktakes": {
       "title": "جرد المخزون",
