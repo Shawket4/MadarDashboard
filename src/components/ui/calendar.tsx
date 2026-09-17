@@ -11,6 +11,7 @@ import {
 } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
+import { WEEK_START } from "@/lib/week"
 import { Button, buttonVariants } from "@/components/ui/button"
 
 function Calendar({
@@ -29,6 +30,7 @@ function Calendar({
 
   return (
     <DayPicker
+      weekStartsOn={WEEK_START}
       showOutsideDays={showOutsideDays}
       className={cn(
         "group/calendar bg-background p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",

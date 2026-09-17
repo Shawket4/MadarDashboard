@@ -1930,7 +1930,7 @@
     "periodTotal": "إجمالي الفترة",
     "revenueByPayment": "الإيراد حسب طريقة الدفع",
     "topItems": "أكثر الأصناف مبيعاً",
-    "topItemsRev": "أكثر الأصناف إيراداً",
+    "topItemsQty": "الأصناف الأكثر مبيعاً",
     "revenueOverTime": "الإيراد عبر الزمن",
     "ordersOverTime": "الطلبات عبر الزمن",
     "discountsOverTime": "الخصومات عبر الزمن",

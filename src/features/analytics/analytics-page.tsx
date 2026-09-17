@@ -167,7 +167,7 @@ export function OverviewTab({ branchId, range }: { branchId: string; range: Rang
       </motion.div>
 
       <motion.div initial="hidden" animate="show" variants={fadeInUp}>
-        <ChartCard title={t("analytics.topItemsRev", "Top Items by Revenue")}>
+        <ChartCard title={t("analytics.topItemsQty", "Top Items by Quantity Sold")}>
           {q.isLoading
             ? <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9" />)}</div>
             : q.isError
