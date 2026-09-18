@@ -19,8 +19,8 @@ import { createDiscount, updateDiscount } from "@/data/api/generated/api";
 import type { Discount } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, piastresToEgp, rateOf } from "@/lib/format";
-import { MAX_PERCENT, fractionToPercent, percentToFraction } from "@/features/orgs/tax-rate";
-import { invalidateDiscounts } from "./util";
+import { fractionToPercent, percentToFraction } from "@/features/orgs/tax-rate";
+import { discountSchema, invalidateDiscounts } from "./util";
 
 const arOf = (tr: unknown): string => {
   const t = tr as Record<string, unknown> | null | undefined;
@@ -39,19 +39,8 @@ export function DiscountDialog({ orgId, discount, open, onOpenChange }: Props) {
   const editing = !!discount;
   const [busy, setBusy] = useState(false);
 
-  const schema = useMemo(
-    () =>
-      z.object({
-        name: z.string().min(1, t("common.requiredField", "This field is required")),
-        name_ar: z.string().optional(),
-        dtype: z.enum(["percentage", "fixed"]),
-        // Percent on screen, fraction on the wire — the same boundary the tax
-        // rate crosses, and the reason the cap is 100 rather than 1.
-        value: z.coerce.number<number>().min(0).max(MAX_PERCENT),
-        is_active: z.boolean(),
-      }),
-    [t],
-  );
+  const schema = useMemo(() => discountSchema(t), [t]);
+
   type Values = z.infer<typeof schema>;
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
@@ -120,6 +109,11 @@ export function DiscountDialog({ orgId, discount, open, onOpenChange }: Props) {
                 <FormItem>
                   <FormLabel>{dtype === "percentage" ? t("discounts.percentageValue", "Percentage (%)") : t("discounts.amountValue", "Amount (EGP)")}</FormLabel>
                   <FormControl><Input type="number" step="0.5" min="0" max={dtype === "percentage" ? "100" : undefined} {...field} /></FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {dtype === "percentage"
+                      ? t("discounts.percentHint", "100% makes the order free.")
+                      : t("discounts.fixedHint", "More than the order comes to just makes it free — it never pays the customer back.")}
+                  </p>
                   <FormMessage />
                 </FormItem>
               )} />
