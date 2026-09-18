@@ -10165,6 +10165,14 @@ export const VoidOrderParams = zod.object({
 })
 
 export const VoidOrderBody = zod.object({
+  "live_approval": zod.union([zod.null(),zod.object({
+  "amount_minor": zod.number().nullish(),
+  "approver_id": zod.uuid(),
+  "capability": zod.string().describe('Capability key, e.g. `orders.void`.'),
+  "id": zod.uuid(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for an act capped by `max_percent` (a discount). Additive.'),
+  "value_minor": zod.number().nullish().describe('The value an approval covered (`max_value` limits, e.g. a waste).')
+}).describe('A manager\'s on-the-spot unlock for a void the teller\'s own limits do not\nallow (someone else\'s sale, or one older than their window). Additive:\nan older till never sends it and is refused exactly as before.')]).optional(),
   "note": zod.string().nullish().describe('Free-text explanation. Required when `reason` is \"other\".'),
   "reason": zod.string(),
   "restore_inventory": zod.boolean().nullish().describe('Ignored: a void always puts the sale\'s stock back. Kept so older tills\nthat still send it are read, not refused.'),
@@ -12843,6 +12851,14 @@ export const CreateRefundBody = zod.object({
   "order_item_id": zod.uuid(),
   "quantity": zod.number().describe('How many of the line\'s units this refund is for. Held, cumulatively\nacross every refund of the order, to what the line sold.')
 }).describe('One line of the order a refund is for. Optional detail: an overcharge or a\ngoodwill gesture is an amount with no line behind it.')).optional(),
+  "live_approval": zod.union([zod.null(),zod.object({
+  "amount_minor": zod.number().nullish(),
+  "approver_id": zod.uuid(),
+  "capability": zod.string().describe('Capability key, e.g. `orders.void`.'),
+  "id": zod.uuid(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for an act capped by `max_percent` (a discount). Additive.'),
+  "value_minor": zod.number().nullish().describe('The value an approval covered (`max_value` limits, e.g. a waste).')
+}).describe('A manager\'s on-the-spot unlock for a refund over the issuer\'s own\n`max_amount` (the teller default is 0, so every refund asks). Additive.')]).optional(),
   "method": zod.string().describe('How the money went back — a name from the org\'s payment-method\nvocabulary. One tender per refund; a split is two refunds.'),
   "note": zod.string().nullish().describe('Free-text explanation. Required when `reason` is `other`.'),
   "order_id": zod.uuid().describe('The settled sale the money goes back against.'),

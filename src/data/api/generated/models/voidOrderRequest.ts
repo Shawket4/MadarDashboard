@@ -1,7 +1,9 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { ReplayApproval } from './replayApproval';
 
 export interface VoidOrderRequest {
+  live_approval?: null | ReplayApproval;
   /**
      * Free-text explanation. Required when `reason` is "other".
      * @nullable
