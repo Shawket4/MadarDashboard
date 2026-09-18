@@ -664,7 +664,8 @@ export const ExplainResponse = zod.object({
 
 
 export const ListFlagsQueryParams = zod.object({
-  "include_reviewed": zod.boolean().optional().describe('Include flags already reviewed. Default false: the queue is what is left\nto look at.')
+  "include_reviewed": zod.boolean().optional().describe('Include flags already reviewed. Default false: the queue is what is left\nto look at.'),
+  "approval": zod.string().nullish().describe('Optional one-time manager approval, the ordinary `ReplayApproval` shape\nJSON-encoded (a GET has no body). A till signed in as a TELLER uses it\nto pull its own branch\'s flags with a manager\'s PIN; leaving it out is\nexactly the old behaviour, `approvals.review` on the bearer.')
 })
 
 export const ListFlagsResponseItem = zod.object({
@@ -691,6 +692,14 @@ semantics (an acknowledgement, not an approval), now with an optional note
 and one id at a time so a bad id among many never loses the rest.
  */
 export const BulkReviewFlagsBody = zod.object({
+  "approval": zod.union([zod.null(),zod.object({
+  "amount_minor": zod.number().nullish(),
+  "approver_id": zod.uuid(),
+  "capability": zod.string().describe('Capability key, e.g. `orders.void`.'),
+  "id": zod.uuid(),
+  "percent_bps": zod.number().nullish().describe('Basis points, for an act capped by `max_percent` (a discount). Additive.'),
+  "value_minor": zod.number().nullish().describe('The value an approval covered (`max_value` limits, e.g. a waste).')
+}).describe('Optional one-time manager approval (the ordinary `ReplayApproval`\nshape, as `live_approval` carries on an order, a refund or a waste).\nAdditive: without it the call behaves exactly as before.')]).optional(),
   "flag_ids": zod.array(zod.number()).describe('Every open flag to resolve at once — a till, a day, or a hand-picked\nselection. Order does not matter; each id is its own transaction.'),
   "note": zod.string().nullish()
 })
