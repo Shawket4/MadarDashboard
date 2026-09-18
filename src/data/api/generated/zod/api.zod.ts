@@ -1043,7 +1043,7 @@ export const SetOverrideBody = zod.object({
   "max_value": zod.number().nullish().describe('Stock value, minor units.'),
   "own": zod.boolean().nullish().describe('Only the person\'s own work. Absent means unrestricted, so a dashboard\nthat predates the field keeps meaning what it always meant.')
 })]).optional(),
-  "reason": zod.string().nullish(),
+  "reason": zod.string().nullish().describe('Optional audit note. Never required: an absent or empty reason is\naccepted for every capability. Stored (trimmed) when it is sent.'),
   "valid_to": zod.iso.datetime({"offset":true}).nullish()
 })
 
