@@ -16,12 +16,16 @@ import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { StatusPill, type StatusTone } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getErrorMessage } from "@/data/api/errors";
-import { useListFlags, useReviewFlag } from "@/data/api/generated/api";
+import { useBulkReviewFlags, useListFlags, useReviewFlag } from "@/data/api/generated/api";
+import { useCan } from "@/data/authz/use-authz";
 import type { ReplayFlag } from "@/data/api/generated/models";
 import { queryClient } from "@/data/api/query";
+import { Cap } from "@/generated/capabilities";
 import { fmtStamp } from "@/lib/format";
 
 const REASON_TONE: Record<string, StatusTone> = {
@@ -36,7 +40,10 @@ export function reasonKey(reason: string) {
 
 export function ReviewPage() {
   const { t } = useTranslation();
+  const canReview = useCan(Cap.approvalsReview);
   const [showReviewed, setShowReviewed] = useState(false);
+  const [picked, setPicked] = useState<ReadonlySet<number>>(() => new Set());
+  const [note, setNote] = useState("");
   const flags = useListFlags({ include_reviewed: showReviewed || undefined });
   const review = useReviewFlag({
     mutation: {
@@ -48,8 +55,77 @@ export function ReviewPage() {
     },
   });
 
+  const rows = useMemo(() => flags.data ?? [], [flags.data]);
+  /** Only open flags can be resolved; reviewed ones are already done. */
+  const openRows = useMemo(() => rows.filter((f) => !f.reviewed_at), [rows]);
+  const chosen = useMemo(() => openRows.filter((f) => picked.has(f.id)), [openRows, picked]);
+  const allVisiblePicked = openRows.length > 0 && chosen.length === openRows.length;
+
+  const invalidate = () =>
+    void queryClient.invalidateQueries({
+      predicate: (q) => typeof q.queryKey[0] === "string" && (q.queryKey[0] as string).startsWith("/authz/flags"),
+    });
+
+  const toggle = (id: number) =>
+    setPicked((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+
+  const bulk = useBulkReviewFlags({
+    mutation: {
+      onSuccess: (res) => {
+        // Honest result: what went through, and every id that did not, with
+        // the server's reason. Nothing is silently dropped.
+        const failed = res.pending ?? [];
+        if (failed.length) {
+          toast.warning(
+            t("access.review.bulkPartial", "Resolved {{ok}}, {{failed}} could not be resolved", {
+              ok: res.resolved?.length ?? 0,
+              failed: failed.length,
+            }),
+            { description: failed.map((p) => `#${p.id}: ${p.reason}`).join("\n") },
+          );
+        } else {
+          toast.success(t("access.review.bulkDone", "Resolved {{ok}}", { ok: res.resolved?.length ?? 0 }));
+        }
+        setPicked(new Set());
+        setNote("");
+        invalidate();
+      },
+      onError: (e) => toast.error(getErrorMessage(e)),
+    },
+  });
+
   const columns = useMemo<ColumnDef<ReplayFlag>[]>(
     () => [
+      ...(canReview
+        ? [
+            {
+              id: "pick",
+              header: () => (
+                <Checkbox
+                  aria-label={t("access.review.selectAll", "Select all shown")}
+                  data-testid="flag-select-all"
+                  disabled={openRows.length === 0}
+                  checked={allVisiblePicked}
+                  onCheckedChange={(v) => setPicked(v ? new Set(openRows.map((f) => f.id)) : new Set())}
+                />
+              ),
+              meta: { phone: "hidden" as const, className: "w-px" },
+              cell: ({ row }: { row: { original: ReplayFlag } }) =>
+                row.original.reviewed_at ? null : (
+                  <Checkbox
+                    aria-label={t("access.review.selectOne", "Select this action")}
+                    data-testid={`flag-pick-${row.original.id}`}
+                    checked={picked.has(row.original.id)}
+                    onCheckedChange={() => toggle(row.original.id)}
+                  />
+                ),
+            } as ColumnDef<ReplayFlag>,
+          ]
+        : []),
       {
         id: "who",
         header: t("access.review.person", "Person"),
@@ -79,7 +155,7 @@ export function ReviewPage() {
         cell: ({ row }) => fmtStamp(row.original.occurred_at),
       },
     ],
-    [t],
+    [t, canReview, picked, openRows, allVisiblePicked],
   );
 
   return (
@@ -90,7 +166,7 @@ export function ReviewPage() {
       />
       <DataTable
         columns={columns}
-        data={flags.data ?? []}
+        data={rows}
         loading={flags.isLoading}
         error={flags.error}
         onRetry={() => void flags.refetch()}
@@ -98,14 +174,48 @@ export function ReviewPage() {
         hideViewOptions
         pageSize={20}
         toolbar={
-          <Label className="flex h-9 items-center gap-2 rounded-[10px] border bg-card px-3 text-sm font-normal">
-            <Switch checked={showReviewed} onCheckedChange={setShowReviewed} />
-            {t("access.review.showReviewed", "Show reviewed")}
-          </Label>
+          <>
+            <Label className="flex h-9 items-center gap-2 rounded-[10px] border bg-card px-3 text-sm font-normal">
+              <Switch checked={showReviewed} onCheckedChange={setShowReviewed} />
+              {t("access.review.showReviewed", "Show reviewed")}
+            </Label>
+            {canReview && chosen.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-2" data-testid="flag-bulk-bar">
+                <span className="text-sm text-muted-foreground">
+                  {t("access.review.selectedCount", "{{count}} selected", { count: chosen.length })}
+                </span>
+                <Input
+                  className="h-9 w-56"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  data-testid="flag-bulk-note"
+                  placeholder={t("access.review.notePlaceholder", "Note (optional)")}
+                  aria-label={t("access.review.notePlaceholder", "Note (optional)")}
+                />
+                <Button
+                  size="sm"
+                  data-testid="flag-bulk-resolve"
+                  loading={bulk.isPending}
+                  onClick={() =>
+                    bulk.mutate({
+                      data: { flag_ids: chosen.map((f) => f.id), note: note.trim() || undefined },
+                    })
+                  }
+                >
+                  {t("access.review.bulkResolve", "Mark {{count}} reviewed", { count: chosen.length })}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setPicked(new Set())}>
+                  {t("access.review.clearSelection", "Clear")}
+                </Button>
+              </div>
+            ) : null}
+          </>
         }
         rowActions={(f) =>
-          f.reviewed_at ? (
-            <StatusPill size="sm" tone="success">{t("access.review.reviewed", "Reviewed")}</StatusPill>
+          f.reviewed_at || !canReview ? (
+            f.reviewed_at ? (
+              <StatusPill size="sm" tone="success">{t("access.review.reviewed", "Reviewed")}</StatusPill>
+            ) : null
           ) : (
             <Button variant="ghost" size="sm" loading={review.isPending && review.variables?.id === f.id} onClick={() => review.mutate({ id: f.id })}>
               {t("access.review.markReviewed", "Mark reviewed")}
