@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Clock, X } from "lucide-react";
 
+import { fmtHour, fmtWireTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -18,6 +19,8 @@ interface Props {
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
+/** An hour row's label: 12-hour with the meridiem word ("12 AM", "01 PM"). */
+const hourLabel = (h: number) => fmtHour(h).replace(":00", "");
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 
@@ -44,7 +47,9 @@ export function TimePicker({
   const [open, setOpen] = React.useState(false);
 
   const parts = parse(value);
-  const display = parts ? `${pad(parts.h)}:${pad(parts.m)}` : "";
+  // The VALUE stays `HH:MM:SS` (NaiveTime, 24-hour); everything a person
+  // READS here is 12-hour, like every other time in the app.
+  const display = parts ? fmtWireTime(`${pad(parts.h)}:${pad(parts.m)}`) : "";
 
   // Refs for the two scroll columns so the selected row auto-centers on open.
   const hourRef = React.useRef<HTMLDivElement>(null);
@@ -71,6 +76,8 @@ export function TimePicker({
     selected: number | null,
     onPick: (n: number) => void,
     label: string,
+    /** How a row reads. Hours show 12-hour with AM/PM; minutes stay `MM`. */
+    render: (n: number) => string = pad,
   ) => (
     <div className="flex min-w-0 flex-1 flex-col">
       <div className="pb-1 text-center text-xs font-semibold text-muted-foreground">{label}</div>
@@ -90,7 +97,7 @@ export function TimePicker({
                   isSelected && "bg-primary font-semibold text-primary-foreground shadow-sm",
                 )}
               >
-                {pad(n)}
+                {render(n)}
               </button>
             );
           })}
@@ -115,7 +122,7 @@ export function TimePicker({
         </PopoverTrigger>
         <PopoverContent align={align} className="w-auto max-w-[min(20rem,calc(100vw-2rem))]">
           <div className="flex gap-3">
-            {col(hourRef, HOURS, parts?.h ?? null, pickHour, t("timePicker.hour", "Hour"))}
+            {col(hourRef, HOURS, parts?.h ?? null, pickHour, t("timePicker.hour", "Hour"), hourLabel)}
             <div className="self-center pt-4 text-sm font-semibold text-muted-foreground">:</div>
             {col(minuteRef, MINUTES, parts?.m ?? null, pickMinute, t("timePicker.minute", "Minute"))}
           </div>

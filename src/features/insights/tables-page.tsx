@@ -24,7 +24,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import { listFloorTables, runMetricsQuery } from "@/data/api/generated/api";
 import { useScope } from "@/data/scope/use-scope";
-import { fmtMoney, fmtMoneyCompact, fmtNumber } from "@/lib/format";
+import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtWireTime } from "@/lib/format";
 import { TableHistory } from "@/features/floor/table-history";
 import {
   SPECS,
@@ -159,7 +159,7 @@ export function TablesInsightsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={hours} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="hour" tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} />
+                  <XAxis dataKey="hour" tickFormatter={fmtWireTime} tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} />
                   <YAxis tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} allowDecimals={false} width={32} />
                   <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v, n) => `${n === "covers" ? t("tablesInsights.covers", "Covers") : t("tablesInsights.turns", "Turns")}: ${fmtNumber(Number(v))}`} />} />
                   <Bar dataKey="turns" fill={chartColor(0)} radius={[4, 4, 0, 0]} isAnimationActive={!reduced} />
