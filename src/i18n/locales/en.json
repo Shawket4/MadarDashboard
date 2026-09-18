@@ -2000,7 +2000,11 @@
       "unattributed": "Not recorded"
     },
     "appliedBy": "by {{name}}",
-    "approvedBy": "approved by {{name}}"
+    "approvedBy": "approved by {{name}}",
+    "valueNegative": "A discount can't be less than zero.",
+    "percentRange": "Enter a percentage between 0 and 100. 100% makes the order free.",
+    "percentHint": "100% makes the order free.",
+    "fixedHint": "More than the order comes to just makes it free — it never pays the customer back."
   },
   "bundles": {
     "title": "Bundles",
