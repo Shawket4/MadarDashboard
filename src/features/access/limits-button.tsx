@@ -77,8 +77,9 @@ export function LimitsButton({
         ) : null}
         {numeric.map((k) => (
           <div key={k} className="space-y-1.5">
-            <Label>{label[k]}</Label>
+            <Label htmlFor={`limit-${meta.key}-${k}`}>{label[k]}</Label>
             <Input
+              id={`limit-${meta.key}-${k}`}
               inputMode="decimal"
               value={draft[k] ?? ""}
               placeholder={t("access.noLimit", "No limit")}

@@ -148,8 +148,19 @@ export function PersonAccessSheet({ user, open, onOpenChange }: { user: UserPubl
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="access-reason">{t("access.reason", "Reason (kept in the history)")}</Label>
-                  <Input id="access-reason" value={reason} maxLength={200} onChange={(e) => setReason(e.target.value)} />
+                  {/* Optional, and never a blocker: the server accepts an absent or
+                      empty reason for every capability (owner, 2026-09-18). */}
+                  <Label htmlFor="access-reason">{t("access.reason", "Reason (optional)")}</Label>
+                  <Input
+                    id="access-reason"
+                    data-testid="access-reason"
+                    value={reason}
+                    maxLength={200}
+                    onChange={(e) => setReason(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t("access.reasonHint", "Only if you want a note in the history. Nothing here is ever required.")}
+                  </p>
                 </div>
               </div>
 
