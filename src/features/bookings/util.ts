@@ -6,7 +6,7 @@
 import { TZDate } from "@date-fns/tz";
 
 import { queryClient } from "@/data/api/query";
-import { getActiveTz } from "@/lib/format";
+import { fmtHour, getActiveTz } from "@/lib/format";
 import type { BookingSettings } from "@/data/api/generated/models/bookingSettings";
 import type { BookingView } from "@/data/api/generated/models/bookingView";
 
@@ -110,12 +110,12 @@ export function timelineSpan(
   return { left: Math.max(0, Math.min(left, 100)), width: Math.min(width, 100 - Math.max(0, left)) };
 }
 
-/** Hour ticks across the window, as `HH:00` labels with their left %. */
+/** Hour ticks across the window, as 12-hour labels with their left %. */
 export function hourTicks(window: { open: number; close: number }): { label: string; left: number }[] {
   const out: { label: string; left: number }[] = [];
   const span = window.close - window.open;
   for (let m = Math.ceil(window.open / 60) * 60; m <= window.close; m += 60) {
-    out.push({ label: `${pad((m / 60) % 24)}:00`, left: ((m - window.open) / span) * 100 });
+    out.push({ label: fmtHour((m / 60) % 24), left: ((m - window.open) / span) * 100 });
   }
   return out;
 }

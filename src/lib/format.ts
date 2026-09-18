@@ -17,10 +17,20 @@ const getLocale = (): string => {
  */
 export const getActiveTz = (): string => useAppStore.getState().activeTimezone || APP_TZ;
 
+/**
+ * Intl renders `en-GB`'s meridiem lowercase ("6:02 pm"); the POS and the
+ * receipts print "PM". Uppercase it so both halves of the product read the
+ * same. Arabic's ص/م is untouched.
+ */
+const upMeridiem = (s: string): string => s.replace(/\b([ap])\.?m\.?\b/gi, (_m, p: string) => `${p.toUpperCase()}M`);
+
 const withTZ = (opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions => ({
-  // 24-hour clock and Western digits in both languages — the POS shape
-  // (docs/design/SPEC.md §9). Callers may still override `hour12`.
-  hourCycle: "h23",
+  // 12-hour clock and Western digits in both languages — the POS shape
+  // (docs/design/SPEC.md §9): `06:02 PM`, Arabic `06:02 م`. Every time of day
+  // the dashboard SHOWS goes through here; wire values (an `<input type=time>`,
+  // an API `HH:MM`) are built separately and stay 24-hour.
+  // Callers may still override `hour12`.
+  hourCycle: "h12",
   numberingSystem: "latn",
   ...opts,
   timeZone: getActiveTz(),
@@ -157,23 +167,23 @@ export const fmtDate = (iso: string | Date | null | undefined): string => {
 
 export const fmtTime = (iso: string | Date | null | undefined): string => {
   if (!iso) return "—";
-  return new Intl.DateTimeFormat(
+  return upMeridiem(new Intl.DateTimeFormat(
     getLocale(),
     withTZ({ hour: "2-digit", minute: "2-digit" }),
-  ).format(new Date(iso));
+  ).format(new Date(iso)));
 };
 
 export const fmtDateTime = (iso: string | Date | null | undefined): string => {
   if (!iso) return "—";
-  return new Intl.DateTimeFormat(
+  return upMeridiem(new Intl.DateTimeFormat(
     getLocale(),
     withTZ({ day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
-  ).format(new Date(iso));
+  ).format(new Date(iso)));
 };
 
 export const fmtDateTimeFull = (iso: string | Date | null | undefined): string => {
   if (!iso) return "—";
-  return new Intl.DateTimeFormat(
+  return upMeridiem(new Intl.DateTimeFormat(
     getLocale(),
     withTZ({
       day: "2-digit",
@@ -182,7 +192,7 @@ export const fmtDateTimeFull = (iso: string | Date | null | undefined): string =
       hour: "2-digit",
       minute: "2-digit",
     }),
-  ).format(new Date(iso));
+  ).format(new Date(iso)));
 };
 
 /** Elapsed between two instants: `0m` · `42m` · `1h 05m` · `1d 03h` (ar `42 د` · `1 س 05 د`). */
@@ -214,7 +224,8 @@ export const fmtDuration = (start: string | null | undefined, end?: string | nul
 
 /**
  * A moment in the branch timezone, as short as it can be without ambiguity:
- * `18:02` today · `12 Sep · 18:02` this year · `31 Dec 2025 · 23:30` otherwise.
+ * `06:02 PM` today · `12 Sep · 06:02 PM` this year · `31 Dec 2025 · 11:30 PM`
+ * otherwise.
  */
 export const fmtStamp = (iso: string | Date | null | undefined, now: Date = new Date()): string => {
   if (!iso) return "—";
@@ -222,7 +233,7 @@ export const fmtStamp = (iso: string | Date | null | undefined, now: Date = new 
   if (Number.isNaN(+d)) return "—";
   const tz = getActiveTz();
   const dayKey = (x: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(x);
-  const time = new Intl.DateTimeFormat(getLocale(), withTZ({ hour: "2-digit", minute: "2-digit" })).format(d);
+  const time = upMeridiem(new Intl.DateTimeFormat(getLocale(), withTZ({ hour: "2-digit", minute: "2-digit" })).format(d));
   if (dayKey(d) === dayKey(now)) return time;
   const sameYear = dayKey(d).slice(0, 4) === dayKey(now).slice(0, 4);
   const date = new Intl.DateTimeFormat(
@@ -270,11 +281,40 @@ export const fmtPeriod = (iso: string, granularity: "hourly" | "daily" | "monthl
       : granularity === "monthly"
         ? { month: "short", year: "numeric" }
         : { month: "short", day: "numeric" };
-  return new Intl.DateTimeFormat(getLocale(), withTZ(opts)).format(d);
+  return upMeridiem(new Intl.DateTimeFormat(getLocale(), withTZ(opts)).format(d));
 };
 
-/** Format a 0-23 hour integer as a 24-hour clock label: 0→"00:00", 13→"13:00". */
-export const fmtHour = (h: number): string => `${String(h).padStart(2, "0")}:00`;
+/**
+ * A wall-clock hour+minute rendered 12-hour in the app language, independent
+ * of any timezone — for labels built from parts (a chart's hour bucket, a
+ * stored `HH:MM`) rather than from an instant.
+ */
+const clockLabel = (hour: number, minute: number): string => {
+  const out = new Intl.DateTimeFormat(getLocale(), {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h12",
+    numberingSystem: "latn",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(2026, 0, 1, hour, minute)));
+  return upMeridiem(out);
+};
+
+/** Format a 0-23 hour integer as a 12-hour clock label: 0→"12:00 AM", 13→"01:00 PM". */
+export const fmtHour = (h: number): string => clockLabel(((h % 24) + 24) % 24, 0);
+
+/**
+ * A wire `HH:MM` (an API field, an `<input type=time>` value) read back for
+ * DISPLAY, 12-hour. Anything that is not `HH:MM` passes through unchanged.
+ */
+export const fmtWireTime = (hhmm: string): string => {
+  const m = /^(\d{1,2}):(\d{2})/.exec(hhmm ?? "");
+  if (!m) return hhmm;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (h > 23 || min > 59) return hhmm;
+  return clockLabel(h, min);
+};
 
 // ── Miscellaneous ────────────────────────────────────────────────────────────
 
