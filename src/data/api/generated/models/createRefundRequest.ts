@@ -2,6 +2,7 @@
 // @ts-nocheck
 import type { RefundLineInput } from './refundLineInput';
 import type { RefundReason } from './refundReason';
+import type { ReplayApproval } from './replayApproval';
 
 export interface CreateRefundRequest {
   /**
@@ -28,6 +29,7 @@ export interface CreateRefundRequest {
      */
   issued_at?: string | null;
   lines?: RefundLineInput[];
+  live_approval?: null | ReplayApproval;
   /**
      * How the money went back — a name from the org's payment-method
      * vocabulary. One tender per refund; a split is two refunds.
