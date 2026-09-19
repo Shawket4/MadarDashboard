@@ -33,6 +33,7 @@ export function CollectingCard({
   const { t } = useTranslation();
   const mode = form.watch("mode");
   const capEnabled = form.watch("balance_cap_enabled");
+  const perItem = form.watch("stamp_per_line_item");
 
   return (
     <Card>
@@ -88,9 +89,42 @@ export function CollectingCard({
             </p>
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">
-            {t("loyalty.stampHint", "Every order is one stamp, whatever the bill comes to.")}
-          </p>
+          /* What a stamp is counted in. The hint under the switch states the
+             rule in the unit a customer would argue in — three coffees — and
+             the one under the card says which items count, because the two
+             questions always arrive together. */
+          <div className="space-y-3">
+            <ToggleRow
+              form={form}
+              name="stamp_per_line_item"
+              label={t("loyalty.stampPerItem", "A stamp for every item, not every order")}
+              hint={
+                perItem
+                  ? t(
+                      "loyalty.stampPerItemOn",
+                      "Three coffees on one bill is three stamps. Two of the same line counts twice.",
+                    )
+                  : t(
+                      "loyalty.stampPerItemOff",
+                      "One stamp per order, whatever the bill comes to — three coffees at once is one stamp.",
+                    )
+              }
+            />
+            {perItem ? (
+              <p className="text-xs text-muted-foreground">
+                {t(
+                  "loyalty.stampPerItemWhich",
+                  "Choose which items collect under Rewards. Pick none and everything on the menu collects.",
+                )}
+              </p>
+            ) : null}
+            <p className="text-xs text-muted-foreground">
+              {t(
+                "loyalty.stampFreeItemHint",
+                "An item taken as a reward never earns a stamp back.",
+              )}
+            </p>
+          </div>
         )}
 
         <TextRow
