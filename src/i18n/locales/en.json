@@ -5347,15 +5347,13 @@
     "pickBranchBody": "The staff drinks pool belongs to one branch's day, so there is no all-branches total to show.",
     "reportOff": "Staff drinks are off at this branch",
     "reportOffBody": "Nobody can ring one up here. Turn the pool on, and choose the items that count, under Settings.",
-    "statAllowance": "Allowance today",
+    "statAllowance": "Allowance",
     "statUsed": "Given out",
     "statRemaining": "Left",
     "statOver": "Over allowance",
     "statOverHint": "Allowed, and recorded. The notes below say who each one was for.",
     "drinksTitle": "Every drink, and its note",
-    "drinksEmpty": "No staff drinks on this day",
-    "drinksUnavailable": "The drink-by-drink list isn't available yet",
-    "drinksUnavailableBody": "The totals above are live. Each drink and its note will be listed here once the server can report them.",
+    "drinksEmpty": "No staff drinks in this period",
     "colTime": "Time",
     "colItem": "Item",
     "colNote": "Note",
@@ -5364,6 +5362,10 @@
     "overBadge": "Over allowance",
     "errors": {
       "allowance": "A whole number of drinks, 0 or more."
-    }
+    },
+    "poolOn": "The pool on {{date}}",
+    "drinksRange": "{{from}} to {{to}}",
+    "overOnReplay": "· on recount",
+    "overOnReplayHint": "The till didn't count this as over at the time — the server did, once it had the whole day."
   }
 }

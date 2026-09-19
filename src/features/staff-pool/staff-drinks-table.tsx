@@ -1,23 +1,17 @@
 /**
- * The day's staff drinks, one row each.
+ * The staff drinks of the selected period, one row each, newest first.
  *
- * ── TODO: bind to the API ────────────────────────────────────────────────────
- * The backend has no list endpoint for staff drinks yet. `GET /staff-pool/today`
- * returns the day's TOTALS (allowance / used / remaining / over) and nothing
- * per-drink, so this table is rendered with an empty list and an explicit
- * "not available yet" empty state rather than a fake one.
+ * The note column is the reason this table exists. The pool belongs to the
+ * branch's day and not to a person, so there is no "who is this for" field
+ * anywhere in the feature — by design. The note IS the answer, in the teller's
+ * own words, and a table that truncated it to an ellipsis would report nothing
+ * at all. It gets the room and it wraps.
  *
- * When `GET /staff-pool/drinks` lands, the only change here is the data:
- * regenerate the client, call the hook in `staff-pool-report-page`, and pass
- * `drinks` / `loading` / `error` down. The columns below are already written
- * against the generated `StaffDrink` model — time, item, note, cost and the
- * overspent flag — so nothing about this component moves.
- * ─────────────────────────────────────────────────────────────────────────────
- *
- * The note column is deliberately wide and never truncated to nothing: the note
- * is the entire accountability of this feature. There is no "who is this for"
- * field anywhere in the pool, by design — the note IS the answer, in the
- * teller's own words, and a report that hides it reports nothing.
+ * `overspent_on_replay` is a quieter fact riding along on the badge rather than
+ * taking a column of its own: it means the SERVER's recount made the drink an
+ * overspend when the till had not thought so — two devices disagreeing about
+ * the day's count, usually an offline tablet catching up. Worth seeing when you
+ * are looking at an overspend; not worth a column you would scan past all day.
  */
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,21 +21,21 @@ import { DataTable } from "@/components/app/data-table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/app/empty-state";
 import type { StaffDrink } from "@/data/api/generated/models";
-import { fmtMoney, fmtTime } from "@/lib/format";
+import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
 
 export function StaffDrinksTable({
   drinks,
   loading,
   error,
   onRetry,
-  /** True while there is no list endpoint to bind to. */
-  unavailable,
+  /** More than one business day is on screen, so each row says which. */
+  showDate,
 }: {
   drinks: StaffDrink[];
   loading?: boolean;
   error?: unknown;
   onRetry?: () => void;
-  unavailable?: boolean;
+  showDate?: boolean;
 }) {
   const { t } = useTranslation();
 
@@ -50,7 +44,13 @@ export function StaffDrinksTable({
       {
         accessorKey: "recorded_at",
         header: t("staffPool.colTime", "Time"),
-        cell: ({ row }) => fmtTime(row.original.recorded_at),
+        cell: ({ row }) => {
+          const d = row.original;
+          const time = fmtTime(d.recorded_at);
+          // The business day, not the clock date: a drink poured at 1am belongs
+          // to the day the branch is still working through.
+          return showDate ? `${fmtDate(d.business_date)} · ${time}` : time;
+        },
         meta: { label: t("staffPool.colTime", "Time"), numeric: true, align: "start" },
       },
       {
@@ -83,14 +83,35 @@ export function StaffDrinksTable({
       {
         id: "overspent",
         header: t("staffPool.colOver", "Over allowance"),
-        cell: ({ row }) =>
-          row.original.overspent ? (
-            <Badge variant="destructive">{t("staffPool.overBadge", "Over allowance")}</Badge>
-          ) : null,
+        cell: ({ row }) => {
+          const d = row.original;
+          if (!d.overspent) return null;
+          const replay = d.overspent_on_replay;
+          return (
+            <Badge
+              variant="destructive"
+              title={
+                replay
+                  ? t(
+                      "staffPool.overOnReplayHint",
+                      "The till didn't count this as over at the time — the server did, once it had the whole day.",
+                    )
+                  : undefined
+              }
+            >
+              {t("staffPool.overBadge", "Over allowance")}
+              {replay ? (
+                <span className="font-normal opacity-70">
+                  {t("staffPool.overOnReplay", "· on recount")}
+                </span>
+              ) : null}
+            </Badge>
+          );
+        },
         meta: { label: t("staffPool.colOver", "Over allowance"), align: "end" },
       },
     ],
-    [t],
+    [t, showDate],
   );
 
   return (
@@ -101,23 +122,7 @@ export function StaffDrinksTable({
       error={error}
       onRetry={onRetry}
       getRowId={(d) => d.id}
-      emptyState={
-        <EmptyState
-          title={
-            unavailable
-              ? t("staffPool.drinksUnavailable", "The drink-by-drink list isn't available yet")
-              : t("staffPool.drinksEmpty", "No staff drinks on this day")
-          }
-          description={
-            unavailable
-              ? t(
-                  "staffPool.drinksUnavailableBody",
-                  "The totals above are live. Each drink and its note will be listed here once the server can report them.",
-                )
-              : undefined
-          }
-        />
-      }
+      emptyState={<EmptyState title={t("staffPool.drinksEmpty", "No staff drinks in this period")} />}
     />
   );
 }

@@ -9,7 +9,7 @@ import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { StaffPoolSettings, StaffPoolToday } from "@/data/api/generated/models";
+import type { StaffDrink, StaffPoolSettings, StaffPoolToday } from "@/data/api/generated/models";
 
 globalThis.IntersectionObserver ??= class {
   observe() {}
@@ -29,6 +29,7 @@ let held: string[] = [];
 let branchId: string | null = null;
 let settings: StaffPoolSettings | undefined;
 let today: StaffPoolToday | undefined;
+let drinks: StaffDrink[] = [];
 const enabledSeen: Record<string, boolean[]> = {};
 
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
@@ -76,6 +77,7 @@ vi.mock("@/data/scope/use-scope", () => ({
 vi.mock("@/data/api/generated/api", () => ({
   useGetStaffPoolSettings: hook("settings", () => settings),
   useGetStaffPoolToday: hook("today", () => today),
+  useListStaffDrinks: hook("drinks", () => drinks),
   usePutStaffPoolSettings: () => ({ mutateAsync: vi.fn(), isPending: false }),
   deleteStaffPoolSettings: vi.fn(),
   useListMenuItems: hook("menuItems", () => [
@@ -113,6 +115,27 @@ beforeEach(() => {
     over: 2,
     eligible_item_ids: ["item-a"],
   };
+  drinks = [drink({ id: "d-1" })];
+});
+
+const drink = (over: Partial<StaffDrink> = {}): StaffDrink => ({
+  id: "d-1",
+  branch_id: "b-9",
+  order_id: null,
+  menu_item_id: "item-a",
+  item_name: "Latte",
+  size_label: null,
+  quantity: 1,
+  note: "Mostafa, closing shift",
+  business_date: "2026-09-19",
+  allowance_at_record: 3,
+  used_before: 0,
+  overspent: false,
+  overspent_on_replay: false,
+  cost_minor: 1250,
+  recorded_by: "u-1",
+  recorded_at: "2026-09-19T09:00:00Z",
+  ...over,
 });
 
 describe("the staff drinks report's capability gate", () => {
@@ -122,6 +145,7 @@ describe("the staff drinks report's capability gate", () => {
     expect(denied()).toBeInTheDocument();
     // The point of the gate: no request fires, so nobody meets a 403.
     expect(neverAsked("today")).toBe(true);
+    expect(neverAsked("drinks")).toBe(true);
   });
 
   it("shows the day's figures with the capability", () => {
@@ -129,7 +153,7 @@ describe("the staff drinks report's capability gate", () => {
     branchId = "b-9";
     wrap(<StaffPoolReportPage />);
     expect(denied()).not.toBeInTheDocument();
-    expect(screen.getByText("Over allowance")).toBeInTheDocument();
+    expect(screen.getAllByText("Over allowance").length).toBeGreaterThan(0);
     expect(neverAsked("today")).toBe(false);
   });
 
@@ -140,6 +164,57 @@ describe("the staff drinks report's capability gate", () => {
     wrap(<StaffPoolReportPage />);
     expect(screen.getByText("Choose a branch")).toBeInTheDocument();
     expect(neverAsked("today")).toBe(true);
+    expect(neverAsked("drinks")).toBe(true);
+  });
+});
+
+describe("the drink-by-drink table", () => {
+  beforeEach(() => {
+    held = ["orders.staff_drink.record"];
+    branchId = "b-9";
+  });
+
+  it("shows each drink with its note, which is the whole point of the page", () => {
+    // There is no "who is this for" field anywhere in the pool by design; the
+    // note is the only record of who drank it, so it must be on screen in full.
+    drinks = [
+      drink({ id: "d-1", note: "Mostafa, closing shift" }),
+      drink({ id: "d-2", item_name: "Iced tea", note: "the electrician, waiting on the fridge" }),
+    ];
+    wrap(<StaffPoolReportPage />);
+    expect(screen.getByText("Mostafa, closing shift")).toBeInTheDocument();
+    expect(screen.getByText("the electrician, waiting on the fridge")).toBeInTheDocument();
+    expect(screen.getByText(/Iced tea/)).toBeInTheDocument();
+  });
+
+  it("badges only the drinks that actually went over", () => {
+    drinks = [
+      drink({ id: "d-1", overspent: false }),
+      drink({ id: "d-2", overspent: true }),
+    ];
+    const { container } = wrap(<StaffPoolReportPage />);
+    // One badge for one overspent row — not one per row, and not none. Counted
+    // by the badge itself: "Over allowance" is also a stat label and a column
+    // header, so matching the text would count the chrome as evidence.
+    expect(container.querySelectorAll('[data-slot="badge"][data-variant="destructive"]')).toHaveLength(1);
+    expect(screen.queryByText("· on recount")).not.toBeInTheDocument();
+  });
+
+  it("says quietly when the server, not the till, made it an overspend", () => {
+    // Two devices disagreed about the day's count. Worth seeing on the badge,
+    // not worth a column of its own.
+    drinks = [drink({ id: "d-1", overspent: true, overspent_on_replay: true })];
+    wrap(<StaffPoolReportPage />);
+    expect(screen.getByText("· on recount")).toBeInTheDocument();
+  });
+
+  it("asks for the whole scope period, not only its last day", () => {
+    // The summary is one day — the pool resets nightly — but finding last
+    // Tuesday's overspend must not mean moving the date picker twice.
+    drinks = [];
+    wrap(<StaffPoolReportPage />);
+    expect(neverAsked("drinks")).toBe(false);
+    expect(screen.getByText("No staff drinks in this period")).toBeInTheDocument();
   });
 });
 

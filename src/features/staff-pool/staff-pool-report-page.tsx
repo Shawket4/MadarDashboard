@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 import { CalendarRange, CupSoda } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/app/stat-card";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,7 +25,7 @@ import { Restricted } from "@/components/app/restricted";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
-import { useGetStaffPoolToday } from "@/data/api/generated/api";
+import { useGetStaffPoolToday, useListStaffDrinks } from "@/data/api/generated/api";
 import { cairoParts, fmtDate } from "@/lib/format";
 
 import { StaffDrinksTable } from "./staff-drinks-table";
@@ -44,17 +44,31 @@ function localDate(iso: string): string {
 
 export function StaffPoolReportPage() {
   const { t } = useTranslation();
-  const { branchId, to } = useScope();
+  const { branchId, from, to } = useScope();
 
   const authz = useAuthz();
   const canSee = authz.can(Cap.ordersStaffDrinkRecord);
+  // The scope bar's period, as branch-local business days. The summary is a
+  // DAY — the pool resets every midnight, so there is no such thing as a
+  // 30-day allowance — and it reports the last day of the period. The list
+  // below it covers the whole period, which is how you find last Tuesday's
+  // overspend without moving the date picker twice.
+  const fromDate = from ? localDate(from) : "";
   const businessDate = to ? localDate(to) : "";
+  const oneDay = fromDate === businessDate;
 
   const q = useGetStaffPoolToday(
     { branch_id: branchId ?? "", business_date: businessDate || undefined },
     // A branch is required: the pool belongs to one shop's day, and there is no
     // honest way to roll "All branches" into a single allowance.
     { query: { enabled: canSee && !!branchId && !!businessDate } },
+  );
+
+  const drinks = useListStaffDrinks(
+    { branch_id: branchId ?? "", from: fromDate || undefined, to: businessDate || undefined },
+    // Same gate as the summary, for the same reason: a person without the
+    // capability must not send a request that can only come back 403.
+    { query: { enabled: canSee && !!branchId && !!fromDate && !!businessDate } },
   );
 
   const title = t("staffPool.reportTitle", "Staff drinks");
@@ -110,9 +124,15 @@ export function StaffPoolReportPage() {
         />
       ) : (
         <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {t("staffPool.poolOn", {
+              defaultValue: "The pool on {{date}}",
+              date: fmtDate(to),
+            })}
+          </p>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
-              label={t("staffPool.statAllowance", "Allowance today")}
+              label={t("staffPool.statAllowance", "Allowance")}
               value={today?.allowance ?? 0}
               icon={CupSoda}
             />
@@ -145,12 +165,24 @@ export function StaffPoolReportPage() {
               <CardTitle className="text-base">
                 {t("staffPool.drinksTitle", "Every drink, and its note")}
               </CardTitle>
+              <CardDescription>
+                {oneDay
+                  ? fmtDate(to)
+                  : t("staffPool.drinksRange", {
+                      defaultValue: "{{from}} to {{to}}",
+                      from: fmtDate(from),
+                      to: fmtDate(to),
+                    })}
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-              {/* TODO: bind to `useListStaffDrinks` once GET /staff-pool/drinks
-                  exists on the backend. See staff-drinks-table.tsx — only the
-                  data props change. */}
-              <StaffDrinksTable drinks={[]} unavailable />
+              <StaffDrinksTable
+                drinks={drinks.data ?? []}
+                loading={drinks.isLoading}
+                error={drinks.isError ? drinks.error : undefined}
+                onRetry={() => void drinks.refetch()}
+                showDate={!oneDay}
+              />
             </CardContent>
           </Card>
         </div>
