@@ -740,14 +740,6 @@
       "fullEditor": "افتح المحرر الكامل (الأحجام والترجمات)",
       "duplicate": "نسخ",
       "duplicated": "تم نسخ {{name}}",
-      "bulkPriceAction": "تعديل الأسعار",
-      "bulkPrice": "تعديل الأسعار ({{count}} صنف)",
-      "addEgp": "+ جنيه",
-      "multiplyPct": "× %",
-      "addEgpHint": "يضيف مبلغاً ثابتاً بالجنيه لكل سعر محدد.",
-      "multiplyPctHint": "يضرب كل سعر محدد (110 = +10%).",
-      "bulkSummary": "تم تحديث {{count}} سعر",
-      "bulkSummaryFailed": "تم تحديث {{ok}}، فشل {{failed}}",
       "bulkCreated": "تم إنشاء {{count}} صنف",
       "bulkCreateFailed": "تم إنشاء {{ok}}، فشل {{failed}}",
       "retryFailed": "إعادة المحاولة",
@@ -776,7 +768,6 @@
     "newCategory": "فئة جديدة",
     "editCategory": "تعديل الفئة",
     "categoryDesc": "تجمّع الفئات أصناف قائمتك.",
-    "basePrice": "السعر الأساسي (ج.م)",
     "defaultPrice": "السعر الافتراضي (ج.م)",
     "addonType": "النوع",
     "selectCategory": "اختر الفئة",
@@ -791,7 +782,6 @@
     "sizes": "الأحجام",
     "addSize": "إضافة حجم",
     "sizeLabel": "التسمية",
-    "noSizes": "لا توجد أحجام — يُطبَّق السعر الأساسي.",
     "itemImage": "الصورة",
     "imageHint": "PNG/JPG/WebP، حتى 5 ميجابايت",
     "imageAfterSave": "تُرفع بعد حفظ الصنف",
@@ -1033,7 +1023,10 @@
         "cost": "التكلفة",
         "noStock": "بدون مخزون"
       }
-    }
+    },
+    "priceSection": "السعر",
+    "needsOneSize": "لا بد أن يكون للصنف سعر واحد على الأقل.",
+    "addSizeHint": "أضف مقاسًا لتحديد أسعار مختلفة للمقاسات المختلفة."
   },
   "recipes": {
     "title": "الوصفات",
