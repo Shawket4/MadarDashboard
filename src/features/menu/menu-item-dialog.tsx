@@ -54,13 +54,6 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-/// `all_sizes` is the additive field that carries EVERY size row, including the
-/// synthetic `one_size` one — i.e. where price actually lives. `sizes` keeps its
-/// legacy shape (sentinel hidden) for tills at or below v0.7.11, so the editor
-/// must not use it. Declared here until `npm run generate:api` is re-run against
-/// the new OpenAPI.
-type WithAllSizes = { all_sizes?: { id: string; label: string; price_override: number; is_active: boolean }[] };
-
 const humanizeAddonType = (type: string) => {
   const base = type.endsWith("_type") ? type.slice(0, -"_type".length) : type;
   return base.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -165,7 +158,7 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
     if (liveItem) {
       // `all_sizes` includes the synthetic `one_size` row that carries a simple
       // item's price; `sizes` deliberately hides it for old tills.
-      const rows = (liveItem as typeof liveItem & WithAllSizes).all_sizes ?? liveItem.sizes;
+      const rows = liveItem.all_sizes ?? liveItem.sizes;
       // `replace`, not `setValue`: the rendered rows come from useFieldArray's
       // own state, which a plain setValue on the array name does not re-sync.
       replace(

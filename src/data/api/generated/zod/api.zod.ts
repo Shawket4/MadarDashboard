@@ -6912,6 +6912,13 @@ export const CreateMenuItemResponse = zod.object({
   "menu_item_id": zod.uuid(),
   "min_selections": zod.number()
 })),
+  "all_sizes": zod.array(zod.object({
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "menu_item_id": zod.uuid(),
+  "price_override": zod.number()
+})).optional().describe('Every size row, INCLUDING the synthetic `one_size` one. Additive: this is\nwhere price actually lives, and it is what the dashboard\'s size editor\nand new POS builds read. An item always has at least one entry.'),
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist. Empty = no restriction (use org catalog).'),
   "optional_fields": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
@@ -6957,7 +6964,7 @@ export const CreateMenuItemResponse = zod.object({
   "label": zod.string(),
   "menu_item_id": zod.uuid(),
   "price_override": zod.number()
-}))
+})).describe('LEGACY SHAPE — unchanged for clients at or below v0.7.11: the synthetic\n`one_size` row that now carries a single-price item\'s price is hidden\nhere, so an old till still sees a size-less item exactly as it did.')
 }))
 
 
@@ -7046,6 +7053,13 @@ export const GetMenuItemResponse = zod.object({
   "menu_item_id": zod.uuid(),
   "min_selections": zod.number()
 })),
+  "all_sizes": zod.array(zod.object({
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "menu_item_id": zod.uuid(),
+  "price_override": zod.number()
+})).optional().describe('Every size row, INCLUDING the synthetic `one_size` one. Additive: this is\nwhere price actually lives, and it is what the dashboard\'s size editor\nand new POS builds read. An item always has at least one entry.'),
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist. Empty = no restriction (use org catalog).'),
   "optional_fields": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
@@ -7091,7 +7105,7 @@ export const GetMenuItemResponse = zod.object({
   "label": zod.string(),
   "menu_item_id": zod.uuid(),
   "price_override": zod.number()
-}))
+})).describe('LEGACY SHAPE — unchanged for clients at or below v0.7.11: the synthetic\n`one_size` row that now carries a single-price item\'s price is hidden\nhere, so an old till still sees a size-less item exactly as it did.')
 }))
 
 

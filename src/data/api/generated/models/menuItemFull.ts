@@ -9,6 +9,12 @@ import type { RecipeStep } from './recipeStep';
 
 export type MenuItemFull = MenuItem & {
   addon_slots: AddonSlot[];
+  /**
+     * Every size row, INCLUDING the synthetic `one_size` one. Additive: this is
+     * where price actually lives, and it is what the dashboard's size editor
+     * and new POS builds read. An item always has at least one entry.
+     */
+  all_sizes?: ItemSize[];
   /** Explicit per-item addon allowlist. Empty = no restriction (use org catalog). */
   allowed_addon_ids: string[];
   optional_fields: OptionalField[];
@@ -19,5 +25,10 @@ export type MenuItemFull = MenuItem & {
      */
   recipe_steps?: RecipeStep[];
   recipes: MenuItemRecipe[];
+  /**
+     * LEGACY SHAPE — unchanged for clients at or below v0.7.11: the synthetic
+     * `one_size` row that now carries a single-price item's price is hidden
+     * here, so an old till still sees a size-less item exactly as it did.
+     */
   sizes: ItemSize[];
 };
