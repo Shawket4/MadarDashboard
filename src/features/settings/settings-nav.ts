@@ -12,6 +12,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ChefHat,
+  CupSoda,
   Image as ImageIcon,
   CreditCard,
   Languages,
@@ -123,6 +124,17 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         desc: "What a till may accept, and which of them is cash.",
         icon: CreditCard,
         caps: [Cap.paymentMethodsEdit],
+      },
+      {
+        // Money given away rather than taken, which is why it sits here: a
+        // staff drink is stock off the shelf with no sale against it.
+        to: "/settings/staff-pool",
+        labelKey: "nav.staffPool",
+        fallback: "Staff drinks",
+        descKey: "settings.staffPoolDesc",
+        desc: "How many drinks a branch may give its own people in a day, and which items count.",
+        icon: CupSoda,
+        caps: [Cap.orgSettingsRead, Cap.orgSettingsEdit],
       },
     ],
   },

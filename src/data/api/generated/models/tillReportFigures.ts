@@ -40,6 +40,14 @@ export interface TillReportFigures {
   /** Who viewed (and printed) the cash spot report of this till, oldest first. Additive. */
   spot_views?: TillSpotView[];
   /**
+     * Staff drinks put on the branch's pool during this till, and how many of
+     * them were past the day's allowance. The Z report shows what the shop
+     * gave its own people; the money is zero, so neither figure enters any
+     * total. Additive — an older tablet simply does not read them.
+     */
+  staff_drinks_count?: number;
+  staff_drinks_overspent_count?: number;
+  /**
      * `branches.standard_float`.
      * @nullable
      */

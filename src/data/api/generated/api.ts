@@ -193,6 +193,7 @@ import type {
   DeleteIngredientCategoryParams,
   DeleteItemRouteParams,
   DeleteLoyaltySettingsParams,
+  DeleteStaffPoolSettingsParams,
   DeleteZoneParams,
   DeliveryMenu,
   DeliveryOrder,
@@ -244,6 +245,8 @@ import type {
   GetMyAuthzParams,
   GetRoutingModeParams,
   GetScheduledDayParams,
+  GetStaffPoolSettingsParams,
+  GetStaffPoolTodayParams,
   GoodsReceipt,
   GoogleObjectDump,
   GoogleRefreshReport,
@@ -314,6 +317,7 @@ import type {
   ListSectionsParams,
   ListShiftsParams,
   ListSkuCostsParams,
+  ListStaffDrinksParams,
   ListStationsParams,
   ListTillsParams,
   ListTransfersParams,
@@ -466,6 +470,7 @@ import type {
   RecipeLinkInfo,
   RecipeStep,
   RecipeStepPreset,
+  RecordStaffDrinkRequest,
   RecordWasteRequest,
   RefundFull,
   RefundIssued,
@@ -510,6 +515,9 @@ import type {
   SkuCost,
   SpotViewRequest,
   StaffDocument,
+  StaffDrink,
+  StaffPoolSettings,
+  StaffPoolToday,
   StaffRequest,
   StationRoutes,
   StatusInput,
@@ -31725,6 +31733,455 @@ export function useGetShiftReport<TData = Awaited<ReturnType<typeof getShiftRepo
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetShiftReportQueryOptions(shiftId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * This is the whole point of the note: with no "who is this for" field by
+ * design, the note is the only record of who drank it, and this is where an
+ * owner reads it.
+ * @summary The staff drinks of a branch over a range of business days, newest first.
+ */
+export const listStaffDrinks = (
+    params: ListStaffDrinksParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StaffDrink[]>(
+      {url: `/staff-pool/drinks`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListStaffDrinksQueryKey = (params?: ListStaffDrinksParams,) => {
+    return [
+    `/staff-pool/drinks`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListStaffDrinksQueryOptions = <TData = Awaited<ReturnType<typeof listStaffDrinks>>, TError = ErrorBody>(params: ListStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStaffDrinksQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStaffDrinks>>> = ({ signal }) => listStaffDrinks(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStaffDrinksQueryResult = NonNullable<Awaited<ReturnType<typeof listStaffDrinks>>>
+export type ListStaffDrinksQueryError = ErrorBody
+
+
+export function useListStaffDrinks<TData = Awaited<ReturnType<typeof listStaffDrinks>>, TError = ErrorBody>(
+ params: ListStaffDrinksParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStaffDrinks>>,
+          TError,
+          Awaited<ReturnType<typeof listStaffDrinks>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStaffDrinks<TData = Awaited<ReturnType<typeof listStaffDrinks>>, TError = ErrorBody>(
+ params: ListStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStaffDrinks>>,
+          TError,
+          Awaited<ReturnType<typeof listStaffDrinks>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStaffDrinks<TData = Awaited<ReturnType<typeof listStaffDrinks>>, TError = ErrorBody>(
+ params: ListStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The staff drinks of a branch over a range of business days, newest first.
+ */
+
+export function useListStaffDrinks<TData = Awaited<ReturnType<typeof listStaffDrinks>>, TError = ErrorBody>(
+ params: ListStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStaffDrinksQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const recordStaffDrink = (
+    recordStaffDrinkRequest: RecordStaffDrinkRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StaffDrink>(
+      {url: `/staff-pool/drinks`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: recordStaffDrinkRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getRecordStaffDrinkMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordStaffDrink>>, TError,{data: RecordStaffDrinkRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordStaffDrink>>, TError,{data: RecordStaffDrinkRequest}, TContext> => {
+
+const mutationKey = ['recordStaffDrink'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordStaffDrink>>, {data: RecordStaffDrinkRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordStaffDrink(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordStaffDrinkMutationResult = NonNullable<Awaited<ReturnType<typeof recordStaffDrink>>>
+    export type RecordStaffDrinkMutationBody = RecordStaffDrinkRequest
+    export type RecordStaffDrinkMutationError = ErrorBody
+
+    export const useRecordStaffDrink = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordStaffDrink>>, TError,{data: RecordStaffDrinkRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recordStaffDrink>>,
+        TError,
+        {data: RecordStaffDrinkRequest},
+        TContext
+      > => {
+      return useMutation(getRecordStaffDrinkMutationOptions(options), queryClient);
+    }
+
+export const getStaffPoolSettings = (
+    params?: GetStaffPoolSettingsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StaffPoolSettings>(
+      {url: `/staff-pool/settings`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetStaffPoolSettingsQueryKey = (params?: GetStaffPoolSettingsParams,) => {
+    return [
+    `/staff-pool/settings`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetStaffPoolSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getStaffPoolSettings>>, TError = ErrorBody>(params?: GetStaffPoolSettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStaffPoolSettingsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStaffPoolSettings>>> = ({ signal }) => getStaffPoolSettings(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStaffPoolSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getStaffPoolSettings>>>
+export type GetStaffPoolSettingsQueryError = ErrorBody
+
+
+export function useGetStaffPoolSettings<TData = Awaited<ReturnType<typeof getStaffPoolSettings>>, TError = ErrorBody>(
+ params: undefined |  GetStaffPoolSettingsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolSettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStaffPoolSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getStaffPoolSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStaffPoolSettings<TData = Awaited<ReturnType<typeof getStaffPoolSettings>>, TError = ErrorBody>(
+ params?: GetStaffPoolSettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolSettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStaffPoolSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getStaffPoolSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStaffPoolSettings<TData = Awaited<ReturnType<typeof getStaffPoolSettings>>, TError = ErrorBody>(
+ params?: GetStaffPoolSettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStaffPoolSettings<TData = Awaited<ReturnType<typeof getStaffPoolSettings>>, TError = ErrorBody>(
+ params?: GetStaffPoolSettingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStaffPoolSettingsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const putStaffPoolSettings = (
+    staffPoolSettings: StaffPoolSettings,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StaffPoolSettings>(
+      {url: `/staff-pool/settings`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: staffPoolSettings, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutStaffPoolSettingsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putStaffPoolSettings>>, TError,{data: StaffPoolSettings}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putStaffPoolSettings>>, TError,{data: StaffPoolSettings}, TContext> => {
+
+const mutationKey = ['putStaffPoolSettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putStaffPoolSettings>>, {data: StaffPoolSettings}> = (props) => {
+          const {data} = props ?? {};
+
+          return  putStaffPoolSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutStaffPoolSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof putStaffPoolSettings>>>
+    export type PutStaffPoolSettingsMutationBody = StaffPoolSettings
+    export type PutStaffPoolSettingsMutationError = ErrorBody
+
+    export const usePutStaffPoolSettings = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putStaffPoolSettings>>, TError,{data: StaffPoolSettings}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putStaffPoolSettings>>,
+        TError,
+        {data: StaffPoolSettings},
+        TContext
+      > => {
+      return useMutation(getPutStaffPoolSettingsMutationOptions(options), queryClient);
+    }
+
+export const deleteStaffPoolSettings = (
+    params?: DeleteStaffPoolSettingsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/staff-pool/settings`, method: 'DELETE',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getDeleteStaffPoolSettingsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStaffPoolSettings>>, TError,{params?: DeleteStaffPoolSettingsParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteStaffPoolSettings>>, TError,{params?: DeleteStaffPoolSettingsParams}, TContext> => {
+
+const mutationKey = ['deleteStaffPoolSettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteStaffPoolSettings>>, {params?: DeleteStaffPoolSettingsParams}> = (props) => {
+          const {params} = props ?? {};
+
+          return  deleteStaffPoolSettings(params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteStaffPoolSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof deleteStaffPoolSettings>>>
+
+    export type DeleteStaffPoolSettingsMutationError = ErrorBody
+
+    export const useDeleteStaffPoolSettings = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStaffPoolSettings>>, TError,{params?: DeleteStaffPoolSettingsParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteStaffPoolSettings>>,
+        TError,
+        {params?: DeleteStaffPoolSettingsParams},
+        TContext
+      > => {
+      return useMutation(getDeleteStaffPoolSettingsMutationOptions(options), queryClient);
+    }
+
+export const getStaffPoolToday = (
+    params: GetStaffPoolTodayParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StaffPoolToday>(
+      {url: `/staff-pool/today`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetStaffPoolTodayQueryKey = (params?: GetStaffPoolTodayParams,) => {
+    return [
+    `/staff-pool/today`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetStaffPoolTodayQueryOptions = <TData = Awaited<ReturnType<typeof getStaffPoolToday>>, TError = ErrorBody>(params: GetStaffPoolTodayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolToday>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStaffPoolTodayQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStaffPoolToday>>> = ({ signal }) => getStaffPoolToday(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolToday>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStaffPoolTodayQueryResult = NonNullable<Awaited<ReturnType<typeof getStaffPoolToday>>>
+export type GetStaffPoolTodayQueryError = ErrorBody
+
+
+export function useGetStaffPoolToday<TData = Awaited<ReturnType<typeof getStaffPoolToday>>, TError = ErrorBody>(
+ params: GetStaffPoolTodayParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolToday>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStaffPoolToday>>,
+          TError,
+          Awaited<ReturnType<typeof getStaffPoolToday>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStaffPoolToday<TData = Awaited<ReturnType<typeof getStaffPoolToday>>, TError = ErrorBody>(
+ params: GetStaffPoolTodayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolToday>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStaffPoolToday>>,
+          TError,
+          Awaited<ReturnType<typeof getStaffPoolToday>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStaffPoolToday<TData = Awaited<ReturnType<typeof getStaffPoolToday>>, TError = ErrorBody>(
+ params: GetStaffPoolTodayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolToday>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStaffPoolToday<TData = Awaited<ReturnType<typeof getStaffPoolToday>>, TError = ErrorBody>(
+ params: GetStaffPoolTodayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStaffPoolToday>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStaffPoolTodayQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

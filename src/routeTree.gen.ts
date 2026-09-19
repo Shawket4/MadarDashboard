@@ -44,6 +44,7 @@ import { Route as AppStaffRequestsRouteImport } from './routes/_app/staff/reques
 import { Route as AppStaffEmployeesRouteImport } from './routes/_app/staff/employees'
 import { Route as AppStaffAttendanceRouteImport } from './routes/_app/staff/attendance'
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
+import { Route as AppSettingsStaffPoolRouteImport } from './routes/_app/settings/staff-pool'
 import { Route as AppSettingsQrRouteImport } from './routes/_app/settings/qr'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppSettingsLoyaltyRouteImport } from './routes/_app/settings/loyalty'
@@ -54,6 +55,7 @@ import { Route as AppSettingsDeliveryZonesRouteImport } from './routes/_app/sett
 import { Route as AppSettingsDeliveryRouteImport } from './routes/_app/settings/delivery'
 import { Route as AppSettingsBrandRouteImport } from './routes/_app/settings/brand'
 import { Route as AppSettingsBookingsRouteImport } from './routes/_app/settings/bookings'
+import { Route as AppReportsStaffPoolRouteImport } from './routes/_app/reports/staff-pool'
 import { Route as AppReportsStaffRouteImport } from './routes/_app/reports/staff'
 import { Route as AppReportsSalesRouteImport } from './routes/_app/reports/sales'
 import { Route as AppReportsLoyaltyRouteImport } from './routes/_app/reports/loyalty'
@@ -268,6 +270,11 @@ const AppSettingsWhatsappRoute = AppSettingsWhatsappRouteImport.update({
   path: '/whatsapp',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
+const AppSettingsStaffPoolRoute = AppSettingsStaffPoolRouteImport.update({
+  id: '/staff-pool',
+  path: '/staff-pool',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
 const AppSettingsQrRoute = AppSettingsQrRouteImport.update({
   id: '/qr',
   path: '/qr',
@@ -321,6 +328,11 @@ const AppSettingsBookingsRoute = AppSettingsBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
   getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppReportsStaffPoolRoute = AppReportsStaffPoolRouteImport.update({
+  id: '/reports/staff-pool',
+  path: '/reports/staff-pool',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppReportsStaffRoute = AppReportsStaffRouteImport.update({
   id: '/reports/staff',
@@ -582,6 +594,7 @@ export interface FileRoutesByFullPath {
   '/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/reports/sales': typeof AppReportsSalesRoute
   '/reports/staff': typeof AppReportsStaffRoute
+  '/reports/staff-pool': typeof AppReportsStaffPoolRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -592,6 +605,7 @@ export interface FileRoutesByFullPath {
   '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/qr': typeof AppSettingsQrRoute
+  '/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/staff/attendance': typeof AppStaffAttendanceRoute
   '/staff/employees': typeof AppStaffEmployeesRoute
@@ -662,6 +676,7 @@ export interface FileRoutesByTo {
   '/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/reports/sales': typeof AppReportsSalesRoute
   '/reports/staff': typeof AppReportsStaffRoute
+  '/reports/staff-pool': typeof AppReportsStaffPoolRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -672,6 +687,7 @@ export interface FileRoutesByTo {
   '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/qr': typeof AppSettingsQrRoute
+  '/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/staff/attendance': typeof AppStaffAttendanceRoute
   '/staff/employees': typeof AppStaffEmployeesRoute
@@ -749,6 +765,7 @@ export interface FileRoutesById {
   '/_app/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/_app/reports/sales': typeof AppReportsSalesRoute
   '/_app/reports/staff': typeof AppReportsStaffRoute
+  '/_app/reports/staff-pool': typeof AppReportsStaffPoolRoute
   '/_app/settings/bookings': typeof AppSettingsBookingsRoute
   '/_app/settings/brand': typeof AppSettingsBrandRoute
   '/_app/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -759,6 +776,7 @@ export interface FileRoutesById {
   '/_app/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/_app/settings/qr': typeof AppSettingsQrRoute
+  '/_app/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/_app/staff/attendance': typeof AppStaffAttendanceRoute
   '/_app/staff/employees': typeof AppStaffEmployeesRoute
@@ -836,6 +854,7 @@ export interface FileRouteTypes {
     | '/reports/loyalty'
     | '/reports/sales'
     | '/reports/staff'
+    | '/reports/staff-pool'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/delivery'
@@ -846,6 +865,7 @@ export interface FileRouteTypes {
     | '/settings/loyalty'
     | '/settings/payment-methods'
     | '/settings/qr'
+    | '/settings/staff-pool'
     | '/settings/whatsapp'
     | '/staff/attendance'
     | '/staff/employees'
@@ -916,6 +936,7 @@ export interface FileRouteTypes {
     | '/reports/loyalty'
     | '/reports/sales'
     | '/reports/staff'
+    | '/reports/staff-pool'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/delivery'
@@ -926,6 +947,7 @@ export interface FileRouteTypes {
     | '/settings/loyalty'
     | '/settings/payment-methods'
     | '/settings/qr'
+    | '/settings/staff-pool'
     | '/settings/whatsapp'
     | '/staff/attendance'
     | '/staff/employees'
@@ -1002,6 +1024,7 @@ export interface FileRouteTypes {
     | '/_app/reports/loyalty'
     | '/_app/reports/sales'
     | '/_app/reports/staff'
+    | '/_app/reports/staff-pool'
     | '/_app/settings/bookings'
     | '/_app/settings/brand'
     | '/_app/settings/delivery'
@@ -1012,6 +1035,7 @@ export interface FileRouteTypes {
     | '/_app/settings/loyalty'
     | '/_app/settings/payment-methods'
     | '/_app/settings/qr'
+    | '/_app/settings/staff-pool'
     | '/_app/settings/whatsapp'
     | '/_app/staff/attendance'
     | '/_app/staff/employees'
@@ -1282,6 +1306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsWhatsappRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
+    '/_app/settings/staff-pool': {
+      id: '/_app/settings/staff-pool'
+      path: '/staff-pool'
+      fullPath: '/settings/staff-pool'
+      preLoaderRoute: typeof AppSettingsStaffPoolRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
     '/_app/settings/qr': {
       id: '/_app/settings/qr'
       path: '/qr'
@@ -1351,6 +1382,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/bookings'
       preLoaderRoute: typeof AppSettingsBookingsRouteImport
       parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/reports/staff-pool': {
+      id: '/_app/reports/staff-pool'
+      path: '/reports/staff-pool'
+      fullPath: '/reports/staff-pool'
+      preLoaderRoute: typeof AppReportsStaffPoolRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/reports/staff': {
       id: '/_app/reports/staff'
@@ -1733,6 +1771,7 @@ interface AppSettingsRouteRouteChildren {
   AppSettingsLoyaltyRoute: typeof AppSettingsLoyaltyRoute
   AppSettingsPaymentMethodsRoute: typeof AppSettingsPaymentMethodsRoute
   AppSettingsQrRoute: typeof AppSettingsQrRoute
+  AppSettingsStaffPoolRoute: typeof AppSettingsStaffPoolRoute
   AppSettingsWhatsappRoute: typeof AppSettingsWhatsappRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
@@ -1748,6 +1787,7 @@ const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
   AppSettingsLoyaltyRoute: AppSettingsLoyaltyRoute,
   AppSettingsPaymentMethodsRoute: AppSettingsPaymentMethodsRoute,
   AppSettingsQrRoute: AppSettingsQrRoute,
+  AppSettingsStaffPoolRoute: AppSettingsStaffPoolRoute,
   AppSettingsWhatsappRoute: AppSettingsWhatsappRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
 }
@@ -1789,6 +1829,7 @@ interface AppRouteRouteChildren {
   AppReportsLoyaltyRoute: typeof AppReportsLoyaltyRoute
   AppReportsSalesRoute: typeof AppReportsSalesRoute
   AppReportsStaffRoute: typeof AppReportsStaffRoute
+  AppReportsStaffPoolRoute: typeof AppReportsStaffPoolRoute
   AppStaffAttendanceRoute: typeof AppStaffAttendanceRoute
   AppStaffEmployeesRoute: typeof AppStaffEmployeesRoute
   AppStaffRequestsRoute: typeof AppStaffRequestsRoute
@@ -1833,6 +1874,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppReportsLoyaltyRoute: AppReportsLoyaltyRoute,
   AppReportsSalesRoute: AppReportsSalesRoute,
   AppReportsStaffRoute: AppReportsStaffRoute,
+  AppReportsStaffPoolRoute: AppReportsStaffPoolRoute,
   AppStaffAttendanceRoute: AppStaffAttendanceRoute,
   AppStaffEmployeesRoute: AppStaffEmployeesRoute,
   AppStaffRequestsRoute: AppStaffRequestsRoute,

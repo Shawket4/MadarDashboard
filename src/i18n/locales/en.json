@@ -200,7 +200,9 @@
     "choiceGroups": "Choice groups",
     "recipeBases": "Recipe bases",
     "packagingRules": "Packaging rules",
-    "reportsFinancial": "Financial"
+    "reportsFinancial": "Financial",
+    "staffPool": "Staff drinks",
+    "reportsStaffPool": "Staff drinks"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -2297,7 +2299,8 @@
     "account": "Account",
     "about": "About",
     "logo": "Logo",
-    "links": "Links"
+    "links": "Links",
+    "staffPoolDesc": "How many drinks a branch may give its own people in a day, and which items count."
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -5312,5 +5315,57 @@
         "packaging": "packaging"
       }
     }
+  },
+  "staffPool": {
+    "reportTitle": "Staff drinks",
+    "settingsTitle": "Staff drinks",
+    "settingsSubtitle": "How many drinks a branch may give its own people in a day, and which items count. Every one needs a note saying who it was for.",
+    "noAccess": "Your account can't change this. The owner can give you access.",
+    "loadFailed": "Couldn't load the staff drinks settings",
+    "saved": "Staff drinks saved",
+    "readOnly": "You can see these settings, but only an owner or admin can change them.",
+    "inheritedHint": "This branch follows the organisation's staff drinks settings. Saving here gives it an allowance of its own.",
+    "revert": "Follow the organisation",
+    "revertTitle": "Use the organisation's allowance here?",
+    "revertBody": "This branch will follow the organisation-wide staff drinks settings again. Its own allowance and item list are removed.",
+    "reverted": "Back to the organisation's allowance",
+    "fixErrors": "Fix the highlighted fields before saving.",
+    "enabled": "Staff drinks are on",
+    "enabledHint": "Tellers can ring up a staff drink against the day's pool.",
+    "allowance": "Drinks a day, for the whole branch",
+    "allowanceHint": "The pool belongs to the branch for the day, not to any one person, and it resets at the branch's own midnight. Going over is allowed — it is just marked on the report.",
+    "items": "Items that count",
+    "itemsChosen": "{{count}} item counts as a staff drink",
+    "itemsChosen_other": "{{count}} items count as a staff drink",
+    "itemsNoneChosen": "No items chosen — the pool is off",
+    "itemsPickerNote": "Only these items can be rung up as a staff drink. Leave the list empty and nobody can ring one up at all.",
+    "itemsHeading": "Counts as a staff drink",
+    "itemRemove": "Remove {{item}}",
+    "offNoItems": "The pool is off: with no items chosen, nobody can ring up a staff drink — whatever the switch above says.",
+    "offDisabled": "The pool is off. Tellers can't ring up a staff drink here.",
+    "pickBranch": "Choose a branch",
+    "pickBranchBody": "The staff drinks pool belongs to one branch's day, so there is no all-branches total to show.",
+    "reportOff": "Staff drinks are off at this branch",
+    "reportOffBody": "Nobody can ring one up here. Turn the pool on, and choose the items that count, under Settings.",
+    "statAllowance": "Allowance",
+    "statUsed": "Given out",
+    "statRemaining": "Left",
+    "statOver": "Over allowance",
+    "statOverHint": "Allowed, and recorded. The notes below say who each one was for.",
+    "drinksTitle": "Every drink, and its note",
+    "drinksEmpty": "No staff drinks in this period",
+    "colTime": "Time",
+    "colItem": "Item",
+    "colNote": "Note",
+    "colCost": "Cost",
+    "colOver": "Over allowance",
+    "overBadge": "Over allowance",
+    "errors": {
+      "allowance": "A whole number of drinks, 0 or more."
+    },
+    "poolOn": "The pool on {{date}}",
+    "drinksRange": "{{from}} to {{to}}",
+    "overOnReplay": "· on recount",
+    "overOnReplayHint": "The till didn't count this as over at the time — the server did, once it had the whole day."
   }
 }

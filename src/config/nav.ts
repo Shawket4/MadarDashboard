@@ -127,6 +127,10 @@ export const NAV: NavGroup[] = [
       { caps: [Cap.reportsLegal], to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
       { caps: [Cap.loyaltyMembersList], to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
       { caps: [Cap.hrAttendanceRead], to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
+      // The day's staff drinks pool, per branch. Gated on the capability that
+      // lets a person record one: if you can give a staff drink, you can see
+      // what the branch has already given.
+      { caps: [Cap.ordersStaffDrinkRecord], to: "/reports/staff-pool", labelKey: "nav.reportsStaffPool", fallback: "Staff drinks", icon: CupSoda },
     ],
   },
   {
@@ -161,6 +165,7 @@ export const NAV: NavGroup[] = [
     entries: [
       { to: "/settings", labelKey: "nav.settings", fallback: "Settings", icon: Settings },
       { caps: [Cap.loyaltyUse, Cap.loyaltyMembersList], to: "/settings/loyalty", labelKey: "nav.loyalty", fallback: "Loyalty", icon: Star },
+      { caps: [Cap.orgSettingsRead, Cap.orgSettingsEdit], to: "/settings/staff-pool", labelKey: "nav.staffPool", fallback: "Staff drinks", icon: CupSoda },
     ],
   },
   {
