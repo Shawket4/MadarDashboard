@@ -3968,7 +3968,7 @@
     },
     "profitability": {
       "title": "ربحية القائمة",
-      "revenue": "الإيرادات",
+      "revenue": "الإيراد",
       "grossMargin": "هامش الربح الإجمالي",
       "ofRevenue": "{{pct}}٪ من الإيرادات",
       "belowTargetGap": "هامش دون المستهدف",
@@ -3988,7 +3988,12 @@
       "vsPrev": "مقارنة بالفترة السابقة",
       "noFlags": "لا توجد تنبيهات — الهوامش بحالة جيدة",
       "noRows": "لا مبيعات خلال هذه الفترة",
-      "shareOfRevenue": "{{pct}} من الإيرادات"
+      "shareOfRevenue": "{{pct}} من الإيرادات",
+      "viewTable": "جدول",
+      "viewQuadrant": "مربعات",
+      "quantity": "الكمية",
+      "margin": "الربح",
+      "popularity": "الرواج"
     },
     "columns": {
       "item": "الصنف",
@@ -4084,6 +4089,10 @@
       "challenge": "تحدٍّ",
       "dog": "راكد",
       "tooltip": "الشعبية {{popularity}}٪ من الوحدات · الربح مقارنة بمتوسط القائمة"
+    },
+    "quadrant": {
+      "challengesDogs": "تحديات / ضعيفة",
+      "starsWorkhorses": "نجوم / ثابتة"
     }
   },
   "integrations": {
