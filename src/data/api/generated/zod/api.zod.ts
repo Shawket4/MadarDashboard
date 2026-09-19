@@ -17355,6 +17355,10 @@ export const ClosePreviewParams = zod.object({
   "till_id": zod.uuid().describe('Till ID')
 })
 
+export const ClosePreviewHeader = zod.object({
+  "X-Madar-Approval": zod.string().nullish().describe('A one-time manager-PIN unlock (a `ReplayApproval` as JSON) for the expected figures before a close, when the caller does not hold `till.cash_spot_check`. Read from POS\/KDS clients >= 0.7.11 only.')
+})
+
 export const ClosePreviewResponse = zod.object({
   "expected_cash": zod.number(),
   "last_till_warning": zod.union([zod.null(),zod.object({
@@ -17500,6 +17504,10 @@ export const ListTillRefundsResponse = zod.object({
 
 export const GetTillReportParams = zod.object({
   "till_id": zod.uuid().describe('Till ID')
+})
+
+export const GetTillReportHeader = zod.object({
+  "X-Madar-Approval": zod.string().nullish().describe('A one-time manager-PIN unlock (a `ReplayApproval` as JSON) for an OPEN till\'s figures, when the caller does not hold `till.cash_spot_check`. Read from POS\/KDS clients >= 0.7.11 only; a closed till\'s report never needs it.')
 })
 
 export const GetTillReportResponse = zod.object({
