@@ -3706,7 +3706,12 @@
       "vsPrev": "vs previous period",
       "noFlags": "Nothing flagged — margins look healthy",
       "noRows": "No sales in this period",
-      "shareOfRevenue": "{{pct}} of revenue"
+      "shareOfRevenue": "{{pct}} of revenue",
+      "viewTable": "Table",
+      "viewQuadrant": "Quadrant",
+      "quantity": "Qty",
+      "margin": "Margin",
+      "popularity": "Popularity"
     },
     "columns": {
       "item": "Item",
@@ -3790,6 +3795,10 @@
       "challenge": "Challenge",
       "dog": "Dog",
       "tooltip": "Popularity {{popularity}}% of units · profit vs menu average"
+    },
+    "quadrant": {
+      "challengesDogs": "Challenges / Dogs",
+      "starsWorkhorses": "Stars / Workhorses"
     }
   },
   "integrations": {
