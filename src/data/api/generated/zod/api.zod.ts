@@ -14706,6 +14706,8 @@ export const GetShiftReportResponse = zod.object({
   "viewed_by": zod.uuid(),
   "viewed_by_name": zod.string()
 })).optional().describe('Who viewed (and printed) the cash spot report of this till, oldest first. Additive.'),
+  "staff_drinks_count": zod.number().optional().describe('Staff drinks put on the branch\'s pool during this till, and how many of\nthem were past the day\'s allowance. The Z report shows what the shop\ngave its own people; the money is zero, so neither figure enters any\ntotal. Additive — an older tablet simply does not read them.'),
+  "staff_drinks_overspent_count": zod.number().optional(),
   "standard_float": zod.number().nullish().describe('`branches.standard_float`.'),
   "suggested_safe_drop": zod.number().nullish(),
   "timezone": zod.string().nullish(),
@@ -14755,6 +14757,40 @@ export const GetShiftReportResponse = zod.object({
   "till_name": zod.string().nullish()
 })).describe('Legacy `Shift` = `Till` + `till_id`\/`till_name`: the branch\'s legacy drawer\nentity (the one `GET \/tills` synthesizes) and its name, exactly as the\npre-rename backend reported them. Build it with [`legacy_shift`].')
 }))
+
+
+/**
+ * This is the whole point of the note: with no "who is this for" field by
+ * design, the note is the only record of who drank it, and this is where an
+ * owner reads it.
+ * @summary The staff drinks of a branch over a range of business days, newest first.
+ */
+export const ListStaffDrinksQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "from": zod.iso.date().optional().describe('Business days, inclusive. Both default to the branch\'s today.'),
+  "to": zod.iso.date().optional(),
+  "overspent_only": zod.boolean().optional().describe('Only the drinks that went past the allowance.')
+})
+
+export const ListStaffDrinksResponseItem = zod.object({
+  "allowance_at_record": zod.number(),
+  "branch_id": zod.uuid(),
+  "business_date": zod.iso.date(),
+  "cost_minor": zod.number().nullish(),
+  "id": zod.uuid(),
+  "item_name": zod.string(),
+  "menu_item_id": zod.uuid().nullish(),
+  "note": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "overspent": zod.boolean().describe('Past the allowance, as the SERVER recounted it.'),
+  "overspent_on_replay": zod.boolean().describe('The server made it an overspend and the till had not.'),
+  "quantity": zod.number(),
+  "recorded_at": zod.iso.datetime({"offset":true}),
+  "recorded_by": zod.uuid().nullish(),
+  "size_label": zod.string().nullish(),
+  "used_before": zod.number()
+}).describe('One recorded staff drink, as every reader sees it.')
+export const ListStaffDrinksResponse = zod.array(ListStaffDrinksResponseItem)
 
 
 export const RecordStaffDrinkBody = zod.object({
@@ -17652,6 +17688,8 @@ export const GetTillReportResponse = zod.object({
   "viewed_by": zod.uuid(),
   "viewed_by_name": zod.string()
 })).optional().describe('Who viewed (and printed) the cash spot report of this till, oldest first. Additive.'),
+  "staff_drinks_count": zod.number().optional().describe('Staff drinks put on the branch\'s pool during this till, and how many of\nthem were past the day\'s allowance. The Z report shows what the shop\ngave its own people; the money is zero, so neither figure enters any\ntotal. Additive — an older tablet simply does not read them.'),
+  "staff_drinks_overspent_count": zod.number().optional(),
   "standard_float": zod.number().nullish().describe('`branches.standard_float`.'),
   "suggested_safe_drop": zod.number().nullish(),
   "timezone": zod.string().nullish(),

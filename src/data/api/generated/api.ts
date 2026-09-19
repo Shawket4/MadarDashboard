@@ -317,6 +317,7 @@ import type {
   ListSectionsParams,
   ListShiftsParams,
   ListSkuCostsParams,
+  ListStaffDrinksParams,
   ListStationsParams,
   ListTillsParams,
   ListTransfersParams,
@@ -31732,6 +31733,103 @@ export function useGetShiftReport<TData = Awaited<ReturnType<typeof getShiftRepo
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetShiftReportQueryOptions(shiftId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * This is the whole point of the note: with no "who is this for" field by
+ * design, the note is the only record of who drank it, and this is where an
+ * owner reads it.
+ * @summary The staff drinks of a branch over a range of business days, newest first.
+ */
+export const listStaffDrinks = (
+    params: ListStaffDrinksParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StaffDrink[]>(
+      {url: `/staff-pool/drinks`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListStaffDrinksQueryKey = (params?: ListStaffDrinksParams,) => {
+    return [
+    `/staff-pool/drinks`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListStaffDrinksQueryOptions = <TData = Awaited<ReturnType<typeof listStaffDrinks>>, TError = ErrorBody>(params: ListStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStaffDrinksQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStaffDrinks>>> = ({ signal }) => listStaffDrinks(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStaffDrinksQueryResult = NonNullable<Awaited<ReturnType<typeof listStaffDrinks>>>
+export type ListStaffDrinksQueryError = ErrorBody
+
+
+export function useListStaffDrinks<TData = Awaited<ReturnType<typeof listStaffDrinks>>, TError = ErrorBody>(
+ params: ListStaffDrinksParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStaffDrinks>>,
+          TError,
+          Awaited<ReturnType<typeof listStaffDrinks>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStaffDrinks<TData = Awaited<ReturnType<typeof listStaffDrinks>>, TError = ErrorBody>(
+ params: ListStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStaffDrinks>>,
+          TError,
+          Awaited<ReturnType<typeof listStaffDrinks>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStaffDrinks<TData = Awaited<ReturnType<typeof listStaffDrinks>>, TError = ErrorBody>(
+ params: ListStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The staff drinks of a branch over a range of business days, newest first.
+ */
+
+export function useListStaffDrinks<TData = Awaited<ReturnType<typeof listStaffDrinks>>, TError = ErrorBody>(
+ params: ListStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStaffDrinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStaffDrinksQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
