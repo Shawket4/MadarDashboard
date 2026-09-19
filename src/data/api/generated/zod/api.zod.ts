@@ -14757,6 +14757,98 @@ export const GetShiftReportResponse = zod.object({
 }))
 
 
+export const RecordStaffDrinkBody = zod.object({
+  "allowance_at_record": zod.number().nullish().describe('What the DEVICE believed the pool stood at. Kept for the owner to\ncompare against what the server recomputed; never trusted.'),
+  "branch_id": zod.uuid(),
+  "cost_minor": zod.number().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "id": zod.uuid().describe('Client-minted, and the idempotency key: replaying the same drink twice\nis the same row, not a second one off the allowance.'),
+  "item_name": zod.string().nullish().describe('Frozen at the till, so a later rename never rewrites history.'),
+  "menu_item_id": zod.uuid(),
+  "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
+  "order_id": zod.uuid().nullish().describe('The zero-priced sale this drink rang as, when there is one.'),
+  "overspent": zod.boolean().nullish(),
+  "quantity": zod.number().optional(),
+  "recorded_at": zod.iso.datetime({"offset":true}).nullish().describe('When the teller rang it. Defaults to now; the business day is derived\nfrom this in the BRANCH\'s timezone, never from the server\'s clock date.'),
+  "size_label": zod.string().nullish(),
+  "till_id": zod.uuid().nullish(),
+  "used_before": zod.number().nullish()
+}).describe('The body both the live route and the replay op carry.')
+
+export const RecordStaffDrinkResponse = zod.object({
+  "allowance_at_record": zod.number(),
+  "branch_id": zod.uuid(),
+  "business_date": zod.iso.date(),
+  "cost_minor": zod.number().nullish(),
+  "id": zod.uuid(),
+  "item_name": zod.string(),
+  "menu_item_id": zod.uuid().nullish(),
+  "note": zod.string(),
+  "order_id": zod.uuid().nullish(),
+  "overspent": zod.boolean().describe('Past the allowance, as the SERVER recounted it.'),
+  "overspent_on_replay": zod.boolean().describe('The server made it an overspend and the till had not.'),
+  "quantity": zod.number(),
+  "recorded_at": zod.iso.datetime({"offset":true}),
+  "recorded_by": zod.uuid().nullish(),
+  "size_label": zod.string().nullish(),
+  "used_before": zod.number()
+}).describe('One recorded staff drink, as every reader sees it.')
+
+
+export const GetStaffPoolSettingsQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')
+})
+
+export const GetStaffPoolSettingsResponse = zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = the org-wide default. A branch id = that branch\'s override.'),
+  "daily_allowance": zod.number().optional().describe('Staff drinks this branch may give in one business day.'),
+  "eligible_item_ids": zod.array(zod.uuid()).optional().describe('The menu items that count. EMPTY = the pool is off.'),
+  "enabled": zod.boolean().optional().describe('The owner\'s master switch for this scope.'),
+  "org_id": zod.uuid()
+}).describe('The settings as the API states them, and as the PUT body accepts them.')
+
+
+export const PutStaffPoolSettingsBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = the org-wide default. A branch id = that branch\'s override.'),
+  "daily_allowance": zod.number().optional().describe('Staff drinks this branch may give in one business day.'),
+  "eligible_item_ids": zod.array(zod.uuid()).optional().describe('The menu items that count. EMPTY = the pool is off.'),
+  "enabled": zod.boolean().optional().describe('The owner\'s master switch for this scope.'),
+  "org_id": zod.uuid()
+}).describe('The settings as the API states them, and as the PUT body accepts them.')
+
+export const PutStaffPoolSettingsResponse = zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = the org-wide default. A branch id = that branch\'s override.'),
+  "daily_allowance": zod.number().optional().describe('Staff drinks this branch may give in one business day.'),
+  "eligible_item_ids": zod.array(zod.uuid()).optional().describe('The menu items that count. EMPTY = the pool is off.'),
+  "enabled": zod.boolean().optional().describe('The owner\'s master switch for this scope.'),
+  "org_id": zod.uuid()
+}).describe('The settings as the API states them, and as the PUT body accepts them.')
+
+
+export const DeleteStaffPoolSettingsQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')
+})
+
+export const DeleteStaffPoolSettingsResponse = zod.void()
+
+
+export const GetStaffPoolTodayQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "business_date": zod.iso.date().optional().describe('The business day to ask about. Defaults to the branch\'s today.')
+})
+
+export const GetStaffPoolTodayResponse = zod.object({
+  "allowance": zod.number(),
+  "branch_id": zod.uuid(),
+  "business_date": zod.iso.date(),
+  "eligible_item_ids": zod.array(zod.uuid()),
+  "enabled": zod.boolean(),
+  "over": zod.number(),
+  "remaining": zod.number(),
+  "used": zod.number()
+})
+
+
 export const ListAttendanceQueryParams = zod.object({
   "from": zod.iso.date(),
   "to": zod.iso.date(),
