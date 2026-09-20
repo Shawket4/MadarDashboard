@@ -16,6 +16,14 @@ export interface OpenTicketView {
      */
   booking_id?: string | null;
   branch_id: string;
+  /**
+     * The customer this bill belongs to, when one is known (design §2.5): a
+     * table-QR guest who gave a phone, the party's booking, or one the waiter
+     * attached. `customer_name` is the free-text snapshot and may be set
+     * without it. Settling carries it onto the sale.
+     * @nullable
+     */
+  customer_id?: string | null;
   /** @nullable */
   customer_name?: string | null;
   /**

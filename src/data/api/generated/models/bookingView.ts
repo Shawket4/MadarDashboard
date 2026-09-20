@@ -14,6 +14,13 @@ export interface BookingView {
   created_at: string;
   /** @nullable */
   created_by?: string | null;
+  /**
+     * The customer who booked (design §2.5); `guest_name` / `guest_phone`
+     * beside it are the snapshot of what was typed. `None` for a booking
+     * from before customers existed whose phone is not a valid number.
+     * @nullable
+     */
+  customer_id?: string | null;
   ends_at: string;
   guest_name: string;
   guest_phone: string;

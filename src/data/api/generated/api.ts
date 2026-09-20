@@ -179,6 +179,7 @@ import type {
   CredentialSummary,
   CredentialWithSecret,
   Customer,
+  CustomerAddress,
   CustomerDetail,
   DecisionOut,
   DeductionLogRow,
@@ -370,6 +371,8 @@ import type {
   Order,
   OrderFull,
   OrderHistorySummary,
+  OrderNowContext,
+  OrderNowContextParams,
   OrderRefunds,
   Org,
   OrgBookingQrParams,
@@ -485,6 +488,8 @@ import type {
   RenameRoleRequest,
   ReorderCategoriesRequest,
   ReorderSuggestion,
+  ReplaceIdentityRequest,
+  ReplaceIdentityResponse,
   ReplayFlag,
   RepricingReport,
   RequestDecision,
@@ -7026,6 +7031,93 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateCustomerMutationOptions(options), queryClient);
     }
+
+export const listCustomerAddresses = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CustomerAddress[]>(
+      {url: `/customers/${id}/addresses`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListCustomerAddressesQueryKey = (id: string,) => {
+    return [
+    `/customers/${id}/addresses`
+    ] as const;
+    }
+
+
+export const getListCustomerAddressesQueryOptions = <TData = Awaited<ReturnType<typeof listCustomerAddresses>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCustomerAddresses>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCustomerAddressesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCustomerAddresses>>> = ({ signal }) => listCustomerAddresses(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCustomerAddresses>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCustomerAddressesQueryResult = NonNullable<Awaited<ReturnType<typeof listCustomerAddresses>>>
+export type ListCustomerAddressesQueryError = ErrorBody
+
+
+export function useListCustomerAddresses<TData = Awaited<ReturnType<typeof listCustomerAddresses>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCustomerAddresses>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCustomerAddresses>>,
+          TError,
+          Awaited<ReturnType<typeof listCustomerAddresses>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCustomerAddresses<TData = Awaited<ReturnType<typeof listCustomerAddresses>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCustomerAddresses>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCustomerAddresses>>,
+          TError,
+          Awaited<ReturnType<typeof listCustomerAddresses>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCustomerAddresses<TData = Awaited<ReturnType<typeof listCustomerAddresses>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCustomerAddresses>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListCustomerAddresses<TData = Awaited<ReturnType<typeof listCustomerAddresses>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCustomerAddresses>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCustomerAddressesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const eraseCustomer = (
     id: string,
@@ -14880,15 +14972,15 @@ export function useGetLoyaltyMember<TData = Awaited<ReturnType<typeof getLoyalty
 
 
 /**
- * A void corrects a sale; this corrects a membership — someone asked the shop
- * to stop holding their details, or an admin is clearing a test signup. The
- * person is scrubbed and the books are kept: see [`model::forget`] for exactly
- * what goes and what stays, and why the ledger is not the member's data.
+ * This used to FORGET the person — it was written when the loyalty row was the
+ * only record of them. A membership is now a card under the customer's id, so
+ * ending it touches nothing but the card: the customer, their orders, their
+ * addresses and their bookings stay, and they can join again. Erasing a
+ * person's data is `POST /customers/{id}/erase`, which also ends the card.
+ * See [`model::leave`] for exactly what goes.
  *
- * 204 twice in a row: forgetting someone already forgotten is not a failure,
- * and telling the caller "no such member" would confirm that a phone number
- * used to be one.
- * @summary Forget a member. **Admin only.**
+ * 204 twice in a row: a card that is already gone is not a failure.
+ * @summary Leave the programme: the card ends, the customer stays (design §2.8).
  */
 export const deleteLoyaltyMember = (
     id: string,
@@ -14937,7 +15029,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteLoyaltyMemberMutationError = ErrorBody
 
     /**
- * @summary Forget a member. **Admin only.**
+ * @summary Leave the programme: the card ends, the customer stays (design §2.8).
  */
 export const useDeleteLoyaltyMember = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLoyaltyMember>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -23927,6 +24019,221 @@ export function useLoyaltyApplePass<TData = Awaited<ReturnType<typeof loyaltyApp
 
 
 
+
+export const orderNowContext = (
+    token: string,
+    params?: OrderNowContextParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrderNowContext>(
+      {url: `/public/order-now/${token}`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getOrderNowContextQueryKey = (token: string,
+    params?: OrderNowContextParams,) => {
+    return [
+    `/public/order-now/${token}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getOrderNowContextQueryOptions = <TData = Awaited<ReturnType<typeof orderNowContext>>, TError = ErrorBody>(token: string,
+    params?: OrderNowContextParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderNowContext>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOrderNowContextQueryKey(token,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof orderNowContext>>> = ({ signal }) => orderNowContext(token,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof orderNowContext>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OrderNowContextQueryResult = NonNullable<Awaited<ReturnType<typeof orderNowContext>>>
+export type OrderNowContextQueryError = ErrorBody
+
+
+export function useOrderNowContext<TData = Awaited<ReturnType<typeof orderNowContext>>, TError = ErrorBody>(
+ token: string,
+    params: undefined |  OrderNowContextParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderNowContext>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orderNowContext>>,
+          TError,
+          Awaited<ReturnType<typeof orderNowContext>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrderNowContext<TData = Awaited<ReturnType<typeof orderNowContext>>, TError = ErrorBody>(
+ token: string,
+    params?: OrderNowContextParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderNowContext>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orderNowContext>>,
+          TError,
+          Awaited<ReturnType<typeof orderNowContext>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrderNowContext<TData = Awaited<ReturnType<typeof orderNowContext>>, TError = ErrorBody>(
+ token: string,
+    params?: OrderNowContextParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderNowContext>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useOrderNowContext<TData = Awaited<ReturnType<typeof orderNowContext>>, TError = ErrorBody>(
+ token: string,
+    params?: OrderNowContextParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderNowContext>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOrderNowContextQueryOptions(token,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const orderNowCombine = (
+    token: string,
+    replaceIdentityRequest: ReplaceIdentityRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ReplaceIdentityResponse>(
+      {url: `/public/order-now/${token}/combine`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: replaceIdentityRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getOrderNowCombineMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof orderNowCombine>>, TError,{token: string;data: ReplaceIdentityRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof orderNowCombine>>, TError,{token: string;data: ReplaceIdentityRequest}, TContext> => {
+
+const mutationKey = ['orderNowCombine'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof orderNowCombine>>, {token: string;data: ReplaceIdentityRequest}> = (props) => {
+          const {token,data} = props ?? {};
+
+          return  orderNowCombine(token,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OrderNowCombineMutationResult = NonNullable<Awaited<ReturnType<typeof orderNowCombine>>>
+    export type OrderNowCombineMutationBody = ReplaceIdentityRequest
+    export type OrderNowCombineMutationError = ErrorBody
+
+    export const useOrderNowCombine = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof orderNowCombine>>, TError,{token: string;data: ReplaceIdentityRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof orderNowCombine>>,
+        TError,
+        {token: string;data: ReplaceIdentityRequest},
+        TContext
+      > => {
+      return useMutation(getOrderNowCombineMutationOptions(options), queryClient);
+    }
+
+export const orderNowReplaceIdentity = (
+    token: string,
+    replaceIdentityRequest: ReplaceIdentityRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ReplaceIdentityResponse>(
+      {url: `/public/order-now/${token}/replace-identity`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: replaceIdentityRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getOrderNowReplaceIdentityMutationOptions = <TError = ErrorBody | void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof orderNowReplaceIdentity>>, TError,{token: string;data: ReplaceIdentityRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof orderNowReplaceIdentity>>, TError,{token: string;data: ReplaceIdentityRequest}, TContext> => {
+
+const mutationKey = ['orderNowReplaceIdentity'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof orderNowReplaceIdentity>>, {token: string;data: ReplaceIdentityRequest}> = (props) => {
+          const {token,data} = props ?? {};
+
+          return  orderNowReplaceIdentity(token,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OrderNowReplaceIdentityMutationResult = NonNullable<Awaited<ReturnType<typeof orderNowReplaceIdentity>>>
+    export type OrderNowReplaceIdentityMutationBody = ReplaceIdentityRequest
+    export type OrderNowReplaceIdentityMutationError = ErrorBody | void
+
+    export const useOrderNowReplaceIdentity = <TError = ErrorBody | void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof orderNowReplaceIdentity>>, TError,{token: string;data: ReplaceIdentityRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof orderNowReplaceIdentity>>,
+        TError,
+        {token: string;data: ReplaceIdentityRequest},
+        TContext
+      > => {
+      return useMutation(getOrderNowReplaceIdentityMutationOptions(options), queryClient);
+    }
 
 /**
  * Public and unauthenticated by necessity: it is the first request a customer's

@@ -10,6 +10,14 @@ export interface CreateOpenTicketRequest {
      */
   booking_id?: string | null;
   branch_id: string;
+  /**
+     * The customer this bill is for, when the waiter picked one. Honoured when
+     * the actor holds `customers.attach`; a merged id resolves and an unknown
+     * one is ignored — a bill is never refused over its customer. Absent, a
+     * bill opened for a booking takes the booking's customer.
+     * @nullable
+     */
+  customer_id?: string | null;
   /** @nullable */
   customer_name?: string | null;
   /**

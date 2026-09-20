@@ -9,6 +9,15 @@ export interface Order {
   /** @nullable */
   change_given?: number | null;
   created_at: string;
+  /**
+     * The customer this sale belongs to (design §2.5) — the same id the sync
+     * feed's order row carries. `customer_name` beside it is the snapshot of
+     * what was typed or printed; this is who it was. A soft reference: `None`
+     * for a walk-in, and it may name a customer since merged (resolve through
+     * `GET /customers/{id}`) or erased.
+     * @nullable
+     */
+  customer_id?: string | null;
   /** @nullable */
   customer_name?: string | null;
   /**
