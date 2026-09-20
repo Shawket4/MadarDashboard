@@ -9,8 +9,6 @@ import {
   usePublicMenu,
   useDeliveryQuote,
   useCreateDeliveryOrder,
-  useOtpRequest,
-  useOtpVerify,
   useGuestOrderHistory,
   useGuestPastLocations,
   createDeliveryOrder,
@@ -36,6 +34,7 @@ import { BranchStep } from "./components/branch-step";
 import { BranchSelector } from "./components/branch-selector";
 import { ChannelStep } from "./components/channel-step";
 import { ChannelClosed } from "./components/channel-closed";
+import { useOtpTransport } from "@/features/public-shell/use-phone-otp";
 import { PhoneStep } from "./components/phone-step";
 import { LocationStep } from "./components/location-step";
 import { MenuStep } from "./components/menu-step";
@@ -299,8 +298,8 @@ export function PublicOrderingPage({
   const deliveryFee: number | null = activeQuote?.status === "ok" ? (activeQuote.fee ?? 0) : null;
 
   // ── Mutations ─────────────────────────────────────────────────────────────
-  const otpRequest = useOtpRequest();
-  const otpVerify = useOtpVerify();
+  // Checkout's OTP talks to the same endpoints as the phone step, through the same transport.
+  const otp = useOtpTransport();
   // Custom mutationFn so the per-attempt Idempotency-Key (a uuid in a ref) is read
   // at call time and merged into the request headers — the server dedupes retries.
   const createOrder = useCreateDeliveryOrder({
@@ -592,7 +591,7 @@ export function PublicOrderingPage({
   const handlePlace = async () => {
     // Guard against a double-tap firing a second OTP request / order before the
     // button's disabled state catches up.
-    if (createOrder.isPending || otpRequest.isPending) return;
+    if (createOrder.isPending || otp.sending) return;
     if (channelClosed) {
       setSubmitError(
         t("order.checkout.errChannelClosed", {
@@ -627,7 +626,7 @@ export function PublicOrderingPage({
     // No trusted device → request an OTP, then open the verify dialog.
     setOtpError(null);
     try {
-      await otpRequest.mutateAsync({ data: { phone: wirePhone(form.phone) } });
+      await otp.requestCode(wirePhone(form.phone));
       setOtpOpen(true);
     } catch {
       setSubmitError(t("order.otp.errSend"));
@@ -641,17 +640,15 @@ export function PublicOrderingPage({
     }
     setOtpError(null);
     try {
-      const res = await otpVerify.mutateAsync({
-        data: { phone: wirePhone(form.phone), code },
-      });
-      setDeviceToken(form.phone, res.device_token);
+      const deviceToken = await otp.verifyCode(wirePhone(form.phone), code);
+      setDeviceToken(form.phone, deviceToken);
       // A token verified at checkout also unlocks this guest's history.
       setResolvedPhone((prev) =>
         prev && samePhone(prev.phone, form.phone)
-          ? { ...prev, deviceToken: res.device_token }
+          ? { ...prev, deviceToken }
           : prev,
       );
-      await submitOrder(res.device_token);
+      await submitOrder(deviceToken);
     } catch {
       setOtpError(t("order.otp.errInvalid"));
     }
@@ -660,7 +657,7 @@ export function PublicOrderingPage({
   const handleResend = async () => {
     setOtpError(null);
     try {
-      await otpRequest.mutateAsync({ data: { phone: wirePhone(form.phone) } });
+      await otp.requestCode(wirePhone(form.phone));
     } catch {
       setOtpError(t("order.otp.errSend"));
     }
@@ -843,7 +840,7 @@ export function PublicOrderingPage({
                 lines={lines}
                 deliveryFee={deliveryFee}
                 discountAmount={discountAmount}
-                submitting={createOrder.isPending || otpRequest.isPending}
+                submitting={createOrder.isPending || otp.sending}
                 error={submitError}
                 onSubmit={handlePlace}
                 phoneReadOnly={!!resolvedPhone}
@@ -906,8 +903,8 @@ export function PublicOrderingPage({
         open={otpOpen}
         onOpenChange={setOtpOpen}
         phone={form.phone}
-        sending={otpRequest.isPending}
-        verifying={otpVerify.isPending || createOrder.isPending}
+        sending={otp.sending}
+        verifying={otp.verifying || createOrder.isPending}
         error={otpError}
         onVerify={handleVerify}
         onResend={handleResend}

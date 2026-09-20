@@ -52,6 +52,25 @@ export const formatPhoneDisplay = (phone: string | null | undefined): string => 
   return m ? `+20 ${m[1]} ${m[2]} ${m[3]}` : `+${c}`;
 };
 
+/**
+ * Wrap a formatted phone for interpolation into a sentence: Unicode isolates
+ * (LRI … PDI) keep `+20 100 123 4567` reading left-to-right inside Arabic text,
+ * where the spaces would otherwise let the groups be reordered. In JSX prefer
+ * `<bdi dir="ltr">`; this is for strings handed to `t()`.
+ */
+export const ltrIsolate = (s: string): string => (s ? `\u2066${s}\u2069` : s);
+
+/**
+ * A canonical phone as someone would type it into a field that shows a `+20`
+ * adornment: the national `01001234567` for Egypt, `+<digits>` otherwise.
+ * Used to pre-fill an input from a stored canonical value.
+ */
+export const formatPhoneInput = (phone: string | null | undefined): string => {
+  const c = canonicalPhone(phone);
+  if (!c) return phone ?? "";
+  return c.startsWith("20") ? `0${c.slice(2)}` : `+${c}`;
+};
+
 export const PHONE_ERRORS = {
   required: "common.errors.phoneRequired",
   invalid: "common.errors.phoneInvalid",

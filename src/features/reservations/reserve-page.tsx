@@ -26,6 +26,7 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { getGuestPhone, setGuestPhone } from "@/features/public-shell/guest";
+import { formatPhoneInput } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
 import { PhoneVerify } from "./phone-verify";
@@ -271,7 +272,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
             {name.trim() ? (
               <PhoneVerify
                 otpRequired={info.require_otp}
-                initialPhone={getGuestPhone(orgId) ?? ""}
+                initialPhone={formatPhoneInput(getGuestPhone(orgId))}
                 onVerified={(phone, token) => void submit(phone, token)}
                 busy={create.isPending}
                 submitLabel={t("reservations.confirm", "Confirm booking")}

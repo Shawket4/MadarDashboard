@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import vectors from "./phone_vectors.json";
-import { canonicalPhone, formatPhoneDisplay, isValidPhone, phoneSchema, samePhone } from "./phone";
+import { canonicalPhone, formatPhoneDisplay, formatPhoneInput, isValidPhone, phoneSchema, samePhone } from "./phone";
 
 const RULE_CONFLICTS = ["010012345"];
 
@@ -62,6 +62,16 @@ describe("formatPhoneDisplay", () => {
     expect(formatPhoneDisplay("n/a")).toBe("n/a");
     expect(formatPhoneDisplay("")).toBe("");
     expect(formatPhoneDisplay(null)).toBe("");
+  });
+});
+
+describe("formatPhoneInput", () => {
+  it("round-trips through the canonical form", () => {
+    expect(formatPhoneInput("201001234567")).toBe("01001234567");
+    expect(formatPhoneInput("966512345678")).toBe("+966512345678");
+    for (const [, canonical] of vectors.valid as [string, string][]) {
+      expect(canonicalPhone(formatPhoneInput(canonical))).toBe(canonical);
+    }
   });
 });
 

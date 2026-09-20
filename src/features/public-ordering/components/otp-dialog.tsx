@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, ShieldCheck } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
-const CODE_LEN = 4;
+import { OTP_CODE_LEN, OtpCodeInput } from "@/features/public-shell/otp-code-input";
+import { formatPhoneDisplay, ltrIsolate } from "@/lib/phone";
 
 interface OtpDialogProps {
   open: boolean;
@@ -37,54 +36,12 @@ export function OtpDialog({
   onChangeNumber,
 }: OtpDialogProps) {
   const { t } = useTranslation();
-  const [digits, setDigits] = useState<string[]>(Array(CODE_LEN).fill(""));
-  const inputs = useRef<(HTMLInputElement | null)[]>([]);
-
+  const [code, setCode] = useState("");
+  // Fresh boxes every time the dialog opens, and after a refused code.
+  const [resetSignal, setResetSignal] = useState(0);
   useEffect(() => {
-    if (open) {
-      setDigits(Array(CODE_LEN).fill(""));
-      // Focus the first box after the dialog mounts.
-      requestAnimationFrame(() => inputs.current[0]?.focus());
-    }
+    if (open) setResetSignal((n) => n + 1);
   }, [open]);
-
-  const code = digits.join("");
-
-  const commit = (next: string[]) => {
-    setDigits(next);
-    if (next.every((d) => d !== "")) onVerify(next.join(""));
-  };
-
-  const handleChange = (idx: number, raw: string) => {
-    const cleaned = raw.replace(/\D/g, "");
-    if (!cleaned) {
-      const next = [...digits];
-      next[idx] = "";
-      setDigits(next);
-      return;
-    }
-    // Support paste of the full code into any box.
-    if (cleaned.length > 1) {
-      const next = Array(CODE_LEN).fill("");
-      cleaned
-        .slice(0, CODE_LEN)
-        .split("")
-        .forEach((c, i) => (next[i] = c));
-      commit(next);
-      inputs.current[Math.min(cleaned.length, CODE_LEN) - 1]?.focus();
-      return;
-    }
-    const next = [...digits];
-    next[idx] = cleaned;
-    if (idx < CODE_LEN - 1) inputs.current[idx + 1]?.focus();
-    commit(next);
-  };
-
-  const handleKeyDown = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !digits[idx] && idx > 0) {
-      inputs.current[idx - 1]?.focus();
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,41 +52,26 @@ export function OtpDialog({
           </span>
           <DialogTitle className="font-serif text-xl">{t("order.otp.title")}</DialogTitle>
           <DialogDescription className="mt-1 text-muted-foreground">
-            {t("order.otp.sent", { phone })}
+            {t("order.otp.sent", { phone: ltrIsolate(formatPhoneDisplay(phone)) })}
           </DialogDescription>
         </div>
 
-        <div dir="ltr" className="my-5 flex justify-center gap-2.5">
-          {digits.map((d, i) => (
-            <input
-              key={i}
-              ref={(el) => {
-                inputs.current[i] = el;
-              }}
-              value={d}
-              onChange={(e) => handleChange(i, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(i, e)}
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={CODE_LEN}
-              aria-label={t("order.otp.code")}
-              className={cn(
-                "size-14 rounded-xl border bg-card text-center text-2xl font-bold tabular-nums outline-none transition-colors",
-                "focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-ring/50",
-                error ? "border-destructive" : "border-border/70",
-              )}
-            />
-          ))}
-        </div>
+        <OtpCodeInput
+          className="my-5"
+          onComplete={onVerify}
+          onCodeChange={setCode}
+          resetSignal={resetSignal}
+          invalid={!!error}
+        />
 
-        {error && <p className="text-center text-sm text-destructive">{error}</p>}
+        {error && <p role="alert" className="text-center text-sm text-destructive">{error}</p>}
 
         <Button
           variant="brand"
           className="w-full"
           size="lg"
           loading={verifying}
-          disabled={code.length < CODE_LEN || verifying}
+          disabled={code.length < OTP_CODE_LEN || verifying}
           onClick={() => onVerify(code)}
         >
           {t("order.otp.verifyAndPlace")}

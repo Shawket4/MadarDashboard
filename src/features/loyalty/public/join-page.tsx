@@ -34,7 +34,7 @@ import { useLoyaltyJoinInfo, useLoyaltyJoin } from "@/data/api/generated/api";
 import { clearDeviceToken } from "@/features/public-shell/guest";
 import type { JoinInfo, JoinResult } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { PhoneVerify } from "@/features/reservations/phone-verify";
+import { PhoneVerify } from "@/features/public-shell/phone-verify";
 import { DURATION, easeOutExpo } from "@/lib/motion";
 
 import { resolveBrand, type ResolvedBrand } from "../shared/brand";
@@ -250,22 +250,25 @@ function Form({
           onVerified={submit}
           busy={join.isPending}
           disabled={!name.trim()}
-          submitLabel={t("loyalty.join", "Join")}
-          hint={
-            mustVerify
-              ? mustVerify.card_link_sent
-                ? t(
-                    "loyalty.phoneHintVerifySent",
-                    "This number already has a card. We've sent its link to you on WhatsApp — or tap Join again and we'll send a code to confirm it's yours.",
-                  )
-                : t(
-                    "loyalty.phoneHintVerify",
-                    "This number already has a card. Tap Join again and we'll send a code to confirm it's yours.",
-                  )
-              : data.require_otp
-                ? t("loyalty.phoneHintOtp", "We'll send a code to confirm it, then make your card.")
-                : t("loyalty.phoneHint", "Your card is tied to this number — it's how the counter finds you.")
-          }
+          copy={{
+            title: t("reservations.phoneTitle", "Your WhatsApp number"),
+            sent: (phone) => t("reservations.otpSent", "We sent a WhatsApp code to {{phone}}.", { phone }),
+            submitLabel: t("loyalty.join", "Join"),
+            hint:
+              mustVerify
+                ? mustVerify.card_link_sent
+                  ? t(
+                      "loyalty.phoneHintVerifySent",
+                      "This number already has a card. We've sent its link to you on WhatsApp — or tap Join again and we'll send a code to confirm it's yours.",
+                    )
+                  : t(
+                      "loyalty.phoneHintVerify",
+                      "This number already has a card. Tap Join again and we'll send a code to confirm it's yours.",
+                    )
+                : data.require_otp
+                  ? t("loyalty.phoneHintOtp", "We'll send a code to confirm it, then make your card.")
+                  : t("loyalty.phoneHint", "Your card is tied to this number — it's how the counter finds you."),
+          }}
         />
 
         {error ? (
