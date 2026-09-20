@@ -3393,6 +3393,24 @@
         "card": "Card on delivery"
       },
       "floor": "Floor {{floor}}"
+    },
+    "identity": {
+      "nameLegend": "You changed the name",
+      "nameOnce": "Just this order",
+      "nameOnceHint": "I’m ordering for someone else. My name stays as it is.",
+      "nameReplace": "Update my name",
+      "nameReplaceHint": "Use this name on my card and my next orders.",
+      "phoneTitle": "Is this your new number?",
+      "phoneBody": "The number you entered isn’t the one we know you by.",
+      "phoneCurrent": "Your number",
+      "phoneNew": "You entered",
+      "phoneLegend": "What should we do with it?",
+      "phoneOnce": "Just this order",
+      "phoneOnceHint": "I’m ordering for someone else. We’ll call this number about the order; your points and your number stay yours.",
+      "phoneReplace": "This is my new number",
+      "phoneReplaceHint": "We’ll send it a WhatsApp code, then move your orders, points and card to it.",
+      "phoneCancel": "Keep my number",
+      "phoneContinue": "Continue"
     }
   },
   "deliveryTimeline": {
