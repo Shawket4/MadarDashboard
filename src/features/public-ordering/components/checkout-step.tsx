@@ -48,6 +48,8 @@ interface CheckoutStepProps {
   discountAmount?: number;
   submitting: boolean;
   error: string | null;
+  /** The server's refusal of this phone (a code it would not send) — shown under the field. */
+  phoneError?: string | null;
   onSubmit: () => void;
   /** When true the phone field is read-only (already collected in the phone step). */
   phoneReadOnly?: boolean;
@@ -62,6 +64,7 @@ export function CheckoutStep({
   discountAmount = 0,
   submitting,
   error,
+  phoneError,
   onSubmit,
   phoneReadOnly = false,
 }: CheckoutStepProps) {
@@ -144,7 +147,7 @@ export function CheckoutStep({
             aria-invalid={!!errors.name}
           />
         </Field>
-        <Field label={t("order.checkout.phone")} htmlFor="po-phone" required error={errors.phone}>
+        <Field label={t("order.checkout.phone")} htmlFor="po-phone" required error={errors.phone ?? phoneError ?? undefined}>
           <div className="relative">
             <span
               aria-hidden
@@ -163,7 +166,7 @@ export function CheckoutStep({
               autoComplete="tel"
               dir="ltr"
               className={cn("ps-12", phoneReadOnly && "cursor-default bg-muted/50 text-muted-foreground")}
-              aria-invalid={!!errors.phone}
+              aria-invalid={!!(errors.phone ?? phoneError)}
             />
           </div>
         </Field>

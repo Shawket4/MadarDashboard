@@ -12,9 +12,11 @@
  * wallet pass's "this is my new number" — can reuse the machine and the UI
  * without touching either.
  */
+import { AxiosError } from "axios";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { getErrorMessage } from "@/data/api/errors";
 import { useOtpRequest, useOtpVerify } from "@/data/api/generated/api";
 import { canonicalPhone } from "@/lib/phone";
 
@@ -50,6 +52,16 @@ export function useOtpTransport(): PhoneOtpTransport {
     [requestCode, verifyCode, request.isPending, verify.isPending],
   );
 }
+
+/**
+ * What the server said when it refused to send a code — a number WhatsApp
+ * cannot reach, or "a code was just sent" — belongs under the field in its own
+ * words. Anything else (offline, a 5xx) gets the flow's generic line.
+ */
+export const otpRefusal = (err: unknown): string | null => {
+  const status = err instanceof AxiosError ? err.response?.status : undefined;
+  return status !== undefined && status >= 400 && status < 500 ? getErrorMessage(err) : null;
+};
 
 export type PhoneOtpStage = "phone" | "otp";
 
@@ -112,8 +124,8 @@ export function usePhoneOtp({ otpRequired, initialPhone = "", onVerified, transp
       await requestCode(canonical);
       setStage("otp");
       setResetSignal((n) => n + 1);
-    } catch {
-      setError(t("order.otp.errSend", "Couldn’t send the code. Try again."));
+    } catch (err) {
+      setError(otpRefusal(err) ?? t("order.otp.errSend", "Couldn’t send the code. Try again."));
     }
   }, [canonical, otpRequired, onVerified, requestCode, t]);
 
@@ -137,8 +149,8 @@ export function usePhoneOtp({ otpRequired, initialPhone = "", onVerified, transp
     try {
       await requestCode(canonical);
       setResetSignal((n) => n + 1);
-    } catch {
-      setError(t("order.otp.errSend", "Couldn’t send the code. Try again."));
+    } catch (err) {
+      setError(otpRefusal(err) ?? t("order.otp.errSend", "Couldn’t send the code. Try again."));
     }
   }, [canonical, requestCode, t]);
 

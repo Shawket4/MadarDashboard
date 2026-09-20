@@ -34,7 +34,7 @@ import { BranchStep } from "./components/branch-step";
 import { BranchSelector } from "./components/branch-selector";
 import { ChannelStep } from "./components/channel-step";
 import { ChannelClosed } from "./components/channel-closed";
-import { useOtpTransport } from "@/features/public-shell/use-phone-otp";
+import { otpRefusal, useOtpTransport } from "@/features/public-shell/use-phone-otp";
 import { PhoneStep } from "./components/phone-step";
 import { LocationStep } from "./components/location-step";
 import { MenuStep } from "./components/menu-step";
@@ -180,6 +180,7 @@ export function PublicOrderingPage({
     unit_number: prefillUnitNumber ?? "",
   }));
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // OTP
   const [otpOpen, setOtpOpen] = useState(false);
@@ -625,11 +626,14 @@ export function PublicOrderingPage({
     }
     // No trusted device → request an OTP, then open the verify dialog.
     setOtpError(null);
+    setPhoneError(null);
     try {
       await otp.requestCode(wirePhone(form.phone));
       setOtpOpen(true);
-    } catch {
-      setSubmitError(t("order.otp.errSend"));
+    } catch (err) {
+      const refused = otpRefusal(err);
+      if (refused) setPhoneError(refused);
+      else setSubmitError(t("order.otp.errSend"));
     }
   };
 
@@ -658,8 +662,8 @@ export function PublicOrderingPage({
     setOtpError(null);
     try {
       await otp.requestCode(wirePhone(form.phone));
-    } catch {
-      setOtpError(t("order.otp.errSend"));
+    } catch (err) {
+      setOtpError(otpRefusal(err) ?? t("order.otp.errSend"));
     }
   };
 
@@ -836,12 +840,16 @@ export function PublicOrderingPage({
               <CheckoutStep
                 channel={selectedChannel}
                 form={form}
-                onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+                onChange={(patch) => {
+                  if ("phone" in patch) setPhoneError(null);
+                  setForm((f) => ({ ...f, ...patch }));
+                }}
                 lines={lines}
                 deliveryFee={deliveryFee}
                 discountAmount={discountAmount}
                 submitting={createOrder.isPending || otp.sending}
                 error={submitError}
+                phoneError={phoneError}
                 onSubmit={handlePlace}
                 phoneReadOnly={!!resolvedPhone}
               />

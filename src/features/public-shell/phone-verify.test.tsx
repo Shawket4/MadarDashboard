@@ -3,6 +3,7 @@
  * sign-up, driven through an injected transport — no endpoint is assumed.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AxiosError, type AxiosResponse } from "axios";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -118,6 +119,19 @@ describe("PhoneVerify", () => {
     await userEvent.click(screen.getByRole("button", { name: "Go" }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(phoneBox()).toBeInTheDocument();
+  });
+
+  it("shows the server's own words under the field when it refuses the number", async () => {
+    const refused = new AxiosError("Bad Request", "ERR_BAD_REQUEST", undefined, undefined, {
+      status: 400,
+      data: { error: "WhatsApp cannot reach this number." },
+    } as AxiosResponse);
+    const tr = transport({ requestCode: vi.fn().mockRejectedValue(refused) });
+    mount({ transport: tr });
+    await userEvent.type(phoneBox(), "+14155552671");
+    await userEvent.click(screen.getByRole("button", { name: "Go" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("WhatsApp cannot reach this number.");
+    expect(phoneBox()).toHaveAttribute("aria-invalid", "true");
   });
 
   it("resends, and goes back to change the number", async () => {
