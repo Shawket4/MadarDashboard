@@ -20,6 +20,9 @@
  *  - **Staff** — user `name`, `email`, `phone`, `national_id`,
  *    `base_salary_piastres`, `emergency_contact_name` / `_phone`, and the
  *    attendance geofence fixes `check_in_latitude` / `check_in_longitude`.
+ *  - **Order now** — the card's `member_token` (in the body, and as the
+ *    `/now/<token>` path segment), `device_token` / `contact_device_token` /
+ *    `new_phone_device_token`, `new_phone`, and saved addresses as objects.
  *  - **Credentials** — the bearer JWT this app holds in `localStorage` and
  *    sends on every request, delivery OTP codes, and WhatsApp device tokens.
  *
@@ -173,6 +176,19 @@ export const PII_KEY_ALLOWLIST: readonly string[] = [
   "device.model",
 ];
 
+/**
+ * Case-insensitive **equality**, and THIS SURFACE'S OWN — not one of the three
+ * shared lists, so the parity check has nothing to say about it.
+ *
+ * The rest of where someone lives. `address_line`, `place_name` and `landmark`
+ * fall to the shared denylist; the floor, the flat and the note for the driver
+ * do not, and with saved addresses (`GET /customers/{id}/addresses`, the
+ * order-now context) they now travel as whole objects rather than only inside
+ * a request body that is dropped anyway. Exact, because `floor` as a substring
+ * would eat the floor plan's every key.
+ */
+export const PII_KEY_LOCAL_EXACT: readonly string[] = ["floor", "unit_number", "delivery_notes"];
+
 /** True when a key must be redacted, given the key of the object containing it. */
 export function isPiiPath(parent: string | undefined, key: string): boolean {
   const k = key.toLowerCase();
@@ -180,7 +196,7 @@ export function isPiiPath(parent: string | undefined, key: string): boolean {
   if (parent && PII_KEY_ALLOWLIST.includes(`${parent.toLowerCase()}.${k}`)) return false;
   if (PII_KEY_ALLOWLIST.includes(k)) return false;
   // 2. Exact short forms.
-  if (PII_KEY_EXACT.includes(k)) return true;
+  if (PII_KEY_EXACT.includes(k) || PII_KEY_LOCAL_EXACT.includes(k)) return true;
   // 3. Substrings.
   return PII_KEY_DENYLIST.some((needle) => k.includes(needle));
 }
@@ -205,6 +221,14 @@ const LABELLED = /("?([A-Za-z_][A-Za-z0-9_-]*)"?\s*[:=]\s*)("[^"]*"|'[^']*'|\[re
 /** `Bearer <token>` in free text, which the labelled rule cannot see. */
 const AUTH_SCHEME = /\b(bearer|basic|token)\s+[A-Za-z0-9\-._~+/=]{8,}/gi;
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+/**
+ * A loyalty card's member token riding in a PATH: the ordering app's
+ * `/now/<token>` and the API's `/public/order-now/<token>[/…]`. It is a bearer
+ * of identity (it names a customer, and it is the QR on their card), and a
+ * path segment is invisible to every key-based rule and survives
+ * {@link stripUrlQuery}, which only cuts the query.
+ */
+const CARD_TOKEN_PATH = /(\/(?:order-now|now)\/)[^/?#\s"'<>]+/gi;
 /** Loose phone-shaped runs, confirmed by {@link looksLikePhone}. */
 const PHONE = /(?:\+|00)?\d[\d ()-]{6,18}\d/g;
 
@@ -254,6 +278,7 @@ export function sanitizeText(input: string): string {
       value.startsWith(REDACTED) || !isPiiKey(key) ? whole : `${prefix}${REDACTED}`,
     )
     .replace(AUTH_SCHEME, (_whole, scheme: string) => `${scheme} ${REDACTED}`)
+    .replace(CARD_TOKEN_PATH, (_whole, prefix: string) => `${prefix}${REDACTED}`)
     .replace(EMAIL, REDACTED)
     .replace(PHONE, (m) => (looksLikePhone(m) ? REDACTED : m));
 }
