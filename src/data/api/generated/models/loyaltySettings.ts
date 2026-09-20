@@ -155,6 +155,26 @@ export interface LoyaltySettings {
      * programme off for everyone who had not updated yet.
      */
   reward_any_item?: boolean;
+  /**
+     * Count stamps per LINE ITEM rather than per sale. Stamps mode only.
+     *
+     * Off, an order of three lattes is one stamp. On, it is three, and a line
+     * of quantity three is three — the rate the customer counts coffees at,
+     * which is what a card saying "buy ten coffees" promised them.
+     *
+     * **`None` on the way IN means "leave it as it is."** This type doubles as
+     * the PUT body and a settings save replaces the row wholesale, so a
+     * dashboard built before this field existed would otherwise send `false`
+     * by omission and silently put a per-item programme back on per-order —
+     * or, with the other default, silently triple every existing card's rate.
+     * Neither is a decision a stale browser tab gets to make. A fresh scope
+     * with nothing sent resolves to `true`: that is what a stamp card means,
+     * and a new programme should not need a switch to get it.
+     *
+     * Always `Some` on the way OUT; the column is NOT NULL.
+     * @nullable
+     */
+  stamp_per_line_item?: boolean | null;
   /** @nullable */
   terms?: string | null;
   /** @nullable */

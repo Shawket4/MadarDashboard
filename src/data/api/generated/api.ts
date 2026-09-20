@@ -211,6 +211,7 @@ import type {
   Discount,
   DiscountsAuditParams,
   DrinkRecipe,
+  EarningItemList,
   Employee,
   ErrorBody,
   ExplainParams,
@@ -235,6 +236,7 @@ import type {
   GetLoyaltyAnalyticsParams,
   GetLoyaltyBehaviorParams,
   GetLoyaltyCampaignEffectivenessParams,
+  GetLoyaltyEarningItemsParams,
   GetLoyaltyLiabilityTrendParams,
   GetLoyaltyMemberParams,
   GetLoyaltyRewardItemsParams,
@@ -448,6 +450,7 @@ import type {
   PutAllowedAddonsRequest,
   PutAttendanceSettingsRequest,
   PutBalanceRequest,
+  PutEarningItems,
   PutEmployeeRequest,
   PutItemOptionsRequest,
   PutMarginTargetParams,
@@ -14389,6 +14392,153 @@ export function useGetLoyaltyCampaignEffectiveness<TData = Awaited<ReturnType<ty
 
 
 
+
+export const getLoyaltyEarningItems = (
+    params?: GetLoyaltyEarningItemsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<EarningItemList>(
+      {url: `/loyalty/earning-items`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLoyaltyEarningItemsQueryKey = (params?: GetLoyaltyEarningItemsParams,) => {
+    return [
+    `/loyalty/earning-items`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLoyaltyEarningItemsQueryOptions = <TData = Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError = ErrorBody>(params?: GetLoyaltyEarningItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLoyaltyEarningItemsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLoyaltyEarningItems>>> = ({ signal }) => getLoyaltyEarningItems(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLoyaltyEarningItemsQueryResult = NonNullable<Awaited<ReturnType<typeof getLoyaltyEarningItems>>>
+export type GetLoyaltyEarningItemsQueryError = ErrorBody
+
+
+export function useGetLoyaltyEarningItems<TData = Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError = ErrorBody>(
+ params: undefined |  GetLoyaltyEarningItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyEarningItems>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyEarningItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyEarningItems<TData = Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError = ErrorBody>(
+ params?: GetLoyaltyEarningItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLoyaltyEarningItems>>,
+          TError,
+          Awaited<ReturnType<typeof getLoyaltyEarningItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLoyaltyEarningItems<TData = Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError = ErrorBody>(
+ params?: GetLoyaltyEarningItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetLoyaltyEarningItems<TData = Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError = ErrorBody>(
+ params?: GetLoyaltyEarningItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLoyaltyEarningItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLoyaltyEarningItemsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const putLoyaltyEarningItems = (
+    putEarningItems: PutEarningItems,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<EarningItemList>(
+      {url: `/loyalty/earning-items`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: putEarningItems, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutLoyaltyEarningItemsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLoyaltyEarningItems>>, TError,{data: PutEarningItems}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putLoyaltyEarningItems>>, TError,{data: PutEarningItems}, TContext> => {
+
+const mutationKey = ['putLoyaltyEarningItems'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putLoyaltyEarningItems>>, {data: PutEarningItems}> = (props) => {
+          const {data} = props ?? {};
+
+          return  putLoyaltyEarningItems(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutLoyaltyEarningItemsMutationResult = NonNullable<Awaited<ReturnType<typeof putLoyaltyEarningItems>>>
+    export type PutLoyaltyEarningItemsMutationBody = PutEarningItems
+    export type PutLoyaltyEarningItemsMutationError = ErrorBody
+
+    export const usePutLoyaltyEarningItems = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLoyaltyEarningItems>>, TError,{data: PutEarningItems}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putLoyaltyEarningItems>>,
+        TError,
+        {data: PutEarningItems},
+        TContext
+      > => {
+      return useMutation(getPutLoyaltyEarningItemsMutationOptions(options), queryClient);
+    }
 
 export const getLoyaltyLiabilityTrend = (
     params?: GetLoyaltyLiabilityTrendParams,

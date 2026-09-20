@@ -6212,6 +6212,7 @@ export const PreviewLoyaltyBirthdayMessageBody = zod.object({
   "program_name_ar": zod.string().nullish(),
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
   "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
+  "stamp_per_line_item": zod.boolean().nullish().describe('Count stamps per LINE ITEM rather than per sale. Stamps mode only.\n\nOff, an order of three lattes is one stamp. On, it is three, and a line\nof quantity three is three — the rate the customer counts coffees at,\nwhich is what a card saying \"buy ten coffees\" promised them.\n\n\*\*`None` on the way IN means \"leave it as it is.\"\*\* This type doubles as\nthe PUT body and a settings save replaces the row wholesale, so a\ndashboard built before this field existed would otherwise send `false`\nby omission and silently put a per-item programme back on per-order —\nor, with the other default, silently triple every existing card\'s rate.\nNeither is a decision a stale browser tab gets to make. A fresh scope\nwith nothing sent resolves to `true`: that is what a stamp card means,\nand a new programme should not need a switch to get it.\n\nAlways `Some` on the way OUT; the column is NOT NULL.'),
   "terms": zod.string().nullish(),
   "terms_ar": zod.string().nullish(),
   "winback_enabled": zod.boolean().optional().describe('Nudge a member who has not been in for a while. Off by default, like\neverything here that speaks to a customer unprompted.\n\nThe timing is not a per-shop setting: how long \"a while\" is, whether it\nrepeats, and how stale is too stale are one operational judgement across\nthe estate, and they live in the environment\n(`LOYALTY_WINBACK_\*`) rather than in a form where a shop could set it to\na day and burn its own list down.'),
@@ -6241,6 +6242,43 @@ export const GetLoyaltyCampaignEffectivenessResponse = zod.object({
   "from": zod.iso.datetime({"offset":true}),
   "to": zod.iso.datetime({"offset":true})
 })
+
+
+export const GetLoyaltyEarningItemsQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')
+})
+
+export const GetLoyaltyEarningItemsResponse = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "inherited": zod.boolean().describe('True when these rows are the org\'s rather than this branch\'s own.'),
+  "items": zod.array(zod.object({
+  "base_price": zod.number().describe('Menu price in piastres. Shown so an admin picking items can see what\nthey are handing a stamp for.'),
+  "image_url": zod.string().nullish(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string(),
+  "sort_order": zod.number()
+}).describe('One item that collects, denormalised for the picker the same way a reward is.')).describe('Empty means EVERY item collects — not that nothing does.'),
+  "org_id": zod.uuid()
+}).describe('The list in force at a scope, and whether it came from the org.')
+
+
+export const PutLoyaltyEarningItemsBody = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "menu_item_ids": zod.array(zod.uuid()).describe('The complete list for this scope, in order. An empty list clears it: for\nan org that means every item collects again, for a branch it means going\nback to inheriting the org\'s.')
+})
+
+export const PutLoyaltyEarningItemsResponse = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "inherited": zod.boolean().describe('True when these rows are the org\'s rather than this branch\'s own.'),
+  "items": zod.array(zod.object({
+  "base_price": zod.number().describe('Menu price in piastres. Shown so an admin picking items can see what\nthey are handing a stamp for.'),
+  "image_url": zod.string().nullish(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string(),
+  "sort_order": zod.number()
+}).describe('One item that collects, denormalised for the picker the same way a reward is.')).describe('Empty means EVERY item collects — not that nothing does.'),
+  "org_id": zod.uuid()
+}).describe('The list in force at a scope, and whether it came from the org.')
 
 
 export const GetLoyaltyLiabilityTrendQueryParams = zod.object({
@@ -6579,6 +6617,7 @@ export const GetLoyaltySettingsResponse = zod.object({
   "program_name_ar": zod.string().nullish(),
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
   "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
+  "stamp_per_line_item": zod.boolean().nullish().describe('Count stamps per LINE ITEM rather than per sale. Stamps mode only.\n\nOff, an order of three lattes is one stamp. On, it is three, and a line\nof quantity three is three — the rate the customer counts coffees at,\nwhich is what a card saying \"buy ten coffees\" promised them.\n\n\*\*`None` on the way IN means \"leave it as it is.\"\*\* This type doubles as\nthe PUT body and a settings save replaces the row wholesale, so a\ndashboard built before this field existed would otherwise send `false`\nby omission and silently put a per-item programme back on per-order —\nor, with the other default, silently triple every existing card\'s rate.\nNeither is a decision a stale browser tab gets to make. A fresh scope\nwith nothing sent resolves to `true`: that is what a stamp card means,\nand a new programme should not need a switch to get it.\n\nAlways `Some` on the way OUT; the column is NOT NULL.'),
   "terms": zod.string().nullish(),
   "terms_ar": zod.string().nullish(),
   "winback_enabled": zod.boolean().optional().describe('Nudge a member who has not been in for a while. Off by default, like\neverything here that speaks to a customer unprompted.\n\nThe timing is not a per-shop setting: how long \"a while\" is, whether it\nrepeats, and how stale is too stale are one operational judgement across\nthe estate, and they live in the environment\n(`LOYALTY_WINBACK_\*`) rather than in a form where a shop could set it to\na day and burn its own list down.'),
@@ -6610,6 +6649,7 @@ export const PutLoyaltySettingsBody = zod.object({
   "program_name_ar": zod.string().nullish(),
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
   "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
+  "stamp_per_line_item": zod.boolean().nullish().describe('Count stamps per LINE ITEM rather than per sale. Stamps mode only.\n\nOff, an order of three lattes is one stamp. On, it is three, and a line\nof quantity three is three — the rate the customer counts coffees at,\nwhich is what a card saying \"buy ten coffees\" promised them.\n\n\*\*`None` on the way IN means \"leave it as it is.\"\*\* This type doubles as\nthe PUT body and a settings save replaces the row wholesale, so a\ndashboard built before this field existed would otherwise send `false`\nby omission and silently put a per-item programme back on per-order —\nor, with the other default, silently triple every existing card\'s rate.\nNeither is a decision a stale browser tab gets to make. A fresh scope\nwith nothing sent resolves to `true`: that is what a stamp card means,\nand a new programme should not need a switch to get it.\n\nAlways `Some` on the way OUT; the column is NOT NULL.'),
   "terms": zod.string().nullish(),
   "terms_ar": zod.string().nullish(),
   "winback_enabled": zod.boolean().optional().describe('Nudge a member who has not been in for a while. Off by default, like\neverything here that speaks to a customer unprompted.\n\nThe timing is not a per-shop setting: how long \"a while\" is, whether it\nrepeats, and how stale is too stale are one operational judgement across\nthe estate, and they live in the environment\n(`LOYALTY_WINBACK_\*`) rather than in a form where a shop could set it to\na day and burn its own list down.'),
@@ -6640,6 +6680,7 @@ export const PutLoyaltySettingsResponse = zod.object({
   "program_name_ar": zod.string().nullish(),
   "require_otp": zod.boolean().describe('Verify the signup phone by WhatsApp code, like bookings and ordering.'),
   "reward_any_item": zod.boolean().optional().describe('Any menu item may be taken as a reward, at `default_reward_cost`.\n\nOff by default. A curated catalogue is the safer shape — it offers an\nespresso for five stamps without also offering the steak — and this is\nfor the shops whose programme genuinely is \"collect five, get anything\",\nwhich a catalogue can only express by listing the entire menu and\nkeeping that list in step with it forever.\n\nThe two are alternatives, not layers: with this on, the catalogue\'s\nper-item prices no longer apply, because an item\'s cost can no longer\ndepend on which item it is.\n\nDefaulted on the way in, because this type is the REQUEST body as well\nas the response: every till and dashboard already in the field sends a\nsettings object without this key, and rejecting those would switch the\nprogramme off for everyone who had not updated yet.'),
+  "stamp_per_line_item": zod.boolean().nullish().describe('Count stamps per LINE ITEM rather than per sale. Stamps mode only.\n\nOff, an order of three lattes is one stamp. On, it is three, and a line\nof quantity three is three — the rate the customer counts coffees at,\nwhich is what a card saying \"buy ten coffees\" promised them.\n\n\*\*`None` on the way IN means \"leave it as it is.\"\*\* This type doubles as\nthe PUT body and a settings save replaces the row wholesale, so a\ndashboard built before this field existed would otherwise send `false`\nby omission and silently put a per-item programme back on per-order —\nor, with the other default, silently triple every existing card\'s rate.\nNeither is a decision a stale browser tab gets to make. A fresh scope\nwith nothing sent resolves to `true`: that is what a stamp card means,\nand a new programme should not need a switch to get it.\n\nAlways `Some` on the way OUT; the column is NOT NULL.'),
   "terms": zod.string().nullish(),
   "terms_ar": zod.string().nullish(),
   "winback_enabled": zod.boolean().optional().describe('Nudge a member who has not been in for a while. Off by default, like\neverything here that speaks to a customer unprompted.\n\nThe timing is not a per-shop setting: how long \"a while\" is, whether it\nrepeats, and how stale is too stale are one operational judgement across\nthe estate, and they live in the environment\n(`LOYALTY_WINBACK_\*`) rather than in a form where a shop could set it to\na day and burn its own list down.'),

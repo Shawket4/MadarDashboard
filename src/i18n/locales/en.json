@@ -4783,7 +4783,19 @@
     "statOutstandingHint": "Held by {{count}} members",
     "topRewards": "Top rewards (last 30 days)",
     "topRewardsEmpty": "No rewards redeemed in the last 30 days.",
-    "topRewardsTimes": "{{count}} redemptions · {{units}} items"
+    "topRewardsTimes": "{{count}} redemptions · {{units}} items",
+    "stampPerItem": "A stamp for every item, not every order",
+    "stampPerItemOn": "Three coffees on one bill is three stamps. Two of the same line counts twice.",
+    "stampPerItemOff": "One stamp per order, whatever the bill comes to — three coffees at once is one stamp.",
+    "stampPerItemWhich": "Choose which items collect under Rewards. Pick none and everything on the menu collects.",
+    "stampFreeItemHint": "An item taken as a reward never earns a stamp back.",
+    "earningItems": "Items that collect a stamp",
+    "earningItemsAll": "Nothing picked, so everything on the menu collects. Pick items here to narrow it.",
+    "earningItemsSome": "Only these items collect. Remove them all to go back to the whole menu.",
+    "earningItemsInert": "This programme gives one stamp per order, so every sale counts the same and this list is not used. Turn on “a stamp for every item” under Programme to use it.",
+    "earningItemsInherited": "This branch uses the organisation's list. Saving here gives it one of its own.",
+    "addEarningItem": "Add an item that collects",
+    "earningSaved": "Saved"
   },
   "publicShell": {
     "poweredBy": {
