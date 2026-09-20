@@ -4,11 +4,38 @@
  * and local-time helpers. Pure — everything here is unit-tested.
  */
 import { TZDate } from "@date-fns/tz";
+import { z } from "zod";
 
 import { queryClient } from "@/data/api/query";
 import { fmtHour, getActiveTz } from "@/lib/format";
+import { canonicalPhone, formatPhoneInput, phoneSchema } from "@/lib/phone";
 import type { BookingSettings } from "@/data/api/generated/models/bookingSettings";
 import type { BookingView } from "@/data/api/generated/models/bookingView";
+
+/**
+ * Who the booking is for — the typed part of the booking form. Messages are
+ * i18n keys. The phone follows the one shared rule (`src/lib/phone.ts`).
+ */
+export const bookingGuestSchema = z.object({
+  guest_name: z.string().trim().min(1, { message: "bookings.errName" }),
+  guest_phone: phoneSchema({ required: true, messages: { required: "bookings.errPhoneRequired", invalid: "bookings.errPhone" } }),
+  notes: z.string(),
+});
+
+export type BookingGuestValues = z.infer<typeof bookingGuestSchema>;
+
+/** The form's values for a booking being edited (or a blank one). */
+export const guestValuesOf = (
+  b?: Pick<BookingView, "guest_name" | "guest_phone" | "notes"> | null,
+): BookingGuestValues => ({
+  guest_name: b?.guest_name ?? "",
+  // Stored canonical (`201…`); shown the way a host would type it.
+  guest_phone: formatPhoneInput(b?.guest_phone),
+  notes: b?.notes ?? "",
+});
+
+/** What goes on the wire: the canonical phone. The schema has already vouched for it. */
+export const guestPhoneToWire = (typed: string): string => canonicalPhone(typed) ?? typed.trim();
 
 export const BOOKING_STATUSES = ["confirmed", "seated", "completed", "no_show", "cancelled"] as const;
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];

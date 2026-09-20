@@ -4512,7 +4512,8 @@
     "coversCapHint": "Blank = only the tables limit it.",
     "blackouts": "Blackout dates",
     "addBlackout": "Add a date",
-    "blackoutsHint": "No online slots on these days. Hosts can still book by hand."
+    "blackoutsHint": "No online slots on these days. Hosts can still book by hand.",
+    "errPhoneRequired": "Enter the guest's phone number"
   },
   "loyalty": {
     "subtitle": "Points or stamps, the rewards they buy, and the code that signs people up.",
