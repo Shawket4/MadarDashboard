@@ -194,7 +194,8 @@
     "showLess": "Show less",
     "showMore": "Show more",
     "showMoreCount": "{{count}} more",
-    "reportsFinancial": "Financial"
+    "reportsFinancial": "Financial",
+    "reportsTills": "Tills"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -4839,6 +4840,50 @@
         "supplierSpend": "Supplier spend",
         "materialCostTrend": "Material cost trend"
       }
+    },
+    "tills": {
+      "title": "Till sessions",
+      "businessDate": "Business date",
+      "branch": "Branch",
+      "branchRef": "Branch ref.",
+      "user": "User",
+      "openedAt": "Opened at",
+      "openingAmount": "Opening",
+      "netCash": "Net cash",
+      "payIns": "Pay-ins",
+      "payOuts": "Pay-outs",
+      "cashDrops": "Cash drops",
+      "closingAmount": "Closing",
+      "expectedAmount": "Expected",
+      "variance": "Variance",
+      "closedAt": "Closed at",
+      "stillOpen": "Open",
+      "empty": "No till sessions opened in this period",
+      "subtitle_one": "{{count}} till session — opening float, cash through the drawer, and the close",
+      "subtitle_other": "{{count}} till sessions — opening float, cash through the drawer, and the close",
+      "tabSessions": "Sessions",
+      "tabSales": "Sales",
+      "tabTiming": "Open & close",
+      "orders": "Orders",
+      "sales": "Sales",
+      "search": "Search branch or user",
+      "totalSales": "Sales",
+      "totalOrders": "Orders",
+      "avgOrderValue": "Average bill",
+      "avgPerTill": "Average per till",
+      "bySession": "By session",
+      "avgOpen": "Typical open",
+      "avgClose": "Typical close",
+      "avgDuration": "Average length",
+      "longest": "Longest session",
+      "byHour": "Opens and closes by hour",
+      "opened": "Opened",
+      "closed": "Closed",
+      "acrossTills_one": "across {{count}} session",
+      "acrossTills_other": "across {{count}} sessions",
+      "stillOpenCount_one": "{{count}} still open",
+      "stillOpenCount_other": "{{count}} still open",
+      "ordersShare": "{{orders}} orders · {{share}}"
     }
   }
 }

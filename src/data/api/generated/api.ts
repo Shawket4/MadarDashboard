@@ -85,6 +85,7 @@ import type {
   BranchSupplierSpendParams,
   BranchTable,
   BranchTellerStatsParams,
+  BranchTillSessionsParams,
   BranchWaiterStatsParams,
   BranchWasteReportParams,
   BundlePerformanceParams,
@@ -481,6 +482,7 @@ import type {
   TillPreFill,
   TillRefunds,
   TillReportResponse,
+  TillSessionRow,
   TimeseriesPoint,
   TopUpRequest,
   TransferView,
@@ -25173,6 +25175,101 @@ export function useBranchTellerStats<TData = Awaited<ReturnType<typeof branchTel
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getBranchTellerStatsQueryOptions(branchId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const branchTillSessions = (
+    branchId: string,
+    params?: BranchTillSessionsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TillSessionRow[]>(
+      {url: `/reports/branches/${branchId}/tills`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBranchTillSessionsQueryKey = (branchId: string,
+    params?: BranchTillSessionsParams,) => {
+    return [
+    `/reports/branches/${branchId}/tills`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBranchTillSessionsQueryOptions = <TData = Awaited<ReturnType<typeof branchTillSessions>>, TError = ErrorBody>(branchId: string,
+    params?: BranchTillSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchTillSessions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBranchTillSessionsQueryKey(branchId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof branchTillSessions>>> = ({ signal }) => branchTillSessions(branchId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: branchId !== null && branchId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof branchTillSessions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BranchTillSessionsQueryResult = NonNullable<Awaited<ReturnType<typeof branchTillSessions>>>
+export type BranchTillSessionsQueryError = ErrorBody
+
+
+export function useBranchTillSessions<TData = Awaited<ReturnType<typeof branchTillSessions>>, TError = ErrorBody>(
+ branchId: string,
+    params: undefined |  BranchTillSessionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchTillSessions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchTillSessions>>,
+          TError,
+          Awaited<ReturnType<typeof branchTillSessions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchTillSessions<TData = Awaited<ReturnType<typeof branchTillSessions>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchTillSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchTillSessions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof branchTillSessions>>,
+          TError,
+          Awaited<ReturnType<typeof branchTillSessions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBranchTillSessions<TData = Awaited<ReturnType<typeof branchTillSessions>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchTillSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchTillSessions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useBranchTillSessions<TData = Awaited<ReturnType<typeof branchTillSessions>>, TError = ErrorBody>(
+ branchId: string,
+    params?: BranchTillSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof branchTillSessions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBranchTillSessionsQueryOptions(branchId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

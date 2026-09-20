@@ -53,6 +53,7 @@ import { Route as AppSettingsDeliveryZonesRouteImport } from './routes/_app/sett
 import { Route as AppSettingsDeliveryRouteImport } from './routes/_app/settings/delivery'
 import { Route as AppSettingsBrandRouteImport } from './routes/_app/settings/brand'
 import { Route as AppSettingsBookingsRouteImport } from './routes/_app/settings/bookings'
+import { Route as AppReportsTillsRouteImport } from './routes/_app/reports/tills'
 import { Route as AppReportsStaffRouteImport } from './routes/_app/reports/staff'
 import { Route as AppReportsSalesRouteImport } from './routes/_app/reports/sales'
 import { Route as AppReportsLoyaltyRouteImport } from './routes/_app/reports/loyalty'
@@ -312,6 +313,11 @@ const AppSettingsBookingsRoute = AppSettingsBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
+const AppReportsTillsRoute = AppReportsTillsRouteImport.update({
+  id: '/reports/tills',
+  path: '/reports/tills',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppReportsStaffRoute = AppReportsStaffRouteImport.update({
   id: '/reports/staff',
   path: '/reports/staff',
@@ -547,6 +553,7 @@ export interface FileRoutesByFullPath {
   '/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/reports/sales': typeof AppReportsSalesRoute
   '/reports/staff': typeof AppReportsStaffRoute
+  '/reports/tills': typeof AppReportsTillsRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -622,6 +629,7 @@ export interface FileRoutesByTo {
   '/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/reports/sales': typeof AppReportsSalesRoute
   '/reports/staff': typeof AppReportsStaffRoute
+  '/reports/tills': typeof AppReportsTillsRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -704,6 +712,7 @@ export interface FileRoutesById {
   '/_app/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/_app/reports/sales': typeof AppReportsSalesRoute
   '/_app/reports/staff': typeof AppReportsStaffRoute
+  '/_app/reports/tills': typeof AppReportsTillsRoute
   '/_app/settings/bookings': typeof AppSettingsBookingsRoute
   '/_app/settings/brand': typeof AppSettingsBrandRoute
   '/_app/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -786,6 +795,7 @@ export interface FileRouteTypes {
     | '/reports/loyalty'
     | '/reports/sales'
     | '/reports/staff'
+    | '/reports/tills'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/delivery'
@@ -861,6 +871,7 @@ export interface FileRouteTypes {
     | '/reports/loyalty'
     | '/reports/sales'
     | '/reports/staff'
+    | '/reports/tills'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/delivery'
@@ -942,6 +953,7 @@ export interface FileRouteTypes {
     | '/_app/reports/loyalty'
     | '/_app/reports/sales'
     | '/_app/reports/staff'
+    | '/_app/reports/tills'
     | '/_app/settings/bookings'
     | '/_app/settings/brand'
     | '/_app/settings/delivery'
@@ -1284,6 +1296,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/bookings'
       preLoaderRoute: typeof AppSettingsBookingsRouteImport
       parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/reports/tills': {
+      id: '/_app/reports/tills'
+      path: '/reports/tills'
+      fullPath: '/reports/tills'
+      preLoaderRoute: typeof AppReportsTillsRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/reports/staff': {
       id: '/_app/reports/staff'
@@ -1685,6 +1704,7 @@ interface AppRouteRouteChildren {
   AppReportsLoyaltyRoute: typeof AppReportsLoyaltyRoute
   AppReportsSalesRoute: typeof AppReportsSalesRoute
   AppReportsStaffRoute: typeof AppReportsStaffRoute
+  AppReportsTillsRoute: typeof AppReportsTillsRoute
   AppStaffAttendanceRoute: typeof AppStaffAttendanceRoute
   AppStaffEmployeesRoute: typeof AppStaffEmployeesRoute
   AppStaffRequestsRoute: typeof AppStaffRequestsRoute
@@ -1728,6 +1748,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppReportsLoyaltyRoute: AppReportsLoyaltyRoute,
   AppReportsSalesRoute: AppReportsSalesRoute,
   AppReportsStaffRoute: AppReportsStaffRoute,
+  AppReportsTillsRoute: AppReportsTillsRoute,
   AppStaffAttendanceRoute: AppStaffAttendanceRoute,
   AppStaffEmployeesRoute: AppStaffEmployeesRoute,
   AppStaffRequestsRoute: AppStaffRequestsRoute,

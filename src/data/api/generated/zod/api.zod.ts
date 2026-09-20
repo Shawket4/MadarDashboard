@@ -11866,6 +11866,39 @@ export const BranchTellerStatsResponseItem = zod.object({
 export const BranchTellerStatsResponse = zod.array(BranchTellerStatsResponseItem)
 
 
+export const BranchTillSessionsParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const BranchTillSessionsQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional(),
+  "to": zod.iso.datetime({"offset":true}).optional(),
+  "limit": zod.number().optional()
+})
+
+export const BranchTillSessionsResponseItem = zod.object({
+  "branch_code": zod.string().nullish().describe('The branch\'s own reference\/code, blank when the branch never set one.'),
+  "branch_name": zod.string(),
+  "business_date": zod.iso.date().describe('The branch-local calendar day the till was OPENED on \u2014 a till opened at\n23:50 and closed at 02:10 belongs to the day it opened, which is the\nday the takings are reported under.'),
+  "cash_discrepancy": zod.number().nullish().describe('Declared \u2212 expected. Negative = short, positive = over.'),
+  "cash_drops": zod.number().describe('Cash moved to the safe. Positive = the magnitude that left.'),
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "closing_cash_declared": zod.number().nullish().describe('What the teller counted at close. `null` while the till is open.'),
+  "closing_cash_system": zod.number().nullish().describe('What the system expected: opening + net cash + pay-ins \u2212 pay-outs \u2212\ndrops (\u00b1 corrections). `null` while the till is open.'),
+  "gross_sales": zod.number().describe('Those sales\' value, net of what refunds took back. The house revenue\ndefinition, so a till row and the teller report agree.'),
+  "net_cash_payment": zod.number().describe('Cash that came in over the counter: cash payments and cash tips on\ntendered sales, less cash handed back as refunds from this drawer.'),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opening_cash": zod.number(),
+  "orders_count": zod.number().describe('Sales rung on this till, voided and fully-refunded bills excluded \u2014\nthe same count the teller report uses.'),
+  "pay_ins": zod.number().describe('Cash added to the drawer that is not a sale (a float top-up).'),
+  "pay_outs": zod.number().describe('Cash spent out of the drawer. Positive = the magnitude that left.'),
+  "status": zod.string().describe('`open` | `closed` | `force_closed`.'),
+  "teller_name": zod.string(),
+  "till_id": zod.uuid()
+}).describe('One till session, the way a manager reconciles a drawer: what was in it at\nopen, what cash the shift put through it, what the teller declared at close,\nand what the system says should have been there.\n\nMoney is piastres. `null` means \*not yet known\* (an open till has no closing\nfigures), never zero \u2014 a till still running and a till that counted zero are\ndifferent facts.')
+export const BranchTillSessionsResponse = zod.array(BranchTillSessionsResponseItem)
+
+
 export const BranchWaiterStatsParams = zod.object({
   "branch_id": zod.uuid()
 })

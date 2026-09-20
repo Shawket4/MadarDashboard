@@ -113,12 +113,18 @@ land at **1.8–3.7:1** in light mode — below the 4.5:1 AA floor. Pulling the 
 to the page foreground fixes it while keeping the hue readable as amber/red/green:
 
 ```
-color-mix(in oklch, var(--color-warning) 50%, var(--color-foreground))
+color-mix(in oklab, var(--color-warning) 50%, var(--color-foreground))
 ```
 
 That formula measures **5.6–9.2:1 in both themes** (one formula, because `foreground`
 already flips with the theme where white/black would not). Measure in the browser rather
 than assuming — `--color-warning` in particular is far too light for text on its own.
+
+**Mix in `oklab`, never `oklch`.** `oklch` interpolates the HUE, and
+`--color-foreground` is not hueless (chroma .005 at hue 205). Mixing destructive
+(hue 30) toward it in `oklch` lands on hue 117 — a red that renders **green**. It
+passes a contrast check and still says the opposite of what it means. `oklab`
+interpolates in rectangular coordinates, so the hue holds.
 
 ## Floor / tables — the feature that spans all three repos
 `src/features/floor/` is the dashboard half of a feature shared with the POS.

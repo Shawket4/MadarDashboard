@@ -1572,3 +1572,28 @@ export const bookingAvailability = (_branchId: string, date: string, party: numb
 };
 
 export const bookingStats = () => ({ total: 3, covers: 6, seated: 1, completed: 0, no_show: 0, cancelled: 0, public_count: 2, host_count: 1, no_show_rate: 0 });
+
+/** Till sessions for the Tills report — one closed short, one over, one open. */
+export const MOCK_TILL_SESSIONS = [
+  {
+    till_id: "till_1", business_date: "2026-09-18", branch_name: "Zamalek", branch_code: "ZAM",
+    teller_name: "Nour Adel", opened_at: "2026-09-18T06:05:00Z", status: "closed",
+    opening_cash: 50000, net_cash_payment: 412300, pay_ins: 20000, pay_outs: 7500,
+    cash_drops: 300000, closing_cash_declared: 173300, closing_cash_system: 174800,
+    cash_discrepancy: -1500, orders_count: 148, gross_sales: 486200, closed_at: "2026-09-18T17:40:00Z",
+  },
+  {
+    till_id: "till_2", business_date: "2026-09-18", branch_name: "Maadi", branch_code: "MAD",
+    teller_name: "Omar Fathy", opened_at: "2026-09-18T06:10:00Z", status: "closed",
+    opening_cash: 50000, net_cash_payment: 268900, pay_ins: 0, pay_outs: 12000,
+    cash_drops: 200000, closing_cash_declared: 107650, closing_cash_system: 106900,
+    cash_discrepancy: 750, orders_count: 96, gross_sales: 312400, closed_at: "2026-09-18T18:02:00Z",
+  },
+  {
+    till_id: "till_3", business_date: "2026-09-19", branch_name: "Zamalek", branch_code: "ZAM",
+    teller_name: "Nour Adel", opened_at: "2026-09-19T06:00:00Z", status: "open",
+    opening_cash: 50000, net_cash_payment: 98400, pay_ins: 0, pay_outs: 0,
+    cash_drops: 0, closing_cash_declared: null, closing_cash_system: null,
+    cash_discrepancy: null, orders_count: 37, gross_sales: 104800, closed_at: null,
+  },
+];
