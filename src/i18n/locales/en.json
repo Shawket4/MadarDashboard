@@ -4795,7 +4795,15 @@
     "earningItemsInert": "This programme gives one stamp per order, so every sale counts the same and this list is not used. Turn on “a stamp for every item” under Programme to use it.",
     "earningItemsInherited": "This branch uses the organisation's list. Saving here gives it one of its own.",
     "addEarningItem": "Add an item that collects",
-    "earningSaved": "Saved"
+    "earningSaved": "Saved",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "safariTitle": "Open this page in your browser",
+    "safariBody": "Cards can't be added from inside {{app}}. Tap the ··· menu at the top of this screen and choose “Open in Safari”, then continue there.",
+    "safariStep1": "Tap the ··· menu at the top of this screen",
+    "safariStep2": "Choose “Open in Safari”",
+    "safariStep2Hint": "Some apps call it “Open in browser” or “Open in external browser”.",
+    "safariMenuItem": "Open in Safari"
   },
   "publicShell": {
     "poweredBy": {

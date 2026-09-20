@@ -24,6 +24,7 @@
  */
 import { useTranslation } from "react-i18next";
 
+import { chromeEscapeUrl, detectInAppBrowser } from "./detect-inapp";
 import { detectWallet, type WalletKind } from "./detect-wallet";
 
 interface Props {
@@ -48,6 +49,7 @@ function Badge({ kind, href, className = "" }: { kind: WalletKind; href: string;
     </a>
   );
 }
+
 
 export function WalletButtons({ passes }: Props) {
   const { t } = useTranslation();
@@ -85,12 +87,27 @@ export function WalletButtons({ passes }: Props) {
   const primary: WalletKind = detected && urls[detected] ? detected : available[0]!;
   const secondary = available.find((k) => k !== primary) ?? null;
 
+  // iOS inside an in-app browser never reaches here: `src/loyalty/main.tsx`
+  // replaces the whole page, because a pkpass cannot install from a webview.
+  // What remains is Android, where the save link loads but asks for a Google
+  // sign-in the webview cannot satisfy.
+  const inApp = detectInAppBrowser();
+
+  // Android: the Google save link loads but demands a Google sign-in the
+  // webview cannot satisfy. `intent://` hands it to Chrome, which already has
+  // the customer signed in, and falls back to the plain link without Chrome.
+  const href = (kind: WalletKind) => {
+    const url = urls[kind]!;
+    return inApp?.android && kind === "google" ? chromeEscapeUrl(url) : url;
+  };
+
+
   return (
     <div className="flex flex-col items-center gap-3">
-      <Badge kind={primary} href={urls[primary]!} className="h-[52px]" />
+      <Badge kind={primary} href={href(primary)} className="h-[52px]" />
       {secondary ? (
         <a
-          href={urls[secondary]!}
+          href={href(secondary)}
           className="rounded text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
           {secondary === "apple"

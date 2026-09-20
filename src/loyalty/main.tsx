@@ -67,12 +67,41 @@ import { JoinPage } from "@/features/loyalty/public/join-page";
 import { CardPage } from "@/features/loyalty/public/card-page";
 import { useHostOrg } from "@/features/public-shell/use-brand";
 import { ScanToJoin } from "@/features/loyalty/public/scan-to-join";
+import { detectInAppBrowser } from "@/features/loyalty/public/detect-inapp";
+import { OpenInSafariPage } from "@/features/loyalty/public/open-in-safari-page";
 
 // LIGHT unless this visitor chose otherwise on this shop — not the device's
 // preference. A storefront should look the same to every customer.
 initPublicTheme();
 
-const rootRoute = createRootRoute({ component: () => <Outlet /> });
+/**
+ * Every page on this origin, unless the visitor cannot finish here.
+ *
+ * On iOS inside Instagram/Facebook/TikTok the card cannot be installed at all —
+ * a `.pkpass` needs the OS to claim it and a webview cannot pass it on — and
+ * nothing escapes an in-app browser programmatically. Signing someone up there
+ * would succeed until the final tap and then fail in silence.
+ *
+ * So the gate is here rather than on the wallet button: the whole flow is
+ * replaced by the one instruction that leads somewhere. Android is unaffected —
+ * Google Wallet saves over ordinary HTTPS, and `chromeEscapeUrl` handles the
+ * sign-in case.
+ */
+const rootRoute = createRootRoute({
+  component: function Root() {
+    const inApp = detectInAppBrowser();
+    // Dev-only: this page is unreachable in a normal browser, because it is
+    // gated on an in-app user agent. `?inapp=Instagram` renders it so it can be
+    // looked at and its motion checked without spoofing a UA. Stripped from
+    // production builds by `import.meta.env.DEV`.
+    if (import.meta.env.DEV) {
+      const preview = new URLSearchParams(window.location.search).get("inapp");
+      if (preview) return <OpenInSafariPage app={preview} />;
+    }
+    if (inApp?.ios) return <OpenInSafariPage app={inApp.app} />;
+    return <Outlet />;
+  },
+});
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
