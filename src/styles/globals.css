@@ -441,6 +441,35 @@
   }
 }
 
+/* Loyalty "making your card" — three stamps landing on a tiny card, in turn,
+ * while the wallet pass is fetched. Decorative; under prefers-reduced-motion
+ * the stamps simply sit there filled. */
+@keyframes ly-stamp {
+  0%,
+  15% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  35%,
+  70% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  85%,
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+.ly-stamp {
+  animation: ly-stamp 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ly-stamp {
+    animation: none;
+  }
+}
+
 /* Onboarding celebration confetti — a little fun on "open my café". Purely
  * decorative; the surrounding container is hidden under prefers-reduced-motion. */
 @keyframes onb-confetti {
