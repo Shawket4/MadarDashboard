@@ -742,14 +742,6 @@
       "fullEditor": "Open full editor (sizes, translations)",
       "duplicate": "Duplicate",
       "duplicated": "Duplicated {{name}}",
-      "bulkPriceAction": "Adjust prices",
-      "bulkPrice": "Adjust prices ({{count}} items)",
-      "addEgp": "+ EGP",
-      "multiplyPct": "× %",
-      "addEgpHint": "Adds a flat EGP amount to each selected price.",
-      "multiplyPctHint": "Multiplies each selected price (110 = +10%).",
-      "bulkSummary": "Updated {{count}} prices",
-      "bulkSummaryFailed": "Updated {{ok}}, {{failed}} failed",
       "bulkCreated": "Created {{count}} items",
       "bulkCreateFailed": "Created {{ok}}, {{failed}} failed",
       "retryFailed": "Retry failed",
@@ -778,7 +770,6 @@
     "newCategory": "New category",
     "editCategory": "Edit category",
     "categoryDesc": "Categories group your menu items.",
-    "basePrice": "Base price (EGP)",
     "defaultPrice": "Default price (EGP)",
     "addonType": "Type",
     "selectCategory": "Select category",
@@ -793,7 +784,6 @@
     "sizes": "Sizes",
     "addSize": "Add size",
     "sizeLabel": "Label",
-    "noSizes": "No sizes — the base price applies.",
     "itemImage": "Image",
     "imageHint": "PNG/JPG/WebP, up to 5 MB",
     "imageAfterSave": "Uploads after the item is saved",
@@ -1024,7 +1014,10 @@
         "cost": "cost",
         "noStock": "no stock"
       }
-    }
+    },
+    "priceSection": "Price",
+    "needsOneSize": "An item needs at least one price.",
+    "addSizeHint": "Add a size to charge different prices for different sizes."
   },
   "recipes": {
     "title": "Recipes",

@@ -31,6 +31,7 @@ import { Cap } from "@/generated/capabilities";
 
 import { FixCostPopover } from "../studio/fix-cost-popover";
 import { newBlockKey, type RecipeLineDraft, type SizeBlockDraft } from "../studio/util";
+import { ONE_SIZE } from "../util";
 import {
   addRow,
   buildGridRows,
@@ -145,9 +146,13 @@ export function RecipeGrid({
       [next[idx], next[to]] = [next[to], next[idx]];
       return next;
     });
+  // Adding a real size to an item that only had the sentinel: the sentinel has
+  // to become a size a customer can see, so blank its label and let the person
+  // name it. Leaving it as `one_size` would offer old tills a size called
+  // "one_size" and price the item off a row nobody meant to keep.
   const addBlock = () =>
     setBlocks((prev) => [
-      ...prev,
+      ...prev.map((b) => (b.label === ONE_SIZE ? { ...b, label: "" } : b)),
       {
         key: newBlockKey(),
         label: "",
@@ -315,6 +320,14 @@ export function RecipeGrid({
                   return (
                     <th key={h.id} className={cn("px-2 py-2 align-bottom", dirty && "bg-accent/60")}>
                       <div className="flex items-center gap-1">
+                        {b.label === ONE_SIZE ? (
+                          // The sentinel size of a simple item. It is where the
+                          // price lives, but it is not a size anyone chooses, so
+                          // it shows as "Price" and cannot be renamed.
+                          <span className="inline-flex h-8 w-24 items-center text-sm font-medium">
+                            {t("menu.priceSection", "Price")}
+                          </span>
+                        ) : (
                         <Input
                           value={b.label}
                           placeholder={t("menu.studio.sizes.labelPh", "e.g. Small")}
@@ -323,6 +336,7 @@ export function RecipeGrid({
                           onChange={(e) => patchBlock(b.key, { label: e.target.value })}
                           className="h-8 w-24 font-medium"
                         />
+                        )}
                         {!locked ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

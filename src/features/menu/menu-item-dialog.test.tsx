@@ -16,6 +16,7 @@ vi.mock("./category-dialog", () => ({ CategoryDialog: () => null }));
 
 const invalidateCatalog = vi.fn();
 vi.mock("./util", () => ({
+  ONE_SIZE: "one_size",
   arOf: () => "",
   invalidateCatalog: () => invalidateCatalog(),
 }));
