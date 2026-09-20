@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "89bf72580f799c41";
+export const SPEC_HASH = "768db7c58923aebf";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -196,6 +196,7 @@ export type Capability =
   | "menu.packaging_rules.apply"
   | "orders.staff_drink.record"
   | "customers.merge"
+  | "customers.addresses.view"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -381,6 +382,7 @@ export const Cap = {
   menuPackagingRulesApply: "menu.packaging_rules.apply" as Capability,
   ordersStaffDrinkRecord: "orders.staff_drink.record" as Capability,
   customersMerge: "customers.merge" as Capability,
+  customersAddressesView: "customers.addresses.view" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -584,6 +586,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 221, key: "menu.packaging_rules.apply", legacy: null, group: "menu", tier: "advanced", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Re-apply packaging rules to every menu item", ar: "إعادة تطبيق قواعد التغليف على جميع أصناف القائمة", hintEn: null, hintAr: null },
   { id: 223, key: "orders.staff_drink.record", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Record a staff drink", ar: "تسجيل مشروب موظفين", hintEn: "Off for tellers by default. Turn it on to let the till put a drink on the branch's daily staff pool. A note saying who it is for is always required.", hintAr: "مقفول للكاشير في الأصل. افتحه عشان الكاشير يحسب المشروب على رصيد الموظفين اليومي بتاع الفرع. لازم دايمًا يكتب ملاحظة بالمشروب ده لمين." },
   { id: 224, key: "customers.merge", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Merge duplicate customers", ar: "دمج العملاء المكررين", hintEn: "Merging cannot be undone. When both are loyalty members, the points move to the customer that stays and the other card stops working.", hintAr: "الدمج لا يمكن التراجع عنه. لو الاتنين أعضاء في برنامج الولاء، النقاط بتتنقل للعميل اللي هيفضل والكارت التاني بيتوقف." },
+  { id: 225, key: "customers.addresses.view", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: false, limits: [], pos: true, protected: false, en: "See customers' saved addresses", ar: "عرض عناوين العملاء المحفوظة", hintEn: "The delivery addresses a customer has ordered to. Needed to dispatch an order; not needed to take one at a table.", hintAr: "عناوين التوصيل اللي العميل طلب عليها قبل كده. مطلوبة لتجهيز طلب توصيل، ومش مطلوبة لأخذ طلب على ترابيزة." },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [
