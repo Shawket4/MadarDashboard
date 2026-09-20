@@ -3282,21 +3282,31 @@ export const ListSkuCostsResponse = zod.array(ListSkuCostsResponseItem)
 
 export const ListCustomersQueryParams = zod.object({
   "q": zod.string().optional().describe('Matches name (contains) or phone (digits).'),
+  "member": zod.boolean().optional().describe('`true` = loyalty members only, `false` = non-members only.'),
+  "source": zod.string().optional().describe('Only customers that first came from this source (`pos`, `online`,\n`loyalty`, `booking`, `table_qr`, `aggregator`, `dashboard`).'),
   "limit": zod.number().optional().describe('Default 100, at most 500.'),
   "offset": zod.number().optional()
 })
 
 export const ListCustomersResponseItem = zod.object({
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "is_member": zod.boolean().optional().describe('A live loyalty membership exists for this customer (same id).'),
   "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "locale": zod.string().nullish().describe('`en` or `ar`; null when never asked.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED, kept for one release: a loyalty membership now shares the\ncustomer\'s id, so this is `id` when `is_member` and null otherwise.'),
+  "marketing_opt_out": zod.boolean().optional(),
   "name": zod.string(),
   "notes": zod.string().nullish(),
   "orders_count": zod.number(),
   "phone": zod.string().nullish(),
+  "points_balance": zod.number().nullish().describe('Null when not a member.'),
+  "source": zod.string().optional().describe('Where the customer first came from: `pos`, `online`, `loyalty`,\n`booking`, `table_qr`, `aggregator` or `dashboard`.'),
   "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visits_balance": zod.number().nullish().describe('Null when not a member.')
 })
 export const ListCustomersResponse = zod.array(ListCustomersResponseItem)
 
@@ -3304,24 +3314,33 @@ export const ListCustomersResponse = zod.array(ListCustomersResponseItem)
 export const CreateCustomerBody = zod.object({
   "branch_id": zod.uuid().nullish().describe('The branch where the customer was added (a till sends its own).'),
   "id": zod.uuid().nullish().describe('Client-minted id; a repeat with the same id returns the stored customer.'),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED and ignored: a membership shares the customer\'s id, so there\nis nothing to link. Accepted so deployed tills keep working.'),
   "name": zod.string(),
   "notes": zod.string().nullish(),
-  "phone": zod.string().nullish()
+  "phone": zod.string().nullish(),
+  "source": zod.string().nullish().describe('Where the customer came from. Defaults to `pos` when a branch is named\n(a till) and `dashboard` otherwise.')
 })
 
 export const CreateCustomerResponse = zod.object({
   "customer": zod.object({
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "is_member": zod.boolean().optional().describe('A live loyalty membership exists for this customer (same id).'),
   "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "locale": zod.string().nullish().describe('`en` or `ar`; null when never asked.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED, kept for one release: a loyalty membership now shares the\ncustomer\'s id, so this is `id` when `is_member` and null otherwise.'),
+  "marketing_opt_out": zod.boolean().optional(),
   "name": zod.string(),
   "notes": zod.string().nullish(),
   "orders_count": zod.number(),
   "phone": zod.string().nullish(),
+  "points_balance": zod.number().nullish().describe('Null when not a member.'),
+  "source": zod.string().optional().describe('Where the customer first came from: `pos`, `online`, `loyalty`,\n`booking`, `table_qr`, `aggregator` or `dashboard`.'),
   "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visits_balance": zod.number().nullish().describe('Null when not a member.')
 }),
   "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
   "recent_orders": zod.array(zod.object({
@@ -3343,16 +3362,24 @@ export const GetCustomerParams = zod.object({
 
 export const GetCustomerResponse = zod.object({
   "customer": zod.object({
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "is_member": zod.boolean().optional().describe('A live loyalty membership exists for this customer (same id).'),
   "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "locale": zod.string().nullish().describe('`en` or `ar`; null when never asked.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED, kept for one release: a loyalty membership now shares the\ncustomer\'s id, so this is `id` when `is_member` and null otherwise.'),
+  "marketing_opt_out": zod.boolean().optional(),
   "name": zod.string(),
   "notes": zod.string().nullish(),
   "orders_count": zod.number(),
   "phone": zod.string().nullish(),
+  "points_balance": zod.number().nullish().describe('Null when not a member.'),
+  "source": zod.string().optional().describe('Where the customer first came from: `pos`, `online`, `loyalty`,\n`booking`, `table_qr`, `aggregator` or `dashboard`.'),
   "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visits_balance": zod.number().nullish().describe('Null when not a member.')
 }),
   "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
   "recent_orders": zod.array(zod.object({
@@ -3373,25 +3400,35 @@ export const UpdateCustomerParams = zod.object({
 })
 
 export const UpdateCustomerBody = zod.object({
-  "loyalty_customer_id": zod.uuid().nullish().describe('Absent = unchanged.'),
+  "locale": zod.string().nullish().describe('`en` or `ar`. Absent = unchanged.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED and ignored (see `CreateCustomerRequest`).'),
+  "marketing_opt_out": zod.boolean().nullish().describe('Absent = unchanged.'),
   "name": zod.string().nullish(),
   "notes": zod.string().nullish().describe('Absent = unchanged; `\"\"` clears.'),
   "phone": zod.string().nullish().describe('Absent = unchanged; `\"\"` clears.'),
-  "unlink_loyalty": zod.boolean().optional().describe('`true` unlinks the loyalty member.')
+  "unlink_loyalty": zod.boolean().optional().describe('DEPRECATED and ignored: leaving the programme is\n`DELETE \/loyalty\/members\/{id}`.')
 })
 
 export const UpdateCustomerResponse = zod.object({
   "customer": zod.object({
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "is_member": zod.boolean().optional().describe('A live loyalty membership exists for this customer (same id).'),
   "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "locale": zod.string().nullish().describe('`en` or `ar`; null when never asked.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED, kept for one release: a loyalty membership now shares the\ncustomer\'s id, so this is `id` when `is_member` and null otherwise.'),
+  "marketing_opt_out": zod.boolean().optional(),
   "name": zod.string(),
   "notes": zod.string().nullish(),
   "orders_count": zod.number(),
   "phone": zod.string().nullish(),
+  "points_balance": zod.number().nullish().describe('Null when not a member.'),
+  "source": zod.string().optional().describe('Where the customer first came from: `pos`, `online`, `loyalty`,\n`booking`, `table_qr`, `aggregator` or `dashboard`.'),
   "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visits_balance": zod.number().nullish().describe('Null when not a member.')
 }),
   "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
   "recent_orders": zod.array(zod.object({
@@ -3424,16 +3461,24 @@ export const MergeCustomerBody = zod.object({
 
 export const MergeCustomerResponse = zod.object({
   "customer": zod.object({
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "is_member": zod.boolean().optional().describe('A live loyalty membership exists for this customer (same id).'),
   "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "locale": zod.string().nullish().describe('`en` or `ar`; null when never asked.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED, kept for one release: a loyalty membership now shares the\ncustomer\'s id, so this is `id` when `is_member` and null otherwise.'),
+  "marketing_opt_out": zod.boolean().optional(),
   "name": zod.string(),
   "notes": zod.string().nullish(),
   "orders_count": zod.number(),
   "phone": zod.string().nullish(),
+  "points_balance": zod.number().nullish().describe('Null when not a member.'),
+  "source": zod.string().optional().describe('Where the customer first came from: `pos`, `online`, `loyalty`,\n`booking`, `table_qr`, `aggregator` or `dashboard`.'),
   "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visits_balance": zod.number().nullish().describe('Null when not a member.')
 }),
   "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
   "recent_orders": zod.array(zod.object({
