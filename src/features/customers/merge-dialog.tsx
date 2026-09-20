@@ -1,13 +1,19 @@
 /**
  * Merge a duplicate into the customer that stays. The duplicate disappears;
- * its orders move over, and the kept one takes any phone, notes or loyalty
- * link it lacked.
+ * its orders move over, and the kept one takes any phone or notes it lacked.
+ *
+ * A loyalty card decides the direction. A member's id is printed in their
+ * wallet pass, so when only one of the two is a member that record stays —
+ * the dialog turns the merge round and says why, and does the same if the
+ * server refuses with `CUSTOMER_MERGE_MEMBER_SURVIVES` (the list it picked
+ * from can be stale). When both are members it says, before anything is
+ * confirmed, what happens to the points and to the other card.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +41,7 @@ import { cn } from "@/lib/utils";
 
 import { useDebounced } from "@/lib/use-debounced";
 
-import { isPersonQuery } from "./util";
+import { isMemberMustSurvive, isPersonQuery } from "./util";
 
 export function MergeDialog({
   duplicate,
@@ -51,30 +57,46 @@ export function MergeDialog({
   const { t } = useTranslation();
   const qc = useQueryClient();
   const merge = useMergeCustomer();
+  const pickerId = useId();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [into, setInto] = useState<Customer | null>(null);
+  // The server said the member must stay, about a pick that did not look like one.
+  const [refused, setRefused] = useState(false);
   const q = useDebounced(search.trim());
 
   useEffect(() => {
     if (open) {
       setInto(null);
+      setRefused(false);
       setSearch("");
     }
   }, [open, duplicate.id]);
+
+  // Who goes and who stays. Turned round when only the opened customer holds a card.
+  const reversed = !!into && (refused || (duplicate.is_member === true && into.is_member !== true));
+  const from = reversed && into ? into : duplicate;
+  const kept = reversed ? duplicate : into;
+  const bothMembers = duplicate.is_member === true && into?.is_member === true;
 
   const list = useListCustomers({ q: q || undefined, limit: 20 }, { query: { enabled: open } });
   const options = (list.data ?? []).filter((c) => c.id !== duplicate.id);
 
   const submit = async () => {
-    if (!into) return;
+    if (!kept) return;
     try {
-      const kept = await merge.mutateAsync({ id: duplicate.id, data: { into: into.id } });
+      const result = await merge.mutateAsync({ id: from.id, data: { into: kept.id } });
       toast.success(t("customers.merged", "Customers merged"));
       await qc.invalidateQueries({ predicate: isPersonQuery });
-      onMerged(kept);
+      onMerged(result);
       onOpenChange(false);
     } catch (e) {
+      // Not an error to show and forget: an offer to merge the other way round,
+      // which the person confirms with the same button.
+      if (isMemberMustSurvive(e) && !reversed) {
+        setRefused(true);
+        return;
+      }
       toast.error(getErrorMessage(e));
     }
   };
@@ -87,17 +109,18 @@ export function MergeDialog({
           <DialogDescription>
             {t("customers.mergeBody", {
               defaultValue:
-                "{{name}} is removed as a duplicate. Their orders move to the customer you keep, which also takes any phone, notes or loyalty link it lacks.",
+                "{{name}} is removed as a duplicate. Their orders move to the customer you keep, which also takes any phone or notes it lacks.",
               name: duplicate.name,
             })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-1.5">
-          <Label>{t("customers.mergeKeep", "Customer to keep")}</Label>
+          <Label htmlFor={pickerId}>{t("customers.mergeWith", "Merge with")}</Label>
           <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
             <PopoverTrigger asChild>
               <Button
+                id={pickerId}
                 type="button"
                 variant="outline"
                 role="combobox"
@@ -126,11 +149,13 @@ export function MergeDialog({
                         value={c.id}
                         onSelect={() => {
                           setInto(c);
+                          setRefused(false);
                           setPickerOpen(false);
                         }}
                       >
                         <Check className={cn("size-4", into?.id === c.id ? "opacity-100" : "opacity-0")} />
                         <span className="truncate">{c.name}</span>
+                        {c.is_member ? <Star aria-label={t("customers.member", "Member")} className="size-3.5 text-muted-foreground" /> : null}
                         {c.phone ? (
                           <span dir="ltr" className="ms-auto font-mono text-xs text-muted-foreground">
                             {c.phone}
@@ -145,22 +170,46 @@ export function MergeDialog({
           </Popover>
         </div>
 
-        {into ? (
-          <p role="status" className="rounded-lg border bg-muted/40 p-3 text-sm">
-            {t("customers.mergeConfirm", {
-              defaultValue: "{{from}}'s orders will move to {{into}}, and {{from}} will be removed. This can't be undone.",
-              from: duplicate.name,
-              into: into.name,
-            })}
-          </p>
+        {into && kept ? (
+          <div role="status" className="space-y-2 rounded-lg border bg-muted/40 p-3 text-sm">
+            {reversed ? (
+              <p data-testid="merge-reversed">
+                {t("customers.mergeMemberStays", {
+                  defaultValue:
+                    "{{member}} is a loyalty member: their card and points live on that record, so it is the one that stays. {{other}} will be merged into {{member}} instead.",
+                  member: kept.name,
+                  other: from.name,
+                })}
+              </p>
+            ) : null}
+            {bothMembers ? (
+              <p data-testid="merge-both-members">
+                {t("customers.mergeBothMembers", {
+                  defaultValue:
+                    "Both are loyalty members. {{from}}'s points are added to {{into}}'s, and {{from}}'s card stops working after 90 days.",
+                  from: from.name,
+                  into: kept.name,
+                })}
+              </p>
+            ) : null}
+            <p>
+              {t("customers.mergeConfirm", {
+                defaultValue: "{{from}}'s orders will move to {{into}}, and {{from}} will be removed. This can't be undone.",
+                from: from.name,
+                into: kept.name,
+              })}
+            </p>
+          </div>
         ) : null}
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.cancel", "Cancel")}
           </Button>
-          <Button type="button" disabled={!into} loading={merge.isPending} onClick={() => void submit()}>
-            {t("customers.merge", "Merge")}
+          <Button type="button" disabled={!kept} loading={merge.isPending} onClick={() => void submit()}>
+            {reversed && kept
+              ? t("customers.mergeReversed", { defaultValue: "Merge into {{name}}", name: kept.name })
+              : t("customers.merge", "Merge")}
           </Button>
         </DialogFooter>
       </DialogContent>
