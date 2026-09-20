@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, Bike, Check, Info, MapPin, Store, X } from "lucide-react";
 
@@ -18,6 +18,7 @@ import { StatusPill, toneFor } from "@/components/app/status-pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetDeliveryOrder, useGetOrder, useListCatalog } from "@/data/api/generated/api";
 import type { DeliveryOrder, OrderFull } from "@/data/api/generated/models";
+import { useAuthz } from "@/data/authz/use-authz";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { fmtDateTimeFull, fmtMoney, fmtNumber, fmtPercent, fmtUnit } from "@/lib/format";
@@ -25,6 +26,8 @@ import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 
 import { discountAttribution } from "@/features/discounts/discount-attribution";
+import { MemberDetailSheet } from "@/features/loyalty/admin/members/member-detail-sheet";
+import { loyaltyAccess } from "@/features/loyalty/shared/access";
 import { orderRewards } from "./reward-lines";
 
 interface Deduction {
@@ -41,12 +44,18 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onVoid?: (order: OrderFull) => void;
+  /** The member opened from here may lead to another of their orders. */
+  onSwitchOrder?: (orderId: string) => void;
 }
 
-export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props) {
+export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitchOrder }: Props) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const side = i18n.dir() === "rtl" ? "left" : "right";
+
+  // The member's name opens the member — for someone who may read one.
+  const canViewMember = loyaltyAccess(useAuthz()).canViewMember;
+  const [openMember, setOpenMember] = useState<string | null>(null);
 
   const role = useAuthStore((s) => s.user?.role);
   const userOrgId = useAuthStore((s) => s.user?.org_id);
@@ -188,7 +197,19 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
 
               <Card className="py-0 shadow-none">
                 <CardContent className="space-y-2 p-4 text-sm">
-                  {rewards.memberId ? (
+                  {rewards.memberId && rewards.memberName && canViewMember ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground">{t("orders.loyaltyMember", "Loyalty member")}</span>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto min-w-0 p-0 text-end"
+                        onClick={() => setOpenMember(rewards.memberId)}
+                      >
+                        <span dir="auto" className="truncate">{rewards.memberName}</span>
+                      </Button>
+                    </div>
+                  ) : rewards.memberId ? (
                     <Row
                       label={t("orders.loyaltyMember", "Loyalty member")}
                       value={rewards.memberName ?? t("orders.loyaltyMemberForgotten", "Deleted member")}
@@ -448,6 +469,20 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
             </>
           )}
         </div>
+        {/* Read-only from here: adjusting and deleting belong to the Members page. */}
+        {canViewMember ? (
+          <MemberDetailSheet
+            memberId={openMember}
+            branchId={null}
+            canAdjust={false}
+            onOpenChange={(o) => !o && setOpenMember(null)}
+            onAdjust={() => {}}
+            onOpenOrder={(id) => {
+              setOpenMember(null);
+              if (id !== orderId) onSwitchOrder?.(id);
+            }}
+          />
+        ) : null}
       </SheetContent>
     </Sheet>
   );

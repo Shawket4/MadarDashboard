@@ -153,7 +153,7 @@ export function CustomersPage() {
         onOpenOrder={setOpenOrder}
         onSwitch={setOpenCustomer}
       />
-      <OrderDetailSheet orderId={openOrder} open={!!openOrder} onOpenChange={(o) => !o && setOpenOrder(null)} />
+      <OrderDetailSheet orderId={openOrder} open={!!openOrder} onOpenChange={(o) => !o && setOpenOrder(null)} onSwitchOrder={setOpenOrder} />
     </Page>
   );
 }

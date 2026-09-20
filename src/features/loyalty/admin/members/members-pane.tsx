@@ -269,6 +269,7 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
         orderId={openOrder}
         open={!!openOrder}
         onOpenChange={(o) => !o && setOpenOrder(null)}
+        onSwitchOrder={setOpenOrder}
       />
 
       <GoogleObjectDialog

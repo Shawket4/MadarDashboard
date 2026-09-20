@@ -402,6 +402,7 @@ export function OrdersPage() {
         orderId={detailId}
         open={!!detailId}
         onOpenChange={(o) => !o && setDetailId(null)}
+        onSwitchOrder={setDetailId}
         onVoid={(o) => {
           setDetailId(null);
           setVoidOrder(o);
