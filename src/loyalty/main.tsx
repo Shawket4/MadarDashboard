@@ -13,7 +13,7 @@
 //
 // Membership belongs to the SHOP either way; a branch code only records where
 // someone joined.
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "motion/react";
@@ -67,8 +67,14 @@ import { JoinPage } from "@/features/loyalty/public/join-page";
 import { CardPage } from "@/features/loyalty/public/card-page";
 import { useHostOrg } from "@/features/public-shell/use-brand";
 import { ScanToJoin } from "@/features/loyalty/public/scan-to-join";
-import { detectInAppBrowser } from "@/features/loyalty/public/detect-inapp";
-import { OpenInSafariPage } from "@/features/loyalty/public/open-in-safari-page";
+import {
+  detectInAppBrowser,
+  escapeToBrowserOnce,
+} from "@/features/loyalty/public/detect-inapp";
+import {
+  OpenInSafariPage,
+  type EscapePlatform,
+} from "@/features/loyalty/public/open-in-safari-page";
 
 // LIGHT unless this visitor chose otherwise on this shop — not the device's
 // preference. A storefront should look the same to every customer.
@@ -83,22 +89,38 @@ initPublicTheme();
  * would succeed until the final tap and then fail in silence.
  *
  * So the gate is here rather than on the wallet button: the whole flow is
- * replaced by the one instruction that leads somewhere. Android is unaffected —
- * Google Wallet saves over ordinary HTTPS, and `chromeEscapeUrl` handles the
- * sign-in case.
+ * replaced by the one instruction that leads somewhere.
+ *
+ * Android inside the same apps has a real way out — `intent://` to the
+ * customer's default browser — so it is tried first, once, and the same page
+ * (in Android's wording) stands behind it: it is what the webview shows while
+ * the browser opens, and the instruction if the hand-off is refused.
  */
 const rootRoute = createRootRoute({
   component: function Root() {
     const inApp = detectInAppBrowser();
     // Dev-only: this page is unreachable in a normal browser, because it is
-    // gated on an in-app user agent. `?inapp=Instagram` renders it so it can be
-    // looked at and its motion checked without spoofing a UA. Stripped from
-    // production builds by `import.meta.env.DEV`.
+    // gated on an in-app user agent. `?inapp=Instagram` renders the iOS page
+    // and `?inapp=Instagram&platform=android` the Android one, so both can be
+    // looked at and their motion checked without spoofing a UA. The preview
+    // never redirects. Stripped from production builds by `import.meta.env.DEV`.
+    let preview: { app: string; platform: EscapePlatform } | null = null;
     if (import.meta.env.DEV) {
-      const preview = new URLSearchParams(window.location.search).get("inapp");
-      if (preview) return <OpenInSafariPage app={preview} />;
+      const params = new URLSearchParams(window.location.search);
+      const app = params.get("inapp");
+      if (app) {
+        preview = { app, platform: params.get("platform") === "android" ? "android" : "ios" };
+      }
     }
-    if (inApp?.ios) return <OpenInSafariPage app={inApp.app} />;
+
+    const escape = !preview && !!inApp?.android && !inApp.ios;
+    useEffect(() => {
+      if (escape) escapeToBrowserOnce();
+    }, [escape]);
+
+    if (preview) return <OpenInSafariPage app={preview.app} platform={preview.platform} />;
+    if (inApp?.ios) return <OpenInSafariPage app={inApp.app} platform="ios" />;
+    if (escape) return <OpenInSafariPage app={inApp!.app} platform="android" />;
     return <Outlet />;
   },
 });

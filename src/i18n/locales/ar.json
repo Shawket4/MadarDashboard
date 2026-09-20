@@ -4943,7 +4943,13 @@
     "safariStep1": "اضغط قائمة ··· أعلى الشاشة",
     "safariStep2": "اختر «فتح في Safari»",
     "safariStep2Hint": "بعض التطبيقات تسميه «فتح في المتصفح» أو «فتح في متصفح خارجي».",
-    "safariMenuItem": "فتح في Safari"
+    "safariMenuItem": "فتح في Safari",
+    "androidTitle": "افتح هذه الصفحة في المتصفح",
+    "androidBody": "التسجيل لا يعمل من داخل {{app}}. اضغط قائمة ⋮ أعلى الشاشة واختر «فتح في Chrome» أو «فتح في المتصفح»، ثم أكمل من هناك.",
+    "androidStep1": "اضغط قائمة ⋮ أعلى الشاشة",
+    "androidStep2": "اختر «فتح في Chrome» أو «فتح في المتصفح»",
+    "androidStep2Hint": "بعض التطبيقات تسميه «فتح في متصفح خارجي» أو «فتح باستخدام…».",
+    "androidMenuItem": "فتح في Chrome"
   },
   "publicShell": {
     "poweredBy": {

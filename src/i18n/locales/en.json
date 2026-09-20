@@ -4803,7 +4803,13 @@
     "safariStep1": "Tap the ··· menu at the top of this screen",
     "safariStep2": "Choose “Open in Safari”",
     "safariStep2Hint": "Some apps call it “Open in browser” or “Open in external browser”.",
-    "safariMenuItem": "Open in Safari"
+    "safariMenuItem": "Open in Safari",
+    "androidTitle": "Open this page in your browser",
+    "androidBody": "Sign-up doesn't work inside {{app}}. Tap the ⋮ menu at the top of this screen and choose “Open in Chrome” or “Open in browser”, then continue there.",
+    "androidStep1": "Tap the ⋮ menu at the top of this screen",
+    "androidStep2": "Choose “Open in Chrome” or “Open in browser”",
+    "androidStep2Hint": "Some apps call it “Open in external browser” or “Open with…”.",
+    "androidMenuItem": "Open in Chrome"
   },
   "publicShell": {
     "poweredBy": {

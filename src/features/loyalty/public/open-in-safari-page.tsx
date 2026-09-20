@@ -52,12 +52,20 @@
  * browser", and a page that states one label as fact is wrong for the rest. So
  * the hint under step two says the wording varies rather than pretending not.
  *
- * Android is NOT sent here: Google Wallet's save is an ordinary link, and where
- * it needs a signed-in Chrome `chromeEscapeUrl` provides a real way out.
+ * ## Android
+ * Android is sent here too, but as a FALLBACK: `src/loyalty/main.tsx` first
+ * tries `escapeToBrowserOnce`, an `intent://` hand-off to the default browser.
+ * When that takes, the customer is already gone and this page is what the
+ * webview shows behind them; when it does not, this page is the instruction.
+ * The wording is Android's own — the menu is `⋮` (three vertical dots) and
+ * the row reads "Open in Chrome" or "Open in browser" — under separate i18n
+ * keys, because iOS's `···` and "Open in Safari" are simply wrong there. The
+ * demonstration is the same choreography with the glyph and the row swapped;
+ * on both platforms the menu sits at the END corner, so the RTL flip holds.
  */
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, Compass, Copy, Lock } from "lucide-react";
+import { Check, Compass, Copy, Globe, Lock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useLoyaltyJoinInfo } from "@/data/api/generated/api";
@@ -174,7 +182,19 @@ const DEMO_CSS = `
  * The looping demonstration: the host app's bar, the menu that opens from its
  * `···`, and a fingertip performing the two taps.
  */
-function GestureDemo({ app, label }: { app: string; label: string }) {
+export type EscapePlatform = "ios" | "android";
+
+function GestureDemo({
+  app,
+  label,
+  platform,
+}: {
+  app: string;
+  label: string;
+  platform: EscapePlatform;
+}) {
+  const android = platform === "android";
+  const RowIcon = android ? Globe : Compass;
   const row = "flex h-8 items-center gap-2.5 rounded-lg border-2 border-transparent px-2.5";
   return (
     <div aria-hidden className="ios-demo relative h-[176px] overflow-hidden">
@@ -192,7 +212,7 @@ function GestureDemo({ app, label }: { app: string; label: string }) {
         <span className="relative grid size-8 shrink-0 place-items-center">
           <span className="ios-demo__ripple ios-demo__ripple--dots absolute inset-0 rounded-full bg-primary/40" />
           <span className="ios-demo__dots relative grid size-8 place-items-center rounded-full bg-card text-[16px] font-semibold leading-none tracking-[0.02em] text-foreground">
-            ···
+            {android ? "⋮" : "···"}
           </span>
         </span>
       </div>
@@ -210,7 +230,7 @@ function GestureDemo({ app, label }: { app: string; label: string }) {
           <span className="h-1.5 w-1/2 rounded-full bg-muted-foreground/25" />
         </span>
         <span className={`ios-demo__row--target ${row} text-[13px] font-medium text-foreground`}>
-          <Compass className="size-4 shrink-0 text-primary" />
+          <RowIcon className="size-4 shrink-0 text-primary" />
           <span className="truncate">{label}</span>
         </span>
       </div>
@@ -227,8 +247,15 @@ function GestureDemo({ app, label }: { app: string; label: string }) {
   );
 }
 
-export function OpenInSafariPage({ app }: { app: string }) {
+export function OpenInSafariPage({
+  app,
+  platform = "ios",
+}: {
+  app: string;
+  platform?: EscapePlatform;
+}) {
   const { t } = useTranslation();
+  const android = platform === "android";
   const [copied, setCopied] = useState(false);
   const url = typeof window === "undefined" ? "" : window.location.href;
   const brand = useLinkBrand();
@@ -245,15 +272,44 @@ export function OpenInSafariPage({ app }: { app: string }) {
     }
   };
 
+  // Two sets of keys, not one set with the glyph swapped: the menu, its
+  // position and the row's label all differ per platform, and a translator
+  // needs to see each sentence whole.
+  const copyFor = android
+    ? {
+        title: t("loyalty.androidTitle", "Open this page in your browser"),
+        body: t(
+          "loyalty.androidBody",
+          "Sign-up doesn't work inside {{app}}. Tap the ⋮ menu at the top of this screen and choose “Open in Chrome” or “Open in browser”, then continue there.",
+          { app },
+        ),
+        step1: t("loyalty.androidStep1", "Tap the ⋮ menu at the top of this screen"),
+        step2: t("loyalty.androidStep2", "Choose “Open in Chrome” or “Open in browser”"),
+        step2Hint: t(
+          "loyalty.androidStep2Hint",
+          "Some apps call it “Open in external browser” or “Open with…”.",
+        ),
+        menuItem: t("loyalty.androidMenuItem", "Open in Chrome"),
+      }
+    : {
+        title: t("loyalty.safariTitle", "Open this page in your browser"),
+        body: t(
+          "loyalty.safariBody",
+          "Cards can't be added from inside {{app}}. Tap the ··· menu at the top of this screen and choose “Open in Safari”, then continue there.",
+          { app },
+        ),
+        step1: t("loyalty.safariStep1", "Tap the ··· menu at the top of this screen"),
+        step2: t("loyalty.safariStep2", "Choose “Open in Safari”"),
+        step2Hint: t(
+          "loyalty.safariStep2Hint",
+          "Some apps call it “Open in browser” or “Open in external browser”.",
+        ),
+        menuItem: t("loyalty.safariMenuItem", "Open in Safari"),
+      };
+
   const steps: { title: string; hint?: string }[] = [
-    { title: t("loyalty.safariStep1", "Tap the ··· menu at the top of this screen") },
-    {
-      title: t("loyalty.safariStep2", "Choose “Open in Safari”"),
-      hint: t(
-        "loyalty.safariStep2Hint",
-        "Some apps call it “Open in browser” or “Open in external browser”.",
-      ),
-    },
+    { title: copyFor.step1 },
+    { title: copyFor.step2, hint: copyFor.step2Hint },
   ];
 
   return (
@@ -261,19 +317,15 @@ export function OpenInSafariPage({ app }: { app: string }) {
       <Skinned brand={brand}>
         <header className="flex flex-col gap-2.5">
           <h1 className="font-serif text-[32px] leading-[1.1] text-balance">
-            {t("loyalty.safariTitle", "Open this page in your browser")}
+            {copyFor.title}
           </h1>
           <p className="max-w-[38ch] text-[15px] leading-relaxed text-muted-foreground">
-            {t(
-              "loyalty.safariBody",
-              "Cards can't be added from inside {{app}}. Tap the ··· menu at the top of this screen and choose “Open in Safari”, then continue there.",
-              { app },
-            )}
+            {copyFor.body}
           </p>
         </header>
 
         <Panel className="flex flex-col gap-5">
-          <GestureDemo app={app} label={t("loyalty.safariMenuItem", "Open in Safari")} />
+          <GestureDemo app={app} label={copyFor.menuItem} platform={platform} />
 
           {/* The same two taps as text — what a screen reader gets, and what
               stays once the eye has followed the demonstration. Numbers in the
