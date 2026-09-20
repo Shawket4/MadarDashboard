@@ -9,7 +9,7 @@
  * It only collects the answer. The server classifies the edit itself, and a
  * replacement still needs a code on the new number before anything changes.
  */
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,10 @@ interface PhoneProps {
   /** Take the old number back; the order is not placed. */
   onCancel: () => void;
   busy?: boolean;
+  /** Why the last attempt did not go through (a code that could not be sent, say). */
+  error?: string | null;
+  /** Sits under the options — "save this address", for an order that is for someone else. */
+  children?: ReactNode;
 }
 
 export type IdentityChangeChoiceProps = NameProps | PhoneProps;
@@ -119,7 +123,7 @@ export function IdentityChangeChoice(props: IdentityChangeChoiceProps) {
     );
   }
 
-  const { open, currentPhone, newPhone, value, onChange, onConfirm, onCancel, busy } = props;
+  const { open, currentPhone, newPhone, value, onChange, onConfirm, onCancel, busy, error, children } = props;
   return (
     <Dialog open={open} onOpenChange={(o) => !o && !busy && onCancel()}>
       <DialogContent
@@ -157,6 +161,12 @@ export function IdentityChangeChoice(props: IdentityChangeChoiceProps) {
             },
           ]}
         />
+        {children}
+        {error ? (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
         <DialogFooter>
           <Button variant="ghost" onClick={onCancel} disabled={busy}>
             {t("order.identity.phoneCancel", "Keep my number")}
