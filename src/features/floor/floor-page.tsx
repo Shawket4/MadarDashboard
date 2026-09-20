@@ -45,6 +45,9 @@ import {
   useListFloorTransfers, useListOpenTickets, useListSections,
 } from "@/data/api/generated/api";
 
+import { CustomerLink } from "@/features/customers/customer-link";
+import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
+
 import { AddTableDialog } from "./add-table-dialog";
 import { FloorCanvas } from "./floor-canvas";
 import { InspectorPanel } from "./properties-panel";
@@ -172,6 +175,15 @@ export function FloorPage() {
     () => visible.filter((tb) => selection.has(tb.id)),
     [visible, selection],
   );
+
+  // The party at the one selected table: their name opens the customer, when
+  // the bill has one and the viewer may see customers.
+  const customerSheet = useCustomerSheet();
+  const sittingTicket = useMemo(() => {
+    if (selectedTables.length !== 1) return null;
+    const id = selectedTables[0].id;
+    return (ticketsQ.data ?? []).find((tk) => tk.table_id === id && (tk.status === "open" || tk.status === "ready")) ?? null;
+  }, [selectedTables, ticketsQ.data]);
 
   // Frame the room once it is known, and again when the section filter changes.
   // Keyed so it does not fight the user's own panning on every refetch.
@@ -636,7 +648,17 @@ export function FloorPage() {
               beginGesture();
               setGeo(u);
             }}
+            sittingNow={
+              sittingTicket?.customer_name ? (
+                <CustomerLink
+                  name={sittingTicket.customer_name}
+                  customerId={sittingTicket.customer_id}
+                  control={customerSheet}
+                />
+              ) : null
+            }
           />
+          {customerSheet.sheet}
           <div className="border-t p-4">
             <TransferQueue
               transfers={transfersQ.data?.transfers ?? []}

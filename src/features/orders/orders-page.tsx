@@ -25,6 +25,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportButton } from "@/components/app/export-button";
 import { DeliveryChannels } from "./delivery-channels";
+import { CustomerLink } from "@/features/customers/customer-link";
+import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
 import { OrderDetailSheet } from "./order-detail-sheet";
 import { VoidOrderDialog } from "./void-order-dialog";
 import { OrderExportDialog } from "./order-export-dialog";
@@ -113,6 +115,8 @@ export function OrdersPage() {
     (id: string | null) => void navigate({ to: ".", replace: true, search: (p: Record<string, unknown>) => ({ ...p, order: id ?? undefined }) }),
     [navigate],
   );
+  // A customer's name opens the customer; one of their orders opens here.
+  const { canOpen: canOpenCustomer, open: openCustomer, sheet: customerSheet } = useCustomerSheet({ onOpenOrder: setDetailId });
   const [voidOrder, setVoidOrder] = useState<Order | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
 
@@ -210,6 +214,21 @@ export function OrdersPage() {
         meta: { label: t("common.date", "Date"), numeric: true, align: "start" },
         cell: ({ row }) => <span className="text-muted-foreground">{fmtDateTime(row.original.created_at)}</span>,
       },
+      {
+        accessorKey: "customer_name",
+        header: t("orders.customer", "Customer"),
+        meta: { label: t("orders.customer", "Customer") },
+        cell: ({ row }) =>
+          row.original.customer_name ? (
+            <CustomerLink
+              name={row.original.customer_name}
+              customerId={row.original.customer_id}
+              control={{ canOpen: canOpenCustomer, open: openCustomer }}
+            />
+          ) : (
+            "—"
+          ),
+      },
       { accessorKey: "teller_name", header: t("tills.teller", "Teller"), meta: { label: t("tills.teller", "Teller") } },
       {
         accessorKey: "waiter_name",
@@ -265,7 +284,7 @@ export function OrdersPage() {
         cell: ({ row }) => <span className="font-semibold">{fmtMoney(row.original.total_amount)}</span>,
       },
     ],
-    [t],
+    [t, canOpenCustomer, openCustomer],
   );
 
   return (
@@ -397,6 +416,8 @@ export function OrdersPage() {
         pagination={pagination}
         onPaginationChange={setPagination}
       />
+
+      {customerSheet}
 
       <OrderDetailSheet
         orderId={detailId}

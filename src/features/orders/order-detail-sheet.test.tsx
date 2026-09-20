@@ -12,11 +12,14 @@ import type { OrderFull } from "@/data/api/generated/models";
 
 let held: string[] = [];
 let order: Partial<OrderFull> = {};
+let delivery: Record<string, unknown> | undefined;
+const useGetCustomer = vi.fn();
 
 vi.mock("@/data/api/generated/api", () => ({
   useGetOrder: () => ({ data: order, isLoading: false }),
   useListCatalog: () => ({ data: [] }),
-  useGetDeliveryOrder: () => ({ data: undefined }),
+  useGetDeliveryOrder: () => ({ data: delivery }),
+  useGetCustomer: (...a: unknown[]) => useGetCustomer(...a),
 }));
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
@@ -60,6 +63,8 @@ function mount() {
 
 beforeEach(() => {
   order = { ...baseOrder };
+  delivery = undefined;
+  useGetCustomer.mockReset().mockReturnValue({ data: undefined });
 });
 
 describe("OrderDetailSheet — the loyalty member", () => {
@@ -98,5 +103,51 @@ describe("OrderDetailSheet — the loyalty member", () => {
     await userEvent.click(screen.getByRole("button", { name: "Sara Ali" }));
     await userEvent.click(screen.getByRole("button", { name: "other order" }));
     expect(onSwitchOrder).toHaveBeenCalledWith("o-2");
+  });
+});
+
+describe("OrderDetailSheet — the customer", () => {
+  const withCustomer = { ...baseOrder, loyalty_customer_id: null, loyalty_member_name: null, customer_id: "c-9", customer_name: "Omar" };
+
+  it("with customers.view the name on the order opens the customer", async () => {
+    held = ["customers.view"];
+    order = withCustomer;
+    mount();
+    await userEvent.click(screen.getByRole("button", { name: "Omar" }));
+    expect(screen.getByTestId("member-sheet")).toHaveAttribute("data-member", "c-9");
+  });
+
+  it("a loyalty read is not customers.view: the customer's name stays text", () => {
+    held = ["loyalty.read"];
+    order = withCustomer;
+    mount();
+    expect(screen.getByText("Omar")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Omar" })).not.toBeInTheDocument();
+  });
+
+  it("an order with no customer_id is never a link", () => {
+    held = ["customers.view"];
+    order = { ...withCustomer, customer_id: null };
+    mount();
+    expect(screen.queryByRole("button", { name: "Omar" })).not.toBeInTheDocument();
+  });
+
+  it("a one-time order for someone else says who ordered and who the driver calls", () => {
+    held = ["customers.view"];
+    order = { ...withCustomer, order_type: "delivery", delivery_order_id: "d-1", delivery: { channel: "outside", customer_phone: "201000000002" } } as never;
+    delivery = { id: "d-1", contact_override: true, customer_name: "Omar", customer_phone: "201000000002" };
+    useGetCustomer.mockReturnValue({ data: { customer: { id: "c-9", name: "Sara Ali" } } });
+    mount();
+    expect(screen.getByRole("note")).toHaveTextContent("Ordered by Sara Ali for Omar · +20 100 000 0002");
+  });
+
+  it("an ordinary delivery carries no such note, and the customer is not fetched for one", () => {
+    held = ["customers.view"];
+    order = { ...withCustomer, order_type: "delivery", delivery_order_id: "d-1", delivery: { channel: "outside", customer_phone: "201000000002" } } as never;
+    delivery = { id: "d-1", contact_override: false, customer_name: "Omar", customer_phone: "201000000002" };
+    mount();
+    expect(screen.queryByRole("note")).not.toBeInTheDocument();
+    const opts = useGetCustomer.mock.calls[useGetCustomer.mock.calls.length - 1][1] as { query: { enabled: boolean } };
+    expect(opts.query.enabled).toBe(false);
   });
 });

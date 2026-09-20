@@ -46,6 +46,9 @@ import { fmtTime } from "@/lib/format";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
+import { CustomerLink } from "@/features/customers/customer-link";
+import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
+
 import { BookingDialog } from "./booking-dialog";
 import { BookingSettingsDialog } from "./settings-dialog";
 import {
@@ -86,6 +89,9 @@ export function BookingsPage() {
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
+
+  // The guest's name opens the customer who booked.
+  const customerSheet = useCustomerSheet();
 
   const enabled = { query: { enabled: !!branchId } };
   const settingsQ = useGetBookingSettings({ branch_id: branchId ?? "" }, enabled);
@@ -217,7 +223,7 @@ export function BookingsPage() {
           return (
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">{b.guest_name}</span>
+                <CustomerLink name={b.guest_name} customerId={b.customer_id} control={customerSheet} className="font-medium" />
                 {b.source === "public" ? <Badge variant="outline">{t("bookings.online", "Online")}</Badge> : null}
                 {late ? (
                   <StatusPill tone="warning" size="sm">{t("bookings.late", "Late")}</StatusPill>
@@ -257,7 +263,8 @@ export function BookingsPage() {
         cell: ({ row }) => <BookingStatusBadge status={row.original.status} />,
       },
     ],
-    [t, now],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the control's two fields, not its per-render object
+    [t, now, customerSheet.canOpen, customerSheet.open],
   );
 
   if (!branchId) {
@@ -435,6 +442,7 @@ export function BookingsPage() {
         tables={tables}
       />
       <BookingSettingsDialog branchId={branchId} open={settingsOpen} onOpenChange={setSettingsOpen} />
+      {customerSheet.sheet}
     </Page>
   );
 }

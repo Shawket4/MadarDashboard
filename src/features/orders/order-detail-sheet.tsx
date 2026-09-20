@@ -16,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SummaryLine } from "@/components/app/list-row";
 import { StatusPill, toneFor } from "@/components/app/status-pill";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetDeliveryOrder, useGetOrder, useListCatalog } from "@/data/api/generated/api";
+import { useGetCustomer, useGetDeliveryOrder, useGetOrder, useListCatalog } from "@/data/api/generated/api";
 import type { DeliveryOrder, OrderFull } from "@/data/api/generated/models";
 import { useAuthz } from "@/data/authz/use-authz";
 import { useAppStore } from "@/data/stores/app.store";
@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { discountAttribution } from "@/features/discounts/discount-attribution";
 import { canOpenPerson, peopleAccess } from "@/features/customers/access";
 import { CustomerDetailSheet } from "@/features/customers/customer-detail-sheet";
+import { ContactOverrideNote, CustomerLink } from "@/features/customers/customer-link";
 import { orderRewards } from "./reward-lines";
 
 interface Deduction {
@@ -55,8 +56,11 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
 
   // The member's name opens the person — a member is a customer under the same
   // id — for someone who may read either side of them.
-  const canViewMember = canOpenPerson(peopleAccess(useAuthz()));
+  const access = peopleAccess(useAuthz());
+  const canViewMember = canOpenPerson(access);
   const [openMember, setOpenMember] = useState<string | null>(null);
+  // The customer's name opens the customer, for someone who may see customers.
+  const customerLink = { canOpen: access.canViewCustomers, open: setOpenMember };
 
   const role = useAuthStore((s) => s.user?.role);
   const userOrgId = useAuthStore((s) => s.user?.org_id);
@@ -71,6 +75,13 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
   // fetch it to render the read-only progress timeline.
   const { data: deliveryOrder } = useGetDeliveryOrder(order?.delivery_order_id ?? "", {
     query: { enabled: open && order?.order_type === "delivery" && !!order?.delivery_order_id },
+  });
+  // "Ordered by X for Y": X is the customer, who is not named on the order itself.
+  const owner = useGetCustomer(order?.customer_id ?? "", {
+    query: {
+      enabled: open && !!order?.customer_id && deliveryOrder?.contact_override === true && access.canViewCustomers,
+      retry: false,
+    },
   });
 
   // ingredient id → cost per unit (piastres), to price the deduction snapshot.
@@ -222,7 +233,17 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                     <Row label={t("orders.startedBy", "Started by")} value={order.started_by_name} />
                   ) : null}
                   {order.waiter_name ? <Row label={t("tills.waiter", "Waiter")} value={order.waiter_name} /> : null}
-                  {order.customer_name ? <Row label={t("orders.customer", "Customer")} value={order.customer_name} /> : null}
+                  {order.customer_name ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground">{t("orders.customer", "Customer")}</span>
+                      <CustomerLink
+                        name={order.customer_name}
+                        customerId={order.customer_id}
+                        control={customerLink}
+                        className="text-end font-medium"
+                      />
+                    </div>
+                  ) : null}
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">{t("orders.payment", "Payment")}</span>
                     {/* Split sales carry the nominal "mixed" label; the legs are
@@ -252,6 +273,13 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                         {channelLabel(delivery.channel)}
                       </Badge>
                     </p>
+                    {deliveryOrder?.contact_override ? (
+                      <ContactOverrideNote
+                        customerName={owner.data?.customer.name}
+                        snapshotName={deliveryOrder.customer_name}
+                        snapshotPhone={deliveryOrder.customer_phone}
+                      />
+                    ) : null}
                     <Row label={t("orders.phone", "Phone")} value={delivery.customer_phone} />
                     {addressParts.length > 0 ? (
                       <Row label={t("orders.address", "Address")} value={addressParts.join(" · ")} />
