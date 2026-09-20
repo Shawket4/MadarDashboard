@@ -4,7 +4,7 @@
  */
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { clearDeviceToken, getDeviceToken, getGuestPhone, setDeviceToken, setGuestPhone } from "./guest";
+import { clearDeviceToken, getDeviceToken, getGuestPhone, orderNowCandidates, setDeviceToken, setGuestPhone } from "./guest";
 
 beforeEach(() => localStorage.clear());
 
@@ -43,5 +43,18 @@ describe("device token", () => {
     expect(localStorage.getItem("madar_delivery_device:201001234567")).toBe("tok");
     clearDeviceToken("201001234567");
     expect(getDeviceToken("01001234567")).toBeNull();
+  });
+});
+
+describe("orderNowCandidates", () => {
+  it("tries this shop's last phone first, then any proved phone ending in the hint — never a phone with no token", () => {
+    setGuestPhone("org-1", "201000000001");
+    setDeviceToken("201000000001", "tok-recent");
+    setDeviceToken("201000004567", "tok-tail");
+    setDeviceToken("201000009999", "tok-other");
+    setGuestPhone("org-2", "201000007777");
+    expect(orderNowCandidates("org-1", "•••• 4567").map((c) => c.token)).toEqual(["tok-recent", "tok-tail"]);
+    expect(orderNowCandidates("org-2", "•••• 4567").map((c) => c.token)).toEqual(["tok-tail"]);
+    expect(orderNowCandidates("org-1", "•••• 4567", 1)).toHaveLength(1);
   });
 });

@@ -73,3 +73,39 @@ export const setGuestPhone = (orgId: string, phone: string): void => {
     /* storage unavailable */
   }
 };
+
+/**
+ * "Order now" opens from a card's token, and the token does not say whose
+ * phone it is — only its last four digits (`•••• 4567`). The device tokens
+ * here are keyed by phone, so the ones worth trying are: the phone this device
+ * last used with this shop, then any proved phone ending in those digits.
+ *
+ * Bounded, because every try is a request against a rate-limited endpoint,
+ * and the server is the only judge: a token for the wrong phone simply gets
+ * the masked answer again.
+ */
+export const orderNowCandidates = (orgId: string, phoneHint: string, limit = 3): { phone: string; token: string }[] => {
+  const tail = phoneHint.replace(/\D/g, "").slice(-4);
+  const phones: string[] = [];
+  const recent = getGuestPhone(orgId);
+  if (recent) phones.push(recent);
+  try {
+    if (tail.length === 4) {
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (!key?.startsWith(DEVICE_KEY_PREFIX)) continue;
+        const phone = key.slice(DEVICE_KEY_PREFIX.length);
+        if (phone.endsWith(tail) && !phones.includes(phone)) phones.push(phone);
+      }
+    }
+  } catch {
+    /* storage unavailable — the customer verifies instead */
+  }
+  const out: { phone: string; token: string }[] = [];
+  for (const phone of phones) {
+    const token = getDeviceToken(phone);
+    if (token) out.push({ phone, token });
+    if (out.length >= limit) break;
+  }
+  return out;
+};
