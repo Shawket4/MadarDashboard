@@ -3,30 +3,21 @@ import { describe, expect, it } from "vitest";
 import vectors from "./phone_vectors.json";
 import { canonicalPhone, formatPhoneDisplay, formatPhoneInput, isValidPhone, phoneSchema, samePhone } from "./phone";
 
-const RULE_CONFLICTS = ["010012345"];
-
 describe("canonicalPhone — the shared vectors", () => {
   it.each(vectors.valid as [string, string][])("%s → %s", (raw, canonical) => {
     expect(canonicalPhone(raw)).toBe(canonical);
     expect(isValidPhone(raw)).toBe(true);
   });
 
-  it.each(vectors.invalid.filter((v) => !RULE_CONFLICTS.includes(v)).map((v) => [v]))("refuses %j", (raw) => {
+  it.each(vectors.invalid.map((v) => [v]))("refuses %j", (raw) => {
     expect(canonicalPhone(raw)).toBeNull();
     expect(isValidPhone(raw)).toBe(false);
   });
 
-  /**
-   * `010012345` is listed invalid, but the file's own written rule — and the
-   * backend's `normalize_phone` today — make it `2010012345`: ten digits, inside
-   * [10,15]. The rule is implemented as written; the vector is reported upstream
-   * rather than edited here. This pins the disagreement to exactly one vector,
-   * and fails the day either side changes so the exemption cannot outlive it.
-   */
-  it("disagrees with the vectors on exactly one known entry", () => {
-    const disagreeing = vectors.invalid.filter((v) => canonicalPhone(v) !== null);
-    expect(disagreeing).toEqual(RULE_CONFLICTS);
-    expect(canonicalPhone("010012345")).toBe("2010012345");
+  it("holds Egyptian mobiles to exactly twelve digits, and leaves landlines alone", () => {
+    expect(canonicalPhone("010012345")).toBeNull();
+    expect(canonicalPhone("010012345678")).toBeNull();
+    expect(canonicalPhone("0131234567")).toBe("20131234567");
   });
 
   it("is idempotent on every canonical form", () => {

@@ -10,6 +10,8 @@ import { z } from "zod";
 export const PHONE_RAW_MAX = 32;
 const CANONICAL_MIN = 10;
 const CANONICAL_MAX = 15;
+const EG_MOBILE_PREFIX = /^201[0125]/;
+const EG_MOBILE_LENGTH = 12;
 
 /** Arabic-Indic (U+0660–0669) and Extended Arabic-Indic (U+06F0–06F9) → ASCII. */
 const asciiDigits = (s: string): string =>
@@ -27,7 +29,11 @@ export const canonicalPhone = (raw: string | null | undefined): string | null =>
     /* already country-coded */
   } else if (digits.startsWith("0")) digits = `20${digits.slice(1)}`;
   else if (digits.length === 10 && digits.startsWith("1")) digits = `20${digits}`;
-  return digits.length >= CANONICAL_MIN && digits.length <= CANONICAL_MAX ? digits : null;
+  if (digits.length < CANONICAL_MIN || digits.length > CANONICAL_MAX) return null;
+  // An Egyptian mobile is exactly 12 digits; a truncated or over-long one is the
+  // commonest typo. Landlines (2013…, 202…) are untouched.
+  if (EG_MOBILE_PREFIX.test(digits) && digits.length !== EG_MOBILE_LENGTH) return null;
+  return digits;
 };
 
 export const isValidPhone = (raw: string | null | undefined): boolean => canonicalPhone(raw) !== null;
