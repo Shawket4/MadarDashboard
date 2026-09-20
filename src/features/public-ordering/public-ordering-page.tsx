@@ -26,7 +26,8 @@ import { fadeIn } from "@/lib/motion";
 
 import { isFlatChannel, type CartLine, type Channel, type Step } from "./types";
 import { asChannel, calcDiscount, cartSubtotal, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
-import { getDeviceToken, isValidPhone, normalizePhone, setDeviceToken } from "@/features/public-shell/guest";
+import { getDeviceToken, setDeviceToken } from "@/features/public-shell/guest";
+import { canonicalPhone, isValidPhone, samePhone } from "@/lib/phone";
 import { FIELD_LIMITS } from "./limits";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
@@ -59,6 +60,9 @@ interface PublicOrderingPageProps {
   prefillFloor?: string;
   prefillUnitNumber?: string;
 }
+
+/** What goes on the wire: canonical digits. Callers validate first; "" never matches a guest. */
+const wirePhone = (raw: string): string => canonicalPhone(raw) ?? "";
 
 export function PublicOrderingPage({
   orgId,
@@ -120,7 +124,7 @@ export function PublicOrderingPage({
   const hasGuestToken = !!resolvedPhone?.deviceToken;
   const { data: orders = [] } = useGuestOrderHistory(
     {
-      phone: resolvedPhone ? normalizePhone(resolvedPhone.phone) : "",
+      phone: resolvedPhone ? wirePhone(resolvedPhone.phone) : "",
       org_id: orgId,
       device_token: resolvedPhone?.deviceToken || null,
     },
@@ -128,7 +132,7 @@ export function PublicOrderingPage({
   );
   const { data: locations = [] } = useGuestPastLocations(
     {
-      phone: resolvedPhone ? normalizePhone(resolvedPhone.phone) : "",
+      phone: resolvedPhone ? wirePhone(resolvedPhone.phone) : "",
       org_id: orgId,
       device_token: resolvedPhone?.deviceToken || null,
     },
@@ -485,7 +489,7 @@ export function PublicOrderingPage({
     branch_id: branchId!,
     channel: selectedChannel!,
     customer_name: form.name.trim(),
-    customer_phone: normalizePhone(form.phone),
+    customer_phone: wirePhone(form.phone),
     place_name: form.place_name.trim() || null,
     floor: form.floor.trim() || null,
     unit_number: form.unit_number.trim() || null,
@@ -623,7 +627,7 @@ export function PublicOrderingPage({
     // No trusted device → request an OTP, then open the verify dialog.
     setOtpError(null);
     try {
-      await otpRequest.mutateAsync({ data: { phone: normalizePhone(form.phone) } });
+      await otpRequest.mutateAsync({ data: { phone: wirePhone(form.phone) } });
       setOtpOpen(true);
     } catch {
       setSubmitError(t("order.otp.errSend"));
@@ -638,12 +642,12 @@ export function PublicOrderingPage({
     setOtpError(null);
     try {
       const res = await otpVerify.mutateAsync({
-        data: { phone: normalizePhone(form.phone), code },
+        data: { phone: wirePhone(form.phone), code },
       });
       setDeviceToken(form.phone, res.device_token);
       // A token verified at checkout also unlocks this guest's history.
       setResolvedPhone((prev) =>
-        prev && normalizePhone(prev.phone) === normalizePhone(form.phone)
+        prev && samePhone(prev.phone, form.phone)
           ? { ...prev, deviceToken: res.device_token }
           : prev,
       );
@@ -656,7 +660,7 @@ export function PublicOrderingPage({
   const handleResend = async () => {
     setOtpError(null);
     try {
-      await otpRequest.mutateAsync({ data: { phone: normalizePhone(form.phone) } });
+      await otpRequest.mutateAsync({ data: { phone: wirePhone(form.phone) } });
     } catch {
       setOtpError(t("order.otp.errSend"));
     }

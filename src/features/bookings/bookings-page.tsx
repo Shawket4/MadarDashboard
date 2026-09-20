@@ -43,6 +43,7 @@ import { useExportLogo } from "@/hooks/use-export-logo";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { fmtTime } from "@/lib/format";
+import { formatPhoneDisplay } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
 import { BookingDialog } from "./booking-dialog";
@@ -155,7 +156,7 @@ export function BookingsPage() {
         { header: t("bookings.time", "Time"), accessor: (b) => b.starts_at, type: "dateTime", width: 22 },
         { header: t("bookings.endsAt", "Ends"), accessor: (b) => b.ends_at, type: "dateTime", width: 22 },
         { header: t("bookings.guest", "Guest"), accessor: (b) => b.guest_name, type: "text", width: 24 },
-        { header: t("bookings.phone", "Phone"), accessor: (b) => `+${b.guest_phone}`, type: "text", width: 18 },
+        { header: t("bookings.phone", "Phone"), accessor: (b) => formatPhoneDisplay(b.guest_phone), type: "text", width: 18 },
         { header: t("bookings.party", "Party"), accessor: (b) => b.party_size, type: "integer", width: 10 },
         {
           header: t("bookings.tables", "Tables"),
@@ -226,7 +227,7 @@ export function BookingsPage() {
               </div>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Phone aria-hidden className="size-3" />
-                <bdi dir="ltr" className="font-mono tabular-nums">+{b.guest_phone}</bdi>
+                <bdi dir="ltr" className="font-mono tabular-nums">{formatPhoneDisplay(b.guest_phone)}</bdi>
                 {b.notes ? <span className="ms-2 max-w-64 truncate" title={b.notes}>· {b.notes}</span> : null}
               </div>
             </div>

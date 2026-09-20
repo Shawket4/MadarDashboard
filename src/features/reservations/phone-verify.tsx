@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useOtpRequest, useOtpVerify } from "@/data/api/generated/api";
 import { cn } from "@/lib/utils";
-import { getDeviceToken, isValidPhone, normalizePhone, setDeviceToken } from "@/features/public-shell/guest";
+import { getDeviceToken, setDeviceToken } from "@/features/public-shell/guest";
+import { canonicalPhone, formatPhoneDisplay, isValidPhone } from "@/lib/phone";
 
 const CODE_LEN = 4;
 
@@ -63,7 +64,7 @@ export function PhoneVerify({
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   const otpRequest = useOtpRequest();
   const otpVerify = useOtpVerify();
-  const normalized = normalizePhone(phone);
+  const normalized = canonicalPhone(phone) ?? "";
 
   const start = useCallback(async () => {
     if (!isValidPhone(phone)) {
@@ -129,7 +130,7 @@ export function PhoneVerify({
           </span>
           <h2 className="font-serif text-lg font-semibold">{t("order.otp.title", "Verify your phone")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t("reservations.otpSent", "We sent a WhatsApp code to {{phone}}.", { phone: `+20 ${phone}` })}
+            {t("reservations.otpSent", "We sent a WhatsApp code to {{phone}}.", { phone: formatPhoneDisplay(normalized) })}
           </p>
         </div>
         <div dir="ltr" className="flex justify-center gap-2.5">

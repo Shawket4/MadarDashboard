@@ -109,7 +109,11 @@
     },
     "ok": "حسنًا",
     "exportExcel": "تصدير Excel",
-    "exportCsv": "تصدير CSV"
+    "exportCsv": "تصدير CSV",
+    "errors": {
+      "phoneRequired": "أدخل رقم الهاتف.",
+      "phoneInvalid": "أدخل رقم هاتف صحيحًا."
+    }
   },
   "nav": {
     "dashboard": "لوحة التحكم",

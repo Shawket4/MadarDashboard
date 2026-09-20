@@ -109,7 +109,11 @@
     },
     "ok": "OK",
     "exportExcel": "Export Excel",
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "errors": {
+      "phoneRequired": "Enter a phone number.",
+      "phoneInvalid": "Enter a valid phone number."
+    }
   },
   "nav": {
     "dashboard": "Dashboard",

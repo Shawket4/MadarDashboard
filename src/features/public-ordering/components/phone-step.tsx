@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { fadeInUp } from "@/lib/motion";
 
-import { getDeviceToken, getGuestPhone, isValidPhone, normalizePhone, setDeviceToken, setGuestPhone } from "@/features/public-shell/guest";
+import { getDeviceToken, getGuestPhone, setDeviceToken, setGuestPhone } from "@/features/public-shell/guest";
+import { canonicalPhone, formatPhoneDisplay, isValidPhone } from "@/lib/phone";
 
 const CODE_LEN = 4;
 
@@ -44,7 +45,7 @@ export function PhoneStep({ orgId, otpRequired, onContinue }: PhoneStepProps) {
   // ""    = resolved without a token (otp_required=false)
   // str   = resolved with a device token
   const [resolvedToken, setResolvedToken] = useState<string | null>(null);
-  const normalizedPhone = normalizePhone(phone);
+  const normalizedPhone = canonicalPhone(phone) ?? "";
 
   // Auto-skip: if localStorage already has a valid phone + token (or OTP not required),
   // advance immediately without the user having to interact.
@@ -194,7 +195,7 @@ export function PhoneStep({ orgId, otpRequired, onContinue }: PhoneStepProps) {
             {t("order.otp.title")}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t("order.otp.sent", { phone: `+20 ${phone}` })}
+            {t("order.otp.sent", { phone: formatPhoneDisplay(normalizedPhone) })}
           </p>
         </div>
 
@@ -278,7 +279,7 @@ export function PhoneStep({ orgId, otpRequired, onContinue }: PhoneStepProps) {
         {hasSavedPhone && (
           <div className="mb-4 flex items-center justify-between rounded-xl bg-brand/5 px-3 py-2 text-sm">
             <span className="text-muted-foreground">
-              {t("order.phone.savedAs", "Ordering as {{phone}}", { phone })}
+              {t("order.phone.savedAs", "Ordering as {{phone}}", { phone: formatPhoneDisplay(phone) })}
             </span>
             <button
               type="button"

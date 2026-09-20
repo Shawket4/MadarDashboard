@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type { Channel, CartLine } from "../types";
 import { Totals } from "./cart-sheet";
 import { cartSubtotal } from "../utils";
-import { isValidPhone } from "@/features/public-shell/guest";
+import { isValidPhone } from "@/lib/phone";
 import { FIELD_LIMITS } from "../limits";
 
 export interface CheckoutForm {
