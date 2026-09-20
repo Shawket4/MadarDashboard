@@ -3411,7 +3411,42 @@
       "phoneReplace": "This is my new number",
       "phoneReplaceHint": "We’ll send it a WhatsApp code, then move your orders, points and card to it.",
       "phoneCancel": "Keep my number",
-      "phoneContinue": "Continue"
+      "phoneContinue": "Continue",
+      "saveAddress": "Save this address to my profile",
+      "saveAddressHint": "Off by default: an order for someone else usually goes somewhere that isn’t yours.",
+      "combineTitle": "That number already has a profile here",
+      "combineBody": "You’ve just proved {{phone}} is yours too. Combine the two and everything — orders, points and saved addresses — lives under this card.",
+      "combineConfirm": "These are both me — combine",
+      "useOnce": "Use it for just this order",
+      "refusedTitle": "We can’t change your number right now",
+      "refusedLimit": "The number on this card was changed twice in the last 30 days, which is the most we allow. The shop can change it for you. You can still send this order to the new number.",
+      "refusedLocked": "This profile was combined with another in the last 24 hours, so its number is locked until tomorrow. You can still send this order to the new number."
+    },
+    "now": {
+      "notFoundTitle": "We couldn’t find that card",
+      "notFoundBody": "The link may be old. Open your loyalty card and tap Order now again.",
+      "opening": "Opening your order…",
+      "greeting": "Hi {{name}}, is this you?",
+      "verifyBodyBranch": "Confirm your number ending {{hint}} and we’ll have your usual from {{branch}} ready to order: your address, your details, one tap to the menu.",
+      "verifyBody": "Confirm your number ending {{hint}} and we’ll fill in your details for you.",
+      "wrongNumber": "That isn’t the number on this card. Use the one ending {{hint}}.",
+      "unlockFailed": "We couldn’t open your details. Try again.",
+      "phoneTitle": "Your phone number",
+      "phoneHint": "We’ll send a WhatsApp code the first time you order from this device.",
+      "continue": "Continue",
+      "notYou": "Not you?",
+      "orderWithout": "Order without the card",
+      "staleChannel": "{{branch}} isn’t taking that kind of order right now. Pick another way to get it — everything else is as you left it.",
+      "staleBranch": "{{branch}} isn’t taking online orders right now. Pick another branch — your details are still filled in.",
+      "yourAddress": "your saved address",
+      "staleZone": "Delivery to {{label}} is paused right now. Choose where to send this order.",
+      "staleAddress": "{{label}} is outside {{branch}}’s delivery area now. Choose where to send this order.",
+      "summaryPickup": "Pickup",
+      "summaryUmbrella": "To your umbrella",
+      "summaryTo": "Delivering to {{place}}",
+      "summaryDelivery": "Delivery",
+      "welcomeBack": "Welcome back, {{name}}",
+      "change": "Change"
     }
   },
   "deliveryTimeline": {
@@ -4837,7 +4872,8 @@
       "rejoin": "If they join again with the same number, they get their balance back.",
       "confirm": "Remove from programme",
       "done": "Removed from the loyalty programme"
-    }
+    },
+    "orderNow": "Order now"
   },
   "publicShell": {
     "poweredBy": {

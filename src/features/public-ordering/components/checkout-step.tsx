@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, Banknote, CreditCard, User, MapPin, ShoppingBag, Umbrella, Wallet, ReceiptText } from "lucide-react";
 
@@ -53,6 +53,8 @@ interface CheckoutStepProps {
   onSubmit: () => void;
   /** When true the phone field is read-only (already collected in the phone step). */
   phoneReadOnly?: boolean;
+  /** Under the contact fields: what a changed name means, when ordering from a card. */
+  identitySlot?: ReactNode;
 }
 
 export function CheckoutStep({
@@ -67,6 +69,7 @@ export function CheckoutStep({
   phoneError,
   onSubmit,
   phoneReadOnly = false,
+  identitySlot,
 }: CheckoutStepProps) {
   const { t } = useTranslation();
   const subtotal = cartSubtotal(lines);
@@ -170,6 +173,7 @@ export function CheckoutStep({
             />
           </div>
         </Field>
+        {identitySlot}
       </SectionCard>
 
       {/* Destination — channel specific */}
