@@ -1715,7 +1715,8 @@
       "covers_one": "{{count}} cover",
       "covers_other": "{{count}} covers",
       "emptyPeriod": "Nothing sat here in this period."
-    }
+    },
+    "sittingNow": "Sitting now"
   },
   "orders": {
     "branch": "Branch",
@@ -4792,13 +4793,6 @@
       "by": "by {{name}}",
       "bySystem": "automatic"
     },
-    "deleteMember": "Delete member",
-    "deleteTitle": "Delete {{name}}?",
-    "deleteScrubbed": "Removed: their name, birthday and phone number, their card (the wallet pass stops working) and marketing consent.",
-    "deleteKept": "Kept: the points ledger and the orders they earned or redeemed on, so past reports don't change. The phone number can join again as a new member.",
-    "deleteIrreversible": "This can't be undone.",
-    "deleteConfirm": "Delete member",
-    "deleted": "Member deleted",
     "statRedemptions": "Rewards redeemed",
     "statRedemptionsHint": "{{units}} items over the last 30 days",
     "statValueGiven": "Value given away",
@@ -4834,7 +4828,16 @@
     "androidStep1": "Tap the ⋮ menu at the top of this screen",
     "androidStep2": "Choose “Open in Chrome” or “Open in browser”",
     "androidStep2Hint": "Some apps call it “Open in external browser” or “Open with…”.",
-    "androidMenuItem": "Open in Chrome"
+    "androidMenuItem": "Open in Chrome",
+    "leave": {
+      "action": "Remove from loyalty programme",
+      "title": "Remove {{name}} from the loyalty programme?",
+      "stops": "Their card stops working: the wallet pass is withdrawn and they no longer earn or redeem.",
+      "stays": "They stay a customer. Their orders, their history and the points ledger are untouched.",
+      "rejoin": "If they join again with the same number, they get their balance back.",
+      "confirm": "Remove from programme",
+      "done": "Removed from the loyalty programme"
+    }
   },
   "publicShell": {
     "poweredBy": {
@@ -5116,7 +5119,7 @@
     "merged": "Customers merged",
     "erase": "Erase customer",
     "eraseTitle": "Erase {{name}}?",
-    "eraseBody": "Their name, phone, birthday and notes are wiped for good and they leave the customer list (PDPL). If they hold a loyalty card, the membership and the wallet card are removed too and any unspent balance is lost. Past orders and the points ledger stay, without their details. This can't be undone.",
+    "eraseBody": "Their name, phone, birthday and notes are wiped for good and they leave the customer list (PDPL). It reaches everywhere they appear: the name and phone typed on their orders, deliveries, bookings and open bills, their saved addresses and their phone history. If they hold a loyalty card, the membership and the wallet card are removed too and any unspent balance is lost. Order totals, items and the points ledger stay, without their details. This can't be undone.",
     "erased": "Customer erased",
     "mergedFrom": "Merged duplicates: {{n}}",
     "noOrders": "No orders yet",
@@ -5157,6 +5160,22 @@
       "phoneInvalid": "Enter a valid phone number.",
       "phoneTaken": "Another customer already has this phone number.",
       "notesLong": "Keep notes under {{max}} characters."
+    },
+    "orderedBy": "Ordered by",
+    "orderedFor": "for",
+    "orderedForSomeoneElse": "Ordered for someone else:",
+    "addresses": {
+      "title": "Addresses",
+      "empty": "No saved addresses. One is kept the first time they order for delivery.",
+      "unit": "Unit {{n}}",
+      "floor": "Floor {{n}}",
+      "used": "Used {{n}}×",
+      "lastUsed": "Last {{date}}",
+      "channel": {
+        "in_mall": "In-mall",
+        "outside": "Delivery",
+        "umbrella": "Umbrella"
+      }
     }
   },
   "reports": {

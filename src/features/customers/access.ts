@@ -22,6 +22,8 @@ export interface PeopleAccess extends LoyaltyAccess {
   /** Split from edit: a merge moves balances and retires a card. */
   canMerge: boolean;
   canErase: boolean;
+  /** Where they live is its own PII capability: needed to dispatch, not to take an order. */
+  canViewAddresses: boolean;
 }
 
 export function peopleAccess(authz: Authz): PeopleAccess {
@@ -32,6 +34,7 @@ export function peopleAccess(authz: Authz): PeopleAccess {
     canEdit: authz.can(Cap.customersEdit),
     canMerge: authz.can(Cap.customersMerge),
     canErase: authz.can(Cap.customersErase),
+    canViewAddresses: authz.can(Cap.customersAddressesView),
   };
 }
 

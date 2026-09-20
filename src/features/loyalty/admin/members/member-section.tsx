@@ -36,7 +36,7 @@ import { cn } from "@/lib/utils";
 import type { LoyaltyAccess } from "../../shared/access";
 import { currencyLabel } from "../../shared/util";
 import { AdjustDialog } from "./adjust-dialog";
-import { DeleteMemberButton } from "./delete-member-dialog";
+import { LeaveProgrammeButton } from "./leave-programme-dialog";
 import { GoogleObjectDialog } from "./google-object-dialog";
 import { ledgerActor, ledgerLabel, ledgerTone, reversedIds, signed, type LedgerTone } from "./ledger";
 
@@ -63,7 +63,7 @@ export function MemberSection({
   /** Opened from somewhere that only looks (an order): no actions at all. */
   readOnly?: boolean;
   onOpenOrder: (orderId: string) => void;
-  /** The member was deleted — and with it the person; close whatever shows them. */
+  /** They left the programme. The customer stays; whoever shows only the card has nothing left to show. */
   onForgotten: () => void;
 }) {
   const { t } = useTranslation();
@@ -99,7 +99,7 @@ export function MemberSection({
               {t("loyalty.googleObject", "Google Wallet object")}
             </Button>
           ) : null}
-          {canForget ? <DeleteMemberButton member={member} onDeleted={onForgotten} /> : null}
+          {canForget ? <LeaveProgrammeButton member={member} onLeft={onForgotten} /> : null}
         </div>
       ) : null}
 

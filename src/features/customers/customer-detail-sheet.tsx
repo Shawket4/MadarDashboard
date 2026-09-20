@@ -1,12 +1,14 @@
 /**
  * One person, whole: who they are, what they have spent, their loyalty card,
- * their recent orders — and, for someone who may, edit, merge and erase.
+ * where their orders go, their recent orders — and, for someone who may, edit,
+ * merge and erase.
  *
  * A loyalty member IS a customer under the same id, so this is also the member
  * sheet: the Members tab, an order's member link and the Customers page all
  * open it by that one id. Each section follows its own capability family:
  *
  *  - `customers.view` reads the customer (identity, stats, orders);
+ *  - `customers.addresses.view` reads their saved addresses, and only it does;
  *  - `loyalty.members.list` / `loyalty.read` reads the card (balance, ledger);
  *  - someone holding only the loyalty side sees exactly the old member sheet.
  */
@@ -32,6 +34,7 @@ import { fmtDate, fmtDateTime, fmtMoney, fmtNumber } from "@/lib/format";
 import { formatPhoneDisplay } from "@/lib/phone";
 
 import { peopleAccess } from "./access";
+import { AddressesSection } from "./addresses-section";
 import { CustomerDialog } from "./customer-dialog";
 import { MergeDialog } from "./merge-dialog";
 import { formatBirthday, isPersonQuery, isSource } from "./util";
@@ -91,7 +94,7 @@ export function CustomerDetailSheet({
       title: t("customers.eraseTitle", { defaultValue: "Erase {{name}}?", name: customer.name }),
       description: t(
         "customers.eraseBody",
-        "Their name, phone, birthday and notes are wiped for good and they leave the customer list (PDPL). If they hold a loyalty card, the membership and the wallet card are removed too and any unspent balance is lost. Past orders and the points ledger stay, without their details. This can't be undone.",
+        "Their name, phone, birthday and notes are wiped for good and they leave the customer list (PDPL). It reaches everywhere they appear: the name and phone typed on their orders, deliveries, bookings and open bills, their saved addresses and their phone history. If they hold a loyalty card, the membership and the wallet card are removed too and any unspent balance is lost. Order totals, items and the points ledger stay, without their details. This can't be undone.",
       ),
       confirmLabel: t("customers.erase", "Erase customer"),
       destructive: true,
@@ -195,7 +198,12 @@ export function CustomerDetailSheet({
                       access={access}
                       readOnly={readOnly}
                       onOpenOrder={onOpenOrder}
-                      onForgotten={() => onOpenChange(false)}
+                      // They left the programme and are still a customer: the sheet stays
+                      // for someone who can see the customer, and closes for someone who
+                      // could only ever see the card.
+                      onForgotten={() => {
+                        if (!access.canViewCustomers) onOpenChange(false);
+                      }}
                     />
                   ) : (
                     <EmptyState
@@ -213,6 +221,7 @@ export function CustomerDetailSheet({
 
               {detail.data && customer ? (
                 <>
+                  {access.canViewAddresses ? <AddressesSection customerId={customer.id} /> : null}
                   <RecentOrders orders={detail.data.recent_orders} onOpenOrder={onOpenOrder} />
                   {canEdit ? <CustomerDialog open={editing} onOpenChange={setEditing} customer={customer} /> : null}
                   {canMerge ? (

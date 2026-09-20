@@ -25,14 +25,22 @@ const card = {
   ledger: [],
 } as unknown as MemberDetail;
 
+// Invented places: nothing here is, or looks like, somebody's real address.
+const addresses = [
+  { id: "a-1", customer_id: "c-1", channel: "outside", label: "Home", address_line: "Test Street", floor: "3", unit_number: "12", landmark: "Blue gate", use_count: 7, last_used_at: at, created_at: at },
+  { id: "a-2", customer_id: "c-1", channel: "in_mall", label: null, place_name: "Test Shop", use_count: 1, last_used_at: at, created_at: at },
+];
+
 let held: string[] = [];
 const useGetCustomer = vi.fn();
 const useGetLoyaltyMember = vi.fn();
+const useListCustomerAddresses = vi.fn();
 const confirm = vi.fn();
 
 vi.mock("@/data/api/generated/api", () => ({
   useGetCustomer: (...a: unknown[]) => useGetCustomer(...a),
   useGetLoyaltyMember: (...a: unknown[]) => useGetLoyaltyMember(...a),
+  useListCustomerAddresses: (...a: unknown[]) => useListCustomerAddresses(...a),
   useEraseCustomer: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useListBranches: () => ({ data: [] }),
 }));
@@ -46,8 +54,8 @@ vi.mock("./customer-dialog", () => ({ CustomerDialog: () => null }));
 vi.mock("./merge-dialog", () => ({ MergeDialog: () => null }));
 vi.mock("@/features/loyalty/admin/members/adjust-dialog", () => ({ AdjustDialog: () => null }));
 vi.mock("@/features/loyalty/admin/members/google-object-dialog", () => ({ GoogleObjectDialog: () => null }));
-vi.mock("@/features/loyalty/admin/members/delete-member-dialog", () => ({
-  DeleteMemberButton: () => <button type="button">Delete member</button>,
+vi.mock("@/features/loyalty/admin/members/leave-programme-dialog", () => ({
+  LeaveProgrammeButton: () => <button type="button">Remove from loyalty programme</button>,
 }));
 
 const i18n = (await import("@/i18n")).default;
@@ -70,6 +78,7 @@ beforeEach(() => {
   confirm.mockReset().mockResolvedValue(false);
   useGetCustomer.mockReset().mockImplementation(() => ({ data: detail, isLoading: false, isError: false, error: null, refetch: vi.fn() }));
   useGetLoyaltyMember.mockReset().mockImplementation(() => ({ data: card, isLoading: false, isError: false, error: null, refetch: vi.fn() }));
+  useListCustomerAddresses.mockReset().mockImplementation(() => ({ data: addresses, isLoading: false, isError: false, error: null, refetch: vi.fn() }));
 });
 
 describe("CustomerDetailSheet", () => {
@@ -89,7 +98,7 @@ describe("CustomerDetailSheet", () => {
     expect(screen.queryByRole("switch")).not.toBeInTheDocument();
 
     expect(screen.queryByRole("heading", { name: "Loyalty" })).not.toBeInTheDocument();
-    for (const name of [/^Edit$/, /Merge into/, /Erase customer/, /Adjust balance/, /Delete member/]) expect(action(name)).not.toBeInTheDocument();
+    for (const name of [/^Edit$/, /Merge into/, /Erase customer/, /Adjust balance/, /Remove from loyalty programme/]) expect(action(name)).not.toBeInTheDocument();
   });
 
   it("only a loyalty read: the card as it always was, the customer never asked for", () => {
@@ -112,6 +121,34 @@ describe("CustomerDetailSheet", () => {
     expect(screen.queryByRole("heading", { name: "Loyalty" })).not.toBeInTheDocument();
   });
 
+  it("addresses need customers.addresses.view: without it the section is not drawn and nothing is fetched", () => {
+    held = ["customers.view"];
+    mount();
+    expect(screen.queryByRole("heading", { name: "Addresses" })).not.toBeInTheDocument();
+    expect(useListCustomerAddresses).not.toHaveBeenCalled();
+  });
+
+  it("with it: label, a followable line, how often and when — a labelless one is named by its channel", () => {
+    held = ["customers.view", "customers.addresses.view"];
+    mount();
+    expect(screen.getByRole("heading", { name: "Addresses" })).toBeInTheDocument();
+    expect(useListCustomerAddresses).toHaveBeenCalledWith("c-1");
+    const rows = screen.getAllByTestId("customer-address");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveTextContent("Home");
+    expect(rows[0]).toHaveTextContent("Unit 12 · Floor 3 · Test Street · Blue gate");
+    expect(rows[0]).toHaveTextContent("Used 7×");
+    expect(rows[1]).toHaveTextContent("In-mall");
+    expect(rows[1]).toHaveTextContent("Test Shop");
+  });
+
+  it("no saved addresses says how one comes to be", () => {
+    held = ["customers.view", "customers.addresses.view"];
+    useListCustomerAddresses.mockImplementation(() => ({ data: [], isLoading: false, isError: false, error: null, refetch: vi.fn() }));
+    mount();
+    expect(screen.getByText(/No saved addresses/)).toBeInTheDocument();
+  });
+
   it("each action follows its own capability — merge is not edit's", () => {
     held = ["customers.view", "customers.edit", "loyalty.read"];
     mount();
@@ -124,12 +161,12 @@ describe("CustomerDetailSheet", () => {
   it("holding everything shows everything; read-only (from an order) shows none of it", () => {
     held = ["customers.view", "customers.edit", "customers.merge", "customers.erase", "loyalty.members.list", "loyalty.points.adjust", "loyalty.members.delete"];
     const first = mount();
-    for (const name of [/^Edit$/, /Merge into/, /Erase customer/, /Adjust balance/, /Delete member/]) expect(action(name)).toBeInTheDocument();
+    for (const name of [/^Edit$/, /Merge into/, /Erase customer/, /Adjust balance/, /Remove from loyalty programme/]) expect(action(name)).toBeInTheDocument();
     first.unmount();
 
     mount(true);
     expect(screen.getByRole("heading", { name: "Loyalty" })).toBeInTheDocument();
-    for (const name of [/^Edit$/, /Merge into/, /Erase customer/, /Adjust balance/, /Delete member/]) expect(action(name)).not.toBeInTheDocument();
+    for (const name of [/^Edit$/, /Merge into/, /Erase customer/, /Adjust balance/, /Remove from loyalty programme/]) expect(action(name)).not.toBeInTheDocument();
   });
 
   it("erase says the loyalty membership and the wallet card go too", async () => {
@@ -138,6 +175,8 @@ describe("CustomerDetailSheet", () => {
     await userEvent.click(screen.getByRole("button", { name: /Erase customer/ }));
     const asked = confirm.mock.calls[0][0] as { description: string; destructive: boolean };
     expect(asked.description).toMatch(/the membership and the wallet card are removed too/);
+    // The cascade: every place their name and number were typed, and where they live.
+    expect(asked.description).toMatch(/orders, deliveries, bookings and open bills, their saved addresses/);
     expect(asked.destructive).toBe(true);
   });
 });
