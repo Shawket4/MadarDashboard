@@ -1,25 +1,23 @@
 /**
- * One member: what they hold, how they got it, and where it went.
+ * A customer's loyalty card: what they hold, how they got it, and where it went.
+ * It is a section of the one customer sheet (`features/customers`), not a sheet
+ * of its own — a member IS a customer, under the same id.
  *
  * The ledger is the member's whole story and the shop's audit trail at once —
  * earns, redemptions, void and refund reversals, gifts and hand adjustments,
  * each with its branch, its order and (for an adjustment) the reason typed.
  * A row a later reversal undoes is struck through, so a voided sale reads as
  * one event rather than two unrelated movements.
+ *
+ * The one write that creates value from nothing is an adjustment, so it is
+ * gated on its own capability here and by the server.
  */
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Receipt, SlidersHorizontal } from "lucide-react";
+import { Receipt, SlidersHorizontal, Wallet } from "lucide-react";
 
 import { StatusPill, type StatusTone } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -29,14 +27,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/app/empty-state";
-import { useGetLoyaltyMember } from "@/data/api/generated/api";
-import type { LedgerEntry, MemberView } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
+import { useListBranches } from "@/data/api/generated/api";
+import type { LedgerEntry, MemberDetail, MemberView } from "@/data/api/generated/models";
+import { useOrgId } from "@/hooks/use-org-id";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+import type { LoyaltyAccess } from "../../shared/access";
 import { currencyLabel } from "../../shared/util";
+import { AdjustDialog } from "./adjust-dialog";
 import { DeleteMemberButton } from "./delete-member-dialog";
+import { GoogleObjectDialog } from "./google-object-dialog";
 import { ledgerActor, ledgerLabel, ledgerTone, reversedIds, signed, type LedgerTone } from "./ledger";
 
 const TONE: Record<LedgerTone, StatusTone> = {
@@ -47,89 +48,85 @@ const TONE: Record<LedgerTone, StatusTone> = {
   manual: "neutral",
 };
 
-export function MemberDetailSheet({
-  memberId,
+export function MemberSection({
+  detail,
   branchId,
-  canAdjust,
-  canForget = false,
-  onOpenChange,
-  onAdjust,
+  access,
+  readOnly = false,
   onOpenOrder,
+  onForgotten,
 }: {
-  memberId: string | null;
+  detail: MemberDetail;
+  /** The branch an adjustment defaults to (the scope the list was opened under). */
   branchId: string | null;
-  canAdjust: boolean;
-  canForget?: boolean;
-  onOpenChange: (open: boolean) => void;
-  onAdjust: (member: MemberView) => void;
+  access: Pick<LoyaltyAccess, "canAdjust" | "canForget" | "canInspectWallet">;
+  /** Opened from somewhere that only looks (an order): no actions at all. */
+  readOnly?: boolean;
   onOpenOrder: (orderId: string) => void;
+  /** The member was deleted — and with it the person; close whatever shows them. */
+  onForgotten: () => void;
 }) {
-  const { t, i18n } = useTranslation();
-  const side = i18n.dir() === "rtl" ? "left" : "right";
-  const detail = useGetLoyaltyMember(
-    memberId ?? "",
-    branchId ? { branch_id: branchId } : undefined,
-    { query: { enabled: !!memberId } },
+  const { t } = useTranslation();
+  const { member, ledger } = detail;
+  const canAdjust = access.canAdjust && !readOnly;
+  const canForget = access.canForget && !readOnly;
+  const canInspect = access.canInspectWallet && !readOnly;
+  const [adjusting, setAdjusting] = useState(false);
+  const [inspecting, setInspecting] = useState(false);
+
+  const orgId = useOrgId() ?? "";
+  const branches = useListBranches({ org_id: orgId }, { query: { enabled: !!orgId && canAdjust } });
+  const activeBranches = useMemo(
+    () => (branches.data ?? []).filter((b) => b.is_active).map((b) => ({ id: b.id, name: b.name })),
+    [branches.data],
   );
-  const member = detail.data?.member;
-  const ledger = detail.data?.ledger ?? [];
 
   return (
-    <Sheet open={!!memberId} onOpenChange={onOpenChange}>
-      <SheetContent side={side} className="w-full overflow-y-auto sm:max-w-2xl">
-        <SheetHeader>
-          <SheetTitle>{member?.name ?? t("loyalty.member", "Member")}</SheetTitle>
-          <SheetDescription>
-            {member ? (
-              <span dir="ltr" className="font-mono">
-                {member.phone}
-              </span>
-            ) : null}
-          </SheetDescription>
-        </SheetHeader>
+    <div className="space-y-4">
+      <MemberSummary member={member} />
 
-        <div className="space-y-4 px-4 pb-6">
-          {detail.isLoading ? (
-            <Skeleton className="h-64 w-full" />
-          ) : detail.isError || !member ? (
-            <EmptyState
-              title={t("loyalty.memberLoadFailed", "Couldn't load this member")}
-              description={detail.error ? getErrorMessage(detail.error) : undefined}
-              action={
-                <Button variant="outline" onClick={() => void detail.refetch()}>
-                  {t("common.retry", "Retry")}
-                </Button>
-              }
-            />
-          ) : (
-            <>
-              <MemberSummary member={member} />
-
-              {canAdjust || canForget ? (
-                <div className="flex flex-wrap gap-2">
-                  {canAdjust ? (
-                    <Button variant="outline" size="sm" onClick={() => onAdjust(member)}>
-                      <SlidersHorizontal className="size-4" />
-                      {t("loyalty.adjustTitle", "Adjust balance")}
-                    </Button>
-                  ) : null}
-                  {canForget ? (
-                    <DeleteMemberButton member={member} onDeleted={() => onOpenChange(false)} />
-                  ) : null}
-                </div>
-              ) : null}
-
-              <LedgerTable entries={ledger} onOpenOrder={onOpenOrder} />
-              {ledger.length >= 200 ? (
-                <p className="text-xs text-muted-foreground">
-                  {t("loyalty.ledgerTruncated", "Showing the latest 200 movements.")}
-                </p>
-              ) : null}
-            </>
-          )}
+      {canAdjust || canForget || canInspect ? (
+        <div className="flex flex-wrap gap-2">
+          {canAdjust ? (
+            <Button variant="outline" size="sm" onClick={() => setAdjusting(true)}>
+              <SlidersHorizontal className="size-4" />
+              {t("loyalty.adjustTitle", "Adjust balance")}
+            </Button>
+          ) : null}
+          {canInspect ? (
+            <Button variant="outline" size="sm" onClick={() => setInspecting(true)}>
+              <Wallet className="size-4" />
+              {t("loyalty.googleObject", "Google Wallet object")}
+            </Button>
+          ) : null}
+          {canForget ? <DeleteMemberButton member={member} onDeleted={onForgotten} /> : null}
         </div>
-      </SheetContent>
-    </Sheet>
+      ) : null}
+
+      <LedgerTable entries={ledger} onOpenOrder={onOpenOrder} />
+      {ledger.length >= 200 ? (
+        <p className="text-xs text-muted-foreground">
+          {t("loyalty.ledgerTruncated", "Showing the latest 200 movements.")}
+        </p>
+      ) : null}
+
+      {canAdjust ? (
+        <AdjustDialog
+          member={member}
+          branches={activeBranches}
+          defaultBranchId={branchId}
+          open={adjusting}
+          onOpenChange={setAdjusting}
+        />
+      ) : null}
+      {canInspect ? (
+        <GoogleObjectDialog
+          memberId={inspecting ? member.id : null}
+          memberName={member.name}
+          onOpenChange={(o) => !o && setInspecting(false)}
+        />
+      ) : null}
+    </div>
   );
 }
 

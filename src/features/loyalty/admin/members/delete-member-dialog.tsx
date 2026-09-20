@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { useDeleteLoyaltyMember } from "@/data/api/generated/api";
 import type { MemberView } from "@/data/api/generated/models";
 
+import { isPersonQuery } from "@/features/customers/util";
+
 import { loyaltyServerError } from "../../shared/server-errors";
 
 export function DeleteMemberButton({
@@ -42,9 +44,8 @@ export function DeleteMemberButton({
     try {
       await del.mutateAsync({ id: member.id });
       toast.success(t("loyalty.deleted", "Member deleted"));
-      await qc.invalidateQueries({
-        predicate: (q) => String(q.queryKey[0] ?? "").startsWith("/loyalty/"),
-      });
+      // The person goes with the card: the customer lists are stale too.
+      await qc.invalidateQueries({ predicate: isPersonQuery });
       setOpen(false);
       onDeleted();
     } catch (e) {

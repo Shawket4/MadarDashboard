@@ -30,7 +30,7 @@ import {
   NOTES_MAX,
   createToWire,
   customerSchema,
-  isCustomersQuery,
+  isPersonQuery,
   isPhoneTaken,
   updateToWire,
   valuesOf,
@@ -79,7 +79,7 @@ export function CustomerDialog({
         ? await update.mutateAsync({ id: customer.id, data: updateToWire(v) })
         : await create.mutateAsync({ data: createToWire(v) });
       toast.success(editing ? t("customers.saved", "Customer saved") : t("customers.created", "Customer added"));
-      await qc.invalidateQueries({ predicate: isCustomersQuery });
+      await qc.invalidateQueries({ predicate: isPersonQuery });
       onSaved?.(detail);
       onOpenChange(false);
     } catch (e) {

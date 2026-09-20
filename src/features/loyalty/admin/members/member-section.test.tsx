@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { LedgerEntry } from "@/data/api/generated/models";
 
 await import("@/i18n");
-const { LedgerTable } = await import("./member-detail-sheet");
+const { LedgerTable } = await import("./member-section");
 
 const row = (over: Partial<LedgerEntry>): LedgerEntry => ({
   id: "r",

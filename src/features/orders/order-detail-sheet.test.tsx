@@ -1,6 +1,7 @@
 /**
- * The order → member link: the member's name opens the member for someone who
- * may read one, stays plain text otherwise, and a deleted member is never a link.
+ * The order → member link: the member's name opens the person (a member is a
+ * customer under the same id) for someone who may read either side of them,
+ * stays plain text otherwise, and a deleted member is never a link.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
@@ -21,10 +22,10 @@ vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
   return { ...real, useAuthz: () => real.authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [], capabilities: held, ask_manager: [], limits: {} }) };
 });
-vi.mock("@/features/loyalty/admin/members/member-detail-sheet", () => ({
-  MemberDetailSheet: ({ memberId, canAdjust, onOpenOrder }: { memberId: string | null; canAdjust: boolean; onOpenOrder: (id: string) => void }) =>
-    memberId ? (
-      <div data-testid="member-sheet" data-member={memberId} data-adjust={String(canAdjust)}>
+vi.mock("@/features/customers/customer-detail-sheet", () => ({
+  CustomerDetailSheet: ({ customerId, readOnly, onOpenOrder }: { customerId: string | null; readOnly?: boolean; onOpenOrder: (id: string) => void }) =>
+    customerId ? (
+      <div data-testid="member-sheet" data-member={customerId} data-read-only={String(!!readOnly)}>
         <button onClick={() => onOpenOrder("o-2")}>other order</button>
         <button onClick={() => onOpenOrder("o-1")}>this order</button>
       </div>
@@ -62,16 +63,16 @@ beforeEach(() => {
 });
 
 describe("OrderDetailSheet — the loyalty member", () => {
-  it.each([["loyalty.read"], ["loyalty.members.list"]])("with %s the name opens the member, read-only", async (cap) => {
+  it.each([["loyalty.read"], ["loyalty.members.list"], ["customers.view"]])("with %s the name opens the person by the same id, read-only", async (cap) => {
     held = [cap];
     mount();
     await userEvent.click(screen.getByRole("button", { name: "Sara Ali" }));
     const sheet = screen.getByTestId("member-sheet");
     expect(sheet).toHaveAttribute("data-member", "m-1");
-    expect(sheet).toHaveAttribute("data-adjust", "false");
+    expect(sheet).toHaveAttribute("data-read-only", "true");
   });
 
-  it("without either capability the name is plain text", () => {
+  it("without any of them the name is plain text", () => {
     held = [];
     mount();
     expect(screen.getByText("Sara Ali")).toBeInTheDocument();

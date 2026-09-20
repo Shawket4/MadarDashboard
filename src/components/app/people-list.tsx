@@ -20,13 +20,15 @@ interface Props<T> extends TableProps<T> {
    * row of its own over the table, with `actions` at its far end.
    */
   layout?: "table" | "above";
+  /** Filters beside the search box (`above` only) — a source, "members only". */
+  filters?: ReactNode;
   /** Trailing controls on the search row (`above` only) — Export, say. */
   actions?: ReactNode;
   /** A line under the table — "Showing 100 of 412". */
   footer?: ReactNode;
 }
 
-export function PeopleList<T>({ search, layout = "table", actions, footer, ...table }: Props<T>) {
+export function PeopleList<T>({ search, layout = "table", filters, actions, footer, ...table }: Props<T>) {
   const box = (
     <SearchInput
       value={search.value}
@@ -40,7 +42,14 @@ export function PeopleList<T>({ search, layout = "table", actions, footer, ...ta
     <div data-slot="people-list" className="space-y-4">
       {layout === "above" ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {box}
+          {filters ? (
+            <div role="search" className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
+              {box}
+              {filters}
+            </div>
+          ) : (
+            box
+          )}
           {actions}
         </div>
       ) : null}

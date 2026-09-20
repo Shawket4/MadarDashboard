@@ -26,8 +26,8 @@ import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 
 import { discountAttribution } from "@/features/discounts/discount-attribution";
-import { MemberDetailSheet } from "@/features/loyalty/admin/members/member-detail-sheet";
-import { loyaltyAccess } from "@/features/loyalty/shared/access";
+import { canOpenPerson, peopleAccess } from "@/features/customers/access";
+import { CustomerDetailSheet } from "@/features/customers/customer-detail-sheet";
 import { orderRewards } from "./reward-lines";
 
 interface Deduction {
@@ -53,8 +53,9 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
   const lang = i18n.language;
   const side = i18n.dir() === "rtl" ? "left" : "right";
 
-  // The member's name opens the member — for someone who may read one.
-  const canViewMember = loyaltyAccess(useAuthz()).canViewMember;
+  // The member's name opens the person — a member is a customer under the same
+  // id — for someone who may read either side of them.
+  const canViewMember = canOpenPerson(peopleAccess(useAuthz()));
   const [openMember, setOpenMember] = useState<string | null>(null);
 
   const role = useAuthStore((s) => s.user?.role);
@@ -469,14 +470,12 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
             </>
           )}
         </div>
-        {/* Read-only from here: adjusting and deleting belong to the Members page. */}
+        {/* Read-only from here: editing, merging, adjusting and deleting belong to the Customers and Members lists. */}
         {canViewMember ? (
-          <MemberDetailSheet
-            memberId={openMember}
-            branchId={null}
-            canAdjust={false}
+          <CustomerDetailSheet
+            customerId={openMember}
+            readOnly
             onOpenChange={(o) => !o && setOpenMember(null)}
-            onAdjust={() => {}}
             onOpenOrder={(id) => {
               setOpenMember(null);
               if (id !== orderId) onSwitchOrder?.(id);

@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 
 import { useDebounced } from "@/lib/use-debounced";
 
-import { isCustomersQuery } from "./util";
+import { isPersonQuery } from "./util";
 
 export function MergeDialog({
   duplicate,
@@ -71,7 +71,7 @@ export function MergeDialog({
     try {
       const kept = await merge.mutateAsync({ id: duplicate.id, data: { into: into.id } });
       toast.success(t("customers.merged", "Customers merged"));
-      await qc.invalidateQueries({ predicate: isCustomersQuery });
+      await qc.invalidateQueries({ predicate: isPersonQuery });
       onMerged(kept);
       onOpenChange(false);
     } catch (e) {
