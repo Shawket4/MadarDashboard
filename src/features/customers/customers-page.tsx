@@ -5,45 +5,40 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus, Search, Users } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import { keepPreviousData } from "@tanstack/react-query";
 
 import { Page, PageHeader } from "@/components/app/page";
-import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
+import { PeopleList } from "@/components/app/people-list";
 import { Restricted } from "@/components/app/restricted";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useListCustomers } from "@/data/api/generated/api";
 import type { Customer } from "@/data/api/generated/models";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { OrderDetailSheet } from "@/features/orders/order-detail-sheet";
+import { useListSearch } from "@/hooks/use-list-search";
+import { useLoadMore } from "@/hooks/use-load-more";
 import { fmtDate, fmtMoney, fmtNumber } from "@/lib/format";
 
 import { CustomerDetailSheet } from "./customer-detail-sheet";
 import { CustomerDialog } from "./customer-dialog";
-import { LIMIT_MAX, PAGE_SIZE, useDebouncedValue } from "./util";
+import { LIMIT_MAX, PAGE_SIZE } from "./util";
 
 export function CustomersPage() {
   const { t } = useTranslation();
   const authz = useAuthz();
   const canView = authz.can(Cap.customersView);
   const canCreate = authz.can(Cap.customersCreate);
-  const [search, setSearch] = useState("");
-  const q = useDebouncedValue(search.trim());
-  const [pages, setPages] = useState(1);
+  const { search, setSearch, q } = useListSearch();
   const [adding, setAdding] = useState(false);
   const [openCustomer, setOpenCustomer] = useState<string | null>(null);
   const [openOrder, setOpenOrder] = useState<string | null>(null);
 
   // "Load more" widens the window from the top; a new search starts over.
-  const [lastQ, setLastQ] = useState(q);
-  if (lastQ !== q) {
-    setLastQ(q);
-    setPages(1);
-  }
-  const limit = Math.min(PAGE_SIZE * pages, LIMIT_MAX);
+  const more = useLoadMore({ resetKey: q, pageSize: PAGE_SIZE, max: LIMIT_MAX });
+  const { limit } = more;
   const list = useListCustomers(
     { q: q || undefined, limit, offset: 0 },
     { query: { enabled: canView, placeholderData: keepPreviousData } },
@@ -120,7 +115,7 @@ export function CustomersPage() {
           ) : null
         }
       />
-      <DataTable
+      <PeopleList
         columns={columns}
         data={rows}
         loading={list.isLoading}
@@ -129,24 +124,13 @@ export function CustomersPage() {
         getRowId={(c) => c.id}
         onRowClick={(c) => setOpenCustomer(c.id)}
         hideViewOptions
-        loadMore={{
-          hasMore: rows.length >= limit && limit < LIMIT_MAX,
-          loading: list.isFetching,
-          onLoadMore: () => setPages((p) => p + 1),
+        loadMore={more.props(rows.length, list.isFetching)}
+        search={{
+          value: search,
+          onChange: setSearch,
+          placeholder: t("customers.searchPlaceholder", "Search by name or phone"),
+          className: "sm:max-w-xs",
         }}
-        toolbar={
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("customers.searchPlaceholder", "Search by name or phone")}
-              aria-label={t("customers.searchPlaceholder", "Search by name or phone")}
-              className="ps-9"
-            />
-          </div>
-        }
         emptyState={
           <EmptyState
             icon={Users}

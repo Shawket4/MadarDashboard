@@ -33,7 +33,9 @@ import type { Customer, CustomerDetail } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { cn } from "@/lib/utils";
 
-import { isCustomersQuery, useDebouncedValue } from "./util";
+import { useDebounced } from "@/lib/use-debounced";
+
+import { isCustomersQuery } from "./util";
 
 export function MergeDialog({
   duplicate,
@@ -52,7 +54,7 @@ export function MergeDialog({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [into, setInto] = useState<Customer | null>(null);
-  const q = useDebouncedValue(search.trim());
+  const q = useDebounced(search.trim());
 
   useEffect(() => {
     if (open) {

@@ -9,15 +9,14 @@
  */
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, Users, Wallet } from "lucide-react";
+import { Users, Wallet } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
-import { DataTable } from "@/components/app/data-table";
+import { ListCount, PeopleList } from "@/components/app/people-list";
 import { StatusPill } from "@/components/app/status-pill";
 import {
   listLoyaltyMembers,
@@ -28,6 +27,7 @@ import type { MemberView } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { useExportLogo } from "@/hooks/use-export-logo";
+import { useListSearch } from "@/hooks/use-list-search";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { fmtDate } from "@/lib/format";
@@ -44,7 +44,7 @@ import { MemberDetailSheet } from "./member-detail-sheet";
 export function MembersPane({ scope }: { scope: ProgramScope }) {
   const { branchId } = scope;
   const { t } = useTranslation();
-  const [q, setQ] = useState("");
+  const { search, setSearch, q } = useListSearch();
   // Super admin only: it reads Madar's plumbing out of Google in Google's own
   // vocabulary, which is nothing an org manager could act on. The endpoint
   // refuses them too, so this is presentation, not the guard.
@@ -114,7 +114,7 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
   const [exporting, setExporting] = useState(false);
   const page = useListLoyaltyMembers({
     ...(branchId ? { branch_id: branchId } : {}),
-    ...(q.trim() ? { q: q.trim() } : {}),
+    ...(q ? { q: q } : {}),
     limit: 100,
   }, { query: { enabled: access.canListMembers } });
 
@@ -128,7 +128,7 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
     try {
       const filters = {
         ...(branchId ? { branch_id: branchId } : {}),
-        ...(q.trim() ? { q: q.trim() } : {}),
+        ...(q ? { q: q } : {}),
       };
       const members = await fetchAllPages<MemberView>(async (offset, limit) => {
         const res = await listLoyaltyMembers({ ...filters, limit, offset }, EXPORT_REQUEST);
@@ -157,7 +157,7 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
         sheets: [{
           name: title,
           title,
-          subtitle: q.trim() || undefined,
+          subtitle: q || undefined,
           rows: members as unknown as Record<string, unknown>[],
           columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
         }],
@@ -182,26 +182,34 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="relative w-full max-w-sm">
-          <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={t("loyalty.searchMembers", "Search by name or phone")}
-            className="ps-9"
+    <>
+      <PeopleList
+        layout="above"
+        search={{
+          value: search,
+          onChange: setSearch,
+          placeholder: t("loyalty.searchMembers", "Search by name or phone"),
+          className: "max-w-sm",
+        }}
+        actions={
+          <ExportButton
+            onExport={handleExport}
+            loading={exporting}
+            disabled={(page.data?.members.length ?? 0) === 0}
+            className="shrink-0"
           />
-        </div>
-        <ExportButton
-          onExport={handleExport}
-          loading={exporting}
-          disabled={(page.data?.members.length ?? 0) === 0}
-          className="shrink-0"
-        />
-      </div>
-
-      <DataTable
+        }
+        footer={
+          page.data && page.data.total > (page.data.members.length ?? 0) ? (
+            <ListCount>
+              {t("loyalty.showingOf", {
+                defaultValue: "Showing {{shown}} of {{total}}",
+                shown: page.data.members.length,
+                total: page.data.total,
+              })}
+            </ListCount>
+          ) : null
+        }
         columns={columns}
         data={page.data?.members ?? []}
         loading={page.isLoading}
@@ -228,26 +236,16 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
           <EmptyState
             icon={Users}
             title={
-              q.trim()
+              q
                 ? t("loyalty.noMembersMatch", "No members match that search")
                 : t("loyalty.noMembers", "No members yet")
             }
             description={
-              q.trim() ? undefined : t("loyalty.noMembersHint", "Customers join by scanning the counter code.")
+              q ? undefined : t("loyalty.noMembersHint", "Customers join by scanning the counter code.")
             }
           />
         }
       />
-
-      {page.data && page.data.total > (page.data.members.length ?? 0) ? (
-        <p className="text-xs text-muted-foreground">
-          {t("loyalty.showingOf", {
-            defaultValue: "Showing {{shown}} of {{total}}",
-            shown: page.data.members.length,
-            total: page.data.total,
-          })}
-        </p>
-      ) : null}
 
       <MemberDetailSheet
         memberId={openMember}
@@ -278,6 +276,6 @@ export function MembersPane({ scope }: { scope: ProgramScope }) {
         memberName={inspecting?.name ?? ""}
         onOpenChange={(o) => !o && setInspecting(null)}
       />
-    </div>
+    </>
   );
 }

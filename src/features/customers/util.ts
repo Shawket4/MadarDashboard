@@ -2,7 +2,6 @@
  * Customers: the form's rules, the bodies they become, and the refusals the
  * form can point at. Mirrors `MadarRust src/customers`.
  */
-import { useEffect, useState } from "react";
 import { AxiosError } from "axios";
 import { z } from "zod";
 
@@ -57,12 +56,3 @@ export const isPhoneTaken = (e: unknown): boolean => {
 /** Every query under `/customers` — the list and each detail. */
 export const isCustomersQuery = (q: { queryKey: readonly unknown[] }): boolean =>
   String(q.queryKey[0] ?? "").startsWith("/customers");
-
-export function useDebouncedValue<T>(value: T, ms = 300): T {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setV(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return v;
-}
