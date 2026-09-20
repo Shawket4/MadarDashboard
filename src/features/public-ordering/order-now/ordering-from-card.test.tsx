@@ -48,13 +48,10 @@ vi.mock("@/features/public-shell/use-brand", () => ({ usePublicBrand: () => null
 vi.mock("@/features/public-shell/use-public-theme", () => ({
   usePublicTheme: { getState: () => ({ apply: vi.fn(), restoreGlobal: vi.fn() }) },
 }));
-vi.mock("motion/react", async () => {
-  const React = await import("react");
-  return {
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-    motion: { div: ({ children }: { children: React.ReactNode }) => <div>{children}</div> },
-  };
-});
+vi.mock("motion/react", () => ({
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  motion: { div: ({ children }: { children: React.ReactNode }) => <div>{children}</div> },
+}));
 vi.mock("../components/step-shell", () => ({
   StepShell: ({ step, children }: { step: string; children: React.ReactNode }) => <main data-step={step}>{children}</main>,
 }));
