@@ -116,6 +116,14 @@ describe("Reports access", () => {
     expect(enabledSeen.loyalty?.every((e) => e === false)).toBe(true);
   });
 
+  it("seeing customers — members among them — does not open the loyalty report", () => {
+    held = ["customers.view", "customers.merge"];
+    for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
+    wrap(<LoyaltyReportPage />);
+    expect(denied()).toBeInTheDocument();
+    expect(enabledSeen.loyalty?.every((e) => e === false)).toBe(true);
+  });
+
   it("Staff discipline needs hr.attendance.read", () => {
     held = [];
     for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];

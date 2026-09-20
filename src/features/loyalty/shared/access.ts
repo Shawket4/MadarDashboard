@@ -3,6 +3,7 @@
  * checks, read from the person's effective permissions (`useAuthz`), so nobody
  * is shown a button whose only outcome is a 403:
  *
+ *  - reading the program in force (is it on, points or orders): `loyalty.read`;
  *  - settings / reward catalogue writes: `loyalty.use`;
  *  - listing members and the loyalty report: `loyalty.members.list`;
  *  - opening one member (from an order, from a customer): `loyalty.read`, or
@@ -15,6 +16,7 @@ import type { Authz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 
 export interface LoyaltyAccess {
+  canReadProgram: boolean;
   canEditProgram: boolean;
   canListMembers: boolean;
   canViewMember: boolean;
@@ -25,6 +27,7 @@ export interface LoyaltyAccess {
 
 export function loyaltyAccess(authz: Authz): LoyaltyAccess {
   return {
+    canReadProgram: authz.can(Cap.loyaltyRead),
     canEditProgram: authz.can(Cap.loyaltyUse),
     canListMembers: authz.can(Cap.loyaltyMembersList),
     canViewMember: authz.canAny(Cap.loyaltyMembersList, Cap.loyaltyRead),

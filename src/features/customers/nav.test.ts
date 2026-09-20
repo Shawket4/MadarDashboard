@@ -18,6 +18,9 @@ describe("Customers nav entry", () => {
   it("is hidden without customers.view", () => {
     expect(leafVisible(leaf!, holding(["customers.create", "loyalty.read"]))).toBe(false);
   });
+  it("is hidden for someone who only lists loyalty members — their list is the Members tab", () => {
+    expect(leafVisible(leaf!, holding(["loyalty.members.list", "loyalty.read"]))).toBe(false);
+  });
   it("shows with customers.view", () => {
     expect(leafVisible(leaf!, holding(["customers.view"]))).toBe(true);
   });
