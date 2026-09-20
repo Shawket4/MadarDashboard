@@ -24,11 +24,13 @@ import type { CardView } from "@/data/api/generated/models";
 
 import { resolveBrand, type ResolvedBrand } from "../shared/brand";
 import { CardFace } from "./card-face";
+import { PressedCard, PressRest, PressStage } from "./card-press";
 import { CardOrders } from "./card-orders";
 import { CardPreferences } from "./card-preferences";
 import { LoyaltyPage, PageNotice, PageSkeleton, Panel, Section, usePageAccent } from "./page-shell";
 import { RewardsList } from "./rewards-list";
 import { SocialLinks } from "./social-links";
+import { usePassDownload } from "./use-pass-download";
 import { WalletButtons } from "./wallet-buttons";
 
 export function CardPage({ token }: { token: string }) {
@@ -77,6 +79,9 @@ function Card({
 }) {
   const { t } = useTranslation();
   const accent = usePageAccent(brand);
+  // The Apple pass is made on demand and is not instant. The page owns that
+  // wait, because it is the CARD that is being made — see `card-press.tsx`.
+  const pass = usePassDownload(data.passes.apple_url);
 
   return (
     <LoyaltyPage
@@ -84,37 +89,43 @@ function Card({
       eyebrow={t("loyalty.yourCard", "Your card")}
       title={brand.programName}
     >
-      <CardFace
-        brand={brand}
-        mode={data.mode}
-        balance={data.balance}
-        target={data.next_reward_cost}
-        toGo={data.points_to_next_reward}
-        canRedeem={data.can_redeem}
-        rewardsReady={data.rewards_ready}
-        progress={data.progress_to_next}
-        memberName={data.name}
-        qrUrl={`/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png`}
-      />
+      <PressStage phase={pass.phase}>
+        <PressedCard brand={brand}>
+          <CardFace
+            brand={brand}
+            mode={data.mode}
+            balance={data.balance}
+            target={data.next_reward_cost}
+            toGo={data.points_to_next_reward}
+            canRedeem={data.can_redeem}
+            rewardsReady={data.rewards_ready}
+            progress={data.progress_to_next}
+            memberName={data.name}
+            qrUrl={`/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png`}
+          />
+        </PressedCard>
 
-      {data.passes.any ? (
-        <Section
-          title={t("loyalty.keepItHandy", "Keep it handy")}
-          hint={t("loyalty.walletHint", "It updates itself every time you earn, and it's there when you're back.")}
-        >
-          <Panel>
-            <WalletButtons passes={data.passes} />
-          </Panel>
-        </Section>
-      ) : null}
+        {data.passes.any ? (
+          <Section
+            title={t("loyalty.keepItHandy", "Keep it handy")}
+            hint={t("loyalty.walletHint", "It updates itself every time you earn, and it's there when you're back.")}
+          >
+            <Panel>
+              <WalletButtons passes={data.passes} pass={pass} />
+            </Panel>
+          </Section>
+        ) : null}
 
-      <RewardsList rewards={data.rewards} accent={accent} />
+        <PressRest>
+          <RewardsList rewards={data.rewards} accent={accent} />
 
-      <CardPreferences token={token} optedOut={data.marketing_opt_out} />
+          <CardPreferences token={token} optedOut={data.marketing_opt_out} />
 
-      <CardOrders token={token} />
+          <CardOrders token={token} />
 
-      <SocialLinks links={data.brand.social_links} accent={accent} />
+          <SocialLinks links={data.brand.social_links} accent={accent} />
+        </PressRest>
+      </PressStage>
     </LoyaltyPage>
   );
 }

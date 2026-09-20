@@ -22,26 +22,28 @@
  * device, and it should not appear only in the cases where we failed to offer a
  * wallet.
  *
- * ## The Apple badge is slow, and says so
+ * ## The Apple badge is slow, and the page says so
  * The Google save is a redirect to Google — instant. The Apple one downloads a
  * pass the server signs per member, and a bare link to that is seconds of
- * nothing, which reads as "broken" at a counter. So the Apple badge fetches
- * the pass FIRST (`preparePass`), showing the card being made, and only then
- * sends the browser to the same URL — the plain navigation Safari needs to
- * open Wallet, now answered from a warm cache. A pass that will not come says
- * so, with a way to try again.
+ * nothing, which reads as "broken" at a counter. So the tap starts a download
+ * the PAGE owns (`usePassDownload`, in `card-page.tsx`): the card above comes
+ * alive while the pass is fetched (`card-press.tsx`), and this panel carries
+ * the words — "Making your card…", then "Opening Wallet…" as the browser is
+ * sent to the now-warm URL, or a way to try again when it will not come.
  */
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 
 import { chromeEscapeUrl, detectInAppBrowser } from "./detect-inapp";
 import { detectWallet, type WalletKind } from "./detect-wallet";
-import { preparePass } from "./prepare-pass";
+import type { PassDownload } from "./use-pass-download";
 
 interface Props {
   passes: { apple_url?: string | null; google_url?: string | null; any?: boolean };
+  /** The Apple pass download the page owns; the badge only starts it. */
+  pass: PassDownload;
 }
 
 /** The quiet line the other wallet gets. */
@@ -79,87 +81,20 @@ function Badge({
 }
 
 /**
- * Where the Apple pass is between the tap and Wallet opening.
- *
- *  idle ──tap──▶ making ──arrived──▶ opening ──(a moment)──▶ idle
- *                  └──────failed──────▶ failed ──try again──▶ making
- *
- * `opening` is the hand-off: the pass is here, the browser has been sent to
- * it, and Safari is about to raise its sheet. It is held briefly so the badge
- * does not snap back under the customer's thumb before that sheet lands.
- */
-type PassPhase = "idle" | "making" | "opening" | "failed";
-
-/** How long "opening" lingers before the badge is offered again. */
-const OPENING_MS = 2500;
-
-function usePassDownload(url: string | null) {
-  const [phase, setPhase] = useState<PassPhase>("idle");
-  const abort = useRef<AbortController | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(
-    () => () => {
-      abort.current?.abort();
-      if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
-
-  const start = useCallback(() => {
-    if (!url || phase === "making" || phase === "opening") return;
-    const ctl = new AbortController();
-    abort.current = ctl;
-    setPhase("making");
-    preparePass(url, { signal: ctl.signal }).then(
-      () => {
-        if (ctl.signal.aborted) return;
-        setPhase("opening");
-        // The same URL, now warm. `assign` rather than `open`: a navigation is
-        // never popup-blocked, and a pkpass answer does not leave the page.
-        window.location.assign(url);
-        timer.current = setTimeout(() => setPhase("idle"), OPENING_MS);
-      },
-      (err: unknown) => {
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        setPhase("failed");
-      },
-    );
-  }, [url, phase]);
-
-  return { phase, start };
-}
-
-/**
- * A tiny card, three stamps landing on it in turn. It stands in for the Apple
- * badge — which cannot be recoloured, dimmed or overlaid, so it steps aside —
- * at the badge's own height, so nothing below it moves.
- */
-function CardBeingMade({ still }: { still?: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className="relative flex h-6 w-9 shrink-0 items-center justify-center gap-1 rounded-[6px] border-[1.5px] border-primary/60 bg-primary/10"
-    >
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className={`size-1.5 rounded-full bg-primary ${still ? "" : "ly-stamp"}`}
-          style={still ? undefined : { animationDelay: `${i * 0.3}s` }}
-        />
-      ))}
-    </span>
-  );
-}
-
-/**
  * The Apple badge with its own weather: the badge when idle, the card being
  * made while the pass downloads, "opening" as it is handed over, and a plain
  * way back when it fails.
  */
-function ApplePassBadge({ href, className = "" }: { href: string; className?: string }) {
+function ApplePassBadge({
+  href,
+  pass: { phase, start },
+  className = "",
+}: {
+  href: string;
+  pass: PassDownload;
+  className?: string;
+}) {
   const { t } = useTranslation();
-  const { phase, start } = usePassDownload(href);
 
   const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
     // Modifier clicks are the customer asking for a tab; let the link be one.
@@ -183,16 +118,21 @@ function ApplePassBadge({ href, className = "" }: { href: string; className?: st
     );
   }
 
-  const making = phase === "making";
+  // The words. The picture is the card above, which the page is pressing.
   return (
     <div
       role="status"
       aria-live="polite"
       className={`inline-flex items-center gap-3 rounded-full border border-border/70 bg-card pe-5 ps-4 shadow-sm ${className}`}
     >
-      <CardBeingMade still={!making} />
+      <span
+        aria-hidden
+        className={`size-2.5 shrink-0 rounded-full bg-primary ${
+          phase === "making" ? "motion-safe:animate-pulse" : ""
+        }`}
+      />
       <span className="text-[15px] font-medium leading-none">
-        {making
+        {phase === "making"
           ? t("loyalty.passMaking", "Making your card…")
           : t("loyalty.passOpening", "Opening Wallet…")}
       </span>
@@ -201,9 +141,16 @@ function ApplePassBadge({ href, className = "" }: { href: string; className?: st
 }
 
 /** The demoted Apple link — the same download, so the same weather, in a line. */
-function ApplePassLine({ href, className = "" }: { href: string; className?: string }) {
+function ApplePassLine({
+  href,
+  pass: { phase, start },
+  className = "",
+}: {
+  href: string;
+  pass: PassDownload;
+  className?: string;
+}) {
   const { t } = useTranslation();
-  const { phase, start } = usePassDownload(href);
 
   if (phase === "failed") {
     return (
@@ -243,7 +190,7 @@ function ApplePassLine({ href, className = "" }: { href: string; className?: str
   );
 }
 
-export function WalletButtons({ passes }: Props) {
+export function WalletButtons({ passes, pass }: Props) {
   const { t } = useTranslation();
   const urls: Record<WalletKind, string | null> = {
     apple: passes.apple_url ?? null,
@@ -270,7 +217,7 @@ export function WalletButtons({ passes }: Props) {
           {t("loyalty.noWalletHere", "Show this code at the counter — it works without a wallet app.")}
         </p>
         {other === "apple" ? (
-          <ApplePassBadge href={urls.apple!} className="h-11" />
+          <ApplePassBadge href={urls.apple!} pass={pass} className="h-11" />
         ) : (
           <Badge kind="google" href={urls.google!} className="h-11" />
         )}
@@ -301,12 +248,12 @@ export function WalletButtons({ passes }: Props) {
   return (
     <div className="flex flex-col items-center gap-3">
       {primary === "apple" ? (
-        <ApplePassBadge href={urls.apple!} className="h-[52px]" />
+        <ApplePassBadge href={urls.apple!} pass={pass} className="h-[52px]" />
       ) : (
         <Badge kind="google" href={href("google")} className="h-[52px]" />
       )}
       {secondary === "apple" ? (
-        <ApplePassLine href={urls.apple!} className={LINE} />
+        <ApplePassLine href={urls.apple!} pass={pass} className={LINE} />
       ) : secondary === "google" ? (
         <a href={href("google")} className={LINE}>
           {t("loyalty.useGoogleInstead", "Use Google Wallet instead")}
