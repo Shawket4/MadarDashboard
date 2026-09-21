@@ -1,7 +1,7 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { APP_TZ } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
-import { rangeForPreset, type ScopePreset } from "./presets";
+import { DEFAULT_PRESET, rangeForPreset, type ScopePreset } from "./presets";
 
 interface ScopeSearch {
   branchId?: string;
@@ -27,9 +27,13 @@ export interface Scope {
   /** True when no single branch is selected (the all-branches roll-up). */
   isAllBranches: boolean;
   preset: ScopePreset;
-  /** Active-timezone day-bounded ISO start; resolved from the preset (or the custom range). */
-  from: string | null;
-  to: string | null;
+  /**
+   * Active-timezone day-bounded ISO instants, resolved from the preset or the
+   * custom range. NEVER null: a scope always names a period, so no page has to
+   * decide what "no period" means (they disagreed — see the fallback below).
+   */
+  from: string;
+  to: string;
   setBranch: (id: string | null) => void;
   setPreset: (preset: ScopePreset) => void;
   setCustomRange: (from: string, to: string) => void;
@@ -45,14 +49,27 @@ export function useScope(): Scope {
   const search = useSearch({ strict: false }) as ScopeSearch;
   const navigate = useNavigate();
 
-  const preset: ScopePreset = search.preset ?? "30d";
+  const urlPreset: ScopePreset = search.preset ?? DEFAULT_PRESET;
   const branchId = search.branchId ?? null;
   // Subscribe to the resolved branch/org timezone so preset day-boundaries are
   // recomputed when the scope (and thus its zone) changes.
   const tz = useAppStore((s) => s.activeTimezone) || APP_TZ;
-  const range = preset === "custom"
-    ? { from: search.from ?? null, to: search.to ?? null }
-    : rangeForPreset(preset as Exclude<ScopePreset, "custom">, tz);
+  // "Custom" is only a period while it carries its dates, and it can arrive
+  // without them: the last-used preset is persisted, the hand-picked range is
+  // not, so a bare-URL entry replays `custom` with nothing to resolve. A null
+  // range is not a smaller period — it asks every page a different question.
+  // Pages that gate on `from`/`to` (the till sessions report) then show "none
+  // in this period" for ever, and pages that pass them through as `undefined`
+  // quietly query ALL time. Neither is what the picker claims to be showing,
+  // so an incomplete custom falls back to the default preset, and SAYS so:
+  // the label in the picker and the rows on screen describe one window.
+  const custom = urlPreset === "custom" && search.from && search.to
+    ? { from: search.from, to: search.to }
+    : null;
+  const namedPreset: Exclude<ScopePreset, "custom"> =
+    urlPreset === "custom" ? DEFAULT_PRESET : urlPreset;
+  const preset: ScopePreset = custom ? "custom" : namedPreset;
+  const range = custom ?? rangeForPreset(namedPreset, tz);
 
   const update = (patch: Partial<ScopeSearch>) =>
     void navigate({ to: ".", replace: true, search: (prev: Record<string, unknown>) => ({ ...prev, ...patch }) });

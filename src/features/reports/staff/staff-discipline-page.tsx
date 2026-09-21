@@ -62,8 +62,8 @@ export function StaffDisciplinePage() {
   const authz = useAuthz();
   const canSee = authz.can(Cap.hrAttendanceRead);
   const q = useDisciplineReport(
-    { from: from ? localDate(from) : "", to: to ? localDate(to) : "", branch_id: branchId ?? undefined },
-    { query: { enabled: canSee && !!from && !!to } },
+    { from: localDate(from), to: localDate(to), branch_id: branchId ?? undefined },
+    { query: { enabled: canSee } },
   );
 
   const groups = useMemo(() => groupByDepartment(q.data?.rows ?? []), [q.data]);

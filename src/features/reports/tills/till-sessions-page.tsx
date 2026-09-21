@@ -53,8 +53,8 @@ export function TillSessionsPage() {
   const canSee = authz.can(Cap.tillReadBranch);
   const q = useBranchTillSessions(
     scopeBranchId,
-    { from: from ?? undefined, to: to ?? undefined },
-    { query: { enabled: canSee && !!from && !!to } },
+    { from, to },
+    { query: { enabled: canSee } },
   );
   const rows = q.data ?? NO_ROWS;
   // A refused range (400: over 5000 sessions) is the person's to fix, by

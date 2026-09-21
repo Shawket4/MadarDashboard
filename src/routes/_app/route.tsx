@@ -11,6 +11,7 @@ import { requireAuth } from "@/lib/auth-guard";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useSyncTimezone } from "@/data/scope/use-timezone";
+import { DEFAULT_PRESET } from "@/data/scope/presets";
 import { useBranchRealtime } from "@/data/realtime/use-branch-realtime";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useGetOnboarding } from "@/data/api/generated/api";
@@ -76,10 +77,15 @@ function AppLayout() {
     restored.current = true;
     if (search.branchId === undefined && search.preset === undefined) {
       const { selectedBranchId, scopePreset } = useAppStore.getState();
+      // Only a preset that can resolve itself. The hand-picked range is not
+      // persisted, so replaying "custom" would write a period with no dates —
+      // a URL that says one thing and shows another. `useScope` now falls back
+      // for anyone who still holds such a link; this stops minting new ones.
+      const preset = scopePreset && scopePreset !== "custom" ? scopePreset : DEFAULT_PRESET;
       void navigate({
         to: ".",
         replace: true,
-        search: (p: Record<string, unknown>) => ({ ...p, branchId: selectedBranchId ?? undefined, preset: (scopePreset || "30d") as never }),
+        search: (p: Record<string, unknown>) => ({ ...p, branchId: selectedBranchId ?? undefined, preset: preset as never }),
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

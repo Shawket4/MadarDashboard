@@ -5,7 +5,8 @@ export type ScopePreset = "today" | "yesterday" | "7d" | "30d" | "mtd" | "custom
 
 export const SCOPE_PRESETS: Exclude<ScopePreset, "custom">[] = ["today", "yesterday", "7d", "30d", "mtd"];
 
-export const DEFAULT_PRESET: ScopePreset = "30d";
+/** Not `custom`: a default period has to be one the app can resolve on its own. */
+export const DEFAULT_PRESET: Exclude<ScopePreset, "custom"> = "30d";
 
 /** UTC ISO instant for the start (or last ms) of a calendar day in `tz`. */
 export const dayBoundaryISO = (tz: string, y: number, m: number, d: number, endOfDay = false): string =>
