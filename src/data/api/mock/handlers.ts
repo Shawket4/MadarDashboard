@@ -46,6 +46,7 @@ import {
   MOCK_WASTE,
   MOCK_PEAK_DAYS,
   MOCK_PEAK_HOURS,
+  MOCK_TILL_SESSIONS,
   MOCK_TIMESERIES,
   MOCK_TOKEN,
   MOCK_USER,
@@ -345,6 +346,7 @@ export const handlers = [
 
   // ── Reports ───────────────────────────────────────────────────────────────
   http.get("*/reports/orgs/*/comparison", () => HttpResponse.json(MOCK_COMPARISON)),
+  http.get("*/reports/branches/*/tills", () => HttpResponse.json(MOCK_TILL_SESSIONS)),
   http.get("*/reports/branches/*/sales/timeseries", () => HttpResponse.json(MOCK_TIMESERIES)),
   http.get("*/reports/branches/*/sales/peak-hours", () => HttpResponse.json(MOCK_PEAK_HOURS)),
   http.get("*/reports/branches/*/sales/peak-days", () => HttpResponse.json(MOCK_PEAK_DAYS)),

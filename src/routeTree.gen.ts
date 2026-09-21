@@ -55,6 +55,7 @@ import { Route as AppSettingsDeliveryZonesRouteImport } from './routes/_app/sett
 import { Route as AppSettingsDeliveryRouteImport } from './routes/_app/settings/delivery'
 import { Route as AppSettingsBrandRouteImport } from './routes/_app/settings/brand'
 import { Route as AppSettingsBookingsRouteImport } from './routes/_app/settings/bookings'
+import { Route as AppReportsTillsRouteImport } from './routes/_app/reports/tills'
 import { Route as AppReportsStaffPoolRouteImport } from './routes/_app/reports/staff-pool'
 import { Route as AppReportsStaffRouteImport } from './routes/_app/reports/staff'
 import { Route as AppReportsSalesRouteImport } from './routes/_app/reports/sales'
@@ -329,6 +330,11 @@ const AppSettingsBookingsRoute = AppSettingsBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
+const AppReportsTillsRoute = AppReportsTillsRouteImport.update({
+  id: '/reports/tills',
+  path: '/reports/tills',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppReportsStaffPoolRoute = AppReportsStaffPoolRouteImport.update({
   id: '/reports/staff-pool',
   path: '/reports/staff-pool',
@@ -595,6 +601,7 @@ export interface FileRoutesByFullPath {
   '/reports/sales': typeof AppReportsSalesRoute
   '/reports/staff': typeof AppReportsStaffRoute
   '/reports/staff-pool': typeof AppReportsStaffPoolRoute
+  '/reports/tills': typeof AppReportsTillsRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -677,6 +684,7 @@ export interface FileRoutesByTo {
   '/reports/sales': typeof AppReportsSalesRoute
   '/reports/staff': typeof AppReportsStaffRoute
   '/reports/staff-pool': typeof AppReportsStaffPoolRoute
+  '/reports/tills': typeof AppReportsTillsRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -766,6 +774,7 @@ export interface FileRoutesById {
   '/_app/reports/sales': typeof AppReportsSalesRoute
   '/_app/reports/staff': typeof AppReportsStaffRoute
   '/_app/reports/staff-pool': typeof AppReportsStaffPoolRoute
+  '/_app/reports/tills': typeof AppReportsTillsRoute
   '/_app/settings/bookings': typeof AppSettingsBookingsRoute
   '/_app/settings/brand': typeof AppSettingsBrandRoute
   '/_app/settings/delivery': typeof AppSettingsDeliveryRoute
@@ -855,6 +864,7 @@ export interface FileRouteTypes {
     | '/reports/sales'
     | '/reports/staff'
     | '/reports/staff-pool'
+    | '/reports/tills'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/delivery'
@@ -937,6 +947,7 @@ export interface FileRouteTypes {
     | '/reports/sales'
     | '/reports/staff'
     | '/reports/staff-pool'
+    | '/reports/tills'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/delivery'
@@ -1025,6 +1036,7 @@ export interface FileRouteTypes {
     | '/_app/reports/sales'
     | '/_app/reports/staff'
     | '/_app/reports/staff-pool'
+    | '/_app/reports/tills'
     | '/_app/settings/bookings'
     | '/_app/settings/brand'
     | '/_app/settings/delivery'
@@ -1382,6 +1394,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/bookings'
       preLoaderRoute: typeof AppSettingsBookingsRouteImport
       parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/reports/tills': {
+      id: '/_app/reports/tills'
+      path: '/reports/tills'
+      fullPath: '/reports/tills'
+      preLoaderRoute: typeof AppReportsTillsRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/reports/staff-pool': {
       id: '/_app/reports/staff-pool'
@@ -1830,6 +1849,7 @@ interface AppRouteRouteChildren {
   AppReportsSalesRoute: typeof AppReportsSalesRoute
   AppReportsStaffRoute: typeof AppReportsStaffRoute
   AppReportsStaffPoolRoute: typeof AppReportsStaffPoolRoute
+  AppReportsTillsRoute: typeof AppReportsTillsRoute
   AppStaffAttendanceRoute: typeof AppStaffAttendanceRoute
   AppStaffEmployeesRoute: typeof AppStaffEmployeesRoute
   AppStaffRequestsRoute: typeof AppStaffRequestsRoute
@@ -1875,6 +1895,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppReportsSalesRoute: AppReportsSalesRoute,
   AppReportsStaffRoute: AppReportsStaffRoute,
   AppReportsStaffPoolRoute: AppReportsStaffPoolRoute,
+  AppReportsTillsRoute: AppReportsTillsRoute,
   AppStaffAttendanceRoute: AppStaffAttendanceRoute,
   AppStaffEmployeesRoute: AppStaffEmployeesRoute,
   AppStaffRequestsRoute: AppStaffRequestsRoute,
