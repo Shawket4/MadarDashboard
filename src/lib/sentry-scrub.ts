@@ -75,6 +75,11 @@ export const PII_KEY_DENYLIST: readonly string[] = [
   "building",
   "apartment",
   "landmark",
+  // `delivery_orders` / `customer_addresses`: which door, and what the
+  // customer wrote for the driver ("ring twice, the dog bites"). `floor` is
+  // in the exact list — as a substring it would eat `floor_plan`.
+  "unit_number",
+  "delivery_notes",
   "postcode",
   "zipcode",
   "latitude",
@@ -151,6 +156,7 @@ export const PII_KEY_EXACT: readonly string[] = [
   "cvc",
   "gps",
   "pwd",
+  "floor",
 ];
 
 /**
@@ -176,19 +182,6 @@ export const PII_KEY_ALLOWLIST: readonly string[] = [
   "device.model",
 ];
 
-/**
- * Case-insensitive **equality**, and THIS SURFACE'S OWN — not one of the three
- * shared lists, so the parity check has nothing to say about it.
- *
- * The rest of where someone lives. `address_line`, `place_name` and `landmark`
- * fall to the shared denylist; the floor, the flat and the note for the driver
- * do not, and with saved addresses (`GET /customers/{id}/addresses`, the
- * order-now context) they now travel as whole objects rather than only inside
- * a request body that is dropped anyway. Exact, because `floor` as a substring
- * would eat the floor plan's every key.
- */
-export const PII_KEY_LOCAL_EXACT: readonly string[] = ["floor", "unit_number", "delivery_notes"];
-
 /** True when a key must be redacted, given the key of the object containing it. */
 export function isPiiPath(parent: string | undefined, key: string): boolean {
   const k = key.toLowerCase();
@@ -196,7 +189,7 @@ export function isPiiPath(parent: string | undefined, key: string): boolean {
   if (parent && PII_KEY_ALLOWLIST.includes(`${parent.toLowerCase()}.${k}`)) return false;
   if (PII_KEY_ALLOWLIST.includes(k)) return false;
   // 2. Exact short forms.
-  if (PII_KEY_EXACT.includes(k) || PII_KEY_LOCAL_EXACT.includes(k)) return true;
+  if (PII_KEY_EXACT.includes(k)) return true;
   // 3. Substrings.
   return PII_KEY_DENYLIST.some((needle) => k.includes(needle));
 }
