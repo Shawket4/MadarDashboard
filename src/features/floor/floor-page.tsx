@@ -648,6 +648,7 @@ export function FloorPage() {
               beginGesture();
               setGeo(u);
             }}
+            customers={customerSheet}
             sittingNow={
               sittingTicket?.customer_name ? (
                 <CustomerLink

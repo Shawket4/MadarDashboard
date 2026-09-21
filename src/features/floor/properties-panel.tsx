@@ -12,6 +12,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { CustomerLinkControl } from "@/features/customers/customer-link";
 import { TableHistory } from "./table-history";
 import { RotateCcw, RotateCw } from "lucide-react";
 import { toast } from "sonner";
@@ -67,10 +68,12 @@ export interface InspectorProps {
   onGeoChange: (updates: GeoItem[]) => void;
   /** Who is sitting at the one selected table now — a reading, like the history under it. */
   sittingNow?: ReactNode;
+  /** The floor's customer sheet, so a name in the history opens the customer. */
+  customers?: CustomerLinkControl;
 }
 
 export function InspectorPanel({
-  tables, sections, editable, geoOf, onGeoChange, sittingNow,
+  tables, sections, editable, geoOf, onGeoChange, sittingNow, customers,
 }: InspectorProps) {
   const { t } = useTranslation();
 
@@ -249,7 +252,7 @@ export function InspectorPanel({
           <p className="px-4 pt-3 text-sm font-semibold">
             {t("floor.history.title", "Last 30 days")}
           </p>
-          <TableHistory tableId={single.id} />
+          <TableHistory tableId={single.id} customers={customers} />
         </div>
       ) : null}
     </div>
