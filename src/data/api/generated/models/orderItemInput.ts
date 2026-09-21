@@ -2,6 +2,7 @@
 // @ts-nocheck
 import type { AddonInput } from './addonInput';
 import type { BundleComponentInput } from './bundleComponentInput';
+import type { StaffDrinkLine } from './staffDrinkLine';
 
 export interface OrderItemInput {
   addons?: AddonInput[];
@@ -16,6 +17,7 @@ export interface OrderItemInput {
   quantity: number;
   /** @nullable */
   size_label?: string | null;
+  staff_drink?: null | StaffDrinkLine;
   /**
      * What the customer was actually charged, in piastres.
      *

@@ -48,3 +48,64 @@ describe("a split sale in the orders export", () => {
     expect(paymentText(t, "cash", [{ method: "cash", amount: 100 }])).toBe("cash");
   });
 });
+
+describe("a staff drink in the orders export", () => {
+  const pooled = {
+    order_ref: "DT-2",
+    order_number: 2,
+    created_at: "2026-09-21T09:00:00Z",
+    payment_method: "cash",
+    subtotal: 10000,
+    total_amount: 11400,
+    items: [
+      {
+        item_name: "Latte",
+        quantity: 1,
+        unit_price: 8500,
+        line_total: 1500,
+        staff_comp_minor: 9000,
+        staff_drink_id: "sd-1",
+        addons: [
+          { id: "a1", addon_name: "Whole milk", quantity: 1, unit_price: 2000, line_total: 0, staff_comp_minor: 2000 },
+          { id: "a2", addon_name: "Extra shot", quantity: 1, unit_price: 2500, line_total: 2500, staff_comp_minor: 0 },
+        ],
+        optionals: [],
+      },
+      // A line from before the fields existed: neither key is on the wire.
+      { item_name: "Croissant", quantity: 1, unit_price: 6000, line_total: 6000, addons: [], optionals: [] },
+    ],
+  } as unknown as OrderExport;
+
+  it("gives the order sheet a given-free column beside the net subtotal", () => {
+    const cols = orderColumns(t);
+    const keys = cols.map((c) => c.key);
+    expect(keys.indexOf("staff_comp")).toBe(keys.indexOf("subtotal") - 1);
+    const col = cols.find((c) => c.key === "staff_comp")!;
+    expect(col.type).toBe("money");
+    expect(col.total).toBe(true);
+    expect(col.accessor(pooled)).toBe(9000);
+    expect(col.accessor(split)).toBe(0);
+  });
+
+  it("gives each line its comp and what the whole line was charged", () => {
+    const [items] = buildSheets([pooled], ["line_item"], t, "en");
+    const cols = lineItemColumns(t);
+    const comp = cols.find((c) => c.key === "staff_comp")!;
+    const charged = cols.find((c) => c.key === "staff_charged")!;
+    expect(comp.header).toBe("Staff drinks given free");
+    expect(items.rows.map((r) => comp.accessor(r as never))).toEqual([9000, 0]);
+    // A paid line leaves the staff-charged cell blank: 0 would read as "free".
+    expect(items.rows.map((r) => charged.accessor(r as never))).toEqual([4000, null]);
+    // The stored line total is exported as stored — never netted a second time.
+    const total = cols.find((c) => c.key === "line_total")!;
+    expect(total.accessor(items.rows[0] as never)).toBe(1500);
+  });
+
+  it("has Arabic headers for both columns", async () => {
+    const i18n = (await import("@/i18n")).default;
+    const ar = i18n.getFixedT("ar");
+    const headers = lineItemColumns(ar).map((c) => c.header);
+    expect(headers).toContain("مشروبات موظفين اتقدّمت ببلاش");
+    expect(headers).toContain("المدفوع في مشروب الموظفين (بالإضافات)");
+  });
+});

@@ -13,6 +13,7 @@
  * worked around, and a worked-around till records nothing — so the only control
  * on it is that somebody sees it afterwards. That is this number's whole job.
  */
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CalendarRange, CupSoda } from "lucide-react";
 
@@ -25,9 +26,15 @@ import { Restricted } from "@/components/app/restricted";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
-import { useGetStaffPoolToday, useListStaffDrinks } from "@/data/api/generated/api";
+import {
+  useGetStaffPoolToday,
+  useListStaffDrinks,
+  useSummarizeStaffDrinks,
+} from "@/data/api/generated/api";
+import { OrderDetailSheet } from "@/features/orders/order-detail-sheet";
 import { cairoParts, fmtDate } from "@/lib/format";
 
+import { StaffDrinksSummaryStrip } from "./staff-drinks-summary";
 import { StaffDrinksTable } from "./staff-drinks-table";
 
 /**
@@ -48,6 +55,10 @@ export function StaffPoolReportPage() {
 
   const authz = useAuthz();
   const canSee = authz.can(Cap.ordersStaffDrinkRecord);
+  // A drink rung on a sale links to that sale — for someone who may read
+  // orders. Without it the link is not drawn: a click must never end in a 403.
+  const canOpenOrders = authz.can(Cap.ordersRead);
+  const [openOrderId, setOpenOrderId] = useState<string | null>(null);
   // The scope bar's period, as branch-local business days. The summary is a
   // DAY — the pool resets every midnight, so there is no such thing as a
   // 30-day allowance — and it reports the last day of the period. The list
@@ -68,6 +79,14 @@ export function StaffPoolReportPage() {
     { branch_id: branchId ?? "", from: fromDate || undefined, to: businessDate || undefined },
     // Same gate as the summary, for the same reason: a person without the
     // capability must not send a request that can only come back 403.
+    { query: { enabled: canSee && !!branchId && !!fromDate && !!businessDate } },
+  );
+
+  // The period's money, from the server: what was given free, what was still
+  // charged, what it cost to make. Same query as the list, so the strip and
+  // the rows under it always describe the same drinks.
+  const summary = useSummarizeStaffDrinks(
+    { branch_id: branchId ?? "", from: fromDate || undefined, to: businessDate || undefined },
     { query: { enabled: canSee && !!branchId && !!fromDate && !!businessDate } },
   );
 
@@ -175,18 +194,33 @@ export function StaffPoolReportPage() {
                     })}
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-4 pt-0">
+            <CardContent className="space-y-4 p-4 pt-0">
+              <StaffDrinksSummaryStrip
+                summary={summary.data}
+                loading={summary.isLoading}
+                failed={summary.isError}
+                onRetry={() => void summary.refetch()}
+              />
               <StaffDrinksTable
                 drinks={drinks.data ?? []}
                 loading={drinks.isLoading}
                 error={drinks.isError ? drinks.error : undefined}
                 onRetry={() => void drinks.refetch()}
                 showDate={!oneDay}
+                onOpenOrder={canOpenOrders ? setOpenOrderId : undefined}
               />
             </CardContent>
           </Card>
         </div>
       )}
+      {canOpenOrders ? (
+        <OrderDetailSheet
+          orderId={openOrderId}
+          open={!!openOrderId}
+          onOpenChange={(o) => !o && setOpenOrderId(null)}
+          onSwitchOrder={setOpenOrderId}
+        />
+      ) : null}
     </Page>
   );
 }

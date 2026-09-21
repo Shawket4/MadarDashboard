@@ -28,6 +28,9 @@ import { queryClient } from "@/data/api/query";
 import { Cap } from "@/generated/capabilities";
 import { fmtStamp } from "@/lib/format";
 
+import { capLabel, metaOf } from "./catalog";
+import { readFlagCapability } from "./flag-detail";
+
 const REASON_TONE: Record<string, StatusTone> = {
   stale_snapshot: "info",
   unauthorized_offline: "danger",
@@ -39,7 +42,8 @@ export function reasonKey(reason: string) {
 }
 
 export function ReviewPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const canReview = useCan(Cap.approvalsReview);
   const [showReviewed, setShowReviewed] = useState(false);
   const [picked, setPicked] = useState<ReadonlySet<number>>(() => new Set());
@@ -136,17 +140,35 @@ export function ReviewPage() {
         accessorKey: "reason",
         header: t("access.review.what", "What happened"),
         meta: { label: t("access.review.what", "What happened") },
-        cell: ({ row }) => (
-          <StatusPill size="sm" tone={REASON_TONE[row.original.reason] ?? "neutral"}>
-            {t(reasonKey(row.original.reason), row.original.reason)}
-          </StatusPill>
-        ),
+        cell: ({ row }) => {
+          // A `capability:detail` flag says what happened in the detail; the
+          // fixed reason beside it ("without the permission") would mislead.
+          const { known } = readFlagCapability(row.original.capability);
+          if (known) {
+            return (
+              <StatusPill size="sm" tone={known.tone} className="h-auto whitespace-normal py-0.5 text-start">
+                {t(known.key)}
+              </StatusPill>
+            );
+          }
+          return (
+            <StatusPill size="sm" tone={REASON_TONE[row.original.reason] ?? "neutral"}>
+              {t(reasonKey(row.original.reason), row.original.reason)}
+            </StatusPill>
+          );
+        },
       },
       {
         accessorKey: "capability",
         header: t("access.review.permission", "Permission"),
         meta: { label: t("access.review.permission", "Permission") },
-        cell: ({ row }) => <bdi dir="ltr" className="font-mono text-xs text-muted-foreground">{row.original.capability}</bdi>,
+        cell: ({ row }) => {
+          const { capability, known } = readFlagCapability(row.original.capability);
+          const meta = known ? metaOf(capability) : undefined;
+          // Named the way the Roles screen names it; the key stays one hover away.
+          if (meta) return <span title={row.original.capability}>{capLabel(meta, lang)}</span>;
+          return <bdi dir="ltr" className="font-mono text-xs text-muted-foreground">{row.original.capability}</bdi>;
+        },
       },
       {
         accessorKey: "occurred_at",
@@ -155,7 +177,7 @@ export function ReviewPage() {
         cell: ({ row }) => fmtStamp(row.original.occurred_at),
       },
     ],
-    [t, canReview, picked, openRows, allVisiblePicked],
+    [t, lang, canReview, picked, openRows, allVisiblePicked],
   );
 
   return (

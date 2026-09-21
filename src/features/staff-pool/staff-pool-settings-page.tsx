@@ -216,6 +216,14 @@ export function StaffPoolSettingsPage() {
                 }
                 disabled={!canEdit}
               />
+              {/* The rule, once, where the items are chosen. It is the server's
+                  rule and not a setting — so it is said, not offered. */}
+              <p className="max-w-[70ch] text-xs text-muted-foreground">
+                {t(
+                  "staffPool.pricingRule",
+                  "What's free is the smallest size and the default of each required choice. A bigger size, extras and pricier choices are charged as usual, and tax applies only to what is charged.",
+                )}
+              </p>
             </div>
 
             {off ? (
