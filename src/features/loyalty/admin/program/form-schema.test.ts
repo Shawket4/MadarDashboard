@@ -153,6 +153,26 @@ describe("the program form's validation mirrors the server", () => {
     expect(toWire(fromWire(three), scope, three).max_rewards_per_order).toBe(3);
   });
 
+  it("carries the stamp-counting switch both ways, and always sends a value", () => {
+    // The wire field is nullable so a client that does not SHOW the switch
+    // cannot move it by omission. This form shows it, so it must never omit it
+    // — an omission would tell the server "leave it", silently discarding the
+    // owner turning it off.
+    const perItem = { ...saved, stamp_per_line_item: true };
+    expect(fromWire(perItem).stamp_per_line_item).toBe(true);
+    expect(toWire(fromWire(perItem), scope, perItem).stamp_per_line_item).toBe(true);
+
+    const perOrder = { ...saved, stamp_per_line_item: false };
+    expect(fromWire(perOrder).stamp_per_line_item).toBe(false);
+    expect(toWire(fromWire(perOrder), scope, perOrder).stamp_per_line_item).toBe(false);
+  });
+
+  it("reads a programme from before the switch existed as per-order", () => {
+    // Which is what such a programme was actually running.
+    const old = { ...saved, stamp_per_line_item: null };
+    expect(fromWire(old).stamp_per_line_item).toBe(false);
+  });
+
   it("never sends a garbage number as a value", () => {
     expect(intOrNull("abc")).toBeNull();
     expect(intOrNull("0")).toBeNull();

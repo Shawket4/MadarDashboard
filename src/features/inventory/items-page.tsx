@@ -21,11 +21,11 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
-import { cn } from "@/lib/utils";
 import { ItemDialog } from "./item-dialog";
 import { ItemDrawer } from "./item-drawer";
 import { WasteDialog } from "./waste-dialog";
 import { invalidateInventory, isOpenStocktake } from "./lib";
+import { OnHand } from "./on-hand";
 
 type Filter = "all" | "low" | "uncounted";
 
@@ -117,11 +117,7 @@ export function ItemsPage() {
           cell: ({ row }) => {
             const s = stockByIngredient.get(row.original.id);
             if (!s) return <span className="text-muted-foreground">—</span>;
-            return (
-              <span className={cn(s.on_hand < 0 && "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]")}>
-                {fmtNumber(s.on_hand)} {fmtUnit(s.unit)}
-              </span>
-            );
+            return <OnHand qty={s.on_hand} unit={s.unit} />;
           },
         },
         {

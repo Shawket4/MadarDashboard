@@ -59,8 +59,8 @@ describe("timeline", () => {
   });
   it("draws hour ticks across the window", () => {
     const ticks = hourTicks(win);
-    expect(ticks[0]).toEqual({ label: "18:00", left: 0 });
-    expect(ticks.at(-1)).toEqual({ label: "23:00", left: 100 });
+    expect(ticks[0]).toEqual({ label: "06:00 PM", left: 0 });
+    expect(ticks.at(-1)).toEqual({ label: "11:00 PM", left: 100 });
   });
 });
 

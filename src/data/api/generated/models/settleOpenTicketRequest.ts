@@ -2,6 +2,7 @@
 // @ts-nocheck
 import type { LoyaltyRedemptionInput } from './loyaltyRedemptionInput';
 import type { PaymentSplitInput } from './paymentSplitInput';
+import type { ReplayApproval } from './replayApproval';
 
 export interface SettleOpenTicketRequest {
   /** @nullable */
@@ -14,6 +15,26 @@ export interface SettleOpenTicketRequest {
      */
   change_given?: number | null;
   /**
+     * What the till actually took off this bill, in minor units — the figure
+     * the drawer charged. Additive; absent, the server computes it as before.
+     * This is also what a replayed bill keeps when its preset has since been
+     * switched off: the money as rung, never recomputed from a dead rule.
+     * @nullable
+     */
+  discount_amount?: number | null;
+  /**
+     * Who put the discount on the bill. Read on replay (live, it is the
+     * cashier holding the token). Additive.
+     * @nullable
+     */
+  discount_applied_by?: string | null;
+  /**
+     * The manager approval that let the bill's discount past the cashier's
+     * cap, verified at replay like a counter sale's. Additive.
+     * @nullable
+     */
+  discount_approval_id?: string | null;
+  /**
      * Settle-time discount. ABSENT (all three fields) means the waiter's
      * ticket discount is inherited, as it always was — but the till can now
      * see that discount on the ticket view. The literal `discount_type:
@@ -22,10 +43,25 @@ export interface SettleOpenTicketRequest {
      * @nullable
      */
   discount_id?: string | null;
+  /**
+     * Which discount act this bill performs: `preset` | `manual_amount` |
+     * `manual_percent`. A table bill is gated exactly like a counter sale, so
+     * it names its act in the same vocabulary. ADDITIVE — an older tablet
+     * sends nothing and the kind is derived as it always was (a `discount_id`
+     * means preset, an ad-hoc discount is manual of its type).
+     * @nullable
+     */
+  discount_kind?: string | null;
+  /**
+     * Basis points for a percentage bill discount (1250 = 12.5%). Additive.
+     * @nullable
+     */
+  discount_percent_bps?: number | null;
   /** @nullable */
   discount_type?: string | null;
   /** @nullable */
   discount_value?: number | null;
+  live_approval?: null | ReplayApproval;
   /**
      * The member spending a balance on this settle, when rewards are applied.
      * @nullable

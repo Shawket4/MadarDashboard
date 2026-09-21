@@ -8,6 +8,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("@/data/authz/use-authz", async () => {
+  const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
+  return { ...real, useAuthz: () => real.authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: true, platform: false, role_kinds: ["org_admin"], capabilities: ["recipes.read", "recipes.edit", "menu.items.read", "menu.items.edit"], ask_manager: [], limits: {} }) };
+});
 vi.mock("@tanstack/react-router", () => ({
   Link: (p: { children: React.ReactNode }) => <a>{p.children}</a>,
   useNavigate: () => vi.fn(),
@@ -22,16 +26,21 @@ vi.mock("../util", () => ({ invalidateCatalog: vi.fn() }));
 
 // Only the "Item details" section (the image) is under test — the rest of
 // the studio pulls in its own large hook surface (recipes, modifiers…).
-vi.mock("./section-sizes", () => ({ SectionSizes: () => null }));
+vi.mock("../recipe/recipe-grid", () => ({ RecipeGrid: () => null }));
 vi.mock("./section-steps", () => ({ SectionSteps: () => null }));
 vi.mock("./section-modifiers", () => ({ SectionModifiers: () => null }));
 vi.mock("./section-options", () => ({ SectionOptions: () => null }));
+vi.mock("./preview/preview-panel", () => ({ PreviewPanel: () => null }));
 
 vi.mock("@/data/api/generated/api", () => ({
+  getGetRecipeLinkQueryKey: (id: string) => ["link", id],
+  useListBases: () => ({ data: [] }),
+  useGetRecipeLink: () => ({ data: undefined }),
   useGetStudio: () => useGetStudio(),
   useListCatalog: () => ({ data: [] }),
   useListCategories: () => ({ data: [] }),
   duplicateItem: vi.fn(),
+  getGetMenuItemQueryOptions: (id: string) => ({ queryKey: ["item", id], queryFn: vi.fn() }),
   putItemOptions: vi.fn(),
   putModifierGroups: vi.fn(),
   putRecipeSteps: vi.fn(),

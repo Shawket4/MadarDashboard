@@ -2,6 +2,12 @@
 // @ts-nocheck
 
 export interface CreateGroupRequest {
+  /**
+     * `none` | `adds` | `swaps` (default: derived — `swaps` for `milk_type` /
+     * `coffee_type`, else `adds`).
+     * @nullable
+     */
+  effect?: string | null;
   is_required?: boolean;
   /**
      * The legacy addon type this group is presented as to OLD clients through
@@ -21,4 +27,9 @@ export interface CreateGroupRequest {
   /** 'single' | 'multi'. */
   selection_type: string;
   sort?: number;
+  /**
+     * Required meaning for `effect = swaps`: the ingredient category swapped.
+     * @nullable
+     */
+  swap_category_id?: string | null;
 }

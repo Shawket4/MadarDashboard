@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Coins, ListChecks, UserRound } from "lucide-react";
+import { Coins, ListChecks, Tag, UserRound } from "lucide-react";
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AuditReport } from "@/data/api/generated/models";
+import { Badge } from "@/components/ui/badge";
+import type { AuditReport, DiscountAuditEntry } from "@/data/api/generated/models";
+import { bpsLabel, discountKindLabel } from "@/features/discounts/discount-attribution";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
-import { fmtMoney, fmtNumber } from "@/lib/format";
+import { fmtDateTime, fmtMoney, fmtNumber } from "@/lib/format";
 
 interface AuditRow {
   label: string;
@@ -27,26 +29,36 @@ interface AuditTabProps {
   reasonLabel: string;
   /** Sheet/filename title for the Excel export — the report's own name. */
   exportTitle: string;
+  /** What `amount_minor` measures: money (default), loyalty points/visits
+   *  (loyalty adjustments), or nothing (attendance corrections). */
+  amount?: "money" | "points" | "none";
 }
 
-const AUDIT_COLS: ExcelColumn<AuditRow>[] = [
-  { header: "Label", accessor: (r) => r.label, type: "text", width: 28 },
-  { header: "Events", accessor: (r) => r.count, type: "integer", width: 12, total: true },
-  { header: "Amount", accessor: (r) => r.amount_minor, type: "money", width: 16, total: true },
-];
+function auditCols(amount: "money" | "points" | "none"): ExcelColumn<AuditRow>[] {
+  const cols: ExcelColumn<AuditRow>[] = [
+    { header: "Label", accessor: (r) => r.label, type: "text", width: 28 },
+    { header: "Events", accessor: (r) => r.count, type: "integer", width: 12, total: true },
+  ];
+  if (amount !== "none") {
+    cols.push({ header: amount === "points" ? "Points" : "Amount", accessor: (r) => r.amount_minor, type: amount === "points" ? "integer" : "money", width: 16, total: true });
+  }
+  return cols;
+}
 
 /** Every legal/compliance audit report shares this shape (a total plus a
  * reason and an issuer breakdown), so one component renders all nine. */
-export function AuditTab({ query, reasonLabel, exportTitle }: AuditTabProps) {
+export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: AuditTabProps) {
   const { t } = useTranslation();
   const d = query.data;
   const logoUrl = useExportLogo();
   const [exporting, setExporting] = useState(false);
 
+  const amountLabel = amount === "points" ? t("reports.legal.eventPoints", "Points moved") : t("reports.legal.eventAmount", "Total amount");
   const kpis: LedgerItem[] = [
     { key: "count", label: t("reports.legal.eventCount", "Events"), icon: ListChecks, accent: "primary", value: d?.total_count ?? 0, formatType: "number", loading: query.isLoading },
-    { key: "amount", label: t("reports.legal.eventAmount", "Total amount"), icon: Coins, accent: "warning", value: d?.total_amount_minor ?? 0, formatType: "money", loading: query.isLoading },
+    ...(amount === "none" ? [] : [{ key: "amount", label: amountLabel, icon: Coins, accent: "warning", value: d?.total_amount_minor ?? 0, formatType: amount === "points" ? "number" : "money", loading: query.isLoading } as LedgerItem]),
   ];
+  const cols = auditCols(amount);
 
   const buildSheets = () => [
     {
@@ -54,10 +66,10 @@ export function AuditTab({ query, reasonLabel, exportTitle }: AuditTabProps) {
       title: exportTitle,
       subtitle: reasonLabel,
       rows: (d?.by_reason ?? []) as unknown as Record<string, unknown>[],
-      columns: AUDIT_COLS as unknown as ExcelColumn<Record<string, unknown>>[],
+      columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
       stats: [
         { label: t("reports.legal.eventCount", "Events"), value: d?.total_count ?? 0, type: "number" as const },
-        { label: t("reports.legal.eventAmount", "Total amount"), value: d?.total_amount_minor ?? 0, type: "money" as const },
+        ...(amount === "none" ? [] : [{ label: amountLabel, value: d?.total_amount_minor ?? 0, type: (amount === "points" ? "number" : "money") as "number" | "money" }]),
       ],
     },
     {
@@ -65,7 +77,7 @@ export function AuditTab({ query, reasonLabel, exportTitle }: AuditTabProps) {
       title: exportTitle,
       subtitle: t("reports.legal.byIssuer", "By staff member"),
       rows: (d?.by_issuer ?? []) as unknown as Record<string, unknown>[],
-      columns: AUDIT_COLS as unknown as ExcelColumn<Record<string, unknown>>[],
+      columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
     },
   ];
 
@@ -108,8 +120,17 @@ export function AuditTab({ query, reasonLabel, exportTitle }: AuditTabProps) {
         <EmptyState title={t("reports.legal.empty", "Nothing recorded in this period")} />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          <BreakdownCard icon={ListChecks} title={reasonLabel} rows={d.by_reason} />
-          <BreakdownCard icon={UserRound} title={t("reports.legal.byIssuer", "By staff member")} rows={d.by_issuer} />
+          <BreakdownCard icon={ListChecks} title={reasonLabel} rows={d.by_reason} amount={amount} />
+          <BreakdownCard icon={UserRound} title={t("reports.legal.byIssuer", "By staff member")} rows={d.by_issuer} amount={amount} />
+          {d.by_kind ? (
+            <BreakdownCard
+              icon={Tag}
+              title={t("reports.legal.byKind", "By kind")}
+              rows={d.by_kind.map((r) => ({ ...r, label: discountKindLabel(t, r.label) }))}
+              amount={amount}
+            />
+          ) : null}
+          {d.entries && d.entries.length > 0 ? <DiscountEntriesCard entries={d.entries} /> : null}
         </div>
       )}
     </div>
@@ -120,10 +141,12 @@ function BreakdownCard({
   icon: Icon,
   title,
   rows,
+  amount,
 }: {
   icon: typeof ListChecks;
   title: string;
   rows: { label: string; count: number; amount_minor: number }[];
+  amount: "money" | "points" | "none";
 }) {
   const { t } = useTranslation();
   return (
@@ -145,11 +168,59 @@ function BreakdownCard({
                   <p className="truncate font-medium">{r.label}</p>
                   <p className="text-xs text-muted-foreground">{t("reports.legal.eventsCount", { defaultValue: "{{n}} events", n: fmtNumber(r.count) })}</p>
                 </div>
-                <span className="shrink-0 font-mono tabular-nums">{fmtMoney(r.amount_minor)}</span>
+                {amount === "none" ? null : (
+                  <span className="shrink-0 font-mono tabular-nums">
+                    {amount === "points" ? fmtNumber(r.amount_minor) : fmtMoney(r.amount_minor)}
+                  </span>
+                )}
               </li>
             ))}
           </ul>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The discounts audit's per-sale list: what kind, how much, who applied it,
+ * who approved it, and whether the server flagged it. */
+function DiscountEntriesCard({ entries }: { entries: DiscountAuditEntry[] }) {
+  const { t } = useTranslation();
+  return (
+    <Card className="py-0 lg:col-span-2">
+      <CardHeader className="pt-4">
+        <CardTitle className="flex items-center gap-1.5 text-base">
+          <ListChecks aria-hidden className="size-4 text-muted-foreground" />
+          {t("reports.legal.discountSales", "Discounted sales")}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <ul className="divide-y text-sm">
+          {entries.map((e) => (
+            <li key={e.order_id} className="flex items-center justify-between gap-3 py-2.5">
+              <div className="min-w-0">
+                <p className="flex flex-wrap items-center gap-2 font-medium">
+                  <span className="truncate">{e.order_ref ?? e.order_id.slice(0, 8)}</span>
+                  <span className="text-muted-foreground">{discountKindLabel(t, e.kind)}</span>
+                  {e.preset_name ? <span>{e.preset_name}</span> : null}
+                  {bpsLabel(e.percent_bps) ? <span className="font-mono tabular-nums">{bpsLabel(e.percent_bps)}</span> : null}
+                  {e.flagged ? <Badge variant="destructive">{t("reports.legal.flagged", "Flagged")}</Badge> : null}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {[
+                    e.branch_name,
+                    fmtDateTime(e.created_at),
+                    e.applied_by_name ? t("discounts.appliedBy", { defaultValue: "by {{name}}", name: e.applied_by_name }) : null,
+                    e.approved_by_name ? t("discounts.approvedBy", { defaultValue: "approved by {{name}}", name: e.approved_by_name }) : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              </div>
+              <span className="shrink-0 font-mono tabular-nums">{fmtMoney(e.amount_minor)}</span>
+            </li>
+          ))}
+        </ul>
       </CardContent>
     </Card>
   );

@@ -43,7 +43,7 @@ import { egpToPiastres, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { RecipeBuilder, type CleanRow, type RecipeRowInit } from "@/features/recipes/recipe-builder";
 import { invalidateRecipes } from "@/features/recipes/util";
-import { arOf, invalidateCatalog } from "./util";
+import { ONE_SIZE, arOf, invalidateCatalog } from "./util";
 
 interface Props {
   orgId: string;
@@ -85,16 +85,20 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
         name_ar: z.string().optional(),
         description: z.string().optional(),
         description_ar: z.string().optional(),
-        base_price: z.coerce.number<number>().min(0),
         category_id: z.string().min(1, t("common.requiredField", "This field is required")),
         is_active: z.boolean(),
-        sizes: z.array(
-          z.object({
-            id: z.string().optional(),
-            label: z.string().min(1, t("common.requiredField", "This field is required")),
-            price_override: z.coerce.number<number>().min(0),
-          }),
-        ),
+        // An item has no price of its own — price lives in sizes, and there is
+        // always at least one. A simple item has exactly one, labelled
+        // `one_size`, whose label the editor never shows.
+        sizes: z
+          .array(
+            z.object({
+              id: z.string().optional(),
+              label: z.string().min(1, t("common.requiredField", "This field is required")),
+              price_override: z.coerce.number<number>().min(0),
+            }),
+          )
+          .min(1, t("menu.needsOneSize", "An item needs at least one price.")),
       }),
     [t],
   );
@@ -102,9 +106,9 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", name_ar: "", description: "", description_ar: "", base_price: 0, category_id: "", is_active: true, sizes: [] },
+    defaultValues: { name: "", name_ar: "", description: "", description_ar: "", category_id: "", is_active: true, sizes: [{ label: ONE_SIZE, price_override: 0 }] },
   });
-  const { fields: sizes, append, remove } = useFieldArray({ control: form.control, name: "sizes" });
+  const { fields: sizes, append, remove, replace } = useFieldArray({ control: form.control, name: "sizes" });
 
   // ── Recipe wiring (embedded builder, committed with the form) ──────────────
   const initialRecipeRows = useMemo<RecipeRowInit[]>(
@@ -118,8 +122,17 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
   const recipeSizes = Array.from(new Set([...(sizeLabels.length ? sizeLabels : ["one_size"]), ...initialRecipeRows.map((r) => r.size_label)]));
   const priceForSize = (size: string): number | null => {
     const toP = (v: unknown) => { const n = parseFloat(String(v ?? "")); return Number.isFinite(n) ? Math.round(n * 100) : null; };
-    return toP(watchedSizes.find((s) => s.label === size)?.price_override) ?? toP(form.getValues("base_price"));
+    // Price lives in the size. With no matching row, fall back to the item's
+    // "from" price — the LOWEST of its sizes — never to an item-level number.
+    const exact = toP(watchedSizes.find((s) => s.label === size)?.price_override);
+    if (exact !== null) return exact;
+    const all = watchedSizes.map((s) => toP(s.price_override)).filter((n): n is number => n !== null);
+    return all.length ? Math.min(...all) : null;
   };
+
+  // A simple item: exactly one size, carrying the sentinel label. The editor
+  // shows it as a single Price box with no label and no remove button.
+  const singlePrice = watchedSizes.length === 1 && watchedSizes[0]?.label === ONE_SIZE;
 
   // Reset basics when opening.
   useEffect(() => {
@@ -132,10 +145,10 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
         name_ar: arOf(item?.name_translations),
         description: item?.description ?? "",
         description_ar: arOf(item?.description_translations),
-        base_price: item ? piastresToEgp(item.base_price) : 0,
         category_id: item?.category_id ?? defaultCategoryId ?? "",
         is_active: item?.is_active ?? true,
-        sizes: [],
+        // New item: one price box. Editing: replaced when `liveItem` lands.
+        sizes: item ? [] : [{ label: ONE_SIZE, price_override: 0 }],
       });
     }
   }, [open, item, defaultCategoryId, form]);
@@ -143,9 +156,15 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
   // Load sizes + allowed addon IDs once the full item arrives (edit).
   useEffect(() => {
     if (liveItem) {
-      form.setValue(
-        "sizes",
-        liveItem.sizes.map((s) => ({ id: s.id, label: s.label, price_override: piastresToEgp(s.price_override) })),
+      // `all_sizes` includes the synthetic `one_size` row that carries a simple
+      // item's price; `sizes` deliberately hides it for old tills.
+      const rows = liveItem.all_sizes ?? liveItem.sizes;
+      // `replace`, not `setValue`: the rendered rows come from useFieldArray's
+      // own state, which a plain setValue on the array name does not re-sync.
+      replace(
+        rows
+          .filter((s) => s.is_active !== false)
+          .map((s) => ({ id: s.id, label: s.label, price_override: piastresToEgp(s.price_override) })),
       );
       setAllowedIds(new Set(liveItem.allowed_addon_ids));
     }
@@ -159,12 +178,16 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
         name_translations: v.name_ar ? { ar: v.name_ar } : undefined,
         description: v.description || null,
         description_translations: v.description_ar ? { ar: v.description_ar } : undefined,
-        base_price: egpToPiastres(v.base_price),
         category_id: v.category_id,
       };
+      // Price is NEVER sent on the item. On create the API still needs one
+      // number, so it gets the item's "from" price — the lowest size — which is
+      // exactly what the server would mirror anyway; `putSizes` below is what
+      // actually establishes the prices.
+      const fromPrice = Math.min(...v.sizes.map((s) => egpToPiastres(s.price_override)));
       const res = item
         ? await updateMenuItem(item.id, { ...payload, is_active: v.is_active })
-        : await createMenuItem({ org_id: orgId, ...payload });
+        : await createMenuItem({ org_id: orgId, ...payload, base_price: fromPrice });
       const itemId = res.id;
 
       // Sizes — one replace-set on the unified endpoint (the server upserts by
@@ -269,21 +292,9 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
               <BilingualField control={form.control} enName="name" arName="name_ar" label={t("common.name", "Name")} />
               <BilingualField control={form.control} enName="description" arName="description_ar" label={t("common.description", "Description")} textarea />
 
+              {/* No price field here on purpose: an item has no price of its
+                  own. Price is entered below, per size. */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="base_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("menu.basePrice", "Base price (EGP)")}</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" min="0" {...field} />
-                      </FormControl>
-                      <PriceTaxHint />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 <FormField
                   control={form.control}
                   name="category_id"
@@ -382,21 +393,50 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                 )}
               </div>
 
-              {/* Sizes */}
+              {/* Price & sizes — the ONLY place a price is entered. */}
               <div className="flex items-center justify-between border-t pt-4">
                 <div className="flex items-center gap-2">
                   <Ruler className="size-4 text-primary" />
-                  <p className="text-sm font-semibold">{t("menu.sizes", "Sizes")}</p>
+                  <p className="text-sm font-semibold">
+                    {singlePrice ? t("menu.priceSection", "Price") : t("menu.sizes", "Sizes")}
+                  </p>
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ label: "", price_override: 0 })}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Leaving single-price mode: the sentinel label has to
+                    // become a real one the customer sees, so clear it and let
+                    // the person name both sizes.
+                    if (singlePrice) form.setValue("sizes.0.label", "");
+                    append({ label: "", price_override: 0 });
+                  }}
+                >
                   <Plus className="size-4" />
                   {t("menu.addSize", "Add size")}
                 </Button>
               </div>
-              {sizes.length === 0 ? (
-                <p className="rounded-lg border border-dashed bg-muted/30 py-3 text-center text-sm text-muted-foreground">
-                  {t("menu.noSizes", "No sizes — the base price applies.")}
-                </p>
+              {singlePrice ? (
+                <div className="rounded-lg border bg-muted/20 p-3">
+                  <FormField
+                    control={form.control}
+                    name="sizes.0.price_override"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">{t("common.price", "Price")} (EGP)</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" min="0" {...field} />
+                        </FormControl>
+                        <PriceTaxHint />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {t("menu.addSizeHint", "Add a size to charge different prices for different sizes.")}
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {sizes.map((sz, idx) => (
@@ -427,7 +467,16 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                           </FormItem>
                         )}
                       />
-                      <Button type="button" variant="ghost" size="icon-sm" className="mt-6 text-destructive" aria-label={t("menu.removeSize", "Remove size")} onClick={() => remove(idx)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="mt-6 text-destructive"
+                        aria-label={t("menu.removeSize", "Remove size")}
+                        // The last size holds the item's price, so it stays.
+                        disabled={sizes.length <= 1}
+                        onClick={() => remove(idx)}
+                      >
                         <Trash2 className="size-4" />
                       </Button>
                     </div>

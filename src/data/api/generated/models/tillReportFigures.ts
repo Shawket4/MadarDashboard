@@ -2,6 +2,7 @@
 // @ts-nocheck
 import type { CashMovementSummaryRow } from './cashMovementSummaryRow';
 import type { PaymentSummaryRow } from './paymentSummaryRow';
+import type { TillSpotView } from './tillSpotView';
 
 /**
  * The report figures shared by the new `TillReportResponse` and the legacy
@@ -36,6 +37,16 @@ export interface TillReportFigures {
      * and what those charges came to. Not part of any total.
      */
   service_charge_waived_count?: number;
+  /** Who viewed (and printed) the cash spot report of this till, oldest first. Additive. */
+  spot_views?: TillSpotView[];
+  /**
+     * Staff drinks put on the branch's pool during this till, and how many of
+     * them were past the day's allowance. The Z report shows what the shop
+     * gave its own people; the money is zero, so neither figure enters any
+     * total. Additive — an older tablet simply does not read them.
+     */
+  staff_drinks_count?: number;
+  staff_drinks_overspent_count?: number;
   /**
      * `branches.standard_float`.
      * @nullable

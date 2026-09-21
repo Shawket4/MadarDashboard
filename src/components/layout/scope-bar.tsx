@@ -15,6 +15,7 @@ import {
 import { useListBranches } from "@/data/api/generated/api";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
+import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
 import { OrgPicker } from "./org-picker";
 import { SCOPE_PRESETS, type ScopePreset } from "@/data/scope/presets";
@@ -35,7 +36,9 @@ function ScopeControls({ className }: { className?: string }) {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const selectedOrgId = useAppStore((s) => s.selectedOrgId);
-  const canPickBranch = user?.role === "super_admin" || user?.role === "org_admin";
+  // Someone who works every branch picks one; everyone else is scoped by the server.
+  const authz = useAuthz();
+  const canPickBranch = authz.platform || authz.owner;
   const orgId = user?.role === "super_admin" ? selectedOrgId : (user?.org_id ?? null);
 
   const { branchId, preset, from, to, setBranch, setPreset, setCustomRange } = useScope();

@@ -12,8 +12,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { NAV, isParent, type NavLeaf } from "@/config/nav";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { NAV, isParent, leafVisible, type NavLeaf } from "@/config/nav";
+import { useAuthz } from "@/data/authz/use-authz";
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
 
 export function CommandPalette() {
@@ -21,13 +21,8 @@ export function CommandPalette() {
   const navigate = useNavigate();
   const prefetch = useRoutePrefetch();
   const [open, setOpen] = useState(false);
-  const role = useAuthStore((s) => s.user?.role);
-  const isSuperAdmin = role === "super_admin";
-  const visible = (leaf: NavLeaf) => {
-    if (leaf.superAdminOnly && !isSuperAdmin) return false;
-    if (leaf.roles && (!role || !leaf.roles.includes(role))) return false;
-    return true;
-  };
+  const authz = useAuthz();
+  const visible = (leaf: NavLeaf) => leafVisible(leaf, authz);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

@@ -39,6 +39,11 @@ export interface CreateOrgMultipart {
      * @nullable
      */
   tax_rate?: number | null;
+  /**
+     * Role template the org starts from: `restaurant` (default) or `cafe`.
+     * @nullable
+     */
+  template?: string | null;
   /** @nullable */
   timezone?: string | null;
 }

@@ -6,6 +6,7 @@ import {
 } from "@/data/api/generated/api";
 import type { ModifierGroupOut, StudioAggregate } from "@/data/api/generated/models";
 import { piastresToEgp } from "@/lib/format";
+import { normalizeSource, ownRecipeSig, type LineSource } from "../recipe/grid-model";
 
 /**
  * Invalidate the Menu Studio aggregate + live-cost queries for one item, plus the
@@ -67,6 +68,8 @@ export interface RecipeLineDraft {
   /** Quantity as typed (text) — parsed on save. */
   quantity: string;
   unit: string;
+  /** `own` (absent) lines are editable; `base`/`rule`/`linked` are server-expanded, read-only. */
+  source?: LineSource;
 }
 
 /** One size block: the size row + its inline recipe (mirrors SizeOut 1:1). */
@@ -83,6 +86,8 @@ export interface SizeBlockDraft {
   seededPrice: string | null;
   /** Server cost rollup from the seeded SizeOut; null for new blocks. */
   serverCost: { piastres: number | null; incomplete: boolean } | null;
+  /** Recipe base this size expands (server `base_id`). */
+  baseId?: string | null;
   lines: RecipeLineDraft[];
 }
 
@@ -98,7 +103,19 @@ export interface AttachDraft {
   /** null = offer all of the group's options; else the allowlisted subset. */
   included_option_ids: string[] | null;
   /** All options the group offers (for the allowlist chips). */
-  allOptions: { id: string; name: string; price: number }[];
+  allOptions: AttachOptionDraft[];
+}
+
+/** One option of an attached group. `recipe`/`cost` come from the studio
+ * aggregate; a group attached in this session (from the org list) has none yet. */
+export interface AttachOptionDraft {
+  id: string;
+  name: string;
+  price: number;
+  recipe?: { ingredient_name: string; quantity: string; unit: string }[];
+  /** Piastres; null = unknown. */
+  cost?: number | null;
+  costIncomplete?: boolean;
 }
 
 /** One item-only option row (old options tab row model, minus its own save). */
@@ -144,16 +161,25 @@ export const toSizeBlocks = (s: StudioAggregate): SizeBlockDraft[] =>
         seededLabel: z.label,
         seededPrice: price,
         serverCost: { piastres: z.cost_piastres ?? null, incomplete: z.cost_incomplete },
+        baseId: z.base_id ?? null,
         lines: z.recipe.map((r) => ({
           ingredient_id: r.ingredient_id,
           quantity: String(parseFloat(r.quantity)),
           unit: r.unit,
+          source: normalizeSource(r.source),
         })),
       };
     });
 
 export const toAttachDraft = (g: ModifierGroupOut): AttachDraft => {
-  const allOptions = g.options.map((o) => ({ id: o.id, name: o.name, price: o.price }));
+  const allOptions: AttachOptionDraft[] = g.options.map((o) => ({
+    id: o.id,
+    name: o.name,
+    price: o.price,
+    recipe: o.recipe.map((r) => ({ ingredient_name: r.ingredient_name, quantity: r.quantity, unit: r.unit })),
+    cost: o.cost_piastres ?? null,
+    costIncomplete: o.cost_incomplete,
+  }));
   const includedIds = g.options.filter((o) => o.included).map((o) => o.id);
   const allIncluded = includedIds.length === allOptions.length;
   return {
@@ -196,7 +222,14 @@ export const toOptionRows = (s: StudioAggregate): OptionRowDraft[] =>
 export const toStepDrafts = (s: StudioAggregate): StepDraft[] =>
   (s.recipe_steps ?? []).map((st) =>
     st.kind === "preset"
-      ? { kind: "preset" as const, preset_slug: st.preset_slug ?? null, title: "", title_ar: "" }
+      ? {
+          kind: "preset" as const,
+          preset_slug: st.preset_slug ?? null,
+          title: "",
+          title_ar: "",
+          note: st.note ?? "",
+          note_ar: st.note_ar ?? "",
+        }
       : // A step typed in one language shows that name in both; keep only what
         // was actually typed so saving does not invent an Arabic name.
         {
@@ -204,6 +237,8 @@ export const toStepDrafts = (s: StudioAggregate): StepDraft[] =>
           preset_slug: null,
           title: st.name === st.name_ar ? st.name : st.name,
           title_ar: st.name_ar === st.name ? "" : st.name_ar,
+          note: st.note ?? "",
+          note_ar: st.note_ar ?? "",
         },
   );
 
@@ -215,8 +250,8 @@ export const itemSig = (v: ItemDraftValues): string =>
 export const sizesSig = (blocks: SizeBlockDraft[]): string =>
   JSON.stringify(blocks.map((b) => [b.label, b.price]));
 
-export const recipeSig = (lines: RecipeLineDraft[]): string =>
-  JSON.stringify(lines.map((l) => [l.ingredient_id, l.quantity, l.unit]));
+/** Only the own lines the save would send (sourced lines never make a size dirty). */
+export const recipeSig = (lines: RecipeLineDraft[]): string => ownRecipeSig(lines);
 
 export const modifiersSig = (attached: AttachDraft[]): string =>
   JSON.stringify(
@@ -233,7 +268,9 @@ export const optionsSig = (rows: OptionRowDraft[]): string =>
   JSON.stringify(rows.map((r) => [r.id ?? null, r.name, r.price, r.is_active, r.ingredient_id, r.quantity, r.unit]));
 
 export const stepsSig = (steps: StepDraft[]): string =>
-  JSON.stringify(steps.map((s) => [s.kind, s.preset_slug, s.title.trim(), s.title_ar.trim()]));
+  JSON.stringify(
+    steps.map((s) => [s.kind, s.preset_slug, s.title.trim(), s.title_ar.trim(), s.note.trim(), s.note_ar.trim()]),
+  );
 
 /**
  * One step being edited. A preset step points at the library and is named by
@@ -244,6 +281,13 @@ export interface StepDraft {
   preset_slug: string | null;
   title: string;
   title_ar: string;
+  /**
+   * What THIS item does at this step — "40ml condensed milk, mixed with the
+   * shot first". A preset step may carry one too: it replaces the library's
+   * generic note without giving up the animation. Blank = show the preset's.
+   */
+  note: string;
+  note_ar: string;
 }
 
 export interface PristineSigs {

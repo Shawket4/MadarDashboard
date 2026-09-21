@@ -191,13 +191,14 @@ export const MOCK_PEAK_DAYS: PeakDayPoint[] = _pd_raw.map((r, day_of_week) => ({
   orders_pct: _pd_total_ord > 0 ? Math.round(r.orders / _pd_total_ord * 1000) / 10 : 0,
 }));
 
-// Top sellers + sales-by-category for the analytics overview tab + leaderboards.
+// Top sellers + sales-by-category for the analytics overview tab + leaderboards,
+// ranked as the backend ranks them: quantity, then revenue, then name.
 const TOP_ITEMS = [
   { menu_item_id: "mi_latte", item_name: "Latte", item_name_translations: { ar: "لاتيه" }, quantity_sold: 142, revenue: 852_000 },
-  { menu_item_id: "mi_frappuccino", item_name: "Frappuccino", item_name_translations: { ar: "فرابيتشينو" }, quantity_sold: 67, revenue: 569_500 },
-  { menu_item_id: "mi_cheesecake", item_name: "Cheesecake", item_name_translations: { ar: "تشيز كيك" }, quantity_sold: 62, revenue: 558_000 },
   { menu_item_id: "mi_cappuccino", item_name: "Cappuccino", item_name_translations: { ar: "كابوتشينو" }, quantity_sold: 98, revenue: 539_000 },
   { menu_item_id: "mi_americano", item_name: "Americano", item_name_translations: { ar: "أمريكانو" }, quantity_sold: 89, revenue: 400_500 },
+  { menu_item_id: "mi_frappuccino", item_name: "Frappuccino", item_name_translations: { ar: "فرابيتشينو" }, quantity_sold: 67, revenue: 569_500 },
+  { menu_item_id: "mi_cheesecake", item_name: "Cheesecake", item_name_translations: { ar: "تشيز كيك" }, quantity_sold: 62, revenue: 558_000 },
   { menu_item_id: "mi_flatwhite", item_name: "Flat White", item_name_translations: { ar: "فلات وايت" }, quantity_sold: 54, revenue: 351_000 },
   { menu_item_id: "mi_matcha", item_name: "Matcha Latte", item_name_translations: { ar: "ماتشا لاتيه" }, quantity_sold: 34, revenue: 255_000 },
 ];
@@ -888,10 +889,26 @@ function shiftReport(shiftId: string) {
     cash_movements_in,
     cash_movements_out,
     cash_movements_net: cash_movements_in - cash_movements_out,
+    spot_views: MOCK_TILL_SPOT_VIEWS(shift.id),
     printed_at: NOW_ISO,
   };
 }
 export const MOCK_TILL_REPORT = shiftReport;
+
+/** TillSpotView[] for a till: one unlocked by a manager and printed; one plain look. */
+export function MOCK_TILL_SPOT_VIEWS(tillId: string) {
+  const shift = MOCK_SHIFTS.find((s) => s.id === tillId) ?? MOCK_SHIFTS[1];
+  const base = { till_id: shift.id, branch_id: shift.branch_id, device_id: null };
+  return [
+    { ...base, id: `${shift.id}_sv1`, viewed_by: "usr_mona", viewed_by_name: "Mona Adel",
+      printed: true, printed_at: "2026-06-15T13:01:00Z",
+      approved_by: "usr_demo_admin", approved_by_name: "Shawket Ibrahim", approval_id: "apr_sv1",
+      viewed_at: "2026-06-15T13:00:00Z", created_at: "2026-06-15T13:00:00Z" },
+    { ...base, id: `${shift.id}_sv2`, viewed_by: "usr_demo_admin", viewed_by_name: "Shawket Ibrahim",
+      printed: false, printed_at: null, approved_by: null, approved_by_name: null, approval_id: null,
+      viewed_at: "2026-06-15T17:30:00Z", created_at: "2026-06-15T17:30:00Z" },
+  ];
+}
 
 // ── Permissions ──────────────────────────────────────────────────────────────
 

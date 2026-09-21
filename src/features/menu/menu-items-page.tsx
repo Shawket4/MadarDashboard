@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
-import { ChefHat, Copy, CupSoda, Pencil, Percent, Store, Tag, Trash2, UtensilsCrossed } from "lucide-react";
+import { ChefHat, Copy, CupSoda, Pencil, Store, Tag, Trash2, UserRound, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -14,10 +14,8 @@ import { ExportButton } from "@/components/app/export-button";
 import { AddonCostCell, ItemCostCell } from "@/components/app/cost-cells";
 import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CategoryDialog } from "./category-dialog";
 import { CategoryReorderList } from "./category-reorder-list";
 import { AddonDialog } from "./addon-dialog";
@@ -67,8 +65,12 @@ import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { currencyLabel, fmtNumber } from "@/lib/format";
 import { PriceTaxHint } from "./price-tax-hint";
+import { LinkedCopyDialog } from "./recipe/linked-copy-dialog";
+
 
 const ALL = "__all__";
 const ITEMS_PER_PAGE = 24;
@@ -79,6 +81,7 @@ export function MenuItemsPage() {
   const confirm = useConfirm();
   const navigate = useNavigate();
   const orgId = useOrgId();
+  const canCreateStaffCopy = useAuthz().can(Cap.menuItemsCreate);
   const enabled = !!orgId;
   // When a single branch is scoped (top bar), each card gets an inline
   // "Available at this branch" toggle. No branch selected → org catalog only.
@@ -86,6 +89,11 @@ export function MenuItemsPage() {
 
   const [tab, setTab] = useState<"items" | "addons" | "categories">("items");
   const [categoryFilter, setCategoryFilter] = useState(ALL);
+  // Recipe filter: "missing" is the onboarding worklist — items that still
+  // deduct nothing from stock and cost zero.
+  const [recipeFilter, setRecipeFilter] = useState<"all" | "missing" | "has">("all");
+  // The filter reads recipes, so it is offered (and sent) only with recipes.read.
+  const canFilterRecipes = useAuthz().can(Cap.recipesRead);
   const [addonType, setAddonType] = useState(ALL);
   const [itemsPage, setItemsPage] = useState(0);
   const [itemsSearch, setItemsSearch] = useState("");
@@ -100,14 +108,13 @@ export function MenuItemsPage() {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [reordering, setReordering] = useState(false);
-  const [bulkRows, setBulkRows] = useState<MenuItem[] | null>(null);
   const [exporting, setExporting] = useState(false);
   const logoUrl = useExportLogo();
 
   // Reset to first page when filters change.
   useEffect(() => {
     setItemsPage(0);
-  }, [categoryFilter, itemsSearchQ]);
+  }, [categoryFilter, recipeFilter, itemsSearchQ]);
 
   const queryClient = useQueryClient();
   const addonsActive = tab === "addons";
@@ -117,10 +124,11 @@ export function MenuItemsPage() {
       org_id: orgId ?? "",
       category_id: categoryFilter === ALL ? undefined : categoryFilter,
       search: itemsSearchQ || undefined,
+      has_recipe: !canFilterRecipes || recipeFilter === "all" ? undefined : recipeFilter === "has",
       page: itemsPage + 1,
       per_page: ITEMS_PER_PAGE,
     }),
-    [orgId, categoryFilter, itemsSearchQ, itemsPage],
+    [orgId, categoryFilter, recipeFilter, canFilterRecipes, itemsSearchQ, itemsPage],
   );
 
   const categories = useListCategories({ org_id: orgId ?? "" }, { query: { enabled } });
@@ -220,6 +228,8 @@ export function MenuItemsPage() {
     }
   };
 
+  const [staffCopyOf, setStaffCopyOf] = useState<MenuItem | null>(null);
+
   const duplicate = async (item: MenuItem) => {
     try {
       // Studio deep-copy (server-side): sizes + recipes + modifier attachments +
@@ -255,7 +265,10 @@ export function MenuItemsPage() {
   const itemTitle: EditableField<MenuItemWithCosts> = { key: "name", label: t("common.name", "Name"), type: "text", getValue: (m) => m.name, renderDisplay: (m) => <span className="font-semibold">{tname(m)}</span> };
   const itemFields: EditableField<MenuItemWithCosts>[] = useMemo(
     () => [
-      { key: "base_price", label: t("common.price", "Price"), type: "money", getValue: (m) => m.base_price },
+      // Read-only on purpose. An item has no price of its own: price lives in
+      // its sizes, and the number here is the item's "from" price — the lowest
+      // of them. The only way to change it is the item editor's size list.
+      { key: "base_price", label: t("common.price", "Price"), type: "money", getValue: (m) => m.base_price, editable: false },
       { key: "category_id", label: t("common.category", "Category"), type: "select", options: catList.map((c) => ({ value: c.id, label: tname(c) })), getValue: (m) => m.category_id ?? "" },
       { key: "is_active", label: t("common.active", "Active"), type: "boolean", getValue: (m) => m.is_active },
     ],
@@ -416,6 +429,16 @@ export function MenuItemsPage() {
                     {catList.map((c) => <SelectItem key={c.id} value={c.id}>{tname(c)}</SelectItem>)}
                   </SelectContent>
                 </Select>
+{canFilterRecipes ? (
+                                  <Select value={recipeFilter} onValueChange={(v) => { setRecipeFilter(v as "all" | "missing" | "has"); setItemsPage(0); }}>
+                    <SelectTrigger className="h-9 w-auto min-w-36" aria-label={t("menu.recipeFilter", "Recipe")}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t("menu.recipeAll", "Any recipe")}</SelectItem>
+                      <SelectItem value="missing">{t("menu.recipeMissing", "No recipe")}</SelectItem>
+                      <SelectItem value="has">{t("menu.recipeHas", "Has a recipe")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : null}
                 {/* Rendered here rather than through the grid's own `onExport`
                     slot: that one cannot show a busy state, and walking the
                     whole catalog takes long enough that a button which looks
@@ -423,11 +446,6 @@ export function MenuItemsPage() {
                 <ExportButton onExport={handleExport} loading={exporting} />
               </>
             }
-            bulkActions={(selected, clear) => (
-              <Button size="sm" variant="outline" onClick={() => { setBulkRows(selected); clear(); }}>
-                <Percent className="size-4" /> {t("menu.grid.bulkPriceAction", "Adjust price")}
-              </Button>
-            )}
             onPasteRows={createFromPaste}
             pasteColumns={[
               { key: "name", header: t("common.name", "Name") },
@@ -450,6 +468,11 @@ export function MenuItemsPage() {
                 <DropdownMenuItem onClick={() => void duplicate(m)}>
                   <Copy className="size-4" /> {t("menu.grid.duplicate", "Duplicate")}
                 </DropdownMenuItem>
+                {canCreateStaffCopy ? (
+                  <DropdownMenuItem onClick={() => setStaffCopyOf(m)}>
+                    <UserRound className="size-4" /> {t("modeling.linked.action", "Create staff copy…")}
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(m.name, t("menu.deleteItemConsequence", "It leaves the POS menu at every branch, with its sizes, recipe and branch prices. Past orders keep their lines."), () => delItem.mutate({ id: m.id }))}>
                   <Trash2 className="size-4" /> {t("common.delete", "Delete")}
                 </DropdownMenuItem>
@@ -545,11 +568,17 @@ export function MenuItemsPage() {
         )}
       </div>
 
+      <LinkedCopyDialog
+        open={!!staffCopyOf}
+        onOpenChange={(o) => !o && setStaffCopyOf(null)}
+        orgId={orgId}
+        item={staffCopyOf}
+        onCreated={() => void invalidateCatalog()}
+      />
       <MenuItemDialog orgId={orgId} categories={catList} item={editingItem} defaultCategoryId={categoryFilter !== ALL ? categoryFilter : null} open={itemOpen} onOpenChange={setItemOpen} />
       <AddonDialog orgId={orgId} addon={editingAddon} open={addonOpen} onOpenChange={setAddonOpen} />
       <AddonRecipeDialog orgId={orgId ?? ""} addon={recipeAddon} open={recipeOpen} onOpenChange={setRecipeOpen} />
       <CategoryDialog orgId={orgId} category={editingCategory} open={categoryOpen} onOpenChange={setCategoryOpen} />
-      <BulkPriceDialog open={!!bulkRows} rows={bulkRows ?? []} onClose={() => setBulkRows(null)} onDone={() => void invalidateCatalog()} />
     </Page>
   );
 }
@@ -558,52 +587,3 @@ function CountBadge({ n }: { n: number }) {
   return <span className="ms-1.5 font-mono text-xs tabular-nums opacity-70">{fmtNumber(n)}</span>;
 }
 
-function BulkPriceDialog({ open, rows, onClose, onDone }: { open: boolean; rows: MenuItem[]; onClose: () => void; onDone: () => void }) {
-  const { t } = useTranslation();
-  const [mode, setMode] = useState<"add" | "multiply">("add");
-  const [value, setValue] = useState("");
-  const [running, setRunning] = useState(false);
-
-  const apply = async () => {
-    const n = parseFloat(value);
-    if (!Number.isFinite(n)) return;
-    setRunning(true);
-    try {
-      const { failed } = await runBulk(rows, (item) => {
-        const next = mode === "add" ? item.base_price + Math.round(n * 100) : Math.round(item.base_price * (n / 100));
-        return updateMenuItem(item.id, { base_price: Math.max(0, next) });
-      });
-      if (failed.length > 0) toast.error(t("menu.grid.bulkSummaryFailed", { ok: rows.length - failed.length, failed: failed.length, defaultValue: "Some updates failed" }));
-      else toast.success(t("menu.grid.bulkSummary", { count: rows.length, defaultValue: `${rows.length} updated` }));
-      onDone();
-      onClose();
-    } finally {
-      setRunning(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{t("menu.grid.bulkPrice", { count: rows.length, defaultValue: `Adjust price · ${rows.length}` })}</DialogTitle>
-        </DialogHeader>
-        <div className="flex gap-2">
-          <Select value={mode} onValueChange={(v) => setMode(v as "add" | "multiply")}>
-            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="add">{t("menu.grid.addEgp", "Add EGP")}</SelectItem>
-              <SelectItem value="multiply">{t("menu.grid.multiplyPct", "Multiply %")}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input type="number" step="any" autoFocus value={value} onChange={(e) => setValue(e.target.value)} placeholder={mode === "add" ? "5" : "110"} />
-        </div>
-        <p className="text-xs text-muted-foreground">{mode === "add" ? t("menu.grid.addEgpHint", "Adds the amount to each selected item.") : t("menu.grid.multiplyPctHint", "Scales each price by the percentage (110 = +10%).")}</p>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel", "Cancel")}</Button>
-          <Button type="button" loading={running} onClick={apply}>{t("common.save", "Save")}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}

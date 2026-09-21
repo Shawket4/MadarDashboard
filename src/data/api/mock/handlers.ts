@@ -1,4 +1,5 @@
 import { http, HttpResponse, passthrough } from "msw";
+import { defaultsFor } from "@/data/authz/use-authz";
 
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import {
@@ -35,6 +36,7 @@ import {
   MOCK_QR,
   MOCK_REORDER_SUGGESTIONS,
   MOCK_TILL_REPORT,
+  MOCK_TILL_SPOT_VIEWS,
   MOCK_SHRINKAGE,
   MOCK_STOCKTAKES,
   MOCK_SUPPLIERS,
@@ -297,6 +299,11 @@ export const handlers = [
   http.post("*/auth/login", () =>
     HttpResponse.json({ token: MOCK_TOKEN, user: MOCK_USER, currency_code: "EGP", tax_rate: 0.14 }),
   ),
+  // Effective permissions: the mock user holds the owner defaults. Listed
+  // before "*/me", which would otherwise answer this path with the wrong shape.
+  http.get("*/authz/me", () =>
+    HttpResponse.json(defaultsFor(MOCK_USER.role, MOCK_USER.id)),
+  ),
   http.get("*/me", () =>
     HttpResponse.json({ user: MOCK_USER, currency_code: "EGP", tax_rate: 0.14 }),
   ),
@@ -529,6 +536,7 @@ export const handlers = [
   ),
   http.get("*/tills/branches/:branchId", ({ params }) => HttpResponse.json(tillsPage(params.branchId as string))),
   http.get("*/tills/:tillId/report", ({ params }) => HttpResponse.json(MOCK_TILL_REPORT(params.tillId as string))),
+  http.get("*/tills/:tillId/spot-views", ({ params }) => HttpResponse.json(MOCK_TILL_SPOT_VIEWS(params.tillId as string))),
   http.get("*/tills/:tillId/cash-movements", () => HttpResponse.json([])),
 
   // ── Delivery settings ─────────────────────────────────────────────────────

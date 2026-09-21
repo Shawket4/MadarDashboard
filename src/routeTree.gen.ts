@@ -23,6 +23,7 @@ import { Route as AppOrdersRouteImport } from './routes/_app/orders'
 import { Route as AppFloorRouteImport } from './routes/_app/floor'
 import { Route as AppDiscountsRouteImport } from './routes/_app/discounts'
 import { Route as AppDevicesRouteImport } from './routes/_app/devices'
+import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppBranchesRouteImport } from './routes/_app/branches'
 import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
 import { Route as AppBasiraRouteImport } from './routes/_app/basira'
@@ -43,6 +44,7 @@ import { Route as AppStaffRequestsRouteImport } from './routes/_app/staff/reques
 import { Route as AppStaffEmployeesRouteImport } from './routes/_app/staff/employees'
 import { Route as AppStaffAttendanceRouteImport } from './routes/_app/staff/attendance'
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
+import { Route as AppSettingsStaffPoolRouteImport } from './routes/_app/settings/staff-pool'
 import { Route as AppSettingsQrRouteImport } from './routes/_app/settings/qr'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppSettingsLoyaltyRouteImport } from './routes/_app/settings/loyalty'
@@ -54,6 +56,7 @@ import { Route as AppSettingsDeliveryRouteImport } from './routes/_app/settings/
 import { Route as AppSettingsBrandRouteImport } from './routes/_app/settings/brand'
 import { Route as AppSettingsBookingsRouteImport } from './routes/_app/settings/bookings'
 import { Route as AppReportsTillsRouteImport } from './routes/_app/reports/tills'
+import { Route as AppReportsStaffPoolRouteImport } from './routes/_app/reports/staff-pool'
 import { Route as AppReportsStaffRouteImport } from './routes/_app/reports/staff'
 import { Route as AppReportsSalesRouteImport } from './routes/_app/reports/sales'
 import { Route as AppReportsLoyaltyRouteImport } from './routes/_app/reports/loyalty'
@@ -62,9 +65,12 @@ import { Route as AppReportsInventoryRouteImport } from './routes/_app/reports/i
 import { Route as AppReportsFinancialRouteImport } from './routes/_app/reports/financial'
 import { Route as AppMenuRecipesRouteImport } from './routes/_app/menu/recipes'
 import { Route as AppMenuPricingRouteImport } from './routes/_app/menu/pricing'
+import { Route as AppMenuPackagingRouteImport } from './routes/_app/menu/packaging'
 import { Route as AppMenuOverridesRouteImport } from './routes/_app/menu/overrides'
 import { Route as AppMenuItemsRouteImport } from './routes/_app/menu/items'
+import { Route as AppMenuGroupsRouteImport } from './routes/_app/menu/groups'
 import { Route as AppMenuBundlesRouteImport } from './routes/_app/menu/bundles'
+import { Route as AppMenuBasesRouteImport } from './routes/_app/menu/bases'
 import { Route as AppKitchenStationsRouteImport } from './routes/_app/kitchen/stations'
 import { Route as AppKitchenRoutingRouteImport } from './routes/_app/kitchen/routing'
 import { Route as AppInventoryWasteRouteImport } from './routes/_app/inventory/waste'
@@ -85,6 +91,7 @@ import { Route as AppDeliverySettingsRouteImport } from './routes/_app/delivery/
 import { Route as AppDeliveryChannelsRouteImport } from './routes/_app/delivery/channels'
 import { Route as AppAccessUsersRouteImport } from './routes/_app/access/users'
 import { Route as AppAccessRolesRouteImport } from './routes/_app/access/roles'
+import { Route as AppAccessReviewRouteImport } from './routes/_app/access/review'
 import { Route as AppReportsOperationsIndexRouteImport } from './routes/_app/reports/operations/index'
 import { Route as AppReportsOperationsTablesRouteImport } from './routes/_app/reports/operations/tables'
 import { Route as AppReportsOperationsProfitabilityRouteImport } from './routes/_app/reports/operations/profitability'
@@ -157,6 +164,11 @@ const AppDiscountsRoute = AppDiscountsRouteImport.update({
 const AppDevicesRoute = AppDevicesRouteImport.update({
   id: '/devices',
   path: '/devices',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppCustomersRoute = AppCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppBranchesRoute = AppBranchesRouteImport.update({
@@ -259,6 +271,11 @@ const AppSettingsWhatsappRoute = AppSettingsWhatsappRouteImport.update({
   path: '/whatsapp',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
+const AppSettingsStaffPoolRoute = AppSettingsStaffPoolRouteImport.update({
+  id: '/staff-pool',
+  path: '/staff-pool',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
 const AppSettingsQrRoute = AppSettingsQrRouteImport.update({
   id: '/qr',
   path: '/qr',
@@ -318,6 +335,11 @@ const AppReportsTillsRoute = AppReportsTillsRouteImport.update({
   path: '/reports/tills',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppReportsStaffPoolRoute = AppReportsStaffPoolRouteImport.update({
+  id: '/reports/staff-pool',
+  path: '/reports/staff-pool',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppReportsStaffRoute = AppReportsStaffRouteImport.update({
   id: '/reports/staff',
   path: '/reports/staff',
@@ -358,6 +380,11 @@ const AppMenuPricingRoute = AppMenuPricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
+const AppMenuPackagingRoute = AppMenuPackagingRouteImport.update({
+  id: '/packaging',
+  path: '/packaging',
+  getParentRoute: () => AppMenuRouteRoute,
+} as any)
 const AppMenuOverridesRoute = AppMenuOverridesRouteImport.update({
   id: '/overrides',
   path: '/overrides',
@@ -368,9 +395,19 @@ const AppMenuItemsRoute = AppMenuItemsRouteImport.update({
   path: '/items',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
+const AppMenuGroupsRoute = AppMenuGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
+  getParentRoute: () => AppMenuRouteRoute,
+} as any)
 const AppMenuBundlesRoute = AppMenuBundlesRouteImport.update({
   id: '/bundles',
   path: '/bundles',
+  getParentRoute: () => AppMenuRouteRoute,
+} as any)
+const AppMenuBasesRoute = AppMenuBasesRouteImport.update({
+  id: '/bases',
+  path: '/bases',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
 const AppKitchenStationsRoute = AppKitchenStationsRouteImport.update({
@@ -475,6 +512,11 @@ const AppAccessRolesRoute = AppAccessRolesRouteImport.update({
   path: '/roles',
   getParentRoute: () => AppAccessRouteRoute,
 } as any)
+const AppAccessReviewRoute = AppAccessReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AppAccessRouteRoute,
+} as any)
 const AppReportsOperationsIndexRoute =
   AppReportsOperationsIndexRouteImport.update({
     id: '/reports/operations/',
@@ -512,6 +554,7 @@ export interface FileRoutesByFullPath {
   '/basira': typeof AppBasiraRoute
   '/bookings': typeof AppBookingsRoute
   '/branches': typeof AppBranchesRoute
+  '/customers': typeof AppCustomersRoute
   '/devices': typeof AppDevicesRoute
   '/discounts': typeof AppDiscountsRoute
   '/floor': typeof AppFloorRoute
@@ -522,6 +565,7 @@ export interface FileRoutesByFullPath {
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
+  '/access/review': typeof AppAccessReviewRoute
   '/access/roles': typeof AppAccessRolesRoute
   '/access/users': typeof AppAccessUsersRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -542,9 +586,12 @@ export interface FileRoutesByFullPath {
   '/inventory/waste': typeof AppInventoryWasteRoute
   '/kitchen/routing': typeof AppKitchenRoutingRoute
   '/kitchen/stations': typeof AppKitchenStationsRoute
+  '/menu/bases': typeof AppMenuBasesRoute
   '/menu/bundles': typeof AppMenuBundlesRoute
+  '/menu/groups': typeof AppMenuGroupsRoute
   '/menu/items': typeof AppMenuItemsRoute
   '/menu/overrides': typeof AppMenuOverridesRoute
+  '/menu/packaging': typeof AppMenuPackagingRoute
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/reports/financial': typeof AppReportsFinancialRoute
@@ -553,6 +600,7 @@ export interface FileRoutesByFullPath {
   '/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/reports/sales': typeof AppReportsSalesRoute
   '/reports/staff': typeof AppReportsStaffRoute
+  '/reports/staff-pool': typeof AppReportsStaffPoolRoute
   '/reports/tills': typeof AppReportsTillsRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
@@ -564,6 +612,7 @@ export interface FileRoutesByFullPath {
   '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/qr': typeof AppSettingsQrRoute
+  '/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/staff/attendance': typeof AppStaffAttendanceRoute
   '/staff/employees': typeof AppStaffEmployeesRoute
@@ -587,6 +636,7 @@ export interface FileRoutesByTo {
   '/basira': typeof AppBasiraRoute
   '/bookings': typeof AppBookingsRoute
   '/branches': typeof AppBranchesRoute
+  '/customers': typeof AppCustomersRoute
   '/devices': typeof AppDevicesRoute
   '/discounts': typeof AppDiscountsRoute
   '/floor': typeof AppFloorRoute
@@ -598,6 +648,7 @@ export interface FileRoutesByTo {
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
   '/': typeof AppIndexRoute
+  '/access/review': typeof AppAccessReviewRoute
   '/access/roles': typeof AppAccessRolesRoute
   '/access/users': typeof AppAccessUsersRoute
   '/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -618,9 +669,12 @@ export interface FileRoutesByTo {
   '/inventory/waste': typeof AppInventoryWasteRoute
   '/kitchen/routing': typeof AppKitchenRoutingRoute
   '/kitchen/stations': typeof AppKitchenStationsRoute
+  '/menu/bases': typeof AppMenuBasesRoute
   '/menu/bundles': typeof AppMenuBundlesRoute
+  '/menu/groups': typeof AppMenuGroupsRoute
   '/menu/items': typeof AppMenuItemsRoute
   '/menu/overrides': typeof AppMenuOverridesRoute
+  '/menu/packaging': typeof AppMenuPackagingRoute
   '/menu/pricing': typeof AppMenuPricingRoute
   '/menu/recipes': typeof AppMenuRecipesRoute
   '/reports/financial': typeof AppReportsFinancialRoute
@@ -629,6 +683,7 @@ export interface FileRoutesByTo {
   '/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/reports/sales': typeof AppReportsSalesRoute
   '/reports/staff': typeof AppReportsStaffRoute
+  '/reports/staff-pool': typeof AppReportsStaffPoolRoute
   '/reports/tills': typeof AppReportsTillsRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
@@ -640,6 +695,7 @@ export interface FileRoutesByTo {
   '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/qr': typeof AppSettingsQrRoute
+  '/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/staff/attendance': typeof AppStaffAttendanceRoute
   '/staff/employees': typeof AppStaffEmployeesRoute
@@ -670,6 +726,7 @@ export interface FileRoutesById {
   '/_app/basira': typeof AppBasiraRoute
   '/_app/bookings': typeof AppBookingsRoute
   '/_app/branches': typeof AppBranchesRoute
+  '/_app/customers': typeof AppCustomersRoute
   '/_app/devices': typeof AppDevicesRoute
   '/_app/discounts': typeof AppDiscountsRoute
   '/_app/floor': typeof AppFloorRoute
@@ -681,6 +738,7 @@ export interface FileRoutesById {
   '/_app/tills': typeof AppTillsRoute
   '/_app/users': typeof AppUsersRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/access/review': typeof AppAccessReviewRoute
   '/_app/access/roles': typeof AppAccessRolesRoute
   '/_app/access/users': typeof AppAccessUsersRoute
   '/_app/delivery/channels': typeof AppDeliveryChannelsRoute
@@ -701,9 +759,12 @@ export interface FileRoutesById {
   '/_app/inventory/waste': typeof AppInventoryWasteRoute
   '/_app/kitchen/routing': typeof AppKitchenRoutingRoute
   '/_app/kitchen/stations': typeof AppKitchenStationsRoute
+  '/_app/menu/bases': typeof AppMenuBasesRoute
   '/_app/menu/bundles': typeof AppMenuBundlesRoute
+  '/_app/menu/groups': typeof AppMenuGroupsRoute
   '/_app/menu/items': typeof AppMenuItemsRoute
   '/_app/menu/overrides': typeof AppMenuOverridesRoute
+  '/_app/menu/packaging': typeof AppMenuPackagingRoute
   '/_app/menu/pricing': typeof AppMenuPricingRoute
   '/_app/menu/recipes': typeof AppMenuRecipesRoute
   '/_app/reports/financial': typeof AppReportsFinancialRoute
@@ -712,6 +773,7 @@ export interface FileRoutesById {
   '/_app/reports/loyalty': typeof AppReportsLoyaltyRoute
   '/_app/reports/sales': typeof AppReportsSalesRoute
   '/_app/reports/staff': typeof AppReportsStaffRoute
+  '/_app/reports/staff-pool': typeof AppReportsStaffPoolRoute
   '/_app/reports/tills': typeof AppReportsTillsRoute
   '/_app/settings/bookings': typeof AppSettingsBookingsRoute
   '/_app/settings/brand': typeof AppSettingsBrandRoute
@@ -723,6 +785,7 @@ export interface FileRoutesById {
   '/_app/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/_app/settings/qr': typeof AppSettingsQrRoute
+  '/_app/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
   '/_app/staff/attendance': typeof AppStaffAttendanceRoute
   '/_app/staff/employees': typeof AppStaffEmployeesRoute
@@ -754,6 +817,7 @@ export interface FileRouteTypes {
     | '/basira'
     | '/bookings'
     | '/branches'
+    | '/customers'
     | '/devices'
     | '/discounts'
     | '/floor'
@@ -764,6 +828,7 @@ export interface FileRouteTypes {
     | '/shifts'
     | '/tills'
     | '/users'
+    | '/access/review'
     | '/access/roles'
     | '/access/users'
     | '/delivery/channels'
@@ -784,9 +849,12 @@ export interface FileRouteTypes {
     | '/inventory/waste'
     | '/kitchen/routing'
     | '/kitchen/stations'
+    | '/menu/bases'
     | '/menu/bundles'
+    | '/menu/groups'
     | '/menu/items'
     | '/menu/overrides'
+    | '/menu/packaging'
     | '/menu/pricing'
     | '/menu/recipes'
     | '/reports/financial'
@@ -795,6 +863,7 @@ export interface FileRouteTypes {
     | '/reports/loyalty'
     | '/reports/sales'
     | '/reports/staff'
+    | '/reports/staff-pool'
     | '/reports/tills'
     | '/settings/bookings'
     | '/settings/brand'
@@ -806,6 +875,7 @@ export interface FileRouteTypes {
     | '/settings/loyalty'
     | '/settings/payment-methods'
     | '/settings/qr'
+    | '/settings/staff-pool'
     | '/settings/whatsapp'
     | '/staff/attendance'
     | '/staff/employees'
@@ -829,6 +899,7 @@ export interface FileRouteTypes {
     | '/basira'
     | '/bookings'
     | '/branches'
+    | '/customers'
     | '/devices'
     | '/discounts'
     | '/floor'
@@ -840,6 +911,7 @@ export interface FileRouteTypes {
     | '/tills'
     | '/users'
     | '/'
+    | '/access/review'
     | '/access/roles'
     | '/access/users'
     | '/delivery/channels'
@@ -860,9 +932,12 @@ export interface FileRouteTypes {
     | '/inventory/waste'
     | '/kitchen/routing'
     | '/kitchen/stations'
+    | '/menu/bases'
     | '/menu/bundles'
+    | '/menu/groups'
     | '/menu/items'
     | '/menu/overrides'
+    | '/menu/packaging'
     | '/menu/pricing'
     | '/menu/recipes'
     | '/reports/financial'
@@ -871,6 +946,7 @@ export interface FileRouteTypes {
     | '/reports/loyalty'
     | '/reports/sales'
     | '/reports/staff'
+    | '/reports/staff-pool'
     | '/reports/tills'
     | '/settings/bookings'
     | '/settings/brand'
@@ -882,6 +958,7 @@ export interface FileRouteTypes {
     | '/settings/loyalty'
     | '/settings/payment-methods'
     | '/settings/qr'
+    | '/settings/staff-pool'
     | '/settings/whatsapp'
     | '/staff/attendance'
     | '/staff/employees'
@@ -911,6 +988,7 @@ export interface FileRouteTypes {
     | '/_app/basira'
     | '/_app/bookings'
     | '/_app/branches'
+    | '/_app/customers'
     | '/_app/devices'
     | '/_app/discounts'
     | '/_app/floor'
@@ -922,6 +1000,7 @@ export interface FileRouteTypes {
     | '/_app/tills'
     | '/_app/users'
     | '/_app/'
+    | '/_app/access/review'
     | '/_app/access/roles'
     | '/_app/access/users'
     | '/_app/delivery/channels'
@@ -942,9 +1021,12 @@ export interface FileRouteTypes {
     | '/_app/inventory/waste'
     | '/_app/kitchen/routing'
     | '/_app/kitchen/stations'
+    | '/_app/menu/bases'
     | '/_app/menu/bundles'
+    | '/_app/menu/groups'
     | '/_app/menu/items'
     | '/_app/menu/overrides'
+    | '/_app/menu/packaging'
     | '/_app/menu/pricing'
     | '/_app/menu/recipes'
     | '/_app/reports/financial'
@@ -953,6 +1035,7 @@ export interface FileRouteTypes {
     | '/_app/reports/loyalty'
     | '/_app/reports/sales'
     | '/_app/reports/staff'
+    | '/_app/reports/staff-pool'
     | '/_app/reports/tills'
     | '/_app/settings/bookings'
     | '/_app/settings/brand'
@@ -964,6 +1047,7 @@ export interface FileRouteTypes {
     | '/_app/settings/loyalty'
     | '/_app/settings/payment-methods'
     | '/_app/settings/qr'
+    | '/_app/settings/staff-pool'
     | '/_app/settings/whatsapp'
     | '/_app/staff/attendance'
     | '/_app/staff/employees'
@@ -1085,6 +1169,13 @@ declare module '@tanstack/react-router' {
       path: '/devices'
       fullPath: '/devices'
       preLoaderRoute: typeof AppDevicesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/customers': {
+      id: '/_app/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AppCustomersRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/branches': {
@@ -1227,6 +1318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsWhatsappRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
+    '/_app/settings/staff-pool': {
+      id: '/_app/settings/staff-pool'
+      path: '/staff-pool'
+      fullPath: '/settings/staff-pool'
+      preLoaderRoute: typeof AppSettingsStaffPoolRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
     '/_app/settings/qr': {
       id: '/_app/settings/qr'
       path: '/qr'
@@ -1304,6 +1402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsTillsRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/reports/staff-pool': {
+      id: '/_app/reports/staff-pool'
+      path: '/reports/staff-pool'
+      fullPath: '/reports/staff-pool'
+      preLoaderRoute: typeof AppReportsStaffPoolRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/reports/staff': {
       id: '/_app/reports/staff'
       path: '/reports/staff'
@@ -1360,6 +1465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMenuPricingRouteImport
       parentRoute: typeof AppMenuRouteRoute
     }
+    '/_app/menu/packaging': {
+      id: '/_app/menu/packaging'
+      path: '/packaging'
+      fullPath: '/menu/packaging'
+      preLoaderRoute: typeof AppMenuPackagingRouteImport
+      parentRoute: typeof AppMenuRouteRoute
+    }
     '/_app/menu/overrides': {
       id: '/_app/menu/overrides'
       path: '/overrides'
@@ -1374,11 +1486,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMenuItemsRouteImport
       parentRoute: typeof AppMenuRouteRoute
     }
+    '/_app/menu/groups': {
+      id: '/_app/menu/groups'
+      path: '/groups'
+      fullPath: '/menu/groups'
+      preLoaderRoute: typeof AppMenuGroupsRouteImport
+      parentRoute: typeof AppMenuRouteRoute
+    }
     '/_app/menu/bundles': {
       id: '/_app/menu/bundles'
       path: '/bundles'
       fullPath: '/menu/bundles'
       preLoaderRoute: typeof AppMenuBundlesRouteImport
+      parentRoute: typeof AppMenuRouteRoute
+    }
+    '/_app/menu/bases': {
+      id: '/_app/menu/bases'
+      path: '/bases'
+      fullPath: '/menu/bases'
+      preLoaderRoute: typeof AppMenuBasesRouteImport
       parentRoute: typeof AppMenuRouteRoute
     }
     '/_app/kitchen/stations': {
@@ -1521,6 +1647,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccessRolesRouteImport
       parentRoute: typeof AppAccessRouteRoute
     }
+    '/_app/access/review': {
+      id: '/_app/access/review'
+      path: '/review'
+      fullPath: '/access/review'
+      preLoaderRoute: typeof AppAccessReviewRouteImport
+      parentRoute: typeof AppAccessRouteRoute
+    }
     '/_app/reports/operations/': {
       id: '/_app/reports/operations/'
       path: '/reports/operations'
@@ -1553,12 +1686,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppAccessRouteRouteChildren {
+  AppAccessReviewRoute: typeof AppAccessReviewRoute
   AppAccessRolesRoute: typeof AppAccessRolesRoute
   AppAccessUsersRoute: typeof AppAccessUsersRoute
   AppAccessIndexRoute: typeof AppAccessIndexRoute
 }
 
 const AppAccessRouteRouteChildren: AppAccessRouteRouteChildren = {
+  AppAccessReviewRoute: AppAccessReviewRoute,
   AppAccessRolesRoute: AppAccessRolesRoute,
   AppAccessUsersRoute: AppAccessUsersRoute,
   AppAccessIndexRoute: AppAccessIndexRoute,
@@ -1615,9 +1750,12 @@ const AppInventoryRouteRouteWithChildren =
   AppInventoryRouteRoute._addFileChildren(AppInventoryRouteRouteChildren)
 
 interface AppMenuRouteRouteChildren {
+  AppMenuBasesRoute: typeof AppMenuBasesRoute
   AppMenuBundlesRoute: typeof AppMenuBundlesRoute
+  AppMenuGroupsRoute: typeof AppMenuGroupsRoute
   AppMenuItemsRoute: typeof AppMenuItemsRoute
   AppMenuOverridesRoute: typeof AppMenuOverridesRoute
+  AppMenuPackagingRoute: typeof AppMenuPackagingRoute
   AppMenuPricingRoute: typeof AppMenuPricingRoute
   AppMenuRecipesRoute: typeof AppMenuRecipesRoute
   AppMenuIndexRoute: typeof AppMenuIndexRoute
@@ -1625,9 +1763,12 @@ interface AppMenuRouteRouteChildren {
 }
 
 const AppMenuRouteRouteChildren: AppMenuRouteRouteChildren = {
+  AppMenuBasesRoute: AppMenuBasesRoute,
   AppMenuBundlesRoute: AppMenuBundlesRoute,
+  AppMenuGroupsRoute: AppMenuGroupsRoute,
   AppMenuItemsRoute: AppMenuItemsRoute,
   AppMenuOverridesRoute: AppMenuOverridesRoute,
+  AppMenuPackagingRoute: AppMenuPackagingRoute,
   AppMenuPricingRoute: AppMenuPricingRoute,
   AppMenuRecipesRoute: AppMenuRecipesRoute,
   AppMenuIndexRoute: AppMenuIndexRoute,
@@ -1649,6 +1790,7 @@ interface AppSettingsRouteRouteChildren {
   AppSettingsLoyaltyRoute: typeof AppSettingsLoyaltyRoute
   AppSettingsPaymentMethodsRoute: typeof AppSettingsPaymentMethodsRoute
   AppSettingsQrRoute: typeof AppSettingsQrRoute
+  AppSettingsStaffPoolRoute: typeof AppSettingsStaffPoolRoute
   AppSettingsWhatsappRoute: typeof AppSettingsWhatsappRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
@@ -1664,6 +1806,7 @@ const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
   AppSettingsLoyaltyRoute: AppSettingsLoyaltyRoute,
   AppSettingsPaymentMethodsRoute: AppSettingsPaymentMethodsRoute,
   AppSettingsQrRoute: AppSettingsQrRoute,
+  AppSettingsStaffPoolRoute: AppSettingsStaffPoolRoute,
   AppSettingsWhatsappRoute: AppSettingsWhatsappRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
 }
@@ -1681,6 +1824,7 @@ interface AppRouteRouteChildren {
   AppBasiraRoute: typeof AppBasiraRoute
   AppBookingsRoute: typeof AppBookingsRoute
   AppBranchesRoute: typeof AppBranchesRoute
+  AppCustomersRoute: typeof AppCustomersRoute
   AppDevicesRoute: typeof AppDevicesRoute
   AppDiscountsRoute: typeof AppDiscountsRoute
   AppFloorRoute: typeof AppFloorRoute
@@ -1704,6 +1848,7 @@ interface AppRouteRouteChildren {
   AppReportsLoyaltyRoute: typeof AppReportsLoyaltyRoute
   AppReportsSalesRoute: typeof AppReportsSalesRoute
   AppReportsStaffRoute: typeof AppReportsStaffRoute
+  AppReportsStaffPoolRoute: typeof AppReportsStaffPoolRoute
   AppReportsTillsRoute: typeof AppReportsTillsRoute
   AppStaffAttendanceRoute: typeof AppStaffAttendanceRoute
   AppStaffEmployeesRoute: typeof AppStaffEmployeesRoute
@@ -1725,6 +1870,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppBasiraRoute: AppBasiraRoute,
   AppBookingsRoute: AppBookingsRoute,
   AppBranchesRoute: AppBranchesRoute,
+  AppCustomersRoute: AppCustomersRoute,
   AppDevicesRoute: AppDevicesRoute,
   AppDiscountsRoute: AppDiscountsRoute,
   AppFloorRoute: AppFloorRoute,
@@ -1748,6 +1894,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppReportsLoyaltyRoute: AppReportsLoyaltyRoute,
   AppReportsSalesRoute: AppReportsSalesRoute,
   AppReportsStaffRoute: AppReportsStaffRoute,
+  AppReportsStaffPoolRoute: AppReportsStaffPoolRoute,
   AppReportsTillsRoute: AppReportsTillsRoute,
   AppStaffAttendanceRoute: AppStaffAttendanceRoute,
   AppStaffEmployeesRoute: AppStaffEmployeesRoute,

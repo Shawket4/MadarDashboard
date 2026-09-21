@@ -51,6 +51,14 @@ export const programSchema = z.object({
     .max(1_000_000, { message: "loyalty.errors.earnRate" }),
   earn_on_discounted: z.boolean(),
   earn_include_tax: z.boolean(),
+  /**
+   * Stamps mode only. On, a bill of three coffees is three stamps; off, it is
+   * one. Held as a plain boolean here because the form always knows the
+   * switch's real position — the server answers with a concrete value and the
+   * nullable wire field exists only so a client that never SHOWS the switch
+   * cannot move it. This form shows it, so it always sends one.
+   */
+  stamp_per_line_item: z.boolean(),
   default_reward_cost: z.coerce
     .number<number>({ message: "loyalty.errors.positiveInt" })
     .int({ message: "loyalty.errors.positiveInt" })
@@ -86,6 +94,9 @@ export function fromWire(s: LoyaltySettings): ProgramValues {
     earn_egp_per_point: piastresToEgp(s.earn_piastres_per_point),
     earn_on_discounted: s.earn_on_discounted,
     earn_include_tax: s.earn_include_tax,
+    // Null only from a server that predates the field. Per-order is what such
+    // a programme was actually running.
+    stamp_per_line_item: s.stamp_per_line_item ?? false,
     default_reward_cost: s.default_reward_cost,
     // Optional on the wire — the server defaults it so older clients keep
     // working — so it is optional here too rather than trusted to be present.
@@ -145,6 +156,9 @@ export function toWire(
     earn_piastres_per_point: egpToPiastres(v.earn_egp_per_point),
     earn_on_discounted: v.earn_on_discounted,
     earn_include_tax: v.earn_include_tax,
+    // Always concrete, never omitted: an omission tells the server "leave it",
+    // which would silently discard the owner flipping this switch off.
+    stamp_per_line_item: v.stamp_per_line_item,
     default_reward_cost: v.default_reward_cost,
     reward_any_item: v.reward_any_item,
     balance_cap_enabled: v.balance_cap_enabled,

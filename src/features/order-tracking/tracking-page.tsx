@@ -263,7 +263,14 @@ function destination(o: DeliveryTracking, t: TFunction): string {
 
 function fmtTime(iso: string, lang: string): string {
   try {
-    return new Date(iso).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
+    // 12-hour, like every time the app shows. Western digits so a mixed
+    // Arabic line reads as one clock.
+    return new Date(iso).toLocaleTimeString(lang, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h12",
+      numberingSystem: "latn",
+    });
   } catch {
     return "";
   }

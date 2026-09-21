@@ -15,7 +15,12 @@ export interface OpenTillRequest {
   /** @nullable */
   opened_at?: string | null;
   opening_cash: number;
-  /** @nullable */
+  /**
+     * Ignored. The server decides whether the opening was an edit, from its
+     * own expected carryover — a stale device computes this against a figure
+     * that has since moved on. Kept so older tablets keep parsing.
+     * @nullable
+     */
   opening_cash_edited?: boolean | null;
   verification?: null | TillVerification;
 }

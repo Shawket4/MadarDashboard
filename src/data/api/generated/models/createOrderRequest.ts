@@ -3,6 +3,7 @@
 import type { LoyaltyRedemptionInput } from './loyaltyRedemptionInput';
 import type { OrderItemInput } from './orderItemInput';
 import type { PaymentSplitInput } from './paymentSplitInput';
+import type { ReplayApproval } from './replayApproval';
 
 export interface CreateOrderRequest {
   /** @nullable */
@@ -12,6 +13,13 @@ export interface CreateOrderRequest {
   change_given?: number | null;
   /** @nullable */
   created_at?: string | null;
+  /**
+     * A manual customer (phase 6), attached when the actor holds
+     * `customers.attach`. A merged id resolves; an unknown one is ignored —
+     * a sale is never refused over its customer.
+     * @nullable
+     */
+  customer_id?: string | null;
   /** @nullable */
   customer_name?: string | null;
   /**
@@ -26,8 +34,32 @@ export interface CreateOrderRequest {
   device_id?: string | null;
   /** @nullable */
   discount_amount?: number | null;
+  /**
+     * Who put the discount on the sale (the signed-in till person). Read on
+     * replay only; live, it is the caller. Additive.
+     * @nullable
+     */
+  discount_applied_by?: string | null;
+  /**
+     * The manager approval (`approval.id` on the replay envelope) that let
+     * the discount past the person's cap. Additive.
+     * @nullable
+     */
+  discount_approval_id?: string | null;
   /** @nullable */
   discount_id?: string | null;
+  /**
+     * Which discount act this is: `preset` | `manual_amount` | `manual_percent`.
+     * Absent (older clients): a `discount_id` means preset, an ad-hoc discount
+     * is manual of its type. Additive.
+     * @nullable
+     */
+  discount_kind?: string | null;
+  /**
+     * The percentage asked for, in basis points (1250 = 12.5%). Additive.
+     * @nullable
+     */
+  discount_percent_bps?: number | null;
   /** @nullable */
   discount_type?: string | null;
   /** @nullable */
@@ -35,6 +67,7 @@ export interface CreateOrderRequest {
   /** @nullable */
   idempotency_key?: string | null;
   items: OrderItemInput[];
+  live_approval?: null | ReplayApproval;
   /**
      * The loyalty member spending a balance on this sale. Required when
      * `loyalty_redemptions` is non-empty, and ONLY for that: earning is a
@@ -74,6 +107,24 @@ export interface CreateOrderRequest {
   payment_method: string;
   /** @nullable */
   payment_splits?: PaymentSplitInput[] | null;
+  /**
+     * Where the drink is going: `"takeaway"` (default) or `"dine_in"`. NOT
+     * `order_type`: that is derived from whether a waiter's ticket was settled
+     * and decides the service charge. This says only whether the customer is
+     * drinking in — so a counter shop with no floor can say it — and its only
+     * effect is that packaging (cups, lids, straws) is not deducted from
+     * stock. Absent ⇒ takeaway, which is what every client before this did.
+     * @nullable
+     */
+  service_mode?: string | null;
+  /**
+     * The person who started this sale's cart, when the till says it was not
+     * the person ringing it (a held order resumed after a teller switch).
+     * Recorded when it names someone of the same org; anything else is
+     * dropped with a warning, never refused. Additive; older tills omit it.
+     * @nullable
+     */
+  started_by?: string | null;
   /** @nullable */
   subtotal?: number | null;
   /** @nullable */

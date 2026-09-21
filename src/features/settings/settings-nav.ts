@@ -12,6 +12,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ChefHat,
+  CupSoda,
   Image as ImageIcon,
   CreditCard,
   Languages,
@@ -24,7 +25,8 @@ import {
   Truck,
   Utensils,
 } from "lucide-react";
-import type { UserRole } from "@/data/api/generated/models";
+import type { Authz } from "@/data/authz/use-authz";
+import { Cap, type Capability } from "@/generated/capabilities";
 
 export interface SettingsLeaf {
   to: string;
@@ -33,7 +35,8 @@ export interface SettingsLeaf {
   descKey: string;
   desc: string;
   icon: LucideIcon;
-  roles?: UserRole[];
+  /** Visible when ANY is held. Omitted = everyone. Never a role. */
+  caps?: Capability[];
   superAdminOnly?: boolean;
 }
 
@@ -74,6 +77,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
     items: [
       {
         to: "/settings/delivery",
+        caps: [Cap.deliverySettingsRead],
         labelKey: "nav.delivery",
         fallback: "Delivery",
         descKey: "settings.deliveryDesc",
@@ -82,6 +86,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       },
       {
         to: "/settings/bookings",
+        caps: [Cap.bookingsEdit],
         labelKey: "nav.bookings",
         fallback: "Bookings",
         descKey: "settings.bookingsDesc",
@@ -90,6 +95,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       },
       {
         to: "/settings/loyalty",
+        caps: [Cap.loyaltyUse, Cap.loyaltyMembersList],
         labelKey: "nav.loyalty",
         fallback: "Loyalty",
         descKey: "settings.loyaltyDesc",
@@ -117,7 +123,18 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         descKey: "settings.paymentMethodsDesc",
         desc: "What a till may accept, and which of them is cash.",
         icon: CreditCard,
-        roles: ["org_admin", "super_admin"],
+        caps: [Cap.paymentMethodsEdit],
+      },
+      {
+        // Money given away rather than taken, which is why it sits here: a
+        // staff drink is stock off the shelf with no sale against it.
+        to: "/settings/staff-pool",
+        labelKey: "nav.staffPool",
+        fallback: "Staff drinks",
+        descKey: "settings.staffPoolDesc",
+        desc: "How many drinks a branch may give its own people in a day, and which items count.",
+        icon: CupSoda,
+        caps: [Cap.orgSettingsRead, Cap.orgSettingsEdit],
       },
     ],
   },
@@ -127,6 +144,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
     items: [
       {
         to: "/settings/kitchen-stations",
+        caps: [Cap.kitchenStationsEdit],
         labelKey: "nav.kitchenStations",
         fallback: "Stations",
         descKey: "settings.stationsDesc",
@@ -135,6 +153,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       },
       {
         to: "/settings/kitchen-routing",
+        caps: [Cap.kitchenStationsEdit],
         labelKey: "nav.kitchenRouting",
         fallback: "Order routing",
         descKey: "settings.routingDesc",
@@ -154,7 +173,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         descKey: "settings.integrationsDesc",
         desc: "Services Madar talks to on your behalf.",
         icon: Plug,
-        roles: ["org_admin", "super_admin"],
+        caps: [Cap.integrationsRead],
       },
       {
         to: "/settings/whatsapp",
@@ -169,15 +188,13 @@ export const SETTINGS_NAV: SettingsGroup[] = [
   },
 ];
 
-/** The entries a role may see. */
-export const visibleSettings = (
-  role: UserRole | undefined,
-): SettingsGroup[] =>
+/** The entries this person may see. */
+export const visibleSettings = (authz: Authz): SettingsGroup[] =>
   SETTINGS_NAV.map((g) => ({
     ...g,
     items: g.items.filter((i) => {
-      if (i.superAdminOnly) return role === "super_admin";
-      if (i.roles) return role !== undefined && i.roles.includes(role);
+      if (i.superAdminOnly) return authz.platform;
+      if (i.caps) return authz.canAny(...i.caps);
       return true;
     }),
   })).filter((g) => g.items.length > 0);

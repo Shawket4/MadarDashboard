@@ -12,6 +12,14 @@ export interface PatchOptionRequest {
   name_translations?: PatchOptionRequestNameTranslations;
   /** @nullable */
   price?: number | null;
-  /** @nullable */
+  /**
+     * Absent = keep; `null` = clear the swap link; an ingredient id = set.
+     * @nullable
+     */
   replaces_ingredient_id?: string | null;
+  /**
+     * Display order inside the group.
+     * @nullable
+     */
+  sort?: number | null;
 }

@@ -8,6 +8,8 @@ import type { SyncOption } from './syncOption';
  * attachment overrides (falling back to the group defaults).
  */
 export interface SyncModifierGroup {
+  /** What choosing does: `none` | `adds` | `swaps`. */
+  effect?: string;
   group_id: string;
   is_required: boolean;
   /** @nullable */
@@ -23,4 +25,11 @@ export interface SyncModifierGroup {
   name_translations: SyncModifierGroupNameTranslations;
   options: SyncOption[];
   selection_type: string;
+  /**
+     * For `swaps`: the ingredient category whose recipe line each option replaces.
+     * @nullable
+     */
+  swap_category_id?: string | null;
+  /** @nullable */
+  swap_category_slug?: string | null;
 }

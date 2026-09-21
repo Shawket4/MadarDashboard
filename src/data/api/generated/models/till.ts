@@ -35,6 +35,15 @@ export interface Till {
   force_closed_at?: string | null;
   /** @nullable */
   force_closed_by?: string | null;
+  /**
+     * Held (parked) orders the closing teller was warned about and left open
+     * for the next till, and their total in minor units. `null` when the
+     * close did not say (older clients, forced closes). Additive.
+     * @nullable
+     */
+  held_orders_left_open?: number | null;
+  /** @nullable */
+  held_orders_left_open_total?: number | null;
   id: string;
   /** @nullable */
   notes?: string | null;

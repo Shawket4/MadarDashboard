@@ -21,7 +21,10 @@ export interface TaxReport {
   service_charge_amount: number;
   /** Sum of `orders.subtotal` across every branch, before discount or tax. */
   subtotal: number;
-  /** Tax collected at sale time, before refunds. */
+  /**
+     * Tax on every non-voided sale in the range, before refunds (a sale later
+     * refunded in full included).
+     */
   tax_collected: number;
   /** @nullable */
   to?: string | null;

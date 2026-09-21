@@ -11,6 +11,11 @@
  *
  * The rules a save must pass live in `catalogue-schema`, mirrored from the
  * server; this file only renders them.
+ *
+ * A stamp card also has a second list under this one — the items that COLLECT
+ * a stamp. They belong on the same page because the two questions arrive
+ * together ("what fills the card, what empties it"), and in separate lists
+ * because they are not the same question.
  */
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -34,12 +39,13 @@ import {
   usePutLoyaltyRewardItems,
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
-import { useAuthStore } from "@/data/stores/auth.store";
+import { useAuthz } from "@/data/authz/use-authz";
 import { fmtMoney } from "@/lib/format";
 
 import { loyaltyAccess } from "../../shared/access";
 import { loyaltyServerError } from "../../shared/server-errors";
 import { currencyLabel, modeOf } from "../../shared/util";
+import { EarningItemsCard } from "./earning-items-card";
 import type { ProgramScope } from "../use-program";
 import {
   catalogueChanged,
@@ -63,7 +69,8 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
   const settings = useGetLoyaltySettings(params);
   const menu = useListMenuItems({ org_id: orgId }, { query: { enabled: !!orgId } });
   const save = usePutLoyaltyRewardItems();
-  const { canEditProgram } = loyaltyAccess(useAuthStore((s) => s.user?.role));
+  const authz = useAuthz();
+  const { canEditProgram } = loyaltyAccess(authz);
 
   const mode = modeOf(settings.data);
   const anyItem = settings.data?.reward_any_item === true;
@@ -274,6 +281,13 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
           ) : null}
         </CardContent>
       </Card>
+
+      {mode === "visits" ? (
+        <EarningItemsCard
+          scope={scope}
+          perLineItem={settings.data?.stamp_per_line_item === true}
+        />
+      ) : null}
 
       {canEditProgram ? (
         <div className="flex flex-wrap items-center gap-2">

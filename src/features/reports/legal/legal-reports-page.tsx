@@ -5,6 +5,9 @@ import { CalendarRange } from "lucide-react";
 import { Page, PageHeader } from "@/components/app/page";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs } from "@/components/ui/tabs";
+import { Restricted } from "@/components/app/restricted";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap, type Capability } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import {
   useAttendanceCorrectionsAudit, useDeductionOverridesAudit, useDiscountsAudit,
@@ -33,6 +36,14 @@ const TABS: TabKey[] = [
   "manual_deductions", "deduction_overrides", "loyalty_adjustments", "attendance_corrections",
 ];
 
+/** Every tab is reports.legal; these also show pay or attendance, which the
+ *  server checks separately (payroll is owner-only by default). */
+const EXTRA_CAP: Partial<Record<TabKey, Capability>> = {
+  manual_deductions: Cap.hrPayrollRead,
+  deduction_overrides: Cap.hrPayrollRead,
+  attendance_corrections: Cap.hrAttendanceRead,
+};
+
 /** Legal / compliance reports: the VAT summary plus an audit trail of every
  * kind of money or record a human corrected after the fact — refunds,
  * voids, discounts, service-charge waivers, price overrides, manual payroll
@@ -47,9 +58,14 @@ export function LegalReportsPage() {
   const range = { from: from ?? undefined, to: to ?? undefined };
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
-  const [tab, setTab] = useState<TabKey>("tax");
-  const enabled = !!orgId;
-  const on = (k: TabKey) => enabled && tab === k;
+  const [picked, setTab] = useState<TabKey>("tax");
+  // reports.legal (tax and every audit); a manager sees only their branches.
+  const authz = useAuthz();
+  const canSee = authz.can(Cap.reportsLegal);
+  const visible = TABS.filter((k) => !EXTRA_CAP[k] || authz.can(EXTRA_CAP[k]));
+  const tab = visible.includes(picked) ? picked : "tax";
+  const enabled = !!orgId && canSee;
+  const on = (k: TabKey) => enabled && tab === k && visible.includes(k);
 
   const refunds = useRefundsAudit(orgId ?? "", range, { query: { enabled: on("refunds") } });
   const voids = useVoidsAudit(orgId ?? "", range, { query: { enabled: on("voids") } });
@@ -74,6 +90,10 @@ export function LegalReportsPage() {
     attendance_corrections: t("reports.legal.tabs.attendanceCorrections", "Attendance corrections"),
   };
 
+  if (authz.ready && !canSee) {
+    return <Restricted title={t("reports.legal.title", "Legal")} who={t("reports.noAccess", "Your account can't open this report. The owner can give you access.")} />;
+  }
+
   const byReason = t("reports.legal.byReason", "By reason");
   const byDiscount = t("reports.legal.byDiscount", "By discount");
   const byBranch = t("reports.legal.byBranch", "By branch");
@@ -92,7 +112,7 @@ export function LegalReportsPage() {
         below={
           <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
             <PageTabsList>
-              {TABS.map((k) => (
+              {visible.map((k) => (
                 <PageTabsTrigger key={k} value={k} className="first:ps-0">{TAB_LABEL[k]}</PageTabsTrigger>
               ))}
             </PageTabsList>
@@ -108,8 +128,8 @@ export function LegalReportsPage() {
         : tab === "price_overrides" ? <AuditTab query={overrides} reasonLabel={byBranch} exportTitle={TAB_LABEL.price_overrides} />
         : tab === "manual_deductions" ? <AuditTab query={manualDeductions} reasonLabel={byReason} exportTitle={TAB_LABEL.manual_deductions} />
         : tab === "deduction_overrides" ? <AuditTab query={deductionOverrides} reasonLabel={byType} exportTitle={TAB_LABEL.deduction_overrides} />
-        : tab === "loyalty_adjustments" ? <AuditTab query={loyaltyAdjustments} reasonLabel={byBranch} exportTitle={TAB_LABEL.loyalty_adjustments} />
-        : <AuditTab query={attendanceCorrections} reasonLabel={byReason} exportTitle={TAB_LABEL.attendance_corrections} />}
+        : tab === "loyalty_adjustments" ? <AuditTab query={loyaltyAdjustments} reasonLabel={byBranch} exportTitle={TAB_LABEL.loyalty_adjustments} amount="points" />
+        : <AuditTab query={attendanceCorrections} reasonLabel={byReason} exportTitle={TAB_LABEL.attendance_corrections} amount="none" />}
     </Page>
   );
 }

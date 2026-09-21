@@ -40,10 +40,12 @@ import { DURATION, easeOutExpo } from "@/lib/motion";
 import { resolveBrand, type ResolvedBrand } from "../shared/brand";
 import { BirthdayPicker, isComplete, type Birthday } from "./birthday-picker";
 import { CardFace } from "./card-face";
+import { PressedCard, PressRest, PressStage } from "./card-press";
 import { HowItWorks } from "./how-it-works";
 import { LoyaltyPage, PageNotice, PageSkeleton, Panel, Section, usePageAccent } from "./page-shell";
 import { RewardsList } from "./rewards-list";
 import { SocialLinks } from "./social-links";
+import { usePassDownload } from "./use-pass-download";
 import { WalletButtons } from "./wallet-buttons";
 
 export function JoinPage({
@@ -313,6 +315,9 @@ function Joined({
   const memberToken = joined.member_token ?? "";
   const passes = joined.passes ?? null;
   const cardHref = `/card/${encodeURIComponent(memberToken)}`;
+  // The last step: the pass is made on demand, and the card just handed over
+  // is what shows it being made — see `card-press.tsx`.
+  const pass = usePassDownload(passes?.apple_url);
 
   return (
     <LoyaltyPage
@@ -332,44 +337,50 @@ function Joined({
       {/* The card arrives, rather than appears: the one moment on this page
           that earns a little motion, and none for a reader who asked for
           none. */}
-      <motion.div
-        initial={reduced ? false : { opacity: 0, y: 16 }}
-        animate={reduced ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: DURATION.brand, ease: easeOutExpo }}
-      >
-        <CardFace
-          brand={brand}
-          mode={joined.mode}
-          balance={joined.balance}
-          target={target}
-          toGo={Math.max(target - joined.balance, 0)}
-          canRedeem={target > 0 && joined.balance >= target}
-          rewardsReady={target > 0 ? Math.floor(joined.balance / target) : 0}
-          progress={target > 0 ? joined.balance % target : joined.balance}
-          memberName={joined.name}
-          qrUrl={`/api/public/loyalty/card/${encodeURIComponent(memberToken)}/qr.png`}
-        />
-      </motion.div>
-
-      {passes?.any ? (
-        <Section
-          title={t("loyalty.keepItHandy", "Keep it handy")}
-          hint={t("loyalty.walletHint", "It updates itself every time you earn, and it's there when you're back.")}
+      <PressStage phase={pass.phase}>
+        <motion.div
+          initial={reduced ? false : { opacity: 0, y: 16 }}
+          animate={reduced ? undefined : { opacity: 1, y: 0 }}
+          transition={{ duration: DURATION.brand, ease: easeOutExpo }}
         >
-          <Panel>
-            <WalletButtons passes={passes} />
-          </Panel>
-        </Section>
-      ) : null}
+          <PressedCard brand={brand}>
+            <CardFace
+              brand={brand}
+              mode={joined.mode}
+              balance={joined.balance}
+              target={target}
+              toGo={Math.max(target - joined.balance, 0)}
+              canRedeem={target > 0 && joined.balance >= target}
+              rewardsReady={target > 0 ? Math.floor(joined.balance / target) : 0}
+              progress={target > 0 ? joined.balance % target : joined.balance}
+              memberName={joined.name}
+              qrUrl={`/api/public/loyalty/card/${encodeURIComponent(memberToken)}/qr.png`}
+            />
+          </PressedCard>
+        </motion.div>
 
-      <Button asChild variant="outline" size="lg" className="h-12 w-full rounded-xl text-base">
-        <a href={cardHref}>
-          {t("loyalty.viewCard", "View my card")}
-          <ArrowRight className="rtl:rotate-180" aria-hidden />
-        </a>
-      </Button>
+        {passes?.any ? (
+          <Section
+            title={t("loyalty.keepItHandy", "Keep it handy")}
+            hint={t("loyalty.walletHint", "It updates itself every time you earn, and it's there when you're back.")}
+          >
+            <Panel>
+              <WalletButtons passes={passes} pass={pass} />
+            </Panel>
+          </Section>
+        ) : null}
 
-      <SocialLinks links={joined.brand.social_links ?? data.brand.social_links} accent={accent} />
+        <PressRest>
+          <Button asChild variant="outline" size="lg" className="h-12 w-full rounded-xl text-base">
+            <a href={cardHref}>
+              {t("loyalty.viewCard", "View my card")}
+              <ArrowRight className="rtl:rotate-180" aria-hidden />
+            </a>
+          </Button>
+
+          <SocialLinks links={joined.brand.social_links ?? data.brand.social_links} accent={accent} />
+        </PressRest>
+      </PressStage>
     </LoyaltyPage>
   );
 }

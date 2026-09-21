@@ -8,6 +8,9 @@ import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { ExportButton } from "@/components/app/export-button";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { Tabs } from "@/components/ui/tabs";
+import { Restricted } from "@/components/app/restricted";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap, type Capability } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useOrgId } from "@/hooks/use-org-id";
 import { getErrorMessage } from "@/data/api/errors";
@@ -37,6 +40,17 @@ type TabKey = "profitability" | "revenue" | "channel" | "valuation" | "supplierS
 
 const TABS: TabKey[] = ["profitability", "revenue", "channel", "valuation", "supplierSpend", "materialCostTrend"];
 
+/** What each tab reads: sales (orders.read), stock value (inventory.read), or
+ *  what the business pays its suppliers (purchasing.orders.read). */
+const TAB_CAP: Record<TabKey, Capability> = {
+  profitability: Cap.ordersRead,
+  revenue: Cap.ordersRead,
+  channel: Cap.ordersRead,
+  valuation: Cap.inventoryRead,
+  supplierSpend: Cap.purchasingOrdersRead,
+  materialCostTrend: Cap.purchasingOrdersRead,
+};
+
 const INVENTORY_TABS = new Set<TabKey>(["valuation", "supplierSpend", "materialCostTrend"]);
 
 type InventoryScope = "branch" | "org";
@@ -55,14 +69,17 @@ export function FinancialReportsPage() {
   const range: Range = { from: from ?? undefined, to: to ?? undefined };
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
-  const [tab, setTab] = useState<TabKey>("profitability");
+  const authz = useAuthz();
+  const visible = TABS.filter((k) => authz.can(TAB_CAP[k]));
+  const [picked, setTab] = useState<TabKey>("profitability");
+  const tab: TabKey = visible.includes(picked) ? picked : (visible[0] ?? "profitability");
   const [gran, setGran] = useState<Granularity>("daily");
   const [invScope, setInvScope] = useState<InventoryScope>(branchId ? "branch" : "org");
   const isInvBranch = invScope === "branch";
   const logoUrl = useExportLogo();
   const [invExporting, setInvExporting] = useState(false);
 
-  const onInv = (key: TabKey) => tab === key;
+  const onInv = (key: TabKey) => tab === key && visible.includes(key);
   const branchVal = useBranchInventoryValuation(branchId ?? "", { query: { enabled: isInvBranch && onInv("valuation") && !!branchId } });
   const orgVal = useOrgInventoryValuation(orgId ?? "", { query: { enabled: !isInvBranch && onInv("valuation") && !!orgId } });
   const valuation = isInvBranch ? branchVal : orgVal;
@@ -145,6 +162,10 @@ export function FinancialReportsPage() {
     <ExportButton onExport={handleInvExport} onExportCsv={handleInvExportCsv} loading={invExporting} />
   ) : undefined;
 
+  if (authz.ready && visible.length === 0) {
+    return <Restricted title={t("reports.financial.title", "Financial")} who={t("reports.noAccess", "Your account can't open this report. The owner can give you access.")} />;
+  }
+
   return (
     <Page>
       <PageHeader
@@ -160,7 +181,7 @@ export function FinancialReportsPage() {
           <>
             <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
               <PageTabsList>
-                {TABS.map((k) => (
+                {visible.map((k) => (
                   <PageTabsTrigger key={k} value={k} className="first:ps-0">{TAB_LABEL[k]}</PageTabsTrigger>
                 ))}
               </PageTabsList>

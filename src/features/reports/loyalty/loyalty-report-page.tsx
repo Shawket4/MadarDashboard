@@ -8,6 +8,9 @@ import { CalendarRange, Gift, Percent, RotateCcw, UserPlus, Users } from "lucide
 import { Page, PageHeader } from "@/components/app/page";
 import { ErrorState, EmptyState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
+import { Restricted } from "@/components/app/restricted";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,7 +21,7 @@ import { useScope } from "@/data/scope/use-scope";
 import {
   useGetLoyaltyBehavior, useGetLoyaltyCampaignEffectiveness, useGetLoyaltyLiabilityTrend,
 } from "@/data/api/generated/api";
-import { fmtNumber, fmtPercent } from "@/lib/format";
+import { fmtDate, fmtNumber, fmtPercent } from "@/lib/format";
 import { currencyLabel } from "@/features/loyalty/shared/util";
 
 const AXIS = CHART_AXIS_TICK;
@@ -42,7 +45,10 @@ export function LoyaltyReportPage() {
   const range = { branch_id: branchId ?? undefined, from: from ?? undefined, to: to ?? undefined };
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
-  const q = useGetLoyaltyBehavior(range);
+  // loyalty.members.list; the server counts only the branches the person works at.
+  const authz = useAuthz();
+  const canSee = authz.can(Cap.loyaltyMembersList);
+  const q = useGetLoyaltyBehavior(range, { query: { enabled: canSee } });
   const d = q.data;
 
   const kpis: LedgerItem[] = [
@@ -110,6 +116,10 @@ export function LoyaltyReportPage() {
   ];
 
   const [tab, setTab] = useState("overview");
+
+  if (authz.ready && !canSee) {
+    return <Restricted title={t("reports.loyalty.title", "Loyalty")} who={t("reports.noAccess", "Your account can't open this report. The owner can give you access.")} />;
+  }
 
   return (
     <Page>
@@ -205,7 +215,7 @@ function LiabilityTab({ branchId, from, to }: { branchId: string | null; from: s
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chart} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="week" tick={AXIS} tickLine={false} axisLine={false} />
+                <XAxis dataKey="week" tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(w: string) => fmtDate(w)} />
                 <YAxis tick={AXIS} tickLine={false} axisLine={false} width={48} />
                 <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => `${fmtNumber(Number(v))} ${currencyLabel(currency, Number(v))}`} />} />
                 <Bar dataKey="outstanding" fill={chartColor(0)} radius={[4, 4, 0, 0]} maxBarSize={40} />

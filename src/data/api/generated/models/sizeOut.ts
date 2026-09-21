@@ -7,6 +7,11 @@ import type { RecipeLineOut } from './recipeLineOut';
  */
 export interface SizeOut {
   /**
+     * Recipe base this size expands (`PUT /menu-item-sizes/{id}/base`), or `null`.
+     * @nullable
+     */
+  base_id?: string | null;
+  /**
      * `true` when at least one recipe line is unlinked/uncosted (so `cost_piastres`, if
      * present, is a partial figure rather than the full COGS).
      */

@@ -51,8 +51,36 @@ export interface Order {
      */
   device_id?: string | null;
   discount_amount: number;
+  /**
+     * Who applied the discount. Additive.
+     * @nullable
+     */
+  discount_applied_by?: string | null;
+  /** @nullable */
+  discount_applied_by_name?: string | null;
+  /**
+     * The manager approval that let the discount past the person's cap. Additive.
+     * @nullable
+     */
+  discount_approval_id?: string | null;
+  /**
+     * The approving manager's name, when the approval was recorded. Additive.
+     * @nullable
+     */
+  discount_approved_by_name?: string | null;
   /** @nullable */
   discount_id?: string | null;
+  /**
+     * `preset` | `manual_amount` | `manual_percent`; `null` without a
+     * discount or on sales from before discounts were attributed. Additive.
+     * @nullable
+     */
+  discount_kind?: string | null;
+  /**
+     * The percentage asked for, in basis points. Additive.
+     * @nullable
+     */
+  discount_percent_bps?: number | null;
   /**
      * The stored value — a fraction for a percentage. Same column as
      * [`Order::discount_value`].
@@ -182,6 +210,15 @@ export interface Order {
   service_charge_waived_by_name?: string | null;
   /** DEPRECATED: same value as `till_id` (required by POS v0.5.1/v0.6.0). */
   shift_id: string;
+  /**
+     * Who started this sale's cart when it is not the person who rang it: a
+     * held order resumed after a teller switch on the till. `null` otherwise.
+     * Additive.
+     * @nullable
+     */
+  started_by?: string | null;
+  /** @nullable */
+  started_by_name?: string | null;
   status: string;
   subtotal: number;
   tax_amount: number;

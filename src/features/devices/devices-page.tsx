@@ -24,6 +24,7 @@ import { usePageSearch } from "@/data/scope/use-page-search";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtStamp } from "@/lib/format";
 
+import { ActivationCodesSection } from "./activation-codes";
 import { DEVICE_CODE_RE, useClientVersions, useDevices, usePatchDevice, type ClientSeen, type Device } from "./api";
 
 type View = "devices" | "clients";
@@ -77,7 +78,10 @@ export function DevicesPage() {
       ) : !branchId ? (
         <EmptyState icon={Tablet} title={t("tills.pickBranch", "Select a branch")} description={t("devices.pickBranchHint", "Devices are registered per branch.")} />
       ) : (
-        <DevicesSection branchId={branchId} onEdit={setEditing} />
+        <div className="space-y-8">
+          <DevicesSection branchId={branchId} onEdit={setEditing} />
+          <ActivationCodesSection branchId={branchId} />
+        </div>
       )}
       <DeviceDialog device={editing} onClose={() => setEditing(null)} />
     </Page>

@@ -1,7 +1,12 @@
 import { defineConfig } from 'orval';
 
+// The backend checkout to read the spec from. Defaults to the sibling
+// MadarRust clone; point MADAR_BACKEND_DIR at a worktree (e.g. wt-perm-api)
+// to generate against a feature branch's spec.
+const backendDir = process.env.MADAR_BACKEND_DIR ?? '../MadarRust';
+
 const input = {
-  target: '../MadarRust/openapi.json',
+  target: `${backendDir}/openapi.json`,
 } as const;
 
 export default defineConfig({

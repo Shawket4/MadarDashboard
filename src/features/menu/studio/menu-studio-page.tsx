@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { ArrowRight, Boxes, Copy } from "lucide-react";
+import { useQueries } from "@tanstack/react-query";
+import { ArrowRight, Boxes, Copy, UserRound } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { assetOf } from "@/components/app/asset-image";
@@ -17,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useConfirm } from "@/components/app/confirm-dialog";
 import {
   duplicateItem,
+  getGetMenuItemQueryOptions,
   putItemOptions,
   putModifierGroups,
   putRecipeSteps,
@@ -26,9 +28,16 @@ import {
   uploadMenuItemImage,
   useGetStudio,
   useListCatalog,
+  getGetRecipeLinkQueryKey,
+  useGetRecipeLink,
+  useListBases,
 } from "@/data/api/generated/api";
 import type { ItemOptionInput, StudioAggregate } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { queryClient } from "@/data/api/query";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+
 import { egpToPiastres } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -56,10 +65,15 @@ import {
   type StepDraft,
 } from "./util";
 import { SectionItem } from "./section-item";
-import { SectionSizes } from "./section-sizes";
+import { RecipeGrid } from "../recipe/recipe-grid";
+import { BasePicker } from "../recipe/base-picker";
+import { RecipeLinkBar } from "../recipe/recipe-link-bar";
+import { LinkedCopyDialog } from "../recipe/linked-copy-dialog";
+import { ownPayload, type SwapGroupInfo } from "../recipe/grid-model";
 import { SectionSteps } from "./section-steps";
 import { SectionModifiers } from "./section-modifiers";
 import { SectionOptions } from "./section-options";
+import { PreviewPanel } from "./preview/preview-panel";
 
 // NOTE: the route file is `items_.$itemId.tsx` (trailing underscore = un-nested
 // from the items LIST route), so the route id carries the underscore too.
@@ -100,6 +114,8 @@ const EMPTY_ITEM: ItemDraftValues = {
  */
 export function MenuStudioPage() {
   const { t, i18n } = useTranslation();
+  // Steps (and their per-drink notes) are part of the recipe: recipes.edit.
+  const canEditSteps = useAuthz().can(Cap.recipesEdit);
   const { itemId } = routeApi.useParams();
   const { tab } = routeApi.useSearch();
   const navigate = useNavigate();
@@ -133,6 +149,34 @@ export function MenuStudioPage() {
   const [steps, setSteps] = useState<StepDraft[]>([]);
   const [pristine, setPristine] = useState<PristineSigs>(EMPTY_PRISTINE);
   const [saving, setSaving] = useState(false);
+  const [staffCopyOpen, setStaffCopyOpen] = useState(false);
+  const authz = useAuthz();
+  const canCreateItems = authz.can(Cap.menuItemsCreate);
+  const canPreview = authz.can(Cap.menuItemsRead);
+
+  // ── Modeling (bases · linked copies · swappable families) ───────────────────
+    const sourceItemId = studio?.recipe_source_item_id ?? null;
+  const linkedCopyIds = useMemo(() => studio?.linked_copy_ids ?? [], [studio]);
+  const basesQ = useListBases({ query: { enabled: !!studio } });
+  const bases = useMemo(() => basesQ.data ?? [], [basesQ.data]);
+  const baseNames = useMemo(() => new Map(bases.map((b) => [b.id, b.name])), [bases]);
+  const linkQ = useGetRecipeLink(itemId, { query: { enabled: !!itemId && (!!sourceItemId || linkedCopyIds.length > 0) } });
+  const copyItemQs = useQueries({
+    queries: linkedCopyIds.map((id) => getGetMenuItemQueryOptions(id)),
+  });
+  const copyNames = new Map(linkedCopyIds.map((id, i) => [id, copyItemQs[i]?.data?.name]));
+  const swapGroups = useMemo<SwapGroupInfo[]>(
+    () =>
+      (studio?.modifier_groups ?? []).map((g) => ({
+        name: g.name,
+        ingredientIds: g.options.flatMap((o) => [
+          ...o.recipe.map((r) => r.ingredient_id),
+          ...(o.replaces_ingredient_id ? [o.replaces_ingredient_id] : []),
+        ]),
+      })),
+    [studio],
+  );
+  const followsName = sourceItemId ? (linkQ.data?.recipe_source_item_name ?? "…") : null;
 
   // Local object-URL preview for a staged (not yet uploaded) image file.
   const previewUrl = useMemo(() => (pendingImage ? URL.createObjectURL(pendingImage) : null), [pendingImage]);
@@ -395,9 +439,10 @@ export function MenuStudioPage() {
           if (b.id && !recipeDirtyKeys.has(b.key)) continue;
           const sizeId = idByLabel.get(b.label.trim());
           if (!sizeId) continue;
-          const lines = b.lines
-            .filter((l) => l.ingredient_id && Number.isFinite(parseFloat(l.quantity)))
-            .map((l) => ({ ingredient_id: l.ingredient_id, quantity: parseFloat(l.quantity), unit: l.unit }));
+          // A linked copy's recipe is owned by its source (the server 409s).
+          if (sourceItemId) continue;
+          // Only own lines: base / rule / linked lines are expanded server-side.
+          const lines = ownPayload(b.lines);
           try {
             await putSizeRecipe(sizeId, { lines });
           } catch (e) {
@@ -410,13 +455,24 @@ export function MenuStudioPage() {
 
       // 5 · Steps — replace-set in current order. A preset step sends only its
       // slug; the library owns its name, so nothing here can drift from it.
-      if (stepsDirty) {
+      if (stepsDirty && canEditSteps) {
         try {
           await putRecipeSteps(itemId, {
             steps: steps.map((s) =>
               s.kind === "preset"
-                ? { kind: "preset", preset_slug: s.preset_slug }
-                : { kind: "custom", title: s.title.trim() || null, title_ar: s.title_ar.trim() || null },
+                ? {
+                    kind: "preset",
+                    preset_slug: s.preset_slug,
+                    note: s.note.trim() || null,
+                    note_ar: s.note_ar.trim() || null,
+                  }
+                : {
+                    kind: "custom",
+                    title: s.title.trim() || null,
+                    title_ar: s.title_ar.trim() || null,
+                    note: s.note.trim() || null,
+                    note_ar: s.note_ar.trim() || null,
+                  },
             ),
           });
         } catch (e) {
@@ -554,6 +610,11 @@ export function MenuStudioPage() {
                 <ArrowRight className="size-3.5 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </Button>
+            {!sourceItemId && canCreateItems ? (
+              <Button type="button" variant="outline" size="sm" onClick={() => setStaffCopyOpen(true)}>
+                <UserRound className="size-4" /> {t("modeling.linked.action", "Create staff copy…")}
+              </Button>
+            ) : null}
             <Button type="button" variant="outline" size="sm" onClick={() => void onDuplicate()}>
               <Copy className="size-4" /> {t("menu.grid.duplicate", "Duplicate")}
             </Button>
@@ -598,7 +659,7 @@ export function MenuStudioPage() {
           )}
           dirty={sizesSectionDirty}
         >
-          <SectionSizes
+          <RecipeGrid
             blocks={blocks}
             setBlocks={setBlocks}
             recipeDirtyKeys={recipeDirtyKeys}
@@ -606,6 +667,34 @@ export function MenuStudioPage() {
             ingredientOptions={ingredientOptions}
             orgId={orgId}
             onCostFixed={onCostFixed}
+            swapGroups={swapGroups}
+            baseNames={baseNames}
+            followsName={followsName}
+            toolbar={
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                {!sourceItemId ? (
+                  <BasePicker
+                    sizes={blocks.filter((b) => !!b.id).map((b) => ({ id: b.id!, baseId: b.baseId ?? null }))}
+                    bases={bases}
+                    disabled={sizesSectionDirty}
+                    onChanged={() => invalidateStudio(itemId)}
+                  />
+                ) : (
+                  <span />
+                )}
+                <RecipeLinkBar
+                  itemId={itemId}
+                  sourceItemId={sourceItemId}
+                  linkedCopyIds={linkedCopyIds}
+                  link={linkQ.data}
+                  nameOf={(id) => copyNames.get(id)}
+                  onChanged={() => {
+                    invalidateStudio(itemId);
+                    void queryClient.invalidateQueries({ queryKey: getGetRecipeLinkQueryKey(itemId) });
+                  }}
+                />
+              </div>
+            }
           />
         </SectionShell>
 
@@ -618,7 +707,7 @@ export function MenuStudioPage() {
           )}
           dirty={stepsDirty}
         >
-          <SectionSteps steps={steps} setSteps={setSteps} />
+          <SectionSteps steps={steps} setSteps={setSteps} readOnly={!canEditSteps} />
         </SectionShell>
 
         <SectionShell
@@ -649,7 +738,33 @@ export function MenuStudioPage() {
             ingredientOptions={ingredientOptions}
           />
         </SectionShell>
+
+        {canPreview ? (
+          <SectionShell
+            id="studio-section-preview"
+            title={t("modeling.preview.title", "Preview: what the POS shows and deducts")}
+            description={t(
+              "modeling.preview.desc",
+              "A dry run of the saved item on the server: pick a size and choices to see the price, the deductions and any issues. Save to refresh it with your edits.",
+            )}
+            dirty={false}
+          >
+            <PreviewPanel studio={studio} />
+          </SectionShell>
+        ) : null}
       </div>
+
+      <LinkedCopyDialog
+        open={staffCopyOpen}
+        onOpenChange={setStaffCopyOpen}
+        orgId={orgId}
+        item={{ id: studio.id, name: studio.name, category_id: studio.category_id }}
+        onCreated={(newId) => {
+          invalidateStudio(itemId);
+          void invalidateCatalog();
+          void navigate({ to: "/menu/items/$itemId", params: { itemId: newId }, search: {} });
+        }}
+      />
 
       {/* ── Sticky save bar — only while there are unsaved changes ── */}
       {dirtyCount > 0 ? (

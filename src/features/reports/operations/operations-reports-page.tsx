@@ -5,6 +5,9 @@ import { CalendarRange } from "lucide-react";
 import { EmbeddedPages, Page, PageHeader } from "@/components/app/page";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs } from "@/components/ui/tabs";
+import { Restricted } from "@/components/app/restricted";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useOrgId } from "@/hooks/use-org-id";
 import { TablesInsightsPage } from "@/features/insights/tables-page";
@@ -44,6 +47,8 @@ export function OperationsReportsPage() {
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
   const [tab, setTab] = useState<TabKey>("tables");
+  // Every tab reads orders (orders.read); the server narrows to the person's branches.
+  const authz = useAuthz();
 
   const TAB_LABEL: Record<TabKey, string> = {
     tables: t("reports.operations.tabs.tables", "Tables"),
@@ -57,6 +62,10 @@ export function OperationsReportsPage() {
   const headerActions = ["items", "tellers", "waiters", "branches"].includes(tab) ? (
     <AnalyticsExportButton tab={tab} branchId={scopeBranchId} orgId={orgId ?? ""} range={range} periodLabel={periodLabel} />
   ) : undefined;
+
+  if (authz.ready && !authz.can(Cap.ordersRead)) {
+    return <Restricted title={t("reports.operations.title", "Operations")} who={t("reports.noAccess", "Your account can't open this report. The owner can give you access.")} />;
+  }
 
   return (
     <Page>

@@ -24,6 +24,7 @@ import { fmtDateTimeFull, fmtMoney, fmtNumber, fmtPercent, fmtUnit } from "@/lib
 import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 
+import { discountAttribution } from "@/features/discounts/discount-attribution";
 import { orderRewards } from "./reward-lines";
 
 interface Deduction {
@@ -195,6 +196,9 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                   ) : null}
                   <Row label={t("common.date", "Date")} value={fmtDateTimeFull(order.created_at)} />
                   <Row label={t("tills.teller", "Teller")} value={order.teller_name} />
+                  {order.started_by_name && order.started_by !== order.teller_id ? (
+                    <Row label={t("orders.startedBy", "Started by")} value={order.started_by_name} />
+                  ) : null}
                   {order.waiter_name ? <Row label={t("tills.waiter", "Waiter")} value={order.waiter_name} /> : null}
                   {order.customer_name ? <Row label={t("orders.customer", "Customer")} value={order.customer_name} /> : null}
                   <div className="flex items-center justify-between gap-2">
@@ -406,7 +410,12 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid }: Props)
                     />
                   ) : null}
                   {order.discount_amount > 0 ? (
-                    <SummaryLine label={t("orders.discount", "Discount")} value={fmtMoney(-order.discount_amount)} />
+                    <>
+                      <SummaryLine label={t("orders.discount", "Discount")} value={fmtMoney(-order.discount_amount)} />
+                      {discountAttribution(t, order) ? (
+                        <p className="pb-1 text-xs text-muted-foreground">{discountAttribution(t, order)}</p>
+                      ) : null}
+                    </>
                   ) : null}
                   {order.tax_amount > 0 ? <SummaryLine label={t("orders.tax", "Tax")} value={fmtMoney(order.tax_amount)} /> : null}
                   {order.tip_amount ? <SummaryLine label={t("orders.tip", "Tip")} value={fmtMoney(order.tip_amount)} /> : null}
