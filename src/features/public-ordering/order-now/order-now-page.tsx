@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "motion/react";
-import { AlertCircle, ArrowRight, CreditCard, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowRight, CreditCard, Hourglass, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useOrderNowContext } from "@/data/api/generated/api";
@@ -35,7 +35,7 @@ import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { ltrIsolate } from "@/lib/phone";
 
 import { PublicOrderingPage } from "../public-ordering-page";
-import type { OrderNowSession } from "./session";
+import { isTooManyAttempts, type OrderNowSession } from "./session";
 
 interface Props {
   token: string;
@@ -150,7 +150,18 @@ export function OrderNowPage({ token, branch, channel, preview }: Props) {
         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         className="mx-auto flex min-h-[58vh] w-full max-w-md flex-col justify-center gap-6"
       >
-        {masked.isError ? (
+        {masked.isError && isTooManyAttempts(masked.error) ? (
+          <div className="space-y-4 text-center" role="status">
+            <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+              <Hourglass className="size-7" />
+            </span>
+            <h1 className="font-serif text-2xl font-semibold text-balance">{t("order.now.tooManyTitle", "One moment")}</h1>
+            <p className="text-pretty text-muted-foreground">{t("order.now.tooMany", "Too many attempts just now. Give it a moment and try again.")}</p>
+            <Button variant="outline" loading={masked.isFetching} onClick={() => void masked.refetch()}>
+              {t("common.retry", "Retry")}
+            </Button>
+          </div>
+        ) : masked.isError ? (
           <div className="space-y-4 text-center">
             <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
               <CreditCard className="size-7" />
@@ -198,7 +209,9 @@ export function OrderNowPage({ token, branch, channel, preview }: Props) {
                         defaultValue: "That isn’t the number on this card. Use the one ending {{hint}}.",
                         hint: ltrIsolate(masked.data.phone_hint),
                       })
-                    : t("order.now.unlockFailed", "We couldn’t open your details. Try again.")}
+                    : isTooManyAttempts(unlocked.error)
+                      ? t("order.now.tooMany", "Too many attempts just now. Give it a moment and try again.")
+                      : t("order.now.unlockFailed", "We couldn’t open your details. Try again.")}
                 </span>
               </p>
             ) : null}

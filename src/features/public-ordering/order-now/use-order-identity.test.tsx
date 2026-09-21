@@ -166,8 +166,8 @@ describe("useOrderIdentity", () => {
     expect(replaceIdentity).not.toHaveBeenCalled();
   });
 
-  it("one-time, and only the server knew a code was needed: its 401 starts the code, and the order is sent again", async () => {
-    place.mockResolvedValueOnce({ ok: false, status: 401 });
+  it("one-time, and only the server knew a code was needed: CONTACT_VERIFICATION_REQUIRED starts the code, and the order is sent again", async () => {
+    place.mockResolvedValueOnce({ ok: false, status: 401, code: "CONTACT_VERIFICATION_REQUIRED" });
     mount({ phone: OTHER_TYPED, otpRequired: false });
     await placeOrder();
     await choose(/Just this order/);
@@ -178,6 +178,28 @@ describe("useOrderIdentity", () => {
     await waitFor(() => expect(place).toHaveBeenCalledTimes(2));
     expect(place).toHaveBeenLastCalledWith(expect.objectContaining({ contact_device_token: "tok-other" }));
     expect(report).toHaveBeenCalledWith({ ok: true });
+  });
+
+  it("any other 401 on a one-time order is not a question about the other number: no code, reported as it always was", async () => {
+    place.mockResolvedValueOnce({ ok: false, status: 401 });
+    mount({ phone: OTHER_TYPED, otpRequired: false });
+    await placeOrder();
+    await choose(/Just this order/);
+    await go("Continue");
+    await waitFor(() => expect(report).toHaveBeenCalledWith({ ok: false, status: 401 }));
+    expect(requestCode).not.toHaveBeenCalled();
+    expect(place).toHaveBeenCalledTimes(1);
+  });
+
+  it("a number proved a moment ago and still refused is reported, not asked for a second code", async () => {
+    place.mockResolvedValue({ ok: false, status: 401, code: "CONTACT_VERIFICATION_REQUIRED" });
+    mount({ phone: OTHER_TYPED });
+    await placeOrder();
+    await choose(/Just this order/);
+    await go("Continue");
+    await typeCode();
+    await waitFor(() => expect(report).toHaveBeenCalledWith({ ok: false, status: 401, code: "CONTACT_VERIFICATION_REQUIRED" }));
+    expect(requestCode).toHaveBeenCalledTimes(1);
   });
 
   it("replace: both proofs go to replace-identity, the guest store moves to the new number, and the order goes on as the same customer", async () => {
@@ -269,6 +291,31 @@ describe("useOrderIdentity", () => {
     await go("Keep my number");
     expect(onKeepNumber).toHaveBeenCalled();
     expect(place).not.toHaveBeenCalled();
+  });
+
+  it("rate limited (a 429 with no named limit): back to the question with a wait-a-moment, not the month-long refusal", async () => {
+    replaceIdentity.mockRejectedValue(refusal(429, {}));
+    mount({ phone: OTHER_TYPED });
+    await placeOrder();
+    await choose(/This is my new number/);
+    await go("Continue");
+    await typeCode();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Too many attempts just now. Give it a moment and try again.");
+    expect(screen.queryByText(/changed twice in the last 30 days/)).not.toBeInTheDocument();
+    expect(place).not.toHaveBeenCalled();
+  });
+
+  it("rate limited while combining: the combine dialog stays, saying to wait a moment", async () => {
+    replaceIdentity.mockRejectedValue(refusal(409, { code: "PHONE_BELONGS_TO_ANOTHER", can_combine: true }));
+    combine.mockRejectedValue(refusal(429, {}));
+    mount({ phone: OTHER_TYPED });
+    await placeOrder();
+    await choose(/This is my new number/);
+    await go("Continue");
+    await typeCode();
+    await go("These are both me — combine");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Too many attempts just now.");
+    expect(screen.getByRole("button", { name: "These are both me — combine" })).toBeInTheDocument();
   });
 
   it("IDENTITY_CHOICE_REQUIRED from the server opens the question even when this page saw no edit", async () => {

@@ -30,7 +30,7 @@ import { otpRefusal, useOtpTransport } from "@/features/public-shell/use-phone-o
 import { canonicalPhone, formatPhoneDisplay, ltrIsolate } from "@/lib/phone";
 
 import { OtpDialog } from "../components/otp-dialog";
-import { identityRefusal, type OrderIdentityFields, type OrderNowSession, type PlaceOutcome } from "./session";
+import { CONTACT_VERIFICATION_REQUIRED, identityRefusal, isTooManyAttempts, type OrderIdentityFields, type OrderNowSession, type PlaceOutcome } from "./session";
 
 type Purpose = "once" | "replace";
 type Stage =
@@ -87,6 +87,7 @@ export function useOrderIdentity({ session, typed, otpRequired, hasAddress, plac
     [session, typed.name, typed.phone],
   );
   const newPhone = canonicalPhone(typed.phone) ?? "";
+  const tooMany = t("order.now.tooMany", "Too many attempts just now. Give it a moment and try again.");
 
   const close = useCallback(() => {
     setStage(null);
@@ -127,8 +128,9 @@ export function useOrderIdentity({ session, typed, otpRequired, hasAddress, plac
     });
     setWorking(false);
     // The server is the one that knows whether this branch wants the other
-    // number proved. A remembered token it no longer honours is forgotten.
-    if (!outcome.ok && outcome.status === 401 && !fresh) {
+    // number proved, and it says so by name. A remembered token it no longer
+    // honours is forgotten. Any other 401 is not about this number: reported.
+    if (!outcome.ok && outcome.code === CONTACT_VERIFICATION_REQUIRED && !fresh) {
       clearDeviceToken(newPhone);
       return startOtp("once");
     }
@@ -170,7 +172,7 @@ export function useOrderIdentity({ session, typed, otpRequired, hasAddress, plac
         clearDeviceToken(newPhone);
         await startOtp("replace");
       } else {
-        setError(getErrorMessage(err));
+        setError(isTooManyAttempts(err) ? tooMany : getErrorMessage(err));
         setStage({ k: "choice" });
       }
     } finally {
@@ -191,7 +193,7 @@ export function useOrderIdentity({ session, typed, otpRequired, hasAddress, plac
       else if (refusal.code === "IDENTITY_REPLACE_LIMIT") setStage({ k: "refused", reason: "limit" });
       // The other profile went away in the meantime: the number is free to take.
       else if (refusal.code === "NOTHING_TO_COMBINE") await runReplace(newToken);
-      else setError(getErrorMessage(err));
+      else setError(isTooManyAttempts(err) ? tooMany : getErrorMessage(err));
     } finally {
       setWorking(false);
     }

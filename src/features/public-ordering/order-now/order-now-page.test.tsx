@@ -12,6 +12,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { AxiosError, type AxiosResponse } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { OrderNowContext, OrderNowFull } from "@/data/api/generated/models";
@@ -48,6 +49,10 @@ const fullOf = (over: Partial<OrderNowFull> = {}): OrderNowContext => ({
 let unlockedAnswer: OrderNowContext = fullOf();
 const unlocks = new Set<string>();
 const contextCalls: (string | undefined)[] = [];
+/** A refusal for the masked call, or for the unlocking one. */
+let maskedError: unknown = null;
+let unlockError: unknown = null;
+const limited = () => new AxiosError("limited", "429", undefined, undefined, { status: 429, data: "Too many requests" } as AxiosResponse);
 const requestCode = vi.fn();
 const verifyCode = vi.fn();
 const navigate = vi.fn();
@@ -57,6 +62,8 @@ vi.mock("@/data/api/generated/api", () => ({
     const deviceToken = params?.device_token;
     if (opts?.query?.enabled === false) return { data: undefined, isLoading: false, isError: false, isPlaceholderData: false, refetch: vi.fn() };
     contextCalls.push(deviceToken);
+    const failure = deviceToken ? unlockError : maskedError;
+    if (failure) return { data: undefined, error: failure, isLoading: false, isError: true, isFetching: false, isPlaceholderData: false, refetch: vi.fn() };
     const data = deviceToken && unlocks.has(deviceToken) ? unlockedAnswer : maskedCtx;
     return { data, isLoading: false, isError: false, isPlaceholderData: false, refetch: vi.fn() };
   },
@@ -100,6 +107,8 @@ beforeEach(() => {
   localStorage.clear();
   contextCalls.length = 0;
   session = undefined;
+  maskedError = null;
+  unlockError = null;
   unlockedAnswer = fullOf();
   unlocks.clear();
   unlocks.add(`tok:${OWNER}`);
@@ -171,6 +180,29 @@ describe("OrderNowPage", () => {
     expect(screen.queryByTestId("ordering")).not.toBeInTheDocument();
     // …and the form is back, ready for the right one.
     expect(screen.getByRole("textbox", { name: "Your phone number" })).toBeInTheDocument();
+  });
+
+  it("rate limited before anything is known (429): asks for a moment, and does not call the card unknown", () => {
+    maskedError = limited();
+    mount();
+    expect(screen.getByRole("heading", { name: "One moment" })).toBeInTheDocument();
+    expect(screen.getByText("Too many attempts just now. Give it a moment and try again.")).toBeInTheDocument();
+    expect(screen.queryByText("We couldn’t find that card")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+  });
+
+  it("any other failure of the masked call is still the unknown card", () => {
+    maskedError = new AxiosError("gone", "404", undefined, undefined, { status: 404, data: {} } as AxiosResponse);
+    mount();
+    expect(screen.getByRole("heading", { name: "We couldn’t find that card" })).toBeInTheDocument();
+  });
+
+  it("rate limited while unlocking (429): the form stays, with a wait-a-moment instead of the generic failure", () => {
+    localStorage.setItem(`madar_delivery_device:${OWNER}`, `tok:${OWNER}`);
+    unlockError = limited();
+    mount();
+    expect(screen.getByRole("alert")).toHaveTextContent("Too many attempts just now.");
+    expect(screen.queryByText("We couldn’t open your details. Try again.")).not.toBeInTheDocument();
   });
 
   it("stale branch: nothing is seeded, the branch chooser asks — the rest of the session is kept", async () => {

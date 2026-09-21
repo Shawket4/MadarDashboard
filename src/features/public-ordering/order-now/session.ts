@@ -57,6 +57,18 @@ export function identityRefusal(err: unknown): IdentityRefusal {
   };
 }
 
+/** The one 401 that is a question, not a sign-out: prove the number this order is going to. */
+export const CONTACT_VERIFICATION_REQUIRED = "CONTACT_VERIFICATION_REQUIRED";
+
+/**
+ * The server's rate limit on a card's token (or on this address): a 429 that is
+ * NOT the named, month-long `IDENTITY_REPLACE_LIMIT`. It clears by itself.
+ */
+export function isTooManyAttempts(err: unknown): boolean {
+  const { status, code } = identityRefusal(err);
+  return status === 429 && code !== "IDENTITY_REPLACE_LIMIT";
+}
+
 /**
  * The saved address to open with: the most recently used one for the channel
  * they last ordered on. `stale` → the location step asks again, with a reason.

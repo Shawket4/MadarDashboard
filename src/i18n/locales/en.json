@@ -3430,6 +3430,8 @@
       "verifyBodyBranch": "Confirm your number ending {{hint}} and we’ll have your usual from {{branch}} ready to order: your address, your details, one tap to the menu.",
       "verifyBody": "Confirm your number ending {{hint}} and we’ll fill in your details for you.",
       "wrongNumber": "That isn’t the number on this card. Use the one ending {{hint}}.",
+      "tooManyTitle": "One moment",
+      "tooMany": "Too many attempts just now. Give it a moment and try again.",
       "unlockFailed": "We couldn’t open your details. Try again.",
       "phoneTitle": "Your phone number",
       "phoneHint": "We’ll send a WhatsApp code the first time you order from this device.",
