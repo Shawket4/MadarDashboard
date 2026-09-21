@@ -5142,6 +5142,18 @@
         "stale_snapshot": "Done offline before a permission change reached the till",
         "unauthorized_offline": "Done offline without the permission",
         "pin_wrong_branch": "Correct PIN at a branch they don't work at"
+      },
+      "details": {
+        "orders_staff_drink_record": {
+          "comp_mismatch": "Staff drink: the till gave a different amount free than the server priced",
+          "overspent": "Staff drink: over the allowance, and the till hadn't counted it as over",
+          "device_overcounted": "Staff drink: the till counted it as over the allowance; the server did not",
+          "duplicate_id": "Staff drink: the same drink was already rung on another order",
+          "pool_off": "Staff drink rung offline while staff drinks were off at the branch",
+          "no_eligible_items": "Staff drink rung offline while no items counted as staff drinks",
+          "item_not_eligible": "Staff drink rung offline on an item that doesn't count as one",
+          "note_required": "Staff drink rung offline with no note saying who it was for"
+        }
       }
     },
     "maxAgeMinutes": "Within minutes of the sale",
