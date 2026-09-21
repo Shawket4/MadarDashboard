@@ -1,6 +1,7 @@
 import { TZDate } from "@date-fns/tz";
+import { AxiosError } from "axios";
 
-import { getActiveTz } from "@/lib/format";
+import { fmtDate, fmtWireTime, getActiveTz } from "@/lib/format";
 import type { TillSessionRow } from "@/data/api/generated/models";
 
 /** Minutes past local midnight, in the active timezone. */
@@ -40,36 +41,61 @@ export const meanTimeOfDay = (minutes: number[]): number | null => {
   return ((mins % 1440) + 1440) % 1440;
 };
 
-/** "07:05" from minutes past midnight. */
+/**
+ * Minutes past midnight as the clock the rest of the app shows: 12-hour, in the
+ * app language (`07:05 AM`, `07:05 ص`) — the same shape as the table's
+ * opened-at column, not a second, 24-hour dialect on the same page.
+ */
 export const fmtMinutesOfDay = (mins: number | null): string =>
   mins == null
     ? "—"
-    : `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
+    : fmtWireTime(`${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`);
+
+/**
+ * A `YYYY-MM-DD` business date, as a date.
+ *
+ * It is a calendar day, not an instant. `new Date("2026-09-18")` is midnight
+ * UTC, which a formatter in any zone west of Greenwich renders as the 17th —
+ * so the day is pinned to local noon in the active zone before formatting.
+ */
+export const fmtBusinessDate = (ymd: string): string => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!m) return "—";
+  return fmtDate(new TZDate(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, getActiveTz()));
+};
+
+/** The session's drawer is still running. `status` is the API's word for it. */
+export const isOpen = (r: TillSessionRow): boolean => r.status === "open";
+/** Closed by a manager without the teller's count — the figures are not a reconciliation. */
+export const isForceClosed = (r: TillSessionRow): boolean => r.status === "force_closed";
+
+/**
+ * The API refuses a range it will not list whole (400: more than 5000 sessions,
+ * or `to` before `from`). Retrying cannot help; only a shorter period can.
+ */
+export const isRangeRefused = (err: unknown): boolean =>
+  err instanceof AxiosError && err.response?.status === 400;
 
 export interface SalesStats {
   tills: number;
   orders: number;
+  /** Net of refunds — the API's `net_sales`; voided and fully refunded bills are not in it. */
   sales: number;
   /** Average bill across every sale in the period. */
   avgOrderValue: number;
   /** Average takings per till session. */
   avgSalesPerTill: number;
-  /** The single busiest session by sales, for the "who carried the day" line. */
-  best: TillSessionRow | null;
 }
 
 export const salesStats = (rows: TillSessionRow[]): SalesStats => {
   const orders = rows.reduce((n, r) => n + r.orders_count, 0);
-  const sales = rows.reduce((n, r) => n + r.gross_sales, 0);
-  let best: TillSessionRow | null = null;
-  for (const r of rows) if (!best || r.gross_sales > best.gross_sales) best = r;
+  const sales = rows.reduce((n, r) => n + r.net_sales, 0);
   return {
     tills: rows.length,
     orders,
     sales,
     avgOrderValue: orders > 0 ? Math.round(sales / orders) : 0,
     avgSalesPerTill: rows.length > 0 ? Math.round(sales / rows.length) : 0,
-    best,
   };
 };
 
@@ -80,7 +106,6 @@ export interface TimingStats {
   /** Milliseconds. Only CLOSED sessions can have a length. */
   avgDurationMs: number | null;
   longest: TillSessionRow | null;
-  shortest: TillSessionRow | null;
   /** Sessions still running — they have no close time to average. */
   openNow: number;
 }
@@ -90,28 +115,25 @@ export const durationMs = (r: TillSessionRow): number | null =>
 
 export const timingStats = (rows: TillSessionRow[]): TimingStats => {
   const closed = rows.filter((r) => r.closed_at);
-  const durations = closed
-    .map((r) => ({ r, ms: durationMs(r)! }))
+
+  let longest: { r: TillSessionRow; ms: number } | null = null;
+  let total = 0;
+  let measured = 0;
+  for (const r of closed) {
+    const ms = durationMs(r);
     // A clock skew or a bad close can land a negative span; it would drag the
     // average somewhere impossible, so it is not an average of anything.
-    .filter((d) => d.ms >= 0);
-
-  let longest: TillSessionRow | null = null;
-  let shortest: TillSessionRow | null = null;
-  for (const d of durations) {
-    if (!longest || d.ms > durationMs(longest)!) longest = d.r;
-    if (!shortest || d.ms < durationMs(shortest)!) shortest = d.r;
+    if (ms == null || ms < 0) continue;
+    total += ms;
+    measured += 1;
+    if (!longest || ms > longest.ms) longest = { r, ms };
   }
 
   return {
     avgOpen: meanTimeOfDay(rows.map((r) => minutesOfDay(r.opened_at))),
-    avgClose: meanTimeOfDay(closed.map((r) => minutesOfDay(r.closed_at!))),
-    avgDurationMs:
-      durations.length > 0
-        ? Math.round(durations.reduce((n, d) => n + d.ms, 0) / durations.length)
-        : null,
-    longest,
-    shortest,
+    avgClose: meanTimeOfDay(closed.map((r) => minutesOfDay(r.closed_at ?? r.opened_at))),
+    avgDurationMs: measured > 0 ? Math.round(total / measured) : null,
+    longest: longest?.r ?? null,
     openNow: rows.length - closed.length,
   };
 };

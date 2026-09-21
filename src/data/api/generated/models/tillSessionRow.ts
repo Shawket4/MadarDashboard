@@ -9,13 +9,15 @@
  * Money is piastres. `null` means *not yet known* (an open till has no closing
  * figures), never zero — a till still running and a till that counted zero are
  * different facts.
+ *
+ * The cash columns add up: `opening_cash + net_cash_payment + pay_ins −
+ * pay_outs − cash_drops + cash_adjustments` is the drawer's expected cash —
+ * `closing_cash_system` once the till is closed.
  */
 export interface TillSessionRow {
-  /**
-     * The branch's own reference/code, blank when the branch never set one.
-     * @nullable
-     */
-  branch_code?: string | null;
+  /** The branch's short code, the prefix of its order references. */
+  branch_code: string;
+  branch_id: string;
   branch_name: string;
   /**
      * The branch-local calendar day the till was OPENED on — a till opened at
@@ -24,35 +26,43 @@ export interface TillSessionRow {
      */
   business_date: string;
   /**
+     * Corrections that name no movement of the three kinds above. Signed:
+     * positive = cash the drawer gained. The till report's `cash_adjustments`.
+     */
+  cash_adjustments: number;
+  /**
      * Declared − expected. Negative = short, positive = over.
      * @nullable
      */
   cash_discrepancy?: number | null;
-  /** Cash moved to the safe. Positive = the magnitude that left. */
+  /**
+     * Cash moved to the safe, net of corrections to safe drops.
+     * Positive = the magnitude that left.
+     */
   cash_drops: number;
   /** @nullable */
   closed_at?: string | null;
   /**
-     * What the teller counted at close. `null` while the till is open.
+     * What was counted at close. `null` while the till is open, and for a
+     * force-close nobody counted.
      * @nullable
      */
   closing_cash_declared?: number | null;
   /**
-     * What the system expected: opening + net cash + pay-ins − pay-outs −
-     * drops (± corrections). `null` while the till is open.
+     * What the system expected at close. `null` while the till is open.
      * @nullable
      */
   closing_cash_system?: number | null;
-  /**
-     * Those sales' value, net of what refunds took back. The house revenue
-     * definition, so a till row and the teller report agree.
-     */
-  gross_sales: number;
   /**
      * Cash that came in over the counter: cash payments and cash tips on
      * tendered sales, less cash handed back as refunds from this drawer.
      */
   net_cash_payment: number;
+  /**
+     * Those sales' value, net of what refunds took back (`net_sales` in the
+     * POS metrics report, `revenue` in the teller report).
+     */
+  net_sales: number;
   opened_at: string;
   opening_cash: number;
   /**
@@ -60,12 +70,19 @@ export interface TillSessionRow {
      * the same count the teller report uses.
      */
   orders_count: number;
-  /** Cash added to the drawer that is not a sale (a float top-up). */
+  /**
+     * Cash added to the drawer that is not a sale (a float top-up), net of
+     * corrections to pay-ins.
+     */
   pay_ins: number;
-  /** Cash spent out of the drawer. Positive = the magnitude that left. */
+  /**
+     * Cash spent out of the drawer, net of corrections to pay-outs.
+     * Positive = the magnitude that left.
+     */
   pay_outs: number;
   /** `open` | `closed` | `force_closed`. */
   status: string;
+  teller_id: string;
   teller_name: string;
   till_id: string;
 }

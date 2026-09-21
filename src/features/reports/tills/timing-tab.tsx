@@ -1,15 +1,18 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useReducedMotion } from "motion/react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Clock, DoorClosed, DoorOpen, Hourglass } from "lucide-react";
 
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/app/empty-state";
+import { CHART_AXIS_TICK, ChartCard, chartColor } from "@/components/app/chart-card";
+import { ChartTooltipContent } from "@/components/app/chart-tooltip";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getErrorMessage } from "@/data/api/errors";
 import { fmtDuration, fmtElapsedMs, fmtHour, fmtNumber } from "@/lib/format";
-import type { TillSessionRow } from "@/data/api/generated/models";
-import { byHour, fmtMinutesOfDay, timingStats } from "./lib";
+import { byHour, fmtBusinessDate, fmtMinutesOfDay, timingStats } from "./lib";
+import type { TillTabProps } from "./sales-tab";
 
 /**
  * When drawers open, when they close, and for how long. The averages are
@@ -17,12 +20,14 @@ import { byHour, fmtMinutesOfDay, timingStats } from "./lib";
  * across midnight, and a late-night branch would report an average open of
  * lunchtime.
  */
-export function TimingTab({ rows, loading }: { rows: TillSessionRow[]; loading: boolean }) {
+export function TimingTab({ rows, loading, error, onRetry }: TillTabProps) {
   const { t } = useTranslation();
+  const reduced = useReducedMotion();
   const s = useMemo(() => timingStats(rows), [rows]);
   const hours = useMemo(() => byHour(rows), [rows]);
 
   if (loading) return <Skeleton className="h-64 w-full" />;
+  if (error) return <ErrorState message={typeof error === "string" ? error : getErrorMessage(error)} onRetry={onRetry} />;
   if (rows.length === 0) {
     return <EmptyState title={t("reports.tills.empty", "No till sessions opened in this period")} />;
   }
@@ -59,60 +64,76 @@ export function TimingTab({ rows, loading }: { rows: TillSessionRow[]; loading: 
       label: t("reports.tills.longest", "Longest session"),
       value: s.longest ? fmtDuration(s.longest.opened_at, s.longest.closed_at) : "—",
       icon: Clock,
-      hint: s.longest ? `${s.longest.teller_name} · ${s.longest.branch_name}` : undefined,
+      hint: s.longest
+        ? `${s.longest.teller_name} · ${s.longest.branch_name} · ${fmtBusinessDate(s.longest.business_date)}`
+        : undefined,
     },
   ];
+
+  const chartSummary = t("reports.tills.byHourSummary", {
+    open: fmtMinutesOfDay(s.avgOpen),
+    close: fmtMinutesOfDay(s.avgClose),
+    defaultValue: "Till opens and closes counted by hour of the day. Typical open {{open}}, typical close {{close}}.",
+  });
 
   return (
     <div className="space-y-4">
       <LedgerStrip items={strip} />
 
-      <Card className="py-0">
-        <CardHeader className="pt-4">
-          <CardTitle className="text-base">{t("reports.tills.byHour", "Opens and closes by hour")}</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={hours} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+      <ChartCard title={t("reports.tills.byHour", "Opens and closes by hour")}>
+        {/* A picture to a screen reader: the sentence says what it shows, and
+            the Sessions tab holds every open and close behind it. */}
+        <div role="img" aria-label={chartSummary} className="h-72 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={hours} margin={{ top: 8, right: 8, bottom: 0, left: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="hour"
                 tickFormatter={(h: number) => fmtHour(h)}
-                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                tick={CHART_AXIS_TICK}
+                tickLine={false}
+                axisLine={false}
                 interval={2}
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                width={32}
+                tick={CHART_AXIS_TICK}
+                tickLine={false}
+                axisLine={false}
                 tickFormatter={(v: number) => fmtNumber(v)}
               />
               <Tooltip
-                cursor={{ fill: "var(--muted)", opacity: 0.4 }}
-                labelFormatter={(h) => fmtHour(Number(h))}
-                contentStyle={{
-                  background: "var(--popover)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 12,
-                  fontSize: 12,
-                }}
+                cursor={{ fill: "var(--muted)" }}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(h) => fmtHour(Number(h))}
+                    formatter={(v) => fmtNumber(v)}
+                  />
+                }
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Bar
                 dataKey="opened"
                 name={t("reports.tills.opened", "Opened")}
-                fill="var(--color-primary)"
+                fill={chartColor(0)}
                 radius={[4, 4, 0, 0]}
+                isAnimationActive={!reduced}
               />
               <Bar
                 dataKey="closed"
                 name={t("reports.tills.closed", "Closed")}
-                fill="var(--color-muted-foreground)"
+                // Not the next categorical hue: teal beside blue at the same
+                // lightness is one colour to many eyes. Ink-grey against the
+                // lead hue separates on lightness alone.
+                fill="var(--muted-foreground)"
                 radius={[4, 4, 0, 0]}
+                isAnimationActive={!reduced}
               />
             </BarChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        </div>
+      </ChartCard>
     </div>
   );
 }
