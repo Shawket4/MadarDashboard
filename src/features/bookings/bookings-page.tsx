@@ -9,6 +9,7 @@
  * timer as well as on realtime nudges, so it is right even without the stream.
  */
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
@@ -50,23 +51,15 @@ import { CustomerLink } from "@/features/customers/customer-link";
 import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
 
 import { BookingDialog } from "./booking-dialog";
+import { BookingStatusBadge } from "./status-badge";
 import { BookingSettingsDialog } from "./settings-dialog";
 import {
-  STATUS_TONES, addDays, dayTotals, dayWindow, hourTicks, invalidateBookings, isActive, isHeld, isLate,
+  addDays, dayTotals, dayWindow, hourTicks, invalidateBookings, isActive, isHeld, isLate,
   serviceToday, timelineSpan, type BookingStatus,
 } from "./util";
 
 type View = "list" | "timeline";
 type Filter = "active" | "all" | BookingStatus;
-
-export function BookingStatusBadge({ status }: { status: string }) {
-  const { t } = useTranslation();
-  return (
-    <StatusPill tone={STATUS_TONES[status as BookingStatus] ?? "neutral"}>
-      {t(`bookings.status.${status}`, status.replace("_", " "))}
-    </StatusPill>
-  );
-}
 
 export function BookingsPage() {
   const { t } = useTranslation();
@@ -74,7 +67,10 @@ export function BookingsPage() {
   const scope = useScope();
   const branchId = scope.branchId ?? null;
 
-  const [date, setDate] = useState(() => serviceToday());
+  // ?date=&booking= — a link from a customer's bookings: that day, that booking open.
+  const search = useSearch({ strict: false }) as { date?: string; booking?: string };
+  const navigate = useNavigate();
+  const [date, setDate] = useState(() => search.date ?? serviceToday());
   const [view, setView] = useState<View>("list");
   const [filter, setFilter] = useState<Filter>("active");
   const [editing, setEditing] = useState<BookingView | null>(null);
@@ -113,6 +109,28 @@ export function BookingsPage() {
     () => [...(tablesQ.data ?? [])].filter((x) => x.is_active).sort((a, b) => a.label.localeCompare(b.label)),
     [tablesQ.data],
   );
+
+  // Follow the link once: the day first, then the booking when that day's list has it.
+  useEffect(() => {
+    if (search.date && search.date !== date) setDate(search.date);
+    // Only a change of the link moves the day; the day picker is free after that.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.date]);
+  useEffect(() => {
+    if (!search.booking || !listQ.isSuccess || listQ.isPlaceholderData) return;
+    if (search.date && search.date !== date) return; // the day has not turned yet
+    const linked = all.find((b) => b.id === search.booking);
+    if (linked) {
+      setFilter("all");
+      setEditing(linked);
+      setDialogOpen(true);
+    }
+    void navigate({
+      to: ".",
+      replace: true,
+      search: (prev: Record<string, unknown>) => ({ ...prev, date: undefined, booking: undefined }),
+    });
+  }, [search.booking, search.date, date, listQ.isSuccess, listQ.isPlaceholderData, all, navigate]);
 
   const openNew = () => { setEditing(null); setDialogOpen(true); };
   const openEdit = (b: BookingView) => { setEditing(b); setDialogOpen(true); };

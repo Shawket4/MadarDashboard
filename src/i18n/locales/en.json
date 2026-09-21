@@ -5202,6 +5202,12 @@
     "orderedBy": "Ordered by",
     "orderedFor": "for",
     "orderedForSomeoneElse": "Ordered for someone else:",
+    "bookings": {
+      "title": "Bookings",
+      "empty": "No bookings. A table booked under this customer's number shows here.",
+      "party": "Party of {{n}}",
+      "more": "Show more"
+    },
     "addresses": {
       "title": "Addresses",
       "empty": "No saved addresses. One is kept the first time they order for delivery.",

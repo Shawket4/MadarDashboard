@@ -35,6 +35,7 @@ import { formatPhoneDisplay } from "@/lib/phone";
 
 import { peopleAccess } from "./access";
 import { AddressesSection } from "./addresses-section";
+import { BookingsSection } from "./bookings-section";
 import { CustomerDialog } from "./customer-dialog";
 import { MergeDialog } from "./merge-dialog";
 import { formatBirthday, isPersonQuery, isSource } from "./util";
@@ -222,6 +223,7 @@ export function CustomerDetailSheet({
               {detail.data && customer ? (
                 <>
                   {access.canViewAddresses ? <AddressesSection customerId={customer.id} /> : null}
+                  <BookingsSection customerId={customer.id} />
                   <RecentOrders orders={detail.data.recent_orders} onOpenOrder={onOpenOrder} />
                   {canEdit ? <CustomerDialog open={editing} onOpenChange={setEditing} customer={customer} /> : null}
                   {canMerge ? (

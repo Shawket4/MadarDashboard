@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addDays, dayTotals, dayWindow, hourTicks, isHeld, isLate, localHHMM, localInstant, serviceToday, timelineSpan, weekdayOf } from "./util";
+import { addDays, dayTotals, dayWindow, hourTicks, isHeld, isLate, localHHMM, localInstant, serviceDateOf, serviceToday, timelineSpan, weekdayOf } from "./util";
 import type { BookingSettings } from "@/data/api/generated/models/bookingSettings";
 import type { BookingView } from "@/data/api/generated/models/bookingView";
 
@@ -81,5 +81,12 @@ describe("tallies and state", () => {
     expect(isHeld(x, new Date("2026-09-10T16:00:00Z"))).toBe(false);
     expect(isLate(x, new Date("2026-09-10T16:40:00Z"))).toBe(true);
     expect(isHeld(b({ status: "seated" }), new Date("2026-09-10T17:00:00Z"))).toBe(false);
+  });
+});
+
+describe("serviceDateOf", () => {
+  it("is the day a booking is listed under: the branch's calendar day, not UTC's", () => {
+    expect(serviceDateOf("2026-09-10T21:30:00Z", TZ)).toBe("2026-09-11");
+    expect(serviceDateOf("2026-09-10T20:59:00Z", TZ)).toBe("2026-09-10");
   });
 });

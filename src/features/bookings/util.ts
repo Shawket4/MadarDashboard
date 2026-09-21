@@ -68,6 +68,9 @@ export function serviceToday(now: Date = new Date(), tz: string = getActiveTz())
   return ymd(z.getFullYear(), z.getMonth(), z.getDate());
 }
 
+/** The calendar date (`YYYY-MM-DD`) an instant falls on in `tz` — the day a booking is listed under. */
+export const serviceDateOf = (iso: string, tz: string = getActiveTz()): string => serviceToday(new Date(iso), tz);
+
 /** `YYYY-MM-DD` ± n days (calendar arithmetic, timezone-free). */
 export function addDays(date: string, n: number): string {
   const [y, m, d] = date.split("-").map(Number);

@@ -50,6 +50,7 @@ vi.mock("@/data/authz/use-authz", async () => {
 });
 vi.mock("@/components/app/confirm-dialog", () => ({ useConfirm: () => confirm }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
+vi.mock("./bookings-section", () => ({ BookingsSection: () => <section aria-label="Bookings" /> }));
 vi.mock("./customer-dialog", () => ({ CustomerDialog: () => null }));
 vi.mock("./merge-dialog", () => ({ MergeDialog: () => null }));
 vi.mock("@/features/loyalty/admin/members/adjust-dialog", () => ({ AdjustDialog: () => null }));
@@ -99,6 +100,18 @@ describe("CustomerDetailSheet", () => {
 
     expect(screen.queryByRole("heading", { name: "Loyalty" })).not.toBeInTheDocument();
     for (const name of [/^Edit$/, /Merge into/, /Erase customer/, /Adjust balance/, /Remove from loyalty programme/]) expect(action(name)).not.toBeInTheDocument();
+  });
+
+  it("the customer's bookings sit behind customers.view, like the customer", () => {
+    held = ["customers.view"];
+    mount();
+    expect(screen.getByRole("region", { name: "Bookings" })).toBeInTheDocument();
+  });
+
+  it("only a loyalty read: no bookings asked for", () => {
+    held = ["loyalty.members.list"];
+    mount();
+    expect(screen.queryByRole("region", { name: "Bookings" })).not.toBeInTheDocument();
   });
 
   it("only a loyalty read: the card as it always was, the customer never asked for", () => {
